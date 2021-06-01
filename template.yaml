@@ -320,7 +320,7 @@ Resources:
       Description: A base URL for the callbacks for the identity providers.
       Name: CognitoFrontendApplicationUrl
       Type: String
-      Value: !Ref CognitoFrontendApplicationUrl
+      Value: !Ref FrontendApplicationUrl
 
   FeideMetadataUrlParameter:
     Type: AWS::SSM::Parameter

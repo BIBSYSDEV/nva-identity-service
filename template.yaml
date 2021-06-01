@@ -26,6 +26,10 @@ Parameters:
     Type: String
     Default: https://frontend.dev.nva.aws.unit.no
     Description: A base URL for the callbacks for the identity providers.
+  ParameterNamePrefix:
+    Type: String
+    Description: Prefix used for naming parameters.
+    Default: ''
   PreTokenGenerationTriggerArn:
     Type: AWS::SSM::Parameter::Value<String>
     Description: ARN to function handling PreTokenGeneration trigger for login.
@@ -309,66 +313,67 @@ Resources:
   CognitoAuthenticationDomainPrefixParameter:
     Type: AWS::SSM::Parameter
     Properties:
+      Name: !Sub '${ParameterNamePrefix}CognitoAuthenticationDomainPrefix'
       Description: The prefix for the Cognito domain that hosts the sign-up and sign-in pages for your application.
-      Name: CognitoAuthenticationDomainPrefix
       Type: String
       Value: !Ref AuthenticationDomainPrefix
 
   CognitoFrontendApplicationUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
+      Name: !Sub '${ParameterNamePrefix}CognitoFrontendApplicationUrl'
       Description: A base URL for the callbacks for the identity providers.
-      Name: CognitoFrontendApplicationUrl
       Type: String
       Value: !Ref FrontendApplicationUrl
 
   FeideMetadataUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
+      Name: !Sub '${ParameterNamePrefix}FeideMetadataUrl'
       Description: Link to the the identity provider details.
-      Name: FeideMetadataUrl
       Type: String
       Value: !Ref FeideMetadataUrl
 
   CognitoAuthorizerArnParameter:
     Type: AWS::SSM::Parameter
     Properties:
+      Name: !Sub '${ParameterNamePrefix}CognitoAuthorizerArn'
       Description: ARN Identifier of the UserPool
-      Value: !GetAtt UserPool.Arn
-      Name: CognitoAuthorizerArn
       Type: String
+      Value: !GetAtt UserPool.Arn
+
 
   CognitoIdentityPoolIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Type: String
+      Name: !Sub '${ParameterNamePrefix}CognitoIdentityPoolId'
       Description: Identifier of the IdentityPool assosiated with the UserPool
+      Type: String
       Value: !Ref IdentityPool
-      Name: CognitoIdentityPoolId
 
   CognitoUserPoolIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Description: Identifier of the UserPool in Cognito
       Value: !Ref UserPool
-      Name: CognitoUserPoolId
+      Description: Identifier of the UserPool in Cognito
+      Name: !Sub '${ParameterNamePrefix}CognitoUserPoolId'
       Type: String
 
   CognitoUserPoolAppClientIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
+      Name: !Sub '${ParameterNamePrefix}CognitoUserPoolAppClientId'
       Description: Identifier to use for the app clients to access this user pool
-      Value: !Ref UserPoolClient
-      Name: CognitoUserPoolAppClientId
       Type: String
+      Value: !Ref UserPoolClient
 
   CognitoURNParameter:
     Type: AWS::SSM::Parameter
     Properties:
+      Name: !Sub '${ParameterNamePrefix}CognitoURN'
       Description: URN of the cognito login to use in Feide
-      Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
-      Name: CognitoURN
       Type: String
+      Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
 
 ### Outputs ############################################################################################################
 

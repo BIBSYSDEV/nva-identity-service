@@ -3,4 +3,379 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   Stack for Cognito and users, roles and customer institution services.
 
+#
+#  After Cognito has been created it must be registered with Feide
+#  The user pools service provider URN is: urn:amazon:cognito:sp:<user_pool_id>
+#
+#  Information needed is:
+#
+#    Amazon Cognito Domain:  https://nva-test.auth.eu-west-1.amazoncognito.com
+#    Amazon Cognito URN:     urn:amazon:cognito:sp:eu-west-1_JRPabH2jf
+#
+
+Parameters:
+  AuthenticationDomainPrefix:
+    Type: String
+    Default: nva-develop
+    Description: The prefix for the Cognito domain that hosts the sign-up and sign-in pages for your application.
+  FeideMetadataUrl:
+    Type: String
+    Default: https://idp-test.feide.no/simplesaml/saml2/idp/metadata.php
+    Description: Link to the the identity provider details.
+  FrontendApplicationUrl:
+    Type: String
+    Default: https://frontend.dev.nva.aws.unit.no
+    Description: A base URL for the callbacks for the identity providers.
+  PreTokenGenerationTriggerArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: ARN to function handling PreTokenGeneration trigger for login.
+    Default: CognitoPreTokenGenerationTriggerArn
+
 Resources:
+
+  ### Cognito ##########################################################################################################
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      UsernameAttributes: [email]
+      EmailConfiguration:
+        EmailSendingAccount: 'COGNITO_DEFAULT'
+      MfaConfiguration: 'OFF'
+      LambdaConfig:
+        PreTokenGeneration: !Ref PreTokenGenerationTriggerArn
+      Schema:
+        - Name: affiliation
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: application
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: applicationRoles
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: commonName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: feideTargetedId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: feideId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: identifiers
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: orgEmail
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: orgLegalName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: orgName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: orgNumber
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: schoolList
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: yearOfBirth
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: customerId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: cristinId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: accessRights
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: hostedOrgNumber
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: hostedAffiliation
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId: !Ref UserPool
+      Domain: !Ref AuthenticationDomainPrefix
+
+  UserPoolIdentityProviderFeide:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:affiliation: eduPersonAffiliation
+        custom:commonName: cn
+        custom:feideId: eduPersonPrincipalName
+        custom:feideTargetedId: eduPersonTargetedID
+        custom:orgLegalName: eduPersonOrgDN:eduOrgLegalName
+        name: displayName
+        custom:orgEmail: eduPersonOrgDN:mail
+        custom:orgName: eduPersonOrgDN:o
+        custom:orgNumber: eduPersonOrgDN:norEduOrgNIN
+        custom:schoolList: feideSchoolList
+        custom:yearOfBirth: feideYearOfBirth
+        given_name: givenName
+        email: mail
+        family_name: sn
+        custom:hostedOrgNumber: eduPersonOrgUnitDN:norEduOrgUnitUniqueIdentifier
+        custom:hostedAffiliation: eduPersonScopedAffiliation
+      UserPoolId: !Ref UserPool
+      ProviderName: FeideIdentityProvider
+      ProviderType: SAML
+      ProviderDetails:
+        MetadataURL: !Ref FeideMetadataUrl
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      GenerateSecret: false
+      SupportedIdentityProviders:
+        - !Ref UserPoolIdentityProviderFeide
+      UserPoolId: !Ref UserPool
+      CallbackURLs:
+        - !Ref FrontendApplicationUrl
+      LogoutURLs:
+        - !Sub '${FrontendApplicationUrl}/logout'
+      AllowedOAuthFlowsUserPoolClient: True
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - openid
+        - aws.cognito.signin.user.admin
+
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: True
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+
+  # IAM role used for authenticated users
+  FeideAuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Federated: 'cognito-identity.amazonaws.com'
+            Action:
+              - 'sts:AssumeRoleWithWebIdentity'
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud':
+                  Ref: IdentityPool
+              'ForAnyValue:StringLike':
+                'cognito-identity.amazonaws.com:amr': authenticated
+      Policies:
+        - PolicyName: 'CognitoAuthorizedPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'mobileanalytics:PutEvents'
+                  - 'cognito-sync:*'
+                  - 'cognito-identity:*'
+                Resource: ['*']
+
+  # IAM role used for unauthenticated users
+  UnauthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Federated: 'cognito-identity.amazonaws.com'
+            Action:
+              - 'sts:AssumeRoleWithWebIdentity'
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud':
+                  Ref: IdentityPool
+              'ForAnyValue:StringLike':
+                'cognito-identity.amazonaws.com:amr': unauthenticated
+      Policies:
+        - PolicyName: 'CognitoUnauthenticatedRolePolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'mobileanalytics:PutEvents'
+                  - 'cognito-sync:*'
+                Resource: ['*']
+
+  # Assigns the roles to the Identity Pool
+  IdentityPoolRoleMapping:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        authenticated: !GetAtt FeideAuthenticatedRole.Arn
+        unauthenticated: !GetAtt UnauthenticatedRole.Arn
+
+  # IAM role used for users allowed to publish
+  PublisherRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Federated: 'cognito-identity.amazonaws.com'
+            Action:
+              - 'sts:AssumeRoleWithWebIdentity'
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud':
+                  Ref: IdentityPool
+              'ForAnyValue:StringLike':
+                'cognito-identity.amazonaws.com:amr': authenticated
+      Policies:
+        - PolicyName: PublisherPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'mobileanalytics:PutEvents'
+                  - 'cognito-sync:*'
+                Resource: ['*']
+
+  FeideAuthenticatedGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: FeideAuthenticatedGroup
+      Description: Common users authenticated with Feide
+      RoleArn: !GetAtt FeideAuthenticatedRole.Arn
+      UserPoolId: !Ref UserPool
+
+  PublisherGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: PublisherGroup
+      Description: Users allowed to publish
+      RoleArn: !GetAtt PublisherRole.Arn
+      UserPoolId: !Ref UserPool
+
+  ### Parameters #######################################################################################################
+
+  CognitoAuthenticationDomainPrefixParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: The prefix for the Cognito domain that hosts the sign-up and sign-in pages for your application.
+      Name: CognitoAuthenticationDomainPrefix
+      Type: String
+      Value: !Ref AuthenticationDomainPrefix
+
+  CognitoFrontendApplicationUrlParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: A base URL for the callbacks for the identity providers.
+      Name: CognitoFrontendApplicationUrl
+      Type: String
+      Value: !Ref CognitoFrontendApplicationUrl
+
+  FeideMetadataUrlParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Link to the the identity provider details.
+      Name: FeideMetadataUrl
+      Type: String
+      Value: !Ref FeideMetadataUrl
+
+  CognitoAuthorizerArnParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: ARN Identifier of the UserPool
+      Value: !GetAtt UserPool.Arn
+      Name: CognitoAuthorizerArn
+      Type: String
+
+  CognitoIdentityPoolIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Description: Identifier of the IdentityPool assosiated with the UserPool
+      Value: !Ref IdentityPool
+      Name: CognitoIdentityPoolId
+
+  CognitoUserPoolIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Identifier of the UserPool in Cognito
+      Value: !Ref UserPool
+      Name: CognitoUserPoolId
+      Type: String
+
+  CognitoUserPoolAppClientIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Identifier to use for the app clients to access this user pool
+      Value: !Ref UserPoolClient
+      Name: CognitoUserPoolAppClientId
+      Type: String
+
+  CognitoURNParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: URN of the cognito login to use in Feide
+      Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
+      Name: CognitoURN
+      Type: String
+
+### Outputs ############################################################################################################
+
+Outputs:
+  CognitoDomain:
+    Description: Amazon Cognito Domain.
+    Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+  CognitoURN:
+    Description: Amazon Cognito URN.
+    Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'

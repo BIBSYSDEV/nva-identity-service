@@ -1,0 +1,6 @@
+dependencies{
+    compileOnly (group: 'com.amazonaws', name: 'aws-java-sdk-secretsmanager', version: project.ext.awsSdkVersion){
+        because "PMD cannot find com/amazonaws/services/secretsmanager/AWSSecretsManager"
+    }
+    testImplementation group: 'org.javers', name: 'javers-core', version: '5.15.0'
+}

@@ -1,6 +1,6 @@
 version: 0.2
 
-# For old CI/CD pipeline
+# Compatible with older CI/CD pipeline
 
 phases:
   install:
@@ -11,7 +11,7 @@ phases:
   build:
     commands:
       - sam build
-      - sam package --s3-bucket $S3_BUCKET --output-template-file transformed.yaml
+      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged.yaml
 artifacts:
   files:
-    - transformed.yaml
+    - packaged.yaml

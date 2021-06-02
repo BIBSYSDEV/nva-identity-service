@@ -3,6 +3,7 @@ plugins {
     id 'jacoco'
     id 'checkstyle'
     id 'pmd'
+    id 'nebula.lint' version '16.8.0'
     id 'base'
 }
 
@@ -10,40 +11,57 @@ group 'no.unit.nva'
 version '1.0-SNAPSHOT'
 
 allprojects {
-    apply plugin: 'jacoco'
-    apply plugin: 'base'
-    repositories {
-        jcenter()
-        maven { url "https://jitpack.io" }
-        // Repository for running Embedded DynamoDB locally.
-        maven { url "https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/release" }
-    }
-}
-
-subprojects {
+    apply plugin: 'nebula.lint'
     apply plugin: 'java-library'
+    apply plugin: 'jacoco'
     apply plugin: 'checkstyle'
     apply plugin: 'pmd'
+    apply plugin: 'base'
 
+    gradleLint.rules = ['unused-dependency']
+
+    repositories {
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+    }
 
     sourceCompatibility = JavaVersion.VERSION_11
     // source-code version and must be <= targetCompatibility
     targetCompatibility = JavaVersion.VERSION_11 // bytecode target version
 
     project.ext {
-        jacksonVersion = '2.10.2'
-        awsSdkVersion = '1.11.897'
+        nvaUserAccessServiceVersion = '0.3.1'
+        awsSdkVersion = '1.11.996'
         junit5Version = '5.6.0'
-        nvaCommonsVersion = '0.7.4'
-        nvaDatamodelJavaVersion = '0.11.5'
+        jacksonVersion = '2.12.3'
     }
 
     dependencies {
-        testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: '0.1.16'
+        // not creating a project.ext variable to check if dependabot is actually picking this up.
+        implementation group: 'com.github.bibsysdev', name: 'core', version: '1.5.8'
+        implementation group: 'com.github.bibsysdev', name: 'secrets', version: '1.5.8'
+        implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '1.5.8'
+
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project.ext.jacksonVersion
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: project.ext.jacksonVersion
+        implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: project.ext.jacksonVersion
+        implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4'
+        implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.1'
+        implementation group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: project.ext.awsSdkVersion
+        implementation group: 'com.amazonaws', name: 'aws-java-sdk-cognitoidp', version: project.ext.awsSdkVersion
+        implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.9'
+        implementation group: 'org.zalando', name: 'problem', version: '0.25.0'
+
+        implementation group: 'com.github.BIBSYSDEV.nva-user-access-service', name: 'user-access-public-model', version: project.ext.nvaUserAccessServiceVersion
+        implementation group: 'com.github.BIBSYSDEV.nva-user-access-service', name: 'user-access-commons', version: project.ext.nvaUserAccessServiceVersion
+        implementation group: 'com.github.BIBSYSDEV.nva-user-access-service', name: 'user-access-errors', version: project.ext.nvaUserAccessServiceVersion
+
+        testImplementation group: 'com.github.bibsysdev', name: 'logutils', version: '1.5.8'
         testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
         testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.2.4'
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: project.ext.junit5Version
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-migrationsupport', version: project.ext.junit5Version
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: project.ext.junit5Version
         testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: project.ext.junit5Version
     }
 
@@ -55,7 +73,6 @@ subprojects {
         }
         finalizedBy jacocoTestReport
     }
-
 
     jacocoTestReport {
         reports {
@@ -91,8 +108,7 @@ subprojects {
                 limit {
                     counter = 'METHOD'
                     value = 'COVEREDRATIO'
-                    minimum = 1.000
-
+                    minimum = 1.00
                 }
             }
 
@@ -100,13 +116,11 @@ subprojects {
                 limit {
                     counter = 'CLASS'
                     value = 'COVEREDRATIO'
-                    minimum = 1.000
-
+                    minimum = 1.00
                 }
             }
         }
     }
-
 }
 
 def getProjectList() {
@@ -173,4 +187,3 @@ task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
 build {
     dependsOn jacocoRootReport
 }
-

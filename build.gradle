@@ -21,7 +21,7 @@ allprojects {
     gradleLint.rules = ['unused-dependency']
 
     repositories {
-        mavenCentral()
+        jcenter()
         maven { url "https://jitpack.io" }
     }
 

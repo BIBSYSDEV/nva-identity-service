@@ -402,9 +402,9 @@ Resources:
         Variables:
           #TODO: Can be removed when trigger is invoking functions directly
           CUSTOMER_API_SCHEME: https
-          CUSTOMER_API_HOST: !Sub api.${CustomDomain}
+          CUSTOMER_API_HOST: !Sub 'api.${CustomDomain}'
           USER_API_SCHEME: https
-          USER_API_HOST: !Sub api.${CustomDomain}
+          USER_API_HOST: !Sub 'api.${CustomDomain}'
           USER_SERVICE_SECRET_NAME: !Ref UserServiceSecretName
           USER_SERVICE_SECRET_KEY: !Ref UserServiceSecretKey
 
@@ -413,8 +413,8 @@ Resources:
     Properties:
       MaxCapacity: !Ref MaxConcurrency
       MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${TriggerFunction}:live
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ResourceId: !Sub 'function:${TriggerFunction}:live'
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency'
       ScalableDimension: lambda:function:ProvisionedConcurrency
       ServiceNamespace: lambda
 
@@ -473,7 +473,6 @@ Resources:
       Description: ARN Identifier of the UserPool
       Type: String
       Value: !GetAtt UserPool.Arn
-
 
   CognitoIdentityPoolIdParameter:
     Type: AWS::SSM::Parameter

@@ -438,7 +438,7 @@ Resources:
         GenerateStringKey: !Ref UserServiceSecretKey
         PasswordLength: 30
         ExcludeCharacters: '"@/\'
-      Name: !Ref UserServiceSecretName
+      Name: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
 
   ### Parameters #######################################################################################################
 

@@ -371,6 +371,8 @@ Resources:
                 Resource: !Ref UserServiceSecret
 
   InvokeTriggerPermission:
+    DependsOn:
+      - TriggerFunctionAliaslive
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
@@ -378,6 +380,9 @@ Resources:
       Principal: cognito-idp.amazonaws.com
 
   InvokeTriggerLivePermission:
+    DependsOn:
+      - TriggerFunctionAliaslive
+      - TriggerFunction
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
@@ -409,6 +414,9 @@ Resources:
           USER_SERVICE_SECRET_KEY: !Ref UserServiceSecretKey
 
   TriggerScalableTarget:
+    DependsOn:
+      - TriggerFunctionAliaslive
+      - TriggerFunction
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
       MaxCapacity: !Ref MaxConcurrency

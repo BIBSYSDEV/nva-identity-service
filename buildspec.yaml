@@ -10,6 +10,8 @@ phases:
       - pip3 install aws-sam-cli
   build:
     commands:
+      # Force build of user-access-service to produce zip for Lambda Layer
+      - ./gradlew :user-access-service:clean :user-access-service:build
       - sam build
       - sam package --s3-bucket $S3_BUCKET --output-template-file packaged.yaml
 artifacts:

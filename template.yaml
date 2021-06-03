@@ -14,6 +14,7 @@ Description: >
 #
 
 Parameters:
+  # Parameters from Cognito
   AuthenticationDomainPrefix:
     Type: String
     Default: nva-develop
@@ -30,10 +31,28 @@ Parameters:
     Type: String
     Description: Prefix used for naming parameters.
     Default: ''
-  PreTokenGenerationTriggerArn:
+
+  # Parameters from nva-cognito-pre-token-generation-trigger
+  CustomDomain:
     Type: AWS::SSM::Parameter::Value<String>
-    Description: ARN to function handling PreTokenGeneration trigger for login.
-    Default: CognitoPreTokenGenerationTriggerArn
+    Description: Custom API to connect this lambda to
+    Default: CustomDomain
+  UserServiceSecretName:
+    Type: String
+    Description: Name of the Secret for Users and Role Service
+    Default: UserCatalogueApiKey
+  UserServiceSecretKey:
+    Type: String
+    Description: Key in the Secret for Users and Role Service
+    Default: ApiKey
+  MaxConcurrency:
+    Type: String
+    Description: Maximum capacity for provisioned concurrency
+    Default: 10
+  MinConcurrency:
+    Type: String
+    Description: Minimum capacity for provisioned concurrency
+    Default: 1
 
 Resources:
 
@@ -51,7 +70,9 @@ Resources:
         EmailSendingAccount: 'COGNITO_DEFAULT'
       MfaConfiguration: 'OFF'
       LambdaConfig:
-        PreTokenGeneration: !Ref PreTokenGenerationTriggerArn
+        PreTokenGeneration: !Sub
+          - ${TriggerFunctionArn}:live
+          - TriggerFunctionArn: !GetAtt TriggerFunction.Arn
       Schema:
         - Name: affiliation
           AttributeDataType: String
@@ -308,6 +329,126 @@ Resources:
       RoleArn: !GetAtt PublisherRole.Arn
       UserPoolId: !Ref UserPool
 
+  ### Cognito Trigger ##################################################################################################
+
+  TriggerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ lambda.amazonaws.com ]
+            Action: [ 'sts:AssumeRole' ]
+      Path: /
+      Policies:
+        - PolicyName: writeLog
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
+        - PolicyName: AddUserToGroup
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-idp:AdminAddUserToGroup
+                  - cognito-idp:AdminUpdateUserAttributes
+                Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+        - PolicyName: GetSecretValue
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref UserServiceSecret
+
+  InvokeTriggerPermission:
+    DependsOn:
+      - TriggerFunctionAliaslive
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TriggerFunction
+      Principal: cognito-idp.amazonaws.com
+
+  InvokeTriggerLivePermission:
+    DependsOn:
+      - TriggerFunctionAliaslive
+      - TriggerFunction
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub '${TriggerFunction}:live'
+      Principal: cognito-idp.amazonaws.com
+
+  TriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cognito-pre-token-generation
+      Handler: no.unit.nva.cognito.TriggerHandler::handleRequest
+      Runtime: java11
+      Role: !GetAtt TriggerExecutionRole.Arn
+      MemorySize: 1408
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
+      Timeout: 10
+      Environment:
+        Variables:
+          #TODO: Can be removed when trigger is invoking functions directly
+          CUSTOMER_API_SCHEME: https
+          CUSTOMER_API_HOST: !Sub 'api.${CustomDomain}'
+          USER_API_SCHEME: https
+          USER_API_HOST: !Sub 'api.${CustomDomain}'
+          USER_SERVICE_SECRET_NAME: !Ref UserServiceSecretName
+          USER_SERVICE_SECRET_KEY: !Ref UserServiceSecretKey
+
+  TriggerScalableTarget:
+    DependsOn:
+      - TriggerFunctionAliaslive
+      - TriggerFunction
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxConcurrency
+      MinCapacity: !Ref MinConcurrency
+      ResourceId: !Sub 'function:${TriggerFunction}:live'
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency'
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+
+  TriggerScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: utilization
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref TriggerScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  UserServiceSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Secret that will be used by users and roles service
+      GenerateSecretString:
+        SecretStringTemplate: "{}"
+        GenerateStringKey: !Ref UserServiceSecretKey
+        PasswordLength: 30
+        ExcludeCharacters: '"@/\'
+      Name: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
+
   ### Parameters #######################################################################################################
 
   CognitoAuthenticationDomainPrefixParameter:
@@ -341,7 +482,6 @@ Resources:
       Description: ARN Identifier of the UserPool
       Type: String
       Value: !GetAtt UserPool.Arn
-
 
   CognitoIdentityPoolIdParameter:
     Type: AWS::SSM::Parameter

@@ -1,7 +1,5 @@
 version: 0.2
 
-# For new CI/CD pipeline
-
 phases:
   install:
     runtime-versions:

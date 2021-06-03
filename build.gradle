@@ -3,7 +3,7 @@ plugins {
     id 'jacoco'
     id 'checkstyle'
     id 'pmd'
-    id 'nebula.lint' version '16.23'
+    id 'nebula.lint' version '16.23.0'
     id 'base'
 }
 

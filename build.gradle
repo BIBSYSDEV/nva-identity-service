@@ -3,7 +3,7 @@ plugins {
     id 'jacoco'
     id 'checkstyle'
     id 'pmd'
-    id 'nebula.lint' version '16.8.0'
+    id 'nebula.lint' version '16.23'
     id 'base'
 }
 
@@ -53,6 +53,7 @@ allprojects {
         implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.9'
         implementation group: 'org.zalando', name: 'problem', version: '0.25.0'
 
+        //TODO: remove dependencies to nva-user-access-service when service is moved to this repository
         implementation group: 'com.github.BIBSYSDEV.nva-user-access-service', name: 'user-access-public-model', version: project.ext.nvaUserAccessServiceVersion
         implementation group: 'com.github.BIBSYSDEV.nva-user-access-service', name: 'user-access-commons', version: project.ext.nvaUserAccessServiceVersion
         implementation group: 'com.github.BIBSYSDEV.nva-user-access-service', name: 'user-access-errors', version: project.ext.nvaUserAccessServiceVersion

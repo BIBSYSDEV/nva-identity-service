@@ -73,7 +73,7 @@ Resources:
       LambdaConfig:
         PreTokenGeneration: !Sub
           - ${TriggerFunctionArn}:live
-          - TriggerFunctionArn: !GetAtt TrigggerFunction.Arn
+          - TriggerFunctionArn: !GetAtt TriggerFunction.Arn
       Schema:
         - Name: affiliation
           AttributeDataType: String

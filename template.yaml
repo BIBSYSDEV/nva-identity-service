@@ -59,7 +59,6 @@ Resources:
   ### Cognito ##########################################################################################################
 
   UserPool:
-    DependsOn: TriggerFunction
     Type: AWS::Cognito::UserPool
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain

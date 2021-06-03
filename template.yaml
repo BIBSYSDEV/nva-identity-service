@@ -71,7 +71,9 @@ Resources:
         EmailSendingAccount: 'COGNITO_DEFAULT'
       MfaConfiguration: 'OFF'
       LambdaConfig:
-        PreTokenGeneration: !Sub '${TriggerFunction}:live'
+        PreTokenGeneration: !Sub
+          - ${TriggerFunctionArn}:live
+          - TriggerFunctionArn: !GetAtt TrigggerFunction.Arn
       Schema:
         - Name: affiliation
           AttributeDataType: String

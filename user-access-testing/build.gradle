@@ -1,0 +1,28 @@
+final def jupiterVersion = "5.6.0"
+
+dependencies {
+    implementation project(':user-access-service')
+    implementation project(':user-access-commons')
+
+
+    implementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: '1.12.0'
+    implementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
+    implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: jupiterVersion
+
+}
+
+configurations.testImplementation.canBeResolved = true
+
+task copyNativeDeps(type: Copy) {
+    from(configurations.testImplementation) {
+        include "*.dylib"
+        include "*.so"
+        include "*.dll"
+    }
+    into 'build/dynamodb-local'
+}
+
+test.dependsOn copyNativeDeps
+test.doFirst {
+    systemProperty "java.library.path", 'build/dynamodb-local'
+}

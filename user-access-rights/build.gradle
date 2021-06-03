@@ -1,0 +1,21 @@
+dependencies {
+
+    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
+
+    testRuntimeOnly group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: project.ext.jacksonVersion
+    testRuntimeOnly group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: project.ext.jacksonVersion
+
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project.ext.jacksonVersion
+
+    compileOnly project(":user-access-public-model")
+    testImplementation project(":user-access-public-model")
+
+    compileOnly project(":user-access-commons")
+    testImplementation project(":user-access-commons")
+
+    compileOnly project(":user-access-errors")
+    testImplementation project(":user-access-errors")
+
+
+}

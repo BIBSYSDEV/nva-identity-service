@@ -434,7 +434,7 @@ Resources:
           CUSTOMER_API_HOST: !Sub 'api.${CustomDomain}'
           USER_API_SCHEME: https
           USER_API_HOST: !Sub 'api.${CustomDomain}'
-          USER_SERVICE_SECRET_NAME: !Ref UserServiceSecretName
+          USER_SERVICE_SECRET_NAME: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
           USER_SERVICE_SECRET_KEY: !Ref UserServiceSecretKey
 
   TriggerScalableTarget:
@@ -522,13 +522,13 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
-          API_SECRET_NAME: !GetAtt UserServiceSecret.Name
+          API_SECRET_NAME: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
           API_SECRET_KEY: !Ref UserServiceSecretKey
       Policies:
         - Version: "2012-10-17"
           Statement:
             - Effect: "Allow"
-              Resource: !Ref UserServiceApiSecretArn
+              Resource: !Ref UserServiceSecret
               Action:
                 - "secretsmanager:GetResourcePolicy"
                 - "secretsmanager:GetSecretValue"
@@ -537,7 +537,7 @@ Resources:
   InternalApi:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: !Ref StageName
+      StageName: Prod
       EndpointConfiguration: REGIONAL
       Auth:
         Authorizers:
@@ -895,7 +895,7 @@ Resources:
               x-amazon-apigateway-authorizer:
                 type: cognito_user_pools
                 providerARNs:
-                  - !Ref CognitoAuthorizerArn
+                  - !GetAtt UserPool.Arn
             ApiKey:
               type: apiKey
               name: Authorization

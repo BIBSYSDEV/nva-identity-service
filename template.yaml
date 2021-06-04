@@ -480,6 +480,8 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       TableName: !Ref UsersAndRolesTableName
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
         - AttributeName: PrimaryKeyHashKey
           AttributeType: S

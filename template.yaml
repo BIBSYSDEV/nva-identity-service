@@ -54,6 +54,29 @@ Parameters:
     Description: Minimum capacity for provisioned concurrency
     Default: 1
 
+  # Parameters from nva-user-access-service
+  UsersAndRolesTableName:
+    Type: String
+    Default: UsersAndRolesTable
+  InternalApiBasePath:
+    Type: String
+    Default: users-roles-internal
+  ExternalApiBasePath:
+    Type: String
+    Default: users-roles
+
+Globals:
+  Function:
+    MemorySize: 512
+    Timeout: 10
+    Runtime: java11
+    Tracing: Active
+  Api:
+    Cors:
+      AllowMethods: '''POST, PUT, GET,OPTIONS'''
+      AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+      AllowOrigin: '''*'''
+
 Resources:
 
   ### Cognito ##########################################################################################################
@@ -411,7 +434,7 @@ Resources:
           CUSTOMER_API_HOST: !Sub 'api.${CustomDomain}'
           USER_API_SCHEME: https
           USER_API_HOST: !Sub 'api.${CustomDomain}'
-          USER_SERVICE_SECRET_NAME: !Ref UserServiceSecretName
+          USER_SERVICE_SECRET_NAME: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
           USER_SERVICE_SECRET_KEY: !Ref UserServiceSecretKey
 
   TriggerScalableTarget:
@@ -448,6 +471,763 @@ Resources:
         PasswordLength: 30
         ExcludeCharacters: '"@/\'
       Name: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
+
+  ### User Access Service ##############################################################################################
+
+  UserRoleMappings:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Ref UsersAndRolesTableName
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: PrimaryKeyHashKey
+          AttributeType: S
+        - AttributeName: PrimaryKeyRangeKey
+          AttributeType: S
+        - AttributeName: SecondaryIndex1HashKey
+          AttributeType: S
+        - AttributeName: SecondaryIndex1RangeKey
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: PrimaryKeyHashKey
+          KeyType: HASH
+        - AttributeName: PrimaryKeyRangeKey
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: SearchUsersByInstitution
+          KeySchema:
+            - AttributeName: SecondaryIndex1HashKey
+              KeyType: HASH
+            - AttributeName: SecondaryIndex1RangeKey
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  LambdaAuthorizer:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.authorizer.LambdaAuthorizer::handleRequest
+      MemorySize: 1408
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          API_SECRET_NAME: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
+          API_SECRET_KEY: !Ref UserServiceSecretKey
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Resource: !Ref UserServiceSecret
+              Action:
+                - "secretsmanager:GetResourcePolicy"
+                - "secretsmanager:GetSecretValue"
+                - "secretsmanager:DescribeSecret"
+                - "secretsmanager:ListSecretVersionIds"
+  InternalApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      EndpointConfiguration: REGIONAL
+      Auth:
+        Authorizers:
+          LambdaRequestAuthorizer:
+            FunctionArn: !Join [ "",[ !GetAtt LambdaAuthorizer.Arn,":","live" ] ]
+            FunctionPayloadType: REQUEST
+            Identity:
+              Headers:
+                - Authorization
+              ReauthorizeEvery: 1
+        DefaultAuthorizer: LambdaRequestAuthorizer
+      OpenApiVersion: 3.0.1
+      DefinitionBody:
+        openapi: 3.0.1
+        info:
+          title: NVA Users internal endpoint
+          description: Api for updating users and roles
+          version: 1.0.0
+        paths:
+          /service/users:
+            post:
+              summary: Adds new user
+              security:
+                - ApiKey: [ ]
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/User'
+              responses:
+                '200':
+                  description: Successful creation of role. Returns the generated role
+                  content:
+                    "application/json":
+                      schema:
+                        $ref: '#/components/schemas/User'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceAddUserHandler.Arn}:live/invocations
+                responses: { }
+                httpMethod: POST
+                type: aws_proxy
+          /service/users/{username}:
+            get:
+              summary: Get user (service use only)
+              parameters:
+                - in: path
+                  name: username
+                  schema:
+                    type: string
+                  required: true
+              security:
+                - ApiKey: [ ]
+              responses:
+                '200':
+                  description: Returns the user.
+                  content:
+                    "application/json":
+                      schema:
+                        $ref: '#/components/schemas/User'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceGetUserHandler.Arn}:live/invocations
+                responses: { }
+                httpMethod: POST
+                type: aws_proxy
+            put:
+              summary: Updates an existing User
+              parameters:
+                - in: path
+                  name: username
+                  schema:
+                    type: string
+                  required: true
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/User'
+              security:
+                - ApiKey: [ ]
+              responses:
+                '202':
+                  description: Successful request for updating the user. User will be eventually updated
+                  headers:
+                    Location:
+                      schema:
+                        type: string
+                      description: Relative path to the user URI
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceUpdateUserHandler.Arn}:live/invocations
+                responses: { }
+                httpMethod: POST
+                type: aws_proxy
+        components:
+          schemas:
+            AccessRight:
+              type: string
+              enum:
+                - APPROVE_DOI_REQUEST
+                - REJECT_DOI_REQUEST
+            Role:
+              properties:
+                type:
+                  type: string
+                rolename:
+                  type: string
+                accessRight:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AccessRight'
+            User:
+              properties:
+                type:
+                  type: string
+                username:
+                  type: string
+                givenName:
+                  type: string
+                familyName:
+                  type: string
+                institution:
+                  type: string
+                roles:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Role'
+                accessRight:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AccessRight'
+          securitySchemes:
+            ApiKey:
+              type: apiKey
+              name: Authorization
+              in: header
+              x-amazon-apigateway-authtype: custom
+              x-amazon-apigateway-authorizer:
+                type: request
+                authorizerResultTtlInSeconds: 1
+                identitySource: method.request.header.Authorization
+                authorizerUri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAuthorizer.Arn}:live/invocations
+
+  ExternalApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      EndpointConfiguration: REGIONAL
+      DefinitionBody:
+        openapi: 3.0.1
+        info:
+          title: NVA Roles and Users catalogue
+          description: Api for updating users and roles
+          version: 1.0.0
+        paths:
+          /roles:
+            post:
+              summary: Adds new Role
+              security:
+                - CognitoUserPool: [ ]
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Role'
+              responses:
+                '200':
+                  description: Successful creation of role. Returns the generated role
+                  content:
+                    "application/json":
+                      schema:
+                        $ref: '#/components/schemas/Role'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddRoleHandler.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: aws_proxy
+          /roles/{role}:
+            get:
+              summary: Gets an existing Role
+              parameters:
+                - in: path
+                  name: role
+                  schema:
+                    type: string
+                  required: true
+              security:
+                - CognitoUserPool: [ ]
+              responses:
+                '200':
+                  description: Successful fetching of role. Returns the requested role
+                  content:
+                    "application/json":
+                      schema:
+                        $ref: '#/components/schemas/Role'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetRoleHandler.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: aws_proxy
+          /users:
+            post:
+              summary: Adds new user
+              security:
+                - CognitoUserPool: [ ]
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/User'
+              responses:
+                '200':
+                  description: Successful creation of role. Returns the generated role
+                  content:
+                    "application/json":
+                      schema:
+                        $ref: '#/components/schemas/User'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddUserHandler.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: aws_proxy
+          /users/{username}:
+            get:
+              summary: Gets an existing User
+              parameters:
+                - in: path
+                  name: username
+                  schema:
+                    type: string
+                  required: true
+              security:
+                - CognitoUserPool: [ ]
+              responses:
+                '200':
+                  description: Successful fetching of User. Returns the requested User
+                  content:
+                    "application/json":
+                      schema:
+                        $ref: '#/components/schemas/User'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetUserHandler.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: aws_proxy
+            put:
+              summary: Updates an existing User
+              parameters:
+                - in: path
+                  name: username
+                  schema:
+                    type: string
+                  required: true
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/User'
+              security:
+                - CognitoUserPool: [ ]
+              responses:
+                '202':
+                  description: Successful request for updating the user. User will be eventually updated
+                  headers:
+                    Location:
+                      schema:
+                        type: string
+                      description: Relative path to the user URI
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateUserHandler.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: aws_proxy
+          /institutions/users:
+            get:
+              summary: Lists users of specified institution
+              parameters:
+                - in: query
+                  name: institution
+                  schema:
+                    type: string
+                  required: true
+              responses:
+                '200':
+                  description: List of users belonging in the specified institue
+                  content:
+                    application/json:
+                      schema:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+              security:
+                - CognitoUserPool: [ ]
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListByInstitutionHandler.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: aws_proxy
+        components:
+          schemas:
+            AccessRight:
+              type: string
+              enum:
+                - APPROVE_DOI_REQUEST
+                - REJECT_DOI_REQUEST
+            Role:
+              properties:
+                type:
+                  type: string
+                rolename:
+                  type: string
+                accessRight:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AccessRight'
+            User:
+              properties:
+                type:
+                  type: string
+                username:
+                  type: string
+                givenName:
+                  type: string
+                familyName:
+                  type: string
+                institution:
+                  type: string
+                roles:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Role'
+                accessRight:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AccessRight'
+          securitySchemes:
+            CognitoUserPool:
+              type: apiKey
+              name: Authorization
+              in: header
+              x-amazon-apigateway-authtype: cognito_user_pools
+              x-amazon-apigateway-authorizer:
+                type: cognito_user_pools
+                providerARNs:
+                  - !GetAtt UserPool.Arn
+            ApiKey:
+              type: apiKey
+              name: Authorization
+              in: header
+              x-amazon-apigateway-authtype: custom
+              x-amazon-apigateway-authorizer:
+                type: request
+                authorizerUri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAuthorizer.Arn}/invocations
+                identitySource: method.request.header.Authorization
+
+  UserAccessCommonsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: user-access-service-layer
+      Description: User Access Service
+      ContentUri: user-access-service/build/distributions/user-access-service.zip
+      CompatibleRuntimes:
+        - java11
+      LicenseInfo: 'MIT'
+      RetentionPolicy: Retain
+
+  AddRoleHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.AddRoleHandler::handleRequest
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersAndRolesTableName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /roles
+            Method: post
+            RestApiId: !Ref ExternalApi
+
+  GetRoleHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.GetRoleHandler::handleRequest
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersAndRolesTableName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /roles/{role}
+            Method: get
+            RestApiId: !Ref ExternalApi
+  AddUserHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.AddUserHandler::handleRequest
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersAndRolesTableName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: post
+            RestApiId: !Ref ExternalApi
+
+  GetUserHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersAndRolesTableName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/{username}
+            Method: get
+            RestApiId: !Ref ExternalApi
+  UpdateUserHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersAndRolesTableName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/{username}
+            Method: put
+            RestApiId: !Ref ExternalApi
+  ListByInstitutionHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.ListByInstitutionHandler::handleRequest
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersAndRolesTableName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /institutions/users
+            Method: get
+            RequestParameters:
+              - method.request.querystring.institution:
+                  Required: true
+            RestApiId: !Ref ExternalApi
+  ServiceGetUserHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
+      MemorySize: 1408
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersAndRolesTableName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /service/users/{username}
+            Method: get
+            RestApiId: !Ref InternalApi
+  ServiceUpdateUserHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
+      MemorySize: 1408
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersAndRolesTableName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /service/users/{username}
+            Method: put
+            RestApiId: !Ref InternalApi
+  ServiceAddUserHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.AddUserHandler::handleRequest
+      Layers:
+        - !Ref UserAccessCommonsLayer
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersAndRolesTableName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /service/users
+            Method: post
+            RestApiId: !Ref InternalApi
+
+  LambdaAuthorizerScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxConcurrency
+      MinCapacity: !Ref MinConcurrency
+      ResourceId: !Sub function:${LambdaAuthorizer}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: LambdaAuthorizerAliaslive
+  LambdaAuthorizerScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: utilization
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref LambdaAuthorizerScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.8
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  ServiceUpdateUserScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxConcurrency
+      MinCapacity: !Ref MinConcurrency
+      ResourceId: !Sub function:${ServiceUpdateUserHandler}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: ServiceUpdateUserHandlerAliaslive
+  ServiceUpdateUserScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: utilization
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ServiceUpdateUserScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.8
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  ServiceGetUserScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxConcurrency
+      MinCapacity: !Ref MinConcurrency
+      ResourceId: !Sub function:${ServiceGetUserHandler}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: ServiceGetUserHandlerAliaslive
+  ServiceGetUserScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: utilization
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ServiceGetUserScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.8
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  ServiceAddUserScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxConcurrency
+      MinCapacity: !Ref MinConcurrency
+      ResourceId: !Sub function:${ServiceAddUserHandler}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: ServiceAddUserHandlerAliaslive
+  ServiceAddUserScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: utilization
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ServiceAddUserScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.8
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  InternalApiStaticUrl:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: !Ref InternalApiBasePath
+      DomainName: !Sub api.${CustomDomain}
+      RestApiId: !Ref InternalApi
+      Stage: !Ref  InternalApi.Stage
+  ExternalApiStaticUrl:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: !Ref ExternalApiBasePath
+      DomainName: !Sub api.${CustomDomain}
+      RestApiId: !Ref ExternalApi
+      Stage: !Ref ExternalApi.Stage
 
   ### Parameters #######################################################################################################
 

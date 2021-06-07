@@ -43,8 +43,8 @@ public class DynamoDBCustomerService implements CustomerService {
     public static final String BY_CRISTIN_ID_INDEX_NAME = "BY_CRISTIN_ID_INDEX_NAME";
 
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
-    public static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up " +
-            "DynamoDB connection";
+    public static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
+            + "DynamoDB connection";
 
     private final Table table;
     private final Index byOrgNumberIndex;

@@ -1250,6 +1250,8 @@ Resources:
     DeletionPolicy: Delete # DeletionPolicy should be added on main branch stacks through use of stack policy
     Properties:
       TableName: !Sub nva-customers-${AWS::StackName}
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: identifier

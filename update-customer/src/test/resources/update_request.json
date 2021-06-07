@@ -1,0 +1,14 @@
+{
+  "pathParameters": {
+    "identifier": "b8c3e125-cadb-43d5-823a-2daa7768c3f9"
+  },
+  "body": {
+    "type": "Customer",
+    "identifier": "b8c3e125-cadb-43d5-823a-2daa7768c3f9",
+    "createdDate": "2020-08-03T10:48:46.242Z",
+    "name": "Nasjonalbiblioteket",
+    "displayName": "Nasjonalbiblioteket",
+    "shortName": "NB",
+    "feideOrganizationId": "asd"
+  }
+}

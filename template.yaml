@@ -65,6 +65,19 @@ Parameters:
     Type: String
     Default: users-roles
 
+  # Parameter from nva-customer-api
+  CustomDomainBasePath:
+    Type: String
+    Description: Base path mapping in CustomDomain
+    Default: customer
+  Suffix:
+    Type: String
+    Default: ''
+    Description: Suffix used for naming resources for feature branches to avoid conflicts.
+
+Conditions:
+  WithSuffix: !Not [ !Equals [ !Ref Suffix, '' ] ]
+
 Globals:
   Function:
     MemorySize: 512
@@ -1228,6 +1241,541 @@ Resources:
       DomainName: !Sub api.${CustomDomain}
       RestApiId: !Ref ExternalApi
       Stage: !Ref ExternalApi.Stage
+
+  ### Customer Service #################################################################################################
+
+  NvaCustomersTable:
+    Type: AWS::DynamoDB::Table
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete # DeletionPolicy should be added on main branch stacks through use of stack policy
+    Properties:
+      TableName: !Sub nva-customers-${AWS::StackName}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: identifier
+          AttributeType: S
+        - AttributeName: feideOrganizationId
+          AttributeType: S
+        - AttributeName: cristinId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: identifier
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: byOrgNumber
+          KeySchema:
+            - AttributeName: feideOrganizationId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: byCristinId
+          KeySchema:
+            - AttributeName: cristinId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+  NvaCustomerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
+      StageName: Prod
+      EndpointConfiguration: REGIONAL
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: NVA Customer API
+          version: '1.0'
+        paths:
+          /:
+            post:
+              summary: Create Customer
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              security:
+                - CognitoUserPool: [ ]
+              parameters:
+                - in: body
+                  name: customer
+                  description: The Customer to create.
+                  schema:
+                    $ref: '#/definitions/Customer'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateCustomerFunction.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '201':
+                  description: Created
+                  schema:
+                    $ref: '#/definitions/Customer'
+                '400':
+                  description: Bad Request
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '502':
+                  description: Bad Gateway
+                  schema:
+                    $ref: '#/definitions/Problem'
+            get:
+              summary: Get All Customers
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              security:
+                - CognitoUserPool: [ ]
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetAllCustomersFunction.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '200':
+                  description: OK
+                  schema:
+                    type: list
+                    items:
+                      $ref: '#/definitions/Customer'
+                '400':
+                  description: Bad Request
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '404':
+                  description: Not Found
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '502':
+                  description: Bad Gateway
+                  schema:
+                    $ref: '#/definitions/Problem'
+          /{identifier}:
+            get:
+              summary: Get Customer
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              security:
+                - CognitoUserPool: [ ]
+              parameters:
+                - in: path
+                  name: identifier
+                  type: string
+                  format: uuid
+                  required: true
+                  description: UUID identifier of the Customer to get.
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerFunction.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '200':
+                  description: OK
+                  schema:
+                    $ref: '#/definitions/Customer'
+                '400':
+                  description: Bad Request
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '404':
+                  description: Not Found
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '502':
+                  description: Bad Gateway
+                  schema:
+                    $ref: '#/definitions/Problem'
+            put:
+              summary: Update Customer
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              security:
+                - CognitoUserPool: [ ]
+              parameters:
+                - in: path
+                  name: identifier
+                  type: string
+                  format: uuid
+                  required: true
+                  description: UUID identifier of the Customer to update.
+                - in: body
+                  name: customer
+                  description: The Customer to update.
+                  schema:
+                    $ref: '#/definitions/Customer'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerFunction.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '200':
+                  description: OK
+                  schema:
+                    $ref: '#/definitions/Customer'
+                '400':
+                  description: Bad Request
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '502':
+                  description: Bad Gateway
+                  schema:
+                    $ref: '#/definitions/Problem'
+          /orgNumber/{orgNumber}:
+            get:
+              summary: Get CustomerIdentifiers by orgNumber
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              parameters:
+                - in: path
+                  name: orgNumber
+                  type: string
+                  required: true
+                  description: OrgNumber of the CustomerIdentifiers to get.
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgNumberFunction.Arn}:live/invocations
+                responses: { }
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '200':
+                  description: OK
+                  schema:
+                    $ref: '#/definitions/CustomerIdentifiers'
+                '400':
+                  description: Bad Request
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '404':
+                  description: Not Found
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '502':
+                  description: Bad Gateway
+                  schema:
+                    $ref: '#/definitions/Problem'
+          /cristinId/{cristinId}:
+            get:
+              summary: Get Customer by cristinId
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              security:
+                - CognitoUserPool: [ ]
+              parameters:
+                - in: path
+                  name: cristinId
+                  type: string
+                  required: true
+                  description: CristinId of the Customer to get.
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByCristinIdFunction.Arn}/invocations
+                responses: { }
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '200':
+                  description: OK
+                  schema:
+                    $ref: '#/definitions/Customer'
+                '400':
+                  description: Bad Request
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '404':
+                  description: Not Found
+                  schema:
+                    $ref: '#/definitions/Problem'
+                '502':
+                  description: Bad Gateway
+                  schema:
+                    $ref: '#/definitions/Problem'
+        definitions:
+          CustomerIdentifiers:
+            type: object
+            properties:
+              identifier:
+                type: string
+                format: uri
+              cristinId:
+                type: string
+                format: uri
+          Customer:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uri
+              identifier:
+                type: string
+                format: uuid
+              type:
+                type: string
+              createdDate:
+                type: string
+                format: date-time
+              modifiedDate:
+                type: string
+                format: date-time
+              name:
+                type: string
+              displayName:
+                type: string
+              shortName:
+                type: string
+              archiveName:
+                type: string
+              cname:
+                type: string
+              institutionDns:
+                type: string
+              feideOrganizationId:
+                type: string
+              cristinId:
+                type: string
+                format: uri
+              '@context':
+                type: object
+          Problem:
+            type: object
+            properties:
+              title:
+                type: string
+              status:
+                type: integer
+              detail:
+                type: string
+        securityDefinitions:
+          CognitoUserPool:
+            type: apiKey
+            name: Authorization
+            in: header
+            x-amazon-apigateway-authtype: cognito_user_pools
+            x-amazon-apigateway-authorizer:
+              type: cognito_user_pools
+              providerARNs:
+                - !GetAtt UserPool.Arn
+  NvaCreateCustomerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create-customer
+      Handler: no.unit.nva.customer.create.CreateCustomerHandler::handleRequest
+      Runtime: java11
+      MemorySize: 1408
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref NvaCustomersTable
+          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
+          BY_CRISTIN_ID_INDEX_NAME: byCristinId
+          ID_NAMESPACE: !Sub
+            - "https://${Domain}/${Path}"
+            - Domain: !Ref CustomDomain
+              Path: !Ref CustomDomainBasePath
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        PostEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: post
+            RestApiId: !Ref NvaCustomerApi
+  NvaGetCustomerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-customer
+      Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
+      Runtime: java11
+      MemorySize: 1408
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref NvaCustomersTable
+          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
+          BY_CRISTIN_ID_INDEX_NAME: byCristinId
+          ID_NAMESPACE: !Sub
+            - "https://${Domain}/${Path}"
+            - Domain: !Ref CustomDomain
+              Path: !Ref CustomDomainBasePath
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        GetCustomerEvent:
+          Type: Api
+          Properties:
+            Path: /{identifier}
+            Method: get
+            RestApiId: !Ref NvaCustomerApi
+  NvaGetCustomerByOrgNumberFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-customer-by-org-number
+      Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
+      Runtime: java11
+      MemorySize: 1408
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref NvaCustomersTable
+          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
+          BY_CRISTIN_ID_INDEX_NAME: byCristinId
+          ID_NAMESPACE: !Sub
+            - "https://${Domain}/${Path}"
+            - Domain: !Ref CustomDomain
+              Path: !Ref CustomDomainBasePath
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        GetByOrgNumberEvent:
+          Type: Api
+          Properties:
+            Path: /orgNumber/{orgNumber}
+            Method: get
+            RestApiId: !Ref NvaCustomerApi
+  NvaGetCustomerByCristinIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-customer-by-cristin-id
+      Handler: no.unit.nva.customer.get.GetCustomerByCristinIdHandler::handleRequest
+      Runtime: java11
+      MemorySize: 1408
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref NvaCustomersTable
+          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
+          BY_CRISTIN_ID_INDEX_NAME: byCristinId
+          ID_NAMESPACE: !Sub
+            - "https://${Domain}/${Path}"
+            - Domain: !Ref CustomDomain
+              Path: !Ref CustomDomainBasePath
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        GetByCristinIdEvent:
+          Type: Api
+          Properties:
+            Path: /cristinId/{cristinId}
+            Method: get
+            RestApiId: !Ref NvaCustomerApi
+  NvaGetAllCustomersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-all-customers
+      Handler: no.unit.nva.customer.getall.GetAllCustomersHandler::handleRequest
+      Runtime: java11
+      MemorySize: 1408
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref NvaCustomersTable
+          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
+          BY_CRISTIN_ID_INDEX_NAME: byCristinId
+          ID_NAMESPACE: !Sub
+            - "https://${Domain}/${Path}"
+            - Domain: !Ref CustomDomain
+              Path: !Ref CustomDomainBasePath
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+            RestApiId: !Ref NvaCustomerApi
+  NvaUpdateCustomerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-customer
+      Handler: no.unit.nva.customer.update.UpdateCustomerHandler::handleRequest
+      Runtime: java11
+      MemorySize: 1408
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref NvaCustomersTable
+          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
+          BY_CRISTIN_ID_INDEX_NAME: byCristinId
+          ID_NAMESPACE: !Sub
+            - "https://${Domain}/${Path}"
+            - Domain: !Ref CustomDomain
+              Path: !Ref CustomDomainBasePath
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        PutEvent:
+          Type: Api
+          Properties:
+            Path: /{identifier}
+            Method: put
+            RestApiId: !Ref NvaCustomerApi
+
+  NvaGetCustomerByOrgNumberScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxConcurrency
+      MinCapacity: !Ref MinConcurrency
+      ResourceId: !Sub function:${NvaGetCustomerByOrgNumberFunction}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: NvaGetCustomerByOrgNumberFunctionAliaslive
+
+  NvaGetCustomerByOrgNumberScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: utilization
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref NvaGetCustomerByOrgNumberScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  NvaCustomerBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath:
+        !If
+        - WithSuffix
+        - !Sub ${CustomDomainBasePath}-${Suffix}
+        - !Sub ${CustomDomainBasePath}
+      DomainName: !Sub api.${CustomDomain}
+      RestApiId: !Ref NvaCustomerApi
+      Stage: !Ref NvaCustomerApi.Stage
 
   ### Parameters #######################################################################################################
 

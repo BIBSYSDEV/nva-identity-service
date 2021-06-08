@@ -45,14 +45,6 @@ Parameters:
     Type: String
     Description: Key in the Secret for Users and Role Service
     Default: ApiKey
-  MaxConcurrency:
-    Type: String
-    Description: Maximum capacity for provisioned concurrency
-    Default: 10
-  MinConcurrency:
-    Type: String
-    Description: Minimum capacity for provisioned concurrency
-    Default: 1
 
   # Parameters from nva-user-access-service
   UsersAndRolesTableName:
@@ -106,9 +98,7 @@ Resources:
         EmailSendingAccount: 'COGNITO_DEFAULT'
       MfaConfiguration: 'OFF'
       LambdaConfig:
-        PreTokenGeneration: !Sub
-          - ${TriggerFunctionArn}:live
-          - TriggerFunctionArn: !GetAtt TriggerFunction.Arn
+        PreTokenGeneration: GetAtt TriggerFunction.Arn
       Schema:
         - Name: affiliation
           AttributeDataType: String
@@ -408,22 +398,10 @@ Resources:
                 Resource: !Ref UserServiceSecret
 
   InvokeTriggerPermission:
-    DependsOn:
-      - TriggerFunctionAliaslive
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref TriggerFunction
-      Principal: cognito-idp.amazonaws.com
-
-  InvokeTriggerLivePermission:
-    DependsOn:
-      - TriggerFunctionAliaslive
-      - TriggerFunction
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Sub '${TriggerFunction}:live'
       Principal: cognito-idp.amazonaws.com
 
   TriggerFunction:
@@ -434,11 +412,6 @@ Resources:
       Runtime: java11
       Role: !GetAtt TriggerExecutionRole.Arn
       MemorySize: 1408
-      AutoPublishAlias: live
-      DeploymentPreference:
-        Type: AllAtOnce
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
       Timeout: 10
       Environment:
         Variables:
@@ -449,30 +422,6 @@ Resources:
           USER_API_HOST: !Sub 'api.${CustomDomain}'
           USER_SERVICE_SECRET_NAME: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
           USER_SERVICE_SECRET_KEY: !Ref UserServiceSecretKey
-
-  TriggerScalableTarget:
-    DependsOn:
-      - TriggerFunctionAliaslive
-      - TriggerFunction
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Properties:
-      MaxCapacity: !Ref MaxConcurrency
-      MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub 'function:${TriggerFunction}:live'
-      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency'
-      ScalableDimension: lambda:function:ProvisionedConcurrency
-      ServiceNamespace: lambda
-
-  TriggerScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: utilization
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref TriggerScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 0.70
-        PredefinedMetricSpecification:
-          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   UserServiceSecret:
     Type: AWS::SecretsManager::Secret
@@ -526,11 +475,6 @@ Resources:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.authorizer.LambdaAuthorizer::handleRequest
       MemorySize: 1408
-      AutoPublishAlias: live
-      DeploymentPreference:
-        Type: AllAtOnce
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
       Layers:
         - !Ref UserAccessCommonsLayer
       Environment:
@@ -557,7 +501,7 @@ Resources:
       Auth:
         Authorizers:
           LambdaRequestAuthorizer:
-            FunctionArn: !Join [ "",[ !GetAtt LambdaAuthorizer.Arn,":","live" ] ]
+            FunctionArn: !GetAtt LambdaAuthorizer.Arn
             FunctionPayloadType: REQUEST
             Identity:
               Headers:
@@ -592,7 +536,7 @@ Resources:
                         $ref: '#/components/schemas/User'
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceAddUserHandler.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceAddUserHandler.Arn}/invocations
                 responses: { }
                 httpMethod: POST
                 type: aws_proxy
@@ -616,7 +560,7 @@ Resources:
                         $ref: '#/components/schemas/User'
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceGetUserHandler.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceGetUserHandler.Arn}/invocations
                 responses: { }
                 httpMethod: POST
                 type: aws_proxy
@@ -646,7 +590,7 @@ Resources:
                       description: Relative path to the user URI
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceUpdateUserHandler.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceUpdateUserHandler.Arn}/invocations
                 responses: { }
                 httpMethod: POST
                 type: aws_proxy
@@ -698,7 +642,7 @@ Resources:
                 authorizerResultTtlInSeconds: 1
                 identitySource: method.request.header.Authorization
                 authorizerUri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAuthorizer.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAuthorizer.Arn}/invocations
 
   ExternalApi:
     Type: AWS::Serverless::Api
@@ -1072,11 +1016,6 @@ Resources:
       MemorySize: 1408
       Layers:
         - !Ref UserAccessCommonsLayer
-      AutoPublishAlias: live
-      DeploymentPreference:
-        Type: AllAtOnce
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -1097,7 +1036,6 @@ Resources:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
       MemorySize: 1408
-      AutoPublishAlias: live
       DeploymentPreference:
         Type: AllAtOnce
       Layers:
@@ -1123,11 +1061,6 @@ Resources:
       Handler: no.unit.nva.handlers.AddUserHandler::handleRequest
       Layers:
         - !Ref UserAccessCommonsLayer
-      AutoPublishAlias: live
-      DeploymentPreference:
-        Type: AllAtOnce
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -1142,90 +1075,6 @@ Resources:
             Path: /service/users
             Method: post
             RestApiId: !Ref InternalApi
-
-  LambdaAuthorizerScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Properties:
-      MaxCapacity: !Ref MaxConcurrency
-      MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${LambdaAuthorizer}:live
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-      ScalableDimension: lambda:function:ProvisionedConcurrency
-      ServiceNamespace: lambda
-    DependsOn: LambdaAuthorizerAliaslive
-  LambdaAuthorizerScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: utilization
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref LambdaAuthorizerScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 0.8
-        PredefinedMetricSpecification:
-          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
-
-  ServiceUpdateUserScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Properties:
-      MaxCapacity: !Ref MaxConcurrency
-      MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${ServiceUpdateUserHandler}:live
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-      ScalableDimension: lambda:function:ProvisionedConcurrency
-      ServiceNamespace: lambda
-    DependsOn: ServiceUpdateUserHandlerAliaslive
-  ServiceUpdateUserScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: utilization
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref ServiceUpdateUserScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 0.8
-        PredefinedMetricSpecification:
-          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
-
-  ServiceGetUserScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Properties:
-      MaxCapacity: !Ref MaxConcurrency
-      MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${ServiceGetUserHandler}:live
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-      ScalableDimension: lambda:function:ProvisionedConcurrency
-      ServiceNamespace: lambda
-    DependsOn: ServiceGetUserHandlerAliaslive
-  ServiceGetUserScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: utilization
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref ServiceGetUserScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 0.8
-        PredefinedMetricSpecification:
-          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
-
-  ServiceAddUserScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Properties:
-      MaxCapacity: !Ref MaxConcurrency
-      MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${ServiceAddUserHandler}:live
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-      ScalableDimension: lambda:function:ProvisionedConcurrency
-      ServiceNamespace: lambda
-    DependsOn: ServiceAddUserHandlerAliaslive
-  ServiceAddUserScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: utilization
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref ServiceAddUserScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 0.8
-        PredefinedMetricSpecification:
-          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   InternalApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping
@@ -1453,7 +1302,7 @@ Resources:
                   description: OrgNumber of the CustomerIdentifiers to get.
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgNumberFunction.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgNumberFunction.Arn}/invocations
                 responses: { }
                 httpMethod: POST
                 type: AWS_PROXY
@@ -1638,11 +1487,6 @@ Resources:
       Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
       Runtime: java11
       MemorySize: 1408
-      AutoPublishAlias: live
-      DeploymentPreference:
-        Type: AllAtOnce
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -1744,28 +1588,6 @@ Resources:
             Path: /{identifier}
             Method: put
             RestApiId: !Ref NvaCustomerApi
-
-  NvaGetCustomerByOrgNumberScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Properties:
-      MaxCapacity: !Ref MaxConcurrency
-      MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${NvaGetCustomerByOrgNumberFunction}:live
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-      ScalableDimension: lambda:function:ProvisionedConcurrency
-      ServiceNamespace: lambda
-    DependsOn: NvaGetCustomerByOrgNumberFunctionAliaslive
-
-  NvaGetCustomerByOrgNumberScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: utilization
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref NvaGetCustomerByOrgNumberScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 0.70
-        PredefinedMetricSpecification:
-          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   NvaCustomerBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping

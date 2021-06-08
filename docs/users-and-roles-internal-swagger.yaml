@@ -1,8 +1,8 @@
 openapi: 3.0.1
 info:
-title: NVA Users internal endpoint
-description: Api for updating users and roles
-version: 1.0.0
+  title: NVA Users internal endpoint
+  description: Api for updating users and roles
+  version: 1.0.0
 paths:
   /service/users:
     post:

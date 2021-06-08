@@ -11,7 +11,7 @@ paths:
       produces:
         - application/json
       security:
-        - CognitoUserPool: [ ]
+        - CognitoUserPool: []
       parameters:
         - in: body
           name: customer
@@ -21,7 +21,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateCustomerFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
@@ -44,11 +44,11 @@ paths:
       produces:
         - application/json
       security:
-        - CognitoUserPool: [ ]
+        - CognitoUserPool: []
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetAllCustomersFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
@@ -78,7 +78,7 @@ paths:
       produces:
         - application/json
       security:
-        - CognitoUserPool: [ ]
+        - CognitoUserPool: []
       parameters:
         - in: path
           name: identifier
@@ -89,7 +89,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
@@ -116,7 +116,7 @@ paths:
       produces:
         - application/json
       security:
-        - CognitoUserPool: [ ]
+        - CognitoUserPool: []
       parameters:
         - in: path
           name: identifier
@@ -132,7 +132,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
@@ -164,7 +164,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgNumberFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
@@ -192,7 +192,7 @@ paths:
       produces:
         - application/json
       security:
-        - CognitoUserPool: [ ]
+        - CognitoUserPool: []
       parameters:
         - in: path
           name: cristinId
@@ -202,7 +202,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByCristinIdFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:

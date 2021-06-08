@@ -1,0 +1,289 @@
+swagger: '2.0'
+info:
+  title: NVA Customer API
+  version: '1.0'
+paths:
+  /:
+    post:
+      summary: Create Customer
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - CognitoUserPool: []
+      parameters:
+        - in: body
+          name: customer
+          description: The Customer to create.
+          schema:
+            $ref: '#/definitions/Customer'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateCustomerFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/Customer'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Problem'
+        '502':
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/Problem'
+    get:
+      summary: Get All Customers
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - CognitoUserPool: []
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetAllCustomersFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: list
+            items:
+              $ref: '#/definitions/Customer'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Problem'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Problem'
+        '502':
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/Problem'
+  /{identifier}:
+    get:
+      summary: Get Customer
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - CognitoUserPool: []
+      parameters:
+        - in: path
+          name: identifier
+          type: string
+          format: uuid
+          required: true
+          description: UUID identifier of the Customer to get.
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Customer'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Problem'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Problem'
+        '502':
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/Problem'
+    put:
+      summary: Update Customer
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - CognitoUserPool: []
+      parameters:
+        - in: path
+          name: identifier
+          type: string
+          format: uuid
+          required: true
+          description: UUID identifier of the Customer to update.
+        - in: body
+          name: customer
+          description: The Customer to update.
+          schema:
+            $ref: '#/definitions/Customer'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Customer'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Problem'
+        '502':
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/Problem'
+  /orgNumber/{orgNumber}:
+    get:
+      summary: Get CustomerIdentifiers by orgNumber
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: orgNumber
+          type: string
+          required: true
+          description: OrgNumber of the CustomerIdentifiers to get.
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgNumberFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/CustomerIdentifiers'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Problem'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Problem'
+        '502':
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/Problem'
+  /cristinId/{cristinId}:
+    get:
+      summary: Get Customer by cristinId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - CognitoUserPool: []
+      parameters:
+        - in: path
+          name: cristinId
+          type: string
+          required: true
+          description: CristinId of the Customer to get.
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByCristinIdFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Customer'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Problem'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Problem'
+        '502':
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/Problem'
+definitions:
+  CustomerIdentifiers:
+    type: object
+    properties:
+      identifier:
+        type: string
+        format: uri
+      cristinId:
+        type: string
+        format: uri
+  Customer:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uri
+      identifier:
+        type: string
+        format: uuid
+      type:
+        type: string
+      createdDate:
+        type: string
+        format: date-time
+      modifiedDate:
+        type: string
+        format: date-time
+      name:
+        type: string
+      displayName:
+        type: string
+      shortName:
+        type: string
+      archiveName:
+        type: string
+      cname:
+        type: string
+      institutionDns:
+        type: string
+      feideOrganizationId:
+        type: string
+      cristinId:
+        type: string
+        format: uri
+      '@context':
+        type: object
+  Problem:
+    type: object
+    properties:
+      title:
+        type: string
+      status:
+        type: integer
+      detail:
+        type: string
+securityDefinitions:
+  CognitoUserPool:
+    type: apiKey
+    name: Authorization
+    in: header
+    x-amazon-apigateway-authtype: cognito_user_pools
+    x-amazon-apigateway-authorizer:
+      type: cognito_user_pools
+      providerARNs:
+        - Fn::GetAtt: UserPool.Arn

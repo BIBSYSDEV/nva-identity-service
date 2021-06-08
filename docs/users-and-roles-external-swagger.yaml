@@ -202,7 +202,7 @@ components:
       x-amazon-apigateway-authorizer:
         type: cognito_user_pools
         providerARNs:
-          - Fn::getAtt: UserPool.Arn
+          - Fn::GetAtt: UserPool.Arn
     ApiKey:
       type: apiKey
       name: Authorization

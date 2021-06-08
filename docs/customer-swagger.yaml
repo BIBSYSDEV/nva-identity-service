@@ -286,4 +286,4 @@ securityDefinitions:
     x-amazon-apigateway-authorizer:
       type: cognito_user_pools
       providerARNs:
-        - !GetAtt UserPool.Arn
+        - Fn:GetAtt: UserPool.Arn

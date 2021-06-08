@@ -1036,8 +1036,6 @@ Resources:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
       MemorySize: 1408
-      DeploymentPreference:
-        Type: AllAtOnce
       Layers:
         - !Ref UserAccessCommonsLayer
       Environment:

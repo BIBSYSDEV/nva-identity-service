@@ -4,121 +4,121 @@ title: NVA Users internal endpoint
 description: Api for updating users and roles
 version: 1.0.0
 paths:
-/service/users:
-  post:
-    summary: Adds new user
-    security:
-      - ApiKey: [ ]
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/User'
-    responses:
-      '200':
-        description: Successful creation of role. Returns the generated role
+  /service/users:
+    post:
+      summary: Adds new user
+      security:
+        - ApiKey: [ ]
+      requestBody:
+        required: true
         content:
-          "application/json":
+          application/json:
             schema:
               $ref: '#/components/schemas/User'
-    x-amazon-apigateway-integration:
-      uri:
-        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceAddUserHandler.Arn}/invocations
-      responses: { }
-      httpMethod: POST
-      type: aws_proxy
-/service/users/{username}:
-  get:
-    summary: Get user (service use only)
-    parameters:
-      - in: path
-        name: username
-        schema:
-          type: string
+      responses:
+        '200':
+          description: Successful creation of role. Returns the generated role
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/User'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceAddUserHandler.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: aws_proxy
+  /service/users/{username}:
+    get:
+      summary: Get user (service use only)
+      parameters:
+        - in: path
+          name: username
+          schema:
+            type: string
+          required: true
+      security:
+        - ApiKey: [ ]
+      responses:
+        '200':
+          description: Returns the user.
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/User'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceGetUserHandler.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: aws_proxy
+    put:
+      summary: Updates an existing User
+      parameters:
+        - in: path
+          name: username
+          schema:
+            type: string
+          required: true
+      requestBody:
         required: true
-    security:
-      - ApiKey: [ ]
-    responses:
-      '200':
-        description: Returns the user.
         content:
-          "application/json":
+          application/json:
             schema:
               $ref: '#/components/schemas/User'
-    x-amazon-apigateway-integration:
-      uri:
-        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceGetUserHandler.Arn}/invocations
-      responses: { }
-      httpMethod: POST
-      type: aws_proxy
-  put:
-    summary: Updates an existing User
-    parameters:
-      - in: path
-        name: username
-        schema:
+      security:
+        - ApiKey: [ ]
+      responses:
+        '202':
+          description: Successful request for updating the user. User will be eventually updated
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Relative path to the user URI
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceUpdateUserHandler.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: aws_proxy
+  components:
+  schemas:
+    AccessRight:
+      type: string
+      enum:
+        - APPROVE_DOI_REQUEST
+        - REJECT_DOI_REQUEST
+    Role:
+      properties:
+        type:
           type: string
-        required: true
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/User'
-    security:
-      - ApiKey: [ ]
-    responses:
-      '202':
-        description: Successful request for updating the user. User will be eventually updated
-        headers:
-          Location:
-            schema:
-              type: string
-            description: Relative path to the user URI
-    x-amazon-apigateway-integration:
-      uri:
-        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServiceUpdateUserHandler.Arn}/invocations
-      responses: { }
-      httpMethod: POST
-      type: aws_proxy
-components:
-schemas:
-  AccessRight:
-    type: string
-    enum:
-      - APPROVE_DOI_REQUEST
-      - REJECT_DOI_REQUEST
-  Role:
-    properties:
-      type:
-        type: string
-      rolename:
-        type: string
-      accessRight:
-        type: array
-        items:
-          $ref: '#/components/schemas/AccessRight'
-  User:
-    properties:
-      type:
-        type: string
-      username:
-        type: string
-      givenName:
-        type: string
-      familyName:
-        type: string
-      institution:
-        type: string
-      roles:
-        type: array
-        items:
-          $ref: '#/components/schemas/Role'
-      accessRight:
-        type: array
-        items:
-          $ref: '#/components/schemas/AccessRight'
+        rolename:
+          type: string
+        accessRight:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessRight'
+    User:
+      properties:
+        type:
+          type: string
+        username:
+          type: string
+        givenName:
+          type: string
+        familyName:
+          type: string
+        institution:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+        accessRight:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessRight'
 securitySchemes:
   ApiKey:
     type: apiKey

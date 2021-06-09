@@ -23,10 +23,14 @@ Parameters:
     Type: String
     Default: https://idp-test.feide.no/simplesaml/saml2/idp/metadata.php
     Description: Link to the the identity provider details.
-  FrontendApplicationUrl:
-    Type: String
-    Default: https://frontend.dev.nva.aws.unit.no
+  CallbackURLs:
+    Type: CommaDelimitedList
+    Default: https://frontend.dev.nva.aws.unit.no,http://localhost:3000
     Description: A base URL for the callbacks for the identity providers.
+  LogoutURLs:
+    Type: CommaDelimitedList
+    Default: https://frontend.dev.nva.aws.unit.no/logout
+    Description: A base URL for the logout for the identity providers.
   ParameterNamePrefix:
     Type: String
     Description: Prefix used for naming parameters.
@@ -220,10 +224,8 @@ Resources:
       SupportedIdentityProviders:
         - !Ref UserPoolIdentityProviderFeide
       UserPoolId: !Ref UserPool
-      CallbackURLs:
-        - !Ref FrontendApplicationUrl
-      LogoutURLs:
-        - !Sub '${FrontendApplicationUrl}/logout'
+      CallbackURLs: !Ref CallbackURLs
+      LogoutURLs: !Ref LogoutURLs
       AllowedOAuthFlowsUserPoolClient: True
       AllowedOAuthFlows:
         - code
@@ -990,7 +992,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}CognitoFrontendApplicationUrl'
       Description: A base URL for the callbacks for the identity providers.
       Type: String
-      Value: !Ref FrontendApplicationUrl
+      Value: !Select [ 0, !Ref CallbackURLs]
 
   FeideMetadataUrlParameter:
     Type: AWS::SSM::Parameter

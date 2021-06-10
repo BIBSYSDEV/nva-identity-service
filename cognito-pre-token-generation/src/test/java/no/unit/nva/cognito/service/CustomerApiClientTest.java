@@ -30,8 +30,7 @@ import org.zalando.problem.Status;
 @SuppressWarnings("unchecked")
 public class CustomerApiClientTest {
 
-    public static final String HTTP = "http";
-    public static final String EXAMPLE_ORG = "example.org";
+    public static final String CUSTOMER_API_BASE_URL_VALUE = "http://example.org/customer";
     public static final String ORG_NUMBER = "orgNumber";
     public static final String GARBAGE_JSON = "{{}";
     public static final String SAMPLE_ID = "http://link.to.id";
@@ -51,8 +50,7 @@ public class CustomerApiClientTest {
     @BeforeEach
     public void init() {
         Environment environment = mock(Environment.class);
-        when(environment.readEnv(CustomerApiClient.CUSTOMER_API_SCHEME)).thenReturn(HTTP);
-        when(environment.readEnv(CustomerApiClient.CUSTOMER_API_HOST)).thenReturn(EXAMPLE_ORG);
+        when(environment.readEnv(CustomerApiClient.CUSTOMER_API_BASE_URL)).thenReturn(CUSTOMER_API_BASE_URL_VALUE);
         httpClient = mock(HttpClient.class);
         httpResponse = mock(HttpResponse.class);
 

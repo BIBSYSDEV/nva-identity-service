@@ -418,10 +418,16 @@ Resources:
       Environment:
         Variables:
           #TODO: Can be removed when trigger is invoking functions directly
-          CUSTOMER_API_SCHEME: https
-          CUSTOMER_API_HOST: !Sub 'api.${CustomDomain}'
-          USER_API_SCHEME: https
-          USER_API_HOST: !Sub 'api.${CustomDomain}'
+          CUSTOMER_SERVICE_BASE_URL:
+            !If
+            - WithSuffix
+            - !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}-${Suffix}'
+            - !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          USER_SERVICE_BASE_URL:
+            !If
+            - WithSuffix
+            - !Sub 'https://api.${CustomDomain}/${InternalApiBasePath}-${Suffix}'
+            - !Sub 'https://api.${CustomDomain}/${InternalApiBasePath}'
           USER_SERVICE_SECRET_NAME: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
           USER_SERVICE_SECRET_KEY: !Ref UserServiceSecretKey
 
@@ -738,15 +744,23 @@ Resources:
   InternalApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
-      BasePath: !Ref InternalApiBasePath
-      DomainName: !Sub api.${CustomDomain}
+      BasePath:
+        !If
+        - WithSuffix
+        - !Sub '${InternalApiBasePath}-${Suffix}'
+        - !Sub '${InternalApiBasePath}'
+      DomainName: !Sub 'api.${CustomDomain}'
       RestApiId: !Ref InternalApi
       Stage: !Ref  InternalApi.Stage
   ExternalApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
-      BasePath: !Ref ExternalApiBasePath
-      DomainName: !Sub api.${CustomDomain}
+      BasePath:
+        !If
+        - WithSuffix
+        - !Sub '${ExternalApiBasePath}-${Suffix}'
+        - !Sub '${ExternalBasePath}'
+      DomainName: !Sub 'api.${CustomDomain}'
       RestApiId: !Ref ExternalApi
       Stage: !Ref ExternalApi.Stage
 
@@ -970,9 +984,9 @@ Resources:
       BasePath:
         !If
         - WithSuffix
-        - !Sub ${CustomDomainBasePath}-${Suffix}
-        - !Sub ${CustomDomainBasePath}
-      DomainName: !Sub api.${CustomDomain}
+        - !Sub '${CustomDomainBasePath}-${Suffix}'
+        - !Sub '${CustomDomainBasePath}'
+      DomainName: !Sub 'api.${CustomDomain}'
       RestApiId: !Ref NvaCustomerApi
       Stage: !Ref NvaCustomerApi.Stage
 

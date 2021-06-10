@@ -759,7 +759,7 @@ Resources:
         !If
         - WithSuffix
         - !Sub '${ExternalApiBasePath}-${Suffix}'
-        - !Sub '${ExternalBasePath}'
+        - !Sub '${ExternalApiBasePath}'
       DomainName: !Sub 'api.${CustomDomain}'
       RestApiId: !Ref ExternalApi
       Stage: !Ref ExternalApi.Stage

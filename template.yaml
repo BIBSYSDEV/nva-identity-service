@@ -51,9 +51,6 @@ Parameters:
     Default: ApiKey
 
   # Parameters from nva-user-access-service
-  UsersAndRolesTableName:
-    Type: String
-    Default: UsersAndRolesTable
   InternalApiBasePath:
     Type: String
     Default: users-roles-internal
@@ -449,7 +446,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      TableName: !Ref UsersAndRolesTableName
+      TableName: !Sub 'nva-users-and-roles-${AWS::StackName}'
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -488,7 +485,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           API_SECRET_NAME: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
           API_SECRET_KEY: !Ref UserServiceSecretKey
       Policies:
@@ -554,10 +551,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersAndRolesTableName
+            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api
@@ -576,10 +573,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBReadPolicy:
-            TableName: !Ref UsersAndRolesTableName
+            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api
@@ -597,10 +594,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersAndRolesTableName
+            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api
@@ -619,10 +616,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBReadPolicy:
-            TableName: !Ref UsersAndRolesTableName
+            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api
@@ -640,10 +637,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersAndRolesTableName
+            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api
@@ -661,10 +658,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBReadPolicy:
-            TableName: !Ref UsersAndRolesTableName
+            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api
@@ -686,10 +683,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersAndRolesTableName
+            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api
@@ -708,10 +705,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersAndRolesTableName
+            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api
@@ -729,10 +726,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UsersAndRolesTableName
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersAndRolesTableName
+            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api
@@ -771,7 +768,7 @@ Resources:
     UpdateReplacePolicy: Retain
     DeletionPolicy: Delete # DeletionPolicy should be added on main branch stacks through use of stack policy
     Properties:
-      TableName: !Sub nva-customers-${AWS::StackName}
+      TableName: !Sub 'nva-customers-${AWS::StackName}'
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       BillingMode: PAY_PER_REQUEST

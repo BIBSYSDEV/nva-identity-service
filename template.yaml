@@ -418,12 +418,12 @@ Resources:
       Environment:
         Variables:
           #TODO: Can be removed when trigger is invoking functions directly
-          CUSTOMER_SERVICE_BASE_URL:
+          CUSTOMER_API_BASE_URL:
             !If
             - WithSuffix
             - !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}-${Suffix}'
             - !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
-          USER_SERVICE_BASE_URL:
+          USER_API_BASE_URL:
             !If
             - WithSuffix
             - !Sub 'https://api.${CustomDomain}/${InternalApiBasePath}-${Suffix}'

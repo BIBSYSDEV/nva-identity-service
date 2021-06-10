@@ -35,6 +35,7 @@ public class UserApiClient implements UserApi {
     public static final String USER_SERVICE_SECRET_NAME = "USER_SERVICE_SECRET_NAME";
     public static final String USER_SERVICE_SECRET_KEY = "USER_SERVICE_SECRET_KEY";
     public static final String AUTHORIZATION = "Authorization";
+    public static final String DELIMITER = "/";
     public static final String USER_CANNOT_BE_PARSED_ERROR = "User cannot be parsed";
     public static final String COULD_NOT_FETCH_USER_ERROR_MESSAGE = "Could not fetch user: ";
     public static final String COULD_NOT_CREATE_USER_ERROR_MESSAGE = "Could not crate user: ";
@@ -194,7 +195,7 @@ public class UserApiClient implements UserApi {
     }
 
     private URI formUri(String username) throws URISyntaxException {
-        URI uri = new URI(userApiBaseUrl + PATH + username);
+        URI uri = new URI(userApiBaseUrl + PATH + DELIMITER + username);
         logger.info("GET UserUri: " + uri);
         return uri;
     }

@@ -2,7 +2,7 @@ package no.unit.nva.customer.model;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import no.unit.nva.customer.model.interfaces.Customer;
-import nva.commons.utils.JacocoGenerated;
+import nva.commons.core.JacocoGenerated;
 
 import java.time.Instant;
 import java.util.Objects;

@@ -10,12 +10,11 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
-import nva.commons.utils.RequestUtils;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +63,7 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, Custo
         CustomerService customerService,
         CustomerMapper customerMapper,
         Environment environment) {
-        super(Void.class, environment, logger);
+        super(Void.class, environment);
         this.customerService = customerService;
         this.customerMapper = customerMapper;
     }
@@ -85,7 +84,7 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, Custo
 
     private String getOrgNumber(RequestInfo requestInfo) throws InputException {
         try {
-            return RequestUtils.getPathParameter(requestInfo, ORG_NUMBER);
+            return requestInfo.getPathParameter(ORG_NUMBER);
         } catch (IllegalArgumentException e) {
             throw new InputException(e.getMessage(), e);
         }

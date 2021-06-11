@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Customer;
 import no.unit.nva.customer.model.interfaces.JsonLdSupport;
-import nva.commons.utils.JacocoGenerated;
+import nva.commons.core.JacocoGenerated;
 
 @JsonTypeName("Customer")
 public class CustomerDto implements Customer, JsonLdSupport {

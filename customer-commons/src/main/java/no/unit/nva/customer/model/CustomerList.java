@@ -1,9 +1,10 @@
 package no.unit.nva.customer.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import nva.commons.core.JacocoGenerated;
+
 import java.net.URI;
 import java.util.List;
-import nva.commons.utils.JacocoGenerated;
 
 @SuppressWarnings("PMD.ShortMethodName")
 public class CustomerList {

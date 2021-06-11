@@ -1,7 +1,7 @@
 package no.unit.nva.customer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nva.commons.utils.JsonUtils;
+import nva.commons.core.JsonUtils;
 
 public final class ObjectMapperConfig {
 

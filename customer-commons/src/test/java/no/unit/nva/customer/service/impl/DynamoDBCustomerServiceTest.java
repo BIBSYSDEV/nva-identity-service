@@ -33,7 +33,7 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.exception.NotFoundException;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.utils.Environment;
+import nva.commons.core.Environment;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Rule;

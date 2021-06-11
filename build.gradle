@@ -15,7 +15,7 @@ allprojects {
 
     project.ext {
         nvaCommonsVersion = '1.5.10'
-        awsSdkVersion ="1.11.894"
+        awsSdkVersion ="1.11.1000"
         jacksonVersion ="2.10.3"
         awsSdk2Version = '2.9.1'
         DynamoDBLocalVersion = '1.15.0'

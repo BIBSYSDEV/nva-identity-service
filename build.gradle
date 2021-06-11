@@ -18,6 +18,10 @@ allprojects {
         awsSdkVersion ="1.11.894"
         jacksonVersion ="2.10.3"
         awsSdk2Version = '2.9.1'
+        DynamoDBLocalVersion = '1.15.0'
+        nvaTestUtilsVersion = '0.1.13'
+        zalandoProblemVersion = '0.25.0'
+        awsLambdaCoreVersion = '1.2.1'
 
     }
 
@@ -51,8 +55,8 @@ subprojects {
         implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk', version: project.ext.awsSdk2Version
         implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version: project.ext.awsSdk2Version
 
-        testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: '0.1.13'
-        testImplementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: '1.15.0'
+        testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: project.ext.nvaTestUtilsVersion
+        testImplementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: project.ext.DynamoDBLocalVersion
         testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.3.3'
         testImplementation('org.zalando:problem:0.24.0') {
             dependencies {

@@ -12,15 +12,15 @@ dependencies {
     testImplementation project(':user-access-service')
     testImplementation project(':user-access-rights')
 
-    implementation group: 'com.github.bibsysdev', name: 'lambdaauthorizer', version: '1.1.3'
-    implementation group: 'com.github.bibsysdev', name: 'secrets', version: '1.1.3'
-    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '1.1.3'
+    implementation group: 'com.github.bibsysdev', name: 'lambdaauthorizer', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.bibsysdev', name: 'secrets', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: project.ext.nvaCommonsVersion
 
     implementation(group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4') {
         because "We use it directly"
     }
 
-    implementation(group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.1') {
+    implementation(group: 'com.amazonaws', name: 'aws-lambda-java-core', version: project.ext.awsLambdaCoreVersion) {
         because "We use it directly"
     }
 
@@ -30,7 +30,7 @@ dependencies {
 
     compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
 
-    testImplementation group: 'com.github.bibsysdev', name: 'logutils', version: '1.1.3'
+    testImplementation group: 'com.github.bibsysdev', name: 'logutils', version: project.ext.nvaCommonsVersion
     testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
 
 

@@ -1,7 +1,5 @@
 package no.unit.nva.customer.service.impl;
 
-import static nva.commons.utils.attempt.Try.attempt;
-
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Index;
@@ -24,10 +22,13 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.exception.NotFoundException;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.utils.Environment;
+
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static nva.commons.core.attempt.Try.*;
 
 public class DynamoDBCustomerService implements CustomerService {
 

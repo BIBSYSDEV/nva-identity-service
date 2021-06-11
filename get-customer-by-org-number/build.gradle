@@ -2,7 +2,8 @@ dependencies {
     implementation project(":customer-commons")
     testImplementation project(":customer-testing")
 
-    implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: '0.4.3'
+    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: project.ext.nvaCommonsVersion
+
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: project.ext.jacksonVersion
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: project.ext.jacksonVersion

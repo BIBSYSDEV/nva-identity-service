@@ -9,15 +9,12 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
-import nva.commons.utils.RequestUtils;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, CustomerDto> {
 
@@ -26,7 +23,6 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
 
     private final CustomerService customerService;
     private final CustomerMapper customerMapper;
-    private static final Logger logger = LoggerFactory.getLogger(GetCustomerByCristinIdHandler.class);
 
     /**
      * Default Constructor for GetCustomerByCristinIdHandler.
@@ -63,7 +59,7 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
         CustomerService customerService,
         CustomerMapper customerMapper,
         Environment environment) {
-        super(Void.class, environment, logger);
+        super(Void.class, environment);
         this.customerService = customerService;
         this.customerMapper = customerMapper;
 
@@ -80,7 +76,7 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
 
     private String getCristinId(RequestInfo requestInfo) throws InputException {
         try {
-            return RequestUtils.getPathParameter(requestInfo, CRISTIN_ID);
+            return requestInfo.getPathParameter(CRISTIN_ID);
         } catch (IllegalArgumentException e) {
             throw new InputException(e.getMessage(), e);
         }

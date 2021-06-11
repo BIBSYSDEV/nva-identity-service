@@ -3,7 +3,7 @@ package no.unit.nva.customer.service;
 import java.util.List;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDb;
-import nva.commons.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 
 public interface CustomerService {
 

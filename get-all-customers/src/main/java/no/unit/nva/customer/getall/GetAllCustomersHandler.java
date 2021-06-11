@@ -9,13 +9,11 @@ import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 
 import static org.apache.http.HttpStatus.SC_OK;
 
@@ -24,7 +22,6 @@ public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList
     public static final String ID_NAMESPACE_ENV = "ID_NAMESPACE";
     private final CustomerService customerService;
     private final CustomerMapper customerMapper;
-    private static final Logger logger = LoggerFactory.getLogger(GetAllCustomersHandler.class);
 
     /**
      * Default Constructor for GetAllCustomersHandler.
@@ -61,7 +58,7 @@ public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList
         CustomerService customerService,
         CustomerMapper customerMapper,
         Environment environment) {
-        super(Void.class, environment, logger);
+        super(Void.class, environment);
         this.customerService = customerService;
         this.customerMapper = customerMapper;
     }

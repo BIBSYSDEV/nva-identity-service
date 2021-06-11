@@ -1,6 +1,6 @@
 package no.unit.nva.customer.exception;
 
-import nva.commons.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 

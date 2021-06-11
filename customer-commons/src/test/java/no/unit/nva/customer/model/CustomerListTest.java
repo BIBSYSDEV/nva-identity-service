@@ -2,7 +2,7 @@ package no.unit.nva.customer.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nva.commons.utils.JsonUtils;
+import nva.commons.core.JsonUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

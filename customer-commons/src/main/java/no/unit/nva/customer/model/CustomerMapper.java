@@ -1,11 +1,12 @@
 package no.unit.nva.customer.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nva.commons.core.JsonUtils;
+
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import nva.commons.utils.JsonUtils;
 
 public class CustomerMapper {
 

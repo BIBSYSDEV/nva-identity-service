@@ -28,7 +28,7 @@ import nva.commons.core.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static nva.commons.core.attempt.Try.*;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class DynamoDBCustomerService implements CustomerService {
 

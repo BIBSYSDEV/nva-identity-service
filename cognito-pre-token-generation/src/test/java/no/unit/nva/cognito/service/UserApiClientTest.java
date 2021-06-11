@@ -4,8 +4,7 @@ import static java.util.Collections.singletonList;
 import static no.unit.nva.cognito.service.UserApiClient.COULD_NOT_CREATE_USER_ERROR_MESSAGE;
 import static no.unit.nva.cognito.service.UserApiClient.COULD_NOT_FETCH_USER_ERROR_MESSAGE;
 import static no.unit.nva.cognito.service.UserApiClient.ERROR_PARSING_USER_INFORMATION;
-import static no.unit.nva.cognito.service.UserApiClient.USER_API_HOST;
-import static no.unit.nva.cognito.service.UserApiClient.USER_API_SCHEME;
+import static no.unit.nva.cognito.service.UserApiClient.USER_API_BASE_URL;
 import static no.unit.nva.cognito.service.UserApiClient.USER_SERVICE_SECRET_KEY;
 import static no.unit.nva.cognito.service.UserApiClient.USER_SERVICE_SECRET_NAME;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
@@ -54,8 +53,7 @@ public class UserApiClientTest {
     public static final String SAMPLE_USERNAME = "user@name";
     public static final String SAMPLE_INSTITUTION_ID = "institution.id";
     public static final String CREATOR = "Creator";
-    public static final String SAMPLE_API_SCHEME = "http";
-    public static final String SAMPLE_API_HOST = "example.org";
+    public static final String USER_API_BASE_URL_VALUE = "http://example.org/users-and-roles";
     public static final String SAMPLE_FAMILY_NAME = "familyName";
     public static final String SAMPLE_GIVEN_NAME = "givenName";
     public static final String SOME_SECRET = "someSecret";
@@ -73,8 +71,7 @@ public class UserApiClientTest {
         objectMapper = new ObjectMapper();
 
         Environment environment = mock(Environment.class);
-        when(environment.readEnv(USER_API_SCHEME)).thenReturn(SAMPLE_API_SCHEME);
-        when(environment.readEnv(USER_API_HOST)).thenReturn(SAMPLE_API_HOST);
+        when(environment.readEnv(USER_API_BASE_URL)).thenReturn(USER_API_BASE_URL_VALUE);
         when(environment.readEnv(USER_SERVICE_SECRET_NAME)).thenReturn(USER_SERVICE_SECRET_NAME);
         when(environment.readEnv(USER_SERVICE_SECRET_KEY)).thenReturn(USER_SERVICE_SECRET_KEY);
         httpClient = mock(HttpClient.class);

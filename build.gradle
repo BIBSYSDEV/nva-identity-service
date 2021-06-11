@@ -17,7 +17,7 @@ allprojects {
         nvaCommonsVersion = '1.5.10'
         awsSdkVersion ="1.11.894"
         jacksonVersion ="2.10.3"
-        awsSdk2Version = '2.4.0'
+        awsSdk2Version = '2.9.1'
 
     }
 
@@ -35,6 +35,8 @@ allprojects {
 }
 
 subprojects {
+    task allDeps(type: DependencyReportTask) {}
+
     apply plugin: 'java-library'
     apply plugin: 'jacoco'
     apply plugin: 'checkstyle'
@@ -50,7 +52,7 @@ subprojects {
         implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version: project.ext.awsSdk2Version
 
         testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: '0.1.13'
-        testImplementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: '1.12.0'
+        testImplementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: '1.15.0'
         testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.3.3'
         testImplementation('org.zalando:problem:0.24.0') {
             dependencies {

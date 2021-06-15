@@ -35,6 +35,10 @@ Parameters:
     Type: String
     Description: Prefix used for naming parameters.
     Default: ''
+  ExplicitAuthFlows:
+    Type: CommaDelimitedList
+    Default: ALLOW_ADMIN_USER_PASSWORD_AUTH
+    Description: Set explicit authenticaton flows.
 
   # Parameters from nva-cognito-pre-token-generation-trigger
   CustomDomain:
@@ -229,6 +233,7 @@ Resources:
       AllowedOAuthScopes:
         - openid
         - aws.cognito.signin.user.admin
+      ExplicitAuthFlows: !Ref ExplicitAuthFlows
 
   IdentityPool:
     Type: AWS::Cognito::IdentityPool

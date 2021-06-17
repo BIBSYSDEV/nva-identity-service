@@ -22,7 +22,7 @@ import static nva.commons.core.attempt.Try.attempt;
 
 public class CustomerDbClient implements CustomerApi {
 
-    public static final String CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER = "Customer not found for orgNumber={}";
+    public static final String CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER = "Customer not found for orgNumber=";
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerDbClient.class);
 
@@ -65,7 +65,7 @@ public class CustomerDbClient implements CustomerApi {
     }
 
     private void handleError(Failure<CustomerResponse> fail, String orgNumber) {
-        logger.error(CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER, orgNumber, fail.getException());
+        logger.error(CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER+orgNumber, fail.getException());
     }
 
     private CustomerResponse toCustomerResponse(CustomerDb customerDb) {

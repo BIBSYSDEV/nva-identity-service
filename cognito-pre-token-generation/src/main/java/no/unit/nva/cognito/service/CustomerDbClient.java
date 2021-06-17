@@ -65,7 +65,7 @@ public class CustomerDbClient implements CustomerApi {
     }
 
     private void handleError(Failure<CustomerResponse> fail, String orgNumber) {
-        logger.error(CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER+orgNumber, fail.getException());
+        logger.error(CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER + orgNumber, fail.getException());
     }
 
     private CustomerResponse toCustomerResponse(CustomerDb customerDb) {

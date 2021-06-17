@@ -8,22 +8,25 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
+import static nva.commons.core.attempt.Try.attempt;
+
 public class CustomerDbClient implements CustomerApi {
 
     public static final String ID_NAMESPACE_ENV = "ID_NAMESPACE";
-    private static final Logger logger = LoggerFactory.getLogger(CustomerDbClient.class);
     public static final String CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER = "Customer not found for orgNumber={}";
 
-    private CustomerService service;
-    private CustomerMapper mapper;
+    private static final Logger logger = LoggerFactory.getLogger(CustomerDbClient.class);
+
+    private final CustomerService service;
+    private final CustomerMapper mapper;
 
     @JacocoGenerated
     public CustomerDbClient() {
@@ -53,14 +56,13 @@ public class CustomerDbClient implements CustomerApi {
 
     @Override
     public Optional<CustomerResponse> getCustomer(String orgNumber) {
-        CustomerResponse response = null;
-        try {
-            CustomerDb customerDb = service.getCustomerByOrgNumber(orgNumber);
-            response = toCustomerResponse(customerDb);
-        } catch (ApiGatewayException e) {
-            logger.error(CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER, orgNumber, e);
-        }
-        return Optional.ofNullable(response);
+        return attempt(() -> service.getCustomerByOrgNumber(orgNumber))
+                .map(this::toCustomerResponse)
+                .toOptional(fail -> handleError(fail, orgNumber));
+    }
+    
+    private void handleError(Failure<CustomerResponse> fail, String orgNumber) {
+        logger.error(CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER, orgNumber, fail.getException());
     }
 
     private CustomerResponse toCustomerResponse(CustomerDb customerDb) {

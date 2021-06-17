@@ -32,6 +32,7 @@ public class CustomerDbClientTest {
 
     @BeforeEach
     public void setUp() {
+        //TODO: use DynamoDBCustomerService with DynamoDbLocal
         dynamoDBCustomerService = mock(DynamoDBCustomerService.class);
         customerMapper = new CustomerMapper(SAMPLE_NAMESPACE);
         customerDbClient = new CustomerDbClient(dynamoDBCustomerService, customerMapper);

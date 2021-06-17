@@ -69,7 +69,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
 
     @JacocoGenerated
     public TriggerHandler() {
-        this(newUserService(), newCustomerDbClient());
+        this(defaultUserService(), defaultCustomerDbClient());
     }
 
     public TriggerHandler(UserService userService, CustomerApi customerApi) {
@@ -94,7 +94,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     }
 
     @JacocoGenerated
-    private static CustomerDbClient newCustomerDbClient() {
+    private static CustomerDbClient defaultCustomerDbClient() {
         return new CustomerDbClient(defaultCustomerService(), defaultCustomerMapper());
     }
 
@@ -113,7 +113,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
 
 
     @JacocoGenerated
-    private static UserService newUserService() {
+    private static UserService defaultUserService() {
         return new UserService(
             defaultUserDbClient(),
             AWSCognitoIdentityProviderClient.builder().build()
@@ -122,12 +122,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
 
     @JacocoGenerated
     private static UserDbClient defaultUserDbClient() {
-        return new UserDbClient(
-                new DatabaseServiceImpl(
-                        DYNAMODB_CLIENT,
-                        ENVIRONMENT
-                )
-        );
+        return new UserDbClient(new DatabaseServiceImpl(DYNAMODB_CLIENT, ENVIRONMENT));
     }
 
     private UserDetails extractUserDetails(Event event) {

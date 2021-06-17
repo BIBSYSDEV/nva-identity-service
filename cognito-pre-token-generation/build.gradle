@@ -2,6 +2,8 @@ dependencies {
     implementation project(':user-access-public-model')
     implementation project(':user-access-commons')
     implementation project(':user-access-errors')
+    implementation project(':user-access-service')
+    implementation project(':customer-commons')
 
     implementation group: 'com.github.bibsysdev', name: 'secrets', version: project.ext.nvaCommonsVersion
     implementation group: 'com.github.bibsysdev', name: 'apigateway', version: project.ext.nvaCommonsVersion

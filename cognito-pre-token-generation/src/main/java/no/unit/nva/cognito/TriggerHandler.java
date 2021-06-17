@@ -22,7 +22,7 @@ import no.unit.nva.cognito.model.CustomerResponse;
 import no.unit.nva.cognito.model.Event;
 import no.unit.nva.cognito.model.UserAttributes;
 import no.unit.nva.cognito.service.CustomerApi;
-import no.unit.nva.cognito.service.CustomerApiClient;
+import no.unit.nva.cognito.service.CustomerDbClient;
 import no.unit.nva.cognito.service.UserApiClient;
 import no.unit.nva.cognito.service.UserDetails;
 import no.unit.nva.cognito.service.UserService;
@@ -64,7 +64,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
 
     @JacocoGenerated
     public TriggerHandler() {
-        this(newUserService(), newCustomerApiClient());
+        this(newUserService(), newCustomerDbClient());
     }
 
     public TriggerHandler(UserService userService, CustomerApi customerApi) {
@@ -89,11 +89,8 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     }
 
     @JacocoGenerated
-    private static CustomerApiClient newCustomerApiClient() {
-        return new CustomerApiClient(
-            HttpClient.newHttpClient(),
-            new ObjectMapper(),
-            new Environment());
+    private static CustomerDbClient newCustomerDbClient() {
+        return new CustomerDbClient();
     }
 
     @JacocoGenerated

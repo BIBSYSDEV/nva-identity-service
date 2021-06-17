@@ -4,7 +4,7 @@ import com.amazonaws.regions.Regions;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
-public class Constants {
+public final class Constants {
 
     public static final Environment ENVIRONMENT = new Environment();
 
@@ -13,6 +13,9 @@ public class Constants {
 
     public static final String ID_NAMESPACE_VALUE = ENVIRONMENT.readEnv(ID_NAMESPACE_ENV);
     public static final Regions AWS_REGION_VALUE = setupRegion();
+
+    private Constants() {
+    }
 
     @JacocoGenerated
     private static Regions setupRegion() {

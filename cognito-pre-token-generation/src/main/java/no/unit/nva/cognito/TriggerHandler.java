@@ -5,7 +5,6 @@ import static no.unit.nva.cognito.util.OrgNumberCleaner.removeCountryPrefix;
 import static nva.commons.core.StringUtils.isNotBlank;
 import static nva.commons.core.attempt.Try.attempt;
 
-import com.amazonaws.regions.Region;
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProviderClient;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.lambda.runtime.Context;

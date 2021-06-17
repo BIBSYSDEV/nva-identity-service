@@ -1,5 +1,6 @@
 package no.unit.nva.cognito.service;
 
+import no.unit.nva.cognito.Constants;
 import no.unit.nva.cognito.model.CustomerResponse;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerMapper;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.join;
+import static no.unit.nva.cognito.Constants.ID_NAMESPACE_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -34,7 +36,7 @@ public class CustomerDbClientTest {
     public void setUp() {
         //TODO: use DynamoDBCustomerService with DynamoDbLocal
         dynamoDBCustomerService = mock(DynamoDBCustomerService.class);
-        customerMapper = new CustomerMapper(SAMPLE_NAMESPACE);
+        customerMapper = new CustomerMapper(ID_NAMESPACE_VALUE);
         customerDbClient = new CustomerDbClient(dynamoDBCustomerService, customerMapper);
     }
 

@@ -25,3 +25,7 @@ dependencies {
     testImplementation group: 'org.javers', name: 'javers-core', version: '5.15.0'
     testImplementation group: 'com.github.bibsysdev', name: 'logutils', version: project.ext.nvaCommonsVersion
 }
+
+test {
+    environment "ID_NAMESPACE", "http://example.org/namespace"
+}

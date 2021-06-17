@@ -8,7 +8,6 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
@@ -16,11 +15,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
+import static no.unit.nva.cognito.Constants.AWS_REGION_VALUE;
+import static no.unit.nva.cognito.Constants.ENVIRONMENT;
+import static no.unit.nva.cognito.Constants.ID_NAMESPACE_VALUE;
 import static nva.commons.core.attempt.Try.attempt;
 
 public class CustomerDbClient implements CustomerApi {
 
-    public static final String ID_NAMESPACE_ENV = "ID_NAMESPACE";
     public static final String CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER = "Customer not found for orgNumber={}";
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerDbClient.class);
@@ -38,15 +39,17 @@ public class CustomerDbClient implements CustomerApi {
     @JacocoGenerated
     private static DynamoDBCustomerService defaultCustomerService() {
         return new DynamoDBCustomerService(
-                AmazonDynamoDBClientBuilder.defaultClient(),
+                AmazonDynamoDBClientBuilder
+                        .standard()
+                        .withRegion(AWS_REGION_VALUE)
+                        .build(),
                 ObjectMapperConfig.objectMapper,
-                new Environment());
+                ENVIRONMENT);
     }
 
     @JacocoGenerated
     private static CustomerMapper defaultCustomerMapper() {
-        String namespace = new Environment().readEnv(ID_NAMESPACE_ENV);
-        return new CustomerMapper(namespace);
+        return new CustomerMapper(ID_NAMESPACE_VALUE);
     }
 
     public CustomerDbClient(CustomerService service, CustomerMapper mapper) {
@@ -60,7 +63,7 @@ public class CustomerDbClient implements CustomerApi {
                 .map(this::toCustomerResponse)
                 .toOptional(fail -> handleError(fail, orgNumber));
     }
-    
+
     private void handleError(Failure<CustomerResponse> fail, String orgNumber) {
         logger.error(CUSTOMER_NOT_FOUND_FOR_ORG_NUMBER, orgNumber, fail.getException());
     }

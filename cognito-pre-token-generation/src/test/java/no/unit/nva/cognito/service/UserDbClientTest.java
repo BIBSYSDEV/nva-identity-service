@@ -68,7 +68,7 @@ public class UserDbClientTest {
     }
 
     @Test
-    public void createUserThrowsBadGatewayExceptionOnFailure()
+    public void createUserThrowsUserServiceExceptionOnOnFailure()
             throws InvalidEntryInternalException, InvalidInputException, ConflictException {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         doThrow(InvalidInputException.class).when(databaseService).addUser(any());
@@ -79,13 +79,13 @@ public class UserDbClientTest {
     }
 
     @Test
-    public  void updateUserSuccess() throws InvalidEntryInternalException {
+    public  void updateUserNoErrorsOnSuccess() throws InvalidEntryInternalException {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         userApi.updateUser(userDto);
     }
 
     @Test
-    public void updateUserFailure()
+    public void updateUserThrowsUserServiceExceptionOnFailure()
             throws InvalidEntryInternalException, InvalidInputException, NotFoundException {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         doThrow(InvalidInputException.class).when(databaseService).updateUser(any());

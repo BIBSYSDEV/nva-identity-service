@@ -2,6 +2,8 @@ dependencies {
     implementation project(':user-access-public-model')
     implementation project(':user-access-commons')
     implementation project(':user-access-errors')
+    implementation project(':user-access-service')
+    implementation project(':customer-commons')
 
     implementation group: 'com.github.bibsysdev', name: 'secrets', version: project.ext.nvaCommonsVersion
     implementation group: 'com.github.bibsysdev', name: 'apigateway', version: project.ext.nvaCommonsVersion
@@ -22,4 +24,8 @@ dependencies {
 
     testImplementation group: 'org.javers', name: 'javers-core', version: '5.15.0'
     testImplementation group: 'com.github.bibsysdev', name: 'logutils', version: project.ext.nvaCommonsVersion
+}
+
+test {
+    environment "ID_NAMESPACE", "http://example.org/namespace"
 }

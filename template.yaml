@@ -45,20 +45,9 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Description: Custom API to connect this lambda to
     Default: CustomDomain
-  UserServiceSecretName:
-    Type: String
-    Description: Name of the Secret for Users and Role Service
-    Default: UserCatalogueApiKey
-  UserServiceSecretKey:
-    Type: String
-    Description: Key in the Secret for Users and Role Service
-    Default: ApiKey
 
   # Parameters from nva-user-access-service
-  InternalApiBasePath:
-    Type: String
-    Default: users-roles-internal
-  ExternalApiBasePath:
+  UsersAndRolesBasePath:
     Type: String
     Default: users-roles
 
@@ -392,14 +381,6 @@ Resources:
                   - cognito-idp:AdminAddUserToGroup
                   - cognito-idp:AdminUpdateUserAttributes
                 Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
-        - PolicyName: GetSecretValue
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Ref UserServiceSecret
         - PolicyName: DatabasePermissions
           PolicyDocument:
             Version: '2012-10-17'
@@ -437,17 +418,6 @@ Resources:
           ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
 
-  UserServiceSecret:
-    Type: AWS::SecretsManager::Secret
-    Properties:
-      Description: Secret that will be used by users and roles service
-      GenerateSecretString:
-        SecretStringTemplate: "{}"
-        GenerateStringKey: !Ref UserServiceSecretKey
-        PasswordLength: 30
-        ExcludeCharacters: '"@/\'
-      Name: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
-
   ### User Access Service ##############################################################################################
 
   UserRoleMappings:
@@ -483,52 +453,7 @@ Resources:
           Projection:
             ProjectionType: ALL
 
-  LambdaAuthorizer:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.authorizer.LambdaAuthorizer::handleRequest
-      MemorySize: 1408
-      Layers:
-        - !Ref UserAccessCommonsLayer
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-          API_SECRET_NAME: !Sub '${ParameterNamePrefix}${UserServiceSecretName}'
-          API_SECRET_KEY: !Ref UserServiceSecretKey
-      Policies:
-        - Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Resource: !Ref UserServiceSecret
-              Action:
-                - "secretsmanager:GetResourcePolicy"
-                - "secretsmanager:GetSecretValue"
-                - "secretsmanager:DescribeSecret"
-                - "secretsmanager:ListSecretVersionIds"
-  InternalApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      EndpointConfiguration: REGIONAL
-      Auth:
-        Authorizers:
-          LambdaRequestAuthorizer:
-            FunctionArn: !GetAtt LambdaAuthorizer.Arn
-            FunctionPayloadType: REQUEST
-            Identity:
-              Headers:
-                - Authorization
-              ReauthorizeEvery: 1
-        DefaultAuthorizer: LambdaRequestAuthorizer
-      DefinitionBody:
-        'Fn::Transform':
-          Name: AWS::Include
-          Parameters:
-            Location: ./docs/users-and-roles-internal-swagger.yaml
-
-  ExternalApi:
+  UsersAndRolesApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
@@ -537,7 +462,7 @@ Resources:
         'Fn::Transform':
           Name: AWS::Include
           Parameters:
-            Location: ./docs/users-and-roles-external-swagger.yaml
+            Location: ./docs/users-and-roles-swagger.yaml
 
   UserAccessCommonsLayer:
     Type: AWS::Serverless::LayerVersion
@@ -570,7 +495,7 @@ Resources:
           Properties:
             Path: /roles
             Method: post
-            RestApiId: !Ref ExternalApi
+            RestApiId: !Ref UsersAndRolesApi
 
   GetRoleHandler:
     Type: AWS::Serverless::Function
@@ -592,7 +517,7 @@ Resources:
           Properties:
             Path: /roles/{role}
             Method: get
-            RestApiId: !Ref ExternalApi
+            RestApiId: !Ref UsersAndRolesApi
   AddUserHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -613,7 +538,7 @@ Resources:
           Properties:
             Path: /users
             Method: post
-            RestApiId: !Ref ExternalApi
+            RestApiId: !Ref UsersAndRolesApi
 
   GetUserHandler:
     Type: AWS::Serverless::Function
@@ -635,7 +560,7 @@ Resources:
           Properties:
             Path: /users/{username}
             Method: get
-            RestApiId: !Ref ExternalApi
+            RestApiId: !Ref UsersAndRolesApi
   UpdateUserHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -656,7 +581,7 @@ Resources:
           Properties:
             Path: /users/{username}
             Method: put
-            RestApiId: !Ref ExternalApi
+            RestApiId: !Ref UsersAndRolesApi
   ListByInstitutionHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -680,95 +605,19 @@ Resources:
             RequestParameters:
               - method.request.querystring.institution:
                   Required: true
-            RestApiId: !Ref ExternalApi
-  ServiceGetUserHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
-      MemorySize: 1408
-      Layers:
-        - !Ref UserAccessCommonsLayer
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /service/users/{username}
-            Method: get
-            RestApiId: !Ref InternalApi
-  ServiceUpdateUserHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
-      MemorySize: 1408
-      Layers:
-        - !Ref UserAccessCommonsLayer
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /service/users/{username}
-            Method: put
-            RestApiId: !Ref InternalApi
-  ServiceAddUserHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.AddUserHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /service/users
-            Method: post
-            RestApiId: !Ref InternalApi
+            RestApiId: !Ref UsersAndRolesApi
 
-  InternalApiStaticUrl:
+  UsersAndRolesApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
       BasePath:
         !If
         - WithSuffix
-        - !Sub '${InternalApiBasePath}-${Suffix}'
-        - !Sub '${InternalApiBasePath}'
+        - !Sub '${UsersAndRolesBasePath}-${Suffix}'
+        - !Sub '${UsersAndRolesBasePath}'
       DomainName: !Sub 'api.${CustomDomain}'
-      RestApiId: !Ref InternalApi
-      Stage: !Ref  InternalApi.Stage
-  ExternalApiStaticUrl:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath:
-        !If
-        - WithSuffix
-        - !Sub '${ExternalApiBasePath}-${Suffix}'
-        - !Sub '${ExternalApiBasePath}'
-      DomainName: !Sub 'api.${CustomDomain}'
-      RestApiId: !Ref ExternalApi
-      Stage: !Ref ExternalApi.Stage
+      RestApiId: !Ref UsersAndRolesApi
+      Stage: !Ref UsersAndRolesApi.Stage
 
   ### Customer Service #################################################################################################
 

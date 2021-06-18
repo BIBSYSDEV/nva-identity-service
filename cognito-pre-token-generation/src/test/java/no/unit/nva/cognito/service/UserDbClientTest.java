@@ -30,6 +30,7 @@ public class UserDbClientTest {
 
     @BeforeEach
     public void setUp() {
+        //TODO: use DatabaseServiceImpl with DynamoDbLocal
         databaseService = Mockito.mock(DatabaseService.class);
         userApi = new UserDbClient(databaseService);
     }

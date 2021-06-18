@@ -1,16 +1,28 @@
 package no.unit.nva.cognito;
 
-import static java.util.Objects.nonNull;
-import static no.unit.nva.cognito.util.OrgNumberCleaner.removeCountryPrefix;
-import static nva.commons.core.StringUtils.isNotBlank;
-import static nva.commons.core.attempt.Try.attempt;
-
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProviderClient;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.http.HttpClient;
+import no.unit.nva.cognito.model.CustomerResponse;
+import no.unit.nva.cognito.model.Event;
+import no.unit.nva.cognito.model.UserAttributes;
+import no.unit.nva.cognito.service.CustomerApi;
+import no.unit.nva.cognito.service.CustomerDbClient;
+import no.unit.nva.cognito.service.UserDbClient;
+import no.unit.nva.cognito.service.UserDetails;
+import no.unit.nva.cognito.service.UserService;
+import no.unit.nva.customer.model.CustomerMapper;
+import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
+import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.useraccessmanagement.model.RoleDto;
+import no.unit.nva.useraccessmanagement.model.UserDto;
+import nva.commons.core.JacocoGenerated;
+import nva.commons.core.JsonUtils;
+import nva.commons.core.attempt.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -19,23 +31,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import no.unit.nva.cognito.model.CustomerResponse;
-import no.unit.nva.cognito.model.Event;
-import no.unit.nva.cognito.model.UserAttributes;
-import no.unit.nva.cognito.service.CustomerApi;
-import no.unit.nva.cognito.service.CustomerDbClient;
-import no.unit.nva.cognito.service.UserApiClient;
-import no.unit.nva.cognito.service.UserDetails;
-import no.unit.nva.cognito.service.UserService;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.core.Environment;
-import nva.commons.core.JacocoGenerated;
-import nva.commons.core.JsonUtils;
-import nva.commons.core.attempt.Try;
-import nva.commons.secrets.SecretsReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static java.util.Objects.nonNull;
+import static no.unit.nva.cognito.Constants.DYNAMODB_CLIENT;
+import static no.unit.nva.cognito.Constants.ENVIRONMENT;
+import static no.unit.nva.cognito.Constants.ID_NAMESPACE_VALUE;
+import static no.unit.nva.cognito.util.OrgNumberCleaner.removeCountryPrefix;
+import static no.unit.nva.customer.ObjectMapperConfig.objectMapper;
+import static nva.commons.core.StringUtils.isNotBlank;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
@@ -65,7 +69,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
 
     @JacocoGenerated
     public TriggerHandler() {
-        this(newUserService(), newCustomerDbClient());
+        this(defaultUserService(), defaultCustomerDbClient());
     }
 
     public TriggerHandler(UserService userService, CustomerApi customerApi) {
@@ -90,30 +94,35 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     }
 
     @JacocoGenerated
-    private static CustomerDbClient newCustomerDbClient() {
-        return new CustomerDbClient();
+    private static CustomerDbClient defaultCustomerDbClient() {
+        return new CustomerDbClient(defaultCustomerService(), defaultCustomerMapper());
     }
 
     @JacocoGenerated
-    private static SecretsReader defaultSecretsReader() {
-        return new SecretsReader();
+    private static DynamoDBCustomerService defaultCustomerService() {
+        return new DynamoDBCustomerService(
+                DYNAMODB_CLIENT,
+                objectMapper,
+                ENVIRONMENT);
     }
 
     @JacocoGenerated
-    private static UserService newUserService() {
+    private static CustomerMapper defaultCustomerMapper() {
+        return new CustomerMapper(ID_NAMESPACE_VALUE);
+    }
+
+
+    @JacocoGenerated
+    private static UserService defaultUserService() {
         return new UserService(
-            defaultUserApiClient(),
+            defaultUserDbClient(),
             AWSCognitoIdentityProviderClient.builder().build()
         );
     }
 
     @JacocoGenerated
-    private static UserApiClient defaultUserApiClient() {
-        return new UserApiClient(
-            HttpClient.newHttpClient(),
-            new ObjectMapper(),
-            defaultSecretsReader(),
-            new Environment());
+    private static UserDbClient defaultUserDbClient() {
+        return new UserDbClient(new DatabaseServiceImpl(DYNAMODB_CLIENT, ENVIRONMENT));
     }
 
     private UserDetails extractUserDetails(Event event) {

@@ -1,7 +1,5 @@
 package no.unit.nva.cognito.service;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Optional;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 
@@ -11,5 +9,5 @@ public interface UserApi {
 
     UserDto createUser(UserDto user);
 
-    void updateUser(UserDto user) throws URISyntaxException, IOException,  InterruptedException;
+    void updateUser(UserDto user);
 }

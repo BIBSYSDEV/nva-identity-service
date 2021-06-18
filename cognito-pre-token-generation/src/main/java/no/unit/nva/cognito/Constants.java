@@ -1,6 +1,8 @@
 package no.unit.nva.cognito;
 
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
@@ -13,8 +15,17 @@ public final class Constants {
 
     public static final String ID_NAMESPACE_VALUE = ENVIRONMENT.readEnv(ID_NAMESPACE_ENV);
     public static final Regions AWS_REGION_VALUE = setupRegion();
+    public static final AmazonDynamoDB DYNAMODB_CLIENT = setupDynamoDBClient();
 
     private Constants() {
+    }
+
+    @JacocoGenerated
+    private static AmazonDynamoDB setupDynamoDBClient() {
+        return AmazonDynamoDBClientBuilder
+                .standard()
+                .withRegion(AWS_REGION_VALUE)
+                .build();
     }
 
     @JacocoGenerated

@@ -1,6 +1,5 @@
 package no.unit.nva.cognito.service;
 
-import no.unit.nva.cognito.Constants;
 import no.unit.nva.cognito.model.CustomerResponse;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerMapper;

@@ -4,8 +4,6 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
 import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -64,8 +62,7 @@ public class UserService {
         return userApi.createUser(userInstance);
     }
 
-    public UserDto updateUser(UserDto existingUser, UserDetails detailsUpdate)
-        throws InterruptedException, IOException, URISyntaxException {
+    public UserDto updateUser(UserDto existingUser, UserDetails detailsUpdate) {
         List<RoleDto> updatedRoles = updateRoles(existingUser, detailsUpdate);
 
         UserDto updatedUser = Try.of(existingUser)

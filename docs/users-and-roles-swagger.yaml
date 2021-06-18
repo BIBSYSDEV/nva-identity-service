@@ -203,13 +203,3 @@ components:
         type: cognito_user_pools
         providerARNs:
           - Fn::GetAtt: UserPool.Arn
-    ApiKey:
-      type: apiKey
-      name: Authorization
-      in: header
-      x-amazon-apigateway-authtype: custom
-      x-amazon-apigateway-authorizer:
-        type: request
-        authorizerUri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAuthorizer.Arn}/invocations
-        identitySource: method.request.header.Authorization

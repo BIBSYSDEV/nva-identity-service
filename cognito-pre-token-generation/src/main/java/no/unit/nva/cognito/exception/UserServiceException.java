@@ -2,15 +2,15 @@ package no.unit.nva.cognito.exception;
 
 import nva.commons.core.JacocoGenerated;
 
-public class BadGatewayException extends RuntimeException {
+public class UserServiceException extends RuntimeException {
 
     @JacocoGenerated
-    public BadGatewayException(String message) {
+    public UserServiceException(String message) {
         super(message);
     }
 
     @JacocoGenerated
-    public BadGatewayException(String message, Exception cause) {
+    public UserServiceException(String message, Exception cause) {
         super(message,cause);
     }
 }

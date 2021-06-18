@@ -1,12 +1,8 @@
 package no.unit.nva.cognito.service;
 
-import no.unit.nva.cognito.exception.BadGatewayException;
+import no.unit.nva.cognito.exception.UserServiceException;
 import no.unit.nva.database.DatabaseService;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +27,7 @@ public class UserDbClient implements UserApi {
         try {
             UserDto queryOject = UserDto.newBuilder().withUsername(username).build();
             userDto = databaseService.getUser(queryOject);
-        } catch (InvalidEntryInternalException | NotFoundException e) {
+        } catch (Exception e) {
             logger.error(ERROR_GETTING_USER, e);
         }
         return Optional.ofNullable(userDto);
@@ -41,10 +37,11 @@ public class UserDbClient implements UserApi {
     public UserDto createUser(UserDto user) {
         try {
             databaseService.addUser(user);
-        } catch (InvalidEntryInternalException | ConflictException | InvalidInputException e) {
+        } catch (Exception e) {
             logger.error(ERROR_CREATING_USER, e);
-            throw new BadGatewayException(e.getMessage(), e);
+            throw new UserServiceException(e.getMessage(), e);
         }
+        //TODO: maybe not necessary to return user here?
         return getUser(user.getUsername()).orElseThrow();
     }
 
@@ -52,9 +49,9 @@ public class UserDbClient implements UserApi {
     public void updateUser(UserDto user) {
         try {
             databaseService.updateUser(user);
-        } catch (InvalidEntryInternalException | InvalidInputException | NotFoundException e) {
+        } catch (Exception e) {
             logger.error(ERROR_UPDATING_USER, e);
-            throw new BadGatewayException(e.getMessage(), e);
+            throw new UserServiceException(e.getMessage(), e);
         }
     }
 }

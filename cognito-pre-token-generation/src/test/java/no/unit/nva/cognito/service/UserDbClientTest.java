@@ -1,6 +1,6 @@
 package no.unit.nva.cognito.service;
 
-import no.unit.nva.cognito.exception.BadGatewayException;
+import no.unit.nva.cognito.exception.UserServiceException;
 import no.unit.nva.database.DatabaseService;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
@@ -73,9 +73,9 @@ public class UserDbClientTest {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         doThrow(InvalidInputException.class).when(databaseService).addUser(any());
 
-        Exception exception = Assert.assertThrows(BadGatewayException.class, () -> userApi.createUser(userDto));
+        Exception exception = Assert.assertThrows(UserServiceException.class, () -> userApi.createUser(userDto));
 
-        assertThat(exception, instanceOf(BadGatewayException.class));
+        assertThat(exception, instanceOf(UserServiceException.class));
     }
 
     @Test
@@ -90,9 +90,9 @@ public class UserDbClientTest {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         doThrow(InvalidInputException.class).when(databaseService).updateUser(any());
 
-        Exception exception = Assert.assertThrows(BadGatewayException.class, () -> userApi.updateUser(userDto));
+        Exception exception = Assert.assertThrows(UserServiceException.class, () -> userApi.updateUser(userDto));
 
-        assertThat(exception, instanceOf(BadGatewayException.class));
+        assertThat(exception, instanceOf(UserServiceException.class));
     }
 
 }

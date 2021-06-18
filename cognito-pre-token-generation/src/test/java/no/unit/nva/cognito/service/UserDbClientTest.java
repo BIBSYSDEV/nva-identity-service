@@ -81,7 +81,7 @@ public class UserDbClientTest {
     }
 
     @Test
-    public  void updateUserNoErrorsOnSuccess() throws InvalidEntryInternalException {
+    public void updateUserNoErrorsOnSuccess() throws InvalidEntryInternalException {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         userApi.updateUser(userDto);
     }

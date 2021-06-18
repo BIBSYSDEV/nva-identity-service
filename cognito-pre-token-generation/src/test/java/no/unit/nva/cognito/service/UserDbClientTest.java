@@ -76,6 +76,7 @@ public class UserDbClientTest {
         Exception exception = Assert.assertThrows(UserServiceException.class, () -> userApi.createUser(userDto));
 
         assertThat(exception, instanceOf(UserServiceException.class));
+        assertThat(exception.getCause(), instanceOf(InvalidInputException.class));
     }
 
     @Test
@@ -93,6 +94,6 @@ public class UserDbClientTest {
         Exception exception = Assert.assertThrows(UserServiceException.class, () -> userApi.updateUser(userDto));
 
         assertThat(exception, instanceOf(UserServiceException.class));
+        assertThat(exception.getCause(), instanceOf(InvalidInputException.class));
     }
-
 }

@@ -988,6 +988,14 @@ Resources:
       Type: String
       Value: !Ref AuthenticationDomainPrefix
 
+  CognitoAuthenticationDomainParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '${ParameterNamePrefix}CognitoAuthenticationDomain'
+      Description: The full Cognito domain that hosts the sign-up and sign-in pages for your application.
+      Type: String
+      Value: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+
   CognitoFrontendApplicationUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -995,6 +1003,14 @@ Resources:
       Description: A base URL for the callbacks for the identity providers.
       Type: String
       Value: !Select [ 0, !Ref CallbackURLs]
+
+  CognitoFrontendApplicationLogoutUrlParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '${ParameterNamePrefix}CognitoFrontendApplicationLogoutUrl'
+      Description: A base URL for the logout for the identity providers.
+      Type: String
+      Value: !Select [ 0, !Ref LogoutURLs]
 
   FeideMetadataUrlParameter:
     Type: AWS::SSM::Parameter

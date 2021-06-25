@@ -10,9 +10,11 @@ import static no.unit.nva.useraccessmanagement.model.UserDto.INVALID_USER_ERROR_
 import static nva.commons.core.JsonUtils.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.IsSame.sameInstance;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -193,6 +195,14 @@ public class UserDtoTest extends DtoTest {
         UserDto deserializedObject = objectMapper.readValue(jsonString, UserDto.class);
         assertThat(deserializedObject, is(equalTo(initialUser)));
         assertThat(deserializedObject, is(not(sameInstance(initialUser))));
+    }
+
+    @Test
+    public void getRolesReturnsEmptyListWhenRolesIsNull() throws InvalidEntryInternalException {
+        UserDto userDto = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(null).build();
+        List<RoleDto> roles = userDto.getRoles();
+        assertThat(roles,is(not(nullValue())));
+        assertThat(roles,is(empty()));
     }
 
     private static List<RoleDto> createSampleRoles() {

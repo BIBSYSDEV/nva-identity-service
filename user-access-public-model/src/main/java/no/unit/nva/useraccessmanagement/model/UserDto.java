@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.util.ArrayList;
@@ -57,8 +58,8 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
     @JsonProperty("accessRights")
     public Set<String> getAccessRights() {
         return roles.stream()
-            .flatMap(role -> role.getAccessRights().stream())
-            .collect(Collectors.toSet());
+                   .flatMap(role -> role.getAccessRights().stream())
+                   .collect(Collectors.toSet());
     }
 
     public void setAccessRights(List<String> accessRights) {
@@ -98,7 +99,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
     }
 
     public List<RoleDto> getRoles() {
-        return roles;
+        return nonNull(roles) ? roles : Collections.emptyList();
     }
 
     private void setRoles(List<RoleDto> roles) {
@@ -115,12 +116,6 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
         return new InvalidInputException(INVALID_USER_ERROR_MESSAGE);
     }
 
-    @Override
-    @JacocoGenerated
-    public String toString() {
-        return toJsonString();
-    }
-
     /**
      * Creates a copy of the object.
      *
@@ -129,11 +124,17 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
     @Override
     public UserDto.Builder copy() {
         return new Builder()
-            .withUsername(username)
-            .withGivenName(givenName)
-            .withFamilyName(familyName)
-            .withInstitution(institution)
-            .withRoles(listRoles());
+                   .withUsername(username)
+                   .withGivenName(givenName)
+                   .withFamilyName(familyName)
+                   .withInstitution(institution)
+                   .withRoles(listRoles());
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getUsername(), getInstitution(), getRoles());
     }
 
     @Override
@@ -147,16 +148,16 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
         }
         UserDto userDto = (UserDto) o;
         return Objects.equals(getUsername(), userDto.getUsername())
-            && Objects.equals(getGivenName(), userDto.getGivenName())
-            && Objects.equals(getFamilyName(), userDto.getFamilyName())
-            && Objects.equals(getInstitution(), userDto.getInstitution())
-            && Objects.equals(getRoles(), userDto.getRoles());
+               && Objects.equals(getGivenName(), userDto.getGivenName())
+               && Objects.equals(getFamilyName(), userDto.getFamilyName())
+               && Objects.equals(getInstitution(), userDto.getInstitution())
+               && Objects.equals(getRoles(), userDto.getRoles());
     }
 
     @Override
     @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getUsername(), getInstitution(), getRoles());
+    public String toString() {
+        return toJsonString();
     }
 
     private List<RoleDto> listRoles() {

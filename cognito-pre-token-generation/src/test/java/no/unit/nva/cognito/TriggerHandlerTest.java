@@ -57,7 +57,7 @@ public class TriggerHandlerTest {
 
     public static final String SAMPLE_AFFILIATION = "[member, employee, staff]";
     public static final String SAMPLE_HOSTED_AFFILIATION =
-        "[member@zs.bibsys.no, employee@zs.bibsys.no, staff@zs.bibsys.no]";
+        "[member%40zs.bibsys.no, employee%40zs.bibsys.no, staff%40zs.bibsys.no, error%4zs.bibsys.no]";
     public static final String SAMPLE_HOSTED_FEIDE_ID = "feideId@bibsys.no";
 
     public static final String EMPTY_AFFILIATION = "[]";
@@ -262,6 +262,23 @@ public class TriggerHandlerTest {
     }
 
     @Test
+    public void handleRequestReturnsNewUserWithCreatorRoleWhenUserIsFeideHostedUser()
+            throws InvalidEntryInternalException {
+        mockCustomerApiWithNoCustomer();
+        mockCustomerApiWithExistingCustomer();
+
+        Map<String, Object> requestEvent = createRequestEventWithCompleteBibsysHostedUser();
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+
+        verifyNumberOfAttributeUpdatesInCognito(1);
+
+        UserDto expected = hostedUserWithCreatorRole();
+        UserDto createdUser = getUserFromMock();
+        assertEquals(expected, createdUser);
+        assertEquals(requestEvent, responseEvent);
+    }
+
+    @Test
     public void handleRequestReturnsUserWithUserRoleWhenUserIsFeideHostedUserAndUserMissingAffiliation()
         throws InvalidEntryInternalException {
         mockCustomerApiWithNoCustomer();
@@ -454,6 +471,19 @@ public class TriggerHandlerTest {
                    .withFamilyName(SAMPLE_FAMILY_NAME)
                    .withRoles(roles)
                    .build();
+    }
+
+    private UserDto hostedUserWithCreatorRole() throws InvalidEntryInternalException {
+        List<RoleDto> roles = new ArrayList<>();
+        roles.add(createRole(CREATOR));
+        roles.add(createRole(USER));
+        return UserDto.newBuilder()
+                .withUsername(SAMPLE_HOSTED_FEIDE_ID)
+                .withGivenName(SAMPLE_GIVEN_NAME)
+                .withFamilyName(SAMPLE_FAMILY_NAME)
+                .withRoles(roles)
+                .withInstitution(SAMPLE_CUSTOMER_ID)
+                .build();
     }
 
     private Map<String, Object> createRequestEventWithIncompleteBibsysHostedUser() {

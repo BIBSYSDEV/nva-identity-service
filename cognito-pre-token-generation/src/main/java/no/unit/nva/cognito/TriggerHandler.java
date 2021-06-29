@@ -19,6 +19,7 @@ import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonUtils;
+import nva.commons.core.attempt.Failure;
 import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,9 +66,9 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     public static final String APPLICATION_ROLES_MESSAGE = "applicationRoles: ";
     public static final String HOSTED_AFFILIATION_MESSAGE =
             "Overriding orgNumber({}) with hostedOrgNumber({}) and hostedAffiliation";
-    private static final Logger logger = LoggerFactory.getLogger(TriggerHandler.class);
     public static final String PROBLEM_DECODING_HOSTED_USERS_AFFILIATION =
             "Problem decoding hosted users affiliation, using original";
+    private static final Logger logger = LoggerFactory.getLogger(TriggerHandler.class);
     private final UserService userService;
     private final CustomerApi customerApi;
 
@@ -79,22 +80,6 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     public TriggerHandler(UserService userService, CustomerApi customerApi) {
         this.userService = userService;
         this.customerApi = customerApi;
-    }
-
-    @Override
-    public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
-        long start = System.currentTimeMillis();
-        Event event = parseEventFromInput(input);
-
-        String userPoolId = event.getUserPoolId();
-        String userName = event.getUserName();
-        UserDetails userDetails = extractUserDetails(event);
-        UserDto user = getAndUpdateUserDetails(userDetails);
-
-        updateUserDetailsInUserPool(userPoolId, userName, userDetails, user);
-
-        logger.info("handleRequest took {} ms", System.currentTimeMillis() - start);
-        return input;
     }
 
     @JacocoGenerated
@@ -115,7 +100,6 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
         return new CustomerMapper(ID_NAMESPACE_VALUE);
     }
 
-
     @JacocoGenerated
     private static UserService defaultUserService() {
         return new UserService(
@@ -127,6 +111,22 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     @JacocoGenerated
     private static UserDbClient defaultUserDbClient() {
         return new UserDbClient(new DatabaseServiceImpl(DYNAMODB_CLIENT, ENVIRONMENT));
+    }
+
+    @Override
+    public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
+        long start = System.currentTimeMillis();
+        Event event = parseEventFromInput(input);
+
+        String userPoolId = event.getUserPoolId();
+        String userName = event.getUserName();
+        UserDetails userDetails = extractUserDetails(event);
+        UserDto user = getAndUpdateUserDetails(userDetails);
+
+        updateUserDetailsInUserPool(userPoolId, userName, userDetails, user);
+
+        logger.info("handleRequest took {} ms", System.currentTimeMillis() - start);
+        return input;
     }
 
     private UserDetails extractUserDetails(Event event) {
@@ -256,11 +256,12 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     }
 
     private String decodeAffiliation(String hostedAffiliation) {
-        try {
-            return URLDecoder.decode(hostedAffiliation, StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException e) {
-            logger.info(PROBLEM_DECODING_HOSTED_USERS_AFFILIATION, e);
-            return  hostedAffiliation;
-        }
+        return attempt(() -> URLDecoder.decode(hostedAffiliation, StandardCharsets.UTF_8))
+                .orElse(fail -> logWarningAndReturnOriginalValue(fail, hostedAffiliation));
+    }
+
+    private String logWarningAndReturnOriginalValue(Failure<String> fail, String hostedAffiliation) {
+        logger.warn(PROBLEM_DECODING_HOSTED_USERS_AFFILIATION, fail.getException());
+        return hostedAffiliation;
     }
 }

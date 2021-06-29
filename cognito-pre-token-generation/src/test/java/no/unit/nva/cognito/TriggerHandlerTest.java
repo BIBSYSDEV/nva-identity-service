@@ -57,7 +57,7 @@ public class TriggerHandlerTest {
 
     public static final String SAMPLE_AFFILIATION = "[member, employee, staff]";
     public static final String SAMPLE_HOSTED_AFFILIATION =
-        "[member%40zs.bibsys.no, employee%40zs.bibsys.no, staff%40zs.bibsys.no]";
+        "[member%40zs.bibsys.no, employee%40zs.bibsys.no, staff%40zs.bibsys.no, error%4zs.bibsys.no]";
     public static final String SAMPLE_HOSTED_FEIDE_ID = "feideId@bibsys.no";
 
     public static final String EMPTY_AFFILIATION = "[]";

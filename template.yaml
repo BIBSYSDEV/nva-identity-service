@@ -23,14 +23,6 @@ Parameters:
     Type: String
     Default: https://idp-test.feide.no/simplesaml/saml2/idp/metadata.php
     Description: Link to the the identity provider details.
-  CallbackURLs:
-    Type: CommaDelimitedList
-    Default: https://frontend.dev.nva.aws.unit.no,http://localhost:3000
-    Description: A base URL for the callbacks for the identity providers.
-  LogoutURLs:
-    Type: CommaDelimitedList
-    Default: https://frontend.dev.nva.aws.unit.no/logout,http://localhost:3000/logout
-    Description: A base URL for the logout for the identity providers.
   ParameterNamePrefix:
     Type: String
     Description: Prefix used for naming parameters.
@@ -214,8 +206,12 @@ Resources:
       SupportedIdentityProviders:
         - !Ref UserPoolIdentityProviderFeide
       UserPoolId: !Ref UserPool
-      CallbackURLs: !Ref CallbackURLs
-      LogoutURLs: !Ref LogoutURLs
+      CallbackURLs:
+        - !Sub 'https://frontend.${CustomDomain}'
+        - 'http://localhost:3000' # todo: make this conditional in parameters
+      LogoutURLs:
+        - !Sub 'https://frontend.${CustomDomain}/logout'
+        - 'http://localhost:3000/logout' # todo: make this conditional in parameters
       AllowedOAuthFlowsUserPoolClient: True
       AllowedOAuthFlows:
         - code
@@ -851,7 +847,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}CognitoFrontendApplicationUrl'
       Description: A base URL for the callbacks for the identity providers.
       Type: String
-      Value: !Select [ 0, !Ref CallbackURLs]
+      Value: !Sub 'https://frontend.${CustomDomain}'
 
   CognitoFrontendApplicationLogoutUrlParameter:
     Type: AWS::SSM::Parameter
@@ -859,7 +855,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}CognitoFrontendApplicationLogoutUrl'
       Description: A base URL for the logout for the identity providers.
       Type: String
-      Value: !Select [ 0, !Ref LogoutURLs]
+      Value: !Sub 'https://frontend.${CustomDomain}/logout'
 
   FeideMetadataUrlParameter:
     Type: AWS::SSM::Parameter

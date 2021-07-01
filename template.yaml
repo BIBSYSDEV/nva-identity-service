@@ -29,7 +29,7 @@ Parameters:
     Description: A base URL for the callbacks for the identity providers.
   LogoutURLs:
     Type: CommaDelimitedList
-    Default: https://frontend.dev.nva.aws.unit.no/logout
+    Default: https://frontend.dev.nva.aws.unit.no/logout,http://localhost:3000/logout
     Description: A base URL for the logout for the identity providers.
   ParameterNamePrefix:
     Type: String

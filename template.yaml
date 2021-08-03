@@ -967,23 +967,23 @@ Resources:
                 responseStatus = cfnresponse.FAILED
             cfnresponse.send(event, context, responseStatus, responseData)
   UsersAndRolesApiGatewayCreateDeploymentCustomResource:
-    DependsOn: UploadApi
+    DependsOn: UsersAndRolesApi
     Type: AWS::CloudFormation::CustomResource
     Properties:
       ServiceToken: !GetAtt ApiGatewayCreateDeploymentLambda.Arn
       RestApiId: !Ref UsersAndRolesApi
       StageName: !Ref UsersAndRolesApi.Stage
       Timestamp: '${BUILD_TIMESTAMP}'
-      AuthorizerArn: !Ref CognitoAuthorizerArn
+      AuthorizerArn: !GetAtt UserPool.Arn
   CustomerApiGatewayCreateDeploymentCustomResource:
-    DependsOn: UploadApi
+    DependsOn: NvaCustomerApi
     Type: AWS::CloudFormation::CustomResource
     Properties:
       ServiceToken: !GetAtt ApiGatewayCreateDeploymentLambda.Arn
       RestApiId: !Ref NvaCustomerApi
       StageName: !Ref NvaCustomerApi.Stage
       Timestamp: '${BUILD_TIMESTAMP}'
-      AuthorizerArn: !Ref CognitoAuthorizerArn
+      AuthorizerArn: !GetAtt UserPool.Arn
 
 ### Outputs ############################################################################################################
 

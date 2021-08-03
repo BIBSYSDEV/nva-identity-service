@@ -284,3 +284,8 @@ gradle-app.setting
 **/build/
 
 # End of https://www.gitignore.io/api/java,linux,macos,gradle,windows,eclipse,intellij+all,visualstudiocode
+/transformed.yaml
+/transfored_raw.yaml
+/packaged.yaml
+/packaged_raw.yaml
+/sampackaged_raw.yaml

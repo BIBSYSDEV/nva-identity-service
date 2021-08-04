@@ -1,0 +1,26 @@
+dependencies {
+    implementation project(':user-access-public-model')
+    implementation project(':user-access-commons')
+    implementation project(':user-access-errors')
+    implementation project(':user-access-service')
+    implementation project(':customer-commons')
+
+    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project.ext.jacksonVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: project.ext.jacksonVersion
+    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: project.ext.jacksonVersion
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4'
+    implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: project.ext.awsLambdaCoreVersion
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: project.ext.awsSdkVersion
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-cognitoidp', version: project.ext.awsSdkVersion
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.9'
+    implementation group: 'org.zalando', name: 'problem', version: project.ext.zalandoProblemVersion
+
+    testImplementation group: 'org.javers', name: 'javers-core', version: '5.15.0'
+    testImplementation group: 'com.github.bibsysdev', name: 'logutils', version: project.ext.nvaCommonsVersion
+}
+
+test {
+    environment "ID_NAMESPACE", "http://example.org/namespace"
+}

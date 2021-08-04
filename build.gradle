@@ -3,68 +3,93 @@ plugins {
     id 'jacoco'
     id 'checkstyle'
     id 'pmd'
+    id "nebula.lint" version "16.25.0"
+    id 'maven-publish'
     id 'base'
 }
 
-group 'no.unit.nva'
-version '1.0-SNAPSHOT'
-
 allprojects {
-    apply plugin: 'jacoco'
+    apply plugin: 'maven-publish'
+    apply plugin: 'nebula.lint'
     apply plugin: 'base'
+
+    project.ext {
+        nvaCommonsVersion = '1.7.6'
+        awsSdkVersion ="1.11.1000"
+        jacksonVersion ="2.10.3"
+        awsSdk2Version = '2.9.1'
+        DynamoDBLocalVersion = '1.15.0'
+        nvaTestUtilsVersion = '0.1.13'
+        zalandoProblemVersion = '0.25.0'
+        awsLambdaCoreVersion = '1.2.1'
+
+    }
+
+    gradleLint {
+        //TODO: fix gradle linting after refactor
+//        rules = ['all-dependency', 'duplicate-dependency-class', 'unused-exclude-by-dep']
+        rules = ['unused-dependency']
+    }
+
     repositories {
-        jcenter()
-        maven { url "https://jitpack.io" }
-        // Repository for running Embedded DynamoDB locally.
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
         maven { url "https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/release" }
     }
 }
 
 subprojects {
+    task allDeps(type: DependencyReportTask) {}
+
     apply plugin: 'java-library'
+    apply plugin: 'jacoco'
     apply plugin: 'checkstyle'
     apply plugin: 'pmd'
 
-
-    sourceCompatibility = JavaVersion.VERSION_11
-    // source-code version and must be <= targetCompatibility
-    targetCompatibility = JavaVersion.VERSION_11 // bytecode target version
-
-    project.ext {
-        jacksonVersion = '2.10.2'
-        awsSdkVersion = '1.11.897'
-        junit5Version = '5.6.0'
-        nvaCommonsVersion = '0.7.4'
-        nvaDatamodelJavaVersion = '0.11.5'
-    }
+    final def jupiterVersion = "5.6.0"
 
     dependencies {
-        testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: '0.1.16'
+        implementation group: 'com.github.bibsysdev', name: 'core', version: project.ext.nvaCommonsVersion
+
+        implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-core', version: project.ext.awsSdk2Version
+        implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk', version: project.ext.awsSdk2Version
+        implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version: project.ext.awsSdk2Version
+
+        testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: project.ext.nvaTestUtilsVersion
+        testImplementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: project.ext.DynamoDBLocalVersion
+        testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.3.3'
+        testImplementation('org.zalando:problem:0.24.0') {
+            dependencies {
+                compileOnly(group: 'org.apiguardian', name: 'apiguardian-api', version: '1.1.0') {
+                    because 'Dependency has maven scope provided'
+                }
+            }
+
+        }
+        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: jupiterVersion
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: jupiterVersion
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-migrationsupport', version: jupiterVersion
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: jupiterVersion
         testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
-        testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.2.4'
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: project.ext.junit5Version
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-migrationsupport', version: project.ext.junit5Version
-        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: project.ext.junit5Version
+
+
     }
 
     test {
         useJUnitPlatform()
         failFast = true
         testLogging {
-            events 'skipped', 'passed', 'failed'
+            events('skipped', 'passed', 'failed')
         }
+        final Map<String, String> envVariables = new HashMap<>()
+        envVariables.put("ALLOWED_ORIGIN", "*")
+        environment(envVariables)
         finalizedBy jacocoTestReport
-    }
-
-
-    jacocoTestReport {
-        reports {
-            xml.enabled true
-        }
     }
 
     pmd {
         ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
+        toolVersion = "6.33.0"
         ruleSets = []
         ignoreFailures = false
     }
@@ -82,6 +107,7 @@ subprojects {
         }
     }
 
+    // jacoco configuration
     check.dependsOn jacocoTestCoverageVerification
     jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
 
@@ -92,22 +118,30 @@ subprojects {
                     counter = 'METHOD'
                     value = 'COVEREDRATIO'
                     minimum = 1.000
-
                 }
             }
-
             rule {
                 limit {
                     counter = 'CLASS'
                     value = 'COVEREDRATIO'
                     minimum = 1.000
-
                 }
             }
         }
     }
 
+    // publish submodules
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        archiveClassifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+
 }
+
 
 def getProjectList() {
     // These projects are considered. Replace with a different list as needed.
@@ -173,4 +207,3 @@ task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
 build {
     dependsOn jacocoRootReport
 }
-

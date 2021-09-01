@@ -1,9 +1,6 @@
 package no.unit.nva.cognito.service;
 
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
-import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
-import com.amazonaws.services.cognitoidp.model.AttributeType;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -18,8 +15,6 @@ import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
 import nva.commons.core.attempt.Try;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class UserService {
 
@@ -27,34 +22,14 @@ public class UserService {
     public static final String CREATOR = "Creator";
     public static final String FACULTY = "faculty";
     public static final String STAFF = "staff";
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final UserApi userApi;
-    private final AWSCognitoIdentityProvider awsCognitoIdentityProvider;
 
-    public UserService(UserApi userApi,
-                       AWSCognitoIdentityProvider awsCognitoIdentityProvider) {
+    public UserService(UserApi userApi) {
         this.userApi = userApi;
-        this.awsCognitoIdentityProvider = awsCognitoIdentityProvider;
     }
 
     public Optional<UserDto> getUser(String feideId) {
         return userApi.getUser(feideId);
-    }
-
-    /**
-     * Add attributes to user.
-     *
-     * @param userPoolId userPoolId
-     * @param userName   userName
-     * @param attributes attributes
-     */
-    public void updateUserAttributes(String userPoolId, String userName, List<AttributeType> attributes) {
-        AdminUpdateUserAttributesRequest request = new AdminUpdateUserAttributesRequest()
-                                                       .withUserPoolId(userPoolId)
-                                                       .withUsername(userName)
-                                                       .withUserAttributes(attributes);
-        logger.info("Updating User Attributes: " + request.toString());
-        awsCognitoIdentityProvider.adminUpdateUserAttributes(request);
     }
 
     public UserDto createUser(UserDetails userDetails) {

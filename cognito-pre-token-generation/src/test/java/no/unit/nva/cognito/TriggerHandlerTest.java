@@ -36,6 +36,7 @@ import no.unit.nva.cognito.model.Request;
 import no.unit.nva.cognito.model.UserAttributes;
 import no.unit.nva.cognito.service.CustomerApi;
 import no.unit.nva.cognito.service.UserApiMock;
+import no.unit.nva.cognito.service.UserPoolEntryUpdater;
 import no.unit.nva.cognito.service.UserService;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
@@ -75,13 +76,15 @@ public class TriggerHandlerTest {
     public static final AdminUpdateUserAttributesResult UNUSED_RESULT = null;
     public static final int ONLY_CREATOR_ROLE = 1;
     public static final Javers JAVERS = JaversBuilder.javers().build();
+    public static final Context CONTEXT = mock(Context.class);
     private final AtomicReference<List<AttributeType>> attributeTypesBuffer = new AtomicReference<>();
     private CustomerApi customerApi;
     private UserApiMock userApi;
     private UserService userService;
     private TriggerHandler handler;
-    private AWSCognitoIdentityProvider awsCognitoIdentityProvider;
     private Context mockContext;
+    private UserPoolEntryUpdater userPoolEntryUpdater;
+    private AWSCognitoIdentityProvider awsCognitoProvider;
 
     public TriggerHandlerTest() {
         mockContext = mock(Context.class);
@@ -94,10 +97,12 @@ public class TriggerHandlerTest {
     public void init() {
         customerApi = mock(CustomerApi.class);
         userApi = new UserApiMock();
-        awsCognitoIdentityProvider = mockAwsIdentityProvider();
+
         attributeTypesBuffer.set(null);
-        userService = new UserService(userApi, awsCognitoIdentityProvider);
-        handler = new TriggerHandler(userService, customerApi);
+        awsCognitoProvider = mockAwsIdentityProvider();
+        userPoolEntryUpdater = new UserPoolEntryUpdater(awsCognitoProvider);
+        userService = new UserService(userApi);
+        handler = new TriggerHandler(userService, customerApi, userPoolEntryUpdater);
     }
 
     @Test
@@ -121,7 +126,7 @@ public class TriggerHandlerTest {
         mockCustomerApiWithNoCustomer();
 
         Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent,CONTEXT);
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 
@@ -136,8 +141,7 @@ public class TriggerHandlerTest {
         mockCustomerApiWithExistingCustomer();
 
         Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
-        mockContext = mock(Context.class);
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mockContext);
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, CONTEXT);
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 
@@ -345,7 +349,7 @@ public class TriggerHandlerTest {
     }
 
     private void verifyNumberOfAttributeUpdatesInCognito(int numberOfUpdates) {
-        verify(awsCognitoIdentityProvider, times(numberOfUpdates)).adminUpdateUserAttributes(any());
+        verify(awsCognitoProvider, times(numberOfUpdates)).adminUpdateUserAttributes(any());
     }
 
     private UserDto getUserFromMock() {

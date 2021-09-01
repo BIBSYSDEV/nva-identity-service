@@ -1,6 +1,5 @@
 package no.unit.nva.cognito;
 
-import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProviderClient;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -11,6 +10,7 @@ import no.unit.nva.cognito.service.CustomerApi;
 import no.unit.nva.cognito.service.CustomerDbClient;
 import no.unit.nva.cognito.service.UserDbClient;
 import no.unit.nva.cognito.service.UserDetails;
+import no.unit.nva.cognito.service.UserPoolEntryUpdater;
 import no.unit.nva.cognito.service.UserService;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -71,15 +71,18 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     private static final Logger logger = LoggerFactory.getLogger(TriggerHandler.class);
     private final UserService userService;
     private final CustomerApi customerApi;
+    private final UserPoolEntryUpdater userPoolEntryUpdater;
 
     @JacocoGenerated
     public TriggerHandler() {
-        this(defaultUserService(), defaultCustomerDbClient());
+        this(defaultUserService(), defaultCustomerDbClient(), new UserPoolEntryUpdater());
     }
 
-    public TriggerHandler(UserService userService, CustomerApi customerApi) {
+    public TriggerHandler(UserService userService, CustomerApi customerApi,
+                          UserPoolEntryUpdater userPoolEntryUpdater) {
         this.userService = userService;
         this.customerApi = customerApi;
+        this.userPoolEntryUpdater = userPoolEntryUpdater;
     }
 
     @JacocoGenerated
@@ -102,15 +105,12 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
 
     @JacocoGenerated
     private static UserService defaultUserService() {
-        return new UserService(
-                defaultUserDbClient(),
-                AWSCognitoIdentityProviderClient.builder().build()
-        );
+        return new UserService(defaultUserDbClient());
     }
 
     @JacocoGenerated
     private static UserDbClient defaultUserDbClient() {
-        return new UserDbClient(new DatabaseServiceImpl(DYNAMODB_CLIENT, ENVIRONMENT));
+        return new UserDbClient(new DatabaseServiceImpl());
     }
 
     @Override
@@ -167,7 +167,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
                                              UserDto user) {
         long start = System.currentTimeMillis();
         List<AttributeType> cognitoUserAttributes = createUserAttributes(userDetails, user);
-        userService.updateUserAttributes(userPoolId, userName, cognitoUserAttributes);
+        userPoolEntryUpdater.updateUserAttributes(userPoolId, userName, cognitoUserAttributes);
         logger.info("updateUserDetailsInUserPool took {} ms", System.currentTimeMillis() - start);
     }
 

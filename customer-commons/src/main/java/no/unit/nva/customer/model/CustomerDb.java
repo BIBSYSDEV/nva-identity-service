@@ -6,6 +6,7 @@ import nva.commons.core.JacocoGenerated;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @JsonTypeName("Customer")
@@ -26,6 +27,7 @@ public class CustomerDb implements Customer {
     private String institutionDns;
     private String feideOrganizationId;
     private String cristinId;
+    private Set<VocabularySetting> vocabularySettings;
 
     public CustomerDb() {
     }
@@ -42,6 +44,7 @@ public class CustomerDb implements Customer {
         setInstitutionDns(builder.institutionDns);
         setFeideOrganizationId(builder.feideOrganizationId);
         setCristinId(builder.cristinId);
+        setVocabularySettings(builder.vocabularySettings);
     }
 
     @Override
@@ -174,7 +177,8 @@ public class CustomerDb implements Customer {
                 && Objects.equals(getCname(), that.getCname())
                 && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                 && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
-                && Objects.equals(getCristinId(), that.getCristinId());
+                && Objects.equals(getCristinId(), that.getCristinId())
+                && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
     }
 
     @Override
@@ -182,7 +186,17 @@ public class CustomerDb implements Customer {
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
                 getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-            getCristinId());
+            getCristinId(), getVocabularySettings());
+    }
+
+    @Override
+    public Set<VocabularySetting> getVocabularySettings() {
+        return vocabularySettings;
+    }
+
+    @Override
+    public void setVocabularySettings(Set<VocabularySetting> vocabularySettings) {
+        this.vocabularySettings = vocabularySettings;
     }
 
 
@@ -198,6 +212,7 @@ public class CustomerDb implements Customer {
         private String institutionDns;
         private String feideOrganizationId;
         private String cristinId;
+        private Set<VocabularySetting> vocabularySettings;
 
         public Builder() {
         }
@@ -254,6 +269,11 @@ public class CustomerDb implements Customer {
 
         public Builder withCristinId(String cristinId) {
             this.cristinId = cristinId;
+            return this;
+        }
+
+        public Builder withVocabularySettings(Set<VocabularySetting> vocabularySettings) {
+            this.vocabularySettings = vocabularySettings;
             return this;
         }
 

@@ -17,7 +17,7 @@ allprojects {
         nvaCommonsVersion = '1.7.6'
         awsSdkVersion ="1.12.59"
         jacksonVersion ="2.10.3"
-        awsSdk2Version = '2.9.1'
+        xraySdkVersion = '2.9.1'
         DynamoDBLocalVersion = '1.15.0'
         nvaTestUtilsVersion = '0.1.13'
         zalandoProblemVersion = '0.25.0'
@@ -49,9 +49,9 @@ subprojects {
     dependencies {
         implementation group: 'com.github.bibsysdev', name: 'core', version: project.ext.nvaCommonsVersion
 
-        implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-core', version: project.ext.awsSdk2Version
-        implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk', version: project.ext.awsSdk2Version
-        implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version: project.ext.awsSdk2Version
+        implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-core', version: project.ext.xraySdkVersion
+        implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk', version: project.ext.xraySdkVersion
+        implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version: project.ext.xraySdkVersion
 
         testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: project.ext.nvaTestUtilsVersion
         testImplementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: project.ext.DynamoDBLocalVersion

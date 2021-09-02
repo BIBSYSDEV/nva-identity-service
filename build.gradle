@@ -15,7 +15,7 @@ allprojects {
 
     project.ext {
         nvaCommonsVersion = '1.7.6'
-        awsSdkVersion ="1.11.1034"
+        awsSdkVersion ="1.12.59"
         jacksonVersion ="2.10.3"
         xraySdkVersion = '2.9.1'
         DynamoDBLocalVersion = '1.15.0'
@@ -26,9 +26,7 @@ allprojects {
     }
 
     gradleLint {
-        //TODO: fix gradle linting after refactor
-//        rules = ['all-dependency', 'duplicate-dependency-class', 'unused-exclude-by-dep']
-        rules = ['unused-dependency']
+        rules  = ['all-dependency']
     }
 
     repositories {

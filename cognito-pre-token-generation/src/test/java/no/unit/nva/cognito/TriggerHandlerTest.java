@@ -3,6 +3,7 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.service.UserApiMock.FIRST_ACCESS_RIGHT;
 import static no.unit.nva.cognito.service.UserApiMock.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.cognito.service.UserApiMock.SECOND_ACCESS_RIGHT;
+import static no.unit.nva.cognito.service.UserPoolEntryUpdater.CUSTOM_APPLICATION_ACCESS_RIGHTS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
@@ -298,6 +299,7 @@ public class TriggerHandlerTest {
         assertEquals(requestEvent, responseEvent);
     }
 
+
     private String randomRoleName() {
         return UUID.randomUUID().toString();
     }
@@ -329,7 +331,7 @@ public class TriggerHandlerTest {
     private String extractAccessRightsFromUserAttributes() {
         return attributeTypesBuffer.get()
                    .stream()
-                   .filter(attr -> attr.getName().equals(TriggerHandler.CUSTOM_APPLICATION_ACCESS_RIGHTS))
+                   .filter(attr -> attr.getName().equals(CUSTOM_APPLICATION_ACCESS_RIGHTS))
                    .map(AttributeType::getValue)
                    .collect(SingletonCollector.collect());
     }

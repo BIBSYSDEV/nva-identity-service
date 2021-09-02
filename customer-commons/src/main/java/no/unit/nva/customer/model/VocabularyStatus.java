@@ -1,6 +1,8 @@
 package no.unit.nva.customer.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import nva.commons.core.SingletonCollector;
+import nva.commons.core.attempt.Failure;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
@@ -25,6 +27,7 @@ public enum VocabularyStatus {
         return value;
     }
 
+
     /**
      * Lookup enum by value.
      *
@@ -34,10 +37,15 @@ public enum VocabularyStatus {
     public static VocabularyStatus lookup(String value) {
         return stream(values())
                 .filter(nameType -> nameType.getValue().equalsIgnoreCase(value))
-                .findAny()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        format(ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
-                                .map(VocabularyStatus::toString).collect(joining(DELIMITER)))));
+                .collect(SingletonCollector.tryCollect())
+                .orElseThrow(failure -> throwException(failure, value));
     }
+
+    private static RuntimeException throwException(Failure<VocabularyStatus> failure, String value) {
+        return new IllegalArgumentException(
+                format(ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
+                        .map(VocabularyStatus::toString).collect(joining(DELIMITER))));
+    }
+
 
 }

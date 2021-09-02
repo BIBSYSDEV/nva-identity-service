@@ -12,6 +12,13 @@ public class VocabularySetting {
     public VocabularySetting() {
     }
 
+    public VocabularySetting(String name, URI id, VocabularyStatus status) {
+        this();
+        this.name = name;
+        this.id = id;
+        this.status = status;
+    }
+
     public String getName() {
         return name;
     }
@@ -53,42 +60,5 @@ public class VocabularySetting {
     @Override
     public int hashCode() {
         return Objects.hash(name, id, status);
-    }
-
-    public static final class Builder {
-
-        private String name;
-        private URI id;
-        private VocabularyStatus status;
-
-        private Builder() {
-        }
-
-        public static Builder builder() {
-            return new Builder();
-        }
-
-        public Builder withName(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public Builder withId(URI id) {
-            this.id = id;
-            return this;
-        }
-
-        public Builder withStatus(VocabularyStatus status) {
-            this.status = status;
-            return this;
-        }
-
-        public VocabularySetting build() {
-            VocabularySetting vocabularySetting = new VocabularySetting();
-            vocabularySetting.setName(name);
-            vocabularySetting.setId(id);
-            vocabularySetting.setStatus(status);
-            return vocabularySetting;
-        }
     }
 }

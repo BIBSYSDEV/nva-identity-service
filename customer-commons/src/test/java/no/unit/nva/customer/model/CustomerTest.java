@@ -1,5 +1,9 @@
 package no.unit.nva.customer.model;
 
+import static java.lang.String.format;
+import static java.lang.String.valueOf;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,9 +17,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 public class CustomerTest {
@@ -37,8 +44,6 @@ public class CustomerTest {
     public void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() throws JsonProcessingException {
         CustomerDb customerDb = createCustomerDb();
         CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
-
-        System.out.println(objectMapper.writeValueAsString(customerDto));
 
         assertNotNull(customerDto);
         assertNotNull(customerDto.getId());
@@ -64,13 +69,30 @@ public class CustomerTest {
 
     @Test
     public void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> VocabularyStatus.lookup("Unknown"));
-        assertNotNull(exception);
+        String value = "Unknown";
+        IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
+            () -> VocabularyStatus.lookup(value));
+        String expectedMessage = format(VocabularyStatus.ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
+                        .map(VocabularyStatus::toString).collect(joining(VocabularyStatus.DELIMITER)));
+
+        assertEquals(expectedMessage, actual.getMessage());
+    }
+
+    @Test
+    public void vocacularySettingsDoesNotContainDuplicates() {
+        CustomerDb customerDb = createCustomerDb();
+        customerDb.getVocabularySettings().add(vocabularySetting());
+
+        assertThat(customerDb.getVocabularySettings().size(), Matchers.is(Matchers.equalTo(1)));
+
     }
 
     private CustomerDb createCustomerDb() {
         Instant now = Instant.now();
+
+        Set<VocabularySetting> vocabularySettings = new HashSet<>();
+        vocabularySettings.add(vocabularySetting());
+
         return new CustomerDb.Builder()
             .withIdentifier(UUID.randomUUID())
             .withName("Name")
@@ -83,15 +105,15 @@ public class CustomerTest {
             .withInstitutionDns("institution.dns")
             .withFeideOrganizationId("123456789")
             .withCristinId("http://cristin.id")
-            .withVocabularySettings(Set.of(vocabularySetting()))
+            .withVocabularySettings(vocabularySettings)
             .build();
     }
 
     private VocabularySetting vocabularySetting() {
-        return VocabularySetting.Builder.builder()
-                .withName("Vocabulary A")
-                .withId(URI.create("http://uri.to.vocabulary.a"))
-                .withStatus(VocabularyStatus.lookup("Default"))
-                .build();
+        return new VocabularySetting(
+                "Vocabulary A",
+                URI.create("http://uri.to.vocabulary.a"),
+                VocabularyStatus.lookup("Default")
+        );
     }
 }

@@ -1,17 +1,19 @@
 package no.unit.nva.cognito.service;
 
-import static java.util.stream.Collectors.joining;
 import static no.unit.nva.cognito.TriggerHandler.COMMA_DELIMITER;
 import static no.unit.nva.cognito.TriggerHandler.EMPTY_STRING;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProviderClientBuilder;
+import com.amazonaws.services.cognitoidp.model.AdminGetUserRequest;
+import com.amazonaws.services.cognitoidp.model.AdminGetUserResult;
 import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import no.unit.nva.cognito.Constants;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -30,7 +32,7 @@ public class UserPoolEntryUpdater {
     public static final String APPLICATION_ROLES_MESSAGE = "applicationRoles: ";
     public static final String FEIDE_PREFIX = "feide:";
     public static final String NVA = "NVA";
-
+    public static final String COGNITO_UPDATE_FAILURE_WARNING = "The following attributes have not been registered:";
     private static final Logger logger = LoggerFactory.getLogger(UserPoolEntryUpdater.class);
     private final AWSCognitoIdentityProvider awsCognitoIdentityProvider;
 
@@ -53,6 +55,7 @@ public class UserPoolEntryUpdater {
         logger.info("Updating User Attributes: " + request.toString());
 
         awsCognitoIdentityProvider.adminUpdateUserAttributes(request);
+        verifyThatCognitoHasUpdatedEntries(userDetails, userAttributes);
     }
 
     @JacocoGenerated
@@ -62,6 +65,22 @@ public class UserPoolEntryUpdater {
             .withRegion(Constants.AWS_REGION_VALUE.getName())
             .withCredentials(new DefaultAWSCredentialsProviderChain())
             .build();
+    }
+
+    private void verifyThatCognitoHasUpdatedEntries(UserDetails userDetails, List<AttributeType> desiredAttributes) {
+        AdminGetUserRequest adminGetUserRequest = new AdminGetUserRequest()
+            .withUserPoolId(userDetails.getCognitoUserPool())
+            .withUsername(userDetails.getCognitoUserName());
+        AdminGetUserResult response = awsCognitoIdentityProvider.adminGetUser(adminGetUserRequest);
+        List<AttributeType> actualAttributes = response.getUserAttributes();
+        desiredAttributes.removeAll(actualAttributes);
+        if (!desiredAttributes.isEmpty()) {
+            logger.warn(COGNITO_UPDATE_FAILURE_WARNING + toString(desiredAttributes));
+        }
+    }
+
+    private String toString(List<AttributeType> desiredAttributes) {
+        return desiredAttributes.stream().map(AttributeType::toString).collect(Collectors.joining(","));
     }
 
     private AdminUpdateUserAttributesRequest createUpateRequestForUserEntryInCognito(UserDetails userDetails,
@@ -118,6 +137,6 @@ public class UserPoolEntryUpdater {
         return roles
             .stream()
             .map(stringRepresentation)
-            .collect(joining(COMMA_DELIMITER));
+            .collect(Collectors.joining(COMMA_DELIMITER));
     }
 }

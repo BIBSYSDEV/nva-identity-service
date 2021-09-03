@@ -67,12 +67,12 @@ public class UserPoolEntryUpdater {
             .build();
     }
 
-    private void verifyThatCognitoHasUpdatedEntries(UserDetails userDetails, List<AttributeType> desiredAttributes) {
+    private void verifyThatCognitoHasUpdatedEntries(UserDetails userDetails, List<AttributeType> insertedAttributes) {
         AdminGetUserResult response = getCognitoUserDetails(userDetails);
         List<AttributeType> actualAttributes = response.getUserAttributes();
-        desiredAttributes.removeAll(actualAttributes);
-        if (!desiredAttributes.isEmpty()) {
-            logger.warn(COGNITO_UPDATE_FAILURE_WARNING + toString(desiredAttributes));
+        insertedAttributes.removeAll(actualAttributes);
+        if (!insertedAttributes.isEmpty()) {
+            logger.warn(COGNITO_UPDATE_FAILURE_WARNING + toString(insertedAttributes));
         }
     }
 

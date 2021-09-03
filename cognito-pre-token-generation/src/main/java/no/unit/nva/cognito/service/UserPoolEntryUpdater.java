@@ -68,15 +68,19 @@ public class UserPoolEntryUpdater {
     }
 
     private void verifyThatCognitoHasUpdatedEntries(UserDetails userDetails, List<AttributeType> desiredAttributes) {
-        AdminGetUserRequest adminGetUserRequest = new AdminGetUserRequest()
-            .withUserPoolId(userDetails.getCognitoUserPool())
-            .withUsername(userDetails.getCognitoUserName());
-        AdminGetUserResult response = awsCognitoIdentityProvider.adminGetUser(adminGetUserRequest);
+        AdminGetUserResult response = getCognitoUserDetails(userDetails);
         List<AttributeType> actualAttributes = response.getUserAttributes();
         desiredAttributes.removeAll(actualAttributes);
         if (!desiredAttributes.isEmpty()) {
             logger.warn(COGNITO_UPDATE_FAILURE_WARNING + toString(desiredAttributes));
         }
+    }
+
+    private AdminGetUserResult getCognitoUserDetails(UserDetails userDetails) {
+        AdminGetUserRequest adminGetUserRequest = new AdminGetUserRequest()
+            .withUserPoolId(userDetails.getCognitoUserPool())
+            .withUsername(userDetails.getCognitoUserName());
+        return awsCognitoIdentityProvider.adminGetUser(adminGetUserRequest);
     }
 
     private String toString(List<AttributeType> desiredAttributes) {

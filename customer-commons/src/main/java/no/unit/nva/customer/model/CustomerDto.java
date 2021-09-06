@@ -26,7 +26,7 @@ public class CustomerDto implements Customer, JsonLdSupport {
     private String institutionDns;
     private String feideOrganizationId;
     private String cristinId;
-    private Set<VocabularySetting> vocabularySettings;
+    private Set<VocabularySettingDto> vocabularySettings;
     @JsonProperty("@context")
     private URI context;
 
@@ -198,13 +198,11 @@ public class CustomerDto implements Customer, JsonLdSupport {
             getCristinId(), getVocabularySettings(), getContext());
     }
 
-    @Override
-    public Set<VocabularySetting> getVocabularySettings() {
+    public Set<VocabularySettingDto> getVocabularySettings() {
         return vocabularySettings;
     }
 
-    @Override
-    public void setVocabularySettings(Set<VocabularySetting> vocabularySettings) {
+    public void setVocabularySettings(Set<VocabularySettingDto> vocabularySettings) {
         this.vocabularySettings = vocabularySettings;
     }
 }

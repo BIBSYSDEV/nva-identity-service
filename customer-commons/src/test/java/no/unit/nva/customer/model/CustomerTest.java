@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
@@ -90,7 +89,7 @@ public class CustomerTest {
     private CustomerDb createCustomerDb() {
         Instant now = Instant.now();
 
-        Set<VocabularySetting> vocabularySettings = new HashSet<>();
+        Set<VocabularySettingDb> vocabularySettings = new HashSet<>();
         vocabularySettings.add(vocabularySetting());
 
         return new CustomerDb.Builder()
@@ -109,8 +108,8 @@ public class CustomerTest {
             .build();
     }
 
-    private VocabularySetting vocabularySetting() {
-        return new VocabularySetting(
+    private VocabularySettingDb vocabularySetting() {
+        return new VocabularySettingDb(
                 "Vocabulary A",
                 URI.create("http://uri.to.vocabulary.a"),
                 VocabularyStatus.lookup("Default")

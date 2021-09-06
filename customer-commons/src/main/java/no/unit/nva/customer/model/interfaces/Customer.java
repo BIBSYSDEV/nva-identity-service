@@ -1,9 +1,6 @@
 package no.unit.nva.customer.model.interfaces;
 
-import no.unit.nva.customer.model.VocabularySetting;
-
 import java.time.Instant;
-import java.util.Set;
 import java.util.UUID;
 
 public interface Customer {
@@ -51,9 +48,5 @@ public interface Customer {
     String getCristinId();
 
     void setCristinId(String cristinId);
-
-    Set<VocabularySetting> getVocabularySettings();
-
-    void setVocabularySettings(Set<VocabularySetting> vocabularySettings);
 
 }

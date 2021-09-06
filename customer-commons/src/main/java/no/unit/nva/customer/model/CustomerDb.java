@@ -27,7 +27,7 @@ public class CustomerDb implements Customer {
     private String institutionDns;
     private String feideOrganizationId;
     private String cristinId;
-    private Set<VocabularySetting> vocabularySettings;
+    private Set<VocabularySettingDb> vocabularySettings;
 
     public CustomerDb() {
     }
@@ -189,13 +189,11 @@ public class CustomerDb implements Customer {
             getCristinId(), getVocabularySettings());
     }
 
-    @Override
-    public Set<VocabularySetting> getVocabularySettings() {
+    public Set<VocabularySettingDb> getVocabularySettings() {
         return vocabularySettings;
     }
 
-    @Override
-    public void setVocabularySettings(Set<VocabularySetting> vocabularySettings) {
+    public void setVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
         this.vocabularySettings = vocabularySettings;
     }
 
@@ -212,7 +210,7 @@ public class CustomerDb implements Customer {
         private String institutionDns;
         private String feideOrganizationId;
         private String cristinId;
-        private Set<VocabularySetting> vocabularySettings;
+        private Set<VocabularySettingDb> vocabularySettings;
 
         public Builder() {
         }
@@ -272,7 +270,7 @@ public class CustomerDb implements Customer {
             return this;
         }
 
-        public Builder withVocabularySettings(Set<VocabularySetting> vocabularySettings) {
+        public Builder withVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
             this.vocabularySettings = vocabularySettings;
             return this;
         }

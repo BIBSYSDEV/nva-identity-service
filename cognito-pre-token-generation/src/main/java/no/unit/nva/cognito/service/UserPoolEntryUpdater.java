@@ -54,7 +54,7 @@ public class UserPoolEntryUpdater {
 
         List<AttributeType> userAttributes = createUserAttributes(userDetails, user);
         AdminUpdateUserAttributesRequest request = createUpateRequestForUserEntryInCognito(userDetails, userAttributes);
-        logger.info("Updating User Attributes: " + request.toString());
+        logger.info("AdminUpdateAttributesRequest:" + toString(request));
 
         awsCognitoIdentityProvider.adminUpdateUserAttributes(request);
         verifyThatCognitoHasUpdatedEntries(userDetails, userAttributes);
@@ -69,8 +69,13 @@ public class UserPoolEntryUpdater {
             .build();
     }
 
+    private String toString(AdminUpdateUserAttributesRequest request) {
+        return toString(request.getUserAttributes());
+    }
+
     private void verifyThatCognitoHasUpdatedEntries(UserDetails userDetails, List<AttributeType> insertedAttributes) {
         AdminGetUserResult response = getCognitoUserDetails(userDetails);
+        logger.info("AdminGetResult:"+toString(response.getUserAttributes()));
         List<AttributeType> actualAttributes = response.getUserAttributes();
         insertedAttributes.removeAll(actualAttributes);
         if (!insertedAttributes.isEmpty()) {

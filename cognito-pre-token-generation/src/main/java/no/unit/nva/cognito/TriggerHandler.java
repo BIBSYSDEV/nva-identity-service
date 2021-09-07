@@ -80,9 +80,18 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
         UserDto user = getAndUpdateUserDetails(userDetails);
 
         updateUserDetailsInUserPool(userDetails, user);
+        waitForCognitoToSync();
 
         logger.info("handleRequest took {} ms", System.currentTimeMillis() - start);
         return input;
+    }
+
+    private void waitForCognitoToSync() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @JacocoGenerated

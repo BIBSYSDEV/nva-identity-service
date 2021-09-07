@@ -12,6 +12,8 @@ import com.amazonaws.services.cognitoidp.model.AttributeType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import no.unit.nva.cognito.Constants;
@@ -84,7 +86,17 @@ public class UserPoolEntryUpdater {
     }
 
     private String toString(List<AttributeType> desiredAttributes) {
-        return desiredAttributes.stream().map(AttributeType::toString).collect(Collectors.joining(","));
+        return desiredAttributes.stream().map(this::attributeTypeToString)
+            .flatMap(Optional::stream)
+            .collect(Collectors.joining(","));
+    }
+
+    private Optional<String> attributeTypeToString(AttributeType attributeType) {
+        if (Objects.nonNull(attributeType.getName()) && Objects.nonNull(attributeType.getValue())) {
+            return Optional.of(String.format("%s:%s", attributeType.getName(), attributeType.getValue()));
+        } else {
+            return Optional.empty();
+        }
     }
 
     private AdminUpdateUserAttributesRequest createUpateRequestForUserEntryInCognito(UserDetails userDetails,

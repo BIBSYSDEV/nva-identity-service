@@ -299,21 +299,6 @@ public class TriggerHandlerTest {
         assertEquals(requestEvent, responseEvent);
     }
 
-    @Test
-    public void handlerLogsMessageWithTheAttributeDiffernceWhenUserAttributesSavedAreNotTheSameAsDesired() {
-        mockCustomerApiWithExistingCustomer();
-        awsCognitoProvider = mockAwsIdentityProviderWhereAttributesAreNotSaved();
-        setupTriggerHandler();
-        Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
-        TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
-
-        handler.handleRequest(requestEvent, mock(Context.class));
-        String logMessages = logger.getMessages();
-        assertThat(logMessages, containsString(COGNITO_UPDATE_FAILURE_WARNING));
-        String logMessagesAfterWarningPrefix =
-            logMessages.substring(logMessages.indexOf(COGNITO_UPDATE_FAILURE_WARNING));
-        assertThat(logMessagesAfterWarningPrefix, containsString(CUSTOM_APPLICATION_ROLES));
-    }
 
     private void setupTriggerHandler() {
         attributeTypesBuffer.set(null);
@@ -369,18 +354,6 @@ public class TriggerHandlerTest {
         return provider;
     }
 
-    private AWSCognitoIdentityProvider mockAwsIdentityProviderWhereAttributesAreNotSaved() {
-        AWSCognitoIdentityProvider provider = mock(AWSCognitoIdentityProvider.class);
-        when(provider.adminUpdateUserAttributes(any(AdminUpdateUserAttributesRequest.class)))
-            .thenAnswer(this::storeUserAttributes);
-        when(provider.adminGetUser(any(AdminGetUserRequest.class)))
-            .thenAnswer(this::returnEmptyUserAttributes);
-        return provider;
-    }
-
-    private AdminGetUserResult returnEmptyUserAttributes(InvocationOnMock invocationOnMock) {
-        return new AdminGetUserResult().withUserAttributes(Collections.emptyList());
-    }
 
     private AdminGetUserResult returnUserAttributes(InvocationOnMock invocationOnMock) {
         return new AdminGetUserResult().withUserAttributes(attributeTypesBuffer.get());

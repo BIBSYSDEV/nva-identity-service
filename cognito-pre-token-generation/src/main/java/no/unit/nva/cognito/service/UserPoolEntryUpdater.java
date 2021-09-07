@@ -5,8 +5,6 @@ import static no.unit.nva.cognito.TriggerHandler.EMPTY_STRING;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProviderClientBuilder;
-import com.amazonaws.services.cognitoidp.model.AdminGetUserRequest;
-import com.amazonaws.services.cognitoidp.model.AdminGetUserResult;
 import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import java.util.ArrayList;
@@ -52,10 +50,7 @@ public class UserPoolEntryUpdater {
 
         List<AttributeType> userAttributes = createUserAttributes(userDetails, user);
         AdminUpdateUserAttributesRequest request = createUpateRequestForUserEntryInCognito(userDetails, userAttributes);
-        logger.info("Updating User Attributes: " + request.toString());
-
         awsCognitoIdentityProvider.adminUpdateUserAttributes(request);
-        verifyThatCognitoHasUpdatedEntries(userDetails, userAttributes);
     }
 
     @JacocoGenerated
@@ -65,26 +60,6 @@ public class UserPoolEntryUpdater {
             .withRegion(Constants.AWS_REGION_VALUE.getName())
             .withCredentials(new DefaultAWSCredentialsProviderChain())
             .build();
-    }
-
-    private void verifyThatCognitoHasUpdatedEntries(UserDetails userDetails, List<AttributeType> insertedAttributes) {
-        AdminGetUserResult response = getCognitoUserDetails(userDetails);
-        List<AttributeType> actualAttributes = response.getUserAttributes();
-        insertedAttributes.removeAll(actualAttributes);
-        if (!insertedAttributes.isEmpty()) {
-            logger.warn(COGNITO_UPDATE_FAILURE_WARNING + toString(insertedAttributes));
-        }
-    }
-
-    private AdminGetUserResult getCognitoUserDetails(UserDetails userDetails) {
-        AdminGetUserRequest adminGetUserRequest = new AdminGetUserRequest()
-            .withUserPoolId(userDetails.getCognitoUserPool())
-            .withUsername(userDetails.getCognitoUserName());
-        return awsCognitoIdentityProvider.adminGetUser(adminGetUserRequest);
-    }
-
-    private String toString(List<AttributeType> desiredAttributes) {
-        return desiredAttributes.stream().map(AttributeType::toString).collect(Collectors.joining(","));
     }
 
     private AdminUpdateUserAttributesRequest createUpateRequestForUserEntryInCognito(UserDetails userDetails,

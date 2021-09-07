@@ -84,7 +84,11 @@ public class UserPoolEntryUpdater {
     }
 
     private String toString(List<AttributeType> desiredAttributes) {
-        return desiredAttributes.stream().map(AttributeType::toString).collect(Collectors.joining(","));
+        return desiredAttributes.stream().map(attributeType->toString(attributeType)).collect(Collectors.joining(","));
+    }
+
+    private String toString(AttributeType attributeType) {
+        return String.format("%s:%s",attributeType.getName(),attributeType.getValue());
     }
 
     private AdminUpdateUserAttributesRequest createUpateRequestForUserEntryInCognito(UserDetails userDetails,

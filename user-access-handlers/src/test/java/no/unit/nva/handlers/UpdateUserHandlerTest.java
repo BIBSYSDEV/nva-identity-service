@@ -30,7 +30,6 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.InvalidOrMissingTypeException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +44,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     public static final String SAMPLE_INSTITUTION = "somewhere";
     public static final String ANOTHER_ROLE = "ANOTHER_ROLE";
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
+    public static final String COULD_NOT_RESOLVE_SUBTYPE_OF = "Could not resolve subtype of";
     private DatabaseServiceImpl databaseService;
     private Context context;
 
@@ -181,7 +181,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
 
         Problem problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), is(equalTo(InvalidOrMissingTypeException.MESSAGE)));
+        assertThat(problem.getDetail(), containsString(COULD_NOT_RESOLVE_SUBTYPE_OF));
     }
 
     private UserDto anotherUserInDatabase()

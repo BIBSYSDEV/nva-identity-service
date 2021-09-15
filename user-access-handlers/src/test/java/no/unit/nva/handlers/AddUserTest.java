@@ -31,7 +31,6 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.InvalidOrMissingTypeException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +40,7 @@ import org.zalando.problem.Problem;
 
 public class AddUserTest extends HandlerTest {
 
+    public static final String COULD_NOT_RESOLVE_SUBTYPE_OF = "Could not resolve subtype of";
     public static final String EMPTY_INSTITUTION = null;
     private AddUserHandler handler;
     private RequestInfo requestInfo;
@@ -156,7 +156,7 @@ public class AddUserTest extends HandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
 
         Problem problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), is(equalTo(InvalidOrMissingTypeException.MESSAGE)));
+        assertThat(problem.getDetail(), containsString(COULD_NOT_RESOLVE_SUBTYPE_OF));
     }
 
     private ByteArrayOutputStream sendRequestToHandler(InputStream requestInputStream)

@@ -21,7 +21,6 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RestRequestHandler;
-import nva.commons.apigateway.exceptions.InvalidOrMissingTypeException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
@@ -33,6 +32,7 @@ import org.zalando.problem.Problem;
 
 public class AddRoleHandlerTest extends HandlerTest {
 
+    public static final String COULD_NOT_RESOLVE_SUBTYPE_OF = "Could not resolve subtype of";
     public static final String SOME_ROLE_NAME = "someRoleName";
     private RoleDto sampleRole;
     private AddRoleHandler addRoleHandler;
@@ -146,7 +146,7 @@ public class AddRoleHandlerTest extends HandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
 
         Problem problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), is(equalTo(InvalidOrMissingTypeException.MESSAGE)));
+        assertThat(problem.getDetail(), containsString(COULD_NOT_RESOLVE_SUBTYPE_OF));
     }
 
     private GatewayResponse<Problem> sendRequestToHandlerWithBody(ObjectNode requestBody)

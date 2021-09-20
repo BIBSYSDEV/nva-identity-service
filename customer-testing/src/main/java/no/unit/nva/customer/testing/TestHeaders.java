@@ -1,13 +1,13 @@
 package no.unit.nva.customer.testing;
 
-import nva.commons.apigateway.ContentTypes;
 import nva.commons.core.JacocoGenerated;
 
 import java.util.Map;
 
-import static nva.commons.apigateway.ApiGatewayHandler.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static nva.commons.apigateway.ApiGatewayHandler.CONTENT_TYPE;
-import static nva.commons.apigateway.HttpHeaders.ACCEPT;
+import static com.google.common.net.HttpHeaders.ACCEPT;
+import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
+import static com.google.common.net.MediaType.JSON_UTF_8;
 
 @JacocoGenerated
 public class TestHeaders {
@@ -21,8 +21,8 @@ public class TestHeaders {
      */
     public static Map<String,String> getRequestHeaders() {
         return Map.of(
-            CONTENT_TYPE, ContentTypes.APPLICATION_JSON,
-            ACCEPT, ContentTypes.APPLICATION_JSON);
+            CONTENT_TYPE, JSON_UTF_8.toString(),
+            ACCEPT, JSON_UTF_8.toString());
     }
 
     /**
@@ -31,7 +31,7 @@ public class TestHeaders {
      */
     public static  Map<String,String> getResponseHeaders() {
         return Map.of(
-                CONTENT_TYPE,  ContentTypes.APPLICATION_JSON,
+                CONTENT_TYPE,  JSON_UTF_8.toString(),
                 ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD
         );
     }

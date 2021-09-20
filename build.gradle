@@ -3,7 +3,7 @@ plugins {
     id 'jacoco'
     id 'checkstyle'
     id 'pmd'
-    id "nebula.lint" version "17.1.1"
+    id "nebula.lint" version "17.2.1"
     id 'maven-publish'
     id 'base'
 }
@@ -14,7 +14,7 @@ allprojects {
     apply plugin: 'base'
 
     project.ext {
-        nvaCommonsVersion = '1.7.6'
+        nvaCommonsVersion = '1.10.0'
         awsSdkVersion ="1.12.59"
         jacksonVersion ="2.10.3"
         xraySdkVersion = '2.9.1'

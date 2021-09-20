@@ -1,13 +1,10 @@
 package no.unit.nva.customer.testing;
 
-import nva.commons.apigateway.ContentTypes;
+import com.google.common.net.HttpHeaders;
+import com.google.common.net.MediaType;
 import nva.commons.core.JacocoGenerated;
 
 import java.util.Map;
-
-import static nva.commons.apigateway.ApiGatewayHandler.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static nva.commons.apigateway.ApiGatewayHandler.CONTENT_TYPE;
-import static nva.commons.apigateway.HttpHeaders.ACCEPT;
 
 @JacocoGenerated
 public class TestHeaders {
@@ -21,8 +18,8 @@ public class TestHeaders {
      */
     public static Map<String,String> getRequestHeaders() {
         return Map.of(
-            CONTENT_TYPE, ContentTypes.APPLICATION_JSON,
-            ACCEPT, ContentTypes.APPLICATION_JSON);
+            HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
+            HttpHeaders.ACCEPT, MediaType.JSON_UTF_8.toString());
     }
 
     /**
@@ -31,8 +28,8 @@ public class TestHeaders {
      */
     public static  Map<String,String> getResponseHeaders() {
         return Map.of(
-                CONTENT_TYPE,  ContentTypes.APPLICATION_JSON,
-                ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD
+                HttpHeaders.CONTENT_TYPE,  MediaType.JSON_UTF_8.toString(),
+                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD
         );
     }
 
@@ -42,8 +39,8 @@ public class TestHeaders {
      */
     public static  Map<String,String> getErrorResponseHeaders() {
         return Map.of(
-                CONTENT_TYPE, APPLICATION_PROBLEM_JSON,
-                ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD
+                HttpHeaders.CONTENT_TYPE, APPLICATION_PROBLEM_JSON,
+                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD
         );
     }
 

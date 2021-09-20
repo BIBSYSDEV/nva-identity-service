@@ -2,6 +2,8 @@ package no.unit.nva.customer.get;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.net.HttpHeaders;
+import com.google.common.net.MediaType;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerDto;
@@ -18,6 +20,7 @@ import org.zalando.problem.Problem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,6 +42,7 @@ public class GetCustomerHandlerTest {
     public static final String SAMPLE_NAMESPACE = "http://example.org/customer";
     public static final String REQUEST_ID = "requestId";
     public static final String MALFORMED_IDENTIFIER = "for-testing";
+    public static final MediaType UNSUPPORTED_MEDIA_TYPE = MediaType.BZIP2;
 
     private CustomerMapper customerMapper;
     private ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
@@ -123,5 +127,30 @@ public class GetCustomerHandlerTest {
         );
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void requestToHandlerWithUnsupportedAcceptHeaderReturnsUnsupportedMediaType() throws Exception {
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDb>(objectMapper)
+                .withHeaders(getRequestHeadersWithUnsupportedMediaType())
+                .withPathParameters(pathParameters)
+                .build();
+
+        handler.handleRequest(inputStream, outputStream, context);
+
+        GatewayResponse<Problem> actual = objectMapper.readValue(
+                outputStream.toByteArray(),
+                GatewayResponse.class);
+
+
+        assertEquals(HttpURLConnection.HTTP_UNSUPPORTED_TYPE, actual.getStatusCode());
+
+    }
+    private static Map<String,String> getRequestHeadersWithUnsupportedMediaType() {
+        return Map.of(
+                HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
+                HttpHeaders.ACCEPT, UNSUPPORTED_MEDIA_TYPE.toString());
     }
 }

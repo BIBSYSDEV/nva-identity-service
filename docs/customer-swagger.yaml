@@ -1,48 +1,87 @@
-swagger: '2.0'
+openapi: '3.0.3'
 info:
   title: NVA Customer API
   version: '1.0'
+  description: >
+    The customer data API for NVA returns data about NVA participant institutions. The API has restricted access although no sensitive data is contained within.
+  termsOfService: 'http://nva.unit.no/terms/'
+  contact:
+    email: 'nva@unit.no'
+  license:
+    name: MIT/NVA data
+    url: https://link.to.license
+externalDocs:
+  description: Find out more about NVA
+  url: 'https://nva.unit.no'
+servers:
+  - url: 'https://api.nva.unit.no/customers'
+    description: production
+  - url: 'https://api.test.unit.no/customers'
+    description: test
+  - url: 'https://api.dev.unit.no/customers'
+    description: develop
 paths:
   /:
     post:
       summary: Create Customer
-      consumes:
-        - application/json
-      produces:
-        - application/json
       security:
         - CognitoUserPool: []
-      parameters:
-        - in: body
-          name: customer
-          description: The Customer to create.
-          schema:
-            $ref: '#/definitions/Customer'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+            examples:
+              objectExample:
+                $ref: '#/components/examples/CustomerExample'
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+            examples:
+              objectExample:
+                $ref: '#/components/examples/CustomerExample'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateCustomerFunction.Arn}/invocations
-        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
         '201':
           description: Created
-          schema:
-            $ref: '#/definitions/Customer'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/CustomerExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/CustomerExample'
         '400':
           description: Bad Request
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
         '502':
           description: Bad Gateway
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
     get:
       summary: Get All Customers
-      consumes:
-        - application/json
-      produces:
-        - application/json
       security:
         - CognitoUserPool: []
       x-amazon-apigateway-integration:
@@ -54,38 +93,58 @@ paths:
       responses:
         '200':
           description: OK
-          schema:
-            type: list
-            items:
-              $ref: '#/definitions/Customer'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerList'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/CustomerListExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/CustomerList'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/CustomerListExample'
         '400':
           description: Bad Request
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
         '404':
           description: Not Found
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                NotFoundExample:
+                  $ref: '#/components/examples/NotFoundProblemExample'
         '502':
           description: Bad Gateway
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
   /{identifier}:
     get:
       summary: Get Customer
-      consumes:
-        - application/json
-      produces:
-        - application/json
       security:
         - CognitoUserPool: []
       parameters:
-        - in: path
-          name: identifier
-          type: string
-          format: uuid
-          required: true
+        - name: identifier
           description: UUID identifier of the Customer to get.
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerFunction.Arn}/invocations
@@ -95,40 +154,72 @@ paths:
       responses:
         '200':
           description: OK
-          schema:
-            $ref: '#/definitions/Customer'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/CustomerExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/CustomerExample'
         '400':
           description: Bad Request
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
         '404':
           description: Not Found
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                NotFoundExample:
+                  $ref: '#/components/examples/NotFoundProblemExample'
         '502':
           description: Bad Gateway
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewayExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
     put:
       summary: Update Customer
-      consumes:
-        - application/json
-      produces:
-        - application/json
       security:
         - CognitoUserPool: []
       parameters:
-        - in: path
-          name: identifier
-          type: string
-          format: uuid
+        - name: identifier
+          description: UUID identifier of the Customer to update
+          in: path
           required: true
-          description: UUID identifier of the Customer to update.
-        - in: body
-          name: customer
-          description: The Customer to update.
           schema:
-            $ref: '#/definitions/Customer'
+            $ref: '#/components/schemas/CustomerIdentifier'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+            examples:
+              CustomerExample:
+                $ref: '#/components/examples/CustomerExample'
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+            examples:
+              CustomerExample:
+                $ref: '#/components/examples/CustomerExample'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerFunction.Arn}/invocations
@@ -138,29 +229,174 @@ paths:
       responses:
         '200':
           description: OK
-          schema:
-            $ref: '#/definitions/Customer'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                CustomerExample:
+                  $ref: '#/components/examples/CustomerExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                CustomerExample:
+                  $ref: '#/components/examples/CustomerExample'
         '400':
           description: Bad Request
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
         '502':
           description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
+  /{identifier}/vocabularies:
+    post:
+      summary: Create vocabulary definition for customer
+      security:
+        - EditorUsers: []
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer to update
+          in: path
+          required: true
           schema:
-            $ref: '#/definitions/Problem'
+            $ref: '#/components/schemas/CustomerIdentifier'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VocabularyList'
+            examples:
+              VocabulaaryListExample:
+                $ref: '#/components/examples/VocabularyListExample'
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/VocabularyList'
+            examples:
+              VocabulaaryListExample:
+                $ref: '#/components/examples/VocabularyListExample'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
+        '502':
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
+    put:
+      summary: Update Vocabularies
+      security:
+        - CognitoUserPool: []
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer to update
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VocabularyList'
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/VocabularyList'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
+        '502':
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
   /orgNumber/{orgNumber}:
     get:
       summary: Get CustomerIdentifiers by orgNumber
-      consumes:
-        - application/json
-      produces:
-        - application/json
       parameters:
-        - in: path
-          name: orgNumber
-          type: string
+        - name: orgNumber
+          description: OrgNumber of the CustomerIdentifiers to get
           required: true
-          description: OrgNumber of the CustomerIdentifiers to get.
+          in: path
+          schema:
+            type: string
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgNumberFunction.Arn}/invocations
@@ -170,35 +406,53 @@ paths:
       responses:
         '200':
           description: OK
-          schema:
-            $ref: '#/definitions/CustomerIdentifiers'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerIdentifiers'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/CustomerIdentifiers'
         '400':
           description: Bad Request
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
         '404':
           description: Not Found
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                NotFoundExample:
+                  $ref: '#/components/examples/NotFoundProblemExample'
         '502':
           description: Bad Gateway
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
   /cristinId/{cristinId}:
     get:
       summary: Get Customer by cristinId
-      consumes:
-        - application/json
-      produces:
-        - application/json
       security:
         - CognitoUserPool: []
       parameters:
-        - in: path
-          name: cristinId
-          type: string
+        - name: cristinId
+          description: CristinId of the Customer to get
           required: true
-          description: CristinId of the Customer to get.
+          in: path
+          schema:
+            type: string
+            format: uri
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByCristinIdFunction.Arn}/invocations
@@ -208,82 +462,259 @@ paths:
       responses:
         '200':
           description: OK
-          schema:
-            $ref: '#/definitions/Customer'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/CustomerExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                objectExample:
+                  $ref: '#/components/examples/CustomerExample'
         '400':
           description: Bad Request
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
         '404':
           description: Not Found
-          schema:
-            $ref: '#/definitions/Problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                NotFoundExample:
+                  $ref: '#/components/examples/NotFoundProblemExample'
         '502':
           description: Bad Gateway
-          schema:
-            $ref: '#/definitions/Problem'
-definitions:
-  CustomerIdentifiers:
-    type: object
-    properties:
-      identifier:
-        type: string
-        format: uri
-      cristinId:
-        type: string
-        format: uri
-  Customer:
-    type: object
-    properties:
-      id:
-        type: string
-        format: uri
-      identifier:
-        type: string
-        format: uuid
-      type:
-        type: string
-      createdDate:
-        type: string
-        format: date-time
-      modifiedDate:
-        type: string
-        format: date-time
-      name:
-        type: string
-      displayName:
-        type: string
-      shortName:
-        type: string
-      archiveName:
-        type: string
-      cname:
-        type: string
-      institutionDns:
-        type: string
-      feideOrganizationId:
-        type: string
-      cristinId:
-        type: string
-        format: uri
-      '@context':
-        type: object
-  Problem:
-    type: object
-    properties:
-      title:
-        type: string
-      status:
-        type: integer
-      detail:
-        type: string
-securityDefinitions:
-  CognitoUserPool:
-    type: apiKey
-    name: Authorization
-    in: header
-    x-amazon-apigateway-authtype: cognito_user_pools
-    x-amazon-apigateway-authorizer:
-      type: cognito_user_pools
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
+components:
+  securitySchemes:
+    CognitoUserPool:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools,
       providerARNs:
         - Fn::GetAtt: UserPool.Arn
+      description: Allows authenticated users to read data from customers table
+    EditorUsers:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools,
+      providerARNs:
+        - Fn::GetAtt: UserPool.Arn
+      description: Allows authenticated Editors to read data from customers table
+  schemas:
+    CustomerIdentifier:
+      type: string
+      format: uuid
+      minimum: 1
+      maximum: 1
+    CustomerList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uri
+        type:
+          type: string
+        customers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
+        '@context':
+          type: string
+          format: uri
+    CustomerIdentifiers:
+      type: object
+      properties:
+        identifier:
+          type: string
+          format: uri
+        cristinId:
+          type: string
+          format: uri
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uri
+        identifier:
+          $ref: '#/components/schemas/CustomerIdentifier'
+        type:
+          type: string
+        createdDate:
+          type: string
+          format: date-time
+        modifiedDate:
+          type: string
+          format: date-time
+        name:
+          type: string
+        displayName:
+          type: string
+        shortName:
+          type: string
+        archiveName:
+          type: string
+        cname:
+          type: string
+        institutionDns:
+          type: string
+        feideOrganizationId:
+          type: string
+        cristinId:
+          type: string
+          format: uri
+        vocabularies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vocabulary'
+        '@context':
+          type: object
+    VocabularyList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uri
+        type:
+          type: string
+          enum: [VocabularyList]
+        vocabularies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vocabulary'
+    Vocabulary:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [Vocabulary]
+        active:
+          type: string
+          enum: [disabled, enabled, default]
+        id:
+          type: string
+          format: uri
+        name:
+          type: string
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: A URI describing the error and mitigations, in generic cases, this is about:blank
+        status:
+          type: integer
+          format: int32
+          description: The HTTP status code associated with the problem
+        title:
+          type: string
+          description: Human-readable description of the error status
+        detail:
+          type: string
+          description: A more detailed error message describing the error and potential mitigations
+        instance:
+          type: string
+          format: uri
+          description: The requested path associated with the error
+  examples:
+    CustomerExample:
+      value:
+        '@context': 'https://bibsysdev.github.io/src/customer-api.json'
+        id: 'https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6'
+        identifier: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
+        type: Customer
+        createdDate: '2021-05-07T14:29:04.144Z'
+        modifiedDate: '2021-05-07T14:29:04.144Z'
+        name: 'Universitet for norsk Reindrift'
+        displayName: 'Universitet for Reindrift'
+        shortName: 'UNIREIN'
+        archiveName: 'unirein'
+        cname: 'arkiv.unirein.no'
+        institutionDns: 'unirein.no'
+        feideOrganizationId: '111111111'
+        cristinId: 'https://api.cristin.no/v2/institutions/11110'
+        vocabularies:
+          - id: 'https://example.org/example#'
+            type: 'Vocabulary'
+            name: 'Example VOC'
+            active: 'default'
+    CustomerListExample:
+      value:
+        '@context': 'https://bibsysdev.github.io/src/customer-api.json'
+        id: 'https://api.test.nva.unit.no/customers'
+        type: CustomerList
+        customers:
+          - id: 'https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6'
+            identifier: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
+            type: Customer
+            createdDate: '2021-05-07T14:29:04.144Z'
+            modifiedDate: '2021-05-07T14:29:04.144Z'
+            name: 'Universitet for norsk Reindrift'
+            displayName: 'Universitet for Reindrift'
+            shortName: 'UNIREIN'
+            archiveName: 'unirein'
+            cname: 'arkiv.unirein.no'
+            institutionDns: 'unirein.no'
+            feideOrganizationId: '111111111'
+            cristinId: 'https://api.cristin.no/v2/institutions/11110'
+            vocabularies:
+              - id: 'https://example.org/example#'
+                type: 'Vocabulary'
+                name: 'Example VOC'
+                active: 'default'
+    VocabularyListExample:
+      value:
+        '@context': 'https://bibsysdev.github.io/src/customer-api.json'
+        id: 'https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6/vocabularies'
+        type: VocabularyList
+        vocabularies:
+          - type: Vocabulary
+            active: default
+            id: 'https://example.com/example#'
+            name: Example VOC
+    BadRequestProblemExample:
+      value:
+        type: about:blank
+        status: 400
+        title: Bad Request
+        detail: 'Identifier is not a valid UUID: HelloWorld!'
+        instance: /path/to/resource
+    NotFoundProblemExample:
+      value:
+        type: about:blank
+        status: 404
+        title: Not Found
+        detail: The requested resource was not found
+        instance: /path/to/resource
+    BadGatewayProblemExample:
+      value:
+        type: about:blank
+        status: 502
+        title: Bad Gateway
+        detail: 'Persistence service is unavailable'
+        instance: /path/to/resource

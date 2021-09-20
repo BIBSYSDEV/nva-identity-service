@@ -3,14 +3,14 @@ plugins {
     id 'jacoco'
     id 'checkstyle'
     id 'pmd'
-    //id "nebula.lint" version "17.2.1"
+    id "nebula.lint" version "17.2.1"
     id 'maven-publish'
     id 'base'
 }
 
 allprojects {
     apply plugin: 'maven-publish'
-    //apply plugin: 'nebula.lint'
+    apply plugin: 'nebula.lint'
     apply plugin: 'base'
 
     project.ext {
@@ -25,12 +25,11 @@ allprojects {
 
     }
 
-    //gradleLint {
-    //    rules  = ['all-dependency']
-    //}
+    gradleLint {
+        rules  = ['all-dependency']
+    }
 
     repositories {
-        //mavenLocal()
         mavenCentral()
         maven { url 'https://jitpack.io' }
         maven { url "https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/release" }

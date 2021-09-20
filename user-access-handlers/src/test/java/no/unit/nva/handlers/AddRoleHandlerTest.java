@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import no.unit.nva.Constants;
 import no.unit.nva.database.DatabaseService;
 import no.unit.nva.database.DatabaseServiceImpl;
 import no.unit.nva.database.RoleService;
@@ -32,7 +34,6 @@ import org.zalando.problem.Problem;
 
 public class AddRoleHandlerTest extends HandlerTest {
 
-    public static final String COULD_NOT_RESOLVE_SUBTYPE_OF = "Could not resolve subtype of";
     public static final String SOME_ROLE_NAME = "someRoleName";
     private RoleDto sampleRole;
     private AddRoleHandler addRoleHandler;
@@ -146,7 +147,7 @@ public class AddRoleHandlerTest extends HandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
 
         Problem problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), containsString(COULD_NOT_RESOLVE_SUBTYPE_OF));
+        assertThat(problem.getDetail(), containsString(Constants.COULD_NOT_RESOLVE_SUBTYPE_OF));
     }
 
     private GatewayResponse<Problem> sendRequestToHandlerWithBody(ObjectNode requestBody)

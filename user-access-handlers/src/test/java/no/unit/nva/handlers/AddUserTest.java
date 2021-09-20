@@ -21,6 +21,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+
+import no.unit.nva.Constants;
 import no.unit.nva.database.DatabaseService;
 import no.unit.nva.database.DatabaseServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
@@ -40,7 +42,6 @@ import org.zalando.problem.Problem;
 
 public class AddUserTest extends HandlerTest {
 
-    public static final String COULD_NOT_RESOLVE_SUBTYPE_OF = "Could not resolve subtype of";
     public static final String EMPTY_INSTITUTION = null;
     private AddUserHandler handler;
     private RequestInfo requestInfo;
@@ -156,7 +157,7 @@ public class AddUserTest extends HandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
 
         Problem problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), containsString(COULD_NOT_RESOLVE_SUBTYPE_OF));
+        assertThat(problem.getDetail(), containsString(Constants.COULD_NOT_RESOLVE_SUBTYPE_OF));
     }
 
     private ByteArrayOutputStream sendRequestToHandler(InputStream requestInputStream)

@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
+
+import no.unit.nva.Constants;
 import no.unit.nva.database.DatabaseServiceImpl;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
@@ -44,7 +46,6 @@ public class UpdateUserHandlerTest extends HandlerTest {
     public static final String SAMPLE_INSTITUTION = "somewhere";
     public static final String ANOTHER_ROLE = "ANOTHER_ROLE";
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
-    public static final String COULD_NOT_RESOLVE_SUBTYPE_OF = "Could not resolve subtype of";
     private DatabaseServiceImpl databaseService;
     private Context context;
 
@@ -181,7 +182,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
 
         Problem problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), containsString(COULD_NOT_RESOLVE_SUBTYPE_OF));
+        assertThat(problem.getDetail(), containsString(Constants.COULD_NOT_RESOLVE_SUBTYPE_OF));
     }
 
     private UserDto anotherUserInDatabase()

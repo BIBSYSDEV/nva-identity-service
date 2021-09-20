@@ -68,7 +68,6 @@ public class GetCustomerHandlerTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void requestToHandlerReturnsCustomer() throws Exception {
         UUID identifier = UUID.randomUUID();
         CustomerDb customerDb = new CustomerDb.Builder()
@@ -86,9 +85,7 @@ public class GetCustomerHandlerTest {
             .build();
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerDto> actual = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse actual= GatewayResponse.fromOutputStream(outputStream);
 
         GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
             objectMapper.writeValueAsString(customerDto),
@@ -101,7 +98,6 @@ public class GetCustomerHandlerTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws Exception {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
         InputStream inputStream = new HandlerRequestBuilder<CustomerDb>(objectMapper)
@@ -111,9 +107,7 @@ public class GetCustomerHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<Problem> actual = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse actual= GatewayResponse.fromOutputStream(outputStream);
 
         GatewayResponse<Problem> expected = new GatewayResponse<>(
                 Problem.builder()
@@ -130,7 +124,6 @@ public class GetCustomerHandlerTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void requestToHandlerWithUnsupportedAcceptHeaderReturnsUnsupportedMediaType() throws Exception {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
         InputStream inputStream = new HandlerRequestBuilder<CustomerDb>(objectMapper)
@@ -140,9 +133,7 @@ public class GetCustomerHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<Problem> actual = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse actual= GatewayResponse.fromOutputStream(outputStream);
 
 
         assertEquals(HttpURLConnection.HTTP_UNSUPPORTED_TYPE, actual.getStatusCode());

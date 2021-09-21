@@ -12,8 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class DtoTest {
 
     protected static final String JSON_TYPE_ATTRIBUTE = "type";
-    protected static final String INVALID_TYPE_EXCEPTION_MESSAGE_SAMPLE = "Missing type id when trying to resolve "
-        + "subtype of";
+    protected static final String INVALID_TYPE_EXCEPTION_MESSAGE_SAMPLE = "Could not resolve subtype of";
 
     protected static void assertThatSerializedItemContainsType(ObjectNode json, String typeLiteral) {
         JsonNode jsonTypeAttribute = json.get(JSON_TYPE_ATTRIBUTE);

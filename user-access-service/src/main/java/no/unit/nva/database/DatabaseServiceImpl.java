@@ -1,7 +1,9 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.requireNonNull;
+import static no.unit.nva.database.Constants.AWS_REGION;
 import static nva.commons.core.attempt.Try.attempt;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.Table;
@@ -18,7 +20,6 @@ import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("PMD.GodClass")
 public class DatabaseServiceImpl implements DatabaseService {
 
     public static final String DYNAMO_DB_CLIENT_NOT_SET_ERROR = "DynamoDb client has not been set";
@@ -30,7 +31,7 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     @JacocoGenerated
     public DatabaseServiceImpl() {
-        this(AmazonDynamoDBClientBuilder.defaultClient(), new Environment());
+        this(defaultDynamoClient(), new Environment());
     }
 
     public DatabaseServiceImpl(AmazonDynamoDB dynamoDbClient, Environment environment) {
@@ -79,6 +80,14 @@ public class DatabaseServiceImpl implements DatabaseService {
         assertDynamoClientIsNotNull(dynamoDbClient);
         String tableName = environment.readEnv(USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE);
         return new Table(dynamoDbClient, tableName);
+    }
+
+    @JacocoGenerated
+    private static AmazonDynamoDB defaultDynamoClient() {
+        return AmazonDynamoDBClientBuilder.standard()
+            .withRegion(AWS_REGION)
+            .withCredentials(new DefaultAWSCredentialsProviderChain())
+            .build();
     }
 
     private static void assertDynamoClientIsNotNull(AmazonDynamoDB dynamoDbClient) {

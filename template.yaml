@@ -58,7 +58,7 @@ Conditions:
 
 Globals:
   Function:
-    MemorySize: 512
+    MemorySize: 1769
     Timeout: 10
     Runtime: java11
     Tracing: Active
@@ -376,6 +376,7 @@ Resources:
                 Action:
                   - cognito-idp:AdminAddUserToGroup
                   - cognito-idp:AdminUpdateUserAttributes
+                  - cognito-idp:AdminGetUser
                 Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
         - PolicyName: DatabasePermissions
           PolicyDocument:
@@ -402,9 +403,7 @@ Resources:
     Properties:
       CodeUri: cognito-pre-token-generation
       Handler: no.unit.nva.cognito.TriggerHandler::handleRequest
-      Runtime: java11
       Role: !GetAtt TriggerExecutionRole.Arn
-      MemorySize: 1408
       Timeout: 10
       Environment:
         Variables:
@@ -672,8 +671,6 @@ Resources:
     Properties:
       CodeUri: create-customer
       Handler: no.unit.nva.customer.create.CreateCustomerHandler::handleRequest
-      Runtime: java11
-      MemorySize: 1408
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -696,8 +693,6 @@ Resources:
     Properties:
       CodeUri: get-customer
       Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
-      Runtime: java11
-      MemorySize: 1408
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -720,8 +715,6 @@ Resources:
     Properties:
       CodeUri: get-customer-by-org-number
       Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
-      Runtime: java11
-      MemorySize: 1408
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -744,8 +737,6 @@ Resources:
     Properties:
       CodeUri: get-customer-by-cristin-id
       Handler: no.unit.nva.customer.get.GetCustomerByCristinIdHandler::handleRequest
-      Runtime: java11
-      MemorySize: 1408
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -768,8 +759,6 @@ Resources:
     Properties:
       CodeUri: get-all-customers
       Handler: no.unit.nva.customer.getall.GetAllCustomersHandler::handleRequest
-      Runtime: java11
-      MemorySize: 1408
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -792,8 +781,6 @@ Resources:
     Properties:
       CodeUri: update-customer
       Handler: no.unit.nva.customer.update.UpdateCustomerHandler::handleRequest
-      Runtime: java11
-      MemorySize: 1408
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'

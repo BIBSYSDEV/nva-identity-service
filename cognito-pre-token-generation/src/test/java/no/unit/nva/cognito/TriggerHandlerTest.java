@@ -3,6 +3,9 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.service.UserApiMock.FIRST_ACCESS_RIGHT;
 import static no.unit.nva.cognito.service.UserApiMock.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.cognito.service.UserApiMock.SECOND_ACCESS_RIGHT;
+import static no.unit.nva.cognito.service.UserPoolEntryUpdater.COGNITO_UPDATE_FAILURE_WARNING;
+import static no.unit.nva.cognito.service.UserPoolEntryUpdater.CUSTOM_APPLICATION_ACCESS_RIGHTS;
+import static no.unit.nva.cognito.service.UserPoolEntryUpdater.CUSTOM_APPLICATION_ROLES;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
@@ -17,12 +20,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
+import com.amazonaws.services.cognitoidp.model.AdminGetUserRequest;
+import com.amazonaws.services.cognitoidp.model.AdminGetUserResult;
 import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
 import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesResult;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,12 +42,15 @@ import no.unit.nva.cognito.model.Request;
 import no.unit.nva.cognito.model.UserAttributes;
 import no.unit.nva.cognito.service.CustomerApi;
 import no.unit.nva.cognito.service.UserApiMock;
+import no.unit.nva.cognito.service.UserPoolEntryUpdater;
 import no.unit.nva.cognito.service.UserService;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JsonUtils;
 import nva.commons.core.SingletonCollector;
+import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.TestAppender;
 import org.javers.common.collections.Lists;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
@@ -75,13 +84,15 @@ public class TriggerHandlerTest {
     public static final AdminUpdateUserAttributesResult UNUSED_RESULT = null;
     public static final int ONLY_CREATOR_ROLE = 1;
     public static final Javers JAVERS = JaversBuilder.javers().build();
+    public static final Context CONTEXT = mock(Context.class);
     private final AtomicReference<List<AttributeType>> attributeTypesBuffer = new AtomicReference<>();
+    private final Context mockContext;
     private CustomerApi customerApi;
     private UserApiMock userApi;
-    private UserService userService;
     private TriggerHandler handler;
-    private AWSCognitoIdentityProvider awsCognitoIdentityProvider;
-    private Context mockContext;
+    private UserPoolEntryUpdater userPoolEntryUpdater;
+    private AWSCognitoIdentityProvider awsCognitoProvider;
+    private UserService userService;
 
     public TriggerHandlerTest() {
         mockContext = mock(Context.class);
@@ -92,12 +103,8 @@ public class TriggerHandlerTest {
      */
     @BeforeEach
     public void init() {
-        customerApi = mock(CustomerApi.class);
-        userApi = new UserApiMock();
-        awsCognitoIdentityProvider = mockAwsIdentityProvider();
-        attributeTypesBuffer.set(null);
-        userService = new UserService(userApi, awsCognitoIdentityProvider);
-        handler = new TriggerHandler(userService, customerApi);
+        awsCognitoProvider = mockAwsIdentityProvider();
+        setupTriggerHandler();
     }
 
     @Test
@@ -121,7 +128,7 @@ public class TriggerHandlerTest {
         mockCustomerApiWithNoCustomer();
 
         Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, CONTEXT);
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 
@@ -136,8 +143,7 @@ public class TriggerHandlerTest {
         mockCustomerApiWithExistingCustomer();
 
         Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
-        mockContext = mock(Context.class);
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mockContext);
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, CONTEXT);
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 
@@ -263,7 +269,7 @@ public class TriggerHandlerTest {
 
     @Test
     public void handleRequestReturnsNewUserWithCreatorRoleWhenUserIsFeideHostedUser()
-            throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException {
         mockCustomerApiWithNoCustomer();
         mockCustomerApiWithExistingCustomer();
 
@@ -282,7 +288,6 @@ public class TriggerHandlerTest {
     public void handleRequestReturnsUserWithUserRoleWhenUserIsFeideHostedUserAndUserMissingAffiliation()
         throws InvalidEntryInternalException {
         mockCustomerApiWithNoCustomer();
-
         Map<String, Object> requestEvent = createRequestEventWithIncompleteBibsysHostedUser();
         final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
 
@@ -292,6 +297,16 @@ public class TriggerHandlerTest {
         UserDto createdUser = getUserFromMock();
         assertEquals(expected, createdUser);
         assertEquals(requestEvent, responseEvent);
+    }
+
+
+    private void setupTriggerHandler() {
+        attributeTypesBuffer.set(null);
+        customerApi = mock(CustomerApi.class);
+        userApi = new UserApiMock();
+        userPoolEntryUpdater = new UserPoolEntryUpdater(awsCognitoProvider);
+        userService = new UserService(userApi);
+        handler = new TriggerHandler(userService, customerApi, userPoolEntryUpdater);
     }
 
     private String randomRoleName() {
@@ -312,9 +327,9 @@ public class TriggerHandlerTest {
 
     private List<String> extractRoleNames(UserDto currentUser) {
         return currentUser.getRoles()
-                   .stream()
-                   .map(RoleDto::getRoleName)
-                   .collect(Collectors.toList());
+            .stream()
+            .map(RoleDto::getRoleName)
+            .collect(Collectors.toList());
     }
 
     private Set<String> toSet(String csv) {
@@ -324,18 +339,24 @@ public class TriggerHandlerTest {
 
     private String extractAccessRightsFromUserAttributes() {
         return attributeTypesBuffer.get()
-                   .stream()
-                   .filter(attr -> attr.getName().equals(TriggerHandler.CUSTOM_APPLICATION_ACCESS_RIGHTS))
-                   .map(AttributeType::getValue)
-                   .collect(SingletonCollector.collect());
+            .stream()
+            .filter(attr -> attr.getName().equals(CUSTOM_APPLICATION_ACCESS_RIGHTS))
+            .map(AttributeType::getValue)
+            .collect(SingletonCollector.collect());
     }
 
     private AWSCognitoIdentityProvider mockAwsIdentityProvider() {
         AWSCognitoIdentityProvider provider = mock(AWSCognitoIdentityProvider.class);
         when(provider.adminUpdateUserAttributes(any(AdminUpdateUserAttributesRequest.class)))
             .thenAnswer(this::storeUserAttributes);
-
+        when(provider.adminGetUser(any(AdminGetUserRequest.class)))
+            .thenAnswer(this::returnUserAttributes);
         return provider;
+    }
+
+
+    private AdminGetUserResult returnUserAttributes(InvocationOnMock invocationOnMock) {
+        return new AdminGetUserResult().withUserAttributes(attributeTypesBuffer.get());
     }
 
     private AdminUpdateUserAttributesResult storeUserAttributes(InvocationOnMock invocation) {
@@ -345,7 +366,7 @@ public class TriggerHandlerTest {
     }
 
     private void verifyNumberOfAttributeUpdatesInCognito(int numberOfUpdates) {
-        verify(awsCognitoIdentityProvider, times(numberOfUpdates)).adminUpdateUserAttributes(any());
+        verify(awsCognitoProvider, times(numberOfUpdates)).adminUpdateUserAttributes(any());
     }
 
     private UserDto getUserFromMock() {
@@ -374,11 +395,11 @@ public class TriggerHandlerTest {
 
     private UserDto userWithRoles(List<RoleDto> roles) throws InvalidEntryInternalException {
         return UserDto.newBuilder()
-                   .withUsername(SAMPLE_FEIDE_ID)
-                   .withGivenName(SAMPLE_GIVEN_NAME)
-                   .withFamilyName(SAMPLE_FAMILY_NAME)
-                   .withRoles(roles)
-                   .build();
+            .withUsername(SAMPLE_FEIDE_ID)
+            .withGivenName(SAMPLE_GIVEN_NAME)
+            .withFamilyName(SAMPLE_FAMILY_NAME)
+            .withRoles(roles)
+            .build();
     }
 
     private UserDto createUserWithInstitutionAndCreatorRole() throws InvalidEntryInternalException {
@@ -390,9 +411,9 @@ public class TriggerHandlerTest {
 
     private RoleDto createRole(String roleName) throws InvalidEntryInternalException {
         return RoleDto.newBuilder()
-                   .withName(roleName)
-                   .withAccessRights(SAMPLE_ACCESS_RIGHTS)
-                   .build();
+            .withName(roleName)
+            .withAccessRights(SAMPLE_ACCESS_RIGHTS)
+            .build();
     }
 
     private UserDto createUserWithInstitutionAndOnlyUserRole() throws InvalidEntryInternalException {
@@ -466,11 +487,11 @@ public class TriggerHandlerTest {
         List<RoleDto> roles = new ArrayList<>();
         roles.add(createRole(USER));
         return UserDto.newBuilder()
-                   .withUsername(SAMPLE_HOSTED_FEIDE_ID)
-                   .withGivenName(SAMPLE_GIVEN_NAME)
-                   .withFamilyName(SAMPLE_FAMILY_NAME)
-                   .withRoles(roles)
-                   .build();
+            .withUsername(SAMPLE_HOSTED_FEIDE_ID)
+            .withGivenName(SAMPLE_GIVEN_NAME)
+            .withFamilyName(SAMPLE_FAMILY_NAME)
+            .withRoles(roles)
+            .build();
     }
 
     private UserDto hostedUserWithCreatorRole() throws InvalidEntryInternalException {
@@ -478,12 +499,12 @@ public class TriggerHandlerTest {
         roles.add(createRole(CREATOR));
         roles.add(createRole(USER));
         return UserDto.newBuilder()
-                .withUsername(SAMPLE_HOSTED_FEIDE_ID)
-                .withGivenName(SAMPLE_GIVEN_NAME)
-                .withFamilyName(SAMPLE_FAMILY_NAME)
-                .withRoles(roles)
-                .withInstitution(SAMPLE_CUSTOMER_ID)
-                .build();
+            .withUsername(SAMPLE_HOSTED_FEIDE_ID)
+            .withGivenName(SAMPLE_GIVEN_NAME)
+            .withFamilyName(SAMPLE_FAMILY_NAME)
+            .withRoles(roles)
+            .withInstitution(SAMPLE_CUSTOMER_ID)
+            .build();
     }
 
     private Map<String, Object> createRequestEventWithIncompleteBibsysHostedUser() {

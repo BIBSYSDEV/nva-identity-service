@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Customer;
 import no.unit.nva.customer.model.interfaces.JsonLdSupport;
@@ -25,6 +26,7 @@ public class CustomerDto implements Customer, JsonLdSupport {
     private String institutionDns;
     private String feideOrganizationId;
     private String cristinId;
+    private Set<VocabularySettingDto> vocabularySettings;
     @JsonProperty("@context")
     private URI context;
 
@@ -184,6 +186,7 @@ public class CustomerDto implements Customer, JsonLdSupport {
             && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
             && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
             && Objects.equals(getCristinId(), that.getCristinId())
+            && Objects.equals(getVocabularySettings(), that.getVocabularySettings())
             && Objects.equals(getContext(), that.getContext());
     }
 
@@ -192,7 +195,14 @@ public class CustomerDto implements Customer, JsonLdSupport {
     public int hashCode() {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
             getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-            getCristinId(), getContext());
+            getCristinId(), getVocabularySettings(), getContext());
     }
 
+    public Set<VocabularySettingDto> getVocabularySettings() {
+        return vocabularySettings;
+    }
+
+    public void setVocabularySettings(Set<VocabularySettingDto> vocabularySettings) {
+        this.vocabularySettings = vocabularySettings;
+    }
 }

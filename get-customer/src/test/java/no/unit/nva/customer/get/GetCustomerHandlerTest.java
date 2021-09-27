@@ -149,7 +149,7 @@ public class GetCustomerHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse actual= GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse actual = GatewayResponse.fromOutputStream(outputStream);
 
         assertEquals(HttpURLConnection.HTTP_UNSUPPORTED_TYPE, actual.getStatusCode());
     }

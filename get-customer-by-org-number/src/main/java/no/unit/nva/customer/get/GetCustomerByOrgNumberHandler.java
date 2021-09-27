@@ -3,6 +3,9 @@ package no.unit.nva.customer.get;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.URI;
+import java.util.List;
+
+import com.google.common.net.MediaType;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDb;
@@ -10,6 +13,7 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
+import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
@@ -88,6 +92,11 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, Custo
         } catch (IllegalArgumentException e) {
             throw new InputException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    protected List<MediaType> listSupportedMediaTypes() {
+        return List.of(MediaType.JSON_UTF_8, MediaTypes.APPLICATION_JSON_LD);
     }
 
     @Override

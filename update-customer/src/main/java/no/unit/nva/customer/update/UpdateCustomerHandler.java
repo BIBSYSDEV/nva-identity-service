@@ -2,6 +2,7 @@ package no.unit.nva.customer.update;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.google.common.net.MediaType;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDb;
@@ -12,12 +13,14 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 
 
 import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.apache.http.HttpStatus;
 
+import java.util.List;
 import java.util.UUID;
 
 public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDto, CustomerDto> {
@@ -86,6 +89,11 @@ public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDto, Custom
         } catch (Exception e) {
             throw new InputException(IDENTIFIER_IS_NOT_A_VALID_UUID + identifier, e);
         }
+    }
+
+    @Override
+    protected List<MediaType> listSupportedMediaTypes() {
+        return List.of(MediaType.JSON_UTF_8, MediaTypes.APPLICATION_JSON_LD);
     }
 
     @Override

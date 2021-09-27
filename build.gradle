@@ -14,7 +14,7 @@ allprojects {
     apply plugin: 'base'
 
     project.ext {
-        nvaCommonsVersion = '1.10.0'
+        nvaCommonsVersion = '1.12.0'
         awsSdkVersion ="1.12.59"
         jacksonVersion ="2.10.3"
         xraySdkVersion = '2.9.1'

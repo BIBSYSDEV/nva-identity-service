@@ -690,7 +690,7 @@ Resources:
   NvaGetCustomerByOrgNumberFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get-customer-by-org-number
+      CodeUri: create-customer
       Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
       Environment:
         Variables:
@@ -712,7 +712,7 @@ Resources:
   NvaGetCustomerByCristinIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get-customer-by-cristin-id
+      CodeUri: create-customer
       Handler: no.unit.nva.customer.get.GetCustomerByCristinIdHandler::handleRequest
       Environment:
         Variables:
@@ -756,7 +756,7 @@ Resources:
   NvaUpdateCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: update-customer
+      CodeUri: create-customer
       Handler: no.unit.nva.customer.update.UpdateCustomerHandler::handleRequest
       Environment:
         Variables:

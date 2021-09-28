@@ -459,24 +459,11 @@ Resources:
           Parameters:
             Location: ./docs/users-and-roles-swagger.yaml
 
-  UserAccessCommonsLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: user-access-service-layer
-      Description: User Access Service
-      ContentUri: user-access-service/build/distributions/user-access-service.zip
-      CompatibleRuntimes:
-        - java11
-      LicenseInfo: 'MIT'
-      RetentionPolicy: Retain
-
   AddRoleHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.AddRoleHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -497,8 +484,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetRoleHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -518,8 +503,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.AddUserHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -540,8 +523,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -561,8 +542,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -582,8 +561,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.ListByInstitutionHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'

@@ -19,22 +19,3 @@ dependencies {
         exclude group: 'com.amazonaws', module: 'aws-java-sdk-core'
     }
 }
-
-configurations.testImplementation.canBeResolved = true
-
-task copyNativeDeps(type: Copy) {
-    from(configurations.testImplementation) {
-        include "*.dylib"
-        include "*.so"
-        include "*.dll"
-    }
-    into 'build/dynamodb-local'
-}
-
-test {
-    dependsOn copyNativeDeps
-    doFirst {
-        systemProperty "java.library.path", 'build/dynamodb-local'
-    }
-    environment "AWS_REGION", "eu-west-1"
-}

@@ -1,3 +1,7 @@
+plugins {
+    id 'nva.identity.service.java-application-conventions'
+}
+
 dependencies {
     implementation project(":customer-commons")
     testImplementation project(":customer-testing")

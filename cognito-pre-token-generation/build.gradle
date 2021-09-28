@@ -1,3 +1,7 @@
+plugins {
+    id 'nva.identity.service.java-application-conventions'
+}
+
 dependencies {
     implementation project(':user-access-public-model')
     implementation project(':user-access-commons')

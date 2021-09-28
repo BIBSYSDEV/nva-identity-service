@@ -1,5 +1,5 @@
-repositories {
-    maven { url "https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/release" }
+plugins {
+    id 'nva.identity.service.java-library-conventions'
 }
 
 dependencies {

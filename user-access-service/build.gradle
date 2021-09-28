@@ -1,3 +1,7 @@
+plugins {
+    id 'nva.identity.service.java-library-conventions'
+}
+
 dependencies {
 
     //We need the api qualifier to avoid including the library for every handler and avoid Runtime

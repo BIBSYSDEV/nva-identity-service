@@ -1,3 +1,7 @@
+plugins {
+    id 'nva.identity.service.java-library-conventions'
+}
+
 dependencies {
 
     compileOnly(group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: project.ext.awsSdkVersion) {

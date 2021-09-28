@@ -19,19 +19,3 @@ dependencies {
         exclude group: 'com.amazonaws', module: 'aws-java-sdk-core'
     }
 }
-
-configurations.testImplementation.canBeResolved = true
-
-task copyNativeDeps(type: Copy) {
-    from (configurations.testImplementation) {
-        include "*.dylib"
-        include "*.so"
-        include "*.dll"
-    }
-    into 'build/libs'
-}
-
-test.dependsOn copyNativeDeps
-test.doFirst {
-    systemProperty "java.library.path", 'build/libs'
-}

@@ -1,4 +1,4 @@
-package no.unit.nva.customer.getall;
+package no.unit.nva.customer.get;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;

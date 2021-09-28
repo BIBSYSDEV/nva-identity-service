@@ -1,4 +1,4 @@
-package no.unit.nva.customer.getall;
+package no.unit.nva.customer.get;
 
 import static java.util.Collections.singletonList;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;

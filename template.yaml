@@ -734,8 +734,8 @@ Resources:
   NvaGetAllCustomersFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get-all-customers
-      Handler: no.unit.nva.customer.getall.GetAllCustomersHandler::handleRequest
+      CodeUri: create-customer
+      Handler: no.unit.nva.customer.get.GetAllCustomersHandler::handleRequest
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'

@@ -646,7 +646,7 @@ Resources:
   NvaCreateCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: create-customer
+      CodeUri: customer
       Handler: no.unit.nva.customer.create.CreateCustomerHandler::handleRequest
       Environment:
         Variables:
@@ -668,7 +668,7 @@ Resources:
   NvaGetCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: create-customer
+      CodeUri: customer
       Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
       Environment:
         Variables:
@@ -690,7 +690,7 @@ Resources:
   NvaGetCustomerByOrgNumberFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: create-customer
+      CodeUri: customer
       Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
       Environment:
         Variables:
@@ -712,7 +712,7 @@ Resources:
   NvaGetCustomerByCristinIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: create-customer
+      CodeUri: customer
       Handler: no.unit.nva.customer.get.GetCustomerByCristinIdHandler::handleRequest
       Environment:
         Variables:
@@ -734,7 +734,7 @@ Resources:
   NvaGetAllCustomersFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: create-customer
+      CodeUri: customer
       Handler: no.unit.nva.customer.get.GetAllCustomersHandler::handleRequest
       Environment:
         Variables:
@@ -756,7 +756,7 @@ Resources:
   NvaUpdateCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: create-customer
+      CodeUri: customer
       Handler: no.unit.nva.customer.update.UpdateCustomerHandler::handleRequest
       Environment:
         Variables:

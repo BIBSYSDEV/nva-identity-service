@@ -668,7 +668,7 @@ Resources:
   NvaGetCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get-customer
+      CodeUri: create-customer
       Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
       Environment:
         Variables:

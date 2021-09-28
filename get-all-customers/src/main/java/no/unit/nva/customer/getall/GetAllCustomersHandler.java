@@ -2,18 +2,21 @@ package no.unit.nva.customer.getall;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.util.List;
+import com.google.common.net.MediaType;
+import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+
+import java.util.List;
 
 import static org.apache.http.HttpStatus.SC_OK;
 
@@ -68,6 +71,11 @@ public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList
             throws ApiGatewayException {
         List<CustomerDb> customerDbs = customerService.getCustomers();
         return customerMapper.toCustomerList(customerDbs);
+    }
+
+    @Override
+    protected List<MediaType> listSupportedMediaTypes() {
+        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
 
     @Override

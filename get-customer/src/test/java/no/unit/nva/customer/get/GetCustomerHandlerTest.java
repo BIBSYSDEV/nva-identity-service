@@ -1,6 +1,7 @@
 package no.unit.nva.customer.get;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
@@ -11,6 +12,8 @@ import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.MediaTypes;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,19 +73,9 @@ public class GetCustomerHandlerTest {
     @Test
     public void requestToHandlerReturnsCustomer() throws Exception {
         UUID identifier = UUID.randomUUID();
-        CustomerDb customerDb = new CustomerDb.Builder()
-                .withIdentifier(identifier)
-                .build();
-        when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDb);
+        CustomerDto customerDto = prepareServiceWithCustomer(identifier);
 
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
-
-        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(objectMapper)
-            .withBody(customerDto)
-            .withHeaders(getRequestHeaders())
-            .withPathParameters(pathParameters)
-            .build();
+        InputStream inputStream = createGetCustomerRequest(customerDto);
         handler.handleRequest(inputStream, outputStream, context);
 
         GatewayResponse actual= GatewayResponse.fromOutputStream(outputStream);
@@ -95,6 +88,26 @@ public class GetCustomerHandlerTest {
 
         //TODO: assert responses properly, one response has explicit null values in serialization
         assertEquals(expected.getStatusCode(), actual.getStatusCode());
+    }
+
+    private InputStream createGetCustomerRequest(CustomerDto customerDto) throws JsonProcessingException {
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(objectMapper)
+            .withBody(customerDto)
+            .withHeaders(getRequestHeaders())
+            .withPathParameters(pathParameters)
+            .build();
+        return inputStream;
+    }
+
+    private CustomerDto prepareServiceWithCustomer(UUID identifier) throws ApiGatewayException {
+        CustomerDb customerDb = new CustomerDb.Builder()
+                .withIdentifier(identifier)
+                .build();
+        when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDb);
+
+        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        return customerDto;
     }
 
     @Test
@@ -125,9 +138,30 @@ public class GetCustomerHandlerTest {
 
     @Test
     public void requestToHandlerWithUnsupportedAcceptHeaderReturnsUnsupportedMediaType() throws Exception {
-        Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
+        UUID identifier = UUID.randomUUID();
+        prepareServiceWithCustomer(identifier);
+
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         InputStream inputStream = new HandlerRequestBuilder<CustomerDb>(objectMapper)
                 .withHeaders(getRequestHeadersWithUnsupportedMediaType())
+                .withPathParameters(pathParameters)
+                .build();
+
+        handler.handleRequest(inputStream, outputStream, context);
+
+        GatewayResponse actual = GatewayResponse.fromOutputStream(outputStream);
+
+        assertEquals(HttpURLConnection.HTTP_UNSUPPORTED_TYPE, actual.getStatusCode());
+    }
+
+    @Test
+    public void requestToHandlerWithJsonLdAcceptHeaderReturnsJsonLdMediaType() throws Exception {
+        UUID identifier = UUID.randomUUID();
+        prepareServiceWithCustomer(identifier);
+
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDb>(objectMapper)
+                .withHeaders(getRequestHeadersWithMediaType(MediaTypes.APPLICATION_JSON_LD))
                 .withPathParameters(pathParameters)
                 .build();
 
@@ -136,12 +170,21 @@ public class GetCustomerHandlerTest {
         GatewayResponse actual= GatewayResponse.fromOutputStream(outputStream);
 
 
-        assertEquals(HttpURLConnection.HTTP_UNSUPPORTED_TYPE, actual.getStatusCode());
-
+        assertEquals(HttpURLConnection.HTTP_OK, actual.getStatusCode());
+        assertEquals(MediaTypes.APPLICATION_JSON_LD.toString(), actual.getHeaders().get(HttpHeaders.CONTENT_TYPE));
     }
+
     private static Map<String,String> getRequestHeadersWithUnsupportedMediaType() {
         return Map.of(
                 HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
-                HttpHeaders.ACCEPT, UNSUPPORTED_MEDIA_TYPE.toString());
+                HttpHeaders.ACCEPT, UNSUPPORTED_MEDIA_TYPE.toString()
+        );
+    }
+
+    private static Map<String,String> getRequestHeadersWithMediaType(MediaType mediaType) {
+        return Map.of(
+                HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
+                HttpHeaders.ACCEPT, mediaType.toString()
+        );
     }
 }

@@ -1,3 +1,7 @@
+plugins {
+    id 'nva.identity.service.java-library-conventions'
+}
+
 dependencies {
-    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.bibsysdev', name: 'apigateway'
 }

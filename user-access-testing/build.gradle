@@ -1,10 +1,12 @@
-final def jupiterVersion = "5.6.0"
+plugins {
+    id 'nva.identity.service.java-library-conventions'
+}
 
 dependencies {
     implementation project(':user-access-service')
     implementation project(':user-access-commons')
 
-    implementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: project.ext.DynamoDBLocalVersion
-    implementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
-    implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: jupiterVersion
+    implementation group: 'com.amazonaws', name: 'DynamoDBLocal'
+    implementation group: 'org.hamcrest', name: 'hamcrest'
+    implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api'
 }

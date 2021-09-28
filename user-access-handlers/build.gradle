@@ -1,3 +1,7 @@
+plugins {
+    id 'nva.identity.service.java-application-conventions'
+}
+
 dependencies {
 
     implementation project(':user-access-commons')
@@ -12,26 +16,26 @@ dependencies {
     testImplementation project(':user-access-service')
     testImplementation project(':user-access-rights')
 
-    implementation group: 'com.github.bibsysdev', name: 'lambdaauthorizer', version: project.ext.nvaCommonsVersion
-    implementation group: 'com.github.bibsysdev', name: 'secrets', version: project.ext.nvaCommonsVersion
-    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.bibsysdev', name: 'lambdaauthorizer'
+    implementation group: 'com.github.bibsysdev', name: 'secrets'
+    implementation group: 'com.github.bibsysdev', name: 'apigateway'
 
-    implementation(group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4') {
+    implementation(group: 'org.slf4j', name: 'slf4j-api') {
         because "We use it directly"
     }
 
-    implementation(group: 'com.amazonaws', name: 'aws-lambda-java-core', version: project.ext.awsLambdaCoreVersion) {
+    implementation(group: 'com.amazonaws', name: 'aws-lambda-java-core') {
         because "We use it directly"
     }
 
-    compileOnly(group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: project.ext.awsSdkVersion){
+    compileOnly(group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb'){
         because "PMD fails without it"
     }
 
-    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
+    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
 
-    testImplementation group: 'com.github.bibsysdev', name: 'logutils', version: project.ext.nvaCommonsVersion
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
+    testImplementation group: 'com.github.bibsysdev', name: 'logutils'
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
 
 
     testImplementation project(':user-access-internal-model')

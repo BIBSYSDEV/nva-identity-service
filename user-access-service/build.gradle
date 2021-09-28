@@ -13,7 +13,7 @@ dependencies {
     api project(":user-access-rights")
 
 
-    api(group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: project.ext.awsSdkVersion) {
+    api(group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb') {
         because("This module contains the Dynamo access details and will be used by " +
                 "any the handlers")
 
@@ -26,7 +26,7 @@ dependencies {
     }
 
 
-    api (group: 'com.amazonaws', name: 'aws-java-sdk-secretsmanager', version: project.ext.awsSdkVersion) {
+    api (group: 'com.amazonaws', name: 'aws-java-sdk-secretsmanager') {
         because("We want to have this library in the AWS::Serverless::LayerVersion resource" +
                 "and do not want to have duplicates of this lib for each handler. ")
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
@@ -40,14 +40,14 @@ dependencies {
     implementation(group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4') {
         because "Because we use the library directly to define loggers in our code"
     }
-    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.bibsysdev', name: 'apigateway'
 
-    testImplementation group: 'com.github.bibsysdev', name: 'logutils', version: project.ext.nvaCommonsVersion
+    testImplementation group: 'com.github.bibsysdev', name: 'logutils'
 
 
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
 
-    runtimeOnly(group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project.ext.jacksonVersion)
+    runtimeOnly(group: 'com.fasterxml.jackson.core', name: 'jackson-core')
 
     testImplementation project(':user-access-testing')
 }

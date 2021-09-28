@@ -16,10 +16,3 @@ dependencies {
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-lambda'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb'
 }
-
-
-
-
-
-
-

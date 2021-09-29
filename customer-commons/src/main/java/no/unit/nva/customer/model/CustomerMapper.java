@@ -1,78 +1,50 @@
 package no.unit.nva.customer.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import nva.commons.core.JsonUtils;
-
 import java.net.URI;
-import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import nva.commons.core.Environment;
 
-public class CustomerMapper {
+public final class CustomerMapper {
 
+    public static final String ID_NAMESPACE_ENV = "ID_NAMESPACE";
+    public static final String NAMESPACE = new Environment().readEnv(ID_NAMESPACE_ENV);
     public static final URI NO_CONTEXT = null;
-    public static final URI context = URI.create("https://bibsysdev.github.io/src/customer-context.json");
-    private static final ObjectMapper objectMapper = JsonUtils.objectMapper;
+    public static final URI CONTEXT = URI.create("https://bibsysdev.github.io/src/customer-context.json");
 
-    private final String namespace;
-
-    public CustomerMapper(String namespace) {
-        this.namespace = namespace;
+    private CustomerMapper() {
     }
 
-    /**
-     * Map from Customer from Db to Dto version.
-     *
-     * @param customerDb    customerDb
-     * @return  customerDto
-     */
-    public CustomerDto toCustomerDto(CustomerDb customerDb) {
-        CustomerDto customerDto = objectMapper.convertValue(customerDb, CustomerDto.class);
-        URI id = toId(customerDb.getIdentifier());
-        customerDto.setId(id);
-        customerDto.setContext(context);
-        return customerDto;
+    public static CustomerDto addContext(CustomerDto customerDto) {
+        CustomerDto withContext = customerDto.copy().build();
+        URI id = toId(withContext.getIdentifier());
+        withContext.setId(id);
+        withContext.setContext(CONTEXT);
+        return withContext;
     }
 
     /**
      * Map from Customer from Db to Dto version without context object.
      *
-     * @param customerDb    customerDb
-     * @return  customerDto
+     * @param customerDb customerDb
+     * @return customerDto
      */
-    public CustomerDto toCustomerDtoWithoutContext(CustomerDb customerDb) {
-        CustomerDto customerDto = toCustomerDto(customerDb);
+    public static CustomerDto toCustomerDtoWithoutContext(CustomerDb customerDb) {
+        CustomerDto customerDto = customerDb.toCustomerDto();
         customerDto.setContext(NO_CONTEXT);
         return customerDto;
     }
 
-    /**
-     * Map from list of Customers from Db to Dto version.
-     *
-     * @param customersDbs  list of CustomerDb
-     * @return  customerList
-     */
-    public CustomerList toCustomerList(List<CustomerDb> customersDbs) {
-        List<CustomerDto> customerDtos = customersDbs.stream()
-            .map(this::toCustomerDtoWithoutContext)
-            .collect(Collectors.toList()
-            );
-        return CustomerList.of(customerDtos);
+    public static CustomerDto removeContext(CustomerDto customerDto) {
+        if (Objects.nonNull(customerDto)) {
+            CustomerDto copy = customerDto.copy().build();
+            copy.setContext(NO_CONTEXT);
+            return copy;
+        }
+        return null;
     }
 
-    /**
-     * Map from Customer from Dto to Db version.
-     *
-     * @param customerDto   customerDto
-     * @return  customerDb
-     */
-    public CustomerDb toCustomerDb(CustomerDto customerDto) {
-        CustomerDb customer = objectMapper.convertValue(customerDto, CustomerDb.class);
-        return customer;
+    public static URI toId(UUID identifier) {
+        return URI.create(NAMESPACE + "/" + identifier);
     }
-
-    private URI toId(UUID identifier) {
-        return URI.create(namespace + "/" + identifier);
-    }
-
 }

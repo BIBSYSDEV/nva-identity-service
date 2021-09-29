@@ -3,7 +3,6 @@ package no.unit.nva.cognito;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.Constants.DYNAMODB_CLIENT;
 import static no.unit.nva.cognito.Constants.ENVIRONMENT;
-import static no.unit.nva.cognito.Constants.ID_NAMESPACE_VALUE;
 import static no.unit.nva.cognito.util.OrgNumberCleaner.removeCountryPrefix;
 import static no.unit.nva.customer.ObjectMapperConfig.objectMapper;
 import static nva.commons.core.StringUtils.isNotBlank;
@@ -27,7 +26,6 @@ import no.unit.nva.cognito.service.UserDbClient;
 import no.unit.nva.cognito.service.UserDetails;
 import no.unit.nva.cognito.service.UserPoolEntryUpdater;
 import no.unit.nva.cognito.service.UserService;
-import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.database.DatabaseServiceImpl;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -87,7 +85,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
 
     @JacocoGenerated
     private static CustomerDbClient defaultCustomerDbClient() {
-        return new CustomerDbClient(defaultCustomerService(), defaultCustomerMapper());
+        return new CustomerDbClient(defaultCustomerService());
     }
 
     @JacocoGenerated
@@ -98,10 +96,6 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
             ENVIRONMENT);
     }
 
-    @JacocoGenerated
-    private static CustomerMapper defaultCustomerMapper() {
-        return new CustomerMapper(ID_NAMESPACE_VALUE);
-    }
 
     @JacocoGenerated
     private static UserService defaultUserService() {

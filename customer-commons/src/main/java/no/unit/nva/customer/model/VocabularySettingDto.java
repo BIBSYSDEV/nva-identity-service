@@ -1,10 +1,9 @@
 package no.unit.nva.customer.model;
 
-import no.unit.nva.customer.model.interfaces.VocabularySetting;
-import nva.commons.core.JacocoGenerated;
-
 import java.net.URI;
 import java.util.Objects;
+import no.unit.nva.customer.model.interfaces.VocabularySetting;
+import nva.commons.core.JacocoGenerated;
 
 public class VocabularySettingDto implements VocabularySetting {
 
@@ -23,53 +22,60 @@ public class VocabularySettingDto implements VocabularySetting {
         this.status = status;
     }
 
+    @JacocoGenerated
     @Override
     public String getName() {
         return name;
     }
 
+    @JacocoGenerated
     @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @JacocoGenerated
     @Override
     public URI getId() {
         return id;
     }
 
+    @JacocoGenerated
     @Override
     public void setId(URI id) {
         this.id = id;
     }
 
+    @JacocoGenerated
     @Override
     public VocabularyStatus getStatus() {
         return status;
     }
 
+    @JacocoGenerated
     @Override
     public void setStatus(VocabularyStatus status) {
         this.status = status;
     }
 
-    @Override
     @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getId(), getStatus());
+    }
+
+    @JacocoGenerated
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof VocabularySettingDto)) {
             return false;
         }
         VocabularySettingDto that = (VocabularySettingDto) o;
-        return Objects.equals(name, that.name)
-                && Objects.equals(id, that.id)
-                && status == that.status;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, id, status);
+        return Objects.equals(getName(), that.getName())
+               && Objects.equals(getId(), that.getId())
+               && getStatus() == that.getStatus();
     }
 }

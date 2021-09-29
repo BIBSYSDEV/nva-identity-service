@@ -24,7 +24,6 @@ import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
@@ -40,12 +39,12 @@ import org.zalando.problem.Problem;
 public class GetCustomerHandlerTest {
 
     public static final String WILDCARD = "*";
-    public static final String SAMPLE_NAMESPACE = "http://example.org/customer";
+
     public static final String REQUEST_ID = "requestId";
     public static final String MALFORMED_IDENTIFIER = "for-testing";
     public static final MediaType UNSUPPORTED_MEDIA_TYPE = MediaType.BZIP2;
 
-    private CustomerMapper customerMapper;
+
     private ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
     private CustomerService customerServiceMock;
     private Environment environmentMock;
@@ -57,13 +56,11 @@ public class GetCustomerHandlerTest {
      * Setting up test environment.
      */
     @BeforeEach
-    @SuppressWarnings("unchecked")
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
         environmentMock = mock(Environment.class);
-        customerMapper = new CustomerMapper(SAMPLE_NAMESPACE);
         when(environmentMock.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
-        handler = new GetCustomerHandler(customerServiceMock, customerMapper, environmentMock);
+        handler = new GetCustomerHandler(customerServiceMock, environmentMock);
         outputStream = new ByteArrayOutputStream();
         context = Mockito.mock(Context.class);
     }
@@ -76,7 +73,7 @@ public class GetCustomerHandlerTest {
         InputStream inputStream = createGetCustomerRequest(customerDto);
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse actual = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CustomerDto> actual = GatewayResponse.fromOutputStream(outputStream);
 
         GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
             objectMapper.writeValueAsString(customerDto),
@@ -145,7 +142,7 @@ public class GetCustomerHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse actual = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CustomerDto> actual = GatewayResponse.fromOutputStream(outputStream);
 
         assertEquals(HttpURLConnection.HTTP_OK, actual.getStatusCode());
         assertEquals(MediaTypes.APPLICATION_JSON_LD.toString(), actual.getHeaders().get(HttpHeaders.CONTENT_TYPE));
@@ -167,21 +164,19 @@ public class GetCustomerHandlerTest {
 
     private InputStream createGetCustomerRequest(CustomerDto customerDto) throws JsonProcessingException {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(objectMapper)
+        return new HandlerRequestBuilder<CustomerDto>(objectMapper)
             .withBody(customerDto)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
             .build();
-        return inputStream;
     }
 
     private CustomerDto prepareServiceWithCustomer(UUID identifier) throws ApiGatewayException {
         CustomerDb customerDb = new CustomerDb.Builder()
             .withIdentifier(identifier)
             .build();
-        when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDb);
-
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDto customerDto = customerDb.toCustomerDto();
+        when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);
         return customerDto;
     }
 }

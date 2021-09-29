@@ -1,7 +1,6 @@
 package no.unit.nva.customer.model;
 
 import static java.lang.String.format;
-import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
@@ -10,10 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
@@ -70,9 +67,10 @@ public class CustomerTest {
     public void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
         String value = "Unknown";
         IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
-            () -> VocabularyStatus.lookup(value));
-        String expectedMessage = format(VocabularyStatus.ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
-                        .map(VocabularyStatus::toString).collect(joining(VocabularyStatus.DELIMITER)));
+                                                       () -> VocabularyStatus.lookup(value));
+        String expectedMessage =
+            format(VocabularyStatus.ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
+                .map(VocabularyStatus::toString).collect(joining(VocabularyStatus.DELIMITER)));
 
         assertEquals(expectedMessage, actual.getMessage());
     }
@@ -83,7 +81,6 @@ public class CustomerTest {
         customerDb.getVocabularySettings().add(vocabularySetting());
 
         assertThat(customerDb.getVocabularySettings().size(), Matchers.is(Matchers.equalTo(1)));
-
     }
 
     private CustomerDb createCustomerDb() {
@@ -110,9 +107,9 @@ public class CustomerTest {
 
     private VocabularySettingDb vocabularySetting() {
         return new VocabularySettingDb(
-                "Vocabulary A",
-                URI.create("http://uri.to.vocabulary.a"),
-                VocabularyStatus.lookup("Default")
+            "Vocabulary A",
+            URI.create("http://uri.to.vocabulary.a"),
+            VocabularyStatus.lookup("Default")
         );
     }
 }

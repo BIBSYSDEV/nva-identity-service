@@ -8,6 +8,7 @@ import com.google.common.net.MediaType;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -34,6 +35,9 @@ import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -78,16 +82,13 @@ public class GetCustomerHandlerTest {
         InputStream inputStream = createGetCustomerRequest(customerDto);
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse actual= GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CustomerDto> actual = GatewayResponse.fromOutputStream(outputStream);
 
-        GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
-            objectMapper.writeValueAsString(customerDto),
-            getResponseHeaders(),
-            HttpStatus.SC_OK
-        );
-
-        //TODO: assert responses properly, one response has explicit null values in serialization
-        assertEquals(expected.getStatusCode(), actual.getStatusCode());
+        assertEquals(HttpStatus.SC_OK, actual.getStatusCode());
+        CustomerDto actualCustomerDto = actual.getBodyObject(CustomerDto.class);
+        assertThat(actualCustomerDto.getId(), notNullValue());
+        assertThat(actualCustomerDto.getContext(), notNullValue());
+        assertThat(actualCustomerDto, equalTo(customerDto));
     }
 
     private InputStream createGetCustomerRequest(CustomerDto customerDto) throws JsonProcessingException {
@@ -120,7 +121,7 @@ public class GetCustomerHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse actual= GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse actual = GatewayResponse.fromOutputStream(outputStream);
 
         GatewayResponse<Problem> expected = new GatewayResponse<>(
                 Problem.builder()
@@ -167,7 +168,7 @@ public class GetCustomerHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse actual= GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse actual = GatewayResponse.fromOutputStream(outputStream);
 
 
         assertEquals(HttpURLConnection.HTTP_OK, actual.getStatusCode());

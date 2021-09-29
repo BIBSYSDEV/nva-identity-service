@@ -42,7 +42,7 @@ public class CustomerTest {
     @Test
     public void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() throws JsonProcessingException {
         CustomerDb customerDb = createCustomerDb();
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDtoWithoutContext customerDto = customerMapper.toCustomerDtoWithoutContext(customerDb);
 
         assertNotNull(customerDto);
         assertNotNull(customerDto.getId());
@@ -61,14 +61,14 @@ public class CustomerTest {
     @Test
     public void customerMapperCanMapustomerDbToCustomerDto() {
         CustomerDb customerDb = createCustomerDb();
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDtoWithoutContext customerDto = customerMapper.toCustomerDtoWithoutContext(customerDb);
         assertNotNull(customerDto);
     }
 
     @Test
     public void customerMapperCanMapustomerDbToCustomerDtoWithContext() {
         CustomerDb customerDb = createCustomerDb();
-        CustomerDtoWithContext customerDto = customerMapper.toCustomerDtoWithContext(customerDb);
+        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
         assertNotNull(customerDto);
         assertNotNull(customerDto.getContext());
     }

@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,7 +19,7 @@ public class CustomerListTest {
 
     @Test
     public void customerListFromCustomer() {
-        CustomerDto customer = new CustomerDto();
+        CustomerDtoWithoutContext customer = new CustomerDtoWithoutContext();
         CustomerList customerList = customerMapper.toCustomerListFromCustomerDtos(List.of(customer));
         assertEquals(1, customerList.getCustomers().size());
         assertEquals(customer, customerList.getCustomers().get(0));
@@ -28,7 +27,7 @@ public class CustomerListTest {
 
     @Test
     public void customerListFromNull() {
-        List<CustomerDto> list = new ArrayList<>();
+        List<CustomerDtoWithoutContext> list = new ArrayList<>();
         list.add(null);
         CustomerList customerList = customerMapper.toCustomerListFromCustomerDtos(list);
         assertEquals(1, customerList.getCustomers().size());
@@ -37,7 +36,7 @@ public class CustomerListTest {
 
     @Test
     public void test() throws JsonProcessingException {
-        List<CustomerDto> customerDtos = List.of(new CustomerDto());
+        List<CustomerDtoWithoutContext> customerDtos = List.of(new CustomerDtoWithoutContext());
         CustomerList customerList = customerMapper.toCustomerListFromCustomerDtos(customerDtos);
         String customerListJson = objectMapper.writeValueAsString(customerList);
         CustomerList mappedCustomerList = objectMapper.readValue(customerListJson, CustomerList.class);

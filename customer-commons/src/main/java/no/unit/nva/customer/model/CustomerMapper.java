@@ -25,8 +25,8 @@ public class CustomerMapper {
      * @param customerDb    customerDb
      * @return  customerDto
      */
-    public CustomerDtoWithContext toCustomerDtoWithContext(CustomerDb customerDb) {
-        CustomerDtoWithContext customerDto = objectMapper.convertValue(customerDb, CustomerDtoWithContext.class);
+    public CustomerDto toCustomerDto(CustomerDb customerDb) {
+        CustomerDto customerDto = objectMapper.convertValue(customerDb, CustomerDto.class);
         URI id = toId(customerDb.getIdentifier());
         customerDto.setId(id);
         customerDto.setContext(context);
@@ -39,8 +39,8 @@ public class CustomerMapper {
      * @param customerDb    customerDb
      * @return  customerDto
      */
-    public CustomerDto toCustomerDto(CustomerDb customerDb) {
-        CustomerDto customerDto = objectMapper.convertValue(customerDb, CustomerDto.class);
+    public CustomerDtoWithoutContext toCustomerDtoWithoutContext(CustomerDb customerDb) {
+        CustomerDtoWithoutContext customerDto = objectMapper.convertValue(customerDb, CustomerDtoWithoutContext.class);
         customerDto.setId(toId(customerDb.getIdentifier()));
         return customerDto;
     }
@@ -52,8 +52,8 @@ public class CustomerMapper {
      * @return  customerList
      */
     public CustomerList toCustomerListFromCustomerDbs(List<CustomerDb> customerDbs) {
-        List<CustomerDto> customerDtos = customerDbs.stream()
-            .map(this::toCustomerDto)
+        List<CustomerDtoWithoutContext> customerDtos = customerDbs.stream()
+            .map(this::toCustomerDtoWithoutContext)
             .collect(Collectors.toList()
             );
         return toCustomerListFromCustomerDtos(customerDtos);
@@ -65,7 +65,7 @@ public class CustomerMapper {
      * @param customerDtos  list of CustomerDto
      * @return  customerList
      */
-    public CustomerList toCustomerListFromCustomerDtos(List<CustomerDto> customerDtos) {
+    public CustomerList toCustomerListFromCustomerDtos(List<CustomerDtoWithoutContext> customerDtos) {
         URI id = URI.create(namespace);
         return new CustomerList(id, customerDtos);
     }
@@ -76,7 +76,7 @@ public class CustomerMapper {
      * @param customerDto   customerDto
      * @return  customerDb
      */
-    public CustomerDb toCustomerDb(CustomerDto customerDto) {
+    public CustomerDb toCustomerDb(CustomerDtoWithoutContext customerDto) {
         CustomerDb customer = objectMapper.convertValue(customerDto, CustomerDb.class);
         return customer;
     }

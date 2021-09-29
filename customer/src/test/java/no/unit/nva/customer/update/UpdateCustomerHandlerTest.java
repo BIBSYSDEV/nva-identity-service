@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDb;
-import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -77,7 +77,7 @@ public class UpdateCustomerHandlerTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         handler.handleRequest(request, outputStream, context);
 
-        GatewayResponse<CustomerDto> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CustomerDtoWithoutContext> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_OK)));
     }
@@ -89,10 +89,10 @@ public class UpdateCustomerHandlerTest {
         CustomerDb customerDb = createCustomerDb(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDb.class))).thenReturn(customerDb);
 
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDtoWithoutContext customerDto = customerMapper.toCustomerDtoWithoutContext(customerDb);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDtoWithoutContext>(objectMapper)
             .withBody(customerDto)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
@@ -100,11 +100,11 @@ public class UpdateCustomerHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerDto> actual = objectMapper.readValue(
+        GatewayResponse<CustomerDtoWithoutContext> actual = objectMapper.readValue(
             outputStream.toByteArray(),
             GatewayResponse.class);
 
-        GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
+        GatewayResponse<CustomerDtoWithoutContext> expected = new GatewayResponse<>(
             customerDto,
             getResponseHeaders(),
             HttpStatus.SC_OK
@@ -119,10 +119,10 @@ public class UpdateCustomerHandlerTest {
         String malformedIdentifier = "for-testing";
         CustomerDb customerDb = createCustomerDb(UUID.randomUUID());
 
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDtoWithoutContext customerDto = customerMapper.toCustomerDtoWithoutContext(customerDb);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, malformedIdentifier);
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDtoWithoutContext>(objectMapper)
             .withBody(customerDto)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)

@@ -2,7 +2,6 @@ package no.unit.nva.customer.get;
 
 import static java.util.Collections.singletonList;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -19,7 +18,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDb;
-import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
@@ -28,8 +26,6 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
 import nva.commons.core.JsonUtils;
 import org.apache.http.HttpStatus;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -69,7 +65,6 @@ public class GetAllCustomersHandlerTest {
         CustomerDb customerDb = new CustomerDb.Builder()
                 .withIdentifier(identifier)
                 .build();
-        CustomerList customerList = customerMapper.toCustomerListFromCustomerDbs(singletonList(customerDb));
         when(customerServiceMock.getCustomers()).thenReturn(singletonList(customerDb));
 
         InputStream inputStream = new HandlerRequestBuilder<Void>(objectMapper)
@@ -86,6 +81,8 @@ public class GetAllCustomersHandlerTest {
         CustomerList actualCustomerList = actual.getBodyObject(CustomerList.class);
         assertThat(actualCustomerList.getId(), notNullValue());
         assertThat(actualCustomerList.getContext(), notNullValue());
+
+        CustomerList customerList = customerMapper.toCustomerListFromCustomerDbs(singletonList(customerDb));
         assertThat(actualCustomerList, equalTo(customerList));
     }
 }

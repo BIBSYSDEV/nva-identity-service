@@ -13,7 +13,7 @@ import java.util.Objects;
 public class CustomerList {
 
     private URI id;
-    private List<CustomerDto> customers;
+    private List<CustomerDtoWithoutContext> customers;
     @JsonProperty("@context")
     private URI context;
 
@@ -22,13 +22,13 @@ public class CustomerList {
 
     }
 
-    public CustomerList(URI id, List<CustomerDto> customers) {
+    public CustomerList(URI id, List<CustomerDtoWithoutContext> customers) {
         this.id = id;
         this.customers = customers;
         this.context = CustomerMapper.context;
     }
 
-    public List<CustomerDto> getCustomers() {
+    public List<CustomerDtoWithoutContext> getCustomers() {
         return customers;
     }
 
@@ -40,7 +40,7 @@ public class CustomerList {
         this.id = id;
     }
 
-    public void setCustomers(List<CustomerDto> customers) {
+    public void setCustomers(List<CustomerDtoWithoutContext> customers) {
         this.customers = customers;
     }
 

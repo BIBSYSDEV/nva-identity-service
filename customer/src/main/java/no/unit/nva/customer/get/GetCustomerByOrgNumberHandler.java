@@ -7,7 +7,7 @@ import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDb;
-import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -78,7 +78,7 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, Custo
         long start = System.currentTimeMillis();
         String orgNumber = getOrgNumber(requestInfo);
         CustomerDb customerDb = customerService.getCustomerByOrgNumber(orgNumber);
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDtoWithoutContext customerDto = customerMapper.toCustomerDtoWithoutContext(customerDb);
         URI customerId = customerDto.getId();
         URI cristinId = URI.create(customerDb.getCristinId());
         long stop = System.currentTimeMillis();

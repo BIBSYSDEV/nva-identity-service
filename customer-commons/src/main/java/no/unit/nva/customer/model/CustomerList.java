@@ -1,14 +1,18 @@
 package no.unit.nva.customer.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 
 @SuppressWarnings("PMD.ShortMethodName")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public class CustomerList {
 
+    private URI id;
     private List<CustomerDto> customers;
     @JsonProperty("@context")
     private URI context;
@@ -18,27 +22,22 @@ public class CustomerList {
 
     }
 
-    public CustomerList(List<CustomerDto> customers) {
+    public CustomerList(URI id, List<CustomerDto> customers) {
+        this.id = id;
         this.customers = customers;
         this.context = CustomerMapper.context;
     }
 
-    /**
-     * Create a CustomerList from a List of CustomerDto objects.
-     *
-     * @param customers list of CustomerDto
-     * @return customerList
-     */
-    public static CustomerList of(List<CustomerDto> customers) {
-        return new CustomerList(customers);
-    }
-
-    public static CustomerList of(CustomerDto... customers) {
-        return of(List.of(customers));
-    }
-
     public List<CustomerDto> getCustomers() {
         return customers;
+    }
+
+    public URI getId() {
+        return id;
+    }
+
+    public void setId(URI id) {
+        this.id = id;
     }
 
     public void setCustomers(List<CustomerDto> customers) {
@@ -51,5 +50,26 @@ public class CustomerList {
 
     public void setContext(URI context) {
         this.context = context;
+    }
+
+    @Override
+    @JacocoGenerated
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CustomerList that = (CustomerList) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(customers, that.customers)
+                && Objects.equals(context, that.context);
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(id, customers, context);
     }
 }

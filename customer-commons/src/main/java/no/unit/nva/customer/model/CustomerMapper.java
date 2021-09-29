@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 public class CustomerMapper {
 
-    public static final URI NO_CONTEXT = null;
     public static final URI context = URI.create("https://bibsysdev.github.io/src/customer-context.json");
     private static final ObjectMapper objectMapper = JsonUtils.objectMapper;
 
@@ -26,8 +25,8 @@ public class CustomerMapper {
      * @param customerDb    customerDb
      * @return  customerDto
      */
-    public CustomerDto toCustomerDto(CustomerDb customerDb) {
-        CustomerDto customerDto = objectMapper.convertValue(customerDb, CustomerDto.class);
+    public CustomerDtoWithContext toCustomerDtoWithContext(CustomerDb customerDb) {
+        CustomerDtoWithContext customerDto = objectMapper.convertValue(customerDb, CustomerDtoWithContext.class);
         URI id = toId(customerDb.getIdentifier());
         customerDto.setId(id);
         customerDto.setContext(context);
@@ -40,24 +39,35 @@ public class CustomerMapper {
      * @param customerDb    customerDb
      * @return  customerDto
      */
-    public CustomerDto toCustomerDtoWithoutContext(CustomerDb customerDb) {
-        CustomerDto customerDto = toCustomerDto(customerDb);
-        customerDto.setContext(NO_CONTEXT);
+    public CustomerDto toCustomerDto(CustomerDb customerDb) {
+        CustomerDto customerDto = objectMapper.convertValue(customerDb, CustomerDto.class);
+        customerDto.setId(toId(customerDb.getIdentifier()));
         return customerDto;
     }
 
     /**
      * Map from list of Customers from Db to Dto version.
      *
-     * @param customersDbs  list of CustomerDb
+     * @param customerDbs  list of CustomerDb
      * @return  customerList
      */
-    public CustomerList toCustomerList(List<CustomerDb> customersDbs) {
-        List<CustomerDto> customerDtos = customersDbs.stream()
-            .map(this::toCustomerDtoWithoutContext)
+    public CustomerList toCustomerListFromCustomerDbs(List<CustomerDb> customerDbs) {
+        List<CustomerDto> customerDtos = customerDbs.stream()
+            .map(this::toCustomerDto)
             .collect(Collectors.toList()
             );
-        return CustomerList.of(customerDtos);
+        return toCustomerListFromCustomerDtos(customerDtos);
+    }
+
+    /**
+     * Map from list of Customers from Db to Dto version.
+     *
+     * @param customerDtos  list of CustomerDto
+     * @return  customerList
+     */
+    public CustomerList toCustomerListFromCustomerDtos(List<CustomerDto> customerDtos) {
+        URI id = URI.create(namespace);
+        return new CustomerList(id, customerDtos);
     }
 
     /**

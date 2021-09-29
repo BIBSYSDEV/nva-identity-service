@@ -4,7 +4,12 @@ import static java.util.Collections.singletonList;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +28,8 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
 import nva.commons.core.JsonUtils;
 import org.apache.http.HttpStatus;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -62,8 +69,7 @@ public class GetAllCustomersHandlerTest {
         CustomerDb customerDb = new CustomerDb.Builder()
                 .withIdentifier(identifier)
                 .build();
-        CustomerDto customerDto = customerMapper.toCustomerDtoWithoutContext(customerDb);
-        CustomerList customers = customerMapper.toCustomerList(singletonList(customerDb));
+        CustomerList customerList = customerMapper.toCustomerListFromCustomerDbs(singletonList(customerDb));
         when(customerServiceMock.getCustomers()).thenReturn(singletonList(customerDb));
 
         InputStream inputStream = new HandlerRequestBuilder<Void>(objectMapper)
@@ -76,13 +82,10 @@ public class GetAllCustomersHandlerTest {
                 outputStream.toByteArray(),
                 GatewayResponse.class);
 
-        GatewayResponse<CustomerList> expected = new GatewayResponse<>(
-            objectMapper.writeValueAsString(customers),
-            getResponseHeaders(),
-            HttpStatus.SC_OK
-        );
-
-        //TODO: assert responses properly, one response has explicit null values in serialization
-        assertEquals(expected.getStatusCode(), actual.getStatusCode());
+        assertEquals(HttpStatus.SC_OK, actual.getStatusCode());
+        CustomerList actualCustomerList = actual.getBodyObject(CustomerList.class);
+        assertThat(actualCustomerList.getId(), notNullValue());
+        assertThat(actualCustomerList.getContext(), notNullValue());
+        assertThat(actualCustomerList, equalTo(customerList));
     }
 }

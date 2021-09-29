@@ -70,7 +70,7 @@ public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList
     protected CustomerList processInput(Void input, RequestInfo requestInfo, Context context)
             throws ApiGatewayException {
         List<CustomerDb> customerDbs = customerService.getCustomers();
-        return customerMapper.toCustomerList(customerDbs);
+        return customerMapper.toCustomerListFromCustomerDbs(customerDbs);
     }
 
     @Override

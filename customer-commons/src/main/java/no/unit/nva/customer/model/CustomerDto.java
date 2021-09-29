@@ -1,18 +1,18 @@
 package no.unit.nva.customer.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+
 import no.unit.nva.customer.model.interfaces.Customer;
-import no.unit.nva.customer.model.interfaces.JsonLdSupport;
+import no.unit.nva.customer.model.interfaces.Resource;
 import nva.commons.core.JacocoGenerated;
 
 @JsonTypeName("Customer")
-public class CustomerDto implements Customer, JsonLdSupport {
+public class CustomerDto implements Customer, Resource {
 
     private URI id;
     private UUID identifier;
@@ -27,8 +27,6 @@ public class CustomerDto implements Customer, JsonLdSupport {
     private String feideOrganizationId;
     private String cristinId;
     private Set<VocabularySettingDto> vocabularySettings;
-    @JsonProperty("@context")
-    private URI context;
 
     public CustomerDto() {
 
@@ -155,16 +153,6 @@ public class CustomerDto implements Customer, JsonLdSupport {
     }
 
     @Override
-    public URI getContext() {
-        return context;
-    }
-
-    @Override
-    public void setContext(URI context) {
-        this.context = context;
-    }
-
-    @Override
     @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
@@ -186,8 +174,7 @@ public class CustomerDto implements Customer, JsonLdSupport {
             && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
             && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
             && Objects.equals(getCristinId(), that.getCristinId())
-            && Objects.equals(getVocabularySettings(), that.getVocabularySettings())
-            && Objects.equals(getContext(), that.getContext());
+            && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
     }
 
     @Override
@@ -195,7 +182,7 @@ public class CustomerDto implements Customer, JsonLdSupport {
     public int hashCode() {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
             getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-            getCristinId(), getVocabularySettings(), getContext());
+            getCristinId(), getVocabularySettings());
     }
 
     public Set<VocabularySettingDto> getVocabularySettings() {

@@ -63,8 +63,8 @@ public class UserPoolEntryUpdater {
     }
 
     private AdminUpdateUserAttributesRequest createUpateRequestForUserEntryInCognito(
-            UserDetails userDetails,
-            List<AttributeType> userAttributes) {
+        UserDetails userDetails,
+        List<AttributeType> userAttributes) {
         return new AdminUpdateUserAttributesRequest()
             .withUserPoolId(userDetails.getCognitoUserPool())
             .withUsername(userDetails.getCognitoUserName())

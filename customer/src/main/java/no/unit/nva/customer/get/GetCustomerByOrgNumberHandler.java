@@ -3,12 +3,12 @@ package no.unit.nva.customer.get;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
+import java.net.URI;
+import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -20,15 +20,10 @@ import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.util.List;
-
 public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, CustomerIdentifiers> {
 
-    public static final String ID_NAMESPACE_ENV = "ID_NAMESPACE";
-    public static final String ORG_NUMBER = "orgNumber";
 
-    private final CustomerMapper customerMapper;
+    public static final String ORG_NUMBER = "orgNumber";
     private final CustomerService customerService;
     private static final Logger logger = LoggerFactory.getLogger(GetCustomerByOrgNumberHandler.class);
 
@@ -37,10 +32,7 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, Custo
      */
     @JacocoGenerated
     public GetCustomerByOrgNumberHandler() {
-        this(defaultCustomerService(),
-            defaultCustomerMapper(),
-            new Environment()
-        );
+        this(defaultCustomerService(), new Environment());
     }
 
     @JacocoGenerated
@@ -51,12 +43,6 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, Custo
             new Environment());
     }
 
-    @JacocoGenerated
-    private static CustomerMapper defaultCustomerMapper() {
-        String namespace = new Environment().readEnv(ID_NAMESPACE_ENV);
-        return new CustomerMapper(namespace);
-    }
-
     /**
      * Constructor for CreateCustomerbyOrgNumberHandler.
      *
@@ -65,11 +51,9 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, Custo
      */
     public GetCustomerByOrgNumberHandler(
         CustomerService customerService,
-        CustomerMapper customerMapper,
         Environment environment) {
         super(Void.class, environment);
         this.customerService = customerService;
-        this.customerMapper = customerMapper;
     }
 
     @Override
@@ -77,10 +61,9 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, Custo
         throws ApiGatewayException {
         long start = System.currentTimeMillis();
         String orgNumber = getOrgNumber(requestInfo);
-        CustomerDb customerDb = customerService.getCustomerByOrgNumber(orgNumber);
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDto customerDto = customerService.getCustomerByOrgNumber(orgNumber);
         URI customerId = customerDto.getId();
-        URI cristinId = URI.create(customerDb.getCristinId());
+        URI cristinId = URI.create(customerDto.getCristinId());
         long stop = System.currentTimeMillis();
         logger.info("processInput took {} ms", stop - start);
         return new CustomerIdentifiers(customerId, cristinId);

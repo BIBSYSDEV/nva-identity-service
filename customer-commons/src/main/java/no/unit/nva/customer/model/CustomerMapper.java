@@ -1,80 +1,60 @@
 package no.unit.nva.customer.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import nva.commons.core.JsonUtils;
-
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class CustomerMapper {
+import com.fasterxml.jackson.databind.ObjectMapper;
+import no.unit.nva.customer.model.CustomerDto.Builder;
+import nva.commons.core.Environment;
+import nva.commons.core.JsonUtils;
+
+public final class CustomerMapper {
 
     public static final URI context = URI.create("https://bibsysdev.github.io/src/customer-context.json");
     private static final ObjectMapper objectMapper = JsonUtils.objectMapper;
 
-    private final String namespace;
+    public static final String ID_NAMESPACE_ENV = "ID_NAMESPACE";
+    public static final String NAMESPACE = getIdNamespace();
+    public static final URI NO_CONTEXT = null;
+    public static final URI CONTEXT = URI.create("https://bibsysdev.github.io/src/customer-context.json");
 
-    public CustomerMapper(String namespace) {
-        this.namespace = namespace;
+    private CustomerMapper() {
     }
 
-    /**
-     * Map from Customer from Db to Dto version.
-     *
-     * @param customerDb    customerDb
-     * @return  customerDto
-     */
-    public CustomerDto toCustomerDto(CustomerDb customerDb) {
-        CustomerDto customerDto = objectMapper.convertValue(customerDb, CustomerDto.class);
-        URI id = toId(customerDb.getIdentifier());
-        customerDto.setId(id);
-        customerDto.setContext(context);
-        return customerDto;
-    }
-
-    private CustomerDtoWithoutContext toCustomerDtoWithoutContext(CustomerDto customerDto) {
+    private static CustomerDtoWithoutContext toCustomerDtoWithoutContext(CustomerDto customerDto) {
         return objectMapper.convertValue(customerDto, CustomerDtoWithoutContext.class);
     }
 
-    /**
-     * Map from list of Customers from Db to Dto version.
-     *
-     * @param customerDbs  list of CustomerDb
-     * @return  customerList
-     */
-    public CustomerList toCustomerListFromCustomerDbs(List<CustomerDb> customerDbs) {
-        List<CustomerDtoWithoutContext> customerDtos = customerDbs.stream()
-            .map(this::toCustomerDto)
-            .map(this::toCustomerDtoWithoutContext)
-            .collect(Collectors.toList());
-        return toCustomerListFromCustomerDtos(customerDtos);
-    }
-
-    /**
-     * Map from list of Customers from Db to Dto version.
-     *
-     * @param customerDtos  list of CustomerDto
-     * @return  customerList
-     */
-    public CustomerList toCustomerListFromCustomerDtos(List<CustomerDtoWithoutContext> customerDtos) {
-        URI id = URI.create(namespace);
+    public static CustomerList toCustomerListFromCustomerDtosWithoutContexts(
+            List<CustomerDtoWithoutContext> customerDtos) {
+        URI id = URI.create(getIdNamespace());
         return new CustomerList(id, customerDtos);
     }
 
-    /**
-     * Map from Customer from Dto to Db version.
-     *
-     * @param customerDto   customerDto
-     * @return  customerDb
-     */
-    public CustomerDb toCustomerDb(CustomerDto customerDto) {
-        CustomerDb customer = objectMapper.convertValue(customerDto, CustomerDb.class);
-        return customer;
+    public static CustomerList toCustomerListFromCustomerDtos(List<CustomerDto> customerDtos) {
+        List<CustomerDtoWithoutContext> customerDtosWithoutContexts = customerDtos.stream()
+                .map(CustomerMapper::toCustomerDtoWithoutContext)
+                .collect(Collectors.toList());
+        return toCustomerListFromCustomerDtosWithoutContexts(customerDtosWithoutContexts);
     }
 
-    private URI toId(UUID identifier) {
-        return URI.create(namespace + "/" + identifier);
+    public static CustomerDto addContext(CustomerDto customerDto) {
+        return Optional.ofNullable(customerDto)
+            .map(CustomerDto::copy)
+            .map(copy -> copy.withContext(CONTEXT))
+            .map(copy -> copy.withId(toId(customerDto.getIdentifier())))
+            .map(Builder::build)
+            .orElse(null);
     }
 
+    public static URI toId(UUID identifier) {
+        return URI.create(NAMESPACE + "/" + identifier);
+    }
+
+    private static String getIdNamespace() {
+        return new Environment().readEnv(ID_NAMESPACE_ENV);
+    }
 }

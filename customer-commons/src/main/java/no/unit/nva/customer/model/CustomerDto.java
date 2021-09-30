@@ -6,8 +6,13 @@ import no.unit.nva.customer.model.interfaces.Context;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.URI;
+import java.time.Instant;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
+@SuppressWarnings("PMD.ExcessivePublicCount")
 @JsonTypeName("Customer")
 public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
@@ -16,6 +21,11 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
     public CustomerDto() {
         super();
+        setVocabularySettings(Collections.emptySet());
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -28,13 +38,39 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
         this.context = context;
     }
 
-    @Override
+    public Builder copy() {
+        return new Builder()
+            .withVocabularySettings(getVocabularySettings())
+            .withShortName(getShortName())
+            .withInstitutionDns(getInstitutionDns())
+            .withDisplayName(getDisplayName())
+            .withCreatedDate(getCreatedDate())
+            .withArchiveName(getArchiveName())
+            .withIdentifier(getIdentifier())
+            .withContext(getContext())
+            .withCname(getCname())
+            .withId(getId())
+            .withCristinId(getCristinId())
+            .withFeideOrganizationId(getFeideOrganizationId())
+            .withName(getName())
+            .withModifiedDate(getModifiedDate());
+    }
+
     @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                            getCristinId(), getVocabularySettings(), getContext());
+    }
+
+    @JacocoGenerated
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof CustomerDto)) {
             return false;
         }
         CustomerDto that = (CustomerDto) o;
@@ -54,11 +90,86 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
                 && Objects.equals(getContext(), that.getContext());
     }
 
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-                getCristinId(), getVocabularySettings(), getContext());
+    public static final class Builder {
+
+        private final CustomerDto customerDto;
+
+        private Builder() {
+            customerDto = new CustomerDto();
+        }
+
+        public Builder withId(URI id) {
+            customerDto.setId(id);
+            return this;
+        }
+
+        public Builder withIdentifier(UUID identifier) {
+            customerDto.setIdentifier(identifier);
+            return this;
+        }
+
+        public Builder withCreatedDate(Instant createdDate) {
+            customerDto.setCreatedDate(createdDate);
+            return this;
+        }
+
+        public Builder withModifiedDate(Instant modifiedDate) {
+            customerDto.setModifiedDate(modifiedDate);
+            return this;
+        }
+
+        public Builder withName(String name) {
+            customerDto.setName(name);
+            return this;
+        }
+
+        public Builder withDisplayName(String displayName) {
+            customerDto.setDisplayName(displayName);
+            return this;
+        }
+
+        public Builder withShortName(String shortName) {
+            customerDto.setShortName(shortName);
+            return this;
+        }
+
+        public Builder withArchiveName(String archiveName) {
+            customerDto.setArchiveName(archiveName);
+            return this;
+        }
+
+        public Builder withCname(String cname) {
+            customerDto.setCname(cname);
+            return this;
+        }
+
+        public Builder withInstitutionDns(String institutionDns) {
+            customerDto.setInstitutionDns(institutionDns);
+            return this;
+        }
+
+        public Builder withFeideOrganizationId(String feideOrganizationId) {
+            customerDto.setFeideOrganizationId(feideOrganizationId);
+            return this;
+        }
+
+        public Builder withCristinId(String cristinId) {
+            customerDto.setCristinId(cristinId);
+            return this;
+        }
+
+        public Builder withVocabularySettings(Set<VocabularySettingDto> vocabularySettings) {
+            customerDto.setVocabularySettings(vocabularySettings);
+            return this;
+        }
+
+        public Builder withContext(URI context) {
+            customerDto.setContext(context);
+            return this;
+        }
+
+        public CustomerDto build() {
+            return customerDto;
+        }
     }
 }

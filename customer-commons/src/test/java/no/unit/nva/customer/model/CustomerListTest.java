@@ -15,12 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class CustomerListTest {
 
     private final ObjectMapper objectMapper = JsonUtils.objectMapper;
-    private final CustomerMapper customerMapper = new CustomerMapper("http://example.org/customer");
 
     @Test
     public void customerListFromCustomer() {
         CustomerDtoWithoutContext customer = new CustomerDtoWithoutContext();
-        CustomerList customerList = customerMapper.toCustomerListFromCustomerDtos(List.of(customer));
+        CustomerList customerList = CustomerMapper.toCustomerListFromCustomerDtosWithoutContexts(List.of(customer));
         assertEquals(1, customerList.getCustomers().size());
         assertEquals(customer, customerList.getCustomers().get(0));
     }
@@ -29,7 +28,7 @@ public class CustomerListTest {
     public void customerListFromNull() {
         List<CustomerDtoWithoutContext> list = new ArrayList<>();
         list.add(null);
-        CustomerList customerList = customerMapper.toCustomerListFromCustomerDtos(list);
+        CustomerList customerList = CustomerMapper.toCustomerListFromCustomerDtosWithoutContexts(list);
         assertEquals(1, customerList.getCustomers().size());
         assertTrue(customerList.getCustomers().get(0) == null);
     }
@@ -37,7 +36,7 @@ public class CustomerListTest {
     @Test
     public void customerListCanBeConvertedToJsonAndBack() throws JsonProcessingException {
         List<CustomerDtoWithoutContext> customerDtos = List.of(new CustomerDtoWithoutContext());
-        CustomerList customerList = customerMapper.toCustomerListFromCustomerDtos(customerDtos);
+        CustomerList customerList = CustomerMapper.toCustomerListFromCustomerDtosWithoutContexts(customerDtos);
         String customerListJson = objectMapper.writeValueAsString(customerList);
         CustomerList mappedCustomerList = objectMapper.readValue(customerListJson, CustomerList.class);
         assertNotNull(mappedCustomerList);

@@ -25,7 +25,7 @@ public class CustomerList {
     public CustomerList(URI id, List<CustomerDtoWithoutContext> customers) {
         this.id = id;
         this.customers = customers;
-        this.context = CustomerMapper.context;
+        this.context = CustomerMapper.CONTEXT;
     }
 
     public List<CustomerDtoWithoutContext> getCustomers() {

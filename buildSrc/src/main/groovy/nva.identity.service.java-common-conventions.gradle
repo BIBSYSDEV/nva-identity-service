@@ -28,11 +28,11 @@ repositories {
 
 project.ext {
     nvaCommonsVersion = '1.12.0'
-    awsSdkVersion ="1.12.59"
-    jacksonVersion ="2.10.3"
+    awsSdkVersion = "1.12.59"
+    jacksonVersion = "2.10.3"
     xraySdkVersion = '2.9.1'
     DynamoDBLocalVersion = '1.15.0'
-    nvaTestUtilsVersion = '0.1.13'
+    nvaTestUtilsVersion = '0.1.24'
     zalandoProblemVersion = '0.25.0'
     awsLambdaCoreVersion = '1.2.1'
     jupiterVersion = "5.6.0"
@@ -45,7 +45,6 @@ dependencies {
         implementation group: 'com.github.bibsysdev', name: 'lambdaauthorizer', version: project.ext.nvaCommonsVersion
         implementation group: 'com.github.bibsysdev', name: 'secrets', version: project.ext.nvaCommonsVersion
         implementation group: 'com.github.bibsysdev', name: 'logutils', version: project.ext.nvaCommonsVersion
-
 
         implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-core', version: project.ext.xraySdkVersion
         implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk', version: project.ext.xraySdkVersion
@@ -68,7 +67,6 @@ dependencies {
         implementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
         implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: project.ext.jupiterVersion
 
-
         implementation group: 'org.zalando', name: 'problem', version: project.ext.zalandoProblemVersion
         implementation group: 'org.zalando', name: 'jackson-datatype-problem', version: project.ext.zalandoProblemVersion
     }
@@ -78,6 +76,8 @@ dependencies {
     implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk'
     implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk-instrumentor'
 
+    testImplementation group: 'org.javers', name: 'javers-core', version: '6.2.5'
+    testImplementation group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
     testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: project.ext.nvaTestUtilsVersion
     testImplementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: project.ext.DynamoDBLocalVersion
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.3.3'
@@ -105,10 +105,12 @@ tasks.named('test') {
     testLogging {
         events('skipped', 'passed', 'failed')
     }
-    final Map<String, String> envVariables = new HashMap<>()
-    envVariables.put("ALLOWED_ORIGIN", "*")
-    environment(envVariables)
     finalizedBy jacocoTestReport
+}
+
+test {
+    environment "ID_NAMESPACE", "https://www.example.org"
+    environment "ALLOWED_ORIGIN", "*"
 }
 
 pmd {
@@ -172,7 +174,8 @@ def getProjectList() {
 task jacocoMerge(type: JacocoMerge) {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = 'Merge the JaCoCo data files from all subprojects into one'
-    project.afterEvaluate {  // do it at the end of the config phase to be sure all information is present
+    project.afterEvaluate {
+        // do it at the end of the config phase to be sure all information is present
         FileCollection execFiles = project.objects.fileCollection()   // an empty FileCollection
         getProjectList().each { Project subproject ->
             if (subproject.pluginManager.hasPlugin('jacoco')) {
@@ -213,10 +216,10 @@ task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
         // The JacocoReport tasks are the source of truth for class files and sources.
         def reportTasks = getReportTasks(tasks.jacocoRootReport)
         classDirectories.from project.files({
-            reportTasks.collect {it.classDirectories}.findAll {it != null}
+            reportTasks.collect { it.classDirectories }.findAll { it != null }
         })
         sourceDirectories.from project.files({
-            reportTasks.collect {it.sourceDirectories}.findAll {it != null}
+            reportTasks.collect { it.sourceDirectories }.findAll { it != null }
         })
     }
 

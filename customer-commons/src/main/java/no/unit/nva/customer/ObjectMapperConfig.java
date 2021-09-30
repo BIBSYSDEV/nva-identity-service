@@ -5,7 +5,7 @@ import nva.commons.core.JsonUtils;
 
 public final class ObjectMapperConfig {
 
-    public static final ObjectMapper objectMapper = JsonUtils.objectMapper;
+    public static final ObjectMapper objectMapper = JsonUtils.objectMapperWithEmpty;
 
     private ObjectMapperConfig() {
 

@@ -14,19 +14,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.zalando.problem.Status.BAD_REQUEST;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
@@ -42,13 +39,11 @@ import org.zalando.problem.Problem;
 public class UpdateCustomerHandlerTest {
 
     public static final String WILDCARD = "*";
-    public static final String SAMPLE_NAMESPACE = "http://example.org/customer";
     public static final String REQUEST_ID = "requestId";
 
-    private ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
-    private CustomerMapper customerMapper;
+    private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
+
     private CustomerService customerServiceMock;
-    private Environment environmentMock;
     private UpdateCustomerHandler handler;
     private ByteArrayOutputStream outputStream;
     private Context context;
@@ -57,23 +52,21 @@ public class UpdateCustomerHandlerTest {
      * Setting up test environment.
      */
     @BeforeEach
-    @SuppressWarnings("unchecked")
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
-        environmentMock = mock(Environment.class);
-        customerMapper = new CustomerMapper(SAMPLE_NAMESPACE);
+        Environment environmentMock = mock(Environment.class);
         when(environmentMock.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
-        handler = new UpdateCustomerHandler(customerServiceMock, customerMapper, environmentMock);
+        handler = new UpdateCustomerHandler(customerServiceMock, environmentMock);
         outputStream = new ByteArrayOutputStream();
         context = Mockito.mock(Context.class);
     }
 
     @Test
     public void handleRequestReturnsOkForValidRequest() throws IOException, ApiGatewayException {
-        CustomerDb customerDb = createCustomerDb(UUID.randomUUID());
-        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDb.class))).thenReturn(customerDb);
+        CustomerDto customer = createCustomer(UUID.randomUUID());
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
 
-        InputStream request = IoUtils.inputStreamFromResources(Path.of("update_request.json"));
+        InputStream request = IoUtils.inputStreamFromResources("update_request.json");
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         handler.handleRequest(request, outputStream, context);
 
@@ -86,14 +79,12 @@ public class UpdateCustomerHandlerTest {
     @SuppressWarnings("unchecked")
     public void requestToHandlerReturnsCustomerUpdated() throws Exception {
         UUID identifier = UUID.randomUUID();
-        CustomerDb customerDb = createCustomerDb(identifier);
-        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDb.class))).thenReturn(customerDb);
-
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDto customer = createCustomer(identifier);
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(objectMapper)
-            .withBody(customerDto)
+            .withBody(customer)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
             .build();
@@ -105,7 +96,7 @@ public class UpdateCustomerHandlerTest {
             GatewayResponse.class);
 
         GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
-            customerDto,
+            customer,
             getResponseHeaders(),
             HttpStatus.SC_OK
         );
@@ -117,13 +108,12 @@ public class UpdateCustomerHandlerTest {
     @SuppressWarnings("unchecked")
     public void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws Exception {
         String malformedIdentifier = "for-testing";
-        CustomerDb customerDb = createCustomerDb(UUID.randomUUID());
+        CustomerDto customer = createCustomer(UUID.randomUUID());
 
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, malformedIdentifier);
         InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(objectMapper)
-            .withBody(customerDto)
+            .withBody(customer)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
             .build();
@@ -148,10 +138,11 @@ public class UpdateCustomerHandlerTest {
         assertEquals(expected, actual);
     }
 
-    private CustomerDb createCustomerDb(UUID uuid) {
+    private CustomerDto createCustomer(UUID uuid) {
         return new CustomerDb.Builder()
             .withIdentifier(uuid)
             .withName("New Customer")
-            .build();
+            .build()
+            .toCustomerDto();
     }
 }

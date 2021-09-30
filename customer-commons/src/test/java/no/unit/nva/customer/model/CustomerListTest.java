@@ -35,7 +35,7 @@ public class CustomerListTest {
     }
 
     @Test
-    public void test() throws JsonProcessingException {
+    public void customerListCanBeConvertedToJsonAndBack() throws JsonProcessingException {
         List<CustomerDtoWithoutContext> customerDtos = List.of(new CustomerDtoWithoutContext());
         CustomerList customerList = customerMapper.toCustomerListFromCustomerDtos(customerDtos);
         String customerListJson = objectMapper.writeValueAsString(customerList);

@@ -1,21 +1,25 @@
+plugins {
+    id 'nva.identity.service.java-library-conventions'
+}
+
 dependencies {
 
-    compileOnly(group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: project.ext.jacksonVersion) {
+    compileOnly(group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310') {
         because "PMD complains"
     }
 
-    compileOnly(group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project.ext.jacksonVersion) {
+    compileOnly(group: 'com.fasterxml.jackson.core', name: 'jackson-core') {
         because "PMD complains"
     }
-    compileOnly(group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: project.ext.jacksonVersion) {
+    compileOnly(group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8') {
         because "PMD complains"
     }
 
 
-    runtimeOnly group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project.ext.jacksonVersion
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project.ext.jacksonVersion
+    runtimeOnly group: 'com.fasterxml.jackson.core', name: 'jackson-core'
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-core'
 
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: project.ext.jacksonVersion
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
 
 }

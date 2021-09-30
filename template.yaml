@@ -459,24 +459,11 @@ Resources:
           Parameters:
             Location: ./docs/users-and-roles-swagger.yaml
 
-  UserAccessCommonsLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: user-access-service-layer
-      Description: User Access Service
-      ContentUri: user-access-service/build/distributions/user-access-service.zip
-      CompatibleRuntimes:
-        - java11
-      LicenseInfo: 'MIT'
-      RetentionPolicy: Retain
-
   AddRoleHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.AddRoleHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -497,8 +484,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetRoleHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -518,8 +503,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.AddUserHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -540,8 +523,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -561,8 +542,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -582,8 +561,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.ListByInstitutionHandler::handleRequest
-      Layers:
-        - !Ref UserAccessCommonsLayer
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -669,7 +646,7 @@ Resources:
   NvaCreateCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: create-customer
+      CodeUri: customer
       Handler: no.unit.nva.customer.create.CreateCustomerHandler::handleRequest
       Environment:
         Variables:
@@ -691,7 +668,7 @@ Resources:
   NvaGetCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get-customer
+      CodeUri: customer
       Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
       Environment:
         Variables:
@@ -710,10 +687,32 @@ Resources:
             Path: /{identifier}
             Method: get
             RestApiId: !Ref NvaCustomerApi
+  NvaGetCustomerVocabulariesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Handler: no.unit.nva.customer.get.GetControlledVocabularyHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref NvaCustomersTable
+          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
+          BY_CRISTIN_ID_INDEX_NAME: byCristinId
+          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        GetCustomerEvent:
+          Type: Api
+          Properties:
+            Path: /{identifier}/vocabularies
+            Method: get
+            RestApiId: !Ref NvaCustomerApi
   NvaGetCustomerByOrgNumberFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get-customer-by-org-number
+      CodeUri: customer
       Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
       Environment:
         Variables:
@@ -735,7 +734,7 @@ Resources:
   NvaGetCustomerByCristinIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get-customer-by-cristin-id
+      CodeUri: customer
       Handler: no.unit.nva.customer.get.GetCustomerByCristinIdHandler::handleRequest
       Environment:
         Variables:
@@ -757,8 +756,8 @@ Resources:
   NvaGetAllCustomersFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get-all-customers
-      Handler: no.unit.nva.customer.getall.GetAllCustomersHandler::handleRequest
+      CodeUri: customer
+      Handler: no.unit.nva.customer.get.GetAllCustomersHandler::handleRequest
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -779,7 +778,7 @@ Resources:
   NvaUpdateCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: update-customer
+      CodeUri: customer
       Handler: no.unit.nva.customer.update.UpdateCustomerHandler::handleRequest
       Environment:
         Variables:

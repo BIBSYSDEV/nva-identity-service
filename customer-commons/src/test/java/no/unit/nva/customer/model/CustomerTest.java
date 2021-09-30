@@ -1,18 +1,10 @@
 package no.unit.nva.customer.model;
 
-import static java.lang.String.format;
-import static java.lang.String.valueOf;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.joining;
-import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.unit.nva.customer.ObjectMapperConfig;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.Instant;
@@ -20,14 +12,20 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import no.unit.nva.customer.ObjectMapperConfig;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
+
+import static java.lang.String.format;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
+import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE;
+import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CustomerTest {
 
     private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
-    private CustomerMapper customerMapper = new CustomerMapper("http://example.org/customer");
 
     @Test
     public void customerMappedToJsonAndBack() throws JsonProcessingException {
@@ -40,39 +38,35 @@ public class CustomerTest {
     }
 
     @Test
-    public void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() throws JsonProcessingException {
+    public void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() {
         CustomerDb customerDb = createCustomerDb();
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDto customerDto = customerDb.toCustomerDto();
 
         assertNotNull(customerDto);
         assertNotNull(customerDto.getId());
 
-        CustomerDb mappedCustomerDB = customerMapper.toCustomerDb(customerDto);
+        CustomerDb mappedCustomerDB = CustomerDb.fromCustomerDto(customerDto);
         assertNotNull(mappedCustomerDB);
     }
 
     @Test
-    public void customerMapperCanMapListOfCustomerDtosToCustomerList() {
+    public void customerMapperCanMapCustomerDbToCustomerDto() {
         CustomerDb customerDb = createCustomerDb();
-        CustomerList customerList = customerMapper.toCustomerList(Collections.singletonList(customerDb));
-        assertNotNull(customerList);
-    }
-
-    @Test
-    public void customerMapperCanMapustomerDbToCustomerDtoWithoutContext() {
-        CustomerDb customerDb = createCustomerDb();
-        CustomerDto customerDto = customerMapper.toCustomerDtoWithoutContext(customerDb);
+        CustomerDto customerDto = customerDb.toCustomerDto();
         assertNotNull(customerDto);
-        assertNull(customerDto.getContext());
+        assertNotNull(customerDto.getContext());
     }
 
     @Test
     public void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
         String value = "Unknown";
         IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
-            () -> VocabularyStatus.lookup(value));
-        String expectedMessage = format(VocabularyStatus.ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
-                        .map(VocabularyStatus::toString).collect(joining(VocabularyStatus.DELIMITER)));
+                                                       () -> VocabularyStatus.lookup(value));
+
+        String expectedMessage = format(ERROR_MESSAGE_TEMPLATE, value,
+                                        stream(VocabularyStatus.values())
+                                            .map(VocabularyStatus::toString)
+                                            .collect(joining(VocabularyStatus.DELIMITER)));
 
         assertEquals(expectedMessage, actual.getMessage());
     }
@@ -83,7 +77,6 @@ public class CustomerTest {
         customerDb.getVocabularySettings().add(vocabularySetting());
 
         assertThat(customerDb.getVocabularySettings().size(), Matchers.is(Matchers.equalTo(1)));
-
     }
 
     private CustomerDb createCustomerDb() {
@@ -110,9 +103,9 @@ public class CustomerTest {
 
     private VocabularySettingDb vocabularySetting() {
         return new VocabularySettingDb(
-                "Vocabulary A",
-                URI.create("http://uri.to.vocabulary.a"),
-                VocabularyStatus.lookup("Default")
+            "Vocabulary A",
+            URI.create("http://uri.to.vocabulary.a"),
+            VocabularyStatus.lookup("Default")
         );
     }
 }

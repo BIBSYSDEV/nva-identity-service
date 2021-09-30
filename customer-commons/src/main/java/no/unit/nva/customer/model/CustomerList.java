@@ -1,15 +1,22 @@
 package no.unit.nva.customer.model;
 
+import static no.unit.nva.customer.model.CustomerMapper.NAMESPACE;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.net.URI;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import nva.commons.core.JacocoGenerated;
 
-import java.net.URI;
-import java.util.List;
-
 @SuppressWarnings("PMD.ShortMethodName")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public class CustomerList {
 
-    private List<CustomerDto> customers;
+    private URI id;
+    private List<CustomerDtoWithoutContext> customers;
     @JsonProperty("@context")
     private URI context;
 
@@ -19,30 +26,25 @@ public class CustomerList {
     }
 
     public CustomerList(List<CustomerDto> customers) {
-        this.customers = customers;
-        this.context = CustomerMapper.context;
+        this.id = NAMESPACE;
+        this.customers = extractCustomers(customers);
+        this.context = CustomerMapper.CONTEXT;
     }
 
-    /**
-     * Create a CustomerList from a List of CustomerDto objects.
-     *
-     * @param customers list of CustomerDto
-     * @return customerList
-     */
-    public static CustomerList of(List<CustomerDto> customers) {
-        return new CustomerList(customers);
-    }
-
-    public static CustomerList of(CustomerDto... customers) {
-        return of(List.of(customers));
-    }
-
-    public List<CustomerDto> getCustomers() {
+    public List<CustomerDtoWithoutContext> getCustomers() {
         return customers;
     }
 
-    public void setCustomers(List<CustomerDto> customers) {
+    public void setCustomers(List<CustomerDtoWithoutContext> customers) {
         this.customers = customers;
+    }
+
+    public URI getId() {
+        return id;
+    }
+
+    public void setId(URI id) {
+        this.id = id;
     }
 
     public URI getContext() {
@@ -51,5 +53,36 @@ public class CustomerList {
 
     public void setContext(URI context) {
         this.context = context;
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(id, customers, context);
+    }
+
+    @Override
+    @JacocoGenerated
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CustomerList that = (CustomerList) o;
+        return Objects.equals(id, that.id)
+               && Objects.equals(customers, that.customers)
+               && Objects.equals(context, that.context);
+    }
+
+    private List<CustomerDtoWithoutContext> extractCustomers(List<CustomerDto> customers) {
+        return Optional.ofNullable(customers)
+            .stream()
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .filter(Objects::nonNull)
+            .map(CustomerDto::withoutContext)
+            .collect(Collectors.toList());
     }
 }

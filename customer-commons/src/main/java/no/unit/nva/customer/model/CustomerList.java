@@ -1,10 +1,10 @@
 package no.unit.nva.customer.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import nva.commons.core.JacocoGenerated;
-
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
+import nva.commons.core.JacocoGenerated;
 
 @SuppressWarnings("PMD.ShortMethodName")
 public class CustomerList {
@@ -30,7 +30,11 @@ public class CustomerList {
      * @return customerList
      */
     public static CustomerList of(List<CustomerDto> customers) {
-        return new CustomerList(customers);
+        List<CustomerDto> customersWithoutContext = customers
+            .stream()
+            .map(CustomerMapper::removeContext)
+            .collect(Collectors.toList());
+        return new CustomerList(customersWithoutContext);
     }
 
     public static CustomerList of(CustomerDto... customers) {

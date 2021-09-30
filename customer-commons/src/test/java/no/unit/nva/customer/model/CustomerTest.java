@@ -3,6 +3,7 @@ package no.unit.nva.customer.model;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
+import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE;
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,7 +14,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 public class CustomerTest {
 
     private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
-    private CustomerMapper customerMapper = new CustomerMapper("http://example.org/customer");
 
     @Test
     public void customerMappedToJsonAndBack() throws JsonProcessingException {
@@ -37,30 +36,15 @@ public class CustomerTest {
     }
 
     @Test
-    public void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() throws JsonProcessingException {
+    public void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() {
         CustomerDb customerDb = createCustomerDb();
-        CustomerDto customerDto = customerMapper.toCustomerDto(customerDb);
+        CustomerDto customerDto = customerDb.toCustomerDto();
 
         assertNotNull(customerDto);
         assertNotNull(customerDto.getId());
 
-        CustomerDb mappedCustomerDB = customerMapper.toCustomerDb(customerDto);
+        CustomerDb mappedCustomerDB = CustomerDb.fromCustomerDto(customerDto);
         assertNotNull(mappedCustomerDB);
-    }
-
-    @Test
-    public void customerMapperCanMapListOfCustomerDtosToCustomerList() {
-        CustomerDb customerDb = createCustomerDb();
-        CustomerList customerList = customerMapper.toCustomerList(Collections.singletonList(customerDb));
-        assertNotNull(customerList);
-    }
-
-    @Test
-    public void customerMapperCanMapustomerDbToCustomerDtoWithoutContext() {
-        CustomerDb customerDb = createCustomerDb();
-        CustomerDto customerDto = customerMapper.toCustomerDtoWithoutContext(customerDb);
-        assertNotNull(customerDto);
-        assertNull(customerDto.getContext());
     }
 
     @Test
@@ -68,9 +52,12 @@ public class CustomerTest {
         String value = "Unknown";
         IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
                                                        () -> VocabularyStatus.lookup(value));
-        String expectedMessage =
-            format(VocabularyStatus.ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
-                .map(VocabularyStatus::toString).collect(joining(VocabularyStatus.DELIMITER)));
+
+        String expectedMessage = format(ERROR_MESSAGE_TEMPLATE, value,
+                                        stream(VocabularyStatus.values())
+                                            .map(VocabularyStatus::toString)
+                                            .collect(joining(VocabularyStatus.DELIMITER)));
+
 
         assertEquals(expectedMessage, actual.getMessage());
     }

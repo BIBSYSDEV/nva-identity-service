@@ -174,6 +174,7 @@ public class CustomerDb implements Customer {
                             getCristinId(), getVocabularySettings());
     }
 
+
     public Set<VocabularySettingDb> getVocabularySettings() {
         return vocabularySettings;
     }
@@ -181,6 +182,7 @@ public class CustomerDb implements Customer {
     public void setVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
         this.vocabularySettings = Objects.nonNull(vocabularySettings) ? vocabularySettings : Collections.emptySet();
     }
+
 
     @Override
     @JacocoGenerated
@@ -204,6 +206,7 @@ public class CustomerDb implements Customer {
                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
+
     }
 
     public CustomerDto toCustomerDto() {
@@ -232,6 +235,7 @@ public class CustomerDb implements Customer {
             .collect(Collectors.toSet());
     }
 
+
     private Set<VocabularySettingDto> extractVocabularySettings() {
         return Optional.ofNullable(this.getVocabularySettings())
             .stream()
@@ -239,6 +243,10 @@ public class CustomerDb implements Customer {
             .map(VocabularySettingDb::toVocabularySettingsDto)
             .collect(Collectors.toSet());
     }
+
+
+
+
 
     public static final class Builder {
 

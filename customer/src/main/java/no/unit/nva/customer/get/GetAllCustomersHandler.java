@@ -9,7 +9,6 @@ import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
-import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -43,16 +42,15 @@ public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList
 
     @Override
     protected CustomerList processInput(Void input, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
         List<CustomerDto> customers = customerService.getCustomers();
-        return CustomerMapper.toCustomerListFromCustomerDtos(customers);
+        return new CustomerList(customers);
     }
 
     @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
-
 
     @Override
     protected Integer getSuccessStatusCode(Void input, CustomerList output) {

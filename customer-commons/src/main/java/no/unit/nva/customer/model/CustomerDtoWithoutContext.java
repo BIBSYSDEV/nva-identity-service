@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-
 import no.unit.nva.customer.model.interfaces.Customer;
 import no.unit.nva.customer.model.interfaces.Resource;
 import nva.commons.core.JacocoGenerated;
@@ -163,26 +162,26 @@ public class CustomerDtoWithoutContext implements Customer, Resource {
         }
         CustomerDtoWithoutContext that = (CustomerDtoWithoutContext) o;
         return Objects.equals(getId(), that.getId())
-            && Objects.equals(getIdentifier(), that.getIdentifier())
-            && Objects.equals(getCreatedDate(), that.getCreatedDate())
-            && Objects.equals(getModifiedDate(), that.getModifiedDate())
-            && Objects.equals(getName(), that.getName())
-            && Objects.equals(getDisplayName(), that.getDisplayName())
-            && Objects.equals(getShortName(), that.getShortName())
-            && Objects.equals(getArchiveName(), that.getArchiveName())
-            && Objects.equals(getCname(), that.getCname())
-            && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-            && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
-            && Objects.equals(getCristinId(), that.getCristinId())
-            && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
+               && Objects.equals(getIdentifier(), that.getIdentifier())
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getCname(), that.getCname())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-            getCristinId(), getVocabularySettings());
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                            getCristinId(), getVocabularySettings());
     }
 
     public Set<VocabularySettingDto> getVocabularySettings() {

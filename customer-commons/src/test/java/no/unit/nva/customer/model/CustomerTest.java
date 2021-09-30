@@ -50,14 +50,6 @@ public class CustomerTest {
     }
 
     @Test
-    public void customerMapperCanMapListOfCustomerDtosToCustomerList() {
-        CustomerDto customerDto = createCustomerDb().toCustomerDto();
-        CustomerList customerList = CustomerMapper
-                .toCustomerListFromCustomerDtos(Collections.singletonList(customerDto));
-        assertNotNull(customerList);
-    }
-
-    @Test
     public void customerMapperCanMapCustomerDbToCustomerDto() {
         CustomerDb customerDb = createCustomerDb();
         CustomerDto customerDto = customerDb.toCustomerDto();

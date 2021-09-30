@@ -2,37 +2,33 @@ package no.unit.nva.customer.model;
 
 import java.net.URI;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import no.unit.nva.customer.model.CustomerDto.Builder;
 import nva.commons.core.Environment;
 
 public final class CustomerMapper {
 
     public static final String ID_NAMESPACE_ENV = "ID_NAMESPACE";
-    public static final String NAMESPACE = new Environment().readEnv(ID_NAMESPACE_ENV);
+    public static final String NAMESPACE = getIdNamespace();
     public static final URI NO_CONTEXT = null;
     public static final URI CONTEXT = URI.create("https://bibsysdev.github.io/src/customer-context.json");
 
     private CustomerMapper() {
     }
 
+
     public static CustomerDto addContext(CustomerDto customerDto) {
-        CustomerDto withContext = customerDto.copy().build();
-        URI id = toId(withContext.getIdentifier());
-        withContext.setId(id);
-        withContext.setContext(CONTEXT);
-        return withContext;
+        return Optional.ofNullable(customerDto)
+            .map(CustomerDto::copy)
+            .map(copy -> copy.withContext(CONTEXT))
+            .map(copy -> copy.withId(toId(customerDto.getIdentifier())))
+            .map(Builder::build)
+            .orElse(null);
     }
 
-    /**
-     * Map from Customer from Db to Dto version without context object.
-     *
-     * @param customerDb customerDb
-     * @return customerDto
-     */
-    public static CustomerDto toCustomerDtoWithoutContext(CustomerDb customerDb) {
-        CustomerDto customerDto = customerDb.toCustomerDto();
-        customerDto.setContext(NO_CONTEXT);
-        return customerDto;
+    public static URI toId(UUID identifier) {
+        return URI.create(NAMESPACE + "/" + identifier);
     }
 
     public static CustomerDto removeContext(CustomerDto customerDto) {
@@ -44,7 +40,7 @@ public final class CustomerMapper {
         return null;
     }
 
-    public static URI toId(UUID identifier) {
-        return URI.create(NAMESPACE + "/" + identifier);
+    private static String getIdNamespace() {
+        return new Environment().readEnv(ID_NAMESPACE_ENV);
     }
 }

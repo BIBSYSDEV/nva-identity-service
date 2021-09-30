@@ -27,7 +27,7 @@ class CustomerDbTest {
 
     @Test
     public void toCustomerDtoReturnsDtoWithoutLossOfInformation() {
-        CustomerDb expected = crateSampleCustomerDb();
+        CustomerDb expected = createSampleCustomerDb();
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDb actual = CustomerDb.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
@@ -78,7 +78,7 @@ class CustomerDbTest {
             .collect(Collectors.toSet());
     }
 
-    private CustomerDb crateSampleCustomerDb() {
+    private CustomerDb createSampleCustomerDb() {
         CustomerDb customer = CustomerDb.builder()
             .withIdentifier(randomIdentifier())
             .withName(randomString())

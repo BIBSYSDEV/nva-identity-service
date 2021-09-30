@@ -48,22 +48,16 @@ public class CustomerTest {
     }
 
     @Test
-    public void customerMapperCanMapCustomerDbToCustomerDtoWithoutContext() {
-        CustomerDb customerDb = createCustomerDb();
-        CustomerDto customerDto = CustomerMapper.toCustomerDtoWithoutContext(customerDb);
-        assertNotNull(customerDto);
-        assertNull(customerDto.getContext());
-    }
-
-    @Test
     public void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
         String value = "Unknown";
         IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
                                                        () -> VocabularyStatus.lookup(value));
+
         String expectedMessage = format(ERROR_MESSAGE_TEMPLATE, value,
                                         stream(VocabularyStatus.values())
                                             .map(VocabularyStatus::toString)
                                             .collect(joining(VocabularyStatus.DELIMITER)));
+
 
         assertEquals(expectedMessage, actual.getMessage());
     }

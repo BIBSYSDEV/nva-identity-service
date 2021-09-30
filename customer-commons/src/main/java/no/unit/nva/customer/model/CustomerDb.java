@@ -3,6 +3,7 @@ package no.unit.nva.customer.model;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -32,6 +33,7 @@ public class CustomerDb implements Customer {
     private Set<VocabularySettingDb> vocabularySettings;
 
     public CustomerDb() {
+        vocabularySettings = Collections.emptySet();
     }
 
     public static Builder builder() {
@@ -172,6 +174,16 @@ public class CustomerDb implements Customer {
                             getCristinId(), getVocabularySettings());
     }
 
+
+    public Set<VocabularySettingDb> getVocabularySettings() {
+        return vocabularySettings;
+    }
+
+    public void setVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
+        this.vocabularySettings = Objects.nonNull(vocabularySettings) ? vocabularySettings : Collections.emptySet();
+    }
+
+
     @Override
     @JacocoGenerated
     public boolean equals(Object o) {
@@ -194,14 +206,7 @@ public class CustomerDb implements Customer {
                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
-    }
 
-    public Set<VocabularySettingDb> getVocabularySettings() {
-        return vocabularySettings;
-    }
-
-    public void setVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
-        this.vocabularySettings = vocabularySettings;
     }
 
     public CustomerDto toCustomerDto() {
@@ -230,6 +235,7 @@ public class CustomerDb implements Customer {
             .collect(Collectors.toSet());
     }
 
+
     private Set<VocabularySettingDto> extractVocabularySettings() {
         return Optional.ofNullable(this.getVocabularySettings())
             .stream()
@@ -237,6 +243,10 @@ public class CustomerDb implements Customer {
             .map(VocabularySettingDb::toVocabularySettingsDto)
             .collect(Collectors.toSet());
     }
+
+
+
+
 
     public static final class Builder {
 

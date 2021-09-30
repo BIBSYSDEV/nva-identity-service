@@ -17,7 +17,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
-import no.unit.nva.customer.model.CustomerDb;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -61,7 +61,7 @@ public class GetCustomerByOrgNumberHandlerTest {
     @SuppressWarnings("unchecked")
     public void getCustomerByOrgNumberReturnsCustomerWhenInputIsExistingCustomerOrgNumber() throws Exception {
         UUID identifier = UUID.randomUUID();
-        CustomerDb customerDb = new CustomerDb.Builder()
+        CustomerDao customerDb = new CustomerDao.Builder()
             .withIdentifier(identifier)
             .withFeideOrganizationId(SAMPLE_ORG_NUMBER)
             .withCristinId(SAMPLE_CRISTIN_ID)

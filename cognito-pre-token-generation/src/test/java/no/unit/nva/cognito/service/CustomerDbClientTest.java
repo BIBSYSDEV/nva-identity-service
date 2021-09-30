@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import java.util.UUID;
 import no.unit.nva.cognito.model.CustomerResponse;
-import no.unit.nva.customer.model.CustomerDb;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -36,7 +36,7 @@ public class CustomerDbClientTest {
     @Test
     public void getCustomerReturnsCustomerResponseIfCustomerExists() throws ApiGatewayException {
         UUID identifier = UUID.randomUUID();
-        CustomerDb customerDb = getCustomerDb(identifier);
+        CustomerDao customerDb = getCustomerDb(identifier);
         when(dynamoDBCustomerService.getCustomerByOrgNumber(anyString())).thenReturn(customerDb.toCustomerDto());
 
         Optional<CustomerResponse> customer = customerDbClient.getCustomer(SAMPLE_ORG_NUMBER);
@@ -56,8 +56,8 @@ public class CustomerDbClientTest {
         assertThat(customer.isPresent(), is(false));
     }
 
-    private CustomerDb getCustomerDb(UUID identifier) {
-        CustomerDb customerDb = new CustomerDb();
+    private CustomerDao getCustomerDb(UUID identifier) {
+        CustomerDao customerDb = new CustomerDao();
         customerDb.setIdentifier(identifier);
         customerDb.setCristinId(SAMPLE_CRISTIN_ID);
         return customerDb;

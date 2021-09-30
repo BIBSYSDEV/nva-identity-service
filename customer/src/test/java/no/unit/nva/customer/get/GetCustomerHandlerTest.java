@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import no.unit.nva.customer.ObjectMapperConfig;
-import no.unit.nva.customer.model.CustomerDb;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -89,7 +89,7 @@ public class GetCustomerHandlerTest {
     @Test
     public void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws Exception {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDb>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(objectMapper)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
             .build();
@@ -118,7 +118,7 @@ public class GetCustomerHandlerTest {
         prepareServiceWithCustomer(identifier);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDb>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(objectMapper)
             .withHeaders(getRequestHeadersWithUnsupportedMediaType())
             .withPathParameters(pathParameters)
             .build();
@@ -136,7 +136,7 @@ public class GetCustomerHandlerTest {
         prepareServiceWithCustomer(identifier);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDb>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(objectMapper)
             .withHeaders(getRequestHeadersWithMediaType(MediaTypes.APPLICATION_JSON_LD))
             .withPathParameters(pathParameters)
             .build();
@@ -173,7 +173,7 @@ public class GetCustomerHandlerTest {
     }
 
     private CustomerDto prepareServiceWithCustomer(UUID identifier) throws ApiGatewayException {
-        CustomerDb customerDb = new CustomerDb.Builder()
+        CustomerDao customerDb = new CustomerDao.Builder()
             .withIdentifier(identifier)
             .build();
         CustomerDto customerDto = customerDb.toCustomerDto();

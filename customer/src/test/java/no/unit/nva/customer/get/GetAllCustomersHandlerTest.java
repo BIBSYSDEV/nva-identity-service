@@ -15,12 +15,10 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.List;
 import java.util.UUID;
-import no.unit.nva.customer.model.CustomerDb;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
-import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
@@ -58,7 +56,7 @@ public class GetAllCustomersHandlerTest {
     @SuppressWarnings("unchecked")
     public void requestToHandlerReturnsCustomerList() throws Exception {
         UUID identifier = UUID.randomUUID();
-        CustomerDb customerDb = new CustomerDb.Builder()
+        CustomerDao customerDb = new CustomerDao.Builder()
                 .withIdentifier(identifier)
                 .build();
 

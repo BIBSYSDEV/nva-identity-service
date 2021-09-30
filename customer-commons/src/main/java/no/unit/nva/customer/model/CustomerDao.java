@@ -13,7 +13,7 @@ import no.unit.nva.customer.model.interfaces.Customer;
 import nva.commons.core.JacocoGenerated;
 
 @JsonTypeName("Customer")
-public class CustomerDb implements Customer {
+public class CustomerDao implements Customer {
 
     public static final String IDENTIFIER = "identifier";
     public static final String ORG_NUMBER = "feideOrganizationId";
@@ -32,7 +32,7 @@ public class CustomerDb implements Customer {
     private String cristinId;
     private Set<VocabularySettingDb> vocabularySettings;
 
-    public CustomerDb() {
+    public CustomerDao() {
         vocabularySettings = Collections.emptySet();
     }
 
@@ -40,7 +40,7 @@ public class CustomerDb implements Customer {
         return new Builder();
     }
 
-    public static CustomerDb fromCustomerDto(CustomerDto dto) {
+    public static CustomerDao fromCustomerDto(CustomerDto dto) {
         return builder().withArchiveName(dto.getArchiveName())
             .withCname(dto.getCname())
             .withCreatedDate(dto.getCreatedDate())
@@ -193,7 +193,7 @@ public class CustomerDb implements Customer {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        CustomerDb that = (CustomerDb) o;
+        CustomerDao that = (CustomerDao) o;
         return Objects.equals(getIdentifier(), that.getIdentifier())
                && Objects.equals(getCreatedDate(), that.getCreatedDate())
                && Objects.equals(getModifiedDate(), that.getModifiedDate())
@@ -224,7 +224,7 @@ public class CustomerDb implements Customer {
             .withFeideOrganizationId(getFeideOrganizationId())
             .withCristinId(getCristinId())
             .build();
-        return CustomerMapper.addContext(customerDto);
+        return LinkedDataContextUtils.addContext(customerDto);
     }
 
     private static Set<VocabularySettingDb> extractVocabularySettings(CustomerDto dto) {
@@ -250,10 +250,10 @@ public class CustomerDb implements Customer {
 
     public static final class Builder {
 
-        private final CustomerDb customerDb;
+        private final CustomerDao customerDb;
 
         public Builder() {
-            customerDb = new CustomerDb();
+            customerDb = new CustomerDao();
         }
 
         public Builder withIdentifier(UUID identifier) {
@@ -316,7 +316,7 @@ public class CustomerDb implements Customer {
             return this;
         }
 
-        public CustomerDb build() {
+        public CustomerDao build() {
             return customerDb;
         }
     }

@@ -15,7 +15,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
-import no.unit.nva.customer.model.CustomerDb.Builder;
+import no.unit.nva.customer.model.CustomerDao.Builder;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;

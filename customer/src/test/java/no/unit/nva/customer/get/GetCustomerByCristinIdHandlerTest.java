@@ -14,9 +14,8 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.exception.NotFoundException;
-import no.unit.nva.customer.model.CustomerDb;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -96,7 +95,7 @@ public class GetCustomerByCristinIdHandlerTest {
     }
 
     private CustomerDto createCustomer() {
-        CustomerDb customer = new CustomerDb.Builder()
+        CustomerDao customer = new CustomerDao.Builder()
             .withIdentifier(UUID.randomUUID())
             .withCristinId(SAMPLE_CRISTIN_ID)
             .build();

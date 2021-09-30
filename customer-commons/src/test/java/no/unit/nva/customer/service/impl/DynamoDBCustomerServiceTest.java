@@ -34,14 +34,11 @@ import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.exception.DynamoDBException;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.exception.NotFoundException;
-import no.unit.nva.customer.model.CustomerDb;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.core.Environment;
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.javers.core.JaversBuilder;
-import org.javers.core.diff.Diff;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -247,7 +244,7 @@ public class DynamoDBCustomerServiceTest {
     @Test
     public void customerToItemThrowsExceptionWhenInvalidJson() throws JsonProcessingException {
         ObjectMapper failingObjectMapper = mock(ObjectMapper.class);
-        when(failingObjectMapper.writeValueAsString(any(CustomerDb.class))).thenThrow(JsonProcessingException.class);
+        when(failingObjectMapper.writeValueAsString(any(CustomerDao.class))).thenThrow(JsonProcessingException.class);
         DynamoDBCustomerService failingService = new DynamoDBCustomerService(
             failingObjectMapper,
             db.getTable(),

@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
-import no.unit.nva.customer.model.CustomerDb;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -139,7 +139,7 @@ public class UpdateCustomerHandlerTest {
     }
 
     private CustomerDto createCustomer(UUID uuid) {
-        return new CustomerDb.Builder()
+        return new CustomerDao.Builder()
             .withIdentifier(uuid)
             .withName("New Customer")
             .build()

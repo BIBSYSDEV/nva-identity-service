@@ -8,7 +8,6 @@ import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -23,7 +22,7 @@ import java.util.UUID;
 
 import static org.apache.http.HttpStatus.SC_OK;
 
-public class GetCustomerHandler extends ApiGatewayHandler<Void, CustomerDtoWithoutContext> {
+public class GetCustomerHandler extends ApiGatewayHandler<Void, CustomerDto> {
 
     public static final String ID_NAMESPACE_ENV = "ID_NAMESPACE";
     public static final String IDENTIFIER = "identifier";
@@ -92,7 +91,7 @@ public class GetCustomerHandler extends ApiGatewayHandler<Void, CustomerDtoWitho
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerDtoWithoutContext output) {
+    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
         return SC_OK;
     }
 }

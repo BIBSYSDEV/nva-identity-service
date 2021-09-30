@@ -68,7 +68,7 @@ public class CustomerMapper {
      * @param customerDto   customerDto
      * @return  customerDb
      */
-    public CustomerDb toCustomerDb(CustomerDtoWithoutContext customerDto) {
+    public CustomerDb toCustomerDb(CustomerDto customerDto) {
         CustomerDb customer = objectMapper.convertValue(customerDto, CustomerDb.class);
         return customer;
     }

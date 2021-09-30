@@ -29,7 +29,7 @@ public class CustomerList {
 
     @JsonProperty(LINKED_DATA_CONTEXT)
     public URI getContext() {
-        return LinkedDataContextUtils.CONTEXT_VALUE;
+        return LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
     }
 
     @JsonProperty("id")

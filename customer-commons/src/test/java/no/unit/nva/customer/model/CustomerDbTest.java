@@ -1,6 +1,6 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.CONTEXT_VALUE;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -58,7 +58,7 @@ class CustomerDbTest {
             .withIdentifier(identifier)
             .withId(id)
             .withCname(randomString())
-            .withContext(CONTEXT_VALUE)
+            .withContext(LINKED_DATA_CONTEXT_VALUE)
             .withArchiveName(randomString())
             .withShortName(randomString())
             .withInstitutionDns(randomString())

@@ -71,16 +71,15 @@ public class GetAllCustomersHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerList> actual = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        String outputString = outputStream.toString();
+        GatewayResponse<CustomerList> actual = GatewayResponse.fromOutputStream(outputStream);
 
         assertEquals(HttpStatus.SC_OK, actual.getStatusCode());
         CustomerList actualCustomerList = actual.getBodyObject(CustomerList.class);
         assertThat(actualCustomerList.getId(), notNullValue());
         assertThat(actualCustomerList.getContext(), notNullValue());
 
-        CustomerList customerList = CustomerMapper.toCustomerListFromCustomerDtos(singletonList(customerDto));
+        CustomerList customerList = new CustomerList(singletonList(customerDto));
         assertThat(actualCustomerList, equalTo(customerList));
     }
 }

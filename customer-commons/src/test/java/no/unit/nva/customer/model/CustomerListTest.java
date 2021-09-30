@@ -18,25 +18,24 @@ public class CustomerListTest {
 
     @Test
     public void customerListFromCustomer() {
-        CustomerDtoWithoutContext customer = new CustomerDtoWithoutContext();
-        CustomerList customerList = CustomerMapper.toCustomerListFromCustomerDtosWithoutContexts(List.of(customer));
+        CustomerDto customer = new CustomerDto();
+        CustomerList customerList = new CustomerList(List.of(customer));
         assertEquals(1, customerList.getCustomers().size());
-        assertEquals(customer, customerList.getCustomers().get(0));
+        assertEquals(customer.withoutContext(), customerList.getCustomers().get(0));
     }
 
     @Test
     public void customerListFromNull() {
-        List<CustomerDtoWithoutContext> list = new ArrayList<>();
+        List<CustomerDto> list = new ArrayList<>();
         list.add(null);
-        CustomerList customerList = CustomerMapper.toCustomerListFromCustomerDtosWithoutContexts(list);
-        assertEquals(1, customerList.getCustomers().size());
-        assertTrue(customerList.getCustomers().get(0) == null);
+        CustomerList customerList = new CustomerList(list);
+        assertEquals(0, customerList.getCustomers().size());
     }
 
     @Test
     public void customerListCanBeConvertedToJsonAndBack() throws JsonProcessingException {
-        List<CustomerDtoWithoutContext> customerDtos = List.of(new CustomerDtoWithoutContext());
-        CustomerList customerList = CustomerMapper.toCustomerListFromCustomerDtosWithoutContexts(customerDtos);
+        List<CustomerDto> customerDtos = List.of(new CustomerDto());
+        CustomerList customerList = new CustomerList(customerDtos);
         String customerListJson = objectMapper.writeValueAsString(customerList);
         CustomerList mappedCustomerList = objectMapper.readValue(customerListJson, CustomerList.class);
         assertNotNull(mappedCustomerList);

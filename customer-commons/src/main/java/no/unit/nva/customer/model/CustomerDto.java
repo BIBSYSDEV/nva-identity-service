@@ -1,16 +1,17 @@
 package no.unit.nva.customer.model;
 
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import no.unit.nva.customer.model.interfaces.Context;
-import nva.commons.core.JacocoGenerated;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import no.unit.nva.customer.model.interfaces.Context;
+import nva.commons.core.JacocoGenerated;
+import nva.commons.core.JsonUtils;
 
 @SuppressWarnings("PMD.ExcessivePublicCount")
 @JsonTypeName("Customer")
@@ -22,6 +23,10 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
     public CustomerDto() {
         super();
         setVocabularySettings(Collections.emptySet());
+    }
+
+    public CustomerDtoWithoutContext withoutContext() {
+        return attempt(() -> JsonUtils.objectMapper.convertValue(this, CustomerDtoWithoutContext.class)).orElseThrow();
     }
 
     public static Builder builder() {
@@ -75,19 +80,19 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
         }
         CustomerDto that = (CustomerDto) o;
         return Objects.equals(getId(), that.getId())
-                && Objects.equals(getIdentifier(), that.getIdentifier())
-                && Objects.equals(getCreatedDate(), that.getCreatedDate())
-                && Objects.equals(getModifiedDate(), that.getModifiedDate())
-                && Objects.equals(getName(), that.getName())
-                && Objects.equals(getDisplayName(), that.getDisplayName())
-                && Objects.equals(getShortName(), that.getShortName())
-                && Objects.equals(getArchiveName(), that.getArchiveName())
-                && Objects.equals(getCname(), that.getCname())
-                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
-                && Objects.equals(getCristinId(), that.getCristinId())
-                && Objects.equals(getVocabularySettings(), that.getVocabularySettings())
-                && Objects.equals(getContext(), that.getContext());
+               && Objects.equals(getIdentifier(), that.getIdentifier())
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getCname(), that.getCname())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getVocabularySettings(), that.getVocabularySettings())
+               && Objects.equals(getContext(), that.getContext());
     }
 
     public static final class Builder {

@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
@@ -8,46 +9,28 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import no.unit.nva.customer.model.interfaces.Customer;
-import no.unit.nva.customer.model.interfaces.JsonLdSupport;
+import no.unit.nva.customer.model.interfaces.Context;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.JsonUtils;
 
 @SuppressWarnings("PMD.ExcessivePublicCount")
 @JsonTypeName("Customer")
-public class CustomerDto implements Customer, JsonLdSupport {
+public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
-    private URI id;
-    private UUID identifier;
-    private Instant createdDate;
-    private Instant modifiedDate;
-    private String name;
-    private String displayName;
-    private String shortName;
-    private String archiveName;
-    private String cname;
-    private String institutionDns;
-    private String feideOrganizationId;
-    private String cristinId;
-    private Set<VocabularySettingDto> vocabularySettings;
     @JsonProperty("@context")
     private URI context;
 
     public CustomerDto() {
-        vocabularySettings = Collections.emptySet();
+        super();
+        setVocabularySettings(Collections.emptySet());
+    }
+
+    public CustomerDtoWithoutContext withoutContext() {
+        return attempt(() -> JsonUtils.objectMapper.convertValue(this, CustomerDtoWithoutContext.class)).orElseThrow();
     }
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    @Override
-    public URI getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(URI id) {
-        this.id = id;
     }
 
     @Override
@@ -58,124 +41,6 @@ public class CustomerDto implements Customer, JsonLdSupport {
     @Override
     public void setContext(URI context) {
         this.context = context;
-    }
-
-    @Override
-    public UUID getIdentifier() {
-        return identifier;
-    }
-
-    @Override
-    public void setIdentifier(UUID identifier) {
-        this.identifier = identifier;
-    }
-
-    @Override
-    public Instant getCreatedDate() {
-        return createdDate;
-    }
-
-    @Override
-    public void setCreatedDate(Instant createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    @Override
-    public Instant getModifiedDate() {
-        return modifiedDate;
-    }
-
-    @Override
-    public void setModifiedDate(Instant modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    @Override
-    public String getShortName() {
-        return shortName;
-    }
-
-    @Override
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
-    }
-
-    @Override
-    public String getArchiveName() {
-        return archiveName;
-    }
-
-    @Override
-    public void setArchiveName(String archiveName) {
-        this.archiveName = archiveName;
-    }
-
-    @Override
-    public String getCname() {
-        return cname;
-    }
-
-    @Override
-    public void setCname(String cname) {
-        this.cname = cname;
-    }
-
-    @Override
-    public String getInstitutionDns() {
-        return institutionDns;
-    }
-
-    @Override
-    public void setInstitutionDns(String institutionDns) {
-        this.institutionDns = institutionDns;
-    }
-
-    @Override
-    public String getFeideOrganizationId() {
-        return feideOrganizationId;
-    }
-
-    @Override
-    public void setFeideOrganizationId(String feideOrganizationId) {
-        this.feideOrganizationId = feideOrganizationId;
-    }
-
-    @Override
-    public String getCristinId() {
-        return cristinId;
-    }
-
-    @Override
-    public void setCristinId(String cristinId) {
-        this.cristinId = cristinId;
-    }
-
-    public Set<VocabularySettingDto> getVocabularySettings() {
-        return vocabularySettings;
-    }
-
-    public void setVocabularySettings(Set<VocabularySettingDto> vocabularySettings) {
-        this.vocabularySettings = Objects.nonNull(vocabularySettings) ? vocabularySettings : Collections.emptySet();
     }
 
     public Builder copy() {

@@ -1,26 +1,10 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
-import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID;
-import static no.unit.nva.customer.testing.TestHeaders.getErrorResponseHeaders;
-import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
-import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.zalando.problem.Status.BAD_REQUEST;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Map;
-import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDb;
 import no.unit.nva.customer.model.CustomerDto;
@@ -35,6 +19,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.zalando.problem.Problem;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Map;
+import java.util.UUID;
+
+import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
+import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID;
+import static no.unit.nva.customer.testing.TestHeaders.getErrorResponseHeaders;
+import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.zalando.problem.Status.BAD_REQUEST;
 
 public class GetCustomerHandlerTest {
 
@@ -75,14 +79,11 @@ public class GetCustomerHandlerTest {
 
         GatewayResponse<CustomerDto> actual = GatewayResponse.fromOutputStream(outputStream);
 
-        GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
-            objectMapper.writeValueAsString(customerDto),
-            getResponseHeaders(),
-            HttpStatus.SC_OK
-        );
-
-        //TODO: assert responses properly, one response has explicit null values in serialization
-        assertEquals(expected.getStatusCode(), actual.getStatusCode());
+        assertEquals(HttpStatus.SC_OK, actual.getStatusCode());
+        CustomerDto actualCustomerDto = actual.getBodyObject(CustomerDto.class);
+        assertThat(actualCustomerDto.getId(), notNullValue());
+        assertThat(actualCustomerDto.getContext(), notNullValue());
+        assertThat(actualCustomerDto, equalTo(customerDto));
     }
 
     @Test

@@ -41,15 +41,15 @@ public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList
     }
 
     @Override
-    protected List<MediaType> listSupportedMediaTypes() {
-        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
-    }
-
-    @Override
     protected CustomerList processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         List<CustomerDto> customers = customerService.getCustomers();
-        return CustomerList.of(customers);
+        return new CustomerList(customers);
+    }
+
+    @Override
+    protected List<MediaType> listSupportedMediaTypes() {
+        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
 
     @Override

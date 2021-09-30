@@ -1,5 +1,18 @@
 package no.unit.nva.customer.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import no.unit.nva.customer.ObjectMapperConfig;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Test;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
@@ -8,18 +21,7 @@ import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullO
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.URI;
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import no.unit.nva.customer.ObjectMapperConfig;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
 
 public class CustomerTest {
 
@@ -48,6 +50,14 @@ public class CustomerTest {
     }
 
     @Test
+    public void customerMapperCanMapCustomerDbToCustomerDto() {
+        CustomerDb customerDb = createCustomerDb();
+        CustomerDto customerDto = customerDb.toCustomerDto();
+        assertNotNull(customerDto);
+        assertNotNull(customerDto.getContext());
+    }
+
+    @Test
     public void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
         String value = "Unknown";
         IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
@@ -57,7 +67,6 @@ public class CustomerTest {
                                         stream(VocabularyStatus.values())
                                             .map(VocabularyStatus::toString)
                                             .collect(joining(VocabularyStatus.DELIMITER)));
-
 
         assertEquals(expectedMessage, actual.getMessage());
     }

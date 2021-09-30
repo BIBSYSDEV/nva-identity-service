@@ -261,6 +261,39 @@ paths:
                 BadGatewatExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
   /{identifier}/vocabularies:
+    get:
+      security:
+        - CognitoUserPool: []
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerVocabulariesFunction.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+
     post:
       summary: Create vocabulary definition for customer
       security:

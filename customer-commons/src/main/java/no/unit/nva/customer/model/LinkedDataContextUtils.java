@@ -5,7 +5,6 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto.Builder;
-import nva.commons.core.Environment;
 
 public final class LinkedDataContextUtils {
 

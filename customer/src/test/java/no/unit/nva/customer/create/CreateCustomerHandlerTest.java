@@ -4,7 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDb;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -67,12 +67,12 @@ public class CreateCustomerHandlerTest {
             .build();
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerDtoWithoutContext> actual = objectMapper.readValue(
+        GatewayResponse<CustomerDto> actual = objectMapper.readValue(
                 outputStream.toByteArray(),
                 GatewayResponse.class);
 
-        GatewayResponse<CustomerDtoWithoutContext> expected = new GatewayResponse<>(
-                customerMapper.toCustomerDtoWithoutContext(customerDb),
+        GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
+                customerMapper.toCustomerDto(customerDb),
                 getResponseHeaders(),
                 HttpStatus.SC_CREATED
         );

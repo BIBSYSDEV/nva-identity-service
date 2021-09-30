@@ -33,16 +33,8 @@ public class CustomerMapper {
         return customerDto;
     }
 
-    /**
-     * Map from Customer from Db to Dto version without context object.
-     *
-     * @param customerDb    customerDb
-     * @return  customerDto
-     */
-    public CustomerDtoWithoutContext toCustomerDtoWithoutContext(CustomerDb customerDb) {
-        CustomerDtoWithoutContext customerDto = objectMapper.convertValue(customerDb, CustomerDtoWithoutContext.class);
-        customerDto.setId(toId(customerDb.getIdentifier()));
-        return customerDto;
+    private CustomerDtoWithoutContext toCustomerDtoWithoutContext(CustomerDto customerDto) {
+        return objectMapper.convertValue(customerDto, CustomerDtoWithoutContext.class);
     }
 
     /**
@@ -53,9 +45,9 @@ public class CustomerMapper {
      */
     public CustomerList toCustomerListFromCustomerDbs(List<CustomerDb> customerDbs) {
         List<CustomerDtoWithoutContext> customerDtos = customerDbs.stream()
+            .map(this::toCustomerDto)
             .map(this::toCustomerDtoWithoutContext)
-            .collect(Collectors.toList()
-            );
+            .collect(Collectors.toList());
         return toCustomerListFromCustomerDtos(customerDtos);
     }
 

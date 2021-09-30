@@ -7,7 +7,7 @@ import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDb;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerMapper;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -21,7 +21,7 @@ import org.apache.http.HttpStatus;
 import java.util.List;
 import java.util.UUID;
 
-public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDtoWithoutContext, CustomerDtoWithoutContext> {
+public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDto, CustomerDto> {
 
     public static final String ID_NAMESPACE_ENV = "ID_NAMESPACE";
     public static final String IDENTIFIER = "identifier";
@@ -65,19 +65,19 @@ public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDtoWithoutC
         CustomerService customerService,
         CustomerMapper customerMapper,
         Environment environment) {
-        super(CustomerDtoWithoutContext.class, environment);
+        super(CustomerDto.class, environment);
         this.customerService = customerService;
         this.customerMapper = customerMapper;
     }
 
     @Override
-    protected CustomerDtoWithoutContext processInput(
-            CustomerDtoWithoutContext input, RequestInfo requestInfo, Context context)
+    protected CustomerDto processInput(
+            CustomerDto input, RequestInfo requestInfo, Context context)
             throws ApiGatewayException {
         CustomerDb customerDb = customerMapper.toCustomerDb(input);
         UUID identifier = getIdentifier(requestInfo);
         CustomerDb updatedCustomerDb = customerService.updateCustomer(identifier, customerDb);
-        return  customerMapper.toCustomerDtoWithoutContext(updatedCustomerDb);
+        return  customerMapper.toCustomerDto(updatedCustomerDb);
     }
 
     protected UUID getIdentifier(RequestInfo requestInfo) throws ApiGatewayException {
@@ -96,7 +96,7 @@ public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDtoWithoutC
     }
 
     @Override
-    protected Integer getSuccessStatusCode(CustomerDtoWithoutContext input, CustomerDtoWithoutContext output) {
+    protected Integer getSuccessStatusCode(CustomerDto input, CustomerDto output) {
         return HttpStatus.SC_OK;
     }
 }

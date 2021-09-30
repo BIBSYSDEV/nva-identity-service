@@ -4,7 +4,7 @@ import static com.amazonaws.services.dynamodbv2.model.BillingMode.PAY_PER_REQUES
 import static com.amazonaws.services.dynamodbv2.model.ScalarAttributeType.S;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static no.unit.nva.customer.model.CustomerDb.CRISTIN_ID;
+import static no.unit.nva.customer.model.CustomerDao.CRISTIN_ID;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
@@ -19,16 +19,16 @@ import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.Projection;
 import com.amazonaws.services.dynamodbv2.model.ProjectionType;
 import java.util.List;
-import no.unit.nva.customer.model.CustomerDb;
+import no.unit.nva.customer.model.CustomerDao;
 import org.junit.rules.ExternalResource;
 
 public class CustomerDynamoDBLocal extends ExternalResource {
 
     public static final String NVA_CUSTOMERS_TABLE_NAME = "nva_customers";
-    public static final String IDENTIFIER = CustomerDb.IDENTIFIER;
+    public static final String IDENTIFIER = CustomerDao.IDENTIFIER;
     public  static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
     public  static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
-    public static final String ORG_NUMBER = CustomerDb.ORG_NUMBER;
+    public static final String ORG_NUMBER = CustomerDao.ORG_NUMBER;
 
     private AmazonDynamoDB ddb;
     private DynamoDB client;

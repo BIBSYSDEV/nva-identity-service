@@ -1,6 +1,8 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.model.CustomerMapper.NAMESPACE;
+import static no.unit.nva.customer.Constants.ID_NAMESPACE;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.net.URI;
@@ -15,50 +17,34 @@ import nva.commons.core.JacocoGenerated;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public class CustomerList {
 
-    private URI id;
-    private List<CustomerDtoWithoutContext> customers;
-    @JsonProperty("@context")
-    private URI context;
+    public static final String CUSTOMERS = "customers";
 
-    @JacocoGenerated
-    public CustomerList() {
+    @JsonProperty(CUSTOMERS)
+    private final List<CustomerDtoWithoutContext> customers;
 
+    @JsonCreator
+    public CustomerList(@JsonProperty(CUSTOMERS) List<CustomerDto> customers) {
+        this.customers = extractCustomers(customers);
     }
 
-    public CustomerList(List<CustomerDto> customers) {
-        this.id = NAMESPACE;
-        this.customers = extractCustomers(customers);
-        this.context = CustomerMapper.CONTEXT;
+    @JsonProperty(LINKED_DATA_CONTEXT)
+    public URI getContext() {
+        return LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
+    }
+
+    @JsonProperty("id")
+    public URI getId() {
+        return ID_NAMESPACE;
     }
 
     public List<CustomerDtoWithoutContext> getCustomers() {
         return customers;
     }
 
-    public void setCustomers(List<CustomerDtoWithoutContext> customers) {
-        this.customers = customers;
-    }
-
-    public URI getId() {
-        return id;
-    }
-
-    public void setId(URI id) {
-        this.id = id;
-    }
-
-    public URI getContext() {
-        return context;
-    }
-
-    public void setContext(URI context) {
-        this.context = context;
-    }
-
     @Override
     @JacocoGenerated
     public int hashCode() {
-        return Objects.hash(id, customers, context);
+        return Objects.hash(getId(), getCustomers(), getContext());
     }
 
     @Override
@@ -71,9 +57,9 @@ public class CustomerList {
             return false;
         }
         CustomerList that = (CustomerList) o;
-        return Objects.equals(id, that.id)
+        return Objects.equals(getId(), that.getId())
                && Objects.equals(customers, that.customers)
-               && Objects.equals(context, that.context);
+               && Objects.equals(getContext(), that.getContext());
     }
 
     private List<CustomerDtoWithoutContext> extractCustomers(List<CustomerDto> customers) {

@@ -1,6 +1,6 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.model.CustomerMapper.CONTEXT;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -27,9 +27,9 @@ class CustomerDbTest {
 
     @Test
     public void toCustomerDtoReturnsDtoWithoutLossOfInformation() {
-        CustomerDb expected = createSampleCustomerDb();
+        CustomerDao expected = createSampleCustomerDb();
         CustomerDto customerDto = expected.toCustomerDto();
-        CustomerDb actual = CustomerDb.fromCustomerDto(customerDto);
+        CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
         assertThat(customerDto, doesNotHaveEmptyValues());
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
@@ -39,7 +39,7 @@ class CustomerDbTest {
     @Test
     public void fromCustomerDbReturnsDbWithoutLossOfInformation() {
         CustomerDto expected = crateSampleCustomerDto();
-        CustomerDb customerDb = CustomerDb.fromCustomerDto(expected);
+        CustomerDao customerDb = CustomerDao.fromCustomerDto(expected);
         CustomerDto actual = customerDb.toCustomerDto();
         Diff diff = JAVERS.compare(expected, actual);
         assertThat(customerDb, doesNotHaveEmptyValues());
@@ -49,7 +49,7 @@ class CustomerDbTest {
 
     private CustomerDto crateSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
-        URI id = CustomerMapper.toId(identifier);
+        URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
             .withName(randomString())
             .withCristinId(randomString())
@@ -58,7 +58,7 @@ class CustomerDbTest {
             .withIdentifier(identifier)
             .withId(id)
             .withCname(randomString())
-            .withContext(CONTEXT)
+            .withContext(LINKED_DATA_CONTEXT_VALUE)
             .withArchiveName(randomString())
             .withShortName(randomString())
             .withInstitutionDns(randomString())
@@ -78,8 +78,8 @@ class CustomerDbTest {
             .collect(Collectors.toSet());
     }
 
-    private CustomerDb createSampleCustomerDb() {
-        CustomerDb customer = CustomerDb.builder()
+    private CustomerDao createSampleCustomerDb() {
+        CustomerDao customer = CustomerDao.builder()
             .withIdentifier(randomIdentifier())
             .withName(randomString())
             .withModifiedDate(randomInstant())

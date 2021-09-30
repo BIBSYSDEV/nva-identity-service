@@ -21,7 +21,7 @@ import java.util.UUID;
 import no.unit.nva.customer.exception.DynamoDBException;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.exception.NotFoundException;
-import no.unit.nva.customer.model.CustomerDb;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -93,13 +93,13 @@ public class DynamoDBCustomerService implements CustomerService {
 
     @Override
     public CustomerDto getCustomer(UUID identifier) throws ApiGatewayException {
-        Item item = fetchItemFromQueryable(table, CustomerDb.IDENTIFIER, identifier.toString());
+        Item item = fetchItemFromQueryable(table, CustomerDao.IDENTIFIER, identifier.toString());
         return itemToCustomer(item);
     }
 
     @Override
     public CustomerDto getCustomerByOrgNumber(String orgNumber) throws ApiGatewayException {
-        Item item = fetchItemFromQueryable(byOrgNumberIndex, CustomerDb.ORG_NUMBER, orgNumber);
+        Item item = fetchItemFromQueryable(byOrgNumberIndex, CustomerDao.ORG_NUMBER, orgNumber);
         return itemToCustomer(item);
     }
 
@@ -144,7 +144,7 @@ public class DynamoDBCustomerService implements CustomerService {
 
     @Override
     public CustomerDto getCustomerByCristinId(String cristinId) throws ApiGatewayException {
-        Item item = fetchItemFromQueryable(byCristinIdIndex, CustomerDb.CRISTIN_ID, cristinId);
+        Item item = fetchItemFromQueryable(byCristinIdIndex, CustomerDao.CRISTIN_ID, cristinId);
         return itemToCustomer(item);
     }
 
@@ -159,7 +159,7 @@ public class DynamoDBCustomerService implements CustomerService {
     protected Item customerToItem(CustomerDto customer) throws InputException {
         Item item;
         try {
-            CustomerDb dao = CustomerDb.fromCustomerDto(customer);
+            CustomerDao dao = CustomerDao.fromCustomerDto(customer);
             item = Item.fromJSON(objectMapper.writeValueAsString(dao));
         } catch (JsonProcessingException e) {
             throw new InputException(ERROR_MAPPING_CUSTOMER_TO_ITEM, e);
@@ -170,9 +170,9 @@ public class DynamoDBCustomerService implements CustomerService {
     @SuppressWarnings("PMD.PrematureDeclaration")
     protected CustomerDto itemToCustomer(Item item) throws DynamoDBException {
         long start = System.currentTimeMillis();
-        CustomerDb customerOutcome;
+        CustomerDao customerOutcome;
         try {
-            customerOutcome = objectMapper.readValue(item.toJSON(), CustomerDb.class);
+            customerOutcome = objectMapper.readValue(item.toJSON(), CustomerDao.class);
         } catch (Exception e) {
             throw new DynamoDBException(ERROR_MAPPING_ITEM_TO_CUSTOMER, e);
         }

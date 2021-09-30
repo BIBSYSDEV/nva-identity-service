@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto.Builder;
+import nva.commons.core.paths.UriWrapper;
 
 public final class LinkedDataContextUtils {
 
@@ -25,7 +26,7 @@ public final class LinkedDataContextUtils {
     }
 
     public static URI toId(UUID identifier) {
-        return URI.create(ID_NAMESPACE + "/" + identifier);
+        return new UriWrapper(ID_NAMESPACE).addChild(identifier.toString()).getUri();
     }
 
 

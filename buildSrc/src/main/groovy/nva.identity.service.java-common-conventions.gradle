@@ -28,11 +28,11 @@ repositories {
 
 project.ext {
     nvaCommonsVersion = '1.12.0'
-    awsSdkVersion ="1.12.59"
-    jacksonVersion ="2.10.3"
+    awsSdkVersion = "1.12.59"
+    jacksonVersion = "2.10.3"
     xraySdkVersion = '2.9.1'
     DynamoDBLocalVersion = '1.15.0'
-    nvaTestUtilsVersion = '0.1.13'
+    nvaTestUtilsVersion = '0.1.24'
     zalandoProblemVersion = '0.25.0'
     awsLambdaCoreVersion = '1.2.1'
     jupiterVersion = "5.6.0"
@@ -78,6 +78,8 @@ dependencies {
     implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk'
     implementation group: 'com.amazonaws', name: 'aws-xray-recorder-sdk-aws-sdk-instrumentor'
 
+    testImplementation group: 'org.javers', name: 'javers-core', version: '6.2.5'
+    testImplementation group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
     testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: project.ext.nvaTestUtilsVersion
     testImplementation group: 'com.amazonaws', name: 'DynamoDBLocal', version: project.ext.DynamoDBLocalVersion
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.3.3'
@@ -105,10 +107,12 @@ tasks.named('test') {
     testLogging {
         events('skipped', 'passed', 'failed')
     }
-    final Map<String, String> envVariables = new HashMap<>()
-    envVariables.put("ALLOWED_ORIGIN", "*")
-    environment(envVariables)
     finalizedBy jacocoTestReport
+}
+
+test {
+    environment "ID_NAMESPACE", "https://www.example.org"
+    environment "ALLOWED_ORIGIN", "*"
 }
 
 pmd {

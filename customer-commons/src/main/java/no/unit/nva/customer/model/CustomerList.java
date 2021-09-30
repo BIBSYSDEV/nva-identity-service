@@ -20,7 +20,7 @@ public class CustomerList {
 
     public CustomerList(List<CustomerDto> customers) {
         this.customers = customers;
-        this.context = CustomerMapper.context;
+        this.context = CustomerMapper.CONTEXT;
     }
 
     /**

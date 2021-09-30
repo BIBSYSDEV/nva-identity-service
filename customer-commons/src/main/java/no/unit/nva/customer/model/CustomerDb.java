@@ -1,13 +1,16 @@
 package no.unit.nva.customer.model;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import no.unit.nva.customer.model.interfaces.Customer;
-import nva.commons.core.JacocoGenerated;
-
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import no.unit.nva.customer.model.interfaces.Customer;
+import nva.commons.core.JacocoGenerated;
 
 @JsonTypeName("Customer")
 public class CustomerDb implements Customer {
@@ -30,21 +33,27 @@ public class CustomerDb implements Customer {
     private Set<VocabularySettingDb> vocabularySettings;
 
     public CustomerDb() {
+        vocabularySettings = Collections.emptySet();
     }
 
-    private CustomerDb(Builder builder) {
-        setIdentifier(builder.identifier);
-        setCreatedDate(builder.createdDate);
-        setModifiedDate(builder.modifiedDate);
-        setName(builder.name);
-        setDisplayName(builder.displayName);
-        setShortName(builder.shortName);
-        setArchiveName(builder.archiveName);
-        setCname(builder.cname);
-        setInstitutionDns(builder.institutionDns);
-        setFeideOrganizationId(builder.feideOrganizationId);
-        setCristinId(builder.cristinId);
-        setVocabularySettings(builder.vocabularySettings);
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static CustomerDb fromCustomerDto(CustomerDto dto) {
+        return builder().withArchiveName(dto.getArchiveName())
+            .withCname(dto.getCname())
+            .withCreatedDate(dto.getCreatedDate())
+            .withCristinId(dto.getCristinId())
+            .withDisplayName(dto.getDisplayName())
+            .withIdentifier(dto.getIdentifier())
+            .withInstitutionDns(dto.getInstitutionDns())
+            .withShortName(dto.getShortName())
+            .withFeideOrganizationId(dto.getFeideOrganizationId())
+            .withModifiedDate(dto.getModifiedDate())
+            .withVocabularySettings(extractVocabularySettings(dto))
+            .withName(dto.getName())
+            .build();
     }
 
     @Override
@@ -159,6 +168,22 @@ public class CustomerDb implements Customer {
 
     @Override
     @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                            getCristinId(), getVocabularySettings());
+    }
+
+    public Set<VocabularySettingDb> getVocabularySettings() {
+        return vocabularySettings;
+    }
+
+    public void setVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
+        this.vocabularySettings = Objects.nonNull(vocabularySettings) ? vocabularySettings : Collections.emptySet();
+    }
+
+    @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -168,115 +193,123 @@ public class CustomerDb implements Customer {
         }
         CustomerDb that = (CustomerDb) o;
         return Objects.equals(getIdentifier(), that.getIdentifier())
-                && Objects.equals(getCreatedDate(), that.getCreatedDate())
-                && Objects.equals(getModifiedDate(), that.getModifiedDate())
-                && Objects.equals(getName(), that.getName())
-                && Objects.equals(getDisplayName(), that.getDisplayName())
-                && Objects.equals(getShortName(), that.getShortName())
-                && Objects.equals(getArchiveName(), that.getArchiveName())
-                && Objects.equals(getCname(), that.getCname())
-                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
-                && Objects.equals(getCristinId(), that.getCristinId())
-                && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getCname(), that.getCname())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
     }
 
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-            getCristinId(), getVocabularySettings());
+    public CustomerDto toCustomerDto() {
+        CustomerDto customerDto = CustomerDto.builder()
+            .withCname(this.getCname())
+            .withName(getName())
+            .withIdentifier(this.getIdentifier())
+            .withArchiveName(this.getArchiveName())
+            .withCreatedDate(this.getCreatedDate())
+            .withDisplayName(this.getDisplayName())
+            .withInstitutionDns(this.getInstitutionDns())
+            .withShortName(this.getShortName())
+            .withVocabularySettings(extractVocabularySettings())
+            .withModifiedDate(getModifiedDate())
+            .withFeideOrganizationId(getFeideOrganizationId())
+            .withCristinId(getCristinId())
+            .build();
+        return CustomerMapper.addContext(customerDto);
     }
 
-    public Set<VocabularySettingDb> getVocabularySettings() {
-        return vocabularySettings;
+    private static Set<VocabularySettingDb> extractVocabularySettings(CustomerDto dto) {
+        return Optional.ofNullable(dto.getVocabularySettings())
+            .stream()
+            .flatMap(Collection::stream)
+            .map(VocabularySettingDb::fromVocabularySettingsDto)
+            .collect(Collectors.toSet());
     }
 
-    public void setVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
-        this.vocabularySettings = vocabularySettings;
+    private Set<VocabularySettingDto> extractVocabularySettings() {
+        return Optional.ofNullable(this.getVocabularySettings())
+            .stream()
+            .flatMap(Collection::stream)
+            .map(VocabularySettingDb::toVocabularySettingsDto)
+            .collect(Collectors.toSet());
     }
-
 
     public static final class Builder {
-        private UUID identifier;
-        private Instant createdDate;
-        private Instant modifiedDate;
-        private String name;
-        private String displayName;
-        private String shortName;
-        private String archiveName;
-        private String cname;
-        private String institutionDns;
-        private String feideOrganizationId;
-        private String cristinId;
-        private Set<VocabularySettingDb> vocabularySettings;
+
+        private final CustomerDb customerDb;
 
         public Builder() {
+            customerDb = new CustomerDb();
         }
 
         public Builder withIdentifier(UUID identifier) {
-            this.identifier = identifier;
+            customerDb.setIdentifier(identifier);
             return this;
         }
 
         public Builder withCreatedDate(Instant createdDate) {
-            this.createdDate = createdDate;
+            customerDb.setCreatedDate(createdDate);
             return this;
         }
 
         public Builder withModifiedDate(Instant modifiedDate) {
-            this.modifiedDate = modifiedDate;
+            customerDb.setModifiedDate(modifiedDate);
             return this;
         }
 
         public Builder withName(String name) {
-            this.name = name;
+            customerDb.setName(name);
             return this;
         }
 
         public Builder withDisplayName(String displayName) {
-            this.displayName = displayName;
+            customerDb.setDisplayName(displayName);
             return this;
         }
 
         public Builder withShortName(String shortName) {
-            this.shortName = shortName;
+            customerDb.setShortName(shortName);
             return this;
         }
 
         public Builder withArchiveName(String archiveName) {
-            this.archiveName = archiveName;
+            customerDb.setArchiveName(archiveName);
             return this;
         }
 
         public Builder withCname(String cname) {
-            this.cname = cname;
+            customerDb.setCname(cname);
             return this;
         }
 
         public Builder withInstitutionDns(String institutionDns) {
-            this.institutionDns = institutionDns;
+            customerDb.setInstitutionDns(institutionDns);
             return this;
         }
 
         public Builder withFeideOrganizationId(String feideOrganizationId) {
-            this.feideOrganizationId = feideOrganizationId;
+            customerDb.setFeideOrganizationId(feideOrganizationId);
             return this;
         }
 
         public Builder withCristinId(String cristinId) {
-            this.cristinId = cristinId;
+            customerDb.setCristinId(cristinId);
             return this;
         }
 
         public Builder withVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
-            this.vocabularySettings = vocabularySettings;
+            customerDb.setVocabularySettings(vocabularySettings);
             return this;
         }
 
         public CustomerDb build() {
-            return new CustomerDb(this);
+            return customerDb;
         }
     }
 }

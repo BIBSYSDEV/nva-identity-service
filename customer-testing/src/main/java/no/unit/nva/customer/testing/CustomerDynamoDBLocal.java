@@ -1,44 +1,48 @@
-package no.unit.nva.customer;
+package no.unit.nva.customer.testing;
 
-import static com.amazonaws.services.dynamodbv2.model.BillingMode.PAY_PER_REQUEST;
-import static com.amazonaws.services.dynamodbv2.model.ScalarAttributeType.S;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static no.unit.nva.customer.model.CustomerDao.CRISTIN_ID;
-
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Index;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+import com.amazonaws.services.dynamodbv2.model.BillingMode;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.Projection;
 import com.amazonaws.services.dynamodbv2.model.ProjectionType;
+import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import java.util.List;
-import no.unit.nva.customer.model.CustomerDao;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.AfterEach;
 
-public class CustomerDynamoDBLocal extends ExternalResource {
+public class CustomerDynamoDBLocal {
 
+    public static final String ORG_NUMBER = "feideOrganizationId";
+    public static final String CRISTIN_ID = "cristinId";
     public static final String NVA_CUSTOMERS_TABLE_NAME = "nva_customers";
-    public static final String IDENTIFIER = CustomerDao.IDENTIFIER;
-    public  static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
-    public  static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
-    public static final String ORG_NUMBER = CustomerDao.ORG_NUMBER;
+    public static final String IDENTIFIER = "identifier";
+    public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
+    public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
 
-    private AmazonDynamoDB ddb;
-    private DynamoDB client;
+    protected AmazonDynamoDB ddb;
+    protected DynamoDB client;
 
-    @Override
-    protected void before() throws Throwable {
-        super.before();
+
+    protected void setupDatabase() {
         ddb = DynamoDBEmbedded.create().amazonDynamoDB();
         createCustomerTable(ddb);
         client = new DynamoDB(ddb);
+    }
+
+    @AfterEach
+    public void deleteDatabase() {
+        if (ddb != null) {
+            ddb.shutdown();
+        }
     }
 
     public Table getTable() {
@@ -51,13 +55,13 @@ public class CustomerDynamoDBLocal extends ExternalResource {
 
     private void createCustomerTable(AmazonDynamoDB ddb) {
         List<AttributeDefinition> attributeDefinitions = asList(
-                new AttributeDefinition(IDENTIFIER, S),
-                new AttributeDefinition(ORG_NUMBER, S),
-                new AttributeDefinition(CRISTIN_ID, S)
+            new AttributeDefinition(IDENTIFIER, ScalarAttributeType.S),
+            new AttributeDefinition(ORG_NUMBER, ScalarAttributeType.S),
+            new AttributeDefinition(CRISTIN_ID, ScalarAttributeType.S)
         );
 
         List<KeySchemaElement> keySchema = singletonList(
-                new KeySchemaElement(IDENTIFIER, KeyType.HASH)
+            new KeySchemaElement(IDENTIFIER, KeyType.HASH)
         );
 
         List<KeySchemaElement> byOrgNumberKeyScheme = singletonList(
@@ -83,21 +87,13 @@ public class CustomerDynamoDBLocal extends ExternalResource {
         );
 
         CreateTableRequest createTableRequest =
-                new CreateTableRequest()
+            new CreateTableRequest()
                 .withTableName(NVA_CUSTOMERS_TABLE_NAME)
                 .withAttributeDefinitions(attributeDefinitions)
                 .withKeySchema(keySchema)
                 .withGlobalSecondaryIndexes(globalSecondaryIndexes)
-                .withBillingMode(PAY_PER_REQUEST);
+                .withBillingMode(BillingMode.PAY_PER_REQUEST);
 
         ddb.createTable(createTableRequest);
-    }
-
-    @Override
-    protected void after() {
-        super.after();
-        if (ddb != null) {
-            ddb.shutdown();
-        }
     }
 }

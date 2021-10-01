@@ -29,7 +29,6 @@ public class GetControlledVocabularyHandler extends ApiGatewayHandler<Void, Voca
     public static final Environment ENVIRONMENT = new Environment();
     private static final List<MediaType> SUPPORTED_MEDIA_TYPES =
         List.of(MediaType.JSON_UTF_8, MediaTypes.APPLICATION_JSON_LD);
-    private static final String AWS_REGION = Constants.AWS_REGION;
     private final CustomerService customerService;
 
     @JacocoGenerated

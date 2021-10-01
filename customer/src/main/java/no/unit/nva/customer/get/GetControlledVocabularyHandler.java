@@ -61,12 +61,13 @@ public class GetControlledVocabularyHandler extends ApiGatewayHandler<Void, Voca
         return HttpURLConnection.HTTP_OK;
     }
 
+    @JacocoGenerated
     private static CustomerService defaultCustomerService() {
         AmazonDynamoDB client = defaultDynamoDbClient();
-
         return new DynamoDBCustomerService(client, ObjectMapperConfig.objectMapper, ENVIRONMENT);
     }
 
+    @JacocoGenerated
     private static AmazonDynamoDB defaultDynamoDbClient() {
         EndpointConfiguration endpointConfiguration =
             new EndpointConfiguration(Constants.AWD_DYNAMODB_SERVICE_END_POINT, Constants.AWS_REGION);

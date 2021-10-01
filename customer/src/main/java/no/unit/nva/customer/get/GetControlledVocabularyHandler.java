@@ -73,7 +73,6 @@ public class GetControlledVocabularyHandler extends ApiGatewayHandler<Void, Voca
             new EndpointConfiguration(Constants.AWD_DYNAMODB_SERVICE_END_POINT, Constants.AWS_REGION);
         return AmazonDynamoDBClientBuilder.standard()
             .withCredentials(new DefaultAWSCredentialsProviderChain())
-            .withRegion(AWS_REGION)
             .withEndpointConfiguration(endpointConfiguration)
             .build();
     }

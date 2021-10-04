@@ -1,13 +1,8 @@
 plugins{
     id 'nva.identity.service.java-common-conventions'
-    id "nebula.lint"
+    id 'nva.identity.service.gradlelint'
+    id 'nva.identity.service.jacoco-merge'
 }
 
-gradleLint {
-    rules  = ['all-dependency']
-}
 
-build {
-    dependsOn jacocoRootReport
-}
 

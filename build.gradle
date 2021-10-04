@@ -2,3 +2,9 @@ plugins{
     id 'nva.identity.service.rootplugin'
 }
 
+//workaround for jacoco-merge to work
+allprojects{
+    apply plugin: 'nva.identity.service.java-common-conventions'
+}
+
+

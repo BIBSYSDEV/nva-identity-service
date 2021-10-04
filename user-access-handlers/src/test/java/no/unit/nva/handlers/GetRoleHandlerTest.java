@@ -10,6 +10,7 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,7 +31,6 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.apache.http.HttpStatus;
-import org.eclipse.jetty.http.HttpMethod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -125,7 +125,7 @@ public class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironm
         RequestInfo requestInfo = queryWithRoleName(THE_ROLE);
         InputStream requestStream = new HandlerRequestBuilder<>(objectMapper)
             .withPathParameters(requestInfo.getPathParameters())
-            .withHttpMethod(HttpMethod.GET.asString())
+            .withHttpMethod(HttpMethod.GET.toString())
             .build();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         getRoleHandler.handleRequest(requestStream, outputStream, context);

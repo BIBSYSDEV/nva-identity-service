@@ -50,8 +50,8 @@ public class GetControlledVocabularyHandler extends ApiGatewayHandler<Void, Voca
     protected VocabularySettingsList processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         UUID identifier = UUID.fromString(requestInfo.getPathParameter(IDENTIFIER_PATH_PARAMETER));
-        Set<VocabularySettingDto> vocabularySettings = customerService.getCustomer(identifier).
-            getVocabularySettings();
+        Set<VocabularySettingDto> vocabularySettings =
+            customerService.getCustomer(identifier).getVocabularySettings();
         return new VocabularySettingsList(vocabularySettings);
     }
 

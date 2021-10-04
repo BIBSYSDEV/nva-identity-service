@@ -1,25 +1,9 @@
 plugins {
     id 'nva.identity.service.java-library-conventions'
+    id 'nva.identity.service.dynamodblocal'
+
 }
 
 dependencies {
-
-    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-
-    testRuntimeOnly group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8'
-    testRuntimeOnly group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
-
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-core'
-
-    compileOnly project(":user-access-public-model")
-    testImplementation project(":user-access-public-model")
-
-    compileOnly project(":user-access-commons")
-    testImplementation project(":user-access-commons")
-
-    compileOnly project(":user-access-errors")
-    testImplementation project(":user-access-errors")
-
-
+    implementation libs.bundles.jackson
 }

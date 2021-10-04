@@ -1,5 +1,14 @@
 package no.unit.nva.cognito.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import java.util.Optional;
 import no.unit.nva.cognito.exception.UserServiceException;
 import no.unit.nva.database.DatabaseService;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
@@ -7,20 +16,9 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
-import java.util.Optional;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 
 public class UserDbClientTest {
 
@@ -74,7 +72,7 @@ public class UserDbClientTest {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         doThrow(InvalidInputException.class).when(databaseService).addUser(any());
 
-        Exception exception = Assert.assertThrows(UserServiceException.class, () -> userApi.createUser(userDto));
+        Exception exception = assertThrows(UserServiceException.class, () -> userApi.createUser(userDto));
 
         assertThat(exception, instanceOf(UserServiceException.class));
         assertThat(exception.getCause(), instanceOf(InvalidInputException.class));
@@ -92,7 +90,7 @@ public class UserDbClientTest {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         doThrow(InvalidInputException.class).when(databaseService).updateUser(any());
 
-        Exception exception = Assert.assertThrows(UserServiceException.class, () -> userApi.updateUser(userDto));
+        Exception exception = assertThrows(UserServiceException.class, () -> userApi.updateUser(userDto));
 
         assertThat(exception, instanceOf(UserServiceException.class));
         assertThat(exception.getCause(), instanceOf(InvalidInputException.class));

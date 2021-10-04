@@ -1,5 +1,6 @@
 plugins {
     id 'nva.identity.service.java-application-conventions'
+    id 'nva.identity.service.dynamodblocal'
 }
 
 dependencies {
@@ -10,35 +11,14 @@ dependencies {
     implementation project(':user-access-service')
     implementation project(':user-access-rights')
 
-    testImplementation project(':user-access-commons')
-    testImplementation project(':user-access-public-model')
-    testImplementation project(':user-access-errors')
-    testImplementation project(':user-access-service')
-    testImplementation project(':user-access-rights')
+    implementation libs.nva.apigateway
+    implementation libs.bundles.aws.lambda
 
-    implementation group: 'com.github.bibsysdev', name: 'lambdaauthorizer'
-    implementation group: 'com.github.bibsysdev', name: 'secrets'
-    implementation group: 'com.github.bibsysdev', name: 'apigateway'
+    implementation libs.aws.dynamodb
 
-    implementation(group: 'org.slf4j', name: 'slf4j-api') {
-        because "We use it directly"
-    }
-
-    implementation(group: 'com.amazonaws', name: 'aws-lambda-java-core') {
-        because "We use it directly"
-    }
-
-    compileOnly(group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb'){
-        because "PMD fails without it"
-    }
-
-    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-
-    testImplementation group: 'com.github.bibsysdev', name: 'logutils'
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-
+    compileOnly libs.jackson.databind
+    testImplementation libs.bundles.jackson
 
     testImplementation project(':user-access-internal-model')
     testImplementation project(':user-access-testing')
-
 }

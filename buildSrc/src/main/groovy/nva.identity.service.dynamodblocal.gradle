@@ -1,0 +1,28 @@
+
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+    maven { url "https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/release" }
+}
+
+dependencies {
+    testImplementation libs.dynamoDbLocal
+}
+
+// For using DynamoDB locally
+configurations.testImplementation.canBeResolved = true
+task copyNativeDeps(type: Copy) {
+    from(configurations.testImplementation) {
+        include "*.dylib"
+        include "*.so"
+        include "*.dll"
+    }
+    into 'build/dynamodb-local'
+}
+
+test{
+    dependsOn copyNativeDeps
+    systemProperty "java.library.path", 'build/dynamodb-local'
+}

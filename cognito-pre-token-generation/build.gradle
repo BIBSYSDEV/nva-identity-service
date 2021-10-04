@@ -1,5 +1,7 @@
 plugins {
     id 'nva.identity.service.java-application-conventions'
+    id 'nva.identity.service.dynamodblocal'
+
 }
 
 dependencies {
@@ -9,20 +11,13 @@ dependencies {
     implementation project(':user-access-service')
     implementation project(':customer-commons')
 
-    implementation group: 'com.github.bibsysdev', name: 'apigateway'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'
-    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
-    implementation group: 'org.slf4j', name: 'slf4j-api'
-    implementation group: 'com.amazonaws', name: 'aws-lambda-java-core'
-    implementation group: 'com.amazonaws', name: 'aws-java-sdk-lambda'
-    implementation group: 'com.amazonaws', name: 'aws-java-sdk-cognitoidp'
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient'
-    implementation group: 'org.zalando', name: 'problem'
+    implementation libs.nva.apigateway
+    implementation libs.bundles.jackson
+    implementation libs.bundles.aws.lambda
+    implementation libs.aws.java.sdk.cognitoidp
+    implementation (libs.apache.httpclient)
+    implementation libs.aws.dynamodb
 
-    testImplementation group: 'org.javers', name: 'javers-core', version: '5.15.0'
-    testImplementation group: 'com.github.bibsysdev', name: 'logutils', version: project.ext.nvaCommonsVersion
 }
 
 test {

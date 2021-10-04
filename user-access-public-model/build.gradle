@@ -3,18 +3,13 @@ plugins {
 }
 
 dependencies {
-    implementation group: 'com.github.bibsysdev', name: 'apigateway'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core'
-    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8'
-    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'
+    implementation libs.nva.apigateway
+    implementation libs.bundles.jackson
 
     compileOnly project(":user-access-errors")
     testImplementation project(":user-access-errors")
 
     compileOnly project(":user-access-commons")
     testImplementation project(":user-access-commons")
+
 }

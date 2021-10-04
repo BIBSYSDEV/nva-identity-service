@@ -3,23 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation libs.bundles.jackson
+    testImplementation libs.bundles.testing
 
-    compileOnly(group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310') {
-        because "PMD complains"
-    }
-
-    compileOnly(group: 'com.fasterxml.jackson.core', name: 'jackson-core') {
-        because "PMD complains"
-    }
-    compileOnly(group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8') {
-        because "PMD complains"
-    }
-
-
-    runtimeOnly group: 'com.fasterxml.jackson.core', name: 'jackson-core'
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-core'
-
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
 
 }

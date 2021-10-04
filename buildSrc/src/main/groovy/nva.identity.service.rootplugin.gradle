@@ -1,0 +1,13 @@
+plugins{
+    id 'nva.identity.service.java-common-conventions'
+    id "nebula.lint"
+}
+
+gradleLint {
+    rules  = ['all-dependency']
+}
+
+build {
+    dependsOn jacocoRootReport
+}
+

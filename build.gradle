@@ -1,30 +1,4 @@
 plugins{
-    id 'nva.identity.service.java-common-conventions'
-}
-
-allprojects {
-    apply plugin: 'nva.identity.service.java-common-conventions'
-}
-
-subprojects {
-    // For using DynamoDB locally
-    configurations.testImplementation.canBeResolved = true
-    task copyNativeDeps(type: Copy) {
-        from(configurations.testImplementation) {
-            include "*.dylib"
-            include "*.so"
-            include "*.dll"
-        }
-        into 'build/dynamodb-local'
-    }
-
-    test{
-        dependsOn copyNativeDeps
-        systemProperty "java.library.path", 'build/dynamodb-local'
-    }
-}
-
-build {
-    dependsOn jacocoRootReport
+    id 'nva.identity.service.rootplugin'
 }
 

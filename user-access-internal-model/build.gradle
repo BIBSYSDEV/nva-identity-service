@@ -4,23 +4,11 @@ plugins {
 
 dependencies {
 
-    compileOnly(group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: project.ext.awsSdkVersion) {
-        because("This module contains the Dynamo access details and will be used by " +
-                "any service accessing DynamoDB")
-    }
+    implementation libs.nva.apigateway
+    implementation libs.bundles.jackson
+    implementation libs.aws.dynamodb
 
-    implementation group: 'com.github.bibsysdev', name: 'apigateway'
-
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'
-
-    runtimeOnly group: 'com.fasterxml.jackson.core', name: 'jackson-core'
-    runtimeOnly group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8'
-    runtimeOnly group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
-
-    testImplementation group: 'com.github.bibsysdev', name: 'logutils'
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-core'
-
+    implementation libs.slf4j
     compileOnly project(":user-access-rights")
     testImplementation project(":user-access-rights")
 

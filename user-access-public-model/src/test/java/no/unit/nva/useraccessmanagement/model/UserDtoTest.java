@@ -83,7 +83,7 @@ public class UserDtoTest extends DtoTest {
 
         Executable action = () -> objectMapper.readValue(jsonStringWithoutType, UserDto.class);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
-        assertThat(exception.getMessage(), containsString(INVALID_TYPE_EXCEPTION_MESSAGE_SAMPLE));
+        assertThat(exception.getMessage(), containsString(UserDto.TYPE));
     }
 
     @DisplayName("UserDto can be created when it contains the right type value")

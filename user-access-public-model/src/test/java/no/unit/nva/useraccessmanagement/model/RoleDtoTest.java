@@ -118,7 +118,7 @@ public class RoleDtoTest extends DtoTest {
 
         Executable action = () -> objectMapper.readValue(jsonStringWithoutType, RoleDto.class);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
-        assertThat(exception.getMessage(), StringContains.containsString(INVALID_TYPE_EXCEPTION_MESSAGE_SAMPLE));
+        assertThat(exception.getMessage(), StringContains.containsString(RoleDto.TYPE));
     }
 
     @DisplayName("RoleDto can be created when it contains the right type value")

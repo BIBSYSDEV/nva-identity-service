@@ -1,5 +1,6 @@
 plugins {
     id 'nva.identity.service.java-library-conventions'
+    id 'nva.identity.service.dynamodblocal'
 }
 
 dependencies {
@@ -13,7 +14,7 @@ dependencies {
     api project(":user-access-rights")
 
 
-    api(group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb') {
+    api( libs.aws.dynamodb) {
         because("This module contains the Dynamo access details and will be used by " +
                 "any the handlers")
 
@@ -26,7 +27,7 @@ dependencies {
     }
 
 
-    api (group: 'com.amazonaws', name: 'aws-java-sdk-secretsmanager') {
+    api (libs.aws.secretsmanager) {
         because("We want to have this library in the AWS::Serverless::LayerVersion resource" +
                 "and do not want to have duplicates of this lib for each handler. ")
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
@@ -37,17 +38,13 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
     }
 
-    implementation(group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4') {
-        because "Because we use the library directly to define loggers in our code"
-    }
-    implementation group: 'com.github.bibsysdev', name: 'apigateway'
-
-    testImplementation group: 'com.github.bibsysdev', name: 'logutils'
-
-
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-
-    runtimeOnly(group: 'com.fasterxml.jackson.core', name: 'jackson-core')
+    implementation libs.nva.apigateway
+    implementation libs.slf4j
+    implementation libs.bundles.aws.lambda
+    implementation libs.bundles.jackson
+    implementation libs.aws.dynamodb
 
     testImplementation project(':user-access-testing')
+
+
 }

@@ -1,12 +1,16 @@
 plugins {
     id 'nva.identity.service.java-library-conventions'
+    id 'nva.identity.service.dynamodblocal'
 }
 
 dependencies {
     implementation project(':user-access-service')
     implementation project(':user-access-commons')
+    implementation libs.bundles.aws.lambda
+    implementation libs.aws.dynamodb
+    implementation libs.dynamoDbLocal
+    implementation(libs.bundles.testing) {
+        exclude group: 'org.hamcrest', module: 'hamcrest-core'
+    }
 
-    implementation group: 'com.amazonaws', name: 'DynamoDBLocal'
-    implementation group: 'org.hamcrest', name: 'hamcrest'
-    implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api'
 }

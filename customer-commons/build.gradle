@@ -1,26 +1,15 @@
 plugins {
     id 'nva.identity.service.java-library-conventions'
+    id 'nva.identity.service.dynamodblocal'
 }
 
 dependencies {
-    implementation group: 'com.github.bibsysdev', name: 'apigateway'
-
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'
-    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
-    implementation group: 'org.zalando', name: 'problem'
-    implementation group: 'org.zalando', name: 'jackson-datatype-problem'
-    implementation group: 'com.amazonaws', name: 'aws-lambda-java-core'
-    implementation group: 'com.amazonaws', name: 'aws-java-sdk-lambda'
-    implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb'
-
-
-
+    implementation libs.nva.apigateway
+    implementation libs.bundles.jackson
+    implementation libs.bundles.aws.lambda
+    implementation libs.aws.dynamodb
+    implementation libs.guava
     testImplementation project (":customer-testing")
-    testImplementation (group: 'com.amazonaws', name: 'DynamoDBLocal', version: project.ext.DynamoDBLocalVersion) {
-        exclude group: 'com.amazonaws', module: 'aws-java-sdk-dynamodb'
-        exclude group: 'com.amazonaws', module: 'aws-java-sdk-core'
-    }
 }
 
 

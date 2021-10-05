@@ -6,14 +6,14 @@ import java.net.HttpURLConnection;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
-import no.unit.nva.customer.model.VocabularySettingDto;
-import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
+import no.unit.nva.customer.model.VocabularyDto;
+import no.unit.nva.customer.model.interfaces.VocabularyList;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 
-public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<Void, VocabularySettingsList> {
+public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<Void, VocabularyList> {
 
     @JacocoGenerated
     public GetControlledVocabularyHandler() {
@@ -25,16 +25,16 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
     }
 
     @Override
-    protected VocabularySettingsList processInput(Void input, RequestInfo requestInfo, Context context)
+    protected VocabularyList processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         UUID identifier = UUID.fromString(requestInfo.getPathParameter(IDENTIFIER_PATH_PARAMETER));
-        Set<VocabularySettingDto> vocabularySettings =
-            customerService.getCustomer(identifier).getVocabularySettings();
-        return new VocabularySettingsList(vocabularySettings);
+        Set<VocabularyDto> vocabularySettings =
+            customerService.getCustomer(identifier).getVocabularies();
+        return new VocabularyList(vocabularySettings);
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, VocabularySettingsList output) {
+    protected Integer getSuccessStatusCode(Void input, VocabularyList output) {
         return HttpURLConnection.HTTP_OK;
     }
 }

@@ -2,19 +2,19 @@ package no.unit.nva.customer.model;
 
 import java.net.URI;
 import java.util.Objects;
-import no.unit.nva.customer.model.interfaces.VocabularySetting;
+import no.unit.nva.customer.model.interfaces.Vocabulary;
 
 
-public class VocabularySettingDb implements VocabularySetting {
+public class VocabularyDao implements Vocabulary {
 
     private String name;
     private URI id;
     private VocabularyStatus status;
 
-    public VocabularySettingDb() {
+    public VocabularyDao() {
     }
 
-    public VocabularySettingDb(String name, URI id, VocabularyStatus status) {
+    public VocabularyDao(String name, URI id, VocabularyStatus status) {
         this();
         this.name = name;
         this.id = id;
@@ -64,19 +64,19 @@ public class VocabularySettingDb implements VocabularySetting {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        VocabularySettingDb that = (VocabularySettingDb) o;
+        VocabularyDao that = (VocabularyDao) o;
         return Objects.equals(name, that.name)
                && Objects.equals(id, that.id)
                && status == that.status;
     }
 
-    public VocabularySettingDto toVocabularySettingsDto() {
-        return new VocabularySettingDto(this.getName(), this.getId(), this.getStatus());
+    public VocabularyDto toVocabularySettingsDto() {
+        return new VocabularyDto(this.getName(), this.getId(), this.getStatus());
     }
 
-    public static VocabularySettingDb fromVocabularySettingsDto(VocabularySettingDto vocabularySettingDto) {
-        return new VocabularySettingDb(vocabularySettingDto.getName(),
-                                       vocabularySettingDto.getId(),
-                                       vocabularySettingDto.getStatus());
+    public static VocabularyDao fromVocabularySettingsDto(VocabularyDto vocabularySettingDto) {
+        return new VocabularyDao(vocabularySettingDto.getName(),
+                                 vocabularySettingDto.getId(),
+                                 vocabularySettingDto.getStatus());
     }
 }

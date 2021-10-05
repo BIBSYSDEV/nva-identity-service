@@ -12,7 +12,7 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.Set;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
-import no.unit.nva.customer.model.VocabularySettingDto;
+import no.unit.nva.customer.model.VocabularyDto;
 import nva.commons.core.JacocoGenerated;
 
 @SuppressWarnings("PMD.ExcessivePublicCount")
@@ -20,20 +20,20 @@ import nva.commons.core.JacocoGenerated;
     use = JsonTypeInfo.Id.NAME,
     include = As.PROPERTY,
     property = "type")
-@JsonTypeName("VocabularySettingsList")
-public class VocabularySettingsList implements Context {
+@JsonTypeName("VocabularyList")
+public class VocabularyList implements Context {
 
-    public static final String VOCABULARY_SETTINGS = "vocabularySettings";
+    public static final String VOCABULARY_SETTINGS = "vocabularies";
     @JsonProperty(VOCABULARY_SETTINGS)
-    private final Set<VocabularySettingDto> vocabularySettings;
+    private final Set<VocabularyDto> vocabularies;
 
     @JsonCreator
-    public <E> VocabularySettingsList(@JsonProperty(VOCABULARY_SETTINGS) Set<VocabularySettingDto> vocabularySettings) {
-        this.vocabularySettings = vocabularySettings;
+    public <E> VocabularyList(@JsonProperty(VOCABULARY_SETTINGS) Set<VocabularyDto> vocabularySettings) {
+        this.vocabularies = vocabularySettings;
     }
 
-    public Set<VocabularySettingDto> getVocabularySettings() {
-        return vocabularySettings;
+    public Set<VocabularyDto> getVocabularies() {
+        return vocabularies;
     }
 
     @JsonProperty(LinkedDataContextUtils.LINKED_DATA_ID)
@@ -56,7 +56,7 @@ public class VocabularySettingsList implements Context {
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getVocabularySettings());
+        return Objects.hash(getVocabularies());
     }
 
     @JacocoGenerated
@@ -65,10 +65,10 @@ public class VocabularySettingsList implements Context {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof VocabularySettingsList)) {
+        if (!(o instanceof VocabularyList)) {
             return false;
         }
-        VocabularySettingsList that = (VocabularySettingsList) o;
-        return Objects.equals(getVocabularySettings(), that.getVocabularySettings());
+        VocabularyList that = (VocabularyList) o;
+        return Objects.equals(getVocabularies(), that.getVocabularies());
     }
 }

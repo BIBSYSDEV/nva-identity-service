@@ -3,6 +3,7 @@ package no.unit.nva.customer.model;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,7 +20,8 @@ import nva.commons.core.JacocoGenerated;
     property = "type",
     defaultImpl = CustomerDao.class
 )
-public class CustomerDao implements Customer {
+@JsonTypeName("Customer")
+public class CustomerDao implements Customer<VocabularyDao> {
 
     public static final String IDENTIFIER = "identifier";
     public static final String ORG_NUMBER = "feideOrganizationId";
@@ -36,10 +38,10 @@ public class CustomerDao implements Customer {
     private String institutionDns;
     private String feideOrganizationId;
     private String cristinId;
-    private Set<VocabularySettingDb> vocabularySettings;
+    private Set<VocabularyDao> vocabularies;
 
     public CustomerDao() {
-        vocabularySettings = Collections.emptySet();
+        vocabularies = Collections.emptySet();
     }
 
     public static Builder builder() {
@@ -177,15 +179,17 @@ public class CustomerDao implements Customer {
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-                            getCristinId(), getVocabularySettings());
+                            getCristinId(), getVocabularies());
     }
 
-    public Set<VocabularySettingDb> getVocabularySettings() {
-        return vocabularySettings;
+    @Override
+    public Set<VocabularyDao> getVocabularies() {
+        return vocabularies;
     }
 
-    public void setVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
-        this.vocabularySettings = Objects.nonNull(vocabularySettings) ? vocabularySettings : Collections.emptySet();
+    @Override
+    public void setVocabularies(Set<VocabularyDao> vocabularies) {
+        this.vocabularies = Objects.nonNull(vocabularies) ? vocabularies : Collections.emptySet();
     }
 
     @Override
@@ -209,7 +213,7 @@ public class CustomerDao implements Customer {
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
                && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
+               && Objects.equals(getVocabularies(), that.getVocabularies());
     }
 
     public CustomerDto toCustomerDto() {
@@ -222,7 +226,7 @@ public class CustomerDao implements Customer {
             .withDisplayName(this.getDisplayName())
             .withInstitutionDns(this.getInstitutionDns())
             .withShortName(this.getShortName())
-            .withVocabularySettings(extractVocabularySettings())
+            .withVocabularies(extractVocabularySettings())
             .withModifiedDate(getModifiedDate())
             .withFeideOrganizationId(getFeideOrganizationId())
             .withCristinId(getCristinId())
@@ -230,19 +234,19 @@ public class CustomerDao implements Customer {
         return LinkedDataContextUtils.addContext(customerDto);
     }
 
-    private static Set<VocabularySettingDb> extractVocabularySettings(CustomerDto dto) {
-        return Optional.ofNullable(dto.getVocabularySettings())
+    private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {
+        return Optional.ofNullable(dto.getVocabularies())
             .stream()
             .flatMap(Collection::stream)
-            .map(VocabularySettingDb::fromVocabularySettingsDto)
+            .map(VocabularyDao::fromVocabularySettingsDto)
             .collect(Collectors.toSet());
     }
 
-    private Set<VocabularySettingDto> extractVocabularySettings() {
-        return Optional.ofNullable(this.getVocabularySettings())
+    private Set<VocabularyDto> extractVocabularySettings() {
+        return Optional.ofNullable(this.getVocabularies())
             .stream()
             .flatMap(Collection::stream)
-            .map(VocabularySettingDb::toVocabularySettingsDto)
+            .map(VocabularyDao::toVocabularySettingsDto)
             .collect(Collectors.toSet());
     }
 
@@ -309,8 +313,8 @@ public class CustomerDao implements Customer {
             return this;
         }
 
-        public Builder withVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
-            customerDb.setVocabularySettings(vocabularySettings);
+        public Builder withVocabularySettings(Set<VocabularyDao> vocabularySettings) {
+            customerDb.setVocabularies(vocabularySettings);
             return this;
         }
 

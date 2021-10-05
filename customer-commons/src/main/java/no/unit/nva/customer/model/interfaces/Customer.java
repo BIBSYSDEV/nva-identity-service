@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 @SuppressWarnings("PMD.ExcessivePublicCount")
@@ -12,7 +13,7 @@ import java.util.UUID;
     include = As.PROPERTY,
     property = "type")
 @JsonTypeName("Customer")
-public interface Customer {
+public interface Customer<T extends Vocabulary> {
 
     UUID getIdentifier();
 
@@ -58,4 +59,7 @@ public interface Customer {
 
     void setCristinId(String cristinId);
 
+    Set<T> getVocabularies();
+
+    void setVocabularies(Set<T> vocabularies);
 }

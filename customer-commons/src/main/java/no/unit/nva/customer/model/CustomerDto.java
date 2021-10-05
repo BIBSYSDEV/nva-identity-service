@@ -12,7 +12,6 @@ import no.unit.nva.customer.model.interfaces.Context;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonUtils;
 
-
 public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
     @JsonProperty("@context")

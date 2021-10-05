@@ -18,8 +18,7 @@ import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.get.GetControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
-import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
+import no.unit.nva.customer.model.interfaces.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
@@ -53,18 +52,18 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
 
     protected abstract CustomerDto createExistingCustomer() throws ApiGatewayException;
 
-    protected VocabularySettingsList sendRequestAcceptingJsonLd(UUID uuid) throws IOException {
+    protected VocabularyList sendRequestAcceptingJsonLd(UUID uuid) throws IOException {
         return sendRequest(uuid, MediaTypes.APPLICATION_JSON_LD);
     }
 
-    protected VocabularySettingsList sendRequest(UUID uuid, MediaType acceptedContentType) throws IOException {
-        VocabularySettingsList expectedBody = createRandomVocabularyList();
+    protected VocabularyList sendRequest(UUID uuid, MediaType acceptedContentType) throws IOException {
+        VocabularyList expectedBody = createRandomVocabularyList();
         InputStream request = addVocabularyForCustomer(uuid, expectedBody, acceptedContentType);
         handler.handleRequest(request, outputStream, CONTEXT);
         return expectedBody;
     }
 
-    protected String responseContentType(GatewayResponse<VocabularySettingsList> response) {
+    protected String responseContentType(GatewayResponse<VocabularyList> response) {
         return response.getHeaders().get(HttpHeaders.CONTENT_TYPE);
     }
 
@@ -72,8 +71,8 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
         return existingCustomer.getIdentifier();
     }
 
-    protected VocabularySettingsList createRandomVocabularyList() {
-        return new VocabularySettingsList(CustomerDataGenerator.randomVocabularyDtoSettings());
+    protected VocabularyList createRandomVocabularyList() {
+        return new VocabularyList(CustomerDataGenerator.randomVocabularyDtoSettings());
     }
 
     protected <T> InputStream addVocabularyForCustomer(UUID customerIdentifer, T expectedBody,
@@ -103,8 +102,8 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
         InputStream getRequest = createGetRequest(existingIdentifier(), MediaType.JSON_UTF_8);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         getHandler.handleRequest(getRequest, outputStream, CONTEXT);
-        GatewayResponse<VocabularySettingsList> getResponse = GatewayResponse.fromOutputStream(outputStream);
-        VocabularySettingsList getResponseObject = getResponse.getBodyObject(VocabularySettingsList.class);
-        assertThat(getResponseObject.getVocabularySettings(), is(empty()));
+        GatewayResponse<VocabularyList> getResponse = GatewayResponse.fromOutputStream(outputStream);
+        VocabularyList getResponseObject = getResponse.getBodyObject(VocabularyList.class);
+        assertThat(getResponseObject.getVocabularies(), is(empty()));
     }
 }

@@ -10,7 +10,7 @@ import no.unit.nva.customer.model.interfaces.Resource;
 import nva.commons.core.JacocoGenerated;
 
 
-public class CustomerDtoWithoutContext implements Customer, Resource {
+public class CustomerDtoWithoutContext implements Customer<VocabularyDto>, Resource {
 
     private URI id;
     private UUID identifier;
@@ -24,7 +24,7 @@ public class CustomerDtoWithoutContext implements Customer, Resource {
     private String institutionDns;
     private String feideOrganizationId;
     private String cristinId;
-    private Set<VocabularySettingDto> vocabularySettings;
+    private Set<VocabularyDto> vocabularySettings;
 
     public CustomerDtoWithoutContext() {
 
@@ -172,7 +172,7 @@ public class CustomerDtoWithoutContext implements Customer, Resource {
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
                && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
+               && Objects.equals(getVocabularies(), that.getVocabularies());
     }
 
     @Override
@@ -180,14 +180,16 @@ public class CustomerDtoWithoutContext implements Customer, Resource {
     public int hashCode() {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-                            getCristinId(), getVocabularySettings());
+                            getCristinId(), getVocabularies());
     }
 
-    public Set<VocabularySettingDto> getVocabularySettings() {
+    @Override
+    public Set<VocabularyDto> getVocabularies() {
         return vocabularySettings;
     }
 
-    public void setVocabularySettings(Set<VocabularySettingDto> vocabularySettings) {
+    @Override
+    public void setVocabularies(Set<VocabularyDto> vocabularySettings) {
         this.vocabularySettings = vocabularySettings;
     }
 }

@@ -4,7 +4,7 @@ import static no.unit.nva.customer.Constants.defaultCustomerService;
 import java.net.HttpURLConnection;
 import no.unit.nva.customer.WriteControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
+import no.unit.nva.customer.model.interfaces.VocabularyList;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -24,16 +24,16 @@ public class CreateControlledVocabularyHandler extends WriteControlledVocabulary
     }
 
     @Override
-    protected CustomerDto updateVocabularySettings(VocabularySettingsList input, CustomerDto customer)
+    protected CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer)
         throws ApiGatewayException {
-        if (customer.getVocabularySettings().isEmpty()) {
-            return customer.copy().withVocabularySettings(input.getVocabularySettings()).build();
+        if (customer.getVocabularies().isEmpty()) {
+            return customer.copy().withVocabularies(input.getVocabularies()).build();
         }
         throw new ConflictException(CUSTOMER_SETTINGS_EXIST_ERROR);
     }
 
     @Override
-    protected Integer getSuccessStatusCode(VocabularySettingsList input, VocabularySettingsList output) {
+    protected Integer getSuccessStatusCode(VocabularyList input, VocabularyList output) {
         return HttpURLConnection.HTTP_CREATED;
     }
 }

@@ -19,7 +19,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
     public CustomerDto() {
         super();
-        setVocabularySettings(Collections.emptySet());
+        setVocabularies(Collections.emptySet());
     }
 
     public CustomerDtoWithoutContext withoutContext() {
@@ -42,7 +42,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
     public Builder copy() {
         return new Builder()
-            .withVocabularySettings(getVocabularySettings())
+            .withVocabularies(getVocabularies())
             .withShortName(getShortName())
             .withInstitutionDns(getInstitutionDns())
             .withDisplayName(getDisplayName())
@@ -63,7 +63,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
     public int hashCode() {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-                            getCristinId(), getVocabularySettings(), getContext());
+                            getCristinId(), getVocabularies(), getContext());
     }
 
     @JacocoGenerated
@@ -88,7 +88,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
                && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getVocabularySettings(), that.getVocabularySettings())
+               && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getContext(), that.getContext());
     }
 
@@ -160,8 +160,8 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
             return this;
         }
 
-        public Builder withVocabularySettings(Set<VocabularySettingDto> vocabularySettings) {
-            customerDto.setVocabularySettings(vocabularySettings);
+        public Builder withVocabularies(Set<VocabularyDto> vocabularies) {
+            customerDto.setVocabularies(vocabularies);
             return this;
         }
 

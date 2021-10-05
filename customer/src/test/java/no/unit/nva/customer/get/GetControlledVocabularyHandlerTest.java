@@ -23,8 +23,8 @@ import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.VocabularySettingDto;
-import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
+import no.unit.nva.customer.model.VocabularyDto;
+import no.unit.nva.customer.model.interfaces.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
@@ -57,13 +57,13 @@ public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
 
     @Test
     public void handleRequestReturnsOkWhenARequestWithAnExistingIdentifierIsSubmitted() throws IOException {
-        GatewayResponse<VocabularySettingsList> response = sendGetRequest(getExistingCustomerIdentifier());
+        GatewayResponse<VocabularyList> response = sendGetRequest(getExistingCustomerIdentifier());
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
     @Test
     public void handleRequestReturnsNotFoundWhenARequestWithANonExistingIdentifierIsSubmitted() throws IOException {
-        GatewayResponse<VocabularySettingsList> response = sendGetRequest(randomCustomerIdentifier());
+        GatewayResponse<VocabularyList> response = sendGetRequest(randomCustomerIdentifier());
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
@@ -89,22 +89,22 @@ public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
     @Test
     public void handleRequestReturnsControlledVocabulariesOfSpecifiedCustomerWhenCustomerIdIsValid()
         throws IOException {
-        GatewayResponse<VocabularySettingsList> response = sendGetRequest(getExistingCustomerIdentifier());
-        VocabularySettingsList body = response.getBodyObject(VocabularySettingsList.class);
-        Set<VocabularySettingDto> actualVocabularySettings = body.getVocabularySettings();
-        assertThat(actualVocabularySettings, is(equalTo(existingCustomer.getVocabularySettings())));
+        GatewayResponse<VocabularyList> response = sendGetRequest(getExistingCustomerIdentifier());
+        VocabularyList body = response.getBodyObject(VocabularyList.class);
+        Set<VocabularyDto> actualVocabularySettings = body.getVocabularies();
+        assertThat(actualVocabularySettings, is(equalTo(existingCustomer.getVocabularies())));
     }
 
     @Test
     public void handleRequestReturnsResponseWithContentTypeJsonLdWhenAcceptHeaderIsJsonLd() throws IOException {
-        GatewayResponse<VocabularySettingsList> response = sendGetRequest(getExistingCustomerIdentifier());
+        GatewayResponse<VocabularyList> response = sendGetRequest(getExistingCustomerIdentifier());
         String content = response.getHeaders().get(HttpHeaders.CONTENT_TYPE);
         assertThat(content, is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
     }
 
     @Test
     public void handleRequestReturnsResponseWithContentTypeJsonWhenAcceptHeaderIsJson() throws IOException {
-        GatewayResponse<VocabularySettingsList> response =
+        GatewayResponse<VocabularyList> response =
             sendRequestAcceptingJson(getExistingCustomerIdentifier());
         String content = response.getHeaders().get(HttpHeaders.CONTENT_TYPE);
         assertThat(content, is(equalTo(MediaType.JSON_UTF_8.toString())));

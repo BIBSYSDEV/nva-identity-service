@@ -64,17 +64,17 @@ class CustomerDbTest {
             .withInstitutionDns(randomString())
             .withDisplayName(randomString())
             .withCreatedDate(randomInstant())
-            .withVocabularySettings(randomVocabularyDtoSettings())
+            .withVocabularies(randomVocabularyDtoSettings())
             .build();
 
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
     }
 
-    private Set<VocabularySettingDto> randomVocabularyDtoSettings() {
+    private Set<VocabularyDto> randomVocabularyDtoSettings() {
         return randomVocabularySettings()
             .stream()
-            .map(VocabularySettingDb::toVocabularySettingsDto)
+            .map(VocabularyDao::toVocabularySettingsDto)
             .collect(Collectors.toSet());
     }
 
@@ -97,9 +97,9 @@ class CustomerDbTest {
         return customer;
     }
 
-    private Set<VocabularySettingDb> randomVocabularySettings() {
-        VocabularySettingDb vocabulary = new VocabularySettingDb(randomString(), randomUri(),
-                                                                 randomElement(VocabularyStatus.values()));
+    private Set<VocabularyDao> randomVocabularySettings() {
+        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
+                                                     randomElement(VocabularyStatus.values()));
         return Set.of(vocabulary);
     }
 

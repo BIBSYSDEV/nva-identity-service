@@ -17,19 +17,19 @@ class VocabularySettingsListTest {
 
     @Test
     void serializationReturnsObjectWithContextEqualToCustomersContext() throws JsonProcessingException {
-        VocabularySettingsList list = new VocabularySettingsList(Collections.emptySet());
+        VocabularyList list = new VocabularyList(Collections.emptySet());
         ObjectNode json = toJson(list);
         assertThat(json.get(LINKED_DATA_CONTEXT).textValue(), is(equalTo(LINKED_DATA_CONTEXT_VALUE.toString())));
     }
 
     @Test
     void serializationReturnsObjectWithIdEqualToTheNamespaceOfCustomers() throws JsonProcessingException {
-        VocabularySettingsList list = new VocabularySettingsList(Collections.emptySet());
+        VocabularyList list = new VocabularyList(Collections.emptySet());
         ObjectNode json = toJson(list);
         assertThat(json.get(LINKED_DATA_ID).textValue(), is(equalTo(ID_NAMESPACE.toString())));
     }
 
-    private ObjectNode toJson(VocabularySettingsList list) throws JsonProcessingException {
+    private ObjectNode toJson(VocabularyList list) throws JsonProcessingException {
         String jsonString = JsonUtils.objectMapperWithEmpty.writeValueAsString(list);
         return (ObjectNode) JsonUtils.objectMapperWithEmpty.readTree(jsonString);
     }

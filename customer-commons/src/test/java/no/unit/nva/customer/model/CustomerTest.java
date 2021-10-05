@@ -71,15 +71,15 @@ public class CustomerTest {
     @Test
     public void vocacularySettingsDoesNotContainDuplicates() {
         CustomerDao customerDb = createCustomerDb();
-        customerDb.getVocabularySettings().add(vocabularySetting());
+        customerDb.getVocabularies().add(vocabularySetting());
 
-        assertThat(customerDb.getVocabularySettings().size(), Matchers.is(Matchers.equalTo(1)));
+        assertThat(customerDb.getVocabularies().size(), Matchers.is(Matchers.equalTo(1)));
     }
 
     private CustomerDao createCustomerDb() {
         Instant now = Instant.now();
 
-        Set<VocabularySettingDb> vocabularySettings = new HashSet<>();
+        Set<VocabularyDao> vocabularySettings = new HashSet<>();
         vocabularySettings.add(vocabularySetting());
 
         return new CustomerDao.Builder()
@@ -98,8 +98,8 @@ public class CustomerTest {
             .build();
     }
 
-    private VocabularySettingDb vocabularySetting() {
-        return new VocabularySettingDb(
+    private VocabularyDao vocabularySetting() {
+        return new VocabularyDao(
             "Vocabulary A",
             URI.create("http://uri.to.vocabulary.a"),
             VocabularyStatus.lookup("Default")

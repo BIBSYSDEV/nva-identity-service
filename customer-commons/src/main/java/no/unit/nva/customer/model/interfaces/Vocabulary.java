@@ -11,8 +11,8 @@ import no.unit.nva.customer.model.VocabularyStatus;
     use = JsonTypeInfo.Id.NAME,
     include = As.PROPERTY,
     property = "type")
-@JsonTypeName("VocabularySetting")
-public interface VocabularySetting {
+@JsonTypeName("Vocabulary")
+public interface Vocabulary {
 
     String getName();
 

@@ -2,20 +2,20 @@ package no.unit.nva.customer.model;
 
 import java.net.URI;
 import java.util.Objects;
-import no.unit.nva.customer.model.interfaces.VocabularySetting;
+import no.unit.nva.customer.model.interfaces.Vocabulary;
 import nva.commons.core.JacocoGenerated;
 
-public class VocabularySettingDto implements VocabularySetting {
+public class VocabularyDto implements Vocabulary {
 
     private String name;
     private URI id;
     private VocabularyStatus status;
 
-    public VocabularySettingDto() {
+    public VocabularyDto() {
     }
 
     @JacocoGenerated
-    public VocabularySettingDto(String name, URI id, VocabularyStatus status) {
+    public VocabularyDto(String name, URI id, VocabularyStatus status) {
         this();
         this.name = name;
         this.id = id;
@@ -70,10 +70,10 @@ public class VocabularySettingDto implements VocabularySetting {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof VocabularySettingDto)) {
+        if (!(o instanceof VocabularyDto)) {
             return false;
         }
-        VocabularySettingDto that = (VocabularySettingDto) o;
+        VocabularyDto that = (VocabularyDto) o;
         return Objects.equals(getName(), that.getName())
                && Objects.equals(getId(), that.getId())
                && getStatus() == that.getStatus();

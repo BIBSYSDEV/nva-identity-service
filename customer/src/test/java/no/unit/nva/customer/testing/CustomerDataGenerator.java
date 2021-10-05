@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
-import no.unit.nva.customer.model.VocabularySettingDb;
-import no.unit.nva.customer.model.VocabularySettingDto;
+import no.unit.nva.customer.model.VocabularyDao;
+import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
 
 public class CustomerDataGenerator {
@@ -41,17 +41,17 @@ public class CustomerDataGenerator {
             .withInstitutionDns(randomString())
             .withDisplayName(randomString())
             .withCreatedDate(randomInstant())
-            .withVocabularySettings(randomVocabularyDtoSettings())
+            .withVocabularies(randomVocabularyDtoSettings())
             .build();
 
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
     }
 
-    public static Set<VocabularySettingDto> randomVocabularyDtoSettings() {
+    public static Set<VocabularyDto> randomVocabularyDtoSettings() {
         return randomVocabularySettings()
             .stream()
-            .map(VocabularySettingDb::toVocabularySettingsDto)
+            .map(VocabularyDao::toVocabularySettingsDto)
             .collect(Collectors.toSet());
     }
 
@@ -74,9 +74,9 @@ public class CustomerDataGenerator {
         return customer;
     }
 
-    public static Set<VocabularySettingDb> randomVocabularySettings() {
-        VocabularySettingDb vocabulary = new VocabularySettingDb(randomString(), randomUri(),
-                                                                 randomElement(VocabularyStatus.values()));
+    public static Set<VocabularyDao> randomVocabularySettings() {
+        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
+                                                     randomElement(VocabularyStatus.values()));
         return Set.of(vocabulary);
     }
 

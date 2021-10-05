@@ -751,7 +751,7 @@ Resources:
           Type: Api
           Properties:
             Path: /{identifier}/vocabularies
-            Method: post
+            Method: put
             RestApiId: !Ref NvaCustomerApi
   NvaGetCustomerByOrgNumberFunction:
     Type: AWS::Serverless::Function

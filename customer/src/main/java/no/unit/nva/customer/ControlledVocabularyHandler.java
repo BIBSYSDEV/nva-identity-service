@@ -4,13 +4,10 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.google.common.net.MediaType;
 import java.util.List;
 import java.util.UUID;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
 
 public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandler<I, O> {
 

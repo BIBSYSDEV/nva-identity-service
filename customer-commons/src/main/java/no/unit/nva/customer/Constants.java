@@ -42,8 +42,8 @@ public final class Constants {
     @JacocoGenerated
     private static AmazonDynamoDB defaultDynamoDbClient() {
         EndpointConfiguration endpointConfiguration =
-            new EndpointConfiguration(no.unit.nva.customer.Constants.AWD_DYNAMODB_SERVICE_END_POINT,
-                                      no.unit.nva.customer.Constants.AWS_REGION);
+            new EndpointConfiguration(AWD_DYNAMODB_SERVICE_END_POINT,
+                                      AWS_REGION);
         return AmazonDynamoDBClientBuilder.standard()
             .withCredentials(new DefaultAWSCredentialsProviderChain())
             .withEndpointConfiguration(endpointConfiguration)

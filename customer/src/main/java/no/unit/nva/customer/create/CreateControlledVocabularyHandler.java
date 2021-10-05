@@ -1,39 +1,38 @@
 package no.unit.nva.customer.create;
 
-import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.lambda.runtime.Context;
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 import java.net.HttpURLConnection;
-import java.util.UUID;
-import no.unit.nva.customer.ControlledVocabularyHandler;
+import no.unit.nva.customer.WriteControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.core.JacocoGenerated;
 
-public class CreateControlledVocabularyHandler
-    extends ControlledVocabularyHandler<VocabularySettingsList, VocabularySettingsList> {
+public class CreateControlledVocabularyHandler extends WriteControlledVocabularyHandler {
+
+    public static final String CUSTOMER_SETTINGS_EXIST_ERROR = "Customer has already defined Vocabulary settings";
+
+    @JacocoGenerated
+    public CreateControlledVocabularyHandler() {
+        this(defaultCustomerService());
+    }
 
     public CreateControlledVocabularyHandler(CustomerService customerService) {
-        super(VocabularySettingsList.class,customerService);
+        super(customerService);
     }
 
     @Override
-    protected VocabularySettingsList processInput(VocabularySettingsList input,
-                                                  RequestInfo requestInfo,
-                                                  Context context) throws ApiGatewayException {
-        UUID identifier = extractIdentifier(requestInfo);
-        CustomerDto customer = customerService.getCustomer(identifier);
-        customer.setVocabularySettings(input.getVocabularySettings());
-        CustomerDto updatedCustomer = customerService.updateCustomer(identifier, customer);
-        return new VocabularySettingsList(updatedCustomer.getVocabularySettings());
+    protected CustomerDto updateVocabularySettings(VocabularySettingsList input, CustomerDto customer)
+        throws ApiGatewayException {
+        if (customer.getVocabularySettings().isEmpty()) {
+            return customer.copy().withVocabularySettings(input.getVocabularySettings()).build();
+        }
+        throw new ConflictException(CUSTOMER_SETTINGS_EXIST_ERROR);
     }
 
-    private UUID extractIdentifier(RequestInfo requestInfo) {
-        return attempt(() -> requestInfo.getPathParameter(IDENTIFIER_PATH_PARAMETER))
-            .map(UUID::fromString)
-            .orElseThrow();
-    }
+
 
     @Override
     protected Integer getSuccessStatusCode(VocabularySettingsList input, VocabularySettingsList output) {

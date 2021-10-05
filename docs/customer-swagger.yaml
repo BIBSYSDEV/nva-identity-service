@@ -381,7 +381,7 @@ paths:
               $ref: '#/components/schemas/VocabularyList'
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerFunction.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerVocabulariesFunction.Arn}/invocations
         responses: {}
         httpMethod: POST
         type: AWS_PROXY
@@ -403,6 +403,15 @@ paths:
                   $ref: '#/components/examples/VocabularyListExample'
         '400':
           description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/NotFoundProblemExample'
+        '404':
+          description: Not Found
           content:
             application/problem+json:
               schema:

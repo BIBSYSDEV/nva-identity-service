@@ -1,5 +1,6 @@
 package no.unit.nva.customer.create;
 
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
@@ -10,9 +11,15 @@ import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.JacocoGenerated;
 
 public class CreateControlledVocabularyHandler
     extends ControlledVocabularyHandler<VocabularySettingsList, VocabularySettingsList> {
+
+    @JacocoGenerated
+    public CreateControlledVocabularyHandler(){
+        this(defaultCustomerService());
+    }
 
     public CreateControlledVocabularyHandler(CustomerService customerService) {
         super(VocabularySettingsList.class,customerService);

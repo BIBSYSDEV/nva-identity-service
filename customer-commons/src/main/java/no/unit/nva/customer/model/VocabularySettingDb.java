@@ -1,17 +1,10 @@
 package no.unit.nva.customer.model;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.util.Objects;
 import no.unit.nva.customer.model.interfaces.VocabularySetting;
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = As.PROPERTY,
-    property = "type")
-@JsonTypeName("VocabularySetting")
+
 public class VocabularySettingDb implements VocabularySetting {
 
     private String name;

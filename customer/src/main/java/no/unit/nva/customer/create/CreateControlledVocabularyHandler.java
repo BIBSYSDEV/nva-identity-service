@@ -5,7 +5,6 @@ import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
-import no.unit.nva.customer.api.constants.Constants;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
 import no.unit.nva.customer.service.CustomerService;
@@ -31,7 +30,7 @@ public class CreateControlledVocabularyHandler
     }
 
     private UUID extractIdentifier(RequestInfo requestInfo) {
-        return attempt(() -> requestInfo.getPathParameter(Constants.IDENTIFIER_PATH_PARAMETER))
+        return attempt(() -> requestInfo.getPathParameter(IDENTIFIER_PATH_PARAMETER))
             .map(UUID::fromString)
             .orElseThrow();
     }

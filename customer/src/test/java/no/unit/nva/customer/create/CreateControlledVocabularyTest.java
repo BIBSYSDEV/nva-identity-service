@@ -1,5 +1,6 @@
 package no.unit.nva.customer.create;
 
+import static no.unit.nva.customer.ControlledVocabularyHandler.IDENTIFIER_PATH_PARAMETER;
 import static no.unit.nva.customer.ObjectMapperConfig.objectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -19,7 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
-import no.unit.nva.customer.api.constants.Constants;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularySettingDto;
 import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
@@ -157,6 +157,6 @@ class CreateControlledVocabularyTest extends CustomerDynamoDBLocal {
     }
 
     private Map<String, String> identifierToPathParameter(UUID identifier) {
-        return Map.of(Constants.IDENTIFIER_PATH_PARAMETER, identifier.toString());
+        return Map.of(IDENTIFIER_PATH_PARAMETER, identifier.toString());
     }
 }

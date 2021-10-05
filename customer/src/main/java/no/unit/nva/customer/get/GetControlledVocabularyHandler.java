@@ -1,7 +1,6 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.api.constants.Constants.IDENTIFIER_PATH_PARAMETER;
-import static no.unit.nva.customer.api.constants.Constants.defaultCustomerService;
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.util.Set;

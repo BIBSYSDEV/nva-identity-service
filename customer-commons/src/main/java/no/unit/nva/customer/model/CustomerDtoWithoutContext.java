@@ -1,6 +1,5 @@
 package no.unit.nva.customer.model;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
@@ -10,7 +9,7 @@ import no.unit.nva.customer.model.interfaces.Customer;
 import no.unit.nva.customer.model.interfaces.Resource;
 import nva.commons.core.JacocoGenerated;
 
-@JsonTypeName("Customer")
+
 public class CustomerDtoWithoutContext implements Customer, Resource {
 
     private URI id;

@@ -34,7 +34,7 @@ public class CustomerListTest {
 
     @Test
     public void customerListCanBeConvertedToJsonAndBack() throws JsonProcessingException {
-        List<CustomerDto> customerDtos = List.of(new CustomerDto());
+        List<CustomerDto> customerDtos = List.of(CustomerDto.builder().withCname("someName").build());
         CustomerList customerList = new CustomerList(customerDtos);
         String customerListJson = objectMapper.writeValueAsString(customerList);
         CustomerList mappedCustomerList = objectMapper.readValue(customerListJson, CustomerList.class);

@@ -8,6 +8,8 @@ import nva.commons.apigateway.MediaTypes;
 
 public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandler<I, O> {
 
+    public static final String IDENTIFIER_PATH_PARAMETER = "identifier";
+
     public static final List<MediaType> SUPPORTED_MEDIA_TYPES =
         List.of(MediaType.JSON_UTF_8, MediaTypes.APPLICATION_JSON_LD);
     protected final CustomerService customerService;
@@ -19,7 +21,7 @@ public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandle
     }
 
     @Override
-    protected final  List<MediaType> listSupportedMediaTypes() {
+    protected final List<MediaType> listSupportedMediaTypes() {
         return SUPPORTED_MEDIA_TYPES;
     }
 }

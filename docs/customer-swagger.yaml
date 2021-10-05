@@ -293,7 +293,6 @@ paths:
         responses: { }
         httpMethod: POST
         type: AWS_PROXY
-
     post:
       summary: Create vocabulary definition for customer
       security:
@@ -322,7 +321,7 @@ paths:
                 $ref: '#/components/examples/VocabularyListExample'
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerFunction.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateControlledVocabulary.Arn}/invocations
         responses: {}
         httpMethod: POST
         type: AWS_PROXY

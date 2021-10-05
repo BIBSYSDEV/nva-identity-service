@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 
 public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
 
-    private ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
+    private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
     private DynamoDBCustomerService service;
     private Environment environment;
 

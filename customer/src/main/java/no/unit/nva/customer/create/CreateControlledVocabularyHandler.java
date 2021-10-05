@@ -32,8 +32,6 @@ public class CreateControlledVocabularyHandler extends WriteControlledVocabulary
         throw new ConflictException(CUSTOMER_SETTINGS_EXIST_ERROR);
     }
 
-
-
     @Override
     protected Integer getSuccessStatusCode(VocabularySettingsList input, VocabularySettingsList output) {
         return HttpURLConnection.HTTP_CREATED;

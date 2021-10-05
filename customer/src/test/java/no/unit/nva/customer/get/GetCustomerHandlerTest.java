@@ -49,7 +49,7 @@ public class GetCustomerHandlerTest {
     public static final MediaType UNSUPPORTED_MEDIA_TYPE = MediaType.BZIP2;
 
 
-    private ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
+    private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
     private CustomerService customerServiceMock;
     private Environment environmentMock;
     private GetCustomerHandler handler;

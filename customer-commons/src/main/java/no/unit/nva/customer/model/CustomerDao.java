@@ -1,6 +1,5 @@
 package no.unit.nva.customer.model;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,7 +11,6 @@ import java.util.stream.Collectors;
 import no.unit.nva.customer.model.interfaces.Customer;
 import nva.commons.core.JacocoGenerated;
 
-@JsonTypeName("Customer")
 public class CustomerDao implements Customer {
 
     public static final String IDENTIFIER = "identifier";
@@ -174,7 +172,6 @@ public class CustomerDao implements Customer {
                             getCristinId(), getVocabularySettings());
     }
 
-
     public Set<VocabularySettingDb> getVocabularySettings() {
         return vocabularySettings;
     }
@@ -182,7 +179,6 @@ public class CustomerDao implements Customer {
     public void setVocabularySettings(Set<VocabularySettingDb> vocabularySettings) {
         this.vocabularySettings = Objects.nonNull(vocabularySettings) ? vocabularySettings : Collections.emptySet();
     }
-
 
     @Override
     @JacocoGenerated
@@ -206,7 +202,6 @@ public class CustomerDao implements Customer {
                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularySettings(), that.getVocabularySettings());
-
     }
 
     public CustomerDto toCustomerDto() {
@@ -235,7 +230,6 @@ public class CustomerDao implements Customer {
             .collect(Collectors.toSet());
     }
 
-
     private Set<VocabularySettingDto> extractVocabularySettings() {
         return Optional.ofNullable(this.getVocabularySettings())
             .stream()
@@ -243,10 +237,6 @@ public class CustomerDao implements Customer {
             .map(VocabularySettingDb::toVocabularySettingsDto)
             .collect(Collectors.toSet());
     }
-
-
-
-
 
     public static final class Builder {
 

@@ -2,7 +2,6 @@ package no.unit.nva.customer.model;
 
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
@@ -13,8 +12,6 @@ import no.unit.nva.customer.model.interfaces.Context;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonUtils;
 
-@SuppressWarnings("PMD.ExcessivePublicCount")
-@JsonTypeName("Customer")
 public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
     @JsonProperty("@context")

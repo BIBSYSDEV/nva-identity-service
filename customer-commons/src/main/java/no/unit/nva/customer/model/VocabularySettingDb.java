@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.Objects;
 import no.unit.nva.customer.model.interfaces.VocabularySetting;
 
+
 public class VocabularySettingDb implements VocabularySetting {
 
     private String name;

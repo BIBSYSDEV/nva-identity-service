@@ -4,5 +4,3 @@ plugins{
     id 'nva.identity.service.jacoco-merge'
 }
 
-
-

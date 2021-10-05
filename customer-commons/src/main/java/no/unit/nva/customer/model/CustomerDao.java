@@ -1,5 +1,7 @@
 package no.unit.nva.customer.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.time.Instant;
 import java.util.Collection;
@@ -12,6 +14,10 @@ import java.util.stream.Collectors;
 import no.unit.nva.customer.model.interfaces.Customer;
 import nva.commons.core.JacocoGenerated;
 
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = As.PROPERTY,
+    property = "type")
 @JsonTypeName("Customer")
 public class CustomerDao implements Customer {
 

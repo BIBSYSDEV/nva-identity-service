@@ -1,7 +1,14 @@
 package no.unit.nva.customer.model.interfaces;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.time.Instant;
 import java.util.UUID;
+import no.unit.nva.customer.model.CustomerDao;
+import no.unit.nva.customer.model.CustomerDto;
+
 
 public interface Customer {
 

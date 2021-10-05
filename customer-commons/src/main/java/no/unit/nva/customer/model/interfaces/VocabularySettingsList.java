@@ -5,12 +5,22 @@ import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONT
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
+import java.util.Objects;
 import java.util.Set;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.VocabularySettingDto;
 import nva.commons.core.JacocoGenerated;
 
+@SuppressWarnings("PMD.ExcessivePublicCount")
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = As.PROPERTY,
+    property = "type")
+@JsonTypeName("VocabularySettingsList")
 public class VocabularySettingsList implements Context {
 
     public static final String VOCABULARY_SETTINGS = "vocabularySettings";
@@ -41,5 +51,24 @@ public class VocabularySettingsList implements Context {
     @Override
     public void setContext(URI context) {
         //do nothing
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getVocabularySettings());
+    }
+
+    @JacocoGenerated
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof VocabularySettingsList)) {
+            return false;
+        }
+        VocabularySettingsList that = (VocabularySettingsList) o;
+        return Objects.equals(getVocabularySettings(), that.getVocabularySettings());
     }
 }

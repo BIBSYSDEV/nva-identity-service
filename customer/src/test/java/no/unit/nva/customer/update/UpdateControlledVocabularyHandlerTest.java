@@ -1,12 +1,14 @@
-package no.unit.nva.customer.create;
+package no.unit.nva.customer.update;
 
+import static no.unit.nva.customer.update.UpdateControlledVocabularyHandler.VOCABULARY_SETTINGS_NOT_DEFINED_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.mockito.Mockito.mock;
+import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -15,7 +17,6 @@ import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.model.VocabularySettingDto;
 import no.unit.nva.customer.model.interfaces.VocabularySettingsList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
@@ -24,18 +25,21 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
 
-public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySettingsTests {
+public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlledVocabularySettingsTests {
+
+    public static final Context CONTEXT = mock(Context.class);
 
     @Test
-    public void handleRequestReturnsCreatedWhenCreatingVocabularyForExistingCustomer() throws IOException {
+    public void handleRequestReturnsAcceptedWhenUpdatingVocabularyForExistingCustomer() throws IOException {
         sendRequestAcceptingJsonLd(existingIdentifier());
         GatewayResponse<VocabularySettingsList> response = GatewayResponse.fromOutputStream(outputStream);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_ACCEPTED)));
     }
 
     @Test
-    public void handleRequestReturnsCreatedVocabularyListWhenCreatingVocabularyForExistingCustomer()
+    public void handleRequestReturnsUpdatedVocabularyListWhenUpdatingVocabularyForExistingCustomer()
         throws IOException {
         VocabularySettingsList expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
         GatewayResponse<VocabularySettingsList> response = GatewayResponse.fromOutputStream(outputStream);
@@ -44,7 +48,7 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
     }
 
     @Test
-    public void handleRequestSavesVocabularySettingsToDatabaseWhenCreatingSettingsForExistingCustomer()
+    public void handleRequestSavesVocabularySettingsToDatabaseWhenUpdatingSettingsForExistingCustomer()
         throws IOException, ApiGatewayException {
         VocabularySettingsList expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
         Set<VocabularySettingDto> savedVocabularySettings =
@@ -98,25 +102,27 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
     }
 
     @Test
-    public void handleRequestReturnsConflictWhenCustomerAlreadyHasVocabularySettings() throws IOException {
-        assertThatExistingUserHasEmptyVocabularySettings();
-        outputStream = new ByteArrayOutputStream();
-        sendRequestAcceptingJsonLd(existingIdentifier());
-        outputStream = new ByteArrayOutputStream();
-        sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularySettingsList> response = GatewayResponse.fromOutputStream(outputStream);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+    public void handleRequestReturnsConflictWhenCustomerAlreadyHasVocabularySettings()
+        throws IOException, ApiGatewayException {
+        CustomerDto customerWithoutVocabularySettings = CustomerDataGenerator
+            .crateSampleCustomerDto().copy()
+            .withVocabularySettings(Collections.emptySet())
+            .build();
+        customerService.createCustomer(customerWithoutVocabularySettings);
+        sendRequestAcceptingJsonLd(customerWithoutVocabularySettings.getIdentifier());
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
+        String problemDetail = response.getBodyObject(Problem.class).getDetail();
+        assertThat(problemDetail, containsString(VOCABULARY_SETTINGS_NOT_DEFINED_ERROR));
     }
 
     @Override
     protected ControlledVocabularyHandler<?, ?> createHandler() {
-        return new CreateControlledVocabularyHandler(customerService);
+        return new UpdateControlledVocabularyHandler(customerService);
     }
 
     @Override
     protected CustomerDto createExistingCustomer() {
-        return CustomerDataGenerator.crateSampleCustomerDto().copy()
-            .withVocabularySettings(Collections.emptySet())
-            .build();
+        return CustomerDataGenerator.crateSampleCustomerDto();
     }
 }

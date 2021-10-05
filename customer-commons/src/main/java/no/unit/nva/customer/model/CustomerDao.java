@@ -3,6 +3,7 @@ package no.unit.nva.customer.model;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import nva.commons.core.JacocoGenerated;
     property = "type",
     defaultImpl = CustomerDao.class
 )
+@JsonTypeName("Customer")
 public class CustomerDao implements Customer<VocabularyDao> {
 
     public static final String IDENTIFIER = "identifier";

@@ -1,9 +1,6 @@
 package no.unit.nva.useraccessmanagement.exceptions;
 
-import java.net.HttpURLConnection;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-
-public class InvalidEntryInternalException extends ApiGatewayException {
+public class InvalidEntryInternalException extends RuntimeException {
 
     public InvalidEntryInternalException(String message) {
         super(message);
@@ -13,8 +10,5 @@ public class InvalidEntryInternalException extends ApiGatewayException {
         super(exception);
     }
 
-    @Override
-    protected Integer statusCode() {
-        return HttpURLConnection.HTTP_INTERNAL_ERROR;
-    }
+
 }

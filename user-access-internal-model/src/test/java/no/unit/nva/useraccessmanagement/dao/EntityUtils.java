@@ -1,16 +1,10 @@
 package no.unit.nva.useraccessmanagement.dao;
 
 import static no.unit.useraccessserivce.accessrights.AccessRight.APPROVE_DOI_REQUEST;
-import static nva.commons.core.JsonUtils.objectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
@@ -27,81 +21,9 @@ public final class EntityUtils {
     private static final String SOME_FAMILY_NAME = "familyName";
 
     /**
-     * Creates a request for adding a user without a username. To be used with {@code handleRequest()} method.
-     *
-     * @return an RequestBuilder that can produce an {@link InputStream} that contains a request to be processed by a
-     *     {@link com.amazonaws.services.lambda.runtime.RequestStreamHandler}.
-     * @throws JsonProcessingException       if JSON serialization fails.
-     * @throws InvalidEntryInternalException unlikely. The object is intentionally invalid.
-     * @throws InvalidEntryInternalException when role is invalid.
-     * @throws NoSuchMethodException         reflection related.
-     * @throws IllegalAccessException        reflection related.
-     * @throws InvocationTargetException     reflection related.
-     */
-    public static HandlerRequestBuilder<UserDto> createRequestBuilderWithUserWithoutUsername()
-        throws JsonProcessingException, InvalidEntryInternalException,
-               NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        UserDto userWithoutUsername = createUserWithoutUsername();
-        return new HandlerRequestBuilder<UserDto>(objectMapper)
-            .withBody(userWithoutUsername);
-    }
-
-    /**
-     * Creates a request for adding a user without a username. To be used with {@code handleRequest()} method.
-     *
-     * @return an InputStream containing the ApiGateway request to be handled by a {@link
-     *     com.amazonaws.services.lambda.runtime.RequestStreamHandler}.
-     * @throws JsonProcessingException       if JSON serialization fails.
-     * @throws InvalidEntryInternalException unlikely. The object is intentionally invalid.
-     * @throws InvalidEntryInternalException when role is invalid.
-     * @throws NoSuchMethodException         reflection related.
-     * @throws IllegalAccessException        reflection related.
-     * @throws InvocationTargetException     reflection related.
-     */
-    public static InputStream createRequestWithUserWithoutUsername()
-        throws JsonProcessingException, InvalidEntryInternalException,
-               NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        return createRequestBuilderWithUserWithoutUsername().build();
-    }
-
-    /**
-     * Creates a user without a username. For testing output on invalid input.
-     *
-     * @return a {@link UserDto}
-     * @throws InvalidEntryInternalException when the added role is invalid.
-     * @throws InvalidEntryInternalException unlikely.  The object is intentionally invalid.
-     * @throws NoSuchMethodException         reflection related.
-     * @throws InvocationTargetException     reflection related.
-     * @throws IllegalAccessException        reflection related.
-     */
-    public static UserDto createUserWithoutUsername()
-        throws InvalidEntryInternalException, NoSuchMethodException,
-               InvocationTargetException, IllegalAccessException {
-        UserDto userWithoutUsername = createUserWithRolesAndInstitution();
-        Method method = userWithoutUsername.getClass().getDeclaredMethod("setUsername", String.class);
-        method.setAccessible(true);
-        method.invoke(userWithoutUsername, EMPTY_STRING);
-
-        return userWithoutUsername;
-    }
-
-    /**
-     * create user without roles.
-     *
-     * @return {@link UserDto}
-     * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user
-     */
-    public static UserDto createUserWithoutRoles() throws InvalidEntryInternalException {
-        return UserDto.newBuilder().withUsername(SOME_USERNAME).build();
-    }
-
-    /**
      * Intention is to create a user with all fields filled.
-     *
-     * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
-    public static UserDto createUserWithRolesAndInstitution()
-        throws InvalidEntryInternalException {
+    public static UserDto createUserWithRolesAndInstitution() throws InvalidInputException {
         return createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .build();
@@ -111,10 +33,8 @@ public final class EntityUtils {
      * Creates a a user with username and a role but without institution.
      *
      * @return {@link UserDto}
-     * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
-    public static UserDto createUserWithRoleWithoutInstitution()
-        throws InvalidEntryInternalException {
+    public static UserDto createUserWithRoleWithoutInstitution() throws InvalidInputException {
         RoleDto sampleRole = createRole(SOME_ROLENAME);
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)
@@ -129,9 +49,8 @@ public final class EntityUtils {
      *
      * @param someRole the role name.
      * @return the sample role.
-     * @throws InvalidEntryInternalException when the generated role is invalid
      */
-    public static RoleDto createRole(String someRole) throws InvalidEntryInternalException {
+    public static RoleDto createRole(String someRole) {
         Set<String> accessRights = SAMPLE_ACCESS_RIGHTS
             .stream()
             .map(AccessRight::toString)

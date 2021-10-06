@@ -126,18 +126,17 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @DisplayName("handleRequest() returns BadRequest when input object is invalid")
     @Test
     public void processInputReturnsBadRequestWhenInputObjectIsInvalid()
-        throws ApiGatewayException, IOException, NoSuchMethodException, IllegalAccessException,
-               InvocationTargetException {
+        throws ApiGatewayException, IOException {
 
         UserDto existingUser = storeUserInDatabase(sampleUser());
-        UserDto userUpdate = createUserWithoutUsername();
+        ObjectNode userUpdate = createUserWithoutUsername();
 
         GatewayResponse<Problem> gatewayResponse = sendUpdateRequest(existingUser.getUsername(), userUpdate);
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
 
         Problem problem = gatewayResponse.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(), containsString(UserDto.INVALID_USER_ERROR_MESSAGE));
+        assertThat(problem.getDetail(),containsString(UserDto.USERNAME_FIELD));
     }
 
     @DisplayName("handleRequest() returns InternalServerError when handler is called without path parameter")

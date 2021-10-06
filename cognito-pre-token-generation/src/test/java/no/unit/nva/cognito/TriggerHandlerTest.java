@@ -103,7 +103,7 @@ public class TriggerHandlerTest {
     }
 
     @Test
-    public void handleRequestUsesExistingUserWhenUserIsFound() throws InvalidEntryInternalException {
+    public void handleRequestUsesExistingUserWhenUserIsFound()  {
         mockCustomerApiWithExistingCustomer();
         prepareMocksWithExistingUser(createUserWithInstitutionAndCreatorRole());
 

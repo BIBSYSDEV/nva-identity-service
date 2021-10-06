@@ -5,7 +5,6 @@ import static no.unit.nva.database.DatabaseServiceImpl.DYNAMO_DB_CLIENT_NOT_SET_
 import static no.unit.nva.database.DatabaseServiceImpl.createTable;
 import static no.unit.nva.database.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.database.EntityUtils.createRole;
-import static no.unit.nva.database.EntityUtils.createUserWithoutUsername;
 import static no.unit.nva.database.RoleService.ROLE_ALREADY_EXISTS_ERROR_MESSAGE;
 import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
 import static no.unit.nva.database.UserService.USER_ALREADY_EXISTS_ERROR_MESSAGE;
@@ -25,7 +24,6 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -141,7 +139,8 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
     @DisplayName("getUser() throws NotFoundException when the username does exist in the database")
     @Test
-    public void databaseServiceThrowsNotFoundExceptionWhenUsernameDoesNotExist() throws InvalidEntryInternalException {
+    public void databaseServiceThrowsNotFoundExceptionWhenUsernameDoesNotExist()
+        throws InvalidEntryInternalException, InvalidInputException {
         UserDto queryObject = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
         Executable action = () -> db.getUser(queryObject);
 
@@ -181,14 +180,6 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         assertThat(actualUser, is(equalTo(expectedUser)));
     }
 
-    @DisplayName("addUser() throws Exception when trying to save user without username")
-    @Test
-    public void addUserShouldNotSaveUserWithoutUsername() {
-        Executable illegalAction = () -> db.addUser(createUserWithoutUsername());
-        InvalidInputException exception = assertThrows(InvalidInputException.class, illegalAction);
-        assertThat(exception.getClass(), is(equalTo(InvalidInputException.class)));
-        assertThat(exception.getMessage(), containsString(UserDto.INVALID_USER_ERROR_MESSAGE));
-    }
 
     @DisplayName("addUser() throws ConflictException when trying to save user with existing username")
     @Test
@@ -273,16 +264,14 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         assertThat(exception.getMessage(), containsString(USER_NOT_FOUND_MESSAGE));
     }
 
-    @DisplayName("updateUser() throws InvalidInputException when the input is invalid ")
+    @DisplayName("updateUser() throws Exception when the input is invalid ")
     @Test
-    public void updateUserThrowsInvalidInputExceptionWhenTheInputIsInvalid()
-        throws ConflictException, InvalidEntryInternalException, InvalidInputException, NoSuchMethodException,
-               IllegalAccessException, InvocationTargetException {
+    public void updateUserThrowsExceptionWhenTheInputIsInvalid()
+        throws ConflictException, InvalidEntryInternalException, InvalidInputException{
         createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
-        UserDto invalidUser = createUserWithoutUsername();
+        UserDto invalidUser = new UserDto();
         Executable action = () -> db.updateUser(invalidUser);
-        InvalidInputException exception = assertThrows(InvalidInputException.class, action);
-        assertThat(exception.getMessage(), containsString(UserDto.INVALID_USER_ERROR_MESSAGE));
+        assertThrows(RuntimeException.class, action);
     }
 
     @Test

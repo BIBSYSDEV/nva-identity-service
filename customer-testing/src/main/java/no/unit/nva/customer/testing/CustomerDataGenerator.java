@@ -79,7 +79,7 @@ public class CustomerDataGenerator {
         return Set.of(vocabulary);
     }
 
-    public static <T> T randomElement(T[] values) {
+    public static <T> T randomElement(T... values) {
         return values[RANDOM.nextInt(values.length)];
     }
 

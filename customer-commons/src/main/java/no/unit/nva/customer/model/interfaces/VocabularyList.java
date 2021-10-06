@@ -12,7 +12,6 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.Set;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.VocabularyDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
@@ -48,7 +47,7 @@ public class VocabularyList implements Context {
         return vocabularies;
     }
 
-    @JsonProperty(LinkedDataContextUtils.LINKED_DATA_ID)
+    @JsonProperty(LINKED_DATA_ID)
     public URI getId() {
         return id;
     }

@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.interfaces.Customer;
 import nva.commons.core.JacocoGenerated;
+
 @JsonTypeInfo(
     use = Id.NAME,
     include = As.PROPERTY,

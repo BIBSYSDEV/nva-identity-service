@@ -653,7 +653,7 @@ components:
         type:
           type: string
           enum: [Vocabulary]
-        active:
+        status:
           type: string
           enum: [disabled, enabled, default]
         id:

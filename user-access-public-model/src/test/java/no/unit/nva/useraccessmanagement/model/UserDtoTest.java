@@ -51,8 +51,7 @@ public class UserDtoTest extends DtoTest {
 
     @DisplayName("UserDto object contains type with value \"User\"")
     @Test
-    public void userDtoSerializedObjectContainsTypeWithValueUser()
-        throws InvalidEntryInternalException, InvalidInputException {
+    public void userDtoSerializedObjectContainsTypeWithValueUser()throws InvalidInputException {
         UserDto sampleUser = createUserWithRolesAndInstitution();
         ObjectNode json = objectMapper.convertValue(sampleUser, ObjectNode.class);
 
@@ -62,8 +61,7 @@ public class UserDtoTest extends DtoTest {
 
     @DisplayName("UserDto cannot be created without type value")
     @Test
-    public void userDtoCannotBeCreatedWithoutTypeValue()
-        throws InvalidEntryInternalException, JsonProcessingException, InvalidInputException {
+    public void userDtoCannotBeCreatedWithoutTypeValue() throws  JsonProcessingException, InvalidInputException {
         UserDto sampleUser = createUserWithRolesAndInstitution();
         ObjectNode json = objectMapper.convertValue(sampleUser, ObjectNode.class);
         JsonNode objectWithoutType = json.remove(JSON_TYPE_ATTRIBUTE);
@@ -102,8 +100,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    public void getAccessRightsReturnsAllAccessRightsContainedInTheUsersRoles()
-        throws InvalidEntryInternalException, InvalidInputException {
+    public void getAccessRightsReturnsAllAccessRightsContainedInTheUsersRoles() {
 
         RoleDto firstRole = sampleRole(FIRST_ACCESS_RIGHT, SOME_ROLENAME);
         RoleDto secondRole = sampleRole(SECOND_ACCESS_RIGHT, SOME_OTHER_ROLENAME);
@@ -116,7 +113,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    public void getRolesReturnsEmptyListWhenRolesIsNull() throws InvalidEntryInternalException, InvalidInputException {
+    public void getRolesReturnsEmptyListWhenRolesIsNull() {
         UserDto userDto = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(null).build();
         List<RoleDto> roles = userDto.getRoles();
         assertThat(roles, is(not(nullValue())));
@@ -135,7 +132,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void builderReturnsUserDtoWhenInstitutionIsEmpty() throws InvalidEntryInternalException, InvalidInputException {
+    void builderReturnsUserDtoWhenInstitutionIsEmpty() throws  InvalidInputException {
         UserDto user = createUserWithRoleWithoutInstitution();
         assertThat(user.getUsername(), is(equalTo(SOME_USERNAME)));
         assertThat(user.getRoles(), is(equalTo(sampleRoles)));
@@ -143,7 +140,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void builderReturnsUserDtoWhenIRolesIsEmpty() throws InvalidEntryInternalException, InvalidInputException {
+    void builderReturnsUserDtoWhenIRolesIsEmpty() {
         UserDto user = UserDto.newBuilder().withUsername(SOME_USERNAME)
             .withInstitution(SOME_INSTITUTION).build();
         assertThat(user.getUsername(), is(equalTo(SOME_USERNAME)));
@@ -160,7 +157,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void copyShouldCopyUserDto() throws InvalidEntryInternalException, InvalidInputException {
+    void copyShouldCopyUserDto() throws  InvalidInputException {
         UserDto initialUser = createUserWithRolesAndInstitution();
         UserDto copiedUser = initialUser.copy().build();
 
@@ -169,7 +166,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void userDtoIsSerialized() throws IOException, InvalidEntryInternalException, InvalidInputException {
+    void userDtoIsSerialized() throws IOException,  InvalidInputException {
         UserDto initialUser = createUserWithRolesAndInstitution();
 
         assertThat(initialUser, doesNotHaveNullOrEmptyFields());

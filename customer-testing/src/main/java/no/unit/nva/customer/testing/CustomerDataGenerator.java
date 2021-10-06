@@ -48,20 +48,24 @@ public class CustomerDataGenerator {
     }
 
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
-        return randomVocabularySettings()
+        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
+                                                     randomElement(VocabularyStatus.values()));
+        return Set.of(vocabulary)
             .stream()
             .map(VocabularyDao::toVocabularySettingsDto)
             .collect(Collectors.toSet());
     }
 
-    public static CustomerDao createSampleCustomerDb() {
+    public static CustomerDao createSampleCustomerDao() {
+        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
+                                                     randomElement(VocabularyStatus.values()));
         CustomerDao customer = CustomerDao.builder()
             .withIdentifier(randomIdentifier())
             .withName(randomString())
             .withModifiedDate(randomInstant())
             .withShortName(randomString())
             .withCristinId(randomString())
-            .withVocabularySettings(randomVocabularySettings())
+            .withVocabularySettings(Set.of(vocabulary))
             .withInstitutionDns(randomString())
             .withFeideOrganizationId(randomString())
             .withDisplayName(randomString())
@@ -71,12 +75,6 @@ public class CustomerDataGenerator {
             .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
-    }
-
-    public static Set<VocabularyDao> randomVocabularySettings() {
-        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
-                                                     randomElement(VocabularyStatus.values()));
-        return Set.of(vocabulary);
     }
 
     public static <T> T randomElement(T... values) {

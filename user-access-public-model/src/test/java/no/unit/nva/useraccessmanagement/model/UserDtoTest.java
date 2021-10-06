@@ -150,7 +150,7 @@ public class UserDtoTest extends DtoTest {
 
     @ParameterizedTest(name = "build throws exception when username is:\"{0}\"")
     @NullAndEmptySource
-    @ValueSource(strings = {" "})
+    @ValueSource(strings = {" ","\t","\n"})
     void buildThrowsExceptionWhenUsernameIsNullOrEmpty(String username) {
         Executable action = () -> UserDto.newBuilder().withUsername(username).build();
         assertThrows(RuntimeException.class, action);

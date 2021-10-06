@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class UserDbTest {
 
@@ -113,6 +114,7 @@ public class UserDbTest {
 
     @ParameterizedTest(name = "setUsername should throw exception when input is:\"{0}\"")
     @NullAndEmptySource
+    @ValueSource(strings = {" ","\t","","\n"})
     void setUsernameThrowsExceptionWhenUsernameIsNotValid(String invalidUsername) {
         UserDb userDb = new UserDb();
         assertThrows(InvalidEntryInternalException.class, () -> userDb.setUsername(invalidUsername));

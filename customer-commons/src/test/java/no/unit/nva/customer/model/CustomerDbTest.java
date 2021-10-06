@@ -38,7 +38,7 @@ class CustomerDbTest {
 
     @Test
     public void fromCustomerDbReturnsDbWithoutLossOfInformation() {
-        CustomerDto expected = crateSampleCustomerDto();
+        CustomerDto expected = createSampleCustomerDto();
         CustomerDao customerDb = CustomerDao.fromCustomerDto(expected);
         CustomerDto actual = customerDb.toCustomerDto();
         Diff diff = JAVERS.compare(expected, actual);
@@ -47,7 +47,7 @@ class CustomerDbTest {
         assertThat(actual, is(equalTo(expected)));
     }
 
-    private CustomerDto crateSampleCustomerDto() {
+    private CustomerDto createSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()

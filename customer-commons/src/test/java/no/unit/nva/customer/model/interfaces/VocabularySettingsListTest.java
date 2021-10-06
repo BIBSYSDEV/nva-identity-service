@@ -28,7 +28,7 @@ class VocabularySettingsListTest {
     @Test
     void serializationReturnsObjectWithIdEqualToTheGetPathForRetrievingTheVocabularyList()
         throws JsonProcessingException {
-        CustomerDto customer = CustomerDataGenerator.crateSampleCustomerDto();
+        CustomerDto customer = CustomerDataGenerator.createSampleCustomerDto();
         VocabularyList list = VocabularyList.fromCustomerDto(customer);
         URI expectedListId = URI.create(customer.getId() + "/vocabularies");
         ObjectNode json = toJson(list);
@@ -38,7 +38,7 @@ class VocabularySettingsListTest {
     }
 
     private VocabularyList randomVocabularyList() {
-        return VocabularyList.fromCustomerDto(CustomerDataGenerator.crateSampleCustomerDto());
+        return VocabularyList.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
     }
 
     private ObjectNode toJson(VocabularyList list) throws JsonProcessingException {

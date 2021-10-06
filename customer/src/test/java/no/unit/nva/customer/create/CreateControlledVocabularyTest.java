@@ -62,7 +62,7 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
     @Test
     public void handleRequestReturnsBadRequestWhenInputBodyIsNotValid()
         throws IOException {
-        CustomerDto invalidBody = CustomerDataGenerator.crateSampleCustomerDto();
+        CustomerDto invalidBody = CustomerDataGenerator.createSampleCustomerDto();
         InputStream request = addVocabularyForCustomer(existingIdentifier(), invalidBody,
                                                        MediaTypes.APPLICATION_JSON_LD);
         handler.handleRequest(request, outputStream, CONTEXT);
@@ -114,7 +114,7 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
 
     @Override
     protected CustomerDto createExistingCustomer() {
-        return CustomerDataGenerator.crateSampleCustomerDto().copy()
+        return CustomerDataGenerator.createSampleCustomerDto().copy()
             .withVocabularies(Collections.emptySet())
             .build();
     }

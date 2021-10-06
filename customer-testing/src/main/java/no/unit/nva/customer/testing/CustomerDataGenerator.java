@@ -23,7 +23,7 @@ public class CustomerDataGenerator {
     public static final Random RANDOM = new Random(System.currentTimeMillis());
     public static final Faker FAKER = Faker.instance();
 
-    public static CustomerDto crateSampleCustomerDto() {
+    public static CustomerDto createSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()

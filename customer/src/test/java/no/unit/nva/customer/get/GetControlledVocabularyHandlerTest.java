@@ -50,7 +50,7 @@ public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
         super.setupDatabase();
         this.outputStream = new ByteArrayOutputStream();
         customerService = new DynamoDBCustomerService(ddb, ObjectMapperConfig.objectMapper, environment);
-        existingCustomer = attempt(CustomerDataGenerator::crateSampleCustomerDto)
+        existingCustomer = attempt(CustomerDataGenerator::createSampleCustomerDto)
             .map(customerInput -> customerService.createCustomer(customerInput))
             .orElseThrow();
         handler = new GetControlledVocabularyHandler(customerService);

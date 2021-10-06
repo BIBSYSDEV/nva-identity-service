@@ -4,12 +4,14 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails;
 import no.unit.nva.useraccessmanagement.dao.UserDb.Builder;
@@ -48,6 +50,8 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     private String givenName;
     @JsonProperty("familyName")
     private String familyName;
+    @JsonProperty("viewingScope")
+    private Set<URI> viewingScope;
 
     public UserDb() {
         super();
@@ -62,6 +66,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         setRoles(builder.roles);
         setPrimaryHashKey(builder.primaryHashKey);
         setPrimaryRangeKey(builder.primaryRangeKey);
+        setViewingScope(builder.viewingScope);
     }
 
     public static Builder newBuilder() {
@@ -83,6 +88,14 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withRoles(createRoleDbList(userDto));
 
         return userDb.build();
+    }
+
+    public Set<URI> getViewingScope() {
+        return nonNull(viewingScope) ? viewingScope : Collections.emptySet();
+    }
+
+    public void setViewingScope(Set<URI> viewingScope) {
+        this.viewingScope = nonNull(viewingScope) ? viewingScope : Collections.emptySet();
     }
 
     /**
@@ -262,6 +275,13 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
 
     @Override
     @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getPrimaryHashKey(), getPrimaryRangeKey(), getUsername(), getInstitution(), getRoles(),
+                            getGivenName(), getFamilyName());
+    }
+
+    @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -271,19 +291,12 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         }
         UserDb userDb = (UserDb) o;
         return Objects.equals(getPrimaryHashKey(), userDb.getPrimaryHashKey())
-            && Objects.equals(getPrimaryRangeKey(), userDb.getPrimaryRangeKey())
-            && Objects.equals(getUsername(), userDb.getUsername())
-            && Objects.equals(getInstitution(), userDb.getInstitution())
-            && Objects.equals(getRoles(), userDb.getRoles())
-            && Objects.equals(getGivenName(), userDb.getGivenName())
-            && Objects.equals(getFamilyName(), userDb.getFamilyName());
-    }
-
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getPrimaryHashKey(), getPrimaryRangeKey(), getUsername(), getInstitution(), getRoles(),
-            getGivenName(), getFamilyName());
+               && Objects.equals(getPrimaryRangeKey(), userDb.getPrimaryRangeKey())
+               && Objects.equals(getUsername(), userDb.getUsername())
+               && Objects.equals(getInstitution(), userDb.getInstitution())
+               && Objects.equals(getRoles(), userDb.getRoles())
+               && Objects.equals(getGivenName(), userDb.getGivenName())
+               && Objects.equals(getFamilyName(), userDb.getFamilyName());
     }
 
     private static Collection<RoleDb> createRoleDbList(UserDto userDto) {
@@ -317,6 +330,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         private List<RoleDb> roles;
         private String primaryHashKey;
         private String primaryRangeKey;
+        private Set<URI> viewingScope;
 
         private Builder() {
         }
@@ -350,6 +364,11 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             this.primaryHashKey = formatPrimaryHashKey();
             this.primaryRangeKey = formatPrimaryRangeKey();
             return new UserDb(this);
+        }
+
+        public Builder withViewingScope(Set<URI> viewingScope) {
+            this.viewingScope = viewingScope;
+            return this;
         }
 
         /*For now the primary range key does not need to be different than the primary hash key*/

@@ -4,6 +4,7 @@ import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRol
 import static no.unit.nva.useraccessmanagement.dao.UserDb.ERROR_DUE_TO_INVALID_ROLE;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
@@ -14,8 +15,10 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.useraccessmanagement.dao.UserDb.Builder;
@@ -189,6 +192,16 @@ public class UserDbTest {
         UserDto userOnlyWithOnlyUsername = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
         UserDto actualUserOnlyWithName = convertToUserDbAndBack(userOnlyWithOnlyUsername);
         assertThat(actualUserOnlyWithName, is(equalTo(userOnlyWithOnlyUsername)));
+    }
+
+    @Test
+    void userDbContainsListOfCristinOrganizationIdsThatDefineCuratorsScope() throws InvalidEntryInternalException {
+        URI someCristinUnit= URI.create("https://api.cristin.no/v2/units/1.2.3.4");
+        URI someOtherCristinUnit= URI.create("https://api.cristin.no/v2/units/1.2.3.5");
+        UserDb userDb = UserDb.newBuilder().withUsername(SOME_USERNAME)
+                            .withViewingScope(Set.of(someCristinUnit, someOtherCristinUnit))
+                            .build();
+        assertThat(userDb.getViewingScope(),containsInAnyOrder(someCristinUnit,someOtherCristinUnit));
     }
 
     private static List<RoleDb> createSampleRoles() {

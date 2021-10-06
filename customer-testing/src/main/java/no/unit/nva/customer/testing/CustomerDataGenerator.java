@@ -1,6 +1,5 @@
 package no.unit.nva.customer.testing;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
 import com.github.javafaker.Faker;
@@ -35,7 +34,7 @@ public class CustomerDataGenerator {
             .withIdentifier(identifier)
             .withId(id)
             .withCname(randomString())
-            .withContext(LINKED_DATA_CONTEXT_VALUE)
+            .withContext(LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE)
             .withArchiveName(randomString())
             .withShortName(randomString())
             .withInstitutionDns(randomString())

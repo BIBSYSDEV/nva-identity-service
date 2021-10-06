@@ -27,7 +27,7 @@ public abstract class WriteControlledVocabularyHandler
         CustomerDto customer = customerService.getCustomer(identifier);
         customer = updateVocabularySettings(input, customer);
         CustomerDto updatedCustomer = customerService.updateCustomer(identifier, customer);
-        return new VocabularyList(updatedCustomer.getVocabularies());
+        return VocabularyList.fromCustomerDto(updatedCustomer);
     }
 
 }

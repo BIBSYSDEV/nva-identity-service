@@ -19,7 +19,7 @@ public final class LinkedDataContextUtils {
     private LinkedDataContextUtils() {
     }
 
-    public static CustomerDto addContext(CustomerDto customerDto) {
+    public static CustomerDto addContextAndId(CustomerDto customerDto) {
         return Optional.ofNullable(customerDto)
             .map(CustomerDto::copy)
             .map(copy -> copy.withContext(LINKED_DATA_CONTEXT_VALUE))

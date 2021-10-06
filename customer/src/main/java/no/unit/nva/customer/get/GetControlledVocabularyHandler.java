@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.interfaces.VocabularyList;
 import no.unit.nva.customer.service.CustomerService;
@@ -28,9 +29,8 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
     protected VocabularyList processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         UUID identifier = UUID.fromString(requestInfo.getPathParameter(IDENTIFIER_PATH_PARAMETER));
-        Set<VocabularyDto> vocabularySettings =
-            customerService.getCustomer(identifier).getVocabularies();
-        return new VocabularyList(vocabularySettings);
+        CustomerDto customerDto = customerService.getCustomer(identifier);
+        return VocabularyList.fromCustomerDto(customerDto);
     }
 
     @Override

@@ -231,7 +231,7 @@ public class CustomerDao implements Customer<VocabularyDao> {
             .withFeideOrganizationId(getFeideOrganizationId())
             .withCristinId(getCristinId())
             .build();
-        return LinkedDataContextUtils.addContext(customerDto);
+        return LinkedDataContextUtils.addContextAndId(customerDto);
     }
 
     private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {

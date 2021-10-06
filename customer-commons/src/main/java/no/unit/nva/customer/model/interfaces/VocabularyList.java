@@ -1,8 +1,8 @@
 package no.unit.nva.customer.model.interfaces;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -11,9 +11,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Set;
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.VocabularyDto;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 
 @SuppressWarnings("PMD.ExcessivePublicCount")
 @JsonTypeInfo(
@@ -26,10 +28,20 @@ public class VocabularyList implements Context {
     public static final String VOCABULARY_SETTINGS = "vocabularies";
     @JsonProperty(VOCABULARY_SETTINGS)
     private final Set<VocabularyDto> vocabularies;
+    @JsonProperty(LINKED_DATA_ID)
+    private final URI id;
 
     @JsonCreator
-    public <E> VocabularyList(@JsonProperty(VOCABULARY_SETTINGS) Set<VocabularyDto> vocabularySettings) {
-        this.vocabularies = vocabularySettings;
+    public VocabularyList(@JsonProperty(LINKED_DATA_ID) URI id,
+                          @JsonProperty(VOCABULARY_SETTINGS) Set<VocabularyDto> vocabularies) {
+        this.vocabularies = vocabularies;
+        this.id = id;
+    }
+
+    public static VocabularyList fromCustomerDto(CustomerDto customerDto) {
+        URI id = new UriWrapper(customerDto.getId()).addChild(VOCABULARY_SETTINGS).getUri();
+        Set<VocabularyDto> vocabularies = customerDto.getVocabularies();
+        return new VocabularyList(id, vocabularies);
     }
 
     public Set<VocabularyDto> getVocabularies() {
@@ -38,7 +50,7 @@ public class VocabularyList implements Context {
 
     @JsonProperty(LinkedDataContextUtils.LINKED_DATA_ID)
     public URI getId() {
-        return ID_NAMESPACE;
+        return id;
     }
 
     @Override

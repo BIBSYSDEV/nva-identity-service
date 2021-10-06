@@ -100,10 +100,8 @@ public class AddUserTest extends HandlerTest {
         assertThrows(ConflictException.class, action);
     }
 
-    @DisplayName("handleRequest() returns BadRequest when input user does not have a username")
     @Test
-    public void processInputThrowsConflictExceptionWhenInputUserDoesNotHaveUsername()
-        throws  IOException, NoSuchMethodException, IllegalAccessException,InvocationTargetException {
+    public void handleRequestReturnsBadRequestWhenInputUserDoesNotHaveUsername() throws  IOException {
 
         InputStream requestWithUserWithoutUsername = createRequestWithUserWithoutUsername();
         ByteArrayOutputStream outputStream = sendRequestToHandler(requestWithUserWithoutUsername);

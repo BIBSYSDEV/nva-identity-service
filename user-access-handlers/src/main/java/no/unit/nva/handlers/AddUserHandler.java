@@ -4,12 +4,9 @@ import com.amazonaws.services.lambda.runtime.Context;
 import no.unit.nva.database.DatabaseService;
 import no.unit.nva.database.DatabaseServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.apache.http.HttpStatus;
@@ -35,23 +32,13 @@ public class AddUserHandler extends HandlerWithEventualConsistency<UserDto, User
 
     @Override
     protected UserDto processInput(UserDto input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        tryAddingUser(input);
-        return getEventuallyConsistent(() -> getUser(input))
+        databaseService.addUser(input);
+        return getEventuallyConsistent(() -> databaseService.getUser(input))
             .orElseThrow(() -> new DataSyncException(SYNC_ERROR_MESSAGE + input.getUsername()));
     }
 
     @Override
     protected Integer getSuccessStatusCode(UserDto input, UserDto output) {
         return HttpStatus.SC_OK;
-    }
-
-    private void tryAddingUser(UserDto input)
-        throws ConflictException, InvalidInputException {
-        databaseService.addUser(input);
-    }
-
-    private UserDto getUser(UserDto input)
-        throws NotFoundException, InvalidInputException {
-        return databaseService.getUser(input);
     }
 }

@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessmanagement.model;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.util.ArrayList;
@@ -16,19 +16,19 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
 import no.unit.nva.useraccessmanagement.model.interfaces.Typed;
-import no.unit.nva.useraccessmanagement.model.interfaces.Validable;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonSerializable;
 import nva.commons.core.StringUtils;
 
 @JsonTypeName(UserDto.TYPE)
-public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, Typed {
+public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
 
     public static final String TYPE = "User";
     public static final String MISSING_FIELD_ERROR = "Invalid User. Missing obligatory field: ";
-
-    public static final String INVALID_USER_ERROR_MESSAGE = "Invalid user. User should have non-empty username.";
+    public static final String USERNAME_FIELD = "username";
     private List<RoleDto> roles;
+
+    @JsonProperty(USERNAME_FIELD)
     private String username;
     private String institution;
     private String givenName;
@@ -36,14 +36,6 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
 
     public UserDto() {
         roles = new ArrayList<>();
-    }
-
-    private UserDto(Builder builder) {
-        setUsername(builder.username);
-        setGivenName(builder.givenName);
-        setFamilyName(builder.familyName);
-        setInstitution(builder.institution);
-        setRoles(builder.roles);
     }
 
     /**
@@ -58,8 +50,8 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
     @JsonProperty("accessRights")
     public Set<String> getAccessRights() {
         return roles.stream()
-                   .flatMap(role -> role.getAccessRights().stream())
-                   .collect(Collectors.toSet());
+            .flatMap(role -> role.getAccessRights().stream())
+            .collect(Collectors.toSet());
     }
 
     public void setAccessRights(List<String> accessRights) {
@@ -70,7 +62,10 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
         return username;
     }
 
-    private void setUsername(String username) {
+    public void setUsername(String username) throws InvalidInputException {
+        if (StringUtils.isBlank(username)) {
+            throw new InvalidInputException(MISSING_FIELD_ERROR + "username");
+        }
         this.username = username;
     }
 
@@ -106,16 +101,6 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
         this.roles = roles;
     }
 
-    @Override
-    public boolean isValid() {
-        return !(isNull(username) || username.isBlank());
-    }
-
-    @Override
-    public InvalidInputException exceptionWhenInvalid() {
-        return new InvalidInputException(INVALID_USER_ERROR_MESSAGE);
-    }
-
     /**
      * Creates a copy of the object.
      *
@@ -124,11 +109,11 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
     @Override
     public UserDto.Builder copy() {
         return new Builder()
-                   .withUsername(username)
-                   .withGivenName(givenName)
-                   .withFamilyName(familyName)
-                   .withInstitution(institution)
-                   .withRoles(listRoles());
+            .withUsername(username)
+            .withGivenName(givenName)
+            .withFamilyName(familyName)
+            .withInstitution(institution)
+            .withRoles(listRoles());
     }
 
     @Override
@@ -166,52 +151,41 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Validable, 
 
     public static final class Builder {
 
-        private String username;
-        private String givenName;
-        private String familyName;
-        private String institution;
-        private List<RoleDto> roles;
+        private final UserDto userDto;
 
         private Builder() {
-            roles = Collections.emptyList();
-        }
-
-        public Builder withUsername(String username) {
-            this.username = username;
-            return this;
-        }
-
-        public Builder withInstitution(String institution) {
-            this.institution = institution;
-            return this;
-        }
-
-        public Builder withRoles(List<RoleDto> roles) {
-            this.roles = roles;
-            return this;
+            userDto = new UserDto();
         }
 
         public Builder withGivenName(String givenName) {
-            this.givenName = givenName;
+            userDto.setGivenName(givenName);
             return this;
         }
 
         public Builder withFamilyName(String familyName) {
-            this.familyName = familyName;
+            userDto.setFamilyName(familyName);
             return this;
         }
 
-        /**
-         * creates a UserDto instance.
-         *
-         * @return a {@link UserDto}
-         * @throws InvalidEntryInternalException when the used to be built is invalid.
-         */
-        public UserDto build() throws InvalidEntryInternalException {
-            if (StringUtils.isBlank(username)) {
-                throw new InvalidEntryInternalException(MISSING_FIELD_ERROR + "username");
-            }
-            return new UserDto(this);
+        public Builder withUsername(String username) {
+            return attempt(() -> {
+                userDto.setUsername(username);
+                return this;
+            }).orElseThrow(fail->new InvalidEntryInternalException(fail.getException()));
+        }
+
+        public Builder withInstitution(String institution) {
+            userDto.setInstitution(institution);
+            return this;
+        }
+
+        public Builder withRoles(List<RoleDto> listRoles) {
+            userDto.setRoles(listRoles);
+            return this;
+        }
+
+        public UserDto build() {
+            return userDto;
         }
     }
 }

@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import nva.commons.core.JsonSerializable;
 
@@ -45,9 +44,8 @@ public abstract class DynamoEntryWithRangeKey implements WithType, JsonSerializa
      * serializer.
      *
      * @param primaryRangeKey the primary hash key.
-     * @throws InvalidEntryInternalException when the serialization in invalid.
      */
-    public abstract void setPrimaryHashKey(String primaryRangeKey) throws InvalidEntryInternalException;
+    public abstract void setPrimaryHashKey(String primaryRangeKey);
 
     @JsonProperty(DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY)
     public abstract String getPrimaryRangeKey();
@@ -57,9 +55,8 @@ public abstract class DynamoEntryWithRangeKey implements WithType, JsonSerializa
      * serializer.
      *
      * @param primaryRangeKey the primary range key.
-     * @throws InvalidEntryInternalException when the serialization in invalid.
      */
-    public abstract void setPrimaryRangeKey(String primaryRangeKey) throws InvalidEntryInternalException;
+    public abstract void setPrimaryRangeKey(String primaryRangeKey);
 
     public Item toItem() {
         String jsonString = this.toJsonString();

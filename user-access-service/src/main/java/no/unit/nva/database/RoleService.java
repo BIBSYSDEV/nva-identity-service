@@ -5,7 +5,6 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import java.util.Optional;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -32,12 +31,10 @@ public class RoleService extends DatabaseSubService {
      * Add role to the database.
      *
      * @param roleDto the role to be added.
-     * @throws ConflictException             when a role with the same name exists.
-     * @throws InvalidInputException         when the input entry is not valid.
-     * @throws InvalidEntryInternalException when there is an entry in the database and that entry is not valid.
+     * @throws ConflictException     when a role with the same name exists.
+     * @throws InvalidInputException when the input entry is not valid.
      */
-    public void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException,
-                                                InvalidEntryInternalException {
+    public void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException {
 
         logger.debug(ADD_ROLE_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(roleDto));
 
@@ -51,10 +48,9 @@ public class RoleService extends DatabaseSubService {
      *
      * @param queryObject the query object containing the rolename.
      * @return the Role that corresponds to the given rolename.
-     * @throws NotFoundException             when a role with the specified name does not exist in the database.
-     * @throws InvalidEntryInternalException when the role stored in the database has invalid stucture.
+     * @throws NotFoundException when a role with the specified name does not exist in the database.
      */
-    public RoleDto getRole(RoleDto queryObject) throws NotFoundException, InvalidEntryInternalException {
+    public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
         return getRoleAsOptional(queryObject)
             .orElseThrow(() -> handleRoleNotFound(queryObject));
     }
@@ -69,22 +65,22 @@ public class RoleService extends DatabaseSubService {
         return new NotFoundException(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName());
     }
 
-    private Optional<RoleDto> getRoleAsOptional(RoleDto queryObject) throws InvalidEntryInternalException {
+    private Optional<RoleDto> getRoleAsOptional(RoleDto queryObject) {
         logger.debug(GET_ROLE_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
         return Optional.ofNullable(attemptFetchRole(queryObject));
     }
 
-    private void checkRoleDoesNotExist(RoleDto roleDto) throws ConflictException, InvalidEntryInternalException {
+    private void checkRoleDoesNotExist(RoleDto roleDto) throws ConflictException {
         if (roleAlreadyExists(roleDto)) {
             throw new ConflictException(ROLE_ALREADY_EXISTS_ERROR_MESSAGE + roleDto.getRoleName());
         }
     }
 
-    private boolean roleAlreadyExists(RoleDto roleDto) throws InvalidEntryInternalException {
+    private boolean roleAlreadyExists(RoleDto roleDto) {
         return getRoleAsOptional(roleDto).isPresent();
     }
 
-    private RoleDto attemptFetchRole(RoleDto queryObject) throws InvalidEntryInternalException {
+    private RoleDto attemptFetchRole(RoleDto queryObject) {
         RoleDb roledb = Try.of(queryObject)
             .map(RoleDb::fromRoleDto)
             .map(this::fetchRoleDao)

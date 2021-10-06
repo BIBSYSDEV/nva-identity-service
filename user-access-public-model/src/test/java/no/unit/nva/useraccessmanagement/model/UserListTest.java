@@ -8,12 +8,13 @@ import static org.hamcrest.core.IsSame.sameInstance;
 import java.util.Collections;
 import java.util.List;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import org.junit.jupiter.api.Test;
 
 public class UserListTest {
 
     @Test
-    public void fromUserListWrapsAListInTheUserList() throws InvalidEntryInternalException {
+    public void fromUserListWrapsAListInTheUserList() throws InvalidEntryInternalException, InvalidInputException {
         UserDto user = UserDto.newBuilder().withUsername("SomeUsername").build();
         List<UserDto> list = Collections.singletonList(user);
         UserList userList = UserList.fromList(list);

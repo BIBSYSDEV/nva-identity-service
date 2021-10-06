@@ -8,7 +8,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import java.util.List;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -45,7 +45,8 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public UserDto getUser(UserDto queryObject) throws InvalidEntryInternalException, NotFoundException {
+    public UserDto getUser(UserDto queryObject)
+        throws NotFoundException, InvalidInputException {
         return userService.getUser(queryObject);
     }
 
@@ -55,24 +56,24 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public void addUser(UserDto user) throws InvalidEntryInternalException, ConflictException, InvalidInputException {
+    public void addUser(UserDto user) throws ConflictException, InvalidInputException {
         this.userService.addUser(user);
     }
 
     @Override
     public void addRole(RoleDto roleDto)
-        throws InvalidInputException, InvalidEntryInternalException, ConflictException {
+        throws InvalidInputException, ConflictException {
         this.roleService.addRole(roleDto);
     }
 
     @Override
     public void updateUser(UserDto user)
-        throws InvalidEntryInternalException, InvalidInputException, NotFoundException {
+        throws InvalidInputException, NotFoundException {
         this.userService.updateUser(user);
     }
 
     @Override
-    public RoleDto getRole(RoleDto queryObject) throws InvalidEntryInternalException, NotFoundException {
+    public RoleDto getRole(RoleDto queryObject) throws  NotFoundException {
         return this.roleService.getRole(queryObject);
     }
 

@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
@@ -101,8 +100,7 @@ public class UserService {
                    .orElseThrow();
     }
 
-    private UserDto createUserWithoutInstitution(UserDetails userDetails)
-        throws InvalidEntryInternalException {
+    private UserDto createUserWithoutInstitution(UserDetails userDetails) {
         return UserDto.newBuilder().withUsername(userDetails.getFeideId())
                    .withGivenName(userDetails.getGivenName())
                    .withFamilyName(userDetails.getFamilyName())
@@ -110,7 +108,7 @@ public class UserService {
                    .build();
     }
 
-    private UserDto createUserForInstitution(UserDetails userDetails) throws InvalidEntryInternalException {
+    private UserDto createUserForInstitution(UserDetails userDetails)  {
         List<RoleDto> roles = createRolesFromAffiliation(userDetails.getAffiliation()).stream()
                                   .map(attempt(roleName -> RoleDto.newBuilder().withName(roleName).build()))
                                   .map(Try::orElseThrow)

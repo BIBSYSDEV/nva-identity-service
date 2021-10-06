@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
@@ -21,38 +22,7 @@ public final class EntityUtils {
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
 
-    /**
-     * Creates a user without a username. For testing output on invalid input.
-     *
-     * @return a {@link UserDto}
-     * @throws InvalidEntryInternalException when the added role is invalid.
-     * @throws InvalidEntryInternalException unlikely.  The object is intentionally invalid.
-     * @throws NoSuchMethodException         reflection related.
-     * @throws InvocationTargetException     reflection related.
-     * @throws IllegalAccessException        reflection related.
-     */
-    public static UserDto createUserWithoutUsername()
-        throws InvalidEntryInternalException, NoSuchMethodException,
-               InvocationTargetException, IllegalAccessException {
-        UserDto userWithoutUsername = createUserWithRolesAndInstitution();
-        Method method = userWithoutUsername.getClass().getDeclaredMethod("setUsername", String.class);
-        method.setAccessible(true);
-        method.invoke(userWithoutUsername, EMPTY_STRING);
 
-        return userWithoutUsername;
-    }
-
-    /**
-     * Intention is to create a user with all fields filled.
-     *
-     * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
-     */
-    public static UserDto createUserWithRolesAndInstitution()
-        throws InvalidEntryInternalException {
-        return createUserWithRoleWithoutInstitution().copy()
-            .withInstitution(SOME_INSTITUTION)
-            .build();
-    }
 
     /**
      * Creates a a user with username and a role but without institution.
@@ -61,7 +31,7 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
     public static UserDto createUserWithRoleWithoutInstitution()
-        throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException, InvalidInputException {
         RoleDto sampleRole = createRole(SOME_ROLENAME);
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)

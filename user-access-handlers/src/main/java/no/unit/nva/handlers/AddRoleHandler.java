@@ -5,7 +5,6 @@ import java.net.HttpURLConnection;
 import no.unit.nva.database.DatabaseService;
 import no.unit.nva.database.DatabaseServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.apigateway.RequestInfo;
@@ -38,13 +37,13 @@ public class AddRoleHandler extends HandlerWithEventualConsistency<RoleDto, Role
 
     @Override
     protected RoleDto processInput(RoleDto input, RequestInfo requestInfo, Context context)
-        throws DataSyncException, ConflictException, InvalidInputException, InvalidEntryInternalException {
+        throws DataSyncException, ConflictException, InvalidInputException {
         databaseService.addRole(input);
         return getEventuallyConsistent(() -> getRole(input))
             .orElseThrow(() -> new DataSyncException(ERROR_FETCHING_SAVED_ROLE + input.getRoleName()));
     }
 
-    private RoleDto getRole(RoleDto input) throws NotFoundException, InvalidEntryInternalException {
+    private RoleDto getRole(RoleDto input) throws NotFoundException {
         return databaseService.getRole(input);
     }
 

@@ -40,21 +40,6 @@ public class DatabaseServiceImplTest extends DatabaseAccessor {
     }
 
     @Test
-    public void getUserThrowsInvalidEntryInternalExceptionWhenItReceivesInvalidUserFromDatabase() {
-
-        UserDb userWithoutUsername = new UserDb();
-        userWithoutUsername.setInstitution(SOME_INSTITUTION);
-
-        DatabaseService service = mockServiceReceivingInvalidUserDbInstance();
-
-        Executable action = () -> service.getUser(someUser);
-        InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
-
-        String expectedMessageContent = UserDto.MISSING_FIELD_ERROR;
-        assertThat(exception.getMessage(), containsString(expectedMessageContent));
-    }
-
-    @Test
     public void getRoleExceptionWhenItReceivesInvalidRoleFromDatabase()
         throws InvalidEntryInternalException {
 

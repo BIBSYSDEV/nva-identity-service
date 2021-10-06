@@ -29,7 +29,7 @@ public class RoleDto implements WithCopy<Builder>, JsonSerializable, Validable, 
         accessRights = Collections.emptySet();
     }
 
-    private RoleDto(Builder builder) throws InvalidEntryInternalException {
+    private RoleDto(Builder builder)  {
         this();
         setRoleName(builder.roleName);
         setAccessRights(builder.accessRights);
@@ -121,7 +121,7 @@ public class RoleDto implements WithCopy<Builder>, JsonSerializable, Validable, 
             return this;
         }
 
-        public RoleDto build() throws InvalidEntryInternalException {
+        public RoleDto build()  {
             return new RoleDto(this);
         }
     }

@@ -1,7 +1,6 @@
 package no.unit.nva.database;
 
 import java.util.List;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -12,17 +11,15 @@ public interface DatabaseService {
 
     String USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE = "USERS_AND_ROLES_TABLE";
 
-    UserDto getUser(UserDto queryObject) throws InvalidEntryInternalException, NotFoundException;
+    UserDto getUser(UserDto queryObject) throws  NotFoundException, InvalidInputException;
 
-    List<UserDto> listUsers(String institutionId) throws InvalidEntryInternalException;
+    List<UserDto> listUsers(String institutionId);
 
-    void addUser(UserDto user) throws InvalidEntryInternalException, ConflictException, InvalidInputException;
+    void addUser(UserDto user) throws ConflictException, InvalidInputException;
 
-    void addRole(RoleDto roleDto)
-        throws ConflictException, InvalidInputException, InvalidEntryInternalException;
+    void addRole(RoleDto roleDto)throws ConflictException, InvalidInputException;
 
-    void updateUser(UserDto user)
-        throws InvalidEntryInternalException, NotFoundException, InvalidInputException;
+    void updateUser(UserDto user)throws NotFoundException, InvalidInputException;
 
-    RoleDto getRole(RoleDto input) throws InvalidEntryInternalException, NotFoundException;
+    RoleDto getRole(RoleDto input) throws  NotFoundException;
 }

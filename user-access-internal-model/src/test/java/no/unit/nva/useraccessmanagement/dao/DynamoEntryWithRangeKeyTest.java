@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -26,7 +27,7 @@ class DynamoEntryWithRangeKeyTest {
     @Test
     public void fromItemReturnsEntryWithoutDataLoss() throws InvalidEntryInternalException {
         UserDb expectedUser = createSampleUser();
-        assertThat(expectedUser, doesNotHaveNullOrEmptyFields());
+        assertThat(expectedUser, doesNotHaveEmptyValues());
         Item item = expectedUser.toItem();
         UserDb actualUser = UserDb.fromItem(item, UserDb.class);
 
@@ -38,14 +39,13 @@ class DynamoEntryWithRangeKeyTest {
             .withName(SOME_ROLE_NAME)
             .withAccessRights(Collections.singleton(SOME_ACCESS_RIGHT))
             .build();
-        UserDb sampleUser = UserDb.newBuilder()
+        return UserDb.newBuilder()
             .withUsername(SOME_USER_NAME)
             .withFamilyName(SOME_FAMILY_NAME)
             .withGivenName(SOME_GIVEN_NAME)
             .withInstitution(SOME_INSTITUTION)
             .withRoles(Collections.singletonList(sampleRole))
             .build();
-        return sampleUser;
     }
 
     @Test

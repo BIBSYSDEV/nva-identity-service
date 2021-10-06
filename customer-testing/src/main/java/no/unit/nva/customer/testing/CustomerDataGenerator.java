@@ -48,8 +48,7 @@ public class CustomerDataGenerator {
     }
 
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
-        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
-                                                     randomElement(VocabularyStatus.values()));
+        VocabularyDao vocabulary = randomVocabulary();
         return Set.of(vocabulary)
             .stream()
             .map(VocabularyDao::toVocabularySettingsDto)
@@ -57,8 +56,7 @@ public class CustomerDataGenerator {
     }
 
     public static CustomerDao createSampleCustomerDao() {
-        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
-                                                     randomElement(VocabularyStatus.values()));
+        VocabularyDao vocabulary = randomVocabulary();
         CustomerDao customer = CustomerDao.builder()
             .withIdentifier(randomIdentifier())
             .withName(randomString())
@@ -96,6 +94,11 @@ public class CustomerDataGenerator {
 
     public static UUID randomIdentifier() {
         return UUID.randomUUID();
+    }
+
+    private static VocabularyDao randomVocabulary() {
+        return new VocabularyDao(randomString(), randomUri(),
+                                 randomElement(VocabularyStatus.values()));
     }
 }
 

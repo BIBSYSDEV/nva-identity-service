@@ -72,7 +72,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
     }
 
     protected VocabularyList createRandomVocabularyList() {
-        return  VocabularyList.fromCustomerDto(CustomerDataGenerator.crateSampleCustomerDto());
+        return  VocabularyList.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
     }
 
     protected <T> InputStream addVocabularyForCustomer(UUID customerIdentifer, T expectedBody,

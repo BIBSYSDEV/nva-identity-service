@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation project (":customer-commons")
     implementation libs.dynamoDbLocal
     implementation libs.aws.dynamodb
     implementation libs.bundles.jackson

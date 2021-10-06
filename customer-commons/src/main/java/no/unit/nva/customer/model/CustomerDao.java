@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.interfaces.Customer;
 import nva.commons.core.JacocoGenerated;
+
 @JsonTypeInfo(
     use = Id.NAME,
     include = As.PROPERTY,
@@ -231,7 +232,7 @@ public class CustomerDao implements Customer<VocabularyDao> {
             .withFeideOrganizationId(getFeideOrganizationId())
             .withCristinId(getCristinId())
             .build();
-        return LinkedDataContextUtils.addContext(customerDto);
+        return LinkedDataContextUtils.addContextAndId(customerDto);
     }
 
     private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {

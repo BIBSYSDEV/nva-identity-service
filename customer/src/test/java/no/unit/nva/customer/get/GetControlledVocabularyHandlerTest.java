@@ -1,6 +1,5 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
@@ -18,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -50,8 +50,9 @@ public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
         super.setupDatabase();
         this.outputStream = new ByteArrayOutputStream();
         customerService = new DynamoDBCustomerService(ddb, ObjectMapperConfig.objectMapper, environment);
-        existingCustomer = CustomerDataGenerator.crateSampleCustomerDto();
-        attempt(() -> customerService.createCustomer(existingCustomer)).orElseThrow();
+        existingCustomer = attempt(CustomerDataGenerator::createSampleCustomerDto)
+            .map(customerInput -> customerService.createCustomer(customerInput))
+            .orElseThrow();
         handler = new GetControlledVocabularyHandler(customerService);
     }
 
@@ -76,14 +77,15 @@ public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void handleRequestReturnsListWithIdEqualToTheNamespaceOfCustomers() throws IOException {
+    public void handleRequestReturnsListWithIdEqualToTheGetPathOfTheResource() throws IOException {
         InputStream request = createRequestWithMediaType(existingCustomer.getIdentifier(),
                                                          MediaTypes.APPLICATION_JSON_LD);
         handler.handleRequest(request, outputStream, CONTEXT);
         GatewayResponse<ObjectNode> response = GatewayResponse.fromOutputStream(outputStream);
         ObjectNode body = response.getBodyObject(ObjectNode.class);
         String idValue = body.get(LINKED_DATA_ID).textValue();
-        assertThat(idValue, is(equalTo(ID_NAMESPACE.toString())));
+        URI expectedId = URI.create(existingCustomer.getId().toString() + "/vocabularies");
+        assertThat(idValue, is(equalTo(expectedId.toString())));
     }
 
     @Test

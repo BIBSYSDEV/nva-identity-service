@@ -3,6 +3,7 @@ package no.unit.nva.customer.model;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
+import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -16,19 +17,17 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import no.unit.nva.customer.ObjectMapperConfig;
+import no.unit.nva.customer.RestConfig;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 public class CustomerTest {
 
-    private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
-
     @Test
     public void customerMappedToJsonAndBack() throws JsonProcessingException {
         CustomerDao customer = createCustomerDb();
-        CustomerDao mappedCustomer =
-            objectMapper.readValue(objectMapper.writeValueAsString(customer), CustomerDao.class);
+        CustomerDao mappedCustomer = defaultDynamoConfigMapper.readValue(
+                defaultDynamoConfigMapper.writeValueAsString(customer), CustomerDao.class);
 
         assertEquals(customer, mappedCustomer);
         assertThat(customer, doesNotHaveEmptyValues());

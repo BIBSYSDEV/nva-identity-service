@@ -1,12 +1,12 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_USERNAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createRole;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createUserWithRoleWithoutInstitution;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createUserWithRolesAndInstitution;
-import static nva.commons.core.JsonUtils.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -53,7 +53,7 @@ public class UserDtoTest extends DtoTest {
     @Test
     public void userDtoSerializedObjectContainsTypeWithValueUser()throws InvalidInputException {
         UserDto sampleUser = createUserWithRolesAndInstitution();
-        ObjectNode json = objectMapper.convertValue(sampleUser, ObjectNode.class);
+        ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
 
         String actualType = json.get(JSON_TYPE_ATTRIBUTE).asText();
         assertThat(actualType, is(equalTo(USER_TYPE_LITERAL)));
@@ -63,11 +63,11 @@ public class UserDtoTest extends DtoTest {
     @Test
     public void userDtoCannotBeCreatedWithoutTypeValue() throws  JsonProcessingException, InvalidInputException {
         UserDto sampleUser = createUserWithRolesAndInstitution();
-        ObjectNode json = objectMapper.convertValue(sampleUser, ObjectNode.class);
+        ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
         JsonNode objectWithoutType = json.remove(JSON_TYPE_ATTRIBUTE);
-        String jsonStringWithoutType = objectMapper.writeValueAsString(objectWithoutType);
+        String jsonStringWithoutType = defaultRestObjectMapper.writeValueAsString(objectWithoutType);
 
-        Executable action = () -> objectMapper.readValue(jsonStringWithoutType, UserDto.class);
+        Executable action = () -> defaultRestObjectMapper.readValue(jsonStringWithoutType, UserDto.class);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
         assertThat(exception.getMessage(), containsString(UserDto.TYPE));
     }
@@ -77,12 +77,12 @@ public class UserDtoTest extends DtoTest {
     public void userDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
         throws InvalidEntryInternalException, IOException, InvalidInputException {
         UserDto sampleUser = createUserWithRolesAndInstitution();
-        ObjectNode json = objectMapper.convertValue(sampleUser, ObjectNode.class);
+        ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
         assertThatSerializedItemContainsType(json, USER_TYPE_LITERAL);
 
-        String jsonStringWithType = objectMapper.writeValueAsString(json);
+        String jsonStringWithType = defaultRestObjectMapper.writeValueAsString(json);
 
-        UserDto deserializedItem = objectMapper.readValue(jsonStringWithType, UserDto.class);
+        UserDto deserializedItem = defaultRestObjectMapper.readValue(jsonStringWithType, UserDto.class);
 
         assertThat(deserializedItem, is(equalTo(sampleUser)));
         assertThat(deserializedItem, is(not(sameInstance(sampleUser))));
@@ -171,12 +171,12 @@ public class UserDtoTest extends DtoTest {
 
         assertThat(initialUser, doesNotHaveNullOrEmptyFields());
 
-        String jsonString = objectMapper.writeValueAsString(initialUser);
-        JsonNode actualJson = objectMapper.readTree(jsonString);
-        JsonNode expectedJson = objectMapper.convertValue(initialUser, JsonNode.class);
+        String jsonString = defaultRestObjectMapper.writeValueAsString(initialUser);
+        JsonNode actualJson = defaultRestObjectMapper.readTree(jsonString);
+        JsonNode expectedJson = defaultRestObjectMapper.convertValue(initialUser, JsonNode.class);
         assertThat(actualJson, is(equalTo(expectedJson)));
 
-        UserDto deserializedObject = objectMapper.readValue(jsonString, UserDto.class);
+        UserDto deserializedObject = defaultRestObjectMapper.readValue(jsonString, UserDto.class);
         assertThat(deserializedObject, is(equalTo(initialUser)));
         assertThat(deserializedObject, is(not(sameInstance(initialUser))));
     }

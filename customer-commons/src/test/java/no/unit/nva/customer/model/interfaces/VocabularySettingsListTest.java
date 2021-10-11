@@ -1,5 +1,14 @@
 package no.unit.nva.customer.model.interfaces;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
+import org.junit.jupiter.api.Test;
+
+import java.net.URI;
+
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
@@ -8,13 +17,6 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.net.URI;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.testing.CustomerDataGenerator;
-import nva.commons.core.JsonUtils;
-import org.junit.jupiter.api.Test;
 
 class VocabularySettingsListTest {
 
@@ -42,7 +44,7 @@ class VocabularySettingsListTest {
     }
 
     private ObjectNode toJson(VocabularyList list) throws JsonProcessingException {
-        String jsonString = JsonUtils.objectMapperWithEmpty.writeValueAsString(list);
-        return (ObjectNode) JsonUtils.objectMapperWithEmpty.readTree(jsonString);
+        String jsonString = defaultRestObjectMapper.writeValueAsString(list);
+        return (ObjectNode) defaultRestObjectMapper.readTree(jsonString);
     }
 }

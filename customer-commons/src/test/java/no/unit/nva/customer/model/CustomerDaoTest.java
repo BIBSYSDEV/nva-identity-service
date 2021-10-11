@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomInstant;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
@@ -13,7 +14,9 @@ import java.net.URI;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import no.unit.nva.customer.ObjectMapperConfig;
+
+import no.unit.nva.customer.DynamoConfig;
+import no.unit.nva.customer.RestConfig;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
@@ -49,19 +52,19 @@ class CustomerDaoTest {
     @Test
     void daoCanBeDeserializedWhenJsonDoesNotIncludeType() throws JsonProcessingException {
         CustomerDao someDao = sampleCustomerDao();
-        ObjectNode json = ObjectMapperConfig.objectMapper.convertValue(someDao, ObjectNode.class);
+        ObjectNode json = defaultDynamoConfigMapper.convertValue(someDao, ObjectNode.class);
         json.remove("type");
-        CustomerDao deserialized = ObjectMapperConfig.objectMapper.readValue(json.toString(), CustomerDao.class);
+        CustomerDao deserialized = defaultDynamoConfigMapper.readValue(json.toString(), CustomerDao.class);
         assertThat(deserialized, is(equalTo(someDao)));
     }
 
     @Test
     void daoIsSerializedWithType() throws JsonProcessingException {
         CustomerDao someDao = sampleCustomerDao();
-        ObjectNode json = ObjectMapperConfig.objectMapper.convertValue(someDao, ObjectNode.class);
+        ObjectNode json = defaultDynamoConfigMapper.convertValue(someDao, ObjectNode.class);
         assertThat(json.has("type"), is((true)));
 
-        CustomerDao deserialized = ObjectMapperConfig.objectMapper.readValue(json.toString(), CustomerDao.class);
+        CustomerDao deserialized = defaultDynamoConfigMapper.readValue(json.toString(), CustomerDao.class);
         assertThat(deserialized, is(equalTo(someDao)));
     }
 

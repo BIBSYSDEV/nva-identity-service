@@ -1,7 +1,8 @@
 package no.unit.nva.customer.testing;
 
 import static no.unit.nva.customer.ControlledVocabularyHandler.IDENTIFIER_PATH_PARAMETER;
-import static no.unit.nva.customer.ObjectMapperConfig.objectMapper;
+import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.Is.is;
@@ -25,7 +26,6 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
-import nva.commons.core.JsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 
 public abstract class CreateUpdateControlledVocabularySettingsTests extends CustomerDynamoDBLocal {
@@ -40,7 +40,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
     public void init() throws ApiGatewayException {
         super.setupDatabase();
         customerService = new DynamoDBCustomerService(this.ddb,
-                                                      objectMapper,
+                                                      defaultDynamoConfigMapper,
                                                       new Environment());
         existingCustomer = createExistingCustomer();
         customerService.createCustomer(existingCustomer);
@@ -78,7 +78,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
     protected <T> InputStream addVocabularyForCustomer(UUID customerIdentifer, T expectedBody,
                                                        MediaType acceptedMediaType)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<T>(objectMapper)
+        return new HandlerRequestBuilder<T>(defaultRestObjectMapper)
             .withPathParameters(identifierToPathParameter(customerIdentifer))
             .withBody(expectedBody)
             .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()))
@@ -91,7 +91,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
 
     protected InputStream createGetRequest(UUID identifier, MediaType acceptHeader)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(JsonUtils.objectMapperWithEmpty)
+        return new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withPathParameters(Map.of("identifier", identifier.toString()))
             .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
             .build();

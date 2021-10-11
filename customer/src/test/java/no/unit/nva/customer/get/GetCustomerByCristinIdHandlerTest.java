@@ -1,8 +1,8 @@
 package no.unit.nva.customer.get;
 
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static nva.commons.core.JsonUtils.objectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
+
 import no.unit.nva.customer.exception.NotFoundException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
@@ -55,7 +56,7 @@ public class GetCustomerByCristinIdHandlerTest {
         prepareMocksWithExistingCustomer();
 
         Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, SAMPLE_CRISTIN_ID);
-        InputStream inputStream = new HandlerRequestBuilder<Void>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
             .build();
@@ -73,7 +74,7 @@ public class GetCustomerByCristinIdHandlerTest {
         prepareMocksWithMissingCustomer();
 
         Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, SAMPLE_CRISTIN_ID);
-        InputStream inputStream = new HandlerRequestBuilder<Void>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
             .build();

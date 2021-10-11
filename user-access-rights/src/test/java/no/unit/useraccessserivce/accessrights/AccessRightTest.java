@@ -7,6 +7,8 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import nva.commons.core.JsonUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.function.Executable;
 class AccessRightTest {
 
     public static final String APPROVE_DOI_REQUEST_STRING = "\"APPROVE_DOI_REQUEST\"";
+    public static final ObjectMapper objectMapper = JsonUtils.dynamoObjectMapper;
 
     @Test
     public void fromStringParsesStringCaseInsensitive() {
@@ -32,7 +35,7 @@ class AccessRightTest {
 
     @Test
     public void accessRightIsSerializedUpperCase() throws JsonProcessingException {
-        String value = JsonUtils.objectMapper.writeValueAsString(AccessRight.APPROVE_DOI_REQUEST);
+        String value = objectMapper.writeValueAsString(AccessRight.APPROVE_DOI_REQUEST);
         String expectedValue = APPROVE_DOI_REQUEST_STRING;
         assertThat(value, is(equalTo(expectedValue)));
     }
@@ -40,7 +43,7 @@ class AccessRightTest {
     @Test
     public void accessRightIsDeserializedFromString() throws IOException {
         String accessRightString = APPROVE_DOI_REQUEST_STRING;
-        AccessRight accessRight = JsonUtils.objectMapper.readValue(accessRightString, AccessRight.class);
+        AccessRight accessRight = objectMapper.readValue(accessRightString, AccessRight.class);
         assertThat(accessRight, is(equalTo(AccessRight.APPROVE_DOI_REQUEST)));
     }
 }

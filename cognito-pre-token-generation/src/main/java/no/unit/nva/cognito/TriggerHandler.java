@@ -3,6 +3,7 @@ package no.unit.nva.cognito;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.util.OrgNumberCleaner.removeCountryPrefix;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static nva.commons.core.StringUtils.isNotBlank;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -24,6 +25,7 @@ import no.unit.nva.cognito.service.UserDbClient;
 import no.unit.nva.cognito.service.UserDetails;
 import no.unit.nva.cognito.service.UserPoolEntryUpdater;
 import no.unit.nva.cognito.service.UserService;
+import no.unit.nva.customer.RestConfig;
 import no.unit.nva.database.DatabaseServiceImpl;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
@@ -128,7 +130,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
      * @return event
      */
     private Event parseEventFromInput(Map<String, Object> input) {
-        return JsonUtils.dtoObjectMapper.convertValue(input, Event.class);
+        return defaultRestObjectMapper.convertValue(input, Event.class);
     }
 
     private void updateUserDetailsInUserPool(UserDetails userDetails,UserDto user) {

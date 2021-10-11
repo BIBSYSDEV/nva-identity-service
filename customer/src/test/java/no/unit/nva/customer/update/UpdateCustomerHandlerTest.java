@@ -1,5 +1,6 @@
 package no.unit.nva.customer.update;
 
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getErrorResponseHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
@@ -15,13 +16,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.zalando.problem.Status.BAD_REQUEST;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
-import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -40,8 +39,6 @@ public class UpdateCustomerHandlerTest {
 
     public static final String WILDCARD = "*";
     public static final String REQUEST_ID = "requestId";
-
-    private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
 
     private CustomerService customerServiceMock;
     private UpdateCustomerHandler handler;
@@ -83,7 +80,7 @@ public class UpdateCustomerHandlerTest {
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(defaultRestObjectMapper)
             .withBody(customer)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
@@ -91,12 +88,12 @@ public class UpdateCustomerHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerDto> actual = objectMapper.readValue(
+        GatewayResponse<CustomerDto> actual = defaultRestObjectMapper.readValue(
             outputStream.toByteArray(),
             GatewayResponse.class);
 
         GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
-            customer,
+            defaultRestObjectMapper.writeValueAsString(customer),
             getResponseHeaders(),
             HttpStatus.SC_OK
         );
@@ -112,7 +109,7 @@ public class UpdateCustomerHandlerTest {
 
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, malformedIdentifier);
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(defaultRestObjectMapper)
             .withBody(customer)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
@@ -120,17 +117,19 @@ public class UpdateCustomerHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<Problem> actual = objectMapper.readValue(
+        GatewayResponse<Problem> actual = defaultRestObjectMapper.readValue(
             outputStream.toByteArray(),
             GatewayResponse.class);
 
-        GatewayResponse<Problem> expected = new GatewayResponse<>(
-            Problem.builder()
+        Problem problem = Problem.builder()
                 .withStatus(BAD_REQUEST)
                 .withTitle(BAD_REQUEST.getReasonPhrase())
                 .withDetail(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID + malformedIdentifier)
                 .with(REQUEST_ID, null)
-                .build(),
+                .build();
+
+        GatewayResponse<Problem> expected = new GatewayResponse<>(
+            defaultRestObjectMapper.writeValueAsString(problem),
             getErrorResponseHeaders(),
             SC_BAD_REQUEST
         );

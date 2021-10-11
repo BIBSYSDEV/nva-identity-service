@@ -1,27 +1,10 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
-import static nva.commons.core.attempt.Try.attempt;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.interfaces.VocabularyList;
@@ -32,9 +15,28 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.core.Environment;
-import nva.commons.core.JsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
+import static nva.commons.core.attempt.Try.attempt;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.Mockito.mock;
 
 public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
 
@@ -49,7 +51,7 @@ public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
     public void init() {
         super.setupDatabase();
         this.outputStream = new ByteArrayOutputStream();
-        customerService = new DynamoDBCustomerService(ddb, ObjectMapperConfig.objectMapper, environment);
+        customerService = new DynamoDBCustomerService(ddb, defaultDynamoConfigMapper, environment);
         existingCustomer = attempt(CustomerDataGenerator::createSampleCustomerDto)
             .map(customerInput -> customerService.createCustomer(customerInput))
             .orElseThrow();
@@ -132,7 +134,7 @@ public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
 
     private InputStream createRequestWithMediaType(UUID identifier, MediaType acceptHeader)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(JsonUtils.objectMapperWithEmpty)
+        return new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withPathParameters(Map.of("identifier", identifier.toString()))
             .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
             .build();

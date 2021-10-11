@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDb.ERROR_DUE_TO_INVALID_ROLE;
 import static nva.commons.core.attempt.Try.attempt;
@@ -18,11 +19,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.core.JsonUtils;
 import nva.commons.core.attempt.Try;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
@@ -123,7 +124,7 @@ public class UserDbTest {
     @Test
     void serializationThrowsExceptionWhenUserHasNullUserName() {
         UserDb userDb = new UserDb();
-        Executable action = () -> JsonUtils.objectMapperWithEmpty.writeValueAsString(userDb);
+        Executable action = () -> defaultDynamoConfigMapper.writeValueAsString(userDb);
         JsonMappingException thrownException = assertThrows(JsonMappingException.class, action);
         assertThat(thrownException.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
     }

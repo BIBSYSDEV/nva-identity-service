@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation project (":user-access-errors")
+    implementation libs.nva.core
     implementation libs.nva.apigateway
     implementation libs.bundles.jackson
     testImplementation libs.bundles.testing

@@ -1,6 +1,6 @@
 package no.unit.nva.handlers;
 
-import static nva.commons.core.JsonUtils.objectMapper;
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -63,13 +63,13 @@ public class HandlerTest extends DatabaseAccessor {
 
     protected <T> InputStream createRequestInputStream(T bodyObject)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<T>(objectMapper)
+        return new HandlerRequestBuilder<T>(defaultRestObjectMapper)
             .withBody(bodyObject)
             .build();
     }
 
     protected <I> ObjectNode createInputObjectWithoutType(I dtoObject) {
-        ObjectNode objectWithoutType = objectMapper.convertValue(dtoObject, ObjectNode.class);
+        ObjectNode objectWithoutType = defaultRestObjectMapper.convertValue(dtoObject, ObjectNode.class);
         objectWithoutType.remove(TYPE_ATTRIBUTE);
         return objectWithoutType;
     }

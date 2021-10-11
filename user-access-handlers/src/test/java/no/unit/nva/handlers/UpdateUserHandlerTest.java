@@ -5,7 +5,7 @@ import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
 import static no.unit.nva.handlers.UpdateUserHandler.INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR;
 import static no.unit.nva.handlers.UpdateUserHandler.LOCATION_HEADER;
 import static no.unit.nva.handlers.UpdateUserHandler.USERNAME_PATH_PARAMETER;
-import static nva.commons.core.JsonUtils.objectMapper;
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.Is.is;
@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -205,7 +204,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
 
     private ObjectNode inputObjectWithoutType(UserDto userDto) {
-        ObjectNode objectWithoutType = objectMapper.convertValue(userDto, ObjectNode.class);
+        ObjectNode objectWithoutType = defaultRestObjectMapper.convertValue(userDto, ObjectNode.class);
         objectWithoutType.remove(TYPE_ATTRIBUTE);
         return objectWithoutType;
     }
@@ -219,7 +218,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private <I, O> GatewayResponse<O> sendUpdateRequest(String userId, I userUpdate)
         throws IOException {
         UpdateUserHandler updateUserHandler = new UpdateUserHandler(envWithTableName, databaseService);
-        InputStream input = new HandlerRequestBuilder<I>(objectMapper)
+        InputStream input = new HandlerRequestBuilder<I>(defaultRestObjectMapper)
             .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
             .withBody(userUpdate)
             .build();
@@ -230,7 +229,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private GatewayResponse<Problem> sendUpdateRequestWithoutPathParameters(UserDto userUpdate)
         throws IOException {
         UpdateUserHandler updateUserHandler = new UpdateUserHandler(envWithTableName, databaseService);
-        InputStream input = new HandlerRequestBuilder<UserDto>(objectMapper)
+        InputStream input = new HandlerRequestBuilder<UserDto>(defaultRestObjectMapper)
             .withBody(userUpdate)
             .build();
         updateUserHandler.handleRequest(input, output, context);

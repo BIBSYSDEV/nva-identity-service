@@ -1,6 +1,5 @@
 package no.unit.nva.useraccessmanagement.model;
 
-import static nva.commons.core.JsonUtils.objectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -8,8 +7,11 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import no.unit.nva.useraccessmanagement.RestConfig;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
+
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 
 public final class EntityUtils {
 
@@ -38,7 +40,7 @@ public final class EntityUtils {
         throws JsonProcessingException, InvalidEntryInternalException,
                NoSuchMethodException, IllegalAccessException, InvocationTargetException, InvalidInputException {
         UserDto userWithoutUsername = createUserWithoutUsername();
-        return new HandlerRequestBuilder<UserDto>(objectMapper)
+        return new HandlerRequestBuilder<UserDto>(defaultRestObjectMapper)
             .withBody(userWithoutUsername);
     }
 

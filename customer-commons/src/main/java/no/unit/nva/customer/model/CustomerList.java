@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,7 +40,7 @@ public class CustomerList {
     }
 
     public List<CustomerDtoWithoutContext> getCustomers() {
-        return customers;
+        return nonNull(customers) ? customers : Collections.emptyList();
     }
 
     @Override

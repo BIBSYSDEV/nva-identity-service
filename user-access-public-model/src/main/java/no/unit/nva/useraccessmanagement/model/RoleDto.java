@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.util.Collections;
@@ -29,7 +30,7 @@ public class RoleDto implements WithCopy<Builder>, JsonSerializable, Validable, 
         accessRights = Collections.emptySet();
     }
 
-    private RoleDto(Builder builder)  {
+    private RoleDto(Builder builder) {
         this();
         setRoleName(builder.roleName);
         setAccessRights(builder.accessRights);
@@ -59,7 +60,7 @@ public class RoleDto implements WithCopy<Builder>, JsonSerializable, Validable, 
     }
 
     public Set<String> getAccessRights() {
-        return accessRights;
+        return nonNull(accessRights) ? accessRightsa : Collections.emptySet();
     }
 
     public void setAccessRights(Set<String> accessRights) {
@@ -93,7 +94,7 @@ public class RoleDto implements WithCopy<Builder>, JsonSerializable, Validable, 
         }
         RoleDto roleDto = (RoleDto) o;
         return Objects.equals(getRoleName(), roleDto.getRoleName())
-            && Objects.equals(getAccessRights(), roleDto.getAccessRights());
+               && Objects.equals(getAccessRights(), roleDto.getAccessRights());
     }
 
     @Override
@@ -121,7 +122,7 @@ public class RoleDto implements WithCopy<Builder>, JsonSerializable, Validable, 
             return this;
         }
 
-        public RoleDto build()  {
+        public RoleDto build() {
             return new RoleDto(this);
         }
     }

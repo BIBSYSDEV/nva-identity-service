@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
@@ -185,12 +186,12 @@ public class CustomerDao implements Customer<VocabularyDao> {
 
     @Override
     public Set<VocabularyDao> getVocabularies() {
-        return vocabularies;
+        return nonNull(vocabularies)? vocabularies:Collections.emptySet();
     }
 
     @Override
     public void setVocabularies(Set<VocabularyDao> vocabularies) {
-        this.vocabularies = Objects.nonNull(vocabularies) ? vocabularies : Collections.emptySet();
+        this.vocabularies = nonNull(vocabularies) ? vocabularies : Collections.emptySet();
     }
 
     @Override

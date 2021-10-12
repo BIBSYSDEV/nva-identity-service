@@ -49,7 +49,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
 
     @JsonProperty("accessRights")
     public Set<String> getAccessRights() {
-        return roles.stream()
+        return getRoles().stream()
             .flatMap(role -> role.getAccessRights().stream())
             .collect(Collectors.toSet());
     }
@@ -171,7 +171,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
             return attempt(() -> {
                 userDto.setUsername(username);
                 return this;
-            }).orElseThrow(fail->new InvalidEntryInternalException(fail.getException()));
+            }).orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));
         }
 
         public Builder withInstitution(String institution) {

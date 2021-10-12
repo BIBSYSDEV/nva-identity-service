@@ -59,7 +59,8 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
 
     @Test
     public void testConstructorThrowsNoExceptions() {
-        CustomerService serviceWithTableNameFromEnv = new DynamoDBCustomerService(ddb, defaultDynamoConfigMapper, environment);
+        CustomerService serviceWithTableNameFromEnv
+            = new DynamoDBCustomerService(ddb, defaultDynamoConfigMapper, environment);
         assertNotNull(serviceWithTableNameFromEnv);
     }
 

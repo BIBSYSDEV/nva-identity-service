@@ -60,7 +60,7 @@ public class RoleDto implements WithCopy<Builder>, JsonSerializable, Validable, 
     }
 
     public Set<String> getAccessRights() {
-        return nonNull(accessRights) ? accessRightsa : Collections.emptySet();
+        return nonNull(accessRights) ? accessRights : Collections.emptySet();
     }
 
     public void setAccessRights(Set<String> accessRights) {

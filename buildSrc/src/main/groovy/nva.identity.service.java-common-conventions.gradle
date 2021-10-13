@@ -40,7 +40,7 @@ tasks.named('test') {
 }
 
 test {
-    environment "ID_NAMESPACE", "https://www.example.org"
+    environment "ID_NAMESPACE", "https://www.example.org/namespace/"
     environment "ALLOWED_ORIGIN", "*"
 }
 

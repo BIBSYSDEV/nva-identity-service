@@ -1,26 +1,28 @@
 package no.unit.nva.useraccessmanagement.dao;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
+import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
+import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails;
 import no.unit.nva.useraccessmanagement.dao.UserDb.Builder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +31,10 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
 
     public static final String TYPE = "USER";
     public static final String INVALID_USER_EMPTY_USERNAME = "Invalid user entry: Empty username is not allowed";
-    public static final String INVALID_PRIMARY_HASH_KEY = "PrimaryHashKey of user should start with \"USER\"";
     public static final String ERROR_DUE_TO_INVALID_ROLE =
         "Failure while trying to create user with role without role-name";
-    private static final String INVALID_PRIMARY_RANGE_KEY = "PrimaryRangeKey of user should start wih \"USER\"";
-    private static Logger logger = LoggerFactory.getLogger(UserDb.class);
 
-    @JsonProperty(DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY)
-    private String primaryHashKey;
-    @JsonProperty(DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY)
-    private String primaryRangeKey;
+    private static Logger logger = LoggerFactory.getLogger(UserDb.class);
 
     @JsonProperty("username")
     private String username;
@@ -51,35 +47,17 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     @JsonProperty("familyName")
     private String familyName;
     @JsonProperty("viewingScope")
-    private Set<URI> viewingScope;
+    private ViewingScope viewingScope;
 
     public UserDb() {
         super();
-    }
-
-    private UserDb(Builder builder) throws InvalidEntryInternalException {
-        super();
-        setUsername(builder.username);
-        setGivenName(builder.givenName);
-        setFamilyName(builder.familyName);
-        setInstitution(builder.institution);
-        setRoles(builder.roles);
-        setPrimaryHashKey(builder.primaryHashKey);
-        setPrimaryRangeKey(builder.primaryRangeKey);
-        setViewingScope(builder.viewingScope);
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    /**
-     * Transforms the DTO to a database object.
-     *
-     * @return a {@link UserDb}.
-     * @throws InvalidEntryInternalException when the DTO contains an invalid user.
-     */
-    public static UserDb fromUserDto(UserDto userDto) throws InvalidEntryInternalException {
+    public static UserDb fromUserDto(UserDto userDto) {
         UserDb.Builder userDb = UserDb.newBuilder()
             .withUsername(userDto.getUsername())
             .withGivenName(userDto.getGivenName())
@@ -90,21 +68,20 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         return userDb.build();
     }
 
-    public Set<URI> getViewingScope() {
-        return nonNull(viewingScope) ? viewingScope : Collections.emptySet();
+    public ViewingScope getViewingScope() {
+        return viewingScope;
     }
 
-    public void setViewingScope(Set<URI> viewingScope) {
-        this.viewingScope = nonNull(viewingScope) ? viewingScope : Collections.emptySet();
+    public void setViewingScope(ViewingScope viewingScope) {
+        this.viewingScope = viewingScope;
     }
 
     /**
      * Creates a {@link UserDto} from a {@link UserDb}.
      *
      * @return a data transfer object {@link UserDto}
-     * @throws InvalidEntryInternalException when database object is invalid (should never happen).
      */
-    public UserDto toUserDto() throws InvalidEntryInternalException {
+    public UserDto toUserDto() {
 
         UserDto.Builder userDto = UserDto.newBuilder()
             .withUsername(this.getUsername())
@@ -117,8 +94,9 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
 
     @JacocoGenerated
     @Override
+    @JsonProperty(PRIMARY_KEY_HASH_KEY)
     public String getPrimaryHashKey() {
-        return this.primaryHashKey;
+        return formatPrimaryHashKey();
     }
 
     /**
@@ -127,22 +105,17 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      * used only by DynamoDb. For any other purpose use the {@link UserDb.Builder}
      *
      * @param primaryHashKeyKey the primaryKey
-     * @throws InvalidEntryInternalException when the primary key is invalid.
      */
     @Override
-    public void setPrimaryHashKey(String primaryHashKeyKey) throws InvalidEntryInternalException {
-        if (primaryHashKeyHasNotBeenSet()) {
-            if (!primaryHashKeyKey.startsWith(TYPE)) {
-                throw new InvalidEntryInternalException(INVALID_PRIMARY_HASH_KEY);
-            }
-            this.primaryHashKey = primaryHashKeyKey;
-        }
+    public void setPrimaryHashKey(String primaryHashKeyKey) {
+        // DO NOTHING
     }
 
+    @JsonProperty(PRIMARY_KEY_RANGE_KEY)
     @JacocoGenerated
     @Override
     public String getPrimaryRangeKey() {
-        return this.primaryRangeKey;
+        return formatPrimaryRangeKey();
     }
 
     /**
@@ -151,32 +124,26 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      * used only by DynamoDb. For any other purpose use the {@link UserDb.Builder}
      *
      * @param rangeKey the primaryRangeKey
-     * @throws InvalidEntryInternalException when the primary key is invalid.
      */
     @JacocoGenerated
     @Override
-    public void setPrimaryRangeKey(String rangeKey) throws InvalidEntryInternalException {
-        if (primaryRangeKeyHasNotBeenSet()) {
-            if (!rangeKey.startsWith(TYPE)) {
-                throw new InvalidEntryInternalException(INVALID_PRIMARY_RANGE_KEY);
-            }
-            this.primaryRangeKey = rangeKey;
-        }
+    public void setPrimaryRangeKey(String rangeKey) {
+        // do nothing
     }
 
     @JacocoGenerated
-    @JsonProperty(DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY)
+    @JsonProperty(SECONDARY_INDEX_1_HASH_KEY)
     public String getSearchByInstitutionHashKey() {
         return this.getInstitution();
     }
 
     @JacocoGenerated
     public void setSearchByInstitutionHashKey(String searchByInstitutionHashKey) {
-
+        //DO NOTHING
     }
 
     @JacocoGenerated
-    @JsonProperty(DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY)
+    @JsonProperty(SECONDARY_INDEX_1_RANGE_KEY)
     public String getSearchByInstitutionRangeKey() {
         return this.getUsername();
     }
@@ -197,6 +164,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      * @param username the username of the user.
      */
     public void setUsername(String username) {
+        checkUsername(username);
         this.username = username;
     }
 
@@ -273,30 +241,29 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withRoles(this.roles);
     }
 
-    @Override
     @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getPrimaryHashKey(), getPrimaryRangeKey(), getUsername(), getInstitution(), getRoles(),
-                            getGivenName(), getFamilyName());
-    }
-
     @Override
-    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof UserDb)) {
             return false;
         }
         UserDb userDb = (UserDb) o;
-        return Objects.equals(getPrimaryHashKey(), userDb.getPrimaryHashKey())
-               && Objects.equals(getPrimaryRangeKey(), userDb.getPrimaryRangeKey())
-               && Objects.equals(getUsername(), userDb.getUsername())
+        return Objects.equals(getUsername(), userDb.getUsername())
                && Objects.equals(getInstitution(), userDb.getInstitution())
                && Objects.equals(getRoles(), userDb.getRoles())
                && Objects.equals(getGivenName(), userDb.getGivenName())
-               && Objects.equals(getFamilyName(), userDb.getFamilyName());
+               && Objects.equals(getFamilyName(), userDb.getFamilyName())
+               && Objects.equals(getViewingScope(), userDb.getViewingScope());
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
+                            getViewingScope());
     }
 
     private static Collection<RoleDb> createRoleDbList(UserDto userDto) {
@@ -321,67 +288,62 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         return new IllegalStateException(failure.getException());
     }
 
+    private void checkUsername(String username) {
+        if (StringUtils.isBlank(username)) {
+            throw new InvalidEntryInternalException(INVALID_USER_EMPTY_USERNAME);
+        }
+    }
+
+    /*For now the primary range key does not need to be different from the primary hash key*/
+    private String formatPrimaryRangeKey() {
+        return formatPrimaryHashKey();
+    }
+
+    private String formatPrimaryHashKey() {
+        checkUsername(username);
+        return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE, username);
+    }
+
     public static final class Builder {
 
-        private String username;
-        private String givenName;
-        private String familyName;
-        private String institution;
-        private List<RoleDb> roles;
-        private String primaryHashKey;
-        private String primaryRangeKey;
-        private Set<URI> viewingScope;
+        private final UserDb userDb;
 
         private Builder() {
+            this.userDb = new UserDb();
         }
 
         public Builder withUsername(String username) {
-            this.username = username;
+            userDb.setUsername(username);
             return this;
         }
 
         public Builder withGivenName(String givenName) {
-            this.givenName = givenName;
+            userDb.setGivenName(givenName);
             return this;
         }
 
         public Builder withFamilyName(String familyName) {
-            this.familyName = familyName;
+            userDb.setFamilyName(familyName);
             return this;
         }
 
         public Builder withInstitution(String institution) {
-            this.institution = institution;
+            userDb.setInstitution(institution);
             return this;
         }
 
         public Builder withRoles(Collection<RoleDb> roles) {
-            this.roles = new ArrayList<>(roles);
+            userDb.setRoles(new ArrayList<>(roles));
             return this;
         }
 
-        public UserDb build() throws InvalidEntryInternalException {
-            this.primaryHashKey = formatPrimaryHashKey();
-            this.primaryRangeKey = formatPrimaryRangeKey();
-            return new UserDb(this);
-        }
-
-        public Builder withViewingScope(Set<URI> viewingScope) {
-            this.viewingScope = viewingScope;
+        public Builder withViewingScope(ViewingScope viewingScope) {
+            userDb.setViewingScope(viewingScope);
             return this;
         }
 
-        /*For now the primary range key does not need to be different than the primary hash key*/
-        private String formatPrimaryRangeKey() throws InvalidEntryInternalException {
-            return formatPrimaryHashKey();
-        }
-
-        private String formatPrimaryHashKey() throws InvalidEntryInternalException {
-            if (isNull(username) || username.isBlank()) {
-                throw new InvalidEntryInternalException(INVALID_USER_EMPTY_USERNAME);
-            } else {
-                return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE, username);
-            }
+        public UserDb build() {
+            return userDb;
         }
     }
 }

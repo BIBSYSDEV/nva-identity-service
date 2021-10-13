@@ -50,12 +50,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
     private void validateRequest(UserDto input, RequestInfo requestInfo)
         throws InvalidInputException {
         String userIdFromPath = extractUsernameFromPathParameters(requestInfo);
-
-        if (input.isValid()) {
-            comparePathAndInputObjectUsername(input, userIdFromPath);
-        } else {
-            throw input.exceptionWhenInvalid();
-        }
+        comparePathAndInputObjectUsername(input, userIdFromPath);
     }
 
     private String extractUsernameFromPathParameters(RequestInfo requestInfo) {

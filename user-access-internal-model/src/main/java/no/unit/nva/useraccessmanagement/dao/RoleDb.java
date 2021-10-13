@@ -39,7 +39,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         this.accessRights = Collections.emptySet();
     }
 
-    private RoleDb(Builder builder) throws InvalidEntryInternalException {
+    private RoleDb(Builder builder)  {
         super();
         setPrimaryHashKey(builder.primaryHashKey);
         setName(builder.name);
@@ -56,9 +56,8 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      *
      * @param roleDto the dto.
      * @return the dao
-     * @throws InvalidEntryInternalException when the generated entry is not valid.
      */
-    public static RoleDb fromRoleDto(RoleDto roleDto) throws InvalidEntryInternalException {
+    public static RoleDb fromRoleDto(RoleDto roleDto)  {
         Set<AccessRight> accessRights = roleDto.getAccessRights()
             .stream()
             .map(AccessRight::fromString)
@@ -81,11 +80,10 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      * entry. This is the hashKey for the table and not any secondary index.
      *
      * @param primaryHashKey the primary hash key saved in the database
-     * @throws InvalidEntryInternalException when the role is invalid.
      */
     @JacocoGenerated
     @Override
-    public void setPrimaryHashKey(String primaryHashKey) throws InvalidEntryInternalException {
+    public void setPrimaryHashKey(String primaryHashKey)  {
         if (primaryHashKeyHasNotBeenSet()) {
             if (!primaryHashKey.startsWith(TYPE)) {
                 throw new InvalidEntryInternalException(INVALID_PRIMARY_HASH_KEY);
@@ -100,7 +98,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @Override
-    public void setPrimaryRangeKey(String primaryRangeKey) throws InvalidEntryInternalException {
+    public void setPrimaryRangeKey(String primaryRangeKey)  {
         if (primaryRangeKeyHasNotBeenSet()) {
             if (!primaryRangeKey.startsWith(TYPE)) {
                 throw new InvalidEntryInternalException(INVALID_PRIMARY_RANGE_KEY);
@@ -169,13 +167,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         return Objects.hash(getPrimaryHashKey(), getPrimaryRangeKey(), getAccessRights(), getName());
     }
 
-    /**
-     * Creates a DTO from a DAO.
-     *
-     * @return the DTO
-     * @throws InvalidEntryInternalException when the input is not valid.
-     */
-    public RoleDto toRoleDto() throws InvalidEntryInternalException {
+    public RoleDto toRoleDto()  {
         Set<String> accessRightsStrings = this.getAccessRights().stream()
             .map(AccessRight::toString)
             .collect(Collectors.toSet());
@@ -208,17 +200,17 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             return this;
         }
 
-        public RoleDb build() throws InvalidEntryInternalException {
+        public RoleDb build()  {
             this.primaryHashKey = formatPrimaryHashKey();
             this.primaryRangeKey = formatPrimaryRangeKey();
             return new RoleDb(this);
         }
 
-        private String formatPrimaryRangeKey() throws InvalidEntryInternalException {
+        private String formatPrimaryRangeKey()  {
             return this.formatPrimaryHashKey();
         }
 
-        private String formatPrimaryHashKey() throws InvalidEntryInternalException {
+        private String formatPrimaryHashKey()  {
             if (isNull(name) || name.isBlank()) {
                 throw new InvalidEntryInternalException(EMPTY_ROLE_NAME_ERROR);
             } else {

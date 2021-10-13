@@ -1,5 +1,6 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -115,7 +116,7 @@ class GetUserHandlerTest extends HandlerTest {
 
     private ByteArrayOutputStream sendGetUserRequestToHandler() throws IOException {
         requestInfo = createRequestInfoForGetUser(DEFAULT_USERNAME);
-        InputStream inputStream = new HandlerRequestBuilder<Void>(JsonUtils.objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withPathParameters(requestInfo.getPathParameters())
             .build();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

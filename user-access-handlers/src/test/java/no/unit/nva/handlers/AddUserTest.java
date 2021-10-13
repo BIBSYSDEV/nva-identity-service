@@ -4,8 +4,7 @@ import static no.unit.nva.handlers.AddUserHandler.SYNC_ERROR_MESSAGE;
 import static no.unit.nva.handlers.EntityUtils.createRequestWithUserWithoutUsername;
 import static no.unit.nva.handlers.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.handlers.EntityUtils.createUserWithoutRoles;
-import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
-import static nva.commons.core.JsonUtils.objectMapper;
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.Is.is;
@@ -20,14 +19,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-
 import no.unit.nva.Constants;
 import no.unit.nva.database.DatabaseService;
 import no.unit.nva.database.DatabaseServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfo;
@@ -103,23 +99,8 @@ public class AddUserTest extends HandlerTest {
         assertThrows(ConflictException.class, action);
     }
 
-    @DisplayName("processInput() throws EmptyUsernameException when input user does not have a username")
     @Test
-    public void processInputThrowsEmptyUsernameExceptionWhenInputUserDoesNotHaveUsername()
-        throws ApiGatewayException, NoSuchMethodException, IllegalAccessException,
-               InvocationTargetException {
-
-        UserDto userWithoutUsername = createUserWithoutUsername();
-
-        Executable action = () -> handler.processInput(userWithoutUsername, requestInfo, context);
-        assertThrows(InvalidInputException.class, action);
-    }
-
-    @DisplayName("handleRequest() returns BadRequest when input user does not have a username")
-    @Test
-    public void processInputThrowsConflictExceptionWhenInputUserDoesNotHaveUsername()
-        throws ApiGatewayException, IOException, NoSuchMethodException, IllegalAccessException,
-               InvocationTargetException {
+    public void handleRequestReturnsBadRequestWhenInputUserDoesNotHaveUsername() throws  IOException {
 
         InputStream requestWithUserWithoutUsername = createRequestWithUserWithoutUsername();
         ByteArrayOutputStream outputStream = sendRequestToHandler(requestWithUserWithoutUsername);
@@ -131,8 +112,7 @@ public class AddUserTest extends HandlerTest {
 
     @DisplayName("processInput() throws DataSyncException when database service cannot return saved item ")
     @Test
-    public void processInputThrowsDataSyncExceptionWhenDatabaseServiceCannotReturnSavedItem()
-        throws ApiGatewayException {
+    public void processInputThrowsDataSyncExceptionWhenDatabaseServiceCannotReturnSavedItem() {
         DatabaseService databaseService = databaseServiceReturnsAlwaysEmptyUser();
 
         UserDto sampleUser = createUserWithRolesAndInstitution();
@@ -181,7 +161,7 @@ public class AddUserTest extends HandlerTest {
         throws IOException {
         String outputString = outputStream.toString();
         TypeReference<GatewayResponse<Problem>> typeReference = new TypeReference<>() {};
-        return objectMapper.readValue(outputString, typeReference);
+        return defaultRestObjectMapper.readValue(outputString, typeReference);
     }
 
     private void addUserFirstTime(UserDto inputUser) throws ApiGatewayException {

@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessmanagement.model;
 
-import static nva.commons.core.JsonUtils.objectMapper;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -9,6 +10,7 @@ import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 
 public final class EntityUtils {
 
@@ -35,9 +37,9 @@ public final class EntityUtils {
      */
     public static HandlerRequestBuilder<UserDto> createRequestBuilderWithUserWithoutUsername()
         throws JsonProcessingException, InvalidEntryInternalException,
-               NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+               NoSuchMethodException, IllegalAccessException, InvocationTargetException, InvalidInputException {
         UserDto userWithoutUsername = createUserWithoutUsername();
-        return new HandlerRequestBuilder<UserDto>(objectMapper)
+        return new HandlerRequestBuilder<UserDto>(defaultRestObjectMapper)
             .withBody(userWithoutUsername);
     }
 
@@ -55,7 +57,7 @@ public final class EntityUtils {
      */
     public static InputStream createRequestWithUserWithoutUsername()
         throws JsonProcessingException, InvalidEntryInternalException,
-               NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+               NoSuchMethodException, IllegalAccessException, InvocationTargetException, InvalidInputException {
         return createRequestBuilderWithUserWithoutUsername().build();
     }
 
@@ -71,8 +73,8 @@ public final class EntityUtils {
      */
     public static UserDto createUserWithoutUsername()
         throws InvalidEntryInternalException, NoSuchMethodException,
-               InvocationTargetException, IllegalAccessException {
-        UserDto userWithoutUsername = createUserWithRolesAndInstitution();
+               InvocationTargetException, IllegalAccessException, InvalidInputException {
+        UserDto userWithoutUsername = createUserWithRolesAndInstitutionAndViewingScope();
         Method method = userWithoutUsername.getClass().getDeclaredMethod("setUsername", String.class);
         method.setAccessible(true);
         method.invoke(userWithoutUsername, EMPTY_STRING);
@@ -86,7 +88,7 @@ public final class EntityUtils {
      * @return {@link UserDto}
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user
      */
-    public static UserDto createUserWithoutRoles() throws InvalidEntryInternalException {
+    public static UserDto createUserWithoutRoles() throws InvalidEntryInternalException, InvalidInputException {
         return UserDto.newBuilder().withUsername(SOME_USERNAME).build();
     }
 
@@ -95,11 +97,16 @@ public final class EntityUtils {
      *
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
-    public static UserDto createUserWithRolesAndInstitution()
-        throws InvalidEntryInternalException {
+    public static UserDto createUserWithRolesAndInstitutionAndViewingScope()
+        throws InvalidEntryInternalException, InvalidInputException {
         return createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
+            .withViewingScope(randomViewingScope())
             .build();
+    }
+
+    private static ViewingScope randomViewingScope() {
+        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
     }
 
     /**
@@ -109,7 +116,7 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
     public static UserDto createUserWithRoleWithoutInstitution()
-        throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException, InvalidInputException {
         RoleDto sampleRole = createRole(SOME_ROLENAME);
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)

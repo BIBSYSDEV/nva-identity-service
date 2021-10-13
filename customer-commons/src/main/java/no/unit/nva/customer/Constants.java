@@ -13,6 +13,8 @@ import nva.commons.apigateway.MediaTypes;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
+import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
+
 @JacocoGenerated
 public final class Constants {
 
@@ -32,7 +34,7 @@ public final class Constants {
     @JacocoGenerated
     public static CustomerService defaultCustomerService() {
         AmazonDynamoDB client = defaultDynamoDbClient();
-        return new DynamoDBCustomerService(client, ObjectMapperConfig.objectMapper, ENVIRONMENT);
+        return new DynamoDBCustomerService(client, defaultDynamoConfigMapper, ENVIRONMENT);
     }
 
     private static String dynamoDbServiceEndpoint() {

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import no.unit.nva.customer.ObjectMapperConfig;
+import no.unit.nva.customer.RestConfig;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.zalando.problem.Problem;
+import org.zalando.problem.ThrowableProblem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -26,6 +27,7 @@ import java.net.HttpURLConnection;
 import java.util.Map;
 import java.util.UUID;
 
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
 import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID;
 import static no.unit.nva.customer.testing.TestHeaders.getErrorResponseHeaders;
@@ -49,7 +51,6 @@ public class GetCustomerHandlerTest {
     public static final MediaType UNSUPPORTED_MEDIA_TYPE = MediaType.BZIP2;
 
 
-    private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
     private CustomerService customerServiceMock;
     private Environment environmentMock;
     private GetCustomerHandler handler;
@@ -89,7 +90,7 @@ public class GetCustomerHandlerTest {
     @Test
     public void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws Exception {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(defaultRestObjectMapper)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
             .build();
@@ -98,13 +99,16 @@ public class GetCustomerHandlerTest {
 
         GatewayResponse actual = GatewayResponse.fromOutputStream(outputStream);
 
-        GatewayResponse<Problem> expected = new GatewayResponse<>(
-            Problem.builder()
+        ThrowableProblem problem = Problem.builder()
                 .withStatus(BAD_REQUEST)
                 .withTitle(BAD_REQUEST.getReasonPhrase())
                 .withDetail(IDENTIFIER_IS_NOT_A_VALID_UUID + MALFORMED_IDENTIFIER)
                 .with(REQUEST_ID, null)
-                .build(),
+                .build();
+
+
+        GatewayResponse<Problem> expected = new GatewayResponse<>(
+            defaultRestObjectMapper.writeValueAsString(problem),
             getErrorResponseHeaders(),
             SC_BAD_REQUEST
         );
@@ -118,7 +122,7 @@ public class GetCustomerHandlerTest {
         prepareServiceWithCustomer(identifier);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(defaultRestObjectMapper)
             .withHeaders(getRequestHeadersWithUnsupportedMediaType())
             .withPathParameters(pathParameters)
             .build();
@@ -136,7 +140,7 @@ public class GetCustomerHandlerTest {
         prepareServiceWithCustomer(identifier);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(defaultRestObjectMapper)
             .withHeaders(getRequestHeadersWithMediaType(MediaTypes.APPLICATION_JSON_LD))
             .withPathParameters(pathParameters)
             .build();
@@ -165,7 +169,7 @@ public class GetCustomerHandlerTest {
 
     private InputStream createGetCustomerRequest(CustomerDto customerDto) throws JsonProcessingException {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
-        return new HandlerRequestBuilder<CustomerDto>(objectMapper)
+        return new HandlerRequestBuilder<CustomerDto>(defaultRestObjectMapper)
             .withBody(customerDto)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)

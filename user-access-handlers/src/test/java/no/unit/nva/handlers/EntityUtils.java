@@ -1,16 +1,16 @@
 package no.unit.nva.handlers;
 
-import static nva.commons.core.JsonUtils.objectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
+
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 
 public final class EntityUtils {
 
@@ -31,15 +31,11 @@ public final class EntityUtils {
      * @throws JsonProcessingException       if JSON serialization fails.
      * @throws InvalidEntryInternalException unlikely. The object is intentionally invalid.
      * @throws InvalidEntryInternalException when role is invalid.
-     * @throws NoSuchMethodException         reflection related.
-     * @throws IllegalAccessException        reflection related.
-     * @throws InvocationTargetException     reflection related.
      */
-    public static HandlerRequestBuilder<UserDto> createRequestBuilderWithUserWithoutUsername()
-        throws JsonProcessingException, InvalidEntryInternalException,
-               NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        UserDto userWithoutUsername = createUserWithoutUsername();
-        return new HandlerRequestBuilder<UserDto>(objectMapper)
+    public static HandlerRequestBuilder<ObjectNode> createRequestBuilderWithUserWithoutUsername()
+        throws JsonProcessingException, InvalidEntryInternalException {
+        ObjectNode userWithoutUsername = createUserWithoutUsername();
+        return new HandlerRequestBuilder<ObjectNode>(defaultRestObjectMapper)
             .withBody(userWithoutUsername);
     }
 
@@ -51,13 +47,9 @@ public final class EntityUtils {
      * @throws JsonProcessingException       if JSON serialization fails.
      * @throws InvalidEntryInternalException unlikely. The object is intentionally invalid.
      * @throws InvalidEntryInternalException when role is invalid.
-     * @throws NoSuchMethodException         reflection related.
-     * @throws IllegalAccessException        reflection related.
-     * @throws InvocationTargetException     reflection related.
      */
     public static InputStream createRequestWithUserWithoutUsername()
-        throws JsonProcessingException, InvalidEntryInternalException,
-               NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        throws JsonProcessingException, InvalidEntryInternalException {
         return createRequestBuilderWithUserWithoutUsername().build();
     }
 
@@ -67,19 +59,13 @@ public final class EntityUtils {
      * @return a {@link UserDto}
      * @throws InvalidEntryInternalException when the added role is invalid.
      * @throws InvalidEntryInternalException unlikely.  The object is intentionally invalid.
-     * @throws NoSuchMethodException         reflection related.
-     * @throws InvocationTargetException     reflection related.
-     * @throws IllegalAccessException        reflection related.
      */
-    public static UserDto createUserWithoutUsername()
-        throws InvalidEntryInternalException, NoSuchMethodException,
-               InvocationTargetException, IllegalAccessException {
-        UserDto userWithoutUsername = createUserWithRolesAndInstitution();
-        Method method = userWithoutUsername.getClass().getDeclaredMethod("setUsername", String.class);
-        method.setAccessible(true);
-        method.invoke(userWithoutUsername, EMPTY_STRING);
-
-        return userWithoutUsername;
+    public static ObjectNode createUserWithoutUsername()
+        throws InvalidEntryInternalException {
+        UserDto userDto = createUserWithRolesAndInstitution();
+        ObjectNode json = defaultRestObjectMapper.convertValue(userDto, ObjectNode.class);
+        json.put("username", EMPTY_STRING);
+        return json;
     }
 
     /**

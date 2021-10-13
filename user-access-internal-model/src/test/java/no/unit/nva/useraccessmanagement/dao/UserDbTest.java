@@ -1,5 +1,7 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDb.ERROR_DUE_TO_INVALID_ROLE;
 import static nva.commons.core.attempt.Try.attempt;
@@ -13,18 +15,19 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import no.unit.nva.useraccessmanagement.dao.UserDb.Builder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.core.attempt.Try;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
@@ -34,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class UserDbTest {
 
@@ -44,12 +48,12 @@ public class UserDbTest {
     public static final String SOME_INSTITUTION = "SomeInstitution";
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
 
-    private UserDb dynamoFunctionalityTestUser;
+    private UserDb userDao;
     private UserDb sampleUser;
 
     @BeforeEach
     public void init() throws InvalidEntryInternalException {
-        dynamoFunctionalityTestUser = new UserDb();
+        userDao = new UserDb();
         sampleUser = UserDb.newBuilder().withUsername(SOME_USERNAME).build();
     }
 
@@ -61,41 +65,35 @@ public class UserDbTest {
     }
 
     @Test
-    public void extractRolesDoesNotThrowExceptionWhenRolesAreValid() throws InvalidEntryInternalException {
+    public void extractRolesDoesNotThrowExceptionWhenRolesAreValid()
+        throws InvalidEntryInternalException, InvalidInputException {
         UserDb userWithValidRole = UserDb.fromUserDto(createUserWithRolesAndInstitution());
         Executable action = userWithValidRole::toUserDto;
         assertDoesNotThrow(action);
     }
 
     @Test
-    void userDbHasABuilder() {
-        Builder builder = UserDb.newBuilder();
-        assertNotNull(builder);
-    }
-
-    @Test
     void setUsernameShouldAddUsernameToUserObject() {
-        dynamoFunctionalityTestUser.setUsername(SOME_USERNAME);
-        assertThat(dynamoFunctionalityTestUser.getUsername(), is(equalTo(SOME_USERNAME)));
+        userDao.setUsername(SOME_USERNAME);
+        assertThat(userDao.getUsername(), is(equalTo(SOME_USERNAME)));
     }
 
     @Test
     void getUsernameShouldGetTheSetUsernameToUserObject() {
-        assertThat(dynamoFunctionalityTestUser.getUsername(), is(nullValue()));
-
-        dynamoFunctionalityTestUser.setUsername(SOME_USERNAME);
-        assertThat(dynamoFunctionalityTestUser.getUsername(), is(equalTo(SOME_USERNAME)));
+        assertThat(userDao.getUsername(), is(nullValue()));
+        userDao.setUsername(SOME_USERNAME);
+        assertThat(userDao.getUsername(), is(equalTo(SOME_USERNAME)));
     }
 
     @Test
     void getTypeShouldReturnConstantTypeValue() {
-        assertThat(dynamoFunctionalityTestUser.getType(), is(equalTo(UserDb.TYPE)));
+        assertThat(userDao.getType(), is(equalTo(UserDb.TYPE)));
     }
 
     @Test
     void setTypeShouldNotChangeTheReturnedTypeValue() {
-        dynamoFunctionalityTestUser.setType("NotExpectedType");
-        assertThat(dynamoFunctionalityTestUser.getType(), is(equalTo(UserDb.TYPE)));
+        userDao.setType("NotExpectedType");
+        assertThat(userDao.getType(), is(equalTo(UserDb.TYPE)));
     }
 
     @Test
@@ -107,7 +105,6 @@ public class UserDbTest {
     @ParameterizedTest(name = "builder should throw exception when username is:\"{0}\"")
     @NullAndEmptySource
     void builderShouldThrowExceptionWhenUsernameIsNotValid(String invalidUsername) {
-
         Executable action = () -> UserDb.newBuilder()
             .withUsername(invalidUsername)
             .withGivenName(SOME_GIVEN_NAME)
@@ -118,6 +115,22 @@ public class UserDbTest {
 
         InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
         assertThat(exception.getMessage(), containsString(UserDb.INVALID_USER_EMPTY_USERNAME));
+    }
+
+    @ParameterizedTest(name = "setUsername should throw exception when input is:\"{0}\"")
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "\t", "", "\n"})
+    void setUsernameThrowsExceptionWhenUsernameIsNotValid(String invalidUsername) {
+        UserDb userDb = new UserDb();
+        assertThrows(InvalidEntryInternalException.class, () -> userDb.setUsername(invalidUsername));
+    }
+
+    @Test
+    void serializationThrowsExceptionWhenUserHasNullUserName() {
+        UserDb userDb = new UserDb();
+        Executable action = () -> defaultDynamoConfigMapper.writeValueAsString(userDb);
+        JsonMappingException thrownException = assertThrows(JsonMappingException.class, action);
+        assertThat(thrownException.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
     }
 
     @Test
@@ -133,14 +146,6 @@ public class UserDbTest {
         assertThat(copy, is(equalTo(originalUser)));
 
         assertThat(copy, is(not(sameInstance(originalUser))));
-    }
-
-    @Test
-    void setPrimaryHashKeyThrowsExceptionWhenKeyDoesNotStartWithType() {
-        UserDb userDb = new UserDb();
-        Executable action = () -> userDb.setPrimaryHashKey("SomeKey");
-        InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
-        assertThat(exception.getMessage(), containsString(UserDb.INVALID_PRIMARY_HASH_KEY));
     }
 
     @ParameterizedTest(name = "fromUserDb throws Exception user contains invalidRole. Rolename:\"{0}\"")
@@ -196,12 +201,28 @@ public class UserDbTest {
 
     @Test
     void userDbContainsListOfCristinOrganizationIdsThatDefineCuratorsScope() throws InvalidEntryInternalException {
-        URI someCristinUnit= URI.create("https://api.cristin.no/v2/units/1.2.3.4");
-        URI someOtherCristinUnit= URI.create("https://api.cristin.no/v2/units/1.2.3.5");
-        UserDb userDb = UserDb.newBuilder().withUsername(SOME_USERNAME)
-                            .withViewingScope(Set.of(someCristinUnit, someOtherCristinUnit))
-                            .build();
-        assertThat(userDb.getViewingScope(),containsInAnyOrder(someCristinUnit,someOtherCristinUnit));
+        URI someCristinUnit = URI.create("https://api.cristin.no/v2/units/1.2.3.4");
+        URI someOtherCristinUnit = URI.create("https://api.cristin.no/v2/units/1.2.3.5");
+        Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
+        ViewingScope scope = new ViewingScope(visisbleUnits, null);
+        UserDb userDb = UserDb.newBuilder().withUsername(randomString())
+            .withViewingScope(scope)
+            .build();
+
+        assertThat(userDb.getViewingScope().getIncludedUnits(),
+                   containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
+    }
+
+    @Test
+    public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() {
+        URI whiteListedCristinUnit = URI.create("https://api.cristin.no/v2/units/1.2.3.0");
+        URI blackListedCristinUnit = URI.create("https://api.cristin.no/v2/units/1.2.3.3");
+        ViewingScope scope = new ViewingScope(Set.of(whiteListedCristinUnit), Set.of(blackListedCristinUnit));
+        UserDb userDb = UserDb.newBuilder().withUsername(randomString())
+            .withViewingScope(scope)
+            .build();
+        assertThat(userDb.getViewingScope().getIncludedUnits(), containsInAnyOrder(whiteListedCristinUnit));
+        assertThat(userDb.getViewingScope().getExcludedUnits(), containsInAnyOrder(blackListedCristinUnit));
     }
 
     private static List<RoleDb> createSampleRoles() {

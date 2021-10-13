@@ -1,5 +1,6 @@
 package no.unit.nva.customer.get;
 
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getErrorResponseHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
@@ -10,13 +11,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.zalando.problem.Status.BAD_REQUEST;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
-import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -28,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.zalando.problem.Problem;
+import org.zalando.problem.ThrowableProblem;
 
 public class GetCustomerByOrgNumberHandlerTest {
 
@@ -36,8 +36,6 @@ public class GetCustomerByOrgNumberHandlerTest {
     public static final String SAMPLE_ORG_NUMBER = "123";
     public static final String EXPECTED_ERROR_MESSAGE = "Missing from pathParameters: orgNumber";
     public static final String SAMPLE_CRISTIN_ID = "https://cristin.id";
-
-    private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
 
     private CustomerService customerServiceMock;
     private GetCustomerByOrgNumberHandler handler;
@@ -70,18 +68,18 @@ public class GetCustomerByOrgNumberHandlerTest {
         when(customerServiceMock.getCustomerByOrgNumber(SAMPLE_ORG_NUMBER)).thenReturn(customerDto);
 
         Map<String, String> pathParameters = Map.of(GetCustomerByOrgNumberHandler.ORG_NUMBER, SAMPLE_ORG_NUMBER);
-        InputStream inputStream = new HandlerRequestBuilder<Void>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
             .build();
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerIdentifiers> actual = objectMapper.readValue(
+        GatewayResponse<CustomerIdentifiers> actual = defaultRestObjectMapper.readValue(
             outputStream.toByteArray(),
             GatewayResponse.class);
 
         GatewayResponse<CustomerIdentifiers> expected = new GatewayResponse<>(
-            objectMapper.writeValueAsString(
+                defaultRestObjectMapper.writeValueAsString(
                 new CustomerIdentifiers(customerDto.getId(),
                                         URI.create(SAMPLE_CRISTIN_ID))),
             getResponseHeaders(),
@@ -95,23 +93,25 @@ public class GetCustomerByOrgNumberHandlerTest {
     @SuppressWarnings("unchecked")
     public void getCustomerByOrgNumberReturnsBadRequestWhenOrgNumberisNull() throws Exception {
 
-        InputStream inputStream = new HandlerRequestBuilder<Void>(objectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withHeaders(getRequestHeaders())
             .build();
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<Problem> actual = objectMapper.readValue(
+        GatewayResponse<Problem> actual = defaultRestObjectMapper.readValue(
             outputStream.toByteArray(),
             GatewayResponse.class);
 
-        GatewayResponse<Problem> expected = new GatewayResponse<>(
-            Problem.builder()
+        ThrowableProblem problem = Problem.builder()
                 .withStatus(BAD_REQUEST)
                 .withTitle(BAD_REQUEST.getReasonPhrase())
                 .withDetail(EXPECTED_ERROR_MESSAGE)
                 .with(REQUEST_ID, null)
-                .build(),
+                .build();
+
+        GatewayResponse<Problem> expected = new GatewayResponse<>(
+            defaultRestObjectMapper.writeValueAsString(problem),
             getErrorResponseHeaders(),
             SC_BAD_REQUEST
         );

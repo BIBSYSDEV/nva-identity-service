@@ -4,6 +4,7 @@ import static no.unit.nva.cognito.service.UserApiMock.FIRST_ACCESS_RIGHT;
 import static no.unit.nva.cognito.service.UserApiMock.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.cognito.service.UserApiMock.SECOND_ACCESS_RIGHT;
 import static no.unit.nva.cognito.service.UserPoolEntryUpdater.CUSTOM_APPLICATION_ACCESS_RIGHTS;
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
@@ -44,7 +45,6 @@ import no.unit.nva.cognito.service.UserService;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.core.JsonUtils;
 import nva.commons.core.SingletonCollector;
 import org.javers.common.collections.Lists;
 import org.javers.core.Javers;
@@ -103,7 +103,7 @@ public class TriggerHandlerTest {
     }
 
     @Test
-    public void handleRequestUsesExistingUserWhenUserIsFound() throws InvalidEntryInternalException {
+    public void handleRequestUsesExistingUserWhenUserIsFound()  {
         mockCustomerApiWithExistingCustomer();
         prepareMocksWithExistingUser(createUserWithInstitutionAndCreatorRole());
 
@@ -437,7 +437,7 @@ public class TriggerHandlerTest {
         event.setUserName(SAMPLE_USER_NAME);
         event.setRequest(request);
 
-        return JsonUtils.objectMapper.convertValue(event, Map.class);
+        return defaultRestObjectMapper.convertValue(event, Map.class);
     }
 
     private Map<String, Object> createRequestEventWithEmptyAffiliation() {
@@ -456,7 +456,7 @@ public class TriggerHandlerTest {
         event.setUserName(SAMPLE_USER_NAME);
         event.setRequest(request);
 
-        return JsonUtils.objectMapper.convertValue(event, Map.class);
+        return defaultRestObjectMapper.convertValue(event, Map.class);
     }
 
     private Map<String, Object> createRequestEventWithCompleteBibsysHostedUser() {
@@ -475,7 +475,7 @@ public class TriggerHandlerTest {
         event.setUserName(SAMPLE_USER_NAME);
         event.setRequest(request);
 
-        return JsonUtils.objectMapper.convertValue(event, Map.class);
+        return defaultRestObjectMapper.convertValue(event, Map.class);
     }
 
     private UserDto hostedUserWithUserRole() throws InvalidEntryInternalException {
@@ -518,6 +518,6 @@ public class TriggerHandlerTest {
         event.setUserName(SAMPLE_USER_NAME);
         event.setRequest(request);
 
-        return JsonUtils.objectMapper.convertValue(event, Map.class);
+        return defaultRestObjectMapper.convertValue(event, Map.class);
     }
 }

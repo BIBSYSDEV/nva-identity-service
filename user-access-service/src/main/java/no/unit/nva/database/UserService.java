@@ -17,7 +17,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
 import no.unit.nva.useraccessmanagement.dao.UserDb;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -49,10 +48,10 @@ public class UserService extends DatabaseSubService {
      *
      * @param queryObject the DTO containing the search information.
      * @return the DTO of the user in the database.
-     * @throws InvalidEntryInternalException when the entry stored in the database is invalid
-     * @throws NotFoundException             when there is no use with that username
+     * @throws NotFoundException when there is no use with that username
      */
-    public UserDto getUser(UserDto queryObject) throws InvalidEntryInternalException, NotFoundException {
+    public UserDto getUser(UserDto queryObject)
+        throws NotFoundException, InvalidInputException {
         return getUserAsOptional(queryObject)
             .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }
@@ -78,15 +77,10 @@ public class UserService extends DatabaseSubService {
      * Adds a user.
      *
      * @param user the user to be added.
-     * @throws InvalidEntryInternalException when a user with same username exists and the entry in the database is
-     *                                       invalid.
-     * @throws ConflictException             when the entry exists.
-     * @throws InvalidInputException         when the input entry is not valid.
+     * @throws ConflictException when the entry exists.
      */
-    public void addUser(UserDto user) throws InvalidEntryInternalException, ConflictException, InvalidInputException {
+    public void addUser(UserDto user) throws ConflictException {
         logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
-
-        validate(user);
         checkUserDoesNotAlreadyExist(user);
         UserDb databaseEntryWithSyncedRoles = syncRoleDetails(UserDb.fromUserDto(user));
         table.putItem(databaseEntryWithSyncedRoles.toItem());
@@ -96,16 +90,13 @@ public class UserService extends DatabaseSubService {
      * Update an existing user.
      *
      * @param updateObject the updated user information.
-     * @throws InvalidEntryInternalException when a user with same username exists and the entry in the database is
-     *                                       invalid.
-     * @throws InvalidInputException         when the input entry is invalid.
-     * @throws NotFoundException             when there is no user with the same username in the database.
+     * @throws InvalidInputException when the input entry is invalid.
+     * @throws NotFoundException     when there is no user with the same username in the database.
      */
     public void updateUser(UserDto updateObject)
-        throws InvalidEntryInternalException, InvalidInputException, NotFoundException {
+        throws InvalidInputException, NotFoundException {
 
         logger.debug(UPDATE_USER_DEBUG_MESSAGE + updateObject.toJsonString());
-        validate(updateObject);
         UserDto existingUser = getExistingUserOrSendNotFoundError(updateObject);
         UserDb updatedObjectWithSyncedRoles = syncRoleDetails(UserDb.fromUserDto(updateObject));
         if (userHasChanged(existingUser, updatedObjectWithSyncedRoles)) {
@@ -113,11 +104,11 @@ public class UserService extends DatabaseSubService {
         }
     }
 
-    private UserDb syncRoleDetails(UserDb updateObject) throws InvalidEntryInternalException {
+    private UserDb syncRoleDetails(UserDb updateObject) {
         return userWithSyncedRoles(updateObject);
     }
 
-    private Optional<UserDto> getUserAsOptional(UserDto queryObject) throws InvalidEntryInternalException {
+    private Optional<UserDto> getUserAsOptional(UserDto queryObject) {
         logger.debug(GET_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
         UserDto searchResult = attemptToFetchObject(queryObject);
         return Optional.ofNullable(searchResult);
@@ -128,19 +119,19 @@ public class UserService extends DatabaseSubService {
             .withConsistentRead(false);
     }
 
-    private void checkUserDoesNotAlreadyExist(UserDto user) throws InvalidEntryInternalException, ConflictException {
+    private void checkUserDoesNotAlreadyExist(UserDto user) throws ConflictException {
         if (userAlreadyExists(user)) {
             throw new ConflictException(USER_ALREADY_EXISTS_ERROR_MESSAGE + user.getUsername());
         }
     }
 
     private UserDto getExistingUserOrSendNotFoundError(UserDto queryObject)
-        throws NotFoundException, InvalidEntryInternalException {
+        throws NotFoundException {
         return getUserAsOptional(queryObject)
             .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }
 
-    private boolean userAlreadyExists(UserDto user) throws InvalidEntryInternalException {
+    private boolean userAlreadyExists(UserDto user) {
         return this.getUserAsOptional(user).isPresent();
     }
 
@@ -152,7 +143,7 @@ public class UserService extends DatabaseSubService {
         return items;
     }
 
-    private UserDto attemptToFetchObject(UserDto queryObject) throws InvalidEntryInternalException {
+    private UserDto attemptToFetchObject(UserDto queryObject) {
         UserDb userDb = attempt(() -> UserDb.fromUserDto(queryObject))
             .map(this::fetchItem)
             .map(item -> UserDb.fromItem(item, UserDb.class))
@@ -160,8 +151,7 @@ public class UserService extends DatabaseSubService {
         return nonNull(userDb) ? userDb.toUserDto() : null;
     }
 
-    private boolean userHasChanged(UserDto existingUser, UserDb desiredUpdateWithSyncedRoles)
-        throws InvalidEntryInternalException {
+    private boolean userHasChanged(UserDto existingUser, UserDb desiredUpdateWithSyncedRoles) {
         return !desiredUpdateWithSyncedRoles.equals(UserDb.fromUserDto(existingUser));
     }
 
@@ -169,7 +159,7 @@ public class UserService extends DatabaseSubService {
         table.putItem(userUpdateWithSyncedRoles.toItem());
     }
 
-    private UserDb userWithSyncedRoles(UserDb currentUser) throws InvalidEntryInternalException {
+    private UserDb userWithSyncedRoles(UserDb currentUser) {
         List<RoleDb> roles = currentRoles(currentUser);
         return currentUser.copy().withRoles(roles).build();
     }

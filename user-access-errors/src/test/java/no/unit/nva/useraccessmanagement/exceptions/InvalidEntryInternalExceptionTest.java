@@ -22,11 +22,6 @@ public class InvalidEntryInternalExceptionTest {
         assertThat(exception.getMessage(), containsString(SOME_MESSAGE));
     }
 
-    @Test
-    public void invalidInternalExceptionReturnsBadRequest() {
-        InvalidEntryInternalException error = new InvalidEntryInternalException(SOME_MESSAGE);
-        assertThat(error.getStatusCode(), is(equalTo(HttpStatus.SC_INTERNAL_SERVER_ERROR)));
-    }
 
     @Test
     public void invalidEntryInternalExceptionContainsCause() {

@@ -1,20 +1,21 @@
 [versions]
-nvaCommons = { strictly = '1.13.1' }
-awsSdk = { strictly = "1.12.59" }
-jackson = { strictly = "2.12.4" }
+nvaCommons = { strictly = '1.15.1' }
+# require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
+awsSdk = { require = "1.11.1000" }
+jackson = { strictly = "2.13.0" }
 xraySdk = { strictly = '2.9.1' }
 dynamoDbLocal = { strictly = '1.15.0' }
-nvaTestUtils = { strictly = '0.1.24' }
+nvaTestUtils = { strictly = '0.1.26' }
 zalandoProblem = { strictly = '0.26.0' }
 awsLambdaCore = { strictly = '1.2.1' }
-jupiter = { strictly = "5.6.0" }
+jupiter = { strictly = "5.8.1" }
 slf4j = { strictly = '1.8.0-beta4' }
-apacheHttpClient = { strictly = '4.5.9' }
+apacheHttpClient = { strictly = '4.5.13' }
 hamcrest = { strictly = '2.2' }
 javersCore = { strictly = '6.2.5' }
 javafaker = { strictly = '1.0.2' }
-mockitoCore = { strictly = '3.3.3' }
-apiGuardian = { strictly = '1.1.0' }
+mockitoCore = { strictly = '3.12.4' }
+apiGuardian = { strictly = '1.1.2' }
 guava = { strictly = '30.1.1-jre' }
 
 

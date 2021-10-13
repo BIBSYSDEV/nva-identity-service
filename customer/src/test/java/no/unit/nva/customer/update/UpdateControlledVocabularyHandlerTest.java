@@ -67,7 +67,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
     @Test
     public void handleRequestReturnsBadRequestWhenInputBodyIsNotValid()
         throws IOException {
-        CustomerDto invalidBody = CustomerDataGenerator.crateSampleCustomerDto();
+        CustomerDto invalidBody = CustomerDataGenerator.createSampleCustomerDto();
         InputStream request = addVocabularyForCustomer(existingIdentifier(), invalidBody,
                                                        MediaTypes.APPLICATION_JSON_LD);
         handler.handleRequest(request, outputStream, CONTEXT);
@@ -105,7 +105,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
     public void handleRequestReturnsConflictWhenCustomerAlreadyHasVocabularySettings()
         throws IOException, ApiGatewayException {
         CustomerDto customerWithoutVocabularySettings = CustomerDataGenerator
-            .crateSampleCustomerDto().copy()
+            .createSampleCustomerDto().copy()
             .withVocabularies(Collections.emptySet())
             .build();
         customerService.createCustomer(customerWithoutVocabularySettings);
@@ -123,6 +123,6 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Override
     protected CustomerDto createExistingCustomer() {
-        return CustomerDataGenerator.crateSampleCustomerDto();
+        return CustomerDataGenerator.createSampleCustomerDto();
     }
 }

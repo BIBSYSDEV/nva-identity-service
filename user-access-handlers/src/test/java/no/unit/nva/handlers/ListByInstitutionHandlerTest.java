@@ -1,7 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
-import static nva.commons.core.JsonUtils.objectMapper;
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -177,7 +177,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     private InputStream createListRequest(String institutionId) throws JsonProcessingException {
         Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId);
-        return new HandlerRequestBuilder<Void>(objectMapper)
+        return new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withQueryParameters(queryParams)
             .build();
     }

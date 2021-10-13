@@ -1,11 +1,10 @@
 package no.unit.nva.customer.service.impl;
 
+import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_MAPPING_CUSTOMER_TO_ITEM;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_MAPPING_ITEM_TO_CUSTOMER;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_READING_FROM_TABLE;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_WRITING_ITEM_TO_TABLE;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.TABLE_NAME;
-import static nva.commons.core.JsonUtils.objectMapperWithEmpty;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -25,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import no.unit.nva.customer.ObjectMapperConfig;
+
 import no.unit.nva.customer.exception.DynamoDBException;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.exception.NotFoundException;
@@ -40,7 +39,6 @@ import org.junit.jupiter.api.Test;
 
 public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
 
-    private final ObjectMapper objectMapper = ObjectMapperConfig.objectMapper;
     private DynamoDBCustomerService service;
     private Environment environment;
 
@@ -52,7 +50,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         super.setupDatabase();
         environment = new Environment();
         service = new DynamoDBCustomerService(
-            objectMapperWithEmpty,
+            defaultDynamoConfigMapper,
             getTable(),
             getByOrgNumberIndex(),
             getByCristinIdIndex()
@@ -61,7 +59,8 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
 
     @Test
     public void testConstructorThrowsNoExceptions() {
-        CustomerService serviceWithTableNameFromEnv = new DynamoDBCustomerService(ddb, objectMapper, environment);
+        CustomerService serviceWithTableNameFromEnv
+            = new DynamoDBCustomerService(ddb, defaultDynamoConfigMapper, environment);
         assertNotNull(serviceWithTableNameFromEnv);
     }
 
@@ -167,7 +166,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         Table failingTable = mock(Table.class);
         when(failingTable.getItem(anyString(), any())).thenThrow(RuntimeException.class);
         DynamoDBCustomerService failingService = new DynamoDBCustomerService(
-            objectMapper,
+            defaultDynamoConfigMapper,
             failingTable,
             getByOrgNumberIndex(),
             getByCristinIdIndex()
@@ -182,7 +181,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         Table failingTable = mock(Table.class);
         when(failingTable.scan()).thenThrow(RuntimeException.class);
         DynamoDBCustomerService failingService = new DynamoDBCustomerService(
-            objectMapper,
+            defaultDynamoConfigMapper,
             failingTable,
             getByOrgNumberIndex(),
             getByCristinIdIndex()
@@ -196,7 +195,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         Table failingTable = mock(Table.class);
         when(failingTable.putItem(any(Item.class))).thenThrow(RuntimeException.class);
         DynamoDBCustomerService failingService = new DynamoDBCustomerService(
-            objectMapper,
+            defaultDynamoConfigMapper,
             failingTable,
             getByOrgNumberIndex(),
             getByCristinIdIndex()
@@ -211,7 +210,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         Table failingTable = mock(Table.class);
         when(failingTable.putItem(any(Item.class))).thenThrow(RuntimeException.class);
         DynamoDBCustomerService failingService = new DynamoDBCustomerService(
-            objectMapper,
+            defaultDynamoConfigMapper,
             failingTable,
             getByOrgNumberIndex(),
             getByCristinIdIndex()

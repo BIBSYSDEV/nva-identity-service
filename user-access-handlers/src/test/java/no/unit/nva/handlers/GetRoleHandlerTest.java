@@ -1,6 +1,6 @@
 package no.unit.nva.handlers;
 
-import static nva.commons.core.JsonUtils.objectMapper;
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -123,7 +123,7 @@ public class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironm
 
     private ByteArrayOutputStream sendGetRoleRequest() throws IOException {
         RequestInfo requestInfo = queryWithRoleName(THE_ROLE);
-        InputStream requestStream = new HandlerRequestBuilder<>(objectMapper)
+        InputStream requestStream = new HandlerRequestBuilder<>(defaultRestObjectMapper)
             .withPathParameters(requestInfo.getPathParameters())
             .withHttpMethod(HttpMethod.GET.toString())
             .build();

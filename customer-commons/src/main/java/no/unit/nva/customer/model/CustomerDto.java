@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -8,9 +9,9 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+
 import no.unit.nva.customer.model.interfaces.Context;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.JsonUtils;
 
 public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
@@ -23,7 +24,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
     }
 
     public CustomerDtoWithoutContext withoutContext() {
-        return attempt(() -> JsonUtils.objectMapper.convertValue(this, CustomerDtoWithoutContext.class)).orElseThrow();
+        return attempt(() -> defaultRestObjectMapper.convertValue(this, CustomerDtoWithoutContext.class)).orElseThrow();
     }
 
     public static Builder builder() {

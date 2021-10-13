@@ -1,13 +1,16 @@
 package no.unit.nva.useraccessmanagement.dao;
 
-import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import java.util.Collections;
+import java.util.Set;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -26,7 +29,7 @@ class DynamoEntryWithRangeKeyTest {
     @Test
     public void fromItemReturnsEntryWithoutDataLoss() throws InvalidEntryInternalException {
         UserDb expectedUser = createSampleUser();
-        assertThat(expectedUser, doesNotHaveNullOrEmptyFields());
+        assertThat(expectedUser, doesNotHaveEmptyValues());
         Item item = expectedUser.toItem();
         UserDb actualUser = UserDb.fromItem(item, UserDb.class);
 
@@ -38,14 +41,15 @@ class DynamoEntryWithRangeKeyTest {
             .withName(SOME_ROLE_NAME)
             .withAccessRights(Collections.singleton(SOME_ACCESS_RIGHT))
             .build();
-        UserDb sampleUser = UserDb.newBuilder()
+        ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
+        return UserDb.newBuilder()
             .withUsername(SOME_USER_NAME)
             .withFamilyName(SOME_FAMILY_NAME)
             .withGivenName(SOME_GIVEN_NAME)
             .withInstitution(SOME_INSTITUTION)
             .withRoles(Collections.singletonList(sampleRole))
+            .withViewingScope(viewingScope)
             .build();
-        return sampleUser;
     }
 
     @Test

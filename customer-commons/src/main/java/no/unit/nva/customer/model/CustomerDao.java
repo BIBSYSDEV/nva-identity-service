@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
@@ -14,6 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.interfaces.Customer;
 import nva.commons.core.JacocoGenerated;
+
 @JsonTypeInfo(
     use = Id.NAME,
     include = As.PROPERTY,
@@ -175,21 +177,21 @@ public class CustomerDao implements Customer<VocabularyDao> {
     }
 
     @Override
+    public Set<VocabularyDao> getVocabularies() {
+        return nonNull(vocabularies) ? vocabularies : Collections.emptySet();
+    }
+
+    @Override
+    public void setVocabularies(Set<VocabularyDao> vocabularies) {
+        this.vocabularies = nonNull(vocabularies) ? vocabularies : Collections.emptySet();
+    }
+
+    @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
                             getCristinId(), getVocabularies());
-    }
-
-    @Override
-    public Set<VocabularyDao> getVocabularies() {
-        return vocabularies;
-    }
-
-    @Override
-    public void setVocabularies(Set<VocabularyDao> vocabularies) {
-        this.vocabularies = Objects.nonNull(vocabularies) ? vocabularies : Collections.emptySet();
     }
 
     @Override
@@ -231,7 +233,7 @@ public class CustomerDao implements Customer<VocabularyDao> {
             .withFeideOrganizationId(getFeideOrganizationId())
             .withCristinId(getCristinId())
             .build();
-        return LinkedDataContextUtils.addContext(customerDto);
+        return LinkedDataContextUtils.addContextAndId(customerDto);
     }
 
     private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {

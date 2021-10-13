@@ -3,10 +3,9 @@ package no.unit.nva.customer.get;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
-import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
-import no.unit.nva.customer.model.VocabularyDto;
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.interfaces.VocabularyList;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
@@ -28,9 +27,8 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
     protected VocabularyList processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         UUID identifier = UUID.fromString(requestInfo.getPathParameter(IDENTIFIER_PATH_PARAMETER));
-        Set<VocabularyDto> vocabularySettings =
-            customerService.getCustomer(identifier).getVocabularies();
-        return new VocabularyList(vocabularySettings);
+        CustomerDto customerDto = customerService.getCustomer(identifier);
+        return VocabularyList.fromCustomerDto(customerDto);
     }
 
     @Override

@@ -3,8 +3,11 @@ plugins {
 }
 
 dependencies {
+    implementation project(":user-access-errors")
+    implementation libs.nva.core
+    implementation libs.nva.apigateway
     implementation libs.bundles.jackson
     testImplementation libs.bundles.testing
-
+    testImplementation group: 'com.spotify', name: 'hamcrest-jackson', version: '1.2.0'
 
 }

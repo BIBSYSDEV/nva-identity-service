@@ -1,14 +1,15 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
 import java.net.URI;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Customer;
 import no.unit.nva.customer.model.interfaces.Resource;
 import nva.commons.core.JacocoGenerated;
-
 
 public class CustomerDtoWithoutContext implements Customer<VocabularyDto>, Resource {
 
@@ -151,6 +152,24 @@ public class CustomerDtoWithoutContext implements Customer<VocabularyDto>, Resou
     }
 
     @Override
+    public Set<VocabularyDto> getVocabularies() {
+        return nonNull(vocabularySettings) ? vocabularySettings : Collections.emptySet();
+    }
+
+    @Override
+    public void setVocabularies(Set<VocabularyDto> vocabularySettings) {
+        this.vocabularySettings = vocabularySettings;
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                            getCristinId(), getVocabularies());
+    }
+
+    @Override
     @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
@@ -173,23 +192,5 @@ public class CustomerDtoWithoutContext implements Customer<VocabularyDto>, Resou
                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies());
-    }
-
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-                            getCristinId(), getVocabularies());
-    }
-
-    @Override
-    public Set<VocabularyDto> getVocabularies() {
-        return vocabularySettings;
-    }
-
-    @Override
-    public void setVocabularies(Set<VocabularyDto> vocabularySettings) {
-        this.vocabularySettings = vocabularySettings;
     }
 }

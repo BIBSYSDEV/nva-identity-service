@@ -1,21 +1,21 @@
 package no.unit.nva.customer.get;
 
-import static org.apache.http.HttpStatus.SC_OK;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.util.List;
 import no.unit.nva.customer.Constants;
-import no.unit.nva.customer.ObjectMapperConfig;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+
+import java.util.List;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static org.apache.http.HttpStatus.SC_OK;
 
 public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList> {
 
@@ -55,13 +55,5 @@ public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList
     @Override
     protected Integer getSuccessStatusCode(Void input, CustomerList output) {
         return SC_OK;
-    }
-
-    @JacocoGenerated
-    private static DynamoDBCustomerService defaultCustomerService() {
-        return new DynamoDBCustomerService(
-            AmazonDynamoDBClientBuilder.defaultClient(),
-            ObjectMapperConfig.objectMapper,
-            new Environment());
     }
 }

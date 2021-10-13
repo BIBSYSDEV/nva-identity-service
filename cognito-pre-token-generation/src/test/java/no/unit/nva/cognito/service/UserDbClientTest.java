@@ -34,7 +34,8 @@ public class UserDbClientTest {
     }
 
     @Test
-    public void getUserReturnsUserDtoWhenUserExists() throws InvalidEntryInternalException, NotFoundException {
+    public void getUserReturnsUserDtoWhenUserExists()
+        throws InvalidEntryInternalException, NotFoundException, InvalidInputException {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         when(databaseService.getUser(any())).thenReturn(userDto);
 
@@ -46,7 +47,7 @@ public class UserDbClientTest {
 
     @Test
     public void getUserReturnsOptionalEmptyWhenUserIsNotFound()
-            throws InvalidEntryInternalException, NotFoundException {
+        throws InvalidEntryInternalException, NotFoundException, InvalidInputException {
         when(databaseService.getUser(any())).thenThrow(NotFoundException.class);
 
         Optional<UserDto> user = userApi.getUser(SAMPLE_USERNAME);
@@ -56,7 +57,7 @@ public class UserDbClientTest {
 
     @Test
     public void createUserReturnsCreatedUserOnSuccess()
-            throws InvalidEntryInternalException, NotFoundException {
+        throws InvalidEntryInternalException, NotFoundException, InvalidInputException {
         UserDto userDto = UserDto.newBuilder().withUsername(SAMPLE_USERNAME).build();
         when(databaseService.getUser(any())).thenReturn(userDto);
 

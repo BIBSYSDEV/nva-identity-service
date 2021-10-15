@@ -10,6 +10,15 @@ import java.util.Set;
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import nva.commons.core.JacocoGenerated;
 
+/**
+ * This is a Curator's default viewing scope expressed as a set of included and excluded Cristin Units.
+ * The Curator's viewing scope has meaning only if a user is a Curator or has seme specific access rights.
+ * Otherwise, it has no effect on what the user can do.
+ * The Curator's view does not give the Curator some extra rights.It is only a default view that the Curator can change
+ * at will as they are using the service.
+ * Note: The Curator can change their view when they are using the service (i.e., per query) but not their default
+ * ViewingScope as this has been set by some Administrator.
+ */
 public class ViewingScope implements WithType {
 
     public static final String EXCLUDED_UNIS = "excludedUnis";

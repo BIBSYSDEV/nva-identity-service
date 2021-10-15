@@ -33,6 +33,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
     private String institution;
     private String givenName;
     private String familyName;
+    private ViewingScope viewingScope;
 
     public UserDto() {
         roles = new ArrayList<>();
@@ -145,6 +146,14 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
         return toJsonString();
     }
 
+    public ViewingScope getViewingScope() {
+        return this.viewingScope;
+    }
+
+    public void setViewingScope(ViewingScope viewingScope) {
+        this.viewingScope = viewingScope;
+    }
+
     private List<RoleDto> listRoles() {
         return new ArrayList<>(Optional.ofNullable(roles).orElse(Collections.emptyList()));
     }
@@ -186,6 +195,11 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
 
         public UserDto build() {
             return userDto;
+        }
+
+        public Builder withViewingScope(ViewingScope viewingScope) {
+            userDto.setViewingScope(viewingScope);
+            return this;
         }
     }
 }

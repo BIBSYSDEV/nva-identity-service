@@ -20,6 +20,7 @@ import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
@@ -45,6 +46,8 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     private String givenName;
     @JsonProperty("familyName")
     private String familyName;
+    @JsonProperty("viewingScope")
+    private ViewingScope viewingScope;
 
     public UserDb() {
         super();
@@ -63,6 +66,14 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withRoles(createRoleDbList(userDto));
 
         return userDb.build();
+    }
+
+    public ViewingScope getViewingScope() {
+        return viewingScope;
+    }
+
+    public void setViewingScope(ViewingScope viewingScope) {
+        this.viewingScope = viewingScope;
     }
 
     /**
@@ -230,30 +241,29 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withRoles(this.roles);
     }
 
-    @Override
     @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getPrimaryHashKey(), getPrimaryRangeKey(), getUsername(), getInstitution(), getRoles(),
-                            getGivenName(), getFamilyName());
-    }
-
     @Override
-    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof UserDb)) {
             return false;
         }
         UserDb userDb = (UserDb) o;
-        return Objects.equals(getPrimaryHashKey(), userDb.getPrimaryHashKey())
-               && Objects.equals(getPrimaryRangeKey(), userDb.getPrimaryRangeKey())
-               && Objects.equals(getUsername(), userDb.getUsername())
+        return Objects.equals(getUsername(), userDb.getUsername())
                && Objects.equals(getInstitution(), userDb.getInstitution())
                && Objects.equals(getRoles(), userDb.getRoles())
                && Objects.equals(getGivenName(), userDb.getGivenName())
-               && Objects.equals(getFamilyName(), userDb.getFamilyName());
+               && Objects.equals(getFamilyName(), userDb.getFamilyName())
+               && Objects.equals(getViewingScope(), userDb.getViewingScope());
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
+                            getViewingScope());
     }
 
     private static Collection<RoleDb> createRoleDbList(UserDto userDto) {
@@ -324,6 +334,11 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
 
         public Builder withRoles(Collection<RoleDb> roles) {
             userDb.setRoles(new ArrayList<>(roles));
+            return this;
+        }
+
+        public Builder withViewingScope(ViewingScope viewingScope) {
+            userDb.setViewingScope(viewingScope);
             return this;
         }
 

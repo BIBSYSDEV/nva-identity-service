@@ -1,5 +1,7 @@
 package no.unit.nva.useraccessmanagement.model;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -7,11 +9,8 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.useraccessmanagement.RestConfig;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 
 public final class EntityUtils {
 
@@ -75,7 +74,7 @@ public final class EntityUtils {
     public static UserDto createUserWithoutUsername()
         throws InvalidEntryInternalException, NoSuchMethodException,
                InvocationTargetException, IllegalAccessException, InvalidInputException {
-        UserDto userWithoutUsername = createUserWithRolesAndInstitution();
+        UserDto userWithoutUsername = createUserWithRolesAndInstitutionAndViewingScope();
         Method method = userWithoutUsername.getClass().getDeclaredMethod("setUsername", String.class);
         method.setAccessible(true);
         method.invoke(userWithoutUsername, EMPTY_STRING);
@@ -98,11 +97,16 @@ public final class EntityUtils {
      *
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
-    public static UserDto createUserWithRolesAndInstitution()
+    public static UserDto createUserWithRolesAndInstitutionAndViewingScope()
         throws InvalidEntryInternalException, InvalidInputException {
         return createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
+            .withViewingScope(randomViewingScope())
             .build();
+    }
+
+    private static ViewingScope randomViewingScope() {
+        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
     }
 
     /**

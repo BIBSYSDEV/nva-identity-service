@@ -1,10 +1,13 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDb.ERROR_DUE_TO_INVALID_ROLE;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
@@ -15,15 +18,17 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.core.attempt.Try;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
@@ -115,7 +120,7 @@ public class UserDbTest {
 
     @ParameterizedTest(name = "setUsername should throw exception when input is:\"{0}\"")
     @NullAndEmptySource
-    @ValueSource(strings = {" ","\t","","\n"})
+    @ValueSource(strings = {" ", "\t", "", "\n"})
     void setUsernameThrowsExceptionWhenUsernameIsNotValid(String invalidUsername) {
         UserDb userDb = new UserDb();
         assertThrows(InvalidEntryInternalException.class, () -> userDb.setUsername(invalidUsername));
@@ -161,7 +166,7 @@ public class UserDbTest {
     @ParameterizedTest
     @NullAndEmptySource
     void toUserDbThrowsExceptionWhenUserDbContainsInvalidRole(String invalidRoleName)
-        throws InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException {
         RoleDto invalidRole = RoleDto.newBuilder().withName(SOME_ROLENAME).build();
         invalidRole.setRoleName(invalidRoleName);
         List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
@@ -174,7 +179,7 @@ public class UserDbTest {
 
     @Test
     void roleValidationMethodLogsError()
-        throws InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException {
         TestAppender appender = LogUtils.getTestingAppender(UserDb.class);
         RoleDto invalidRole = RoleDto.newBuilder().withName(SOME_ROLENAME).build();
         invalidRole.setRoleName(null);
@@ -189,10 +194,36 @@ public class UserDbTest {
     }
 
     @Test
-    void toUserDbReturnsValidUserDbWhenUserDtoIsValid() throws InvalidEntryInternalException, InvalidInputException {
+    void toUserDbReturnsValidUserDbWhenUserDtoIsValid() throws InvalidEntryInternalException {
         UserDto userOnlyWithOnlyUsername = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
         UserDto actualUserOnlyWithName = convertToUserDbAndBack(userOnlyWithOnlyUsername);
         assertThat(actualUserOnlyWithName, is(equalTo(userOnlyWithOnlyUsername)));
+    }
+
+    @Test
+    void userDbContainsListOfCristinOrganizationIdsThatDefineCuratorsScope() throws InvalidEntryInternalException {
+        URI someCristinUnit = randomUri();
+        URI someOtherCristinUnit = randomUri();
+        Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
+        ViewingScope scope = new ViewingScope(visisbleUnits, null);
+        UserDb userDb = UserDb.newBuilder().withUsername(randomString())
+            .withViewingScope(scope)
+            .build();
+
+        assertThat(userDb.getViewingScope().getIncludedUnits(),
+                   containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
+    }
+
+    @Test
+    public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() {
+        URI includedCristinUnit = randomUri();
+        URI excludedCristinUnit = randomUri();
+        ViewingScope scope = new ViewingScope(Set.of(includedCristinUnit), Set.of(excludedCristinUnit));
+        UserDb userDb = UserDb.newBuilder().withUsername(randomString())
+            .withViewingScope(scope)
+            .build();
+        assertThat(userDb.getViewingScope().getIncludedUnits(), containsInAnyOrder(includedCristinUnit));
+        assertThat(userDb.getViewingScope().getExcludedUnits(), containsInAnyOrder(excludedCristinUnit));
     }
 
     private static List<RoleDb> createSampleRoles() {
@@ -206,8 +237,7 @@ public class UserDbTest {
         return RoleDb.newBuilder().withName(str).build();
     }
 
-    private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException,
-                                                                   InvalidInputException {
+    private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {
         return UserDb.fromUserDto(userDto).toUserDto();
     }
 }

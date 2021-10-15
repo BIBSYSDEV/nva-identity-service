@@ -216,14 +216,14 @@ public class UserDbTest {
 
     @Test
     public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() {
-        URI whiteListedCristinUnit = randomUri();
-        URI blackListedCristinUnit = randomUri();
-        ViewingScope scope = new ViewingScope(Set.of(whiteListedCristinUnit), Set.of(blackListedCristinUnit));
+        URI includedCristinUnit = randomUri();
+        URI excludedCristinUnit = randomUri();
+        ViewingScope scope = new ViewingScope(Set.of(includedCristinUnit), Set.of(excludedCristinUnit));
         UserDb userDb = UserDb.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
-        assertThat(userDb.getViewingScope().getIncludedUnits(), containsInAnyOrder(whiteListedCristinUnit));
-        assertThat(userDb.getViewingScope().getExcludedUnits(), containsInAnyOrder(blackListedCristinUnit));
+        assertThat(userDb.getViewingScope().getIncludedUnits(), containsInAnyOrder(includedCristinUnit));
+        assertThat(userDb.getViewingScope().getExcludedUnits(), containsInAnyOrder(excludedCristinUnit));
     }
 
     private static List<RoleDb> createSampleRoles() {

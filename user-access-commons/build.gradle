@@ -8,6 +8,4 @@ dependencies {
     implementation libs.nva.apigateway
     implementation libs.bundles.jackson
     testImplementation libs.bundles.testing
-    testImplementation group: 'com.spotify', name: 'hamcrest-jackson', version: '1.2.0'
-
 }

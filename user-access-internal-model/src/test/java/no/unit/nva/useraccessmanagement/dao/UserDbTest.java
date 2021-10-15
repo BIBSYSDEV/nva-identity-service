@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessmanagement.dao;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDb.ERROR_DUE_TO_INVALID_ROLE;
@@ -201,8 +202,8 @@ public class UserDbTest {
 
     @Test
     void userDbContainsListOfCristinOrganizationIdsThatDefineCuratorsScope() throws InvalidEntryInternalException {
-        URI someCristinUnit = URI.create("https://api.cristin.no/v2/units/1.2.3.4");
-        URI someOtherCristinUnit = URI.create("https://api.cristin.no/v2/units/1.2.3.5");
+        URI someCristinUnit = randomUri();
+        URI someOtherCristinUnit = randomUri();
         Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
         ViewingScope scope = new ViewingScope(visisbleUnits, null);
         UserDb userDb = UserDb.newBuilder().withUsername(randomString())
@@ -215,8 +216,8 @@ public class UserDbTest {
 
     @Test
     public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() {
-        URI whiteListedCristinUnit = URI.create("https://api.cristin.no/v2/units/1.2.3.0");
-        URI blackListedCristinUnit = URI.create("https://api.cristin.no/v2/units/1.2.3.3");
+        URI whiteListedCristinUnit = randomUri();
+        URI blackListedCristinUnit = randomUri();
         ViewingScope scope = new ViewingScope(Set.of(whiteListedCristinUnit), Set.of(blackListedCristinUnit));
         UserDb userDb = UserDb.newBuilder().withUsername(randomString())
             .withViewingScope(scope)

@@ -432,7 +432,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     private UserDto createSampleUserAndAddUserToDb(String username, String institution, String roleName)
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, BadRequestException {
         UserDto userDto = createSampleUser(username, institution, roleName);
-        List<RoleDto> roles = userDto.getRoles();
+        Set<RoleDto> roles = userDto.getRoles();
         roles.stream().forEach(this::addRoleToDb);
         db.addUser(userDto);
         return userDto;

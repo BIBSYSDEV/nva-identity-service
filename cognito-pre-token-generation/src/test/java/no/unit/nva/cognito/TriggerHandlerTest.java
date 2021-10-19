@@ -27,6 +27,7 @@ import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -77,7 +78,6 @@ public class TriggerHandlerTest {
     public static final String USER = "User";
     public static final String SAMPLE_CRISTIN_ID = "http://cristin.id";
     public static final AdminUpdateUserAttributesResult UNUSED_RESULT = null;
-    public static final int ONLY_CREATOR_ROLE = 1;
     public static final Javers JAVERS = JaversBuilder.javers().build();
     public static final Context CONTEXT = mock(Context.class);
     private final AtomicReference<List<AttributeType>> attributeTypesBuffer = new AtomicReference<>();
@@ -314,7 +314,7 @@ public class TriggerHandlerTest {
 
     private UserDto createUserWithCustomRole(String manuallyAssignedRole) throws InvalidEntryInternalException {
         UserDto sampleUser = createUserWithInstitutionAndCreatorRole();
-        List<RoleDto> roles = sampleUser.getRoles();
+        Set<RoleDto> roles = sampleUser.getRoles();
 
         roles.add(createRole(manuallyAssignedRole));
         return userWithInstitution(userWithRoles(roles));
@@ -383,12 +383,12 @@ public class TriggerHandlerTest {
     }
 
     private UserDto createUserWithOnlyUserRole() throws InvalidEntryInternalException {
-        List<RoleDto> roles = new ArrayList<>();
+        HashSet<RoleDto> roles = new HashSet<>();
         roles.add(createRole(USER));
         return userWithRoles(roles);
     }
 
-    private UserDto userWithRoles(List<RoleDto> roles) throws InvalidEntryInternalException {
+    private UserDto userWithRoles(Set<RoleDto> roles) throws InvalidEntryInternalException {
         return UserDto.newBuilder()
             .withUsername(SAMPLE_FEIDE_ID)
             .withGivenName(SAMPLE_GIVEN_NAME)
@@ -398,7 +398,7 @@ public class TriggerHandlerTest {
     }
 
     private UserDto createUserWithInstitutionAndCreatorRole() throws InvalidEntryInternalException {
-        List<RoleDto> roles = new ArrayList<>();
+        HashSet<RoleDto> roles = new HashSet<>();
         roles.add(createRole(CREATOR));
         roles.add(createRole(USER));
         return userWithInstitution(userWithRoles(roles));
@@ -412,7 +412,7 @@ public class TriggerHandlerTest {
     }
 
     private UserDto createUserWithInstitutionAndOnlyUserRole() throws InvalidEntryInternalException {
-        List<RoleDto> roles = new ArrayList<>();
+        Set<RoleDto> roles = new HashSet<>();
         roles.add(createRole(USER));
         return userWithInstitution(userWithRoles(roles));
     }

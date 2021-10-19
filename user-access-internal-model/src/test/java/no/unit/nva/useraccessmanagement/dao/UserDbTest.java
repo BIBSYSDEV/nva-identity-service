@@ -268,7 +268,7 @@ public class UserDbTest {
     }
 
     private Collection<RoleDb> randomRoles() {
-        return Set.of(randomRole(), randomRole());
+        return List.of(randomRole(), randomRole());
     }
 
     private RoleDb randomRole() {

@@ -47,7 +47,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 public class UserDtoTest extends DtoTest {
 
-    public static final List<RoleDto> sampleRoles = createSampleRoles();
+    public static final Set<RoleDto> sampleRoles = createSampleRoles();
     public static final String SOME_INSTITUTION = "someInstitution";
     public static final String SOME_OTHER_ROLENAME = "SomeOtherRolename";
     protected static final String USER_TYPE_LITERAL = "User";
@@ -121,7 +121,7 @@ public class UserDtoTest extends DtoTest {
     @Test
     public void getRolesReturnsEmptyListWhenRolesIsNull() {
         UserDto userDto = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(null).build();
-        List<RoleDto> roles = userDto.getRoles();
+        Set<RoleDto> roles = userDto.getRoles();
         assertThat(roles, is(not(nullValue())));
         assertThat(roles, is(empty()));
     }
@@ -150,7 +150,7 @@ public class UserDtoTest extends DtoTest {
         UserDto user = UserDto.newBuilder().withUsername(SOME_USERNAME)
             .withInstitution(SOME_INSTITUTION).build();
         assertThat(user.getUsername(), is(equalTo(SOME_USERNAME)));
-        assertThat(user.getRoles(), is(equalTo(Collections.emptyList())));
+        assertThat(user.getRoles(), is(empty()));
         assertThat(user.getInstitution(), is(equalTo(SOME_INSTITUTION)));
     }
 
@@ -212,9 +212,9 @@ public class UserDtoTest extends DtoTest {
         assertThat(actualViewingScope.getExcludedUnits(), contains(cristinUnitExcludedFromDefaultCuratorsView));
     }
 
-    private static List<RoleDto> createSampleRoles() {
+    private static Set<RoleDto> createSampleRoles() {
         try {
-            return Collections.singletonList(createRole(SOME_ROLENAME));
+            return Collections.singleton(createRole(SOME_ROLENAME));
         } catch (InvalidEntryInternalException e) {
             throw new RuntimeException(e);
         }

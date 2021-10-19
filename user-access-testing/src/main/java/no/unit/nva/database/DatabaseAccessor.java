@@ -41,10 +41,10 @@ public abstract class DatabaseAccessor implements WithEnvironment {
     protected DatabaseService databaseService;
 
     public DatabaseServiceImpl createDatabaseServiceUsingLocalStorage() {
-        databaseService= new  DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
+        databaseService = new DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
         //return the field just to not break the current API.
         //TODO: remove return after merging.
-        return  (DatabaseServiceImpl)databaseService;
+        return (DatabaseServiceImpl) databaseService;
     }
 
     /**

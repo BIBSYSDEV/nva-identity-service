@@ -26,12 +26,11 @@ public class HandlerTest extends DatabaseAccessor {
     public static final String TYPE_ATTRIBUTE = "type";
     private static final String SPECIAL_CHARACTER = "@";
     private static final String ENCODED_SPECIAL_CHARACTER = "%40";
-    protected DatabaseService databaseService;
+
 
     protected UserDto insertSampleUserToDatabase(String username, String institution)
         throws InvalidEntryInternalException, ConflictException, InvalidInputException {
         UserDto sampleUser = createSampleUserWithExistingRoles(username, institution);
-
         databaseService.addUser(sampleUser);
         return sampleUser;
     }

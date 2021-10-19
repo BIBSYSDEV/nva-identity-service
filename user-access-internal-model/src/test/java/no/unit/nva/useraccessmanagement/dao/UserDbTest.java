@@ -1,5 +1,7 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
@@ -19,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -29,10 +32,15 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
+import no.unit.useraccessserivce.accessrights.AccessRight;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.hamcrest.core.StringContains;
+import org.javers.core.Javers;
+import org.javers.core.JaversBuilder;
+import org.javers.core.diff.Diff;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -48,6 +56,7 @@ public class UserDbTest {
     public static final String SOME_FAMILY_NAME = "familyName";
     public static final String SOME_INSTITUTION = "SomeInstitution";
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
+    public static final Javers JAVERS = JaversBuilder.javers().build();
 
     private UserDb userDao;
     private UserDb sampleUser;
@@ -71,6 +80,18 @@ public class UserDbTest {
         UserDb userWithValidRole = UserDb.fromUserDto(createUserWithRolesAndInstitution());
         Executable action = userWithValidRole::toUserDto;
         assertDoesNotThrow(action);
+    }
+
+    @Test
+    public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() throws BadRequestException {
+        URI includedCristinUnit = randomUri();
+        URI excludedCristinUnit = randomUri();
+        ViewingScope scope = new ViewingScope(Set.of(includedCristinUnit), Set.of(excludedCristinUnit));
+        UserDb userDb = UserDb.newBuilder().withUsername(randomString())
+            .withViewingScope(scope)
+            .build();
+        assertThat(userDb.getViewingScope().getIncludedUnits(), containsInAnyOrder(includedCristinUnit));
+        assertThat(userDb.getViewingScope().getExcludedUnits(), containsInAnyOrder(excludedCristinUnit));
     }
 
     @Test
@@ -135,18 +156,25 @@ public class UserDbTest {
     }
 
     @Test
-    void copyShouldReturnBuilderWithFilledInFields() throws InvalidEntryInternalException {
-        UserDb originalUser = UserDb.newBuilder()
-            .withUsername(SOME_USERNAME)
-            .withGivenName(SOME_GIVEN_NAME)
-            .withFamilyName(SOME_FAMILY_NAME)
-            .withInstitution(SOME_INSTITUTION)
-            .withRoles(SAMPLE_ROLES)
-            .build();
+    void copyShouldReturnBuilderWithFilledInFields() throws InvalidEntryInternalException, BadRequestException {
+        UserDb originalUser = randomUserDb();
         UserDb copy = originalUser.copy().build();
         assertThat(copy, is(equalTo(originalUser)));
 
         assertThat(copy, is(not(sameInstance(originalUser))));
+    }
+
+    @Test
+    void shouldConvertToDtoAndBackWithoutInformationLoss() throws BadRequestException {
+        UserDb originalUser = randomUserDb();
+        UserDb converted = Try.of(originalUser)
+            .map(UserDb::toUserDto)
+            .map(UserDb::fromUserDto)
+            .orElseThrow();
+        Diff diff = JAVERS.compare(originalUser,converted);
+        assertThat(diff.prettyPrint(),diff.hasChanges(),is(false));
+        assertThat(converted, doesNotHaveEmptyValues());
+        assertThat(originalUser, is(equalTo(converted)));
     }
 
     @ParameterizedTest(name = "fromUserDb throws Exception user contains invalidRole. Rolename:\"{0}\"")
@@ -201,7 +229,8 @@ public class UserDbTest {
     }
 
     @Test
-    void userDbContainsListOfCristinOrganizationIdsThatDefineCuratorsScope() throws InvalidEntryInternalException {
+    void userDbContainsListOfCristinOrganizationIdsThatDefineCuratorsScope()
+        throws InvalidEntryInternalException, BadRequestException {
         URI someCristinUnit = randomUri();
         URI someOtherCristinUnit = randomUri();
         Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
@@ -214,18 +243,6 @@ public class UserDbTest {
                    containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
     }
 
-    @Test
-    public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() {
-        URI includedCristinUnit = randomUri();
-        URI excludedCristinUnit = randomUri();
-        ViewingScope scope = new ViewingScope(Set.of(includedCristinUnit), Set.of(excludedCristinUnit));
-        UserDb userDb = UserDb.newBuilder().withUsername(randomString())
-            .withViewingScope(scope)
-            .build();
-        assertThat(userDb.getViewingScope().getIncludedUnits(), containsInAnyOrder(includedCristinUnit));
-        assertThat(userDb.getViewingScope().getExcludedUnits(), containsInAnyOrder(excludedCristinUnit));
-    }
-
     private static List<RoleDb> createSampleRoles() {
         return Stream.of("Role1", "Role2")
             .map(attempt(UserDbTest::newRole))
@@ -235,6 +252,32 @@ public class UserDbTest {
 
     private static RoleDb newRole(String str) throws InvalidEntryInternalException {
         return RoleDb.newBuilder().withName(str).build();
+    }
+
+    private UserDb randomUserDb() throws BadRequestException {
+        UserDb randomUser = UserDb.newBuilder()
+            .withUsername(randomString())
+            .withFamilyName(randomString())
+            .withGivenName(randomString())
+            .withInstitution(randomString())
+            .withRoles(randomRoles())
+            .withViewingScope(randomViewingScope())
+            .build();
+        assertThat(randomUser, doesNotHaveEmptyValues());
+        return randomUser;
+    }
+
+    private Collection<RoleDb> randomRoles() {
+        return Set.of(randomRole(), randomRole());
+    }
+
+    private RoleDb randomRole() {
+        Set<AccessRight> accessRight = Set.of(randomElement(AccessRight.values()));
+        return RoleDb.newBuilder().withName(randomString()).withAccessRights(accessRight).build();
+    }
+
+    private ViewingScope randomViewingScope() throws BadRequestException {
+        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
     }
 
     private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {

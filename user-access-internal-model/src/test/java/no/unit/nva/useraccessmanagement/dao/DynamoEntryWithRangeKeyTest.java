@@ -12,6 +12,7 @@ import java.util.Set;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import no.unit.useraccessserivce.accessrights.AccessRight;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
@@ -27,7 +28,7 @@ class DynamoEntryWithRangeKeyTest {
     public static final String SOME_INSTITUTION = "SomeInstitution";
 
     @Test
-    public void fromItemReturnsEntryWithoutDataLoss() throws InvalidEntryInternalException {
+    public void fromItemReturnsEntryWithoutDataLoss() throws InvalidEntryInternalException, BadRequestException {
         UserDb expectedUser = createSampleUser();
         assertThat(expectedUser, doesNotHaveEmptyValues());
         Item item = expectedUser.toItem();
@@ -36,7 +37,7 @@ class DynamoEntryWithRangeKeyTest {
         assertThat(actualUser, is(equalTo(expectedUser)));
     }
 
-    public UserDb createSampleUser() throws InvalidEntryInternalException {
+    public UserDb createSampleUser() throws InvalidEntryInternalException, BadRequestException {
         RoleDb sampleRole = RoleDb.newBuilder()
             .withName(SOME_ROLE_NAME)
             .withAccessRights(Collections.singleton(SOME_ACCESS_RIGHT))

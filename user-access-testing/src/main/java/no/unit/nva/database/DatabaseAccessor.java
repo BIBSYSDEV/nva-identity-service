@@ -38,9 +38,13 @@ public abstract class DatabaseAccessor implements WithEnvironment {
 
     protected final Environment envWithTableName = mockEnvironment(USERS_AND_ROLES_TABLE);
     protected AmazonDynamoDB localDynamo;
+    protected DatabaseService databaseService;
 
     public DatabaseServiceImpl createDatabaseServiceUsingLocalStorage() {
-        return new DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
+        databaseService= new  DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
+        //return the field just to not break the current API.
+        //TODO: remove return after merging.
+        return  (DatabaseServiceImpl)databaseService;
     }
 
     /**

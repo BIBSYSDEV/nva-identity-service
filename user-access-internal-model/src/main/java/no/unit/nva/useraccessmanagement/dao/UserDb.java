@@ -63,7 +63,8 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withGivenName(userDto.getGivenName())
             .withFamilyName(userDto.getFamilyName())
             .withInstitution(userDto.getInstitution())
-            .withRoles(createRoleDbList(userDto));
+            .withRoles(createRoleDbList(userDto))
+            .withViewingScope(userDto.getViewingScope());
 
         return userDb.build();
     }
@@ -88,7 +89,8 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withGivenName(this.getGivenName())
             .withFamilyName(this.getFamilyName())
             .withRoles(extractRoles(this))
-            .withInstitution(this.getInstitution());
+            .withInstitution(this.getInstitution())
+            .withViewingScope(this.getViewingScope());
         return userDto.build();
     }
 
@@ -234,11 +236,19 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     @Override
     public UserDb.Builder copy() {
         return newBuilder()
-            .withUsername(this.username)
-            .withGivenName(this.givenName)
-            .withFamilyName(this.familyName)
-            .withInstitution(this.institution)
-            .withRoles(this.roles);
+            .withUsername(this.getUsername())
+            .withGivenName(this.getGivenName())
+            .withFamilyName(this.getFamilyName())
+            .withInstitution(this.getInstitution())
+            .withViewingScope(this.getViewingScope())
+            .withRoles(this.getRoles());
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
+                            getViewingScope());
     }
 
     @JacocoGenerated
@@ -257,13 +267,6 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
                && Objects.equals(getGivenName(), userDb.getGivenName())
                && Objects.equals(getFamilyName(), userDb.getFamilyName())
                && Objects.equals(getViewingScope(), userDb.getViewingScope());
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
-                            getViewingScope());
     }
 
     private static Collection<RoleDb> createRoleDbList(UserDto userDto) {

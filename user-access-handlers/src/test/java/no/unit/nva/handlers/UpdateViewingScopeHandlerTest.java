@@ -90,7 +90,6 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
-
     @Test
     void shouldReturnProblemWhenRequestIsNotSuccessful()
         throws IOException, InvalidInputException, ConflictException {
@@ -100,14 +99,14 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(output);
         Problem problem = response.getBodyObject(Problem.class);
         assertThat(response.getHeaders(), hasEntry(CONTENT_TYPE, MediaTypes.APPLICATION_PROBLEM_JSON.toString()));
-        assertThat(problem,is(not(nullValue())));
+        assertThat(problem, is(not(nullValue())));
     }
 
     @Test
     void shouldContainContentTypeHeaderWithValueJson()
         throws IOException, InvalidInputException, ConflictException, BadRequestException {
         var sampleUser = addSampleUserToDb();
-        var request = createUpdateViewingScopeRequest(sampleUser,randomViewingScope());
+        var request = createUpdateViewingScopeRequest(sampleUser, randomViewingScope());
         handler.handleRequest(request, output, CONTEXT);
         GatewayResponse<Void> response = GatewayResponse.fromOutputStream(output);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_ACCEPTED)));

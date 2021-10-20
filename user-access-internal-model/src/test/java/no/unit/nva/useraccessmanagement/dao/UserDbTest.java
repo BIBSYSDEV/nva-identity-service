@@ -156,7 +156,7 @@ public class UserDbTest {
     }
 
     @Test
-    void copyShouldReturnBuilderWithFilledInFields() throws InvalidEntryInternalException, BadRequestException {
+    void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException, BadRequestException {
         UserDb originalUser = randomUserDb();
         UserDb copy = originalUser.copy().build();
         assertThat(copy, is(equalTo(originalUser)));

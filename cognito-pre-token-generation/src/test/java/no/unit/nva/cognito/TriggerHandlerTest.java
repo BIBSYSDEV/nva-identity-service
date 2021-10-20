@@ -383,9 +383,7 @@ public class TriggerHandlerTest {
     }
 
     private UserDto createUserWithOnlyUserRole() throws InvalidEntryInternalException {
-        HashSet<RoleDto> roles = new HashSet<>();
-        roles.add(createRole(USER));
-        return userWithRoles(roles);
+        return userWithRoles(Set.of(createRole(USER)));
     }
 
     private UserDto userWithRoles(Set<RoleDto> roles) throws InvalidEntryInternalException {

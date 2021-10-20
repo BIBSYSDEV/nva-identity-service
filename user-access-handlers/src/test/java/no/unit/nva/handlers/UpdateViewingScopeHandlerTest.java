@@ -91,18 +91,6 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
     }
 
     @Test
-    void shouldReturnProblemWhenRequestIsNotSuccessful()
-        throws IOException, InvalidInputException, ConflictException {
-        var sampleUser = addSampleUserToDb();
-        var request = createInvalidUpdateViewingScopeRequest(sampleUser);
-        handler.handleRequest(request, output, CONTEXT);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(output);
-        Problem problem = response.getBodyObject(Problem.class);
-        assertThat(response.getHeaders(), hasEntry(CONTENT_TYPE, MediaTypes.APPLICATION_PROBLEM_JSON.toString()));
-        assertThat(problem, is(not(nullValue())));
-    }
-
-    @Test
     void shouldContainContentTypeHeaderWithValueJson()
         throws IOException, InvalidInputException, ConflictException, BadRequestException {
         var sampleUser = addSampleUserToDb();

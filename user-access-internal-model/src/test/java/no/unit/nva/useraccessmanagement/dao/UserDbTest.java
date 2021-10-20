@@ -229,7 +229,7 @@ public class UserDbTest {
     }
 
     @Test
-    void userDbContainsListOfCristinOrganizationIdsThatDefineCuratorsScope()
+    void shouldContainListOfCristinOrganizationIdsThatDefineCuratorsScope()
         throws InvalidEntryInternalException, BadRequestException {
         URI someCristinUnit = randomUri();
         URI someOtherCristinUnit = randomUri();

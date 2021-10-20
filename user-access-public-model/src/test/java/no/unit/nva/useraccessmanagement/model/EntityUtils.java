@@ -11,6 +11,7 @@ import java.util.Set;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 
 public final class EntityUtils {
 
@@ -37,7 +38,8 @@ public final class EntityUtils {
      */
     public static HandlerRequestBuilder<UserDto> createRequestBuilderWithUserWithoutUsername()
         throws JsonProcessingException, InvalidEntryInternalException,
-               NoSuchMethodException, IllegalAccessException, InvocationTargetException, InvalidInputException {
+               NoSuchMethodException, IllegalAccessException, InvocationTargetException, InvalidInputException,
+               BadRequestException {
         UserDto userWithoutUsername = createUserWithoutUsername();
         return new HandlerRequestBuilder<UserDto>(defaultRestObjectMapper)
             .withBody(userWithoutUsername);
@@ -57,7 +59,8 @@ public final class EntityUtils {
      */
     public static InputStream createRequestWithUserWithoutUsername()
         throws JsonProcessingException, InvalidEntryInternalException,
-               NoSuchMethodException, IllegalAccessException, InvocationTargetException, InvalidInputException {
+               NoSuchMethodException, IllegalAccessException, InvocationTargetException, InvalidInputException,
+               BadRequestException {
         return createRequestBuilderWithUserWithoutUsername().build();
     }
 
@@ -73,7 +76,7 @@ public final class EntityUtils {
      */
     public static UserDto createUserWithoutUsername()
         throws InvalidEntryInternalException, NoSuchMethodException,
-               InvocationTargetException, IllegalAccessException, InvalidInputException {
+               InvocationTargetException, IllegalAccessException, InvalidInputException, BadRequestException {
         UserDto userWithoutUsername = createUserWithRolesAndInstitutionAndViewingScope();
         Method method = userWithoutUsername.getClass().getDeclaredMethod("setUsername", String.class);
         method.setAccessible(true);
@@ -88,7 +91,7 @@ public final class EntityUtils {
      * @return {@link UserDto}
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user
      */
-    public static UserDto createUserWithoutRoles() throws InvalidEntryInternalException, InvalidInputException {
+    public static UserDto createUserWithoutRoles() throws InvalidEntryInternalException {
         return UserDto.newBuilder().withUsername(SOME_USERNAME).build();
     }
 
@@ -98,14 +101,14 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
     public static UserDto createUserWithRolesAndInstitutionAndViewingScope()
-        throws InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException, InvalidInputException, BadRequestException {
         return createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .withViewingScope(randomViewingScope())
             .build();
     }
 
-    private static ViewingScope randomViewingScope() {
+    private static ViewingScope randomViewingScope() throws BadRequestException {
         return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
     }
 

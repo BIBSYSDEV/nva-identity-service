@@ -7,12 +7,13 @@ import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SE
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.dao.UserDb.Builder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
@@ -41,7 +42,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     @JsonProperty("institution")
     private String institution;
     @JsonProperty("roles")
-    private List<RoleDb> roles;
+    private Set<RoleDb> roles;
     @JsonProperty("givenName")
     private String givenName;
     @JsonProperty("familyName")
@@ -63,7 +64,8 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withGivenName(userDto.getGivenName())
             .withFamilyName(userDto.getFamilyName())
             .withInstitution(userDto.getInstitution())
-            .withRoles(createRoleDbList(userDto));
+            .withRoles(createRoleDbList(userDto))
+            .withViewingScope(userDto.getViewingScope());
 
         return userDb.build();
     }
@@ -88,7 +90,8 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withGivenName(this.getGivenName())
             .withFamilyName(this.getFamilyName())
             .withRoles(extractRoles(this))
-            .withInstitution(this.getInstitution());
+            .withInstitution(this.getInstitution())
+            .withViewingScope(this.getViewingScope());
         return userDto.build();
     }
 
@@ -197,8 +200,8 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @JacocoGenerated
-    public List<RoleDb> getRoles() {
-        return nonNull(roles) ? roles : Collections.emptyList();
+    public Set<RoleDb> getRoles() {
+        return nonNull(roles) ? roles : Collections.emptySet();
     }
 
     /**
@@ -206,8 +209,8 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      *
      * @param roles the roles.
      */
-    public void setRoles(List<RoleDb> roles) {
-        this.roles = nonNull(roles) ? roles : Collections.emptyList();
+    public void setRoles(Collection<RoleDb> roles) {
+        this.roles = nonNull(roles) ? new HashSet<>(roles) : Collections.emptySet();
     }
 
     @JacocoGenerated
@@ -234,11 +237,12 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     @Override
     public UserDb.Builder copy() {
         return newBuilder()
-            .withUsername(this.username)
-            .withGivenName(this.givenName)
-            .withFamilyName(this.familyName)
-            .withInstitution(this.institution)
-            .withRoles(this.roles);
+            .withUsername(this.getUsername())
+            .withGivenName(this.getGivenName())
+            .withFamilyName(this.getFamilyName())
+            .withInstitution(this.getInstitution())
+            .withViewingScope(this.getViewingScope())
+            .withRoles(this.getRoles());
     }
 
     @JacocoGenerated
@@ -333,7 +337,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         }
 
         public Builder withRoles(Collection<RoleDb> roles) {
-            userDb.setRoles(new ArrayList<>(roles));
+            userDb.setRoles(roles);
             return this;
         }
 

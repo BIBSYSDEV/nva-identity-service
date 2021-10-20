@@ -67,12 +67,12 @@ public class UserApiMock implements UserApi {
     }
 
     private UserDto updateRolesWithAccessRights(UserDto user) {
-        List<RoleDto> updatedRoles = updateRoles(user.getRoles());
+        Set<RoleDto> updatedRoles = updateRoles(user.getRoles());
         return attempt(() -> user.copy().withRoles(updatedRoles).build()).toOptional().orElseThrow();
     }
 
-    private List<RoleDto> updateRoles(List<RoleDto> roles) {
-        return roles.stream().map(this::addAccessRights).collect(Collectors.toList());
+    private Set<RoleDto> updateRoles(Set<RoleDto> roles) {
+        return roles.stream().map(this::addAccessRights).collect(Collectors.toSet());
     }
 
     private RoleDto addAccessRights(RoleDto role) {

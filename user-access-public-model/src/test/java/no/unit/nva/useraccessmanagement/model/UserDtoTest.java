@@ -1,6 +1,6 @@
 package no.unit.nva.useraccessmanagement.model;
 
-import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 public class UserDtoTest extends DtoTest {
 
-    public static final List<RoleDto> sampleRoles = createSampleRoles();
+    public static final Set<RoleDto> sampleRoles = createSampleRoles();
     public static final String SOME_INSTITUTION = "someInstitution";
     public static final String SOME_OTHER_ROLENAME = "SomeOtherRolename";
     protected static final String USER_TYPE_LITERAL = "User";
@@ -55,7 +56,7 @@ public class UserDtoTest extends DtoTest {
 
     @DisplayName("UserDto object contains type with value \"User\"")
     @Test
-    public void userDtoSerializedObjectContainsTypeWithValueUser() throws InvalidInputException {
+    public void userDtoSerializedObjectContainsTypeWithValueUser() throws InvalidInputException, BadRequestException {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
         ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
 
@@ -65,7 +66,8 @@ public class UserDtoTest extends DtoTest {
 
     @DisplayName("UserDto cannot be created without type value")
     @Test
-    public void userDtoCannotBeCreatedWithoutTypeValue() throws JsonProcessingException, InvalidInputException {
+    public void userDtoCannotBeCreatedWithoutTypeValue()
+        throws JsonProcessingException, InvalidInputException, BadRequestException {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
         ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
         JsonNode objectWithoutType = json.remove(JSON_TYPE_ATTRIBUTE);
@@ -79,7 +81,7 @@ public class UserDtoTest extends DtoTest {
     @DisplayName("UserDto can be created when it contains the right type value")
     @Test
     public void userDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
-        throws InvalidEntryInternalException, IOException, InvalidInputException {
+        throws InvalidEntryInternalException, IOException, InvalidInputException, BadRequestException {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
         ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
         assertThatSerializedItemContainsType(json, USER_TYPE_LITERAL);
@@ -119,7 +121,7 @@ public class UserDtoTest extends DtoTest {
     @Test
     public void getRolesReturnsEmptyListWhenRolesIsNull() {
         UserDto userDto = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(null).build();
-        List<RoleDto> roles = userDto.getRoles();
+        Set<RoleDto> roles = userDto.getRoles();
         assertThat(roles, is(not(nullValue())));
         assertThat(roles, is(empty()));
     }
@@ -148,7 +150,7 @@ public class UserDtoTest extends DtoTest {
         UserDto user = UserDto.newBuilder().withUsername(SOME_USERNAME)
             .withInstitution(SOME_INSTITUTION).build();
         assertThat(user.getUsername(), is(equalTo(SOME_USERNAME)));
-        assertThat(user.getRoles(), is(equalTo(Collections.emptyList())));
+        assertThat(user.getRoles(), is(empty()));
         assertThat(user.getInstitution(), is(equalTo(SOME_INSTITUTION)));
     }
 
@@ -161,7 +163,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void copyShouldCopyUserDto() throws InvalidInputException {
+    void copyShouldCopyUserDto() throws InvalidInputException, BadRequestException {
         UserDto initialUser = createUserWithRolesAndInstitutionAndViewingScope();
         UserDto copiedUser = initialUser.copy().build();
 
@@ -170,10 +172,10 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void userDtoIsSerialized() throws IOException, InvalidInputException {
+    void userDtoIsSerialized() throws IOException, InvalidInputException, BadRequestException {
         UserDto initialUser = createUserWithRolesAndInstitutionAndViewingScope();
 
-        assertThat(initialUser, doesNotHaveNullOrEmptyFields());
+        assertThat(initialUser, doesNotHaveEmptyValues());
 
         String jsonString = defaultRestObjectMapper.writeValueAsString(initialUser);
         JsonNode actualJson = defaultRestObjectMapper.readTree(jsonString);
@@ -186,7 +188,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void userDtoContainsCristinUnitsToBeIncludedToCuratorsView() {
+    void userDtoContainsCristinUnitsToBeIncludedToCuratorsView() throws BadRequestException {
         URI cristinUnitIncludedInDefaultCuratorsView = randomUri();
         ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView), null);
         UserDto userDto = UserDto.newBuilder().withUsername(randomString())
@@ -197,7 +199,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void userDtoContainsCristinUnitsToBeExcludedToCuratorsView() {
+    void userDtoContainsCristinUnitsToBeExcludedToCuratorsView() throws BadRequestException {
         URI cristinUnitIncludedInDefaultCuratorsView = randomUri();
         URI cristinUnitExcludedFromDefaultCuratorsView = randomUri();
         ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView),
@@ -210,9 +212,9 @@ public class UserDtoTest extends DtoTest {
         assertThat(actualViewingScope.getExcludedUnits(), contains(cristinUnitExcludedFromDefaultCuratorsView));
     }
 
-    private static List<RoleDto> createSampleRoles() {
+    private static Set<RoleDto> createSampleRoles() {
         try {
-            return Collections.singletonList(createRole(SOME_ROLENAME));
+            return Collections.singleton(createRole(SOME_ROLENAME));
         } catch (InvalidEntryInternalException e) {
             throw new RuntimeException(e);
         }

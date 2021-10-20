@@ -8,12 +8,13 @@ import static org.hamcrest.core.Is.is;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Set;
 import no.unit.nva.useraccessmanagement.DynamoConfig;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 
 public class ViewingScopeTest {
 
     @Test
-    void viewingScopeIsSerializedWithType() {
+    void viewingScopeIsSerializedWithType() throws BadRequestException {
         ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
         ObjectNode json = DynamoConfig.defaultDynamoConfigMapper.convertValue(viewingScope, ObjectNode.class);
         assertThat(json, is(jsonObject().where("type", is(jsonText("ViewingScope")))));

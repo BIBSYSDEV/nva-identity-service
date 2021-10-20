@@ -4,11 +4,11 @@ import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
@@ -26,7 +26,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
     public static final String TYPE = "User";
     public static final String MISSING_FIELD_ERROR = "Invalid User. Missing obligatory field: ";
     public static final String USERNAME_FIELD = "username";
-    private List<RoleDto> roles;
+    private Set<RoleDto> roles;
 
     @JsonProperty(USERNAME_FIELD)
     private String username;
@@ -36,7 +36,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
     private ViewingScope viewingScope;
 
     public UserDto() {
-        roles = new ArrayList<>();
+        roles = Collections.emptySet();
     }
 
     /**
@@ -94,12 +94,12 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
         this.institution = institution;
     }
 
-    public List<RoleDto> getRoles() {
-        return nonNull(roles) ? roles : Collections.emptyList();
+    public Set<RoleDto> getRoles() {
+        return nonNull(roles) ? roles : Collections.emptySet();
     }
 
-    private void setRoles(List<RoleDto> roles) {
-        this.roles = roles;
+    private void setRoles(Collection<RoleDto> roles) {
+        this.roles = nonNull(roles) ? new HashSet<>(roles) : Collections.emptySet();
     }
 
     /**
@@ -110,11 +110,11 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
     @Override
     public UserDto.Builder copy() {
         return new Builder()
-            .withUsername(username)
-            .withGivenName(givenName)
-            .withFamilyName(familyName)
-            .withInstitution(institution)
-            .withRoles(listRoles());
+            .withUsername(getUsername())
+            .withGivenName(getGivenName())
+            .withFamilyName(getFamilyName())
+            .withInstitution(getInstitution())
+            .withRoles(getRoles());
     }
 
     @Override
@@ -154,10 +154,6 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
         this.viewingScope = viewingScope;
     }
 
-    private List<RoleDto> listRoles() {
-        return new ArrayList<>(Optional.ofNullable(roles).orElse(Collections.emptyList()));
-    }
-
     public static final class Builder {
 
         private final UserDto userDto;
@@ -188,7 +184,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
             return this;
         }
 
-        public Builder withRoles(List<RoleDto> listRoles) {
+        public Builder withRoles(Collection<RoleDto> listRoles) {
             userDto.setRoles(listRoles);
             return this;
         }

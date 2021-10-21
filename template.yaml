@@ -842,6 +842,42 @@ Resources:
             Method: put
             RestApiId: !Ref NvaCustomerApi
 
+  ### Authorizer #######################################################################################################
+
+  LambdaAuthorizer:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.authorizer.LambdaAuthorizer::handleRequest
+      MemorySize: 512
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+          API_SECRET_NAME: !Sub 'IdentityServiceSecret-${Suffix}'
+          API_SECRET_KEY: IdentityServiceSecretKey
+      Policies:
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Resource: !Ref IdentityServiceSecret
+              Action:
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+
+  IdentityServiceSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Secret that will be used by identity service
+      GenerateSecretString:
+        SecretStringTemplate: "{}"
+        GenerateStringKey: IdentityServiceSecretKey
+        PasswordLength: 30
+        ExcludeCharacters: '"@/\'
+      Name: !Sub 'IdentityServiceSecret-${Suffix}'
+
   NvaCustomerBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:

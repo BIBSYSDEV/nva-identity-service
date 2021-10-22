@@ -453,6 +453,18 @@ Resources:
     Properties:
       StageName: Prod
       EndpointConfiguration: REGIONAL
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+          LambdaRequestAuthorizer:
+            FunctionArn: !GetAtt LambdaAuthorizer.Arn
+            FunctionPayloadType: REQUEST
+            Identity:
+              Headers:
+                - Authorization
+              ReauthorizeEvery: 1
+        DefaultAuthorizer: CognitoAuthorizer
       DefinitionBody:
         'Fn::Transform':
           Name: AWS::Include
@@ -844,6 +856,17 @@ Resources:
 
   ### Authorizer #######################################################################################################
 
+  IdentityServiceSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Secret that will be used by identity service
+      GenerateSecretString:
+        SecretStringTemplate: "{}"
+        GenerateStringKey: IdentityServiceSecretKey
+        PasswordLength: 30
+        ExcludeCharacters: '"@/\'
+      Name: !Sub 'IdentityServiceSecret-${Suffix}'
+
   LambdaAuthorizer:
     Type: AWS::Serverless::Function
     Properties:
@@ -866,17 +889,6 @@ Resources:
                 - secretsmanager:GetSecretValue
                 - secretsmanager:DescribeSecret
                 - secretsmanager:ListSecretVersionIds
-
-  IdentityServiceSecret:
-    Type: AWS::SecretsManager::Secret
-    Properties:
-      Description: Secret that will be used by identity service
-      GenerateSecretString:
-        SecretStringTemplate: "{}"
-        GenerateStringKey: IdentityServiceSecretKey
-        PasswordLength: 30
-        ExcludeCharacters: '"@/\'
-      Name: !Sub 'IdentityServiceSecret-${Suffix}'
 
   NvaCustomerBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping

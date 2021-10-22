@@ -453,18 +453,6 @@ Resources:
     Properties:
       StageName: Prod
       EndpointConfiguration: REGIONAL
-      Auth:
-        Authorizers:
-          CognitoAuthorizer:
-            UserPoolArn: !GetAtt UserPool.Arn
-          LambdaRequestAuthorizer:
-            FunctionArn: !GetAtt LambdaAuthorizer.Arn
-            FunctionPayloadType: REQUEST
-            Identity:
-              Headers:
-                - Authorization
-              ReauthorizeEvery: 1
-        DefaultAuthorizer: CognitoAuthorizer
       DefinitionBody:
         'Fn::Transform':
           Name: AWS::Include

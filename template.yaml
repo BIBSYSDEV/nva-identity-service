@@ -940,6 +940,15 @@ Resources:
         ExcludeCharacters: '"@/\'
       Name: !Sub 'IdentityServiceSecret-${Suffix}'
 
+  LambdaAuthorizerPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - UsersAndRolesApiInternal
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaAuthorizer
+      Principal: apigateway.amazonaws.com
+
   LambdaAuthorizer:
     Type: AWS::Serverless::Function
     Properties:

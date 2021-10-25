@@ -237,3 +237,4 @@ components:
         authorizerUri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAuthorizer.Arn}/invocations
         identitySource: method.request.header.Authorization
+        authorizerPayloadFormatVersion: 1.0

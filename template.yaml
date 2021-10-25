@@ -676,6 +676,18 @@ Resources:
       RestApiId: !Ref UsersAndRolesApi
       Stage: !Ref UsersAndRolesApi.Stage
 
+  UsersAndRolesApiInternalStaticUrl:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath:
+        !If
+        - WithSuffix
+        - !Sub '${UsersAndRolesBasePath}-internal-${Suffix}'
+        - !Sub '${UsersAndRolesBasePath}-internal'
+      DomainName: !Sub 'api.${CustomDomain}'
+      RestApiId: !Ref UsersAndRolesApi
+      Stage: !Ref UsersAndRolesApi.Stage
+
   ### Customer Service #################################################################################################
 
   NvaCustomersTable:

@@ -847,7 +847,7 @@ Resources:
   UsersAndRolesInternalApi:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: !Ref StageName
+      StageName: Prod
       EndpointConfiguration: REGIONAL
       Auth:
         Authorizers:

@@ -1,14 +1,14 @@
 package no.unit.nva.handlers.authorizer;
 
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import no.unit.commons.apigateway.authentication.RequestAuthorizer;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.secrets.SecretsReader;
 
-public class LambdaAuthorizer extends RequestAuthorizer {
+import static nva.commons.core.attempt.Try.attempt;
+
+public class LambdaAuthorizer extends SimpleRequestAuthorizer {
 
     public static final String DEFAULT_PRINCIPAL_ID = "ServiceAccessingIdentityService";
     public static final String AWS_SECRET_NAME_ENV_VAR = "API_SECRET_NAME";

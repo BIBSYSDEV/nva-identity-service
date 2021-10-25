@@ -459,91 +459,6 @@ Resources:
           Parameters:
             Location: ./docs/users-and-roles-swagger.yaml
 
-  UsersAndRolesApiInternal:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      EndpointConfiguration: REGIONAL
-      DefinitionBody:
-        openapi: 3.0.3
-        info:
-          title: NVA Roles and Users catalogue
-          description: Api for updating users and roles
-          version: 1.0.0
-        paths:
-          /users/{username}:
-            get:
-              summary: Gets an existing User
-              parameters:
-                - in: path
-                  name: username
-                  schema:
-                    type: string
-                  required: true
-              security:
-                - ApiKey: []
-              responses:
-                '200':
-                  description: Successful fetching of User. Returns the requested User
-                  content:
-                    "application/json":
-                      schema:
-                        $ref: '#/components/schemas/User'
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetUserHandler.Arn}/invocations
-                responses: { }
-                httpMethod: POST
-                type: aws_proxy
-        components:
-          schemas:
-            AccessRight:
-              type: string
-              enum:
-                - APPROVE_DOI_REQUEST
-                - REJECT_DOI_REQUEST
-            Role:
-              properties:
-                type:
-                  type: string
-                rolename:
-                  type: string
-                accessRight:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/AccessRight'
-            User:
-              properties:
-                type:
-                  type: string
-                username:
-                  type: string
-                givenName:
-                  type: string
-                familyName:
-                  type: string
-                institution:
-                  type: string
-                roles:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Role'
-                accessRight:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/AccessRight'
-          securitySchemes:
-            ApiKey:
-              type: apiKey
-              name: Authorization
-              in: header
-              x-amazon-apigateway-authtype: custom
-              x-amazon-apigateway-authorizer:
-                type: request
-                authorizerUri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAuthorizer.Arn}/invocations
-                identitySource: method.request.header.Authorization
-
   AddRoleHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -672,18 +587,6 @@ Resources:
         - WithSuffix
         - !Sub '${UsersAndRolesBasePath}-${Suffix}'
         - !Sub '${UsersAndRolesBasePath}'
-      DomainName: !Sub 'api.${CustomDomain}'
-      RestApiId: !Ref UsersAndRolesApi
-      Stage: !Ref UsersAndRolesApi.Stage
-
-  UsersAndRolesApiInternalStaticUrl:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath:
-        !If
-        - WithSuffix
-        - !Sub '${UsersAndRolesBasePath}-internal-${Suffix}'
-        - !Sub '${UsersAndRolesBasePath}-internal'
       DomainName: !Sub 'api.${CustomDomain}'
       RestApiId: !Ref UsersAndRolesApi
       Stage: !Ref UsersAndRolesApi.Stage
@@ -955,7 +858,7 @@ Resources:
   LambdaAuthorizerPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
-      - UsersAndRolesApiInternal
+      - UsersAndRolesApi
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref LambdaAuthorizer

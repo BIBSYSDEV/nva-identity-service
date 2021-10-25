@@ -87,6 +87,7 @@ paths:
           required: true
       security:
         - CognitoUserPool: []
+        - ApiKey: []
       responses:
         '200':
           description: Successful fetching of User. Returns the requested User
@@ -128,30 +129,6 @@ paths:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateUserHandler.Arn}/invocations
         responses: {}
-        httpMethod: POST
-        type: aws_proxy
-  /internal/users/{username}:
-    get:
-      summary: Gets an existing User
-      parameters:
-        - in: path
-          name: username
-          schema:
-            type: string
-          required: true
-      security:
-        - ApiKey: []
-      responses:
-        '200':
-          description: Successful fetching of User. Returns the requested User
-          content:
-            "application/json":
-              schema:
-                $ref: '#/components/schemas/User'
-      x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetUserHandler.Arn}/invocations
-        responses: { }
         httpMethod: POST
         type: aws_proxy
   /institutions/users:

@@ -842,9 +842,9 @@ Resources:
             Method: put
             RestApiId: !Ref NvaCustomerApi
 
-  ### Authorizer #######################################################################################################
+  ### Internal API #####################################################################################################
 
-  UsersAndRolesInternalApi:
+  InternalApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
@@ -860,19 +860,19 @@ Resources:
               ReauthorizeEvery: 1
         DefaultAuthorizer: LambdaRequestAuthorizer
 
-  UsersAndRolesInternalBasePathMapping:
+  InternalBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
       BasePath:
         !If
         - WithSuffix
-        - !Sub '${UsersAndRolesBasePath}-internal-${Suffix}'
-        - !Sub '${UsersAndRolesBasePath}-internal'
+        - !Sub 'identity-internal-${Suffix}'
+        - !Sub 'identity-internal'
       DomainName: !Sub 'api.${CustomDomain}'
-      RestApiId: !Ref UsersAndRolesInternalApi
-      Stage: !Ref UsersAndRolesInternalApi.Stage
+      RestApiId: !Ref InternalApi
+      Stage: !Ref InternalApi.Stage
 
-  GetUserHandlerInternal:
+  InternalGetUserHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers
@@ -885,12 +885,37 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref UserRoleMappings
       Events:
-        ApiEvent:
+        GetUserEvent:
           Type: Api
           Properties:
-            Path: /users/{username}
+            Path: /user/{username}
             Method: get
-            RestApiId: !Ref UsersAndRolesInternalApi
+            RestApiId: !Ref InternalApi
+
+  InternalGetCustomerHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref NvaCustomersTable
+          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
+          BY_CRISTIN_ID_INDEX_NAME: byCristinId
+          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        GetCustomerEvent:
+          Type: Api
+          Properties:
+            Path: /customer/{identifier}
+            Method: get
+            RestApiId: !Ref InternalApi
+
+  ### Authorizer #######################################################################################################
 
   IdentityServiceSecret:
     Type: AWS::SecretsManager::Secret

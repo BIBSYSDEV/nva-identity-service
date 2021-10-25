@@ -844,6 +844,54 @@ Resources:
 
   ### Authorizer #######################################################################################################
 
+  UsersAndRolesInternalApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      EndpointConfiguration: REGIONAL
+      Auth:
+        Authorizers:
+          LambdaRequestAuthorizer:
+            FunctionArn: !GetAtt LambdaAuthorizer.Arn
+            FunctionPayloadType: REQUEST
+            Identity:
+              Headers:
+                - Authorization
+              ReauthorizeEvery: 1
+        DefaultAuthorizer: LambdaRequestAuthorizer
+
+  UsersAndRolesInternalBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath:
+        !If
+        - WithSuffix
+        - !Sub '${UsersAndRolesBasePath}-internal-${Suffix}'
+        - !Sub '${UsersAndRolesBasePath}-internal'
+      DomainName: !Sub 'api.${CustomDomain}'
+      RestApiId: !Ref UsersAndRolesInternalApi
+      Stage: !Ref UsersAndRolesInternalApi.Stage
+
+  GetUserHandlerInternal:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserRoleMappings
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/{username}
+            Method: get
+            RestApiId: !Ref UsersAndRolesInternalApi
+
   IdentityServiceSecret:
     Type: AWS::SecretsManager::Secret
     Properties:

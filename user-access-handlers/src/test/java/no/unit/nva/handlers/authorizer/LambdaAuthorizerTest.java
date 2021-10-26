@@ -57,7 +57,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
     }
 
     @Test
-    void ShouldReturnAcceptPolicyWhenSecretIsCorrect() throws IOException {
+    void shouldReturnAcceptPolicyWhenSecretIsCorrect() throws IOException {
 
         AuthorizerResponse response = sendRequest(envWithCorrectValues);
 
@@ -70,7 +70,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
     }
 
     @Test
-    void ShouldReturnDenyPolicyWhenSecretNameIsWrong() throws IOException {
+    void shouldReturnDenyPolicyWhenSecretNameIsWrong() throws IOException {
         Map<String, String> wrongSecretName = Map.of(
                 LambdaAuthorizer.AWS_SECRET_NAME_ENV_VAR, WRONG_SECRET_NAME,
                 LambdaAuthorizer.AWS_SECRET_KEY_ENV_VAR, CORRECT_SECRET_KEY);
@@ -87,7 +87,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
     }
 
     @Test
-    void ShouldReturnDenyPolicyWhenSecretKeyIsWrong() throws IOException {
+    void shouldReturnDenyPolicyWhenSecretKeyIsWrong() throws IOException {
         Map<String, String> wrongSecretName = Map.of(
                 LambdaAuthorizer.AWS_SECRET_NAME_ENV_VAR, CORRECT_SECRET_NAME,
                 LambdaAuthorizer.AWS_SECRET_KEY_ENV_VAR, WRONG_SECRET_KEY);

@@ -12,6 +12,8 @@ dependencies {
     implementation project(':user-access-rights')
 
     implementation libs.nva.apigateway
+    implementation libs.nva.lambdaauthorizer
+    implementation libs.nva.secrets
     implementation libs.bundles.aws.lambda
 
     implementation libs.aws.dynamodb

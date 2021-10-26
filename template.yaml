@@ -920,7 +920,7 @@ Resources:
   IdentityServiceSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Description: Secret that will be used by identity service
+      Description: API key securing selected methods in the Identity Service internal API. To be used by Publication Service when enriching data.
       GenerateSecretString:
         SecretStringTemplate: "{}"
         GenerateStringKey: IdentityServiceSecretKey

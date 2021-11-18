@@ -927,6 +927,14 @@ Resources:
         PasswordLength: 30
         ExcludeCharacters: '"@/\'
       Name: !Sub 'IdentityServiceSecret-${Suffix}'
+  IdentityServiceSecretKeyArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      DataType: text
+      Description: Parameter containing the ARN for IdentityServiceSecretKey so that other services can use the internal Identity-Service API
+      Name: /NVA/UserServiceInternalApiKeyArn
+      Type: String
+      Value: !Ref IdentityServiceSecret
 
   LambdaAuthorizerPermission:
     Type: AWS::Lambda::Permission

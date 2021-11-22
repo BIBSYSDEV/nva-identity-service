@@ -31,17 +31,19 @@ Parameters:
     Type: CommaDelimitedList
     Default: ALLOW_ADMIN_USER_PASSWORD_AUTH, ALLOW_CUSTOM_AUTH, ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH
     Description: Set explicit authenticaton flows.
-
   CustomDomain:
     Type: String
     Description: The domain of this service e.g. (dev.nva.aws.unit.no)
-
-  # Parameters from nva-user-access-service
+  BackendDomainCertificateArn:
+    Type: String
+    Description: ARN for the certificate covering the API host/domain/API Gateway Custom Domain. The value is stored in Region us-east-1.
+  ApiGatewayEndpointType:
+    Type: String
+    Default: EDGE
+    Description: The ApiGateway Endpoint Type
   UsersAndRolesBasePath:
     Type: String
     Default: users-roles
-
-  # Parameter from nva-customer-api
   CustomDomainBasePath:
     Type: String
     Description: Base path mapping in CustomDomain
@@ -1060,10 +1062,23 @@ Resources:
       Type: String
       Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
 
+### Create the Domain Name used by all services. This is the first service to be built and it needs
+# to create the Domain Name in order to be deployed.
+  DomainName:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      CertificateArn: !Ref BackendDomainCertificateArn
+      DomainName: !Ref CustomDomain
+      EndpointConfiguration:
+        Types:
+          - !Ref ApiGatewayEndpointType
+
+
   #============================ Deploy API ============================================================================#
   # This solves the problem described here:
   # https://stackoverflow.com/questions/41423439/cloudformation-doesnt-deploy-to-api-gateway-stages-on-update
   #====================================================================================================================#
+
 
   ApiGatewayCreateDeploymentLambdaRole:
     Type: AWS::IAM::Role

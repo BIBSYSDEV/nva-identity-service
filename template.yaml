@@ -450,6 +450,8 @@ Resources:
 
   UsersAndRolesApi:
     Type: AWS::Serverless::Api
+    DependsOn:
+      - DomainName
     Properties:
       StageName: Prod
       EndpointConfiguration: REGIONAL
@@ -581,6 +583,8 @@ Resources:
 
   UsersAndRolesApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping
+    DependsOn:
+      - DomainName
     Properties:
       BasePath:
         !If
@@ -631,6 +635,8 @@ Resources:
 
   NvaCustomerApi:
     Type: AWS::Serverless::Api
+    DependsOn:
+      - DomainName
     Properties:
       AccessLogSetting:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
@@ -846,6 +852,8 @@ Resources:
 
   InternalApi:
     Type: AWS::Serverless::Api
+    DependsOn:
+      - DomainName
     Properties:
       StageName: Prod
       EndpointConfiguration: REGIONAL
@@ -861,6 +869,8 @@ Resources:
         DefaultAuthorizer: LambdaRequestAuthorizer
 
   InternalBasePathMapping:
+    DependsOn:
+      - DomainName
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
       BasePath:
@@ -970,6 +980,8 @@ Resources:
 
   NvaCustomerBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
+    DependsOn:
+      - DomainName
     Properties:
       BasePath:
         !If

@@ -32,11 +32,9 @@ Parameters:
     Default: ALLOW_ADMIN_USER_PASSWORD_AUTH, ALLOW_CUSTOM_AUTH, ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH
     Description: Set explicit authenticaton flows.
 
-  # Parameters from nva-cognito-pre-token-generation-trigger
   CustomDomain:
-    Type: AWS::SSM::Parameter::Value<String>
-    Description: Custom API to connect this lambda to
-    Default: CustomDomain
+    Type: String
+    Description: The domain of this service e.g. (dev.nva.aws.unit.no)
 
   # Parameters from nva-user-access-service
   UsersAndRolesBasePath:

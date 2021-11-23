@@ -72,7 +72,7 @@ Resources:
 
   UserPool:
     Type: AWS::Cognito::UserPool
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
       AdminCreateUserConfig:
@@ -415,7 +415,7 @@ Resources:
 
   UserRoleMappings:
     Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub 'nva-users-and-roles-${AWS::StackName}'

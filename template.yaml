@@ -421,7 +421,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
 
   ### User Access Service ##############################################################################################
@@ -665,7 +665,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -687,7 +687,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
 
       Policies:
         - DynamoDBCrudPolicy:
@@ -710,7 +710,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -732,7 +732,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -754,7 +754,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -776,7 +776,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -798,7 +798,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -820,7 +820,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -842,7 +842,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -915,7 +915,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -986,8 +986,8 @@ Resources:
       BasePath:
         !If
         - WithSuffix
-        - !Sub '${CustomDomainBasePath}-${Suffix}'
-        - !Sub '${CustomDomainBasePath}'
+        - !Sub '${CustomerDomainBasePath}-${Suffix}'
+        - !Sub '${CustomerDomainBasePath}'
       DomainName: !Ref ApiDomain
       RestApiId: !Ref NvaCustomerApi
       Stage: !Ref NvaCustomerApi.Stage

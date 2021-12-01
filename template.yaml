@@ -34,11 +34,6 @@ Parameters:
     Default: ALLOW_ADMIN_USER_PASSWORD_AUTH, ALLOW_CUSTOM_AUTH, ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH
     Description: Set explicit authenticaton flows.
 
-  CustomDomain:
-    Type: 'AWS::SSM::Parameter::Value<String>'
-    Description: Custom API to connect this lambda to
-    Default: CustomDomain
-
   ApiDomain:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApiDomain

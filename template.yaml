@@ -21,8 +21,10 @@ Parameters:
     Description: The prefix for the Cognito domain that hosts the sign-up and sign-in pages for your application.
   FeideMetadataUrl:
     Type: String
-    Default: https://idp-test.feide.no/simplesaml/saml2/idp/metadata.php
-    Description: Link to the the identity provider details.
+    AllowedValues:
+      - https://idp-test.feide.no/simplesaml/saml2/idp/metadata.php
+      - https://idp.feide.no/simplesaml/saml2/idp/metadata.php
+    Description: Link to the the identity provider details. Use test for non prod environments.
   ParameterNamePrefix:
     Type: String
     Description: Prefix used for naming parameters.
@@ -34,7 +36,17 @@ Parameters:
 
   CustomDomain:
     Type: String
-    Description: The domain of this service e.g. (dev.nva.aws.unit.no)
+    Description: Legacy parameter. The domain of this service e.g. (dev.nva.aws.unit.no)
+
+  ApiDomain:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /NVA/ApiDomain
+    Description: Domain-name for the backend
+
+  ApplicationDomain:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /NVA/ApplicationDomain
+    Description: Domain-name for the frontend
 
   # Parameters from nva-user-access-service
   UsersAndRolesBasePath:
@@ -205,10 +217,10 @@ Resources:
         - !Ref UserPoolIdentityProviderFeide
       UserPoolId: !Ref UserPool
       CallbackURLs:
-        - !Sub 'https://frontend.${CustomDomain}'
+        - !Sub 'https://${ApplicationDomain}'
         - 'http://localhost:3000' # todo: make this conditional in parameters
       LogoutURLs:
-        - !Sub 'https://frontend.${CustomDomain}/logout'
+        - !Sub 'https://${ApplicationDomain}/logout'
         - 'http://localhost:3000/logout' # todo: make this conditional in parameters
       AllowedOAuthFlowsUserPoolClient: True
       AllowedOAuthFlows:
@@ -408,7 +420,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
 
   ### User Access Service ##############################################################################################
@@ -585,7 +597,7 @@ Resources:
         - WithSuffix
         - !Sub '${UsersAndRolesBasePath}-${Suffix}'
         - !Sub '${UsersAndRolesBasePath}'
-      DomainName: !Sub 'api.${CustomDomain}'
+      DomainName: !Ref ApiDomain
       RestApiId: !Ref UsersAndRolesApi
       Stage: !Ref UsersAndRolesApi.Stage
 
@@ -652,7 +664,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -674,7 +686,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -696,7 +708,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -718,7 +730,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -740,7 +752,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -762,7 +774,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -784,7 +796,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -806,7 +818,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -828,7 +840,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -866,7 +878,7 @@ Resources:
         - WithSuffix
         - !Sub 'identity-internal-${Suffix}'
         - !Sub 'identity-internal'
-      DomainName: !Sub 'api.${CustomDomain}'
+      DomainName: !Ref ApiDomain
       RestApiId: !Ref InternalApi
       Stage: !Ref InternalApi.Stage
 
@@ -901,7 +913,7 @@ Resources:
           TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
-          ID_NAMESPACE: !Sub 'https://api.${CustomDomain}/${CustomDomainBasePath}'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -974,7 +986,7 @@ Resources:
         - WithSuffix
         - !Sub '${CustomDomainBasePath}-${Suffix}'
         - !Sub '${CustomDomainBasePath}'
-      DomainName: !Sub 'api.${CustomDomain}'
+      DomainName: !Ref ApiDomain
       RestApiId: !Ref NvaCustomerApi
       Stage: !Ref NvaCustomerApi.Stage
 
@@ -1002,7 +1014,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}CognitoFrontendApplicationUrl'
       Description: A base URL for the callbacks for the identity providers.
       Type: String
-      Value: !Sub 'https://frontend.${CustomDomain}'
+      Value: !Sub 'https://${ApplicationDomain}'
 
   CognitoFrontendApplicationLogoutUrlParameter:
     Type: AWS::SSM::Parameter
@@ -1010,7 +1022,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}CognitoFrontendApplicationLogoutUrl'
       Description: A base URL for the logout for the identity providers.
       Type: String
-      Value: !Sub 'https://frontend.${CustomDomain}/logout'
+      Value: !Sub 'https://${ApplicationDomain}/logout'
 
   FeideMetadataUrlParameter:
     Type: AWS::SSM::Parameter

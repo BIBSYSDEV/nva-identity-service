@@ -15,6 +15,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -146,7 +147,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     @DisplayName("getUser() throws NotFoundException when the username does exist in the database")
     @Test
     public void databaseServiceThrowsNotFoundExceptionWhenUsernameDoesNotExist()
-        throws InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException {
         UserDto queryObject = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
         Executable action = () -> db.getUser(queryObject);
 
@@ -329,7 +330,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
     @Test
     void userDbShouldBeReadFromDatabaseWithoutDataLoss() throws InvalidEntryInternalException, BadRequestException {
-        ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
+        ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), INCLUDE_NESTED_UNITS);
         UserDb insertedUser = UserDb.newBuilder()
             .withUsername(SOME_USERNAME)
             .withGivenName(SOME_GIVEN_NAME)
@@ -461,7 +462,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     }
 
     private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
+        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()),INCLUDE_NESTED_UNITS);
     }
 
     private RoleDto createSampleRoleAndAddToDb(String roleName)

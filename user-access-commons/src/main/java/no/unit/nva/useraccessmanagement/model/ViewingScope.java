@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -24,37 +25,31 @@ public class ViewingScope implements WithType {
     public static final String EXCLUDED_UNIS = "excludedUnis";
     public static final String INCLUDED_UNITS = "includedUnits";
     public static final String VIEWING_SCOPE_TYPE = "ViewingScope";
+    public static final boolean INCLUDE_NESTED_UNITS = true;
+    public static final boolean DO_NOT_INCLUDE_NESTED_UNITS = !INCLUDE_NESTED_UNITS;
+    private static final String NESTED_UNITS = "recursive";
     @JsonProperty(INCLUDED_UNITS)
     private final Set<URI> includedUnits;
     @JsonProperty(EXCLUDED_UNIS)
     private final Set<URI> excludedUnits;
 
+    @JsonProperty(NESTED_UNITS)
+    private final boolean recursive;
+
     @JsonCreator
     public ViewingScope(@JsonProperty(INCLUDED_UNITS) Set<URI> includedUnits,
-                        @JsonProperty(EXCLUDED_UNIS) Set<URI> excludedUnits) throws BadRequestException {
+                        @JsonProperty(EXCLUDED_UNIS) Set<URI> excludedUnits,
+                        @JsonProperty(NESTED_UNITS) Boolean recursive)
+
+        throws BadRequestException {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
+        this.recursive = Optional.ofNullable(recursive).orElse(false);
         validate(includedUnits);
     }
 
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getIncludedUnits(), getExcludedUnits());
-    }
-
-    @JacocoGenerated
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ViewingScope)) {
-            return false;
-        }
-        ViewingScope that = (ViewingScope) o;
-        return Objects.equals(getIncludedUnits(), that.getIncludedUnits())
-               && Objects.equals(getExcludedUnits(), that.getExcludedUnits());
+    public boolean isRecursive() {
+        return recursive;
     }
 
     public Set<URI> getIncludedUnits() {
@@ -68,6 +63,27 @@ public class ViewingScope implements WithType {
     @Override
     public String getType() {
         return VIEWING_SCOPE_TYPE;
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getIncludedUnits(), getExcludedUnits(), isRecursive());
+    }
+
+    @JacocoGenerated
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ViewingScope)) {
+            return false;
+        }
+        ViewingScope that = (ViewingScope) o;
+        return isRecursive() == that.isRecursive()
+               && Objects.equals(getIncludedUnits(), that.getIncludedUnits())
+               && Objects.equals(getExcludedUnits(), that.getExcludedUnits());
     }
 
     private void validate(Set<URI> includedUnits) throws BadRequestException {

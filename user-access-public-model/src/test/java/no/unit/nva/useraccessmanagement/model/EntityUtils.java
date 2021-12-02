@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessmanagement.model;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -109,7 +110,7 @@ public final class EntityUtils {
     }
 
     private static ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
+        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()),randomElement(true, false));
     }
 
     /**

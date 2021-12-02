@@ -9,6 +9,8 @@ import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_USERNAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createRole;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createUserWithRoleWithoutInstitution;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createUserWithRolesAndInstitutionAndViewingScope;
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.DO_NOT_INCLUDE_NESTED_UNITS;
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -190,7 +192,9 @@ public class UserDtoTest extends DtoTest {
     @Test
     void userDtoContainsCristinUnitsToBeIncludedToCuratorsView() throws BadRequestException {
         URI cristinUnitIncludedInDefaultCuratorsView = randomUri();
-        ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView), null);
+        ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView),
+                                                     null,
+                                                     DO_NOT_INCLUDE_NESTED_UNITS);
         UserDto userDto = UserDto.newBuilder().withUsername(randomString())
             .withViewingScope(viewingScope)
             .build();
@@ -203,7 +207,8 @@ public class UserDtoTest extends DtoTest {
         URI cristinUnitIncludedInDefaultCuratorsView = randomUri();
         URI cristinUnitExcludedFromDefaultCuratorsView = randomUri();
         ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView),
-                                                     Set.of(cristinUnitExcludedFromDefaultCuratorsView));
+                                                     Set.of(cristinUnitExcludedFromDefaultCuratorsView),
+                                                     INCLUDE_NESTED_UNITS);
         UserDto userDto = UserDto.newBuilder().withUsername(randomString())
             .withViewingScope(viewingScope)
             .build();

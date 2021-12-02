@@ -7,6 +7,8 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDb.ERROR_DUE_TO_INVALID_ROLE;
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.DO_NOT_INCLUDE_NESTED_UNITS;
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -42,6 +44,7 @@ import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -86,7 +89,9 @@ public class UserDbTest {
     public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() throws BadRequestException {
         URI includedCristinUnit = randomUri();
         URI excludedCristinUnit = randomUri();
-        ViewingScope scope = new ViewingScope(Set.of(includedCristinUnit), Set.of(excludedCristinUnit));
+        ViewingScope scope = new ViewingScope(Set.of(includedCristinUnit),
+                                              Set.of(excludedCristinUnit),
+                                              DO_NOT_INCLUDE_NESTED_UNITS);
         UserDb userDb = UserDb.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
@@ -171,8 +176,8 @@ public class UserDbTest {
             .map(UserDb::toUserDto)
             .map(UserDb::fromUserDto)
             .orElseThrow();
-        Diff diff = JAVERS.compare(originalUser,converted);
-        assertThat(diff.prettyPrint(),diff.hasChanges(),is(false));
+        Diff diff = JAVERS.compare(originalUser, converted);
+        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(converted, doesNotHaveEmptyValues());
         assertThat(originalUser, is(equalTo(converted)));
     }
@@ -234,13 +239,27 @@ public class UserDbTest {
         URI someCristinUnit = randomUri();
         URI someOtherCristinUnit = randomUri();
         Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
-        ViewingScope scope = new ViewingScope(visisbleUnits, null);
+        ViewingScope scope = new ViewingScope(visisbleUnits, null,DO_NOT_INCLUDE_NESTED_UNITS);
         UserDb userDb = UserDb.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
 
         assertThat(userDb.getViewingScope().getIncludedUnits(),
                    containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
+    }
+
+    @Test
+    @DisplayName("should contain field that informs whether the viewing scope should include the children of the "
+                 + "included organizations ")
+    void shouldContainFieldInformingIfTheViewingScopeIncludesTheChildrenOfTheIncludedOrgs() throws BadRequestException {
+        var includedUnits = Set.of(randomUri());
+        var excludedUnits = Set.of(randomUri());
+        var recursiveScope = new ViewingScope(includedUnits, excludedUnits, INCLUDE_NESTED_UNITS);
+        assertThat(recursiveScope.isRecursive(), is(equalTo(INCLUDE_NESTED_UNITS)));
+
+
+        var nonRecursiveScope = new ViewingScope(includedUnits, excludedUnits, DO_NOT_INCLUDE_NESTED_UNITS);
+        assertThat(nonRecursiveScope.isRecursive(), is(equalTo(DO_NOT_INCLUDE_NESTED_UNITS)));
     }
 
     private static List<RoleDb> createSampleRoles() {
@@ -277,7 +296,7 @@ public class UserDbTest {
     }
 
     private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
+        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), DO_NOT_INCLUDE_NESTED_UNITS);
     }
 
     private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {

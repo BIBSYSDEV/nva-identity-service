@@ -2,13 +2,12 @@ package no.unit.nva.handlers;
 
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.core.IsNull.nullValue;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,14 +25,12 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.zalando.problem.Problem;
 
 public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
@@ -126,6 +123,6 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
     }
 
     private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()));
+        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), randomElement(true, false));
     }
 }

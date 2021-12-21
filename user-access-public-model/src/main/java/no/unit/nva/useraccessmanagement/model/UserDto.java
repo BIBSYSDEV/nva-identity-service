@@ -114,7 +114,8 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
             .withGivenName(getGivenName())
             .withFamilyName(getFamilyName())
             .withInstitution(getInstitution())
-            .withRoles(getRoles());
+            .withRoles(getRoles())
+            .withViewingScope(getViewingScope());
     }
 
     @Override

@@ -222,7 +222,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
     @Test
     public void addUserDoesNotAddNonExistingRolesInCreatedUser()
-        throws InvalidEntryInternalException, ConflictException, InvalidInputException, NotFoundException {
+        throws Exception {
         UserDto userWithNonExistingRole = createUserWithRole(SOME_USERNAME, SOME_INSTITUTION,
                                                              createRole(SOME_ROLENAME));
         db.addUser(userWithNonExistingRole);
@@ -236,7 +236,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     @DisplayName("updateUser() updates existing user with input user when input user is valid")
     @Test
     public void updateUserUpdatesAssignsCorrectVersionOfRoleInUser()
-        throws ConflictException, InvalidEntryInternalException, NotFoundException, InvalidInputException {
+        throws Exception {
         RoleDto existingRole = createRole(SOME_ROLENAME);
         db.addRole(existingRole);
         UserDto existingUser = createUserWithRole(SOME_USERNAME, SOME_INSTITUTION, existingRole);
@@ -406,10 +406,12 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     }
 
     private UserDto createUserWithRole(String someUsername, String someInstitution, RoleDto existingRole)
-        throws InvalidEntryInternalException {
+            throws InvalidEntryInternalException, BadRequestException {
+        ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), false);
         return UserDto.newBuilder().withUsername(someUsername)
             .withInstitution(someInstitution)
             .withRoles(Collections.singletonList(existingRole))
+            .withViewingScope(viewingScope)
             .build();
     }
 

@@ -1,24 +1,5 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.cognito.service.UserApiMock.FIRST_ACCESS_RIGHT;
-import static no.unit.nva.cognito.service.UserApiMock.SAMPLE_ACCESS_RIGHTS;
-import static no.unit.nva.cognito.service.UserApiMock.SECOND_ACCESS_RIGHT;
-import static no.unit.nva.cognito.service.UserPoolEntryUpdater.CUSTOM_APPLICATION_ACCESS_RIGHTS;
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
-import static nva.commons.core.attempt.Try.attempt;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
 import com.amazonaws.services.cognitoidp.model.AdminGetUserRequest;
 import com.amazonaws.services.cognitoidp.model.AdminGetUserResult;
@@ -26,18 +7,6 @@ import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
 import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesResult;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import no.unit.nva.cognito.model.CustomerResponse;
 import no.unit.nva.cognito.model.Event;
 import no.unit.nva.cognito.model.Request;
@@ -57,6 +26,38 @@ import org.javers.core.JaversBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+import static no.unit.nva.cognito.service.UserApiMock.FIRST_ACCESS_RIGHT;
+import static no.unit.nva.cognito.service.UserApiMock.SAMPLE_ACCESS_RIGHTS;
+import static no.unit.nva.cognito.service.UserApiMock.SECOND_ACCESS_RIGHT;
+import static no.unit.nva.cognito.service.UserPoolEntryUpdater.CUSTOM_APPLICATION_ACCESS_RIGHTS;
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 public class TriggerHandlerTest {
@@ -424,7 +425,7 @@ public class TriggerHandlerTest {
     }
 
     private ViewingScope createViewingScope() {
-        return attempt(() -> UserService.createViewingScope(URI.create(SAMPLE_CRISTIN_ID))).orElseThrow();
+        return defaultViewingScope(URI.create(SAMPLE_CRISTIN_ID));
     }
 
     private Map<String, Object> createRequestEventWithInstitutionAndEduPersonAffiliation() {

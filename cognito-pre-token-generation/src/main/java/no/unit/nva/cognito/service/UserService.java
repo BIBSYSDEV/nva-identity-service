@@ -1,6 +1,10 @@
 package no.unit.nva.cognito.service;
 
-import static nva.commons.core.attempt.Try.attempt;
+import no.unit.nva.useraccessmanagement.model.RoleDto;
+import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
+import nva.commons.core.attempt.Try;
 
 import java.net.URI;
 import java.util.Collection;
@@ -12,12 +16,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.core.attempt.Try;
+
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class UserService {
 
@@ -132,13 +133,9 @@ public class UserService {
     private void calculateViewingScope(UserDetails userDetails, Builder userBuilder) {
         Optional<String> cristinId = userDetails.getCristinId();
         if (cristinId.isPresent()) {
-            ViewingScope viewingScope = attempt(() -> createViewingScope(URI.create(cristinId.get()))).orElseThrow();
+            ViewingScope viewingScope = defaultViewingScope(URI.create(cristinId.get()));
             userBuilder.withViewingScope(viewingScope);
         }
-    }
-
-    public static ViewingScope createViewingScope(URI organizationId) throws BadRequestException {
-        return new ViewingScope(Set.of(organizationId), Collections.emptySet(), false);
     }
 
     private UserDto.Builder detailsUpdatedInEveryLogin(UserDto.Builder userBuilder, UserDetails userDetails) {

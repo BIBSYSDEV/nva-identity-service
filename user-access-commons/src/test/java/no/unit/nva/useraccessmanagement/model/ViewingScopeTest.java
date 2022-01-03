@@ -5,6 +5,7 @@ import static com.spotify.hamcrest.jackson.IsJsonText.jsonText;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.DO_NOT_INCLUDE_NESTED_UNITS;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -27,6 +28,12 @@ public class ViewingScopeTest {
     void viewingScopeRecursivenessDefaultsToViewingScopeNotBeingRecursive() throws BadRequestException {
         ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()),null);
         assertThat(viewingScope.isRecursive(),is(equalTo(DO_NOT_INCLUDE_NESTED_UNITS)));
+    }
+
+    @Test
+    void defaultViewingScopeReturnsViewingScope() {
+        ViewingScope viewingScope = defaultViewingScope(randomUri());
+        assertThat(viewingScope.getIncludedUnits().size(), is(equalTo(1)));
     }
 
 

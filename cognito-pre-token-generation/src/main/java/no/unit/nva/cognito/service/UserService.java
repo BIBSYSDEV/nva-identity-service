@@ -1,6 +1,8 @@
 package no.unit.nva.cognito.service;
 
 import static nva.commons.core.attempt.Try.attempt;
+
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -13,6 +15,8 @@ import java.util.stream.Stream;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
 
 public class UserService {
@@ -120,7 +124,21 @@ public class UserService {
                                           .withUsername(userDetails.getFeideId())
                                           .withRoles(roles);
 
+        calculateViewingScope(userDetails, userBuilder);
+
         return userBuilder.build();
+    }
+
+    private void calculateViewingScope(UserDetails userDetails, Builder userBuilder) {
+        Optional<String> cristinId = userDetails.getCristinId();
+        if (cristinId.isPresent()) {
+            ViewingScope viewingScope = attempt(() -> createViewingScope(URI.create(cristinId.get()))).orElseThrow();
+            userBuilder.withViewingScope(viewingScope);
+        }
+    }
+
+    public static ViewingScope createViewingScope(URI organizationId) throws BadRequestException {
+        return new ViewingScope(Set.of(organizationId), Collections.emptySet(), false);
     }
 
     private UserDto.Builder detailsUpdatedInEveryLogin(UserDto.Builder userBuilder, UserDetails userDetails) {

@@ -5,6 +5,7 @@ import static no.unit.nva.cognito.service.UserApiMock.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.cognito.service.UserApiMock.SECOND_ACCESS_RIGHT;
 import static no.unit.nva.cognito.service.UserPoolEntryUpdater.CUSTOM_APPLICATION_ACCESS_RIGHTS;
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
@@ -25,6 +26,8 @@ import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
 import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesResult;
 import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
+
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -46,6 +49,7 @@ import no.unit.nva.cognito.service.UserService;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.core.SingletonCollector;
 import org.javers.common.collections.Lists;
 import org.javers.core.Javers;
@@ -416,7 +420,11 @@ public class TriggerHandlerTest {
     }
 
     private UserDto userWithInstitution(UserDto user) throws InvalidEntryInternalException {
-        return user.copy().withInstitution(SAMPLE_CUSTOMER_ID).build();
+        return user.copy().withInstitution(SAMPLE_CUSTOMER_ID).withViewingScope(createViewingScope()).build();
+    }
+
+    private ViewingScope createViewingScope() {
+        return attempt(() -> UserService.createViewingScope(URI.create(SAMPLE_CRISTIN_ID))).orElseThrow();
     }
 
     private Map<String, Object> createRequestEventWithInstitutionAndEduPersonAffiliation() {
@@ -497,6 +505,7 @@ public class TriggerHandlerTest {
             .withFamilyName(SAMPLE_FAMILY_NAME)
             .withRoles(roles)
             .withInstitution(SAMPLE_CUSTOMER_ID)
+            .withViewingScope(createViewingScope())
             .build();
     }
 

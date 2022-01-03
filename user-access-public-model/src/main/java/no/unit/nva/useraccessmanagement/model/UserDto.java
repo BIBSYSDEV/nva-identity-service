@@ -138,6 +138,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
                && Objects.equals(getGivenName(), userDto.getGivenName())
                && Objects.equals(getFamilyName(), userDto.getFamilyName())
                && Objects.equals(getInstitution(), userDto.getInstitution())
+               && Objects.equals(getViewingScope(), userDto.getViewingScope())
                && Objects.equals(getRoles(), userDto.getRoles());
     }
 

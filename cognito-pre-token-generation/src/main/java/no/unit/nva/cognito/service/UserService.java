@@ -1,6 +1,12 @@
 package no.unit.nva.cognito.service;
 
-import static nva.commons.core.attempt.Try.attempt;
+import no.unit.nva.useraccessmanagement.model.RoleDto;
+import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
+import nva.commons.core.attempt.Try;
+
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -10,10 +16,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
-import nva.commons.core.attempt.Try;
+
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class UserService {
 
@@ -120,7 +125,17 @@ public class UserService {
                                           .withUsername(userDetails.getFeideId())
                                           .withRoles(roles);
 
+        calculateViewingScope(userDetails, userBuilder);
+
         return userBuilder.build();
+    }
+
+    private void calculateViewingScope(UserDetails userDetails, Builder userBuilder) {
+        Optional<String> cristinId = userDetails.getCristinId();
+        if (cristinId.isPresent()) {
+            ViewingScope viewingScope = defaultViewingScope(URI.create(cristinId.get()));
+            userBuilder.withViewingScope(viewingScope);
+        }
     }
 
     private UserDto.Builder detailsUpdatedInEveryLogin(UserDto.Builder userBuilder, UserDetails userDetails) {

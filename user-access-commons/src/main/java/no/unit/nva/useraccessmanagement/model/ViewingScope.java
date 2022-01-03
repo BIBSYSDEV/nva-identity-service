@@ -1,6 +1,8 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static java.util.Objects.nonNull;
+import static nva.commons.core.attempt.Try.attempt;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -94,5 +96,13 @@ public class ViewingScope implements WithType {
 
     private Set<URI> nonEmptyOrDefault(Set<URI> units) {
         return nonNull(units) ? units : Collections.emptySet();
+    }
+
+    public static ViewingScope defaultViewingScope(URI organizationId) {
+        return attempt(() -> new ViewingScope(
+                Set.of(organizationId),
+                Collections.emptySet(),
+                false)
+        ).orElseThrow();
     }
 }

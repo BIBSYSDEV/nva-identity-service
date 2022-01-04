@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Objects.isNull;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
 import static nva.commons.core.attempt.Try.attempt;
 
@@ -53,7 +54,7 @@ public class UserService {
                                   .orElseThrow();
 
         // fix viewing scope on existing users
-        if (Objects.isNull(existingUser.getViewingScope())) {
+        if (isNull(existingUser.getViewingScope())) {
             calculateViewingScope(detailsUpdate).ifPresent(viewingScope -> updatedUser.setViewingScope(viewingScope));
         }
 

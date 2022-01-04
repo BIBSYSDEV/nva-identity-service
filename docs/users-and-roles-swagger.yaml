@@ -193,6 +193,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccessRight'
+        viewingScope:
+          $ref: '#/components/schemas/ViewingScope'
+    ViewingScope:
+      properties:
+        includedUnits:
+            type: array
+            items:
+              type: string
+              format: uri
   securitySchemes:
     CognitoUserPool:
       type: apiKey

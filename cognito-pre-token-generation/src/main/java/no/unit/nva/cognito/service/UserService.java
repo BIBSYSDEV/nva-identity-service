@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Objects.isNull;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
 import static nva.commons.core.attempt.Try.attempt;
 
@@ -50,6 +51,11 @@ public class UserService {
                                   .map(builder -> builder.withRoles(updatedRoles))
                                   .map(Builder::build)
                                   .orElseThrow();
+
+        // fix viewing scope on existing users
+        if (isNull(existingUser.getViewingScope())) {
+            calculateViewingScope(detailsUpdate).ifPresent(viewingScope -> updatedUser.setViewingScope(viewingScope));
+        }
 
         userApi.updateUser(updatedUser);
         return updatedUser;
@@ -125,17 +131,18 @@ public class UserService {
                                           .withUsername(userDetails.getFeideId())
                                           .withRoles(roles);
 
-        calculateViewingScope(userDetails, userBuilder);
+        calculateViewingScope(userDetails).ifPresent(viewingScope -> userBuilder.withViewingScope(viewingScope));
 
         return userBuilder.build();
     }
 
-    private void calculateViewingScope(UserDetails userDetails, Builder userBuilder) {
+    private Optional<ViewingScope> calculateViewingScope(UserDetails userDetails) {
         Optional<String> cristinId = userDetails.getCristinId();
+        ViewingScope viewingScope = null;
         if (cristinId.isPresent()) {
-            ViewingScope viewingScope = defaultViewingScope(URI.create(cristinId.get()));
-            userBuilder.withViewingScope(viewingScope);
+            viewingScope = defaultViewingScope(URI.create(cristinId.get()));
         }
+        return Optional.ofNullable(viewingScope);
     }
 
     private UserDto.Builder detailsUpdatedInEveryLogin(UserDto.Builder userBuilder, UserDetails userDetails) {

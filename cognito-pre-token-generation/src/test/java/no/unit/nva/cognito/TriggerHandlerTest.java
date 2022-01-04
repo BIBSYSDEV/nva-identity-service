@@ -124,6 +124,24 @@ public class TriggerHandlerTest {
     }
 
     @Test
+    public void shouldSetViewingScopeOnExistingUserWhereViewingScopeIsMissing()  {
+        mockCustomerApiWithExistingCustomer();
+        UserDto existingUser = createUserWithInstitutionAndCreatorRole();
+        existingUser.setViewingScope(null);
+        prepareMocksWithExistingUser(existingUser);
+
+        Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+
+        verifyNumberOfAttributeUpdatesInCognito(1);
+
+        UserDto expected = createUserWithInstitutionAndCreatorRole();
+        UserDto createdUser = getUserFromMock();
+        assertEquals(expected, createdUser);
+        assertEquals(requestEvent, responseEvent);
+    }
+
+    @Test
     public void handleRequestCreatesUserWithUserRoleWhenNoCustomerIsFound() throws InvalidEntryInternalException {
         mockCustomerApiWithNoCustomer();
 

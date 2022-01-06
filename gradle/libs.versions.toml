@@ -1,5 +1,5 @@
 [versions]
-nvaCommons = { strictly = '1.16.30' }
+nvaCommons = { strictly = '1.17.0-alpha-1' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 awsSdk = { require = "1.11.1000" }
 jackson = { strictly = "2.13.0" }
@@ -17,6 +17,7 @@ mockitoCore = { strictly = '3.12.4' }
 apiGuardian = { strictly = '1.1.2' }
 guava = { strictly = '31.0.1-jre' }
 hamcrestJackson = { strictly = '1.2.0' }
+log4j = {strictly = '2.17.1'}
 
 
 [libraries]
@@ -45,9 +46,10 @@ jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'ja
 jackson-datatype-jdk8 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
 
 slf4j = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
+log4j-core = { group = 'org.apache.logging.log4j', name = 'log4j-core', version.ref = 'log4j' }
+log4j-api = { group = 'org.apache.logging.log4j', name = 'log4j-api', version.ref = 'log4j' }
 
 apache-httpclient = { group = 'org.apache.httpcomponents', name = 'httpclient', version.ref = 'apacheHttpClient' }
-
 zalando-problem = { group = 'org.zalando', name = 'problem', version.ref = 'zalandoProblem' }
 jackson-datatype-problem = { group = 'org.zalando', name = 'jackson-datatype-problem', version.ref = 'zalandoProblem' }
 
@@ -67,7 +69,7 @@ apiguardian-api = { group = 'org.apiguardian', name = 'apiguardian-api', version
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
 [bundles]
-
+logging = ['log4j-core','log4j-api','slf4j']
 testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core', 'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils','hamcrest-jackson']
 problem = ['zalando-problem', 'jackson-datatype-problem']
 jackson = ['jackson-core', 'jackson-databind', 'jackson-annotations', 'jackson-datatype-jsr310']

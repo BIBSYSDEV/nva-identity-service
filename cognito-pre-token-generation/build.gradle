@@ -12,10 +12,9 @@ dependencies {
     implementation project(':customer-commons')
 
     implementation libs.nva.apigateway
-    implementation libs.bundles.jackson
+//    implementation libs.bundles.jackson
     implementation libs.bundles.aws.lambda
     implementation libs.aws.java.sdk.cognitoidp
-    implementation (libs.apache.httpclient)
     implementation libs.aws.dynamodb
 
 }

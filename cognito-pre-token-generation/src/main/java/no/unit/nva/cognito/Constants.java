@@ -1,5 +1,6 @@
 package no.unit.nva.cognito;
 
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
@@ -21,6 +22,7 @@ public final class Constants {
     private static AmazonDynamoDB setupDynamoDBClient() {
         return AmazonDynamoDBClientBuilder
             .standard()
+            .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
             .withRegion(AWS_REGION_VALUE)
             .build();
     }

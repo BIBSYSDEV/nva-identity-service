@@ -8,7 +8,6 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import java.util.List;
-
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -32,6 +31,11 @@ public class DatabaseServiceImpl implements DatabaseService {
     @JacocoGenerated
     public DatabaseServiceImpl() {
         this(defaultDynamoClient(), new Environment());
+    }
+
+    @JacocoGenerated
+    public DatabaseServiceImpl(AmazonDynamoDB dynamoDBClient) {
+        this(dynamoDBClient, new Environment());
     }
 
     public DatabaseServiceImpl(AmazonDynamoDB dynamoDbClient, Environment environment) {
@@ -73,7 +77,7 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public RoleDto getRole(RoleDto queryObject) throws  NotFoundException {
+    public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
         return this.roleService.getRole(queryObject);
     }
 

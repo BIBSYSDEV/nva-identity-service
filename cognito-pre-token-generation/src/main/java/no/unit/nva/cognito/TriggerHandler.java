@@ -1,6 +1,7 @@
 package no.unit.nva.cognito;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.cognito.Constants.DYNAMODB_CLIENT;
 import static no.unit.nva.cognito.util.OrgNumberCleaner.removeCountryPrefix;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
@@ -70,7 +71,6 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
         long start = System.currentTimeMillis();
         Event event = parseEventFromInput(input);
 
-
         UserDetails userDetails = extractUserDetails(event);
         UserDto user = getAndUpdateUserDetails(userDetails);
 
@@ -82,18 +82,12 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
 
     @JacocoGenerated
     private static CustomerDbClient defaultCustomerDbClient() {
-        return new CustomerDbClient(defaultCustomerService());
+        return new CustomerDbClient(defaultCustomerService(DYNAMODB_CLIENT));
     }
-
 
     @JacocoGenerated
     private static UserService defaultUserService() {
-        return new UserService(defaultUserDbClient());
-    }
-
-    @JacocoGenerated
-    private static UserDbClient defaultUserDbClient() {
-        return new UserDbClient(new DatabaseServiceImpl());
+        return new UserService(new UserDbClient(new DatabaseServiceImpl(DYNAMODB_CLIENT)));
     }
 
     private UserDetails extractUserDetails(Event event) {
@@ -131,9 +125,9 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
         return defaultRestObjectMapper.convertValue(input, Event.class);
     }
 
-    private void updateUserDetailsInUserPool(UserDetails userDetails,UserDto user) {
+    private void updateUserDetailsInUserPool(UserDetails userDetails, UserDto user) {
         long start = System.currentTimeMillis();
-        userPoolEntryUpdater.updateUserAttributes(userDetails,user);
+        userPoolEntryUpdater.updateUserAttributes(userDetails, user);
         logger.info("updateUserDetailsInUserPool took {} ms", System.currentTimeMillis() - start);
     }
 

@@ -4,11 +4,12 @@ plugins {
 
 dependencies {
 
-    implementation libs.nva.apigateway
+    implementation libs.bundles.logging
     implementation libs.bundles.jackson
+    implementation libs.nva.apigateway
     implementation libs.aws.dynamodb
 
-    implementation libs.slf4j
+
     compileOnly project(":user-access-rights")
     testImplementation project(":user-access-rights")
 

@@ -18,9 +18,6 @@ dependencies {
 
     implementation libs.aws.dynamodb
 
-    compileOnly libs.jackson.databind
-    testImplementation libs.bundles.jackson
-
     testImplementation project(':user-access-internal-model')
     testImplementation project(':user-access-testing')
 }

@@ -1,6 +1,6 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
+import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomInstant;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
@@ -15,8 +15,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import no.unit.nva.customer.DynamoConfig;
-import no.unit.nva.customer.RestConfig;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;

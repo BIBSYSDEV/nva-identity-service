@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
+import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;

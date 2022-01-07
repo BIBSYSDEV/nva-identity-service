@@ -1,6 +1,6 @@
 package no.unit.nva.customer.service.impl;
 
-import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
+import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_MAPPING_CUSTOMER_TO_ITEM;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_MAPPING_ITEM_TO_CUSTOMER;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_READING_FROM_TABLE;

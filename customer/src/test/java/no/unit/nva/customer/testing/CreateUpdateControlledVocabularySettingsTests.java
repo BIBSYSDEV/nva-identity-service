@@ -1,7 +1,7 @@
 package no.unit.nva.customer.testing;
 
 import static no.unit.nva.customer.ControlledVocabularyHandler.IDENTIFIER_PATH_PARAMETER;
-import static no.unit.nva.customer.DynamoConfig.defaultDynamoConfigMapper;
+import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;

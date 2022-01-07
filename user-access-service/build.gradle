@@ -5,19 +5,13 @@ plugins {
 
 dependencies {
 
-    //We need the api qualifier to avoid including the library for every handler and avoid Runtime
-    // NoClassDefFound Exceptions
-    api project(":user-access-internal-model")
-    api project(":user-access-commons")
-    api project(":user-access-errors")
-    api project(":user-access-public-model")
-    api project(":user-access-rights")
+    implementation project(":user-access-internal-model")
+    implementation project(":user-access-commons")
+    implementation project(":user-access-errors")
+    implementation project(":user-access-public-model")
+    implementation project(":user-access-rights")
 
-
-    api( libs.aws.dynamodb) {
-        because("This module contains the Dynamo access details and will be used by " +
-                "any the handlers")
-
+    implementation(libs.aws.dynamodb) {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
         exclude group: 'com.fasterxml.jackson.datatype', module: 'jackson-datatype-jdk8'
         exclude group: 'com.fasterxml.jackson.datatype', module: 'jackson-datatype-jsr310'
@@ -26,10 +20,7 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
     }
 
-
-    api (libs.aws.secretsmanager) {
-        because("We want to have this library in the AWS::Serverless::LayerVersion resource" +
-                "and do not want to have duplicates of this lib for each handler. ")
+    implementation(libs.nva.apigateway) {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
         exclude group: 'com.fasterxml.jackson.datatype', module: 'jackson-datatype-jdk8'
         exclude group: 'com.fasterxml.jackson.datatype', module: 'jackson-datatype-jsr310'
@@ -38,13 +29,10 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
     }
 
-    implementation libs.nva.apigateway
     implementation libs.slf4j
     implementation libs.bundles.aws.lambda
     implementation libs.bundles.jackson
-    implementation libs.aws.dynamodb
 
     testImplementation project(':user-access-testing')
-
 
 }

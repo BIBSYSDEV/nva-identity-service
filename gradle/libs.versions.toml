@@ -2,6 +2,7 @@
 nvaCommons = { strictly = '1.17.0-alpha-2' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 awsSdk = { require = "1.11.1000" }
+awsSdk2 = { strictly = '2.17.105' }
 jackson = { strictly = "2.13.0" }
 xraySdk = { strictly = '2.9.1' }
 dynamoDbLocal = { strictly = '1.15.0' }
@@ -17,7 +18,7 @@ mockitoCore = { strictly = '3.12.4' }
 apiGuardian = { strictly = '1.1.2' }
 guava = { strictly = '31.0.1-jre' }
 hamcrestJackson = { strictly = '1.2.0' }
-log4j = {strictly = '2.17.1'}
+log4j = { strictly = '2.17.1' }
 
 
 [libraries]
@@ -35,6 +36,7 @@ aws-sdk-core = { group = 'com.amazonaws', name = 'aws-java-sdk-core', version.re
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaCore' }
 aws-java-sdk-lambda = { group = 'com.amazonaws', name = 'aws-java-sdk-lambda', version.ref = 'awsSdk' }
 aws-dynamodb = { group = 'com.amazonaws', name = 'aws-java-sdk-dynamodb', version.ref = 'awsSdk' }
+aws-sdk2-dynamodb ={ group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
 
 aws-java-sdk-cognitoidp = { group = 'com.amazonaws', name = 'aws-java-sdk-cognitoidp', version.ref = 'awsSdk' }
 aws-secretsmanager = { group = 'com.amazonaws', name = 'aws-java-sdk-secretsmanager', version.ref = 'awsSdk' }
@@ -69,8 +71,8 @@ apiguardian-api = { group = 'org.apiguardian', name = 'apiguardian-api', version
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
 [bundles]
-logging = ['log4j-core','log4j-api','slf4j']
-testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core', 'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils','hamcrest-jackson']
+logging = ['log4j-core', 'log4j-api', 'slf4j']
+testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core', 'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils', 'hamcrest-jackson']
 problem = ['zalando-problem', 'jackson-datatype-problem']
 jackson = ['jackson-core', 'jackson-databind', 'jackson-annotations', 'jackson-datatype-jsr310']
 aws-xray = ['aws-xray-recorder-sdk-core', 'aws-xray-recorder-sdk-aws-sdk', 'aws-xray-recorder-sdk-aws-sdk-instrumentor']

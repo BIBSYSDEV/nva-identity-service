@@ -9,25 +9,15 @@ import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SE
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.CreateTableResult;
-import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
-import com.amazonaws.services.dynamodbv2.model.Projection;
-import com.amazonaws.services.dynamodbv2.model.ProjectionType;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
-import com.amazonaws.services.dynamodbv2.model.TableDescription;
+
 import java.util.ArrayList;
 import java.util.List;
 import no.unit.nva.database.interfaces.WithEnvironment;
 import nva.commons.core.Environment;
 import org.junit.jupiter.api.AfterEach;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableResponse;
 
 public abstract class DatabaseAccessor implements WithEnvironment {
 
@@ -35,13 +25,14 @@ public abstract class DatabaseAccessor implements WithEnvironment {
 
     public static final int SINGLE_TABLE_EXPECTED = 1;
     private static final Long CAPACITY_DOES_NOT_MATTER = 1000L;
+    public static final String STRING = "S";
 
     protected final Environment envWithTableName = mockEnvironment(USERS_AND_ROLES_TABLE);
-    protected AmazonDynamoDB localDynamo;
+    protected DynamoDbClient localDynamo;
     protected DatabaseService databaseService;
 
     public DatabaseServiceImpl createDatabaseServiceUsingLocalStorage() {
-        databaseService = new DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
+        databaseService = new DatabaseServiceImpl(initializeTestDatabase());
         //return the field just to not break the current API.
         //TODO: remove return after merging.
         return (DatabaseServiceImpl) databaseService;
@@ -52,7 +43,7 @@ public abstract class DatabaseAccessor implements WithEnvironment {
      *
      * @return a client connected to the local database
      */
-    public AmazonDynamoDB initializeTestDatabase() {
+    public DynamoDbClient initializeTestDatabase() {
 
         localDynamo = createLocalDynamoDbMock();
         String tableName = readTableNameFromEnvironment();
@@ -85,15 +76,15 @@ public abstract class DatabaseAccessor implements WithEnvironment {
         assertThat(tableKeySchema.toString(), containsString(PRIMARY_KEY_RANGE_KEY));
     }
 
-    private AmazonDynamoDB createLocalDynamoDbMock() {
-        return DynamoDBEmbedded.create().amazonDynamoDB();
+    private DynamoDbClient createLocalDynamoDbMock() {
+        return DynamoDBEmbedded.create().dynamoDbClient();
     }
 
     private String readTableNameFromEnvironment() {
         return envWithTableName.readEnv(DatabaseService.USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE);
     }
 
-    private static CreateTableResult createTable(AmazonDynamoDB ddb, String tableName) {
+    private static CreateTableResponse createTable(DynamoDbClient client, String tableName) {
         List<AttributeDefinition> attributeDefinitions = defineKeyAttributes();
         List<KeySchemaElement> keySchema = defineKeySchema();
         ProvisionedThroughput provisionedthroughput = provisionedThroughputForLocalDatabase();
@@ -106,7 +97,7 @@ public abstract class DatabaseAccessor implements WithEnvironment {
                 .withProvisionedThroughput(provisionedthroughput)
                 .withGlobalSecondaryIndexes(searchByInstitutionSecondaryIndex());
 
-        return ddb.createTable(request);
+        return client.createTable(request);
     }
 
     private static GlobalSecondaryIndex searchByInstitutionSecondaryIndex() {
@@ -131,7 +122,8 @@ public abstract class DatabaseAccessor implements WithEnvironment {
 
     private static List<AttributeDefinition> defineKeyAttributes() {
         List<AttributeDefinition> attributeDefinitions = new ArrayList<>();
-        attributeDefinitions.add(new AttributeDefinition(PRIMARY_KEY_HASH_KEY, ScalarAttributeType.S));
+        attributeDefinitions.add(AttributeDefinition.builder().attributeName(PRIMARY_KEY_HASH_KEY)
+                                     .attributeType(STRING).build();
         attributeDefinitions.add(new AttributeDefinition(PRIMARY_KEY_RANGE_KEY, ScalarAttributeType.S));
         attributeDefinitions.add(new AttributeDefinition(SECONDARY_INDEX_1_HASH_KEY, ScalarAttributeType.S));
         attributeDefinitions.add(new AttributeDefinition(SECONDARY_INDEX_1_RANGE_KEY, ScalarAttributeType.S));

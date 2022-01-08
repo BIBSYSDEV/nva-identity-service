@@ -1,11 +1,11 @@
 [versions]
-nvaCommons = { strictly = '1.17.0-alpha-2' }
+nvaCommons = { strictly = '1.18.2' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.105' }
 jackson = { strictly = "2.13.0" }
 xraySdk = { strictly = '2.9.1' }
-dynamoDbLocal = { strictly = '1.15.0' }
+dynamoDbLocal = { strictly = '1.17.2' }
 zalandoProblem = { strictly = '0.26.0' }
 awsLambdaCore = { strictly = '1.2.1' }
 jupiter = { strictly = "5.8.1" }
@@ -36,7 +36,11 @@ aws-sdk-core = { group = 'com.amazonaws', name = 'aws-java-sdk-core', version.re
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaCore' }
 aws-java-sdk-lambda = { group = 'com.amazonaws', name = 'aws-java-sdk-lambda', version.ref = 'awsSdk' }
 aws-dynamodb = { group = 'com.amazonaws', name = 'aws-java-sdk-dynamodb', version.ref = 'awsSdk' }
-aws-sdk2-dynamodb ={ group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
+aws-sdk2-dynamodb = { group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
+aws-sdk2-dynamodbenhanced = { group = 'software.amazon.awssdk', name = 'dynamodb-enhanced', version.ref = 'awsSdk2' }
+aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
+
+
 
 aws-java-sdk-cognitoidp = { group = 'com.amazonaws', name = 'aws-java-sdk-cognitoidp', version.ref = 'awsSdk' }
 aws-secretsmanager = { group = 'com.amazonaws', name = 'aws-java-sdk-secretsmanager', version.ref = 'awsSdk' }

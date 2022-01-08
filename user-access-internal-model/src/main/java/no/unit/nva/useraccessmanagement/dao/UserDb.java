@@ -27,16 +27,18 @@ import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
+@DynamoDbBean
 public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>, WithType {
 
     public static final String TYPE = "USER";
     public static final String INVALID_USER_EMPTY_USERNAME = "Invalid user entry: Empty username is not allowed";
     public static final String ERROR_DUE_TO_INVALID_ROLE =
         "Failure while trying to create user with role without role-name";
-
     private static Logger logger = LoggerFactory.getLogger(UserDb.class);
-
     @JsonProperty("username")
     private String username;
     @JsonProperty("institution")
@@ -98,6 +100,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     @JacocoGenerated
     @Override
     @JsonProperty(PRIMARY_KEY_HASH_KEY)
+    @DynamoDbPartitionKey
     public String getPrimaryHashKey() {
         return formatPrimaryHashKey();
     }
@@ -117,6 +120,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     @JsonProperty(PRIMARY_KEY_RANGE_KEY)
     @JacocoGenerated
     @Override
+    @DynamoDbSortKey
     public String getPrimaryRangeKey() {
         return formatPrimaryRangeKey();
     }
@@ -247,6 +251,13 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
 
     @JacocoGenerated
     @Override
+    public int hashCode() {
+        return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
+                            getViewingScope());
+    }
+
+    @JacocoGenerated
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -263,12 +274,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
                && Objects.equals(getViewingScope(), userDb.getViewingScope());
     }
 
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
-                            getViewingScope());
-    }
+
 
     private static Collection<RoleDb> createRoleDbList(UserDto userDto) {
         return userDto.getRoles().stream()

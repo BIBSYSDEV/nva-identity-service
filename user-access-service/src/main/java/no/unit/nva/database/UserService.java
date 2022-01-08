@@ -2,15 +2,8 @@ package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
-import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.dynamodbv2.document.Index;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemCollection;
-import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,9 +14,17 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class UserService extends DatabaseSubService {
 
@@ -34,13 +35,15 @@ public class UserService extends DatabaseSubService {
     public static final String USER_ALREADY_EXISTS_ERROR_MESSAGE = "User already exists: ";
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-    private final Index institutionsIndex;
+    private final DynamoDbIndex<UserDb> institutionsIndex;
     private final RoleService roleService;
+    private final DynamoDbTable<UserDb> table;
 
-    public UserService(Table table, RoleService roleService) {
-        super(table);
+    public UserService(DynamoDbClient client, RoleService roleService) {
+        super(client);
         this.roleService = roleService;
-        this.institutionsIndex = this.table.getIndex(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME);
+        this.table = this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, TableSchema.fromClass(UserDb.class));
+        this.institutionsIndex = this.table.index(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME);
     }
 
     /**
@@ -63,14 +66,15 @@ public class UserService extends DatabaseSubService {
      * @return all users of the specified institution.
      */
     public List<UserDto> listUsers(String institutionIdentifier) {
-        QuerySpec listUsersQuery = createListUsersByInstitutionQuery(institutionIdentifier);
-        List<Item> items = toList(institutionsIndex.query(listUsersQuery));
+        QueryEnhancedRequest listUsersQuery = createListUsersByInstitutionQuery(institutionIdentifier);
+        var result=institutionsIndex.query(listUsersQuery);
 
-        return items.stream()
-            .map(item -> UserDb.fromItem(item, UserDb.class))
-            .map(attempt(UserDb::toUserDto))
-            .flatMap(Try::stream)
+        return result.stream()
+            .map(Page::items)
+            .flatMap(Collection::stream)
+            .map(UserDb::toUserDto)
             .collect(Collectors.toList());
+
     }
 
     /**
@@ -83,7 +87,7 @@ public class UserService extends DatabaseSubService {
         logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
         checkUserDoesNotAlreadyExist(user);
         UserDb databaseEntryWithSyncedRoles = syncRoleDetails(UserDb.fromUserDto(user));
-        table.putItem(databaseEntryWithSyncedRoles.toItem());
+        table.putItem(databaseEntryWithSyncedRoles);
     }
 
     /**
@@ -114,9 +118,11 @@ public class UserService extends DatabaseSubService {
         return Optional.ofNullable(searchResult);
     }
 
-    private QuerySpec createListUsersByInstitutionQuery(String institution) {
-        return new QuerySpec().withHashKey(SECONDARY_INDEX_1_HASH_KEY, institution)
-            .withConsistentRead(false);
+    private QueryEnhancedRequest createListUsersByInstitutionQuery(String institution) {
+        return QueryEnhancedRequest.builder()
+            .queryConditional(QueryConditional.keyEqualTo(Key.builder().partitionValue(institution).build()))
+            .consistentRead(false)
+            .build();
     }
 
     private void checkUserDoesNotAlreadyExist(UserDto user) throws ConflictException {
@@ -135,20 +141,15 @@ public class UserService extends DatabaseSubService {
         return this.getUserAsOptional(user).isPresent();
     }
 
-    private List<Item> toList(ItemCollection<QueryOutcome> searchResult) {
-        List<Item> items = new ArrayList<>();
-        for (Item item : searchResult) {
-            items.add(item);
-        }
-        return items;
-    }
-
     private UserDto attemptToFetchObject(UserDto queryObject) {
         UserDb userDb = attempt(() -> UserDb.fromUserDto(queryObject))
             .map(this::fetchItem)
-            .map(item -> UserDb.fromItem(item, UserDb.class))
             .orElseThrow(DatabaseSubService::handleError);
         return nonNull(userDb) ? userDb.toUserDto() : null;
+    }
+
+    private UserDb fetchItem(UserDb userDb) {
+        return table.getItem(userDb);
     }
 
     private boolean userHasChanged(UserDto existingUser, UserDb desiredUpdateWithSyncedRoles) {
@@ -156,7 +157,7 @@ public class UserService extends DatabaseSubService {
     }
 
     private void updateTable(UserDb userUpdateWithSyncedRoles) {
-        table.putItem(userUpdateWithSyncedRoles.toItem());
+        table.putItem(userUpdateWithSyncedRoles);
     }
 
     private UserDb userWithSyncedRoles(UserDb currentUser) {

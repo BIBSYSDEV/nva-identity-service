@@ -3,10 +3,7 @@ package no.unit.nva.database;
 import static java.util.Objects.requireNonNull;
 import static no.unit.nva.database.Constants.AWS_REGION;
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.Table;
+
 import java.util.List;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
@@ -18,6 +15,11 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DatabaseServiceImpl implements DatabaseService {
 
@@ -30,22 +32,13 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     @JacocoGenerated
     public DatabaseServiceImpl() {
-        this(defaultDynamoClient(), new Environment());
+        this(defaultDynamoClient());
     }
 
-    @JacocoGenerated
-    public DatabaseServiceImpl(AmazonDynamoDB dynamoDBClient) {
-        this(dynamoDBClient, new Environment());
-    }
-
-    public DatabaseServiceImpl(AmazonDynamoDB dynamoDbClient, Environment environment) {
-        this(createTable(dynamoDbClient, environment));
-    }
-
-    public DatabaseServiceImpl(Table table) {
+    public DatabaseServiceImpl(DynamoDbClient dynamoDbClient) {
         super();
-        this.roleService = new RoleService(table);
-        this.userService = new UserService(table, roleService);
+        this.roleService = new RoleService(dynamoDbClient);
+        this.userService = new UserService(dynamoDbClient, roleService);
     }
 
     @Override
@@ -81,27 +74,14 @@ public class DatabaseServiceImpl implements DatabaseService {
         return this.roleService.getRole(queryObject);
     }
 
-    protected static Table createTable(AmazonDynamoDB dynamoDbClient, Environment environment) {
-        assertDynamoClientIsNotNull(dynamoDbClient);
-        String tableName = environment.readEnv(USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE);
-        return new Table(dynamoDbClient, tableName);
-    }
 
     @JacocoGenerated
-    private static AmazonDynamoDB defaultDynamoClient() {
-        return AmazonDynamoDBClientBuilder.standard()
-            .withRegion(AWS_REGION)
-            .withCredentials(new DefaultAWSCredentialsProviderChain())
+    private static DynamoDbClient defaultDynamoClient() {
+       return DynamoDbClient.builder()
+            .httpClient(UrlConnectionHttpClient.create())
+            .credentialsProvider(DefaultCredentialsProvider.create())
+            .region(Region.of(AWS_REGION))
             .build();
     }
 
-    private static void assertDynamoClientIsNotNull(AmazonDynamoDB dynamoDbClient) {
-        attempt(() -> requireNonNull(dynamoDbClient))
-            .orElseThrow(DatabaseServiceImpl::logErrorWithDynamoClientAndThrowException);
-    }
-
-    private static RuntimeException logErrorWithDynamoClientAndThrowException(Failure<AmazonDynamoDB> failure) {
-        logger.error(DYNAMO_DB_CLIENT_NOT_SET_ERROR);
-        return new RuntimeException(failure.getException());
-    }
 }

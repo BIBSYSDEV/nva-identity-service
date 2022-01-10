@@ -17,20 +17,21 @@ import no.unit.useraccessserivce.accessrights.AccessRight;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonSerializable;
 import nva.commons.core.attempt.Try;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
+@DynamoDbBean
 public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>, WithType, JsonSerializable {
 
     public static String TYPE = "ROLE";
     public static final String INVALID_PRIMARY_HASH_KEY = "PrimaryHashKey should start with \"" + TYPE + "\"";
     public static final String INVALID_PRIMARY_RANGE_KEY = "PrimaryHashKey should start with \"" + TYPE + "\"";
-
     @JsonProperty(DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY)
     private String primaryHashKey;
     @JsonProperty(DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY)
     private String primaryRangeKey;
     @JsonProperty("accessRights")
     private Set<AccessRight> accessRights;
-
     @JsonProperty("name")
     private String name;
 
@@ -39,7 +40,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         this.accessRights = Collections.emptySet();
     }
 
-    private RoleDb(Builder builder)  {
+    private RoleDb(Builder builder) {
         super();
         setPrimaryHashKey(builder.primaryHashKey);
         setName(builder.name);
@@ -57,7 +58,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      * @param roleDto the dto.
      * @return the dao
      */
-    public static RoleDb fromRoleDto(RoleDto roleDto)  {
+    public static RoleDb fromRoleDto(RoleDto roleDto) {
         Set<AccessRight> accessRights = roleDto.getAccessRights()
             .stream()
             .map(AccessRight::fromString)
@@ -71,6 +72,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
 
     @JacocoGenerated
     @Override
+    @DynamoDbPartitionKey
     public String getPrimaryHashKey() {
         return this.primaryHashKey;
     }
@@ -83,7 +85,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      */
     @JacocoGenerated
     @Override
-    public void setPrimaryHashKey(String primaryHashKey)  {
+    public void setPrimaryHashKey(String primaryHashKey) {
         if (primaryHashKeyHasNotBeenSet()) {
             if (!primaryHashKey.startsWith(TYPE)) {
                 throw new InvalidEntryInternalException(INVALID_PRIMARY_HASH_KEY);
@@ -98,7 +100,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @Override
-    public void setPrimaryRangeKey(String primaryRangeKey)  {
+    public void setPrimaryRangeKey(String primaryRangeKey) {
         if (primaryRangeKeyHasNotBeenSet()) {
             if (!primaryRangeKey.startsWith(TYPE)) {
                 throw new InvalidEntryInternalException(INVALID_PRIMARY_RANGE_KEY);
@@ -139,10 +141,10 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withAccessRights(this.getAccessRights());
     }
 
-    @JacocoGenerated
     @Override
-    public String toString() {
-        return this.toJsonString();
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getPrimaryHashKey(), getPrimaryRangeKey(), getAccessRights(), getName());
     }
 
     @Override
@@ -156,25 +158,25 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         }
         RoleDb roleDb = (RoleDb) o;
         return Objects.equals(getPrimaryHashKey(), roleDb.getPrimaryHashKey())
-            && Objects.equals(getPrimaryRangeKey(), roleDb.getPrimaryRangeKey())
-            && Objects.equals(getAccessRights(), roleDb.getAccessRights())
-            && Objects.equals(getName(), roleDb.getName());
+               && Objects.equals(getPrimaryRangeKey(), roleDb.getPrimaryRangeKey())
+               && Objects.equals(getAccessRights(), roleDb.getAccessRights())
+               && Objects.equals(getName(), roleDb.getName());
     }
 
-    @Override
     @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getPrimaryHashKey(), getPrimaryRangeKey(), getAccessRights(), getName());
+    @Override
+    public String toString() {
+        return this.toJsonString();
     }
 
-    public RoleDto toRoleDto()  {
+    public RoleDto toRoleDto() {
         Set<String> accessRightsStrings = this.getAccessRights().stream()
             .map(AccessRight::toString)
             .collect(Collectors.toSet());
         return Try.attempt(() -> RoleDto.newBuilder()
-            .withName(this.getName())
-            .withAccessRights(accessRightsStrings)
-            .build())
+                .withName(this.getName())
+                .withAccessRights(accessRightsStrings)
+                .build())
             .orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));
     }
 
@@ -200,17 +202,17 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             return this;
         }
 
-        public RoleDb build()  {
+        public RoleDb build() {
             this.primaryHashKey = formatPrimaryHashKey();
             this.primaryRangeKey = formatPrimaryRangeKey();
             return new RoleDb(this);
         }
 
-        private String formatPrimaryRangeKey()  {
+        private String formatPrimaryRangeKey() {
             return this.formatPrimaryHashKey();
         }
 
-        private String formatPrimaryHashKey()  {
+        private String formatPrimaryHashKey() {
             if (isNull(name) || name.isBlank()) {
                 throw new InvalidEntryInternalException(EMPTY_ROLE_NAME_ERROR);
             } else {

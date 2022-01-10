@@ -1,8 +1,6 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.database.DatabaseServiceImpl.DYNAMO_DB_CLIENT_NOT_SET_ERROR;
-import static no.unit.nva.database.DatabaseServiceImpl.createTable;
 import static no.unit.nva.database.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.database.EntityUtils.createRole;
 import static no.unit.nva.database.RoleService.ROLE_ALREADY_EXISTS_ERROR_MESSAGE;
@@ -44,13 +42,12 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 
 public class DatabaseServiceTest extends DatabaseAccessor {
 
@@ -63,10 +60,13 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     private static final String SOME_OTHER_ROLE = "SOME_OTHER_ROLE";
     private static final String SOME_OTHER_INSTITUTION = "Some other institution";
     private DatabaseService db;
+    private DynamoDbEnhancedClient enhancedClient;
+    private
 
     @BeforeEach
     public void init() {
         db = createDatabaseServiceUsingLocalStorage();
+        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(localDynamo).build();
     }
 
     @Test
@@ -305,13 +305,13 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     @Test
     public void roleDbWithAccessRightsIsSavedInDatabase() throws InvalidEntryInternalException {
         var accessRights = Set.of(AccessRight.APPROVE_DOI_REQUEST, AccessRight.REJECT_DOI_REQUEST);
-        final Table table = clientToLocalDatabase();
+
         RoleDb roleWithAccessRights = RoleDb.newBuilder()
             .withAccessRights(accessRights)
             .withName(SOME_ROLENAME)
             .build();
 
-        table.putItem(roleWithAccessRights.toItem());
+        enhancedClient.table().putItem(roleWithAccessRights.toItem());
 
         Item savedRoleItem = fetchRoleDirectlyFromTable(table, roleWithAccessRights);
 
@@ -356,14 +356,6 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         assertThat(exception.getCause(), instanceOf(NullPointerException.class));
     }
 
-    @Test
-    void createMapperOverridingHardCodedTableNameLogsErrorSayingThatMapperIsNull() {
-        TestAppender appender = LogUtils.getTestingAppender(DatabaseServiceImpl.class);
-        Executable action =
-            () -> createTable(null, mockEnvironment());
-        assertThrows(RuntimeException.class, action);
-        assertThat(appender.getMessages(), containsString(DYNAMO_DB_CLIENT_NOT_SET_ERROR));
-    }
 
     private static List<RoleDb> createSampleRoles() {
         try {
@@ -483,7 +475,5 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         }
     }
 
-    private Table clientToLocalDatabase() {
-        return DatabaseServiceImpl.createTable(initializeTestDatabase(), envWithTableName);
-    }
+
 }

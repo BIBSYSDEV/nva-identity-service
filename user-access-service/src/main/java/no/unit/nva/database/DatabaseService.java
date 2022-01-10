@@ -6,10 +6,13 @@ import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 
 public interface DatabaseService {
 
     String USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE = "USERS_AND_ROLES_TABLE";
+    String USERS_AND_ROLES_TABLE_NAME = new Environment()
+        .readEnvOpt(USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE).orElse("UndefinedTable");
 
     UserDto getUser(UserDto queryObject) throws  NotFoundException, InvalidInputException;
 

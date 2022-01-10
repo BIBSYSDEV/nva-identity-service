@@ -225,6 +225,9 @@ Resources:
         - openid
         - aws.cognito.signin.user.admin
       ExplicitAuthFlows: !Ref ExplicitAuthFlows
+      RefreshTokenValidity: 1
+      TokenValidityUnits:
+        RefreshToken: hours
 
   IdentityPool:
     Type: AWS::Cognito::IdentityPool

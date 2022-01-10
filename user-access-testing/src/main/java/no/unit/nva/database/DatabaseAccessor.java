@@ -9,6 +9,7 @@ import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SE
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,6 @@ import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
-
 public abstract class DatabaseAccessor implements WithEnvironment {
 
     public static final String USERS_AND_ROLES_TABLE = "UsersAndRolesTable";
@@ -36,6 +36,7 @@ public abstract class DatabaseAccessor implements WithEnvironment {
     public static final int SINGLE_TABLE_EXPECTED = 1;
     public static final String STRING = "S";
     private static final Long CAPACITY_DOES_NOT_MATTER = 1000L;
+
     protected final Environment envWithTableName = mockEnvironment(USERS_AND_ROLES_TABLE);
     protected DynamoDbClient localDynamo;
     protected DatabaseService databaseService;
@@ -79,6 +80,7 @@ public abstract class DatabaseAccessor implements WithEnvironment {
             localDynamo.close();
         }
     }
+
 
     private static CreateTableResponse createTable(DynamoDbClient client, String tableName) {
         List<AttributeDefinition> attributeDefinitions = defineKeyAttributes();

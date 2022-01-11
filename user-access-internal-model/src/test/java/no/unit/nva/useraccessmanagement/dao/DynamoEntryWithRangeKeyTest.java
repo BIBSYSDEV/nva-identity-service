@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.DO_NOT_INCLUDE_NESTED_UNITS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -43,9 +43,8 @@ class DynamoEntryWithRangeKeyTest {
             .withName(SOME_ROLE_NAME)
             .withAccessRights(Collections.singleton(SOME_ACCESS_RIGHT))
             .build();
-        ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()),
-                                                     Set.of(randomUri()),
-                                                     DO_NOT_INCLUDE_NESTED_UNITS);
+        ViewingScope viewingScope = new ViewingScope(Set.of(randomCristinOrgId()),
+                                                     Set.of(randomCristinOrgId()));
         return UserDb.newBuilder()
             .withUsername(SOME_USER_NAME)
             .withFamilyName(SOME_FAMILY_NAME)

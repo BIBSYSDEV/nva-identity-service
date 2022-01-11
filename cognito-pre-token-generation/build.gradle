@@ -17,8 +17,11 @@ dependencies {
     implementation libs.aws.java.sdk.cognitoidp
     implementation libs.aws.dynamodb
 
+    testImplementation project(':user-access-testing')
+
 }
 
 test {
     environment "ID_NAMESPACE", "http://example.org/namespace"
+    environment "API_HOST", "api.dev.aws.unit.no"
 }

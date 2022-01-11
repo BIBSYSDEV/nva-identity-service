@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessmanagement.model;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -9,8 +10,6 @@ import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_USERNAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createRole;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createUserWithRoleWithoutInstitution;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createUserWithRolesAndInstitutionAndViewingScope;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.DO_NOT_INCLUDE_NESTED_UNITS;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -191,10 +190,9 @@ public class UserDtoTest extends DtoTest {
 
     @Test
     void userDtoContainsCristinUnitsToBeIncludedToCuratorsView() throws BadRequestException {
-        URI cristinUnitIncludedInDefaultCuratorsView = randomUri();
+        URI cristinUnitIncludedInDefaultCuratorsView = randomCristinOrgId();
         ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView),
-                                                     null,
-                                                     DO_NOT_INCLUDE_NESTED_UNITS);
+                                                     null);
         UserDto userDto = UserDto.newBuilder().withUsername(randomString())
             .withViewingScope(viewingScope)
             .build();
@@ -204,11 +202,10 @@ public class UserDtoTest extends DtoTest {
 
     @Test
     void userDtoContainsCristinUnitsToBeExcludedToCuratorsView() throws BadRequestException {
-        URI cristinUnitIncludedInDefaultCuratorsView = randomUri();
-        URI cristinUnitExcludedFromDefaultCuratorsView = randomUri();
+        URI cristinUnitIncludedInDefaultCuratorsView = randomCristinOrgId();
+        URI cristinUnitExcludedFromDefaultCuratorsView = randomCristinOrgId();
         ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView),
-                                                     Set.of(cristinUnitExcludedFromDefaultCuratorsView),
-                                                     INCLUDE_NESTED_UNITS);
+                                                     Set.of(cristinUnitExcludedFromDefaultCuratorsView));
         UserDto userDto = UserDto.newBuilder().withUsername(randomString())
             .withViewingScope(viewingScope)
             .build();

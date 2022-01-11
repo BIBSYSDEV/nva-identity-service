@@ -1,7 +1,6 @@
 package no.unit.nva.useraccessmanagement.model;
 
-import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.InputStream;
@@ -109,9 +108,6 @@ public final class EntityUtils {
             .build();
     }
 
-    private static ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()),randomElement(true, false));
-    }
 
     /**
      * Creates a a user with username and a role but without institution.
@@ -120,7 +116,7 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
     public static UserDto createUserWithRoleWithoutInstitution()
-        throws InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException {
         RoleDto sampleRole = createRole(SOME_ROLENAME);
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)

@@ -34,7 +34,7 @@ public final class EntityUtils {
      *
      * @return {@link UserDto}
      */
-    public static UserDto createUserWithRoleWithoutInstitution() throws InvalidInputException {
+    public static UserDto createUserWithRoleWithoutInstitution() {
         RoleDto sampleRole = createRole(SOME_ROLENAME);
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)

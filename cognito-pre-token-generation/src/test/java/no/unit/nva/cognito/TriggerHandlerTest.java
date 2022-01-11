@@ -1,44 +1,6 @@
 package no.unit.nva.cognito;
 
-import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
-import com.amazonaws.services.cognitoidp.model.AdminGetUserRequest;
-import com.amazonaws.services.cognitoidp.model.AdminGetUserResult;
-import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
-import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesResult;
-import com.amazonaws.services.cognitoidp.model.AttributeType;
-import com.amazonaws.services.lambda.runtime.Context;
-import no.unit.nva.cognito.model.CustomerResponse;
-import no.unit.nva.cognito.model.Event;
-import no.unit.nva.cognito.model.Request;
-import no.unit.nva.cognito.model.UserAttributes;
-import no.unit.nva.cognito.service.CustomerApi;
-import no.unit.nva.cognito.service.UserApiMock;
-import no.unit.nva.cognito.service.UserPoolEntryUpdater;
-import no.unit.nva.cognito.service.UserService;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
-import nva.commons.core.SingletonCollector;
-import org.javers.common.collections.Lists;
-import org.javers.core.Javers;
-import org.javers.core.JaversBuilder;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.cognito.service.UserApiMock.FIRST_ACCESS_RIGHT;
 import static no.unit.nva.cognito.service.UserApiMock.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.cognito.service.UserApiMock.SECOND_ACCESS_RIGHT;
@@ -58,6 +20,44 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
+import com.amazonaws.services.cognitoidp.model.AdminGetUserRequest;
+import com.amazonaws.services.cognitoidp.model.AdminGetUserResult;
+import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
+import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesResult;
+import com.amazonaws.services.cognitoidp.model.AttributeType;
+import com.amazonaws.services.lambda.runtime.Context;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import no.unit.nva.cognito.model.CustomerResponse;
+import no.unit.nva.cognito.model.Event;
+import no.unit.nva.cognito.model.Request;
+import no.unit.nva.cognito.model.UserAttributes;
+import no.unit.nva.cognito.service.CustomerApi;
+import no.unit.nva.cognito.service.UserApiMock;
+import no.unit.nva.cognito.service.UserPoolEntryUpdater;
+import no.unit.nva.cognito.service.UserService;
+import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessmanagement.model.RoleDto;
+import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.SingletonCollector;
+import org.javers.common.collections.Lists;
+import org.javers.core.Javers;
+import org.javers.core.JaversBuilder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
 
 @SuppressWarnings("unchecked")
 public class TriggerHandlerTest {
@@ -81,10 +81,12 @@ public class TriggerHandlerTest {
 
     public static final String CREATOR = "Creator";
     public static final String USER = "User";
-    public static final String SAMPLE_CRISTIN_ID = "http://cristin.id";
+
     public static final AdminUpdateUserAttributesResult UNUSED_RESULT = null;
     public static final Javers JAVERS = JaversBuilder.javers().build();
     public static final Context CONTEXT = mock(Context.class);
+    public static final URI SAMPLE_CRISTIN_ORG_ID = randomCristinOrgId();
+    public static final boolean NON_IMPORTANT_VALUE = false;
     private final AtomicReference<List<AttributeType>> attributeTypesBuffer = new AtomicReference<>();
     private final Context mockContext;
     private CustomerApi customerApi;
@@ -108,7 +110,7 @@ public class TriggerHandlerTest {
     }
 
     @Test
-    public void handleRequestUsesExistingUserWhenUserIsFound()  {
+    public void handleRequestUsesExistingUserWhenUserIsFound() throws BadRequestException {
         mockCustomerApiWithExistingCustomer();
         prepareMocksWithExistingUser(createUserWithInstitutionAndCreatorRole());
 
@@ -124,7 +126,7 @@ public class TriggerHandlerTest {
     }
 
     @Test
-    public void shouldSetViewingScopeOnExistingUserWhereViewingScopeIsMissing()  {
+    public void shouldSetViewingScopeOnExistingUserWhereViewingScopeIsMissing() throws BadRequestException {
         mockCustomerApiWithExistingCustomer();
         UserDto existingUser = createUserWithInstitutionAndCreatorRole();
         existingUser.setViewingScope(null);
@@ -157,7 +159,8 @@ public class TriggerHandlerTest {
     }
 
     @Test
-    public void handleRequestCreatesUserWithCreatorRoleForAffiliatedUser() throws InvalidEntryInternalException {
+    public void handleRequestCreatesUserWithCreatorRoleForAffiliatedUser()
+        throws InvalidEntryInternalException, BadRequestException {
         mockCustomerApiWithExistingCustomer();
 
         Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
@@ -173,7 +176,7 @@ public class TriggerHandlerTest {
 
     @Test
     public void handleRequestAddsAccessRightsAttributesToUserPoolAttributesForUserWithRole()
-        throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException, BadRequestException {
         prepareMocksWithExistingUser(createUserWithInstitutionAndCreatorRole());
         Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
         handler.handleRequest(requestEvent, mockContext);
@@ -187,7 +190,7 @@ public class TriggerHandlerTest {
 
     @Test
     public void handleRequestAddsAccessRightsAsCsvWhenAccessRightsAreMoreThanOne()
-        throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException, BadRequestException {
         prepareMocksWithExistingUser(createUserWithInstitutionAndCreatorRole());
         Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
         handler.handleRequest(requestEvent, mockContext);
@@ -199,7 +202,8 @@ public class TriggerHandlerTest {
     }
 
     @Test
-    public void handleRequestCreatesUserWithCreatorRoleForNonAffiliatedUser() throws InvalidEntryInternalException {
+    public void handleRequestCreatesUserWithCreatorRoleForNonAffiliatedUser()
+        throws InvalidEntryInternalException, BadRequestException {
         mockCustomerApiWithExistingCustomer();
 
         Map<String, Object> requestEvent = createRequestEventWithEmptyAffiliation();
@@ -215,7 +219,7 @@ public class TriggerHandlerTest {
 
     @Test
     public void handlerReturnsUserWithoutCreatorRoleWhenUserHadCreatorRoleButNowHasAffiliationNotProvidingTheRole()
-        throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException, BadRequestException {
         prepareMocksWithExistingUser(createUserWithInstitutionAndCreatorRole());
         var currentUser = getUserFromMock();
         List<String> rolesBeforeLogin = extractRoleNames(currentUser);
@@ -230,7 +234,7 @@ public class TriggerHandlerTest {
 
     @Test
     public void handlerReturnsUserWithManuallyAssignedRolesWhenAutomaticallyAssignedRolesAreRemoved()
-        throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException, BadRequestException {
         String manuallyAssignedRole = randomRoleName();
         UserDto existingUser = createUserWithCustomRole(manuallyAssignedRole);
         prepareMocksWithExistingUser(existingUser);
@@ -254,7 +258,7 @@ public class TriggerHandlerTest {
 
     @Test
     public void handlerAddsCreatorRoleFromUserThatDidNotHaveCreatorRoleButNowHasAffiliationThatGivesThemTheRole()
-        throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException, BadRequestException {
         prepareMocksWithExistingUser(createUserWithInstitutionAndOnlyUserRole());
         UserDto currentUser = getUserFromMock();
         List<String> rolesBeforeLogin = extractRoleNames(currentUser);
@@ -287,7 +291,7 @@ public class TriggerHandlerTest {
 
     @Test
     public void handleRequestReturnsNewUserWithCreatorRoleWhenUserIsFeideHostedUser()
-        throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException, BadRequestException {
         mockCustomerApiWithNoCustomer();
         mockCustomerApiWithExistingCustomer();
 
@@ -317,7 +321,6 @@ public class TriggerHandlerTest {
         assertEquals(requestEvent, responseEvent);
     }
 
-
     private void setupTriggerHandler() {
         attributeTypesBuffer.set(null);
         customerApi = mock(CustomerApi.class);
@@ -335,7 +338,9 @@ public class TriggerHandlerTest {
         return JAVERS.compare(rolesBeforeLogin, rolesAfterLogin).prettyPrint();
     }
 
-    private UserDto createUserWithCustomRole(String manuallyAssignedRole) throws InvalidEntryInternalException {
+    private UserDto createUserWithCustomRole(String manuallyAssignedRole)
+        throws InvalidEntryInternalException, BadRequestException {
+
         UserDto sampleUser = createUserWithInstitutionAndCreatorRole();
         Set<RoleDto> roles = sampleUser.getRoles();
 
@@ -372,7 +377,6 @@ public class TriggerHandlerTest {
         return provider;
     }
 
-
     private AdminGetUserResult returnUserAttributes(InvocationOnMock invocationOnMock) {
         return new AdminGetUserResult().withUserAttributes(attributeTypesBuffer.get());
     }
@@ -398,7 +402,7 @@ public class TriggerHandlerTest {
 
     private void mockCustomerApiWithExistingCustomer() {
         when(customerApi.getCustomer(anyString()))
-            .thenReturn(Optional.of(new CustomerResponse(SAMPLE_CUSTOMER_ID, SAMPLE_CRISTIN_ID)));
+            .thenReturn(Optional.of(new CustomerResponse(SAMPLE_CUSTOMER_ID, SAMPLE_CRISTIN_ORG_ID.toString())));
     }
 
     private void mockCustomerApiWithNoCustomer() {
@@ -418,7 +422,8 @@ public class TriggerHandlerTest {
             .build();
     }
 
-    private UserDto createUserWithInstitutionAndCreatorRole() throws InvalidEntryInternalException {
+    private UserDto createUserWithInstitutionAndCreatorRole() throws InvalidEntryInternalException,
+                                                                     BadRequestException {
         HashSet<RoleDto> roles = new HashSet<>();
         roles.add(createRole(CREATOR));
         roles.add(createRole(USER));
@@ -432,18 +437,17 @@ public class TriggerHandlerTest {
             .build();
     }
 
-    private UserDto createUserWithInstitutionAndOnlyUserRole() throws InvalidEntryInternalException {
+    private UserDto createUserWithInstitutionAndOnlyUserRole() throws InvalidEntryInternalException,
+                                                                      BadRequestException {
         Set<RoleDto> roles = new HashSet<>();
         roles.add(createRole(USER));
         return userWithInstitution(userWithRoles(roles));
     }
 
-    private UserDto userWithInstitution(UserDto user) throws InvalidEntryInternalException {
-        return user.copy().withInstitution(SAMPLE_CUSTOMER_ID).withViewingScope(createViewingScope()).build();
-    }
+    private UserDto userWithInstitution(UserDto user) throws InvalidEntryInternalException, BadRequestException {
 
-    private ViewingScope createViewingScope() {
-        return defaultViewingScope(URI.create(SAMPLE_CRISTIN_ID));
+        ViewingScope viewingScope = new ViewingScope(Set.of(SAMPLE_CRISTIN_ORG_ID), null);
+        return user.copy().withInstitution(SAMPLE_CUSTOMER_ID).withViewingScope(viewingScope).build();
     }
 
     private Map<String, Object> createRequestEventWithInstitutionAndEduPersonAffiliation() {
@@ -514,7 +518,7 @@ public class TriggerHandlerTest {
             .build();
     }
 
-    private UserDto hostedUserWithCreatorRole() throws InvalidEntryInternalException {
+    private UserDto hostedUserWithCreatorRole() throws InvalidEntryInternalException, BadRequestException {
         List<RoleDto> roles = new ArrayList<>();
         roles.add(createRole(CREATOR));
         roles.add(createRole(USER));
@@ -524,7 +528,7 @@ public class TriggerHandlerTest {
             .withFamilyName(SAMPLE_FAMILY_NAME)
             .withRoles(roles)
             .withInstitution(SAMPLE_CUSTOMER_ID)
-            .withViewingScope(createViewingScope())
+            .withViewingScope(defaultViewingScope(SAMPLE_CRISTIN_ORG_ID))
             .build();
     }
 

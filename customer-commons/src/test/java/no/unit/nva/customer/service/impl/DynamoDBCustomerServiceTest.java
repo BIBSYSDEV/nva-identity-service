@@ -5,6 +5,7 @@ import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_MA
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_MAPPING_ITEM_TO_CUSTOMER;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_READING_FROM_TABLE;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_WRITING_ITEM_TO_TABLE;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -259,7 +260,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
             .withCname("CNAME")
             .withInstitutionDns("institution.dns")
             .withFeideOrganizationId("123456789")
-            .withCristinId("http://cristin.id")
+            .withCristinId(randomCristinOrgId().toString())
             .build();
     }
 

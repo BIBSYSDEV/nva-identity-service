@@ -1,13 +1,11 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
 import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
 import static no.unit.nva.handlers.UpdateUserHandler.INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR;
 import static no.unit.nva.handlers.UpdateUserHandler.LOCATION_HEADER;
 import static no.unit.nva.handlers.UpdateUserHandler.USERNAME_PATH_PARAMETER;
-import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.useraccessmanagement.model.UserDto.VIEWING_SCOPE_FIELD;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDED_UNITS;
@@ -18,6 +16,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
@@ -26,7 +25,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import no.unit.nva.Constants;
 import no.unit.nva.database.DatabaseServiceImpl;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -34,7 +32,6 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -199,18 +196,22 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @ValueSource(strings = {"##some?malformed?uri", "https://www.example.com/194.63.0.0"})
     void shouldReturnBadRequestWhenInputViewingScopeContainsMalformedUris(String illegalUri)
         throws IOException, BadRequestException {
-        UserDto userDto = sampleUser();
-        String jsonString = JsonUtils.dtoObjectMapper.writeValueAsString(userDto);
-        ObjectNode userJson = (ObjectNode) JsonUtils.dtoObjectMapper.readTree(jsonString);
-        ArrayNode includedUrisNode = JsonUtils.dtoObjectMapper.createArrayNode();
-
-        includedUrisNode.add(illegalUri);
-        var viewingScopeNode = (ObjectNode) userJson.get(VIEWING_SCOPE_FIELD);
-        viewingScopeNode.set(INCLUDED_UNITS, includedUrisNode);
+        var userDto = sampleUser();
+        var userJson = injectInvalidUriToViewingScope(illegalUri, userDto);
         GatewayResponse<Problem> response = sendUpdateRequest(userDto.getUsername(), userJson);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
         var problem = response.getBodyObject(Problem.class);
         assertThat(problem.getDetail(), containsString(illegalUri));
+    }
+
+    private ObjectNode injectInvalidUriToViewingScope(String illegalUri, UserDto userDto) throws JsonProcessingException {
+        var jsonString = JsonUtils.dtoObjectMapper.writeValueAsString(userDto);
+        var userJson = (ObjectNode) JsonUtils.dtoObjectMapper.readTree(jsonString);
+        var includedUrisNode = JsonUtils.dtoObjectMapper.createArrayNode();
+        includedUrisNode.add(illegalUri);
+        var viewingScopeNode = (ObjectNode) userJson.get(VIEWING_SCOPE_FIELD);
+        viewingScopeNode.set(INCLUDED_UNITS, includedUrisNode);
+        return userJson;
     }
 
     private UserDto anotherUserInDatabase()

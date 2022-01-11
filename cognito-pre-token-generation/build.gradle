@@ -12,13 +12,11 @@ dependencies {
     implementation project(':customer-commons')
 
     implementation libs.nva.apigateway
-//    implementation libs.bundles.jackson
     implementation libs.bundles.aws.lambda
     implementation libs.aws.java.sdk.cognitoidp
     implementation libs.aws.dynamodb
 
     testImplementation project(':user-access-testing')
-
 }
 
 test {

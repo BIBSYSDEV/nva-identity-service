@@ -34,7 +34,6 @@ public class ViewingScope implements WithType {
     @JsonProperty(EXCLUDED_UNIS)
     private final Set<URI> excludedUnits;
 
-
     @JsonCreator
     public ViewingScope(@JsonProperty(INCLUDED_UNITS) Set<URI> includedUnits,
                         @JsonProperty(EXCLUDED_UNIS) Set<URI> excludedUnits)
@@ -46,12 +45,9 @@ public class ViewingScope implements WithType {
     }
 
     public static ViewingScope defaultViewingScope(URI organizationId) {
-        return attempt(() -> new ViewingScope(
-            Set.of(organizationId),
-            Collections.emptySet())
-        ).orElseThrow();
+        attempt(() -> validate(organizationId)).orElseThrow();
+        return attempt(() -> new ViewingScope(Set.of(organizationId),Collections.emptySet())).orElseThrow();
     }
-
 
     public Set<URI> getIncludedUnits() {
         return includedUnits;
@@ -104,17 +100,18 @@ public class ViewingScope implements WithType {
         return nonNull(units) ? units : Collections.emptySet();
     }
 
-    private void validate(URI uri) throws BadRequestException {
+    private static Void validate(URI uri) throws BadRequestException {
         if (!hostIsExpectedHost(uri) || !pathIsExpectedPath(uri)) {
             throw new BadRequestException(INVALID_VIEWING_SCOPE_URI_ERROR + uri);
         }
+        return null;
     }
 
-    private boolean pathIsExpectedPath(URI uri) {
+    private static boolean pathIsExpectedPath(URI uri) {
         return uri.getPath().startsWith(ServiceConstants.CRISTIN_PATH);
     }
 
-    private boolean hostIsExpectedHost(URI uri) {
+    private static boolean hostIsExpectedHost(URI uri) {
         return ServiceConstants.API_HOST.equals(uri.getHost());
     }
 }

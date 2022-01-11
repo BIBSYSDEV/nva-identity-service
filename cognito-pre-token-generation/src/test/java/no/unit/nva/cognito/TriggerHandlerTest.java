@@ -444,9 +444,8 @@ public class TriggerHandlerTest {
         return userWithInstitution(userWithRoles(roles));
     }
 
-    private UserDto userWithInstitution(UserDto user) throws InvalidEntryInternalException, BadRequestException {
-
-        ViewingScope viewingScope = new ViewingScope(Set.of(SAMPLE_CRISTIN_ORG_ID), null);
+    private UserDto userWithInstitution(UserDto user) throws InvalidEntryInternalException {
+        ViewingScope viewingScope =  ViewingScope.defaultViewingScope(SAMPLE_CRISTIN_ORG_ID);
         return user.copy().withInstitution(SAMPLE_CUSTOMER_ID).withViewingScope(viewingScope).build();
     }
 

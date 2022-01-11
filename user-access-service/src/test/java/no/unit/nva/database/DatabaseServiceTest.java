@@ -11,27 +11,24 @@ import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
-import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsSame.sameInstance;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.Table;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails;
+import no.unit.nva.useraccessmanagement.dao.RoleDao;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
+import no.unit.nva.useraccessmanagement.dao.UserDao;
+import no.unit.nva.useraccessmanagement.dao.ViewingScopeDb;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
@@ -42,12 +39,14 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 public class DatabaseServiceTest extends DatabaseAccessor {
 
@@ -61,12 +60,18 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     private static final String SOME_OTHER_INSTITUTION = "Some other institution";
     private DatabaseService db;
     private DynamoDbEnhancedClient enhancedClient;
-    private
+    private DynamoDbTable<RoleDao> rolesTable;
+    private DynamoDbTable<UserDao> usersTable;
 
     @BeforeEach
     public void init() {
         db = createDatabaseServiceUsingLocalStorage();
         enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(localDynamo).build();
+        rolesTable = enhancedClient.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME,
+                                          TableSchema.fromClass(RoleDao.class));
+        TableSchema<UserDao> tableSchema = TableSchema.fromClass(UserDao.class);
+        usersTable = enhancedClient.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, tableSchema);
+
     }
 
     @Test
@@ -288,8 +293,8 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     @Test
     public void listUsersByInstitutionReturnsAllUsersForSpecifiedInstitution()
         throws ConflictException, InvalidEntryInternalException, InvalidInputException, BadRequestException {
-        UserDto someUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
-        UserDto someOtherUser = createSampleUserAndAddUserToDb(SOME_OTHER_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
+        UserDto someUser = createSampleUserAndAddUserToDb(randomString(), SOME_INSTITUTION, SOME_ROLENAME);
+        UserDto someOtherUser = createSampleUserAndAddUserToDb(randomString(), SOME_INSTITUTION, SOME_ROLENAME);
         List<UserDto> queryResult = db.listUsers(SOME_INSTITUTION);
         assertThat(queryResult, containsInAnyOrder(someUser, someOtherUser));
     }
@@ -306,32 +311,28 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     public void roleDbWithAccessRightsIsSavedInDatabase() throws InvalidEntryInternalException {
         var accessRights = Set.of(AccessRight.APPROVE_DOI_REQUEST, AccessRight.REJECT_DOI_REQUEST);
 
-        RoleDb roleWithAccessRights = RoleDb.newBuilder()
+        RoleDao roleWithAccessRights = RoleDao.newBuilder()
             .withAccessRights(accessRights)
             .withName(SOME_ROLENAME)
             .build();
 
-        enhancedClient.table().putItem(roleWithAccessRights.toItem());
+        rolesTable.putItem(roleWithAccessRights);
 
-        Item savedRoleItem = fetchRoleDirectlyFromTable(table, roleWithAccessRights);
-
-        RoleDb savedRole = RoleDb.fromItem(savedRoleItem, RoleDb.class);
-
+        var savedRole = fetchRoleDirectlyFromTable(roleWithAccessRights);
         assertThat(savedRole, is(equalTo(roleWithAccessRights)));
     }
 
     @Test
     void userDbShouldBeWriteableToDatabase() throws InvalidEntryInternalException {
-        UserDb sampleUser = UserDb.newBuilder().withUsername(SOME_USERNAME).build();
-
-        Table table = DatabaseServiceImpl.createTable(initializeTestDatabase(), envWithTableName);
-        Assertions.assertDoesNotThrow(() -> table.putItem(sampleUser.toItem()));
+        UserDao sampleUser = UserDao.newBuilder().withUsername(SOME_USERNAME).withInstitution(randomString()).build();
+        usersTable.putItem(sampleUser);
+        assertDoesNotThrow(() -> usersTable.putItem(sampleUser));
     }
 
     @Test
     void userDbShouldBeReadFromDatabaseWithoutDataLoss() throws InvalidEntryInternalException, BadRequestException {
-        ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), INCLUDE_NESTED_UNITS);
-        UserDb insertedUser = UserDb.newBuilder()
+        var viewingScope = new ViewingScopeDb(Set.of(randomUri()), Set.of(randomUri()), INCLUDE_NESTED_UNITS);
+        UserDao insertedUser = UserDao.newBuilder()
             .withUsername(SOME_USERNAME)
             .withGivenName(SOME_GIVEN_NAME)
             .withFamilyName(SOME_FAMILY_NAME)
@@ -339,23 +340,14 @@ public class DatabaseServiceTest extends DatabaseAccessor {
             .withRoles(SAMPLE_ROLES)
             .withViewingScope(viewingScope)
             .build();
-        Table table = clientToLocalDatabase();
-        table.putItem(insertedUser.toItem());
+
+        usersTable.putItem(insertedUser);
         assertThat(insertedUser, doesNotHaveEmptyValues());
-        Item item = table.getItem(DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY, insertedUser.getPrimaryHashKey(),
-                                  PRIMARY_KEY_RANGE_KEY, insertedUser.getPrimaryRangeKey());
-        UserDb savedUser = UserDb.fromItem(item, UserDb.class);
+        var savedUser = usersTable.getItem(Key.builder().partitionValue(insertedUser.getPrimaryKeyHashKey())
+                                               .sortValue(insertedUser.getPrimaryKeyRangeKey())
+                                               .build());
         assertThat(savedUser, is(equalTo(insertedUser)));
     }
-
-    @Test
-    void createTableThrowsExceptionWhenDynamoClientIsNull() {
-        Executable action =
-            () -> createTable(null, mockEnvironment());
-        RuntimeException exception = assertThrows(RuntimeException.class, action);
-        assertThat(exception.getCause(), instanceOf(NullPointerException.class));
-    }
-
 
     private static List<RoleDb> createSampleRoles() {
         try {
@@ -366,7 +358,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     }
 
     private static RoleDb randomRole() {
-        return RoleDb.newBuilder()
+        return RoleDao.newBuilder()
             .withName(randomString())
             .withAccessRights(Set.of(randomElement(AccessRight.values())))
             .build();
@@ -382,9 +374,11 @@ public class DatabaseServiceTest extends DatabaseAccessor {
             .build();
     }
 
-    private Item fetchRoleDirectlyFromTable(Table table, RoleDb roleWithAccessRights) {
-        return table.getItem(PRIMARY_KEY_HASH_KEY, roleWithAccessRights.getPrimaryHashKey(),
-                             PRIMARY_KEY_RANGE_KEY, roleWithAccessRights.getPrimaryRangeKey());
+    private RoleDao fetchRoleDirectlyFromTable(RoleDao roleWithAccessRights) {
+        return rolesTable.getItem(Key.builder()
+                                      .partitionValue(roleWithAccessRights.getPrimaryKeyHashKey())
+                                      .sortValue(roleWithAccessRights.getPrimaryKeyRangeKey())
+                                      .build());
     }
 
     private UserDto userUpdateWithRoleMissingAccessRights(UserDto existingUser)
@@ -398,7 +392,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     }
 
     private UserDto createUserWithRole(String someUsername, String someInstitution, RoleDto existingRole)
-            throws InvalidEntryInternalException, BadRequestException {
+        throws InvalidEntryInternalException, BadRequestException {
         ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), false);
         return UserDto.newBuilder().withUsername(someUsername)
             .withInstitution(someInstitution)
@@ -456,7 +450,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     }
 
     private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()),INCLUDE_NESTED_UNITS);
+        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), INCLUDE_NESTED_UNITS);
     }
 
     private RoleDto createSampleRoleAndAddToDb(String roleName)
@@ -474,6 +468,4 @@ public class DatabaseServiceTest extends DatabaseAccessor {
             return Collections.emptyList();
         }
     }
-
-
 }

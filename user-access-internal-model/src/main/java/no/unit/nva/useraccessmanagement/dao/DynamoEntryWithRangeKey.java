@@ -5,14 +5,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails;
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import nva.commons.core.JsonSerializable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
-public abstract class DynamoEntryWithRangeKey implements WithType, JsonSerializable {
+public interface DynamoEntryWithRangeKey extends WithType, JsonSerializable {
 
-    public static String FIELD_DELIMITER = "#";
+ String FIELD_DELIMITER = "#";
 
 
-    @JsonProperty(DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY)
-    public abstract String getPrimaryHashKey();
+    @DynamoDbPartitionKey
+    @DynamoDbAttribute(DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY)
+     String getPrimaryKeyHashKey();
 
     /**
      * Setter of the primary hash key. This method is supposed to be used only by when deserializing an item using Json
@@ -20,10 +24,13 @@ public abstract class DynamoEntryWithRangeKey implements WithType, JsonSerializa
      *
      * @param primaryRangeKey the primary hash key.
      */
-    public abstract void setPrimaryHashKey(String primaryRangeKey);
+     default void setPrimaryKeyHashKey(String primaryRangeKey){
+         //DO NOTHING
+     }
 
-    @JsonProperty(DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY)
-    public abstract String getPrimaryRangeKey();
+    @DynamoDbSortKey
+    @DynamoDbAttribute(DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY)
+     String getPrimaryKeyRangeKey();
 
     /**
      * Setter of the primary range key. This method is supposed to be used only by when deserializing an item using Json
@@ -31,15 +38,17 @@ public abstract class DynamoEntryWithRangeKey implements WithType, JsonSerializa
      *
      * @param primaryRangeKey the primary range key.
      */
-    public abstract void setPrimaryRangeKey(String primaryRangeKey);
-
-
-    protected boolean primaryHashKeyHasNotBeenSet() {
-        return isNull(getPrimaryHashKey());
+    default void setPrimaryKeyRangeKey(String primaryRangeKey){
+        //DO NOTHING
     }
 
-    protected boolean primaryRangeKeyHasNotBeenSet() {
-        return isNull(getPrimaryRangeKey());
+
+    default boolean primaryHashKeyHasNotBeenSet() {
+        return isNull(getPrimaryKeyHashKey());
+    }
+
+    default boolean primaryRangeKeyHasNotBeenSet() {
+        return isNull(getPrimaryKeyRangeKey());
     }
 
 }

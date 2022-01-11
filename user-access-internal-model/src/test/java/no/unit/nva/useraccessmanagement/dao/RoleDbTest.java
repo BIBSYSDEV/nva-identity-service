@@ -27,19 +27,19 @@ public class RoleDbTest {
     public static final String SOME_ROLE_NAME = "someRoleName";
     public static final String SOME_OTHER_RANGE_KEY = "SomeOtherRangeKey";
     public static final String SOME_TYPE = "SomeType";
-    private final RoleDb sampleRole = createSampleRole();
+    private final RoleDao sampleRole = createSampleRole();
 
     public RoleDbTest() throws InvalidEntryInternalException {
     }
 
     @Test
     public void getPrimaryHashKeyReturnsStringContainingTypeRole() {
-        assertThat(sampleRole.getPrimaryHashKey(), containsString(RoleDb.TYPE));
+        assertThat(sampleRole.getPrimaryKeyHashKey(), containsString(RoleDao.TYPE));
     }
 
     @Test
     public void equalsComparesAllFields() throws InvalidEntryInternalException {
-        RoleDb left = sampleRole;
+        RoleDao left = sampleRole;
         RoleDb right = sampleRole.copy().build();
         assertThat(sampleRole, doesNotHaveNullOrEmptyFields());
         assertThat(left, is(equalTo(right)));
@@ -47,9 +47,8 @@ public class RoleDbTest {
 
     @Test
     public void equalsReturnsFalseWhenNameIsDifferent() throws InvalidEntryInternalException {
-        RoleDb left = sampleRole;
-        RoleDb right = sampleRole.copy().withName("SomeOtherName").build();
-
+        RoleDao left = sampleRole;
+        RoleDao right = sampleRole.copy().withName("SomeOtherName").build();
         assertThat(left, is(not(equalTo(right))));
     }
 
@@ -58,7 +57,7 @@ public class RoleDbTest {
 
         Set<AccessRight> differentAccessRights = Collections.singleton(AccessRight.REJECT_DOI_REQUEST);
         assertThat(sampleRole.getAccessRights().containsAll(differentAccessRights), is(equalTo(false)));
-        RoleDb differentRole = sampleRole.copy().withAccessRights(differentAccessRights).build();
+        RoleDao differentRole = sampleRole.copy().withAccessRights(differentAccessRights).build();
 
         assertThat(sampleRole, is(not(equalTo(differentRole))));
     }
@@ -70,84 +69,84 @@ public class RoleDbTest {
 
     @Test
     void roleDbHasBuilder() {
-        RoleDb.Builder builder = RoleDb.newBuilder();
+        RoleDao.Builder builder = RoleDao.newBuilder();
         assertNotNull(builder);
     }
 
     @Test
     void roleDbHasRoleName() throws InvalidEntryInternalException {
-        RoleDb roleDb = createSampleRole();
-        assertThat(roleDb.getName(), is(equalTo(SOME_ROLE_NAME)));
+        RoleDao roleDbEntry = createSampleRole();
+        assertThat(roleDbEntry.getName(), is(equalTo(SOME_ROLE_NAME)));
     }
 
     @Test
     void builderSetsTheRolename() throws InvalidEntryInternalException {
-        RoleDb role = RoleDb.newBuilder().withName(SOME_ROLE_NAME).build();
+        RoleDao role = RoleDao.newBuilder().withName(SOME_ROLE_NAME).build();
         assertThat(role.getName(), is(equalTo(SOME_ROLE_NAME)));
     }
 
     @Test
     void buildReturnsObjectWithInitializedPrimaryHashKey() throws InvalidEntryInternalException {
-        RoleDb role = RoleDb.newBuilder().withName(SOME_ROLE_NAME).build();
-        assertThat(role.getPrimaryHashKey(), is(not(nullValue())));
-        assertThat(role.getPrimaryHashKey(), is(not(emptyString())));
+        RoleDao role = RoleDao.newBuilder().withName(SOME_ROLE_NAME).build();
+        assertThat(role.getPrimaryKeyHashKey(), is(not(nullValue())));
+        assertThat(role.getPrimaryKeyHashKey(), is(not(emptyString())));
     }
 
     @Test
     void buildWithoutRoleNameShouldThrowException() {
-        Executable action = () -> RoleDb.newBuilder().build();
+        Executable action = () -> RoleDao.newBuilder().build();
         assertThrows(InvalidEntryInternalException.class, action);
     }
 
     @Test
     void getPrimaryHashKeyReturnsStringContainingRoleName() {
-        assertThat(sampleRole.getPrimaryHashKey(), containsString(sampleRole.getName()));
+        assertThat(sampleRole.getPrimaryKeyHashKey(), containsString(sampleRole.getName()));
     }
 
     @Test
     void setPrimaryHashKeyShouldNotChangeTheValueOfAlreadySetPrimaryHashKey() throws InvalidEntryInternalException {
         String someOtherHashKey = "SomeOtherHashKey";
-        sampleRole.setPrimaryHashKey(someOtherHashKey);
-        assertThat(sampleRole.getPrimaryHashKey(), is(not(equalTo(someOtherHashKey))));
-        assertThat(sampleRole.getPrimaryHashKey(), containsString(sampleRole.getName()));
-        assertThat(sampleRole.getPrimaryHashKey(), containsString(RoleDb.TYPE));
+        sampleRole.setPrimaryKeyHashKey(someOtherHashKey);
+        assertThat(sampleRole.getPrimaryKeyHashKey(), is(not(equalTo(someOtherHashKey))));
+        assertThat(sampleRole.getPrimaryKeyHashKey(), containsString(sampleRole.getName()));
+        assertThat(sampleRole.getPrimaryKeyHashKey(), containsString(RoleDao.TYPE));
     }
 
     @ParameterizedTest(name = "setPrimaryHashKey throws exception when input is:\"{0}\"")
     @NullAndEmptySource
     @ValueSource(strings = {" ", "\t", "\n", "\r"})
     void setPrimaryHashKeyThrowsExceptionWhenInputIsBlankOrNullString(String blankString) {
-        Executable action = () -> RoleDb.newBuilder().withName(blankString).build();
+        Executable action = () -> RoleDao.newBuilder().withName(blankString).build();
         InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
         assertThat(exception.getMessage(), containsString(Builder.EMPTY_ROLE_NAME_ERROR));
     }
 
     @Test
     void setPrimaryRangeKeyHasNoEffect() throws InvalidEntryInternalException {
-        RoleDb originalRole = RoleDb.newBuilder().withName(SOME_ROLE_NAME).build();
-        RoleDb copy = originalRole.copy().build();
-        copy.setPrimaryRangeKey(SOME_OTHER_RANGE_KEY);
+        RoleDao originalRole = RoleDao.newBuilder().withName(SOME_ROLE_NAME).build();
+        RoleDao copy = originalRole.copy().build();
+        copy.setPrimaryKeyRangeKey(SOME_OTHER_RANGE_KEY);
         assertThat(originalRole, is(equalTo(copy)));
     }
 
     @Test
     void setTypeHasNoEffect() throws InvalidEntryInternalException {
-        RoleDb originalRole = RoleDb.newBuilder().withName(SOME_ROLE_NAME).build();
-        RoleDb copy = originalRole.copy().build();
+        RoleDao originalRole = RoleDao.newBuilder().withName(SOME_ROLE_NAME).build();
+        RoleDao copy = originalRole.copy().build();
         copy.setType(SOME_TYPE);
         assertThat(originalRole, is(equalTo(copy)));
     }
 
     @Test
     void copyReturnsBuilderContainingAllFieldValuesOfOriginalItem() throws InvalidEntryInternalException {
-        RoleDb copyRole = sampleRole.copy().build();
+        RoleDao copyRole = sampleRole.copy().build();
         assertThat(copyRole, is(equalTo(sampleRole)));
         assertThat(copyRole, is(not(sameInstance(sampleRole))));
     }
 
-    private RoleDb createSampleRole() throws InvalidEntryInternalException {
+    private RoleDao createSampleRole() throws InvalidEntryInternalException {
         Set<AccessRight> accessRights = Collections.singleton(AccessRight.APPROVE_DOI_REQUEST);
-        return RoleDb.newBuilder()
+        return RoleDao.newBuilder()
             .withName(SOME_ROLE_NAME)
             .withAccessRights(accessRights)
             .build();

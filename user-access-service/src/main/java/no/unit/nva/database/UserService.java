@@ -8,15 +8,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import no.unit.nva.useraccessmanagement.dao.RoleDao;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
+import no.unit.nva.useraccessmanagement.dao.UserDao;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -35,14 +35,14 @@ public class UserService extends DatabaseSubService {
     public static final String USER_ALREADY_EXISTS_ERROR_MESSAGE = "User already exists: ";
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-    private final DynamoDbIndex<UserDb> institutionsIndex;
+    private final DynamoDbIndex<UserDao> institutionsIndex;
     private final RoleService roleService;
-    private final DynamoDbTable<UserDb> table;
+    private final DynamoDbTable<UserDao> table;
 
     public UserService(DynamoDbClient client, RoleService roleService) {
         super(client);
         this.roleService = roleService;
-        this.table = this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, TableSchema.fromClass(UserDb.class));
+        this.table = this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, TableSchema.fromClass(UserDao.class));
         this.institutionsIndex = this.table.index(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME);
     }
 
@@ -67,14 +67,14 @@ public class UserService extends DatabaseSubService {
      */
     public List<UserDto> listUsers(String institutionIdentifier) {
         QueryEnhancedRequest listUsersQuery = createListUsersByInstitutionQuery(institutionIdentifier);
-        var result=institutionsIndex.query(listUsersQuery);
+        var result = institutionsIndex.query(listUsersQuery);
 
-        return result.stream()
+        var users = result.stream()
             .map(Page::items)
             .flatMap(Collection::stream)
-            .map(UserDb::toUserDto)
             .collect(Collectors.toList());
-
+        return users.stream().map(UserDao::toUserDto)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -86,7 +86,7 @@ public class UserService extends DatabaseSubService {
     public void addUser(UserDto user) throws ConflictException {
         logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
         checkUserDoesNotAlreadyExist(user);
-        UserDb databaseEntryWithSyncedRoles = syncRoleDetails(UserDb.fromUserDto(user));
+        UserDao databaseEntryWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(user));
         table.putItem(databaseEntryWithSyncedRoles);
     }
 
@@ -102,13 +102,13 @@ public class UserService extends DatabaseSubService {
 
         logger.debug(UPDATE_USER_DEBUG_MESSAGE + updateObject.toJsonString());
         UserDto existingUser = getExistingUserOrSendNotFoundError(updateObject);
-        UserDb updatedObjectWithSyncedRoles = syncRoleDetails(UserDb.fromUserDto(updateObject));
+        UserDao updatedObjectWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(updateObject));
         if (userHasChanged(existingUser, updatedObjectWithSyncedRoles)) {
             updateTable(updatedObjectWithSyncedRoles);
         }
     }
 
-    private UserDb syncRoleDetails(UserDb updateObject) {
+    private UserDao syncRoleDetails(UserDao updateObject) {
         return userWithSyncedRoles(updateObject);
     }
 
@@ -142,35 +142,37 @@ public class UserService extends DatabaseSubService {
     }
 
     private UserDto attemptToFetchObject(UserDto queryObject) {
-        UserDb userDb = attempt(() -> UserDb.fromUserDto(queryObject))
+        UserDao userDao = attempt(() -> UserDao.fromUserDto(queryObject))
             .map(this::fetchItem)
             .orElseThrow(DatabaseSubService::handleError);
-        return nonNull(userDb) ? userDb.toUserDto() : null;
+        return nonNull(userDao) ? userDao.toUserDto() : null;
     }
 
-    private UserDb fetchItem(UserDb userDb) {
-        return table.getItem(userDb);
+    private UserDao fetchItem(UserDao userDao) {
+        return table.getItem(userDao);
     }
 
-    private boolean userHasChanged(UserDto existingUser, UserDb desiredUpdateWithSyncedRoles) {
-        return !desiredUpdateWithSyncedRoles.equals(UserDb.fromUserDto(existingUser));
+    private boolean userHasChanged(UserDto existingUser, UserDao desiredUpdateWithSyncedRoles) {
+        return !desiredUpdateWithSyncedRoles.equals(UserDao.fromUserDto(existingUser));
     }
 
-    private void updateTable(UserDb userUpdateWithSyncedRoles) {
+    private void updateTable(UserDao userUpdateWithSyncedRoles) {
         table.putItem(userUpdateWithSyncedRoles);
     }
 
-    private UserDb userWithSyncedRoles(UserDb currentUser) {
+    private UserDao userWithSyncedRoles(UserDao currentUser) {
         List<RoleDb> roles = currentRoles(currentUser);
         return currentUser.copy().withRoles(roles).build();
     }
 
     // TODO: use batch query for minimizing the cost.
-    private List<RoleDb> currentRoles(UserDb currentUser) {
+    private List<RoleDb> currentRoles(UserDao currentUser) {
         return currentUser
             .getRoles()
             .stream()
+            .map(RoleDb::toRoleDao)
             .map(roleService::fetchRoleDao)
+            .map(RoleDao::toRoleDb)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }

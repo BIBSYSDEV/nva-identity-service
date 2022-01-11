@@ -1,13 +1,11 @@
 package no.unit.nva.useraccessmanagement.dao;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails;
 import no.unit.nva.useraccessmanagement.dao.RoleDb.Builder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
@@ -18,21 +16,15 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonSerializable;
 import nva.commons.core.attempt.Try;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @DynamoDbBean
-public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>, WithType, JsonSerializable {
+public class RoleDb implements WithCopy<Builder>, WithType, JsonSerializable {
 
     public static String TYPE = "ROLE";
     public static final String INVALID_PRIMARY_HASH_KEY = "PrimaryHashKey should start with \"" + TYPE + "\"";
     public static final String INVALID_PRIMARY_RANGE_KEY = "PrimaryHashKey should start with \"" + TYPE + "\"";
-    @JsonProperty(DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY)
-    private String primaryHashKey;
-    @JsonProperty(DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY)
-    private String primaryRangeKey;
-    @JsonProperty("accessRights")
+
     private Set<AccessRight> accessRights;
-    @JsonProperty("name")
     private String name;
 
     public RoleDb() {
@@ -42,9 +34,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
 
     private RoleDb(Builder builder) {
         super();
-        setPrimaryHashKey(builder.primaryHashKey);
         setName(builder.name);
-        setPrimaryRangeKey(builder.primaryRangeKey);
         setAccessRights(builder.accessRights);
     }
 
@@ -71,45 +61,6 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @JacocoGenerated
-    @Override
-    @DynamoDbPartitionKey
-    public String getPrimaryHashKey() {
-        return this.primaryHashKey;
-    }
-
-    /**
-     * Do not use this method. This is only for usage by the DynamoDbMapper. Sets the hash key value for the database
-     * entry. This is the hashKey for the table and not any secondary index.
-     *
-     * @param primaryHashKey the primary hash key saved in the database
-     */
-    @JacocoGenerated
-    @Override
-    public void setPrimaryHashKey(String primaryHashKey) {
-        if (primaryHashKeyHasNotBeenSet()) {
-            if (!primaryHashKey.startsWith(TYPE)) {
-                throw new InvalidEntryInternalException(INVALID_PRIMARY_HASH_KEY);
-            }
-            this.primaryHashKey = primaryHashKey;
-        }
-    }
-
-    @Override
-    public String getPrimaryRangeKey() {
-        return this.primaryRangeKey;
-    }
-
-    @Override
-    public void setPrimaryRangeKey(String primaryRangeKey) {
-        if (primaryRangeKeyHasNotBeenSet()) {
-            if (!primaryRangeKey.startsWith(TYPE)) {
-                throw new InvalidEntryInternalException(INVALID_PRIMARY_RANGE_KEY);
-            }
-            this.primaryRangeKey = primaryRangeKey;
-        }
-    }
-
-    @JacocoGenerated
     public String getName() {
         return name;
     }
@@ -127,7 +78,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     public Set<AccessRight> getAccessRights() {
-        return this.accessRights;
+        return Objects.nonNull(this.accessRights) ? accessRights : Collections.emptySet();
     }
 
     public void setAccessRights(Set<AccessRight> accessRights) {
@@ -144,7 +95,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     @Override
     @JacocoGenerated
     public int hashCode() {
-        return Objects.hash(getPrimaryHashKey(), getPrimaryRangeKey(), getAccessRights(), getName());
+        return Objects.hash(getAccessRights(), getName());
     }
 
     @Override
@@ -156,11 +107,9 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RoleDb roleDb = (RoleDb) o;
-        return Objects.equals(getPrimaryHashKey(), roleDb.getPrimaryHashKey())
-               && Objects.equals(getPrimaryRangeKey(), roleDb.getPrimaryRangeKey())
-               && Objects.equals(getAccessRights(), roleDb.getAccessRights())
-               && Objects.equals(getName(), roleDb.getName());
+        RoleDao roleDbEntry = (RoleDao) o;
+        return Objects.equals(getAccessRights(), roleDbEntry.getAccessRights())
+               && Objects.equals(getName(), roleDbEntry.getName());
     }
 
     @JacocoGenerated
@@ -180,15 +129,17 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));
     }
 
-    public static final class Builder {
+    public RoleDao toRoleDao() {
+        return new RoleDao(this);
+    }
+
+    public static class Builder {
 
         public static final String EMPTY_ROLE_NAME_ERROR = "Rolename cannot be null or blank";
         private String name;
-        private String primaryHashKey;
-        private String primaryRangeKey;
         private Set<AccessRight> accessRights;
 
-        private Builder() {
+        protected Builder() {
             accessRights = Collections.emptySet();
         }
 
@@ -203,21 +154,7 @@ public class RoleDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         }
 
         public RoleDb build() {
-            this.primaryHashKey = formatPrimaryHashKey();
-            this.primaryRangeKey = formatPrimaryRangeKey();
             return new RoleDb(this);
-        }
-
-        private String formatPrimaryRangeKey() {
-            return this.formatPrimaryHashKey();
-        }
-
-        private String formatPrimaryHashKey() {
-            if (isNull(name) || name.isBlank()) {
-                throw new InvalidEntryInternalException(EMPTY_ROLE_NAME_ERROR);
-            } else {
-                return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE, name);
-            }
         }
     }
 }

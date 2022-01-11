@@ -6,7 +6,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
-import static no.unit.nva.useraccessmanagement.dao.UserDb.ERROR_DUE_TO_INVALID_ROLE;
+import static no.unit.nva.useraccessmanagement.dao.UserDao.ERROR_DUE_TO_INVALID_ROLE;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.DO_NOT_INCLUDE_NESTED_UNITS;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static nva.commons.core.attempt.Try.attempt;
@@ -61,42 +61,42 @@ public class UserDbTest {
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
     public static final Javers JAVERS = JaversBuilder.javers().build();
 
-    private UserDb userDao;
-    private UserDb sampleUser;
+    private UserDao userDao;
+    private UserDao sampleUser;
 
     @BeforeEach
     public void init() throws InvalidEntryInternalException {
-        userDao = new UserDb();
-        sampleUser = UserDb.newBuilder().withUsername(SOME_USERNAME).build();
+        userDao = new UserDao();
+        sampleUser = UserDao.newBuilder().withUsername(SOME_USERNAME).build();
     }
 
     @Test
     public void builderShouldSetTheHashKeyBasedOnUsername() throws InvalidEntryInternalException {
-        sampleUser.setPrimaryHashKey("SomeOtherHashKey");
-        String expectedHashKey = String.join(UserDb.FIELD_DELIMITER, UserDb.TYPE, SOME_USERNAME);
-        assertThat(sampleUser.getPrimaryHashKey(), is(equalTo(expectedHashKey)));
+        sampleUser.setPrimaryKeyHashKey("SomeOtherHashKey");
+        String expectedHashKey = String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE, SOME_USERNAME);
+        assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
     }
 
     @Test
     public void extractRolesDoesNotThrowExceptionWhenRolesAreValid()
         throws InvalidEntryInternalException, InvalidInputException {
-        UserDb userWithValidRole = UserDb.fromUserDto(createUserWithRolesAndInstitution());
+        UserDao userWithValidRole = UserDao.fromUserDto(createUserWithRolesAndInstitution());
         Executable action = userWithValidRole::toUserDto;
         assertDoesNotThrow(action);
     }
 
     @Test
     public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() throws BadRequestException {
-        URI includedCristinUnit = randomUri();
-        URI excludedCristinUnit = randomUri();
-        ViewingScope scope = new ViewingScope(Set.of(includedCristinUnit),
+        var includedCristinUnit = randomUri();
+        var excludedCristinUnit = randomUri();
+        var scope = new ViewingScopeDb(Set.of(includedCristinUnit),
                                               Set.of(excludedCristinUnit),
                                               DO_NOT_INCLUDE_NESTED_UNITS);
-        UserDb userDb = UserDb.newBuilder().withUsername(randomString())
+        UserDao userDao = UserDao.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
-        assertThat(userDb.getViewingScope().getIncludedUnits(), containsInAnyOrder(includedCristinUnit));
-        assertThat(userDb.getViewingScope().getExcludedUnits(), containsInAnyOrder(excludedCristinUnit));
+        assertThat(userDao.getViewingScope().getIncludedUnits(), containsInAnyOrder(includedCristinUnit));
+        assertThat(userDao.getViewingScope().getExcludedUnits(), containsInAnyOrder(excludedCristinUnit));
     }
 
     @Test
@@ -114,25 +114,25 @@ public class UserDbTest {
 
     @Test
     void getTypeShouldReturnConstantTypeValue() {
-        assertThat(userDao.getType(), is(equalTo(UserDb.TYPE)));
+        assertThat(userDao.getType(), is(equalTo(UserDao.TYPE)));
     }
 
     @Test
     void setTypeShouldNotChangeTheReturnedTypeValue() {
         userDao.setType("NotExpectedType");
-        assertThat(userDao.getType(), is(equalTo(UserDb.TYPE)));
+        assertThat(userDao.getType(), is(equalTo(UserDao.TYPE)));
     }
 
     @Test
     void getHashKeyKeyShouldReturnTypeAndUsernameConcatenation() {
-        String expectedHashKey = String.join(UserDb.FIELD_DELIMITER, UserDb.TYPE, SOME_USERNAME);
-        assertThat(sampleUser.getPrimaryHashKey(), is(equalTo(expectedHashKey)));
+        String expectedHashKey = String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE, SOME_USERNAME);
+        assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
     }
 
     @ParameterizedTest(name = "builder should throw exception when username is:\"{0}\"")
     @NullAndEmptySource
     void builderShouldThrowExceptionWhenUsernameIsNotValid(String invalidUsername) {
-        Executable action = () -> UserDb.newBuilder()
+        Executable action = () -> UserDao.newBuilder()
             .withUsername(invalidUsername)
             .withGivenName(SOME_GIVEN_NAME)
             .withFamilyName(SOME_FAMILY_NAME)
@@ -141,29 +141,29 @@ public class UserDbTest {
             .build();
 
         InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
-        assertThat(exception.getMessage(), containsString(UserDb.INVALID_USER_EMPTY_USERNAME));
+        assertThat(exception.getMessage(), containsString(UserDao.INVALID_USER_EMPTY_USERNAME));
     }
 
     @ParameterizedTest(name = "setUsername should throw exception when input is:\"{0}\"")
     @NullAndEmptySource
     @ValueSource(strings = {" ", "\t", "", "\n"})
     void setUsernameThrowsExceptionWhenUsernameIsNotValid(String invalidUsername) {
-        UserDb userDb = new UserDb();
-        assertThrows(InvalidEntryInternalException.class, () -> userDb.setUsername(invalidUsername));
+        UserDao userDao = new UserDao();
+        assertThrows(InvalidEntryInternalException.class, () -> userDao.setUsername(invalidUsername));
     }
 
     @Test
     void serializationThrowsExceptionWhenUserHasNullUserName() {
-        UserDb userDb = new UserDb();
-        Executable action = () -> defaultDynamoConfigMapper.writeValueAsString(userDb);
+        UserDao userDao = new UserDao();
+        Executable action = () -> defaultDynamoConfigMapper.writeValueAsString(userDao);
         JsonMappingException thrownException = assertThrows(JsonMappingException.class, action);
         assertThat(thrownException.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
     }
 
     @Test
     void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException, BadRequestException {
-        UserDb originalUser = randomUserDb();
-        UserDb copy = originalUser.copy().build();
+        UserDao originalUser = randomUserDb();
+        UserDao copy = originalUser.copy().build();
         assertThat(copy, is(equalTo(originalUser)));
 
         assertThat(copy, is(not(sameInstance(originalUser))));
@@ -171,10 +171,10 @@ public class UserDbTest {
 
     @Test
     void shouldConvertToDtoAndBackWithoutInformationLoss() throws BadRequestException {
-        UserDb originalUser = randomUserDb();
-        UserDb converted = Try.of(originalUser)
-            .map(UserDb::toUserDto)
-            .map(UserDb::fromUserDto)
+        UserDao originalUser = randomUserDb();
+        UserDao converted = Try.of(originalUser)
+            .map(UserDao::toUserDto)
+            .map(UserDao::fromUserDto)
             .orElseThrow();
         Diff diff = JAVERS.compare(originalUser, converted);
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
@@ -189,9 +189,9 @@ public class UserDbTest {
         RoleDb invalidRole = new RoleDb();
         invalidRole.setName(invalidRoleName);
         List<RoleDb> invalidRoles = Collections.singletonList(invalidRole);
-        UserDb userDbWithInvalidRole = UserDb.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
+        UserDao userDaoWithInvalidRole = UserDao.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
 
-        Executable action = userDbWithInvalidRole::toUserDto;
+        Executable action = userDaoWithInvalidRole::toUserDto;
         RuntimeException exception = assertThrows(RuntimeException.class, action);
         assertThat(exception.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
     }
@@ -205,7 +205,7 @@ public class UserDbTest {
         List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
         UserDto userWithInvalidRole = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
 
-        Executable action = () -> UserDb.fromUserDto(userWithInvalidRole);
+        Executable action = () -> UserDao.fromUserDto(userWithInvalidRole);
         RuntimeException exception = assertThrows(RuntimeException.class, action);
         assertThat(exception.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
     }
@@ -213,14 +213,14 @@ public class UserDbTest {
     @Test
     void roleValidationMethodLogsError()
         throws InvalidEntryInternalException {
-        TestAppender appender = LogUtils.getTestingAppender(UserDb.class);
+        TestAppender appender = LogUtils.getTestingAppender(UserDao.class);
         RoleDto invalidRole = RoleDto.newBuilder().withName(SOME_ROLENAME).build();
         invalidRole.setRoleName(null);
 
         List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
         UserDto userWithInvalidRole = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
 
-        Executable action = () -> UserDb.fromUserDto(userWithInvalidRole);
+        Executable action = () -> UserDao.fromUserDto(userWithInvalidRole);
         assertThrows(RuntimeException.class, action);
 
         assertThat(appender.getMessages(), StringContains.containsString(ERROR_DUE_TO_INVALID_ROLE));
@@ -239,12 +239,12 @@ public class UserDbTest {
         URI someCristinUnit = randomUri();
         URI someOtherCristinUnit = randomUri();
         Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
-        ViewingScope scope = new ViewingScope(visisbleUnits, null,DO_NOT_INCLUDE_NESTED_UNITS);
-        UserDb userDb = UserDb.newBuilder().withUsername(randomString())
+        var scope = new ViewingScopeDb(visisbleUnits, null,DO_NOT_INCLUDE_NESTED_UNITS);
+        UserDao userDao = UserDao.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
 
-        assertThat(userDb.getViewingScope().getIncludedUnits(),
+        assertThat(userDao.getViewingScope().getIncludedUnits(),
                    containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
     }
 
@@ -269,12 +269,12 @@ public class UserDbTest {
             .collect(Collectors.toList());
     }
 
-    private static RoleDb newRole(String str) throws InvalidEntryInternalException {
-        return RoleDb.newBuilder().withName(str).build();
+    private static RoleDao newRole(String str) throws InvalidEntryInternalException {
+        return RoleDao.newBuilder().withName(str).build();
     }
 
-    private UserDb randomUserDb() throws BadRequestException {
-        UserDb randomUser = UserDb.newBuilder()
+    private UserDao randomUserDb() throws BadRequestException {
+        UserDao randomUser = UserDao.newBuilder()
             .withUsername(randomString())
             .withFamilyName(randomString())
             .withGivenName(randomString())
@@ -290,16 +290,16 @@ public class UserDbTest {
         return List.of(randomRole(), randomRole());
     }
 
-    private RoleDb randomRole() {
+    private RoleDao randomRole() {
         Set<AccessRight> accessRight = Set.of(randomElement(AccessRight.values()));
-        return RoleDb.newBuilder().withName(randomString()).withAccessRights(accessRight).build();
+        return RoleDao.newBuilder().withName(randomString()).withAccessRights(accessRight).build();
     }
 
-    private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), DO_NOT_INCLUDE_NESTED_UNITS);
+    private ViewingScopeDb randomViewingScope() throws BadRequestException {
+        return new ViewingScopeDb(Set.of(randomUri()), Set.of(randomUri()), DO_NOT_INCLUDE_NESTED_UNITS);
     }
 
     private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {
-        return UserDb.fromUserDto(userDto).toUserDto();
+        return UserDao.fromUserDto(userDto).toUserDto();
     }
 }

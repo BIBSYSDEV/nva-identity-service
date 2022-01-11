@@ -9,12 +9,10 @@ import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SE
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
 import java.util.ArrayList;
 import java.util.List;
 import no.unit.nva.database.interfaces.WithEnvironment;
-import nva.commons.core.Environment;
 import org.junit.jupiter.api.AfterEach;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -29,15 +27,15 @@ import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
+import software.amazon.awssdk.services.dynamodb.model.TableStatus;
+
 public abstract class DatabaseAccessor implements WithEnvironment {
 
-    public static final String USERS_AND_ROLES_TABLE = "UsersAndRolesTable";
 
     public static final int SINGLE_TABLE_EXPECTED = 1;
     public static final String STRING = "S";
     private static final Long CAPACITY_DOES_NOT_MATTER = 1000L;
 
-    protected final Environment envWithTableName = mockEnvironment(USERS_AND_ROLES_TABLE);
     protected DynamoDbClient localDynamo;
     protected DatabaseService databaseService;
 
@@ -56,14 +54,14 @@ public abstract class DatabaseAccessor implements WithEnvironment {
     public DynamoDbClient initializeTestDatabase() {
 
         localDynamo = createLocalDynamoDbMock();
-        String tableName = readTableNameFromEnvironment();
+        String tableName = DatabaseService.USERS_AND_ROLES_TABLE_NAME;
         CreateTableResponse createTableResult = createTable(localDynamo, tableName);
         TableDescription tableDescription = createTableResult.tableDescription();
         assertEquals(tableName, tableDescription.tableName());
 
         assertThatTableKeySchemaContainsBothKeys(tableDescription.keySchema());
 
-        assertEquals("ACTIVE", tableDescription.tableStatus());
+        assertEquals(TableStatus.ACTIVE, tableDescription.tableStatus());
         assertThat(tableDescription.tableArn(), containsString(tableName));
 
         ListTablesResponse tables = localDynamo.listTables();
@@ -77,10 +75,9 @@ public abstract class DatabaseAccessor implements WithEnvironment {
     @AfterEach
     public void closeDB() {
         if (nonNull(localDynamo)) {
-            localDynamo.close();
+            localDynamo = null;
         }
     }
-
 
     private static CreateTableResponse createTable(DynamoDbClient client, String tableName) {
         List<AttributeDefinition> attributeDefinitions = defineKeyAttributes();
@@ -165,7 +162,5 @@ public abstract class DatabaseAccessor implements WithEnvironment {
         return DynamoDBEmbedded.create().dynamoDbClient();
     }
 
-    private String readTableNameFromEnvironment() {
-        return envWithTableName.readEnv(DatabaseService.USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE);
-    }
+
 }

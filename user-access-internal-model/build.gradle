@@ -22,7 +22,6 @@ dependencies {
 
     compileOnly project(":user-access-errors")
     testImplementation project(":user-access-errors")
-
     testImplementation project(":user-access-testing")
 
 }

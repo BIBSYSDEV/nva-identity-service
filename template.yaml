@@ -68,6 +68,9 @@ Globals:
     Timeout: 10
     Runtime: java11
     Tracing: Active
+    Environment:
+      API_HOST: !Ref ApiDomain
+
   Api:
     Cors:
       AllowMethods: '''POST, PUT, GET,OPTIONS'''

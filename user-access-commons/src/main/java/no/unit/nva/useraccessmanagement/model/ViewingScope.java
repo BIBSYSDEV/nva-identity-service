@@ -101,17 +101,17 @@ public class ViewingScope implements WithType {
     }
 
     private static Void validate(URI uri) throws BadRequestException {
-        if (!hostIsExpectedHost(uri) || !pathIsExpectedPath(uri)) {
+        if (hostIsNotExpectedHost(uri) || pathIsNotExpectedPath(uri)) {
             throw new BadRequestException(INVALID_VIEWING_SCOPE_URI_ERROR + uri);
         }
         return null;
     }
 
-    private static boolean pathIsExpectedPath(URI uri) {
-        return uri.getPath().startsWith(ServiceConstants.CRISTIN_PATH);
+    private static boolean pathIsNotExpectedPath(URI uri) {
+        return !uri.getPath().startsWith(ServiceConstants.CRISTIN_PATH);
     }
 
-    private static boolean hostIsExpectedHost(URI uri) {
-        return ServiceConstants.API_HOST.equals(uri.getHost());
+    private static boolean hostIsNotExpectedHost(URI uri) {
+        return !ServiceConstants.API_HOST.equals(uri.getHost());
     }
 }

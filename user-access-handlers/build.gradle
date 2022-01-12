@@ -22,3 +22,7 @@ dependencies {
     testImplementation project(':user-access-internal-model')
     testImplementation project(':user-access-testing')
 }
+
+test{
+    environment "API_HOST", "api.dev.aws.unit.no"
+}

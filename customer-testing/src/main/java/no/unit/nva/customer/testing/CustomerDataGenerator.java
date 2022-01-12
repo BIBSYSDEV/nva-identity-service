@@ -17,11 +17,14 @@ import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
+import nva.commons.core.paths.UriWrapper;
 
 public class CustomerDataGenerator {
 
     public static final Random RANDOM = new Random(System.currentTimeMillis());
     public static final Faker FAKER = Faker.instance();
+    private static final String API_HOST = "api.dev.aws.nva.unit.no";
+    private static final String CRISTIN_PATH = "/cristin/organization";
 
     public static CustomerDto createSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
@@ -94,6 +97,13 @@ public class CustomerDataGenerator {
 
     public static UUID randomIdentifier() {
         return UUID.randomUUID();
+    }
+
+    public static URI randomCristinOrgId() {
+        return new UriWrapper("https", API_HOST)
+            .addChild(CRISTIN_PATH)
+            .addChild(randomString())
+            .getUri();
     }
 
     private static VocabularyDao randomVocabulary() {

@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -122,7 +123,5 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
             .build();
     }
 
-    private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), randomElement(true, false));
-    }
+
 }

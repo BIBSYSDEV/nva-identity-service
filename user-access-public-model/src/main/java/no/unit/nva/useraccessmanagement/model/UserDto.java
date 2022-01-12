@@ -26,6 +26,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
     public static final String TYPE = "User";
     public static final String MISSING_FIELD_ERROR = "Invalid User. Missing obligatory field: ";
     public static final String USERNAME_FIELD = "username";
+    public static final String VIEWING_SCOPE_FIELD = "viewingScope";
     private Set<RoleDto> roles;
 
     @JsonProperty(USERNAME_FIELD)
@@ -33,6 +34,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
     private String institution;
     private String givenName;
     private String familyName;
+    @JsonProperty(VIEWING_SCOPE_FIELD)
     private ViewingScope viewingScope;
 
     public UserDto() {

@@ -1,5 +1,7 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -87,11 +89,10 @@ public class UserDbTest {
 
     @Test
     public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() throws BadRequestException {
-        URI includedCristinUnit = randomUri();
-        URI excludedCristinUnit = randomUri();
+        URI includedCristinUnit = randomCristinOrgId();
+        URI excludedCristinUnit = randomCristinOrgId();
         ViewingScope scope = new ViewingScope(Set.of(includedCristinUnit),
-                                              Set.of(excludedCristinUnit),
-                                              DO_NOT_INCLUDE_NESTED_UNITS);
+                                              Set.of(excludedCristinUnit));
         UserDb userDb = UserDb.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
@@ -236,10 +237,10 @@ public class UserDbTest {
     @Test
     void shouldContainListOfCristinOrganizationIdsThatDefineCuratorsScope()
         throws InvalidEntryInternalException, BadRequestException {
-        URI someCristinUnit = randomUri();
-        URI someOtherCristinUnit = randomUri();
+        URI someCristinUnit = randomCristinOrgId();
+        URI someOtherCristinUnit = randomCristinOrgId();
         Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
-        ViewingScope scope = new ViewingScope(visisbleUnits, null,DO_NOT_INCLUDE_NESTED_UNITS);
+        ViewingScope scope = new ViewingScope(visisbleUnits, null);
         UserDb userDb = UserDb.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
@@ -248,19 +249,6 @@ public class UserDbTest {
                    containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
     }
 
-    @Test
-    @DisplayName("should contain field that informs whether the viewing scope should include the children of the "
-                 + "included organizations ")
-    void shouldContainFieldInformingIfTheViewingScopeIncludesTheChildrenOfTheIncludedOrgs() throws BadRequestException {
-        var includedUnits = Set.of(randomUri());
-        var excludedUnits = Set.of(randomUri());
-        var recursiveScope = new ViewingScope(includedUnits, excludedUnits, INCLUDE_NESTED_UNITS);
-        assertThat(recursiveScope.isRecursive(), is(equalTo(INCLUDE_NESTED_UNITS)));
-
-
-        var nonRecursiveScope = new ViewingScope(includedUnits, excludedUnits, DO_NOT_INCLUDE_NESTED_UNITS);
-        assertThat(nonRecursiveScope.isRecursive(), is(equalTo(DO_NOT_INCLUDE_NESTED_UNITS)));
-    }
 
     private static List<RoleDb> createSampleRoles() {
         return Stream.of("Role1", "Role2")
@@ -295,9 +283,6 @@ public class UserDbTest {
         return RoleDb.newBuilder().withName(randomString()).withAccessRights(accessRight).build();
     }
 
-    private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), DO_NOT_INCLUDE_NESTED_UNITS);
-    }
 
     private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {
         return UserDb.fromUserDto(userDto).toUserDto();

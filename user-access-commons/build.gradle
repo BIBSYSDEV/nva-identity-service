@@ -1,5 +1,6 @@
 plugins {
     id 'nva.identity.service.java-library-conventions'
+    id 'nva.identity.service.dynamodblocal'
 }
 
 dependencies {
@@ -8,4 +9,9 @@ dependencies {
     implementation libs.nva.apigateway
     implementation libs.bundles.jackson
     testImplementation libs.bundles.testing
+    testImplementation project(":user-access-testing")
+}
+
+test{
+    environment "API_HOST", "api.dev.aws.unit.no"
 }

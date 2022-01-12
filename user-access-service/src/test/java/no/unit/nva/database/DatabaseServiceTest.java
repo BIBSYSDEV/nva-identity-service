@@ -1,6 +1,8 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.database.DatabaseServiceImpl.DYNAMO_DB_CLIENT_NOT_SET_ERROR;
 import static no.unit.nva.database.DatabaseServiceImpl.createTable;
 import static no.unit.nva.database.EntityUtils.SOME_ROLENAME;
@@ -330,14 +332,13 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
     @Test
     void userDbShouldBeReadFromDatabaseWithoutDataLoss() throws InvalidEntryInternalException, BadRequestException {
-        ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), INCLUDE_NESTED_UNITS);
         UserDb insertedUser = UserDb.newBuilder()
             .withUsername(SOME_USERNAME)
             .withGivenName(SOME_GIVEN_NAME)
             .withFamilyName(SOME_FAMILY_NAME)
             .withInstitution(SOME_INSTITUTION)
             .withRoles(SAMPLE_ROLES)
-            .withViewingScope(viewingScope)
+            .withViewingScope(randomViewingScope())
             .build();
         Table table = clientToLocalDatabase();
         table.putItem(insertedUser.toItem());
@@ -407,11 +408,10 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
     private UserDto createUserWithRole(String someUsername, String someInstitution, RoleDto existingRole)
             throws InvalidEntryInternalException, BadRequestException {
-        ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), false);
         return UserDto.newBuilder().withUsername(someUsername)
             .withInstitution(someInstitution)
             .withRoles(Collections.singletonList(existingRole))
-            .withViewingScope(viewingScope)
+            .withViewingScope(randomViewingScope())
             .build();
     }
 
@@ -461,10 +461,6 @@ public class DatabaseServiceTest extends DatabaseAccessor {
             .withFamilyName(SOME_FAMILY_NAME)
             .withViewingScope(randomViewingScope())
             .build();
-    }
-
-    private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()),INCLUDE_NESTED_UNITS);
     }
 
     private RoleDto createSampleRoleAndAddToDb(String roleName)

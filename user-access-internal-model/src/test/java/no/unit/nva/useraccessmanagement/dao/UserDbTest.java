@@ -269,8 +269,8 @@ public class UserDbTest {
             .collect(Collectors.toList());
     }
 
-    private static RoleDao newRole(String str) throws InvalidEntryInternalException {
-        return RoleDao.newBuilder().withName(str).build();
+    private static RoleDb newRole(String str) throws InvalidEntryInternalException {
+        return RoleDb.newBuilder().withName(str).build();
     }
 
     private UserDao randomUserDb() throws BadRequestException {
@@ -290,9 +290,9 @@ public class UserDbTest {
         return List.of(randomRole(), randomRole());
     }
 
-    private RoleDao randomRole() {
+    private RoleDb randomRole() {
         Set<AccessRight> accessRight = Set.of(randomElement(AccessRight.values()));
-        return RoleDao.newBuilder().withName(randomString()).withAccessRights(accessRight).build();
+        return RoleDb.newBuilder().withName(randomString()).withAccessRights(accessRight).build();
     }
 
     private ViewingScopeDb randomViewingScope() throws BadRequestException {

@@ -16,8 +16,8 @@ class DynamoEntryWithRangeKeyTest {
 
     @Test
     void setTypeHasNoEffect() throws InvalidEntryInternalException {
-        RoleDao roleDbEntry = RoleDao.newBuilder().withName("SomeName").build().toRoleDao();
-        RoleDao copy = roleDbEntry.copy().build().toRoleDao();
+        RoleDb roleDbEntry = RoleDb.newBuilder().withName("SomeName").build();
+        RoleDb copy = roleDbEntry.copy().build();
         copy.setType(SOME_TYPE);
 
         assertThat(copy, is(equalTo(roleDbEntry)));
@@ -25,17 +25,10 @@ class DynamoEntryWithRangeKeyTest {
 
     @Test
     void setPrimaryRangeKeyIsNotActivatedWhenRangeKeyHasBeenSet() throws InvalidEntryInternalException {
-        RoleDao roleDbEntry = RoleDao.newBuilder().withName("SomeName").build();
-        RoleDao copy = roleDbEntry.copy().build();
+        RoleDb roleDbEntry = RoleDb.newBuilder().withName("SomeName").build();
+        RoleDb copy = roleDbEntry.copy().build();
         copy.setPrimaryKeyRangeKey(SOME_INVALID_KEY);
         assertThat(copy, is(equalTo(roleDbEntry)));
     }
 
-    @Test
-    void setPrimaryRangeKeyThrowsExceptionRangeKeyIsInvalid() {
-        RoleDao roleDbEntry = new RoleDao();
-        Executable action = () -> roleDbEntry.setPrimaryKeyRangeKey(SOME_INVALID_KEY);
-        InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
-        assertThat(exception.getMessage(), is(equalTo(RoleDao.INVALID_PRIMARY_RANGE_KEY)));
-    }
 }

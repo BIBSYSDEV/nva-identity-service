@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessmanagement.dao;
 
 import static java.util.Objects.isNull;
+import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails;
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
@@ -14,8 +15,8 @@ public interface DynamoEntryWithRangeKey extends WithType, JsonSerializable {
  String FIELD_DELIMITER = "#";
 
 
-    @DynamoDbPartitionKey
-    @DynamoDbAttribute(DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY)
+//    @DynamoDbPartitionKey
+//    @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
      String getPrimaryKeyHashKey();
 
     /**
@@ -24,12 +25,10 @@ public interface DynamoEntryWithRangeKey extends WithType, JsonSerializable {
      *
      * @param primaryRangeKey the primary hash key.
      */
-     default void setPrimaryKeyHashKey(String primaryRangeKey){
-         //DO NOTHING
-     }
+     void setPrimaryKeyHashKey(String primaryRangeKey);
 
-    @DynamoDbSortKey
-    @DynamoDbAttribute(DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY)
+//    @DynamoDbSortKey
+//    @DynamoDbAttribute(DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY)
      String getPrimaryKeyRangeKey();
 
     /**
@@ -38,9 +37,7 @@ public interface DynamoEntryWithRangeKey extends WithType, JsonSerializable {
      *
      * @param primaryRangeKey the primary range key.
      */
-    default void setPrimaryKeyRangeKey(String primaryRangeKey){
-        //DO NOTHING
-    }
+    void setPrimaryKeyRangeKey(String primaryRangeKey);
 
 
     default boolean primaryHashKeyHasNotBeenSet() {

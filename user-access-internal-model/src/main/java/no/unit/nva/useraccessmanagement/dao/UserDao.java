@@ -7,9 +7,9 @@ import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SE
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
 import static nva.commons.core.attempt.Try.attempt;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
@@ -45,7 +46,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
 
     private String username;
     private String institution;
-    private Set<RoleDb> roles;
+    private List<RoleDb> roles;
     private String givenName;
     private String familyName;
     private ViewingScopeDb viewingScope;
@@ -104,6 +105,10 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
         return formatPrimaryHashKey();
     }
 
+    @Override
+    public void setPrimaryKeyHashKey(String primaryRangeKey) {
+        //DO NOTHING
+    }
 
     @JacocoGenerated
     @Override
@@ -111,6 +116,11 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     @DynamoDbAttribute(PRIMARY_KEY_RANGE_KEY)
     public String getPrimaryKeyRangeKey() {
         return formatPrimaryRangeKey();
+    }
+
+    @Override
+    public void setPrimaryKeyRangeKey(String primaryRangeKey) {
+        //DO NOTHING
     }
 
     @JacocoGenerated
@@ -186,8 +196,9 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
 
 
     @DynamoDbAttribute("roles")
-    public Set<RoleDb> getRoles() {
-        return nonNull(roles) ? roles : Collections.emptySet();
+    @DynamoDbIgnoreNulls
+    public List<RoleDb> getRoles() {
+        return nonNull(roles) ? roles : Collections.emptyList();
     }
 
     /**
@@ -195,8 +206,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
      *
      * @param roles the roles.
      */
-    public void setRoles(Collection<RoleDb> roles) {
-        this.roles = nonNull(roles) ? new HashSet<>(roles) : Collections.emptySet();
+    public void setRoles(List<RoleDb> roles) {
+        this.roles = nonNull(roles) ? roles : Collections.emptyList();
     }
 
     @JacocoGenerated
@@ -328,7 +339,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
         }
 
         public Builder withRoles(Collection<RoleDb> roles) {
-            userDao.setRoles(roles);
+            userDao.setRoles(new ArrayList<>(roles));
             return this;
         }
 

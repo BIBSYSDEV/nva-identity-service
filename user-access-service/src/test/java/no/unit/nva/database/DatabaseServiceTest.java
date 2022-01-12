@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import no.unit.nva.useraccessmanagement.dao.RoleDao;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
 import no.unit.nva.useraccessmanagement.dao.UserDao;
 import no.unit.nva.useraccessmanagement.dao.ViewingScopeDb;
@@ -52,7 +51,6 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
     private static final String SOME_USERNAME = "someusername";
-    private static final String SOME_OTHER_USERNAME = "someotherusername";
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
     private static final String SOME_INSTITUTION = "SomeInstitution";
@@ -60,17 +58,19 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     private static final String SOME_OTHER_INSTITUTION = "Some other institution";
     private DatabaseService db;
     private DynamoDbEnhancedClient enhancedClient;
-    private DynamoDbTable<RoleDao> rolesTable;
+    private DynamoDbTable<RoleDb> rolesTable;
     private DynamoDbTable<UserDao> usersTable;
+    private TableSchema<UserDao> userTableSchema;
 
     @BeforeEach
     public void init() {
         db = createDatabaseServiceUsingLocalStorage();
         enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(localDynamo).build();
         rolesTable = enhancedClient.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME,
-                                          TableSchema.fromClass(RoleDao.class));
-        TableSchema<UserDao> tableSchema = TableSchema.fromClass(UserDao.class);
-        usersTable = enhancedClient.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, tableSchema);
+         TableSchema.fromBean(RoleDb.class));
+
+         userTableSchema = TableSchema.fromClass(UserDao.class);
+        usersTable = enhancedClient.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, userTableSchema);
 
     }
 
@@ -311,7 +311,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     public void roleDbWithAccessRightsIsSavedInDatabase() throws InvalidEntryInternalException {
         var accessRights = Set.of(AccessRight.APPROVE_DOI_REQUEST, AccessRight.REJECT_DOI_REQUEST);
 
-        RoleDao roleWithAccessRights = RoleDao.newBuilder()
+        RoleDb roleWithAccessRights = RoleDb.newBuilder()
             .withAccessRights(accessRights)
             .withName(SOME_ROLENAME)
             .build();
@@ -358,7 +358,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     }
 
     private static RoleDb randomRole() {
-        return RoleDao.newBuilder()
+        return RoleDb.newBuilder()
             .withName(randomString())
             .withAccessRights(Set.of(randomElement(AccessRight.values())))
             .build();
@@ -374,7 +374,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
             .build();
     }
 
-    private RoleDao fetchRoleDirectlyFromTable(RoleDao roleWithAccessRights) {
+    private RoleDb fetchRoleDirectlyFromTable(RoleDb roleWithAccessRights) {
         return rolesTable.getItem(Key.builder()
                                       .partitionValue(roleWithAccessRights.getPrimaryKeyHashKey())
                                       .sortValue(roleWithAccessRights.getPrimaryKeyRangeKey())

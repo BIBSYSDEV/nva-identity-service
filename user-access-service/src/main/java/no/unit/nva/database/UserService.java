@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import no.unit.nva.useraccessmanagement.dao.RoleDao;
+import no.unit.nva.useraccessmanagement.dao.RoleDb;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
 import no.unit.nva.useraccessmanagement.dao.UserDao;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
@@ -170,9 +170,7 @@ public class UserService extends DatabaseSubService {
         return currentUser
             .getRoles()
             .stream()
-            .map(RoleDb::toRoleDao)
-            .map(roleService::fetchRoleDao)
-            .map(RoleDao::toRoleDb)
+            .map(roleService::fetchRoleDb)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }

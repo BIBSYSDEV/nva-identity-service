@@ -3,7 +3,7 @@ package no.unit.nva.database;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
-import no.unit.nva.useraccessmanagement.dao.RoleDao;
+import no.unit.nva.useraccessmanagement.dao.RoleDb;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -24,11 +24,11 @@ public class RoleService extends DatabaseSubService {
 
     public static final String ADD_ROLE_DEBUG_MESSAGE = "Adding role:";
     private static final Logger logger = LoggerFactory.getLogger(RoleService.class);
-    private final DynamoDbTable<RoleDao> table;
+    private final DynamoDbTable<RoleDb> table;
 
     protected RoleService(DynamoDbClient client) {
         super(client);
-        this.table = this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, TableSchema.fromClass(RoleDao.class));
+        this.table = this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, TableSchema.fromClass(RoleDb.class));
     }
 
     /**
@@ -43,7 +43,7 @@ public class RoleService extends DatabaseSubService {
         logger.debug(ADD_ROLE_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(roleDto));
         validate(roleDto);
         checkRoleDoesNotExist(roleDto);
-        table.putItem(RoleDao.fromRoleDto(roleDto));
+        table.putItem(RoleDb.fromRoleDto(roleDto));
     }
 
     /**
@@ -58,11 +58,11 @@ public class RoleService extends DatabaseSubService {
             .orElseThrow(() -> handleRoleNotFound(queryObject));
     }
 
-    protected RoleDao fetchRoleDao(RoleDao queryObject) {
+    protected RoleDb fetchRoleDb(RoleDb queryObject) {
         return fetchItem(queryObject);
     }
 
-    private RoleDao fetchItem(RoleDao queryObject) {
+    private RoleDb fetchItem(RoleDb queryObject) {
         return attempt(() -> table.getItem(queryObject)).orElse(fail -> null);
     }
 
@@ -87,9 +87,9 @@ public class RoleService extends DatabaseSubService {
     }
 
     private RoleDto attemptFetchRole(RoleDto queryObject) {
-        RoleDao roledb = Try.of(queryObject)
-            .map(RoleDao::fromRoleDto)
-            .map(this::fetchRoleDao)
+        RoleDb roledb = Try.of(queryObject)
+            .map(RoleDb::fromRoleDto)
+            .map(this::fetchRoleDb)
             .orElseThrow(DatabaseSubService::handleError);
         return nonNull(roledb) ? roledb.toRoleDto() : null;
     }

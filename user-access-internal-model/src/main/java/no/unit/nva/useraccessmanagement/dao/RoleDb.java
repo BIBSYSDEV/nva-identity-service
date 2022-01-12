@@ -1,6 +1,8 @@
 package no.unit.nva.useraccessmanagement.dao;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
+import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.Objects;
@@ -14,11 +16,15 @@ import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonSerializable;
+import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Try;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 @DynamoDbBean
-public class RoleDb implements WithCopy<Builder>, WithType, JsonSerializable {
+public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType, JsonSerializable {
 
     public static String TYPE = "ROLE";
     public static final String INVALID_PRIMARY_HASH_KEY = "PrimaryHashKey should start with \"" + TYPE + "\"";
@@ -77,6 +83,31 @@ public class RoleDb implements WithCopy<Builder>, WithType, JsonSerializable {
         return TYPE;
     }
 
+    @JacocoGenerated
+    @Override
+    @DynamoDbPartitionKey
+    @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
+    public String getPrimaryKeyHashKey() {
+        return this.getType() + FIELD_DELIMITER + getName();
+    }
+
+    @Override
+    public void setPrimaryKeyHashKey(String primaryRangeKey) {
+        //DO NOTHING
+    }
+
+    @Override
+    @DynamoDbAttribute(PRIMARY_KEY_RANGE_KEY)
+    @DynamoDbSortKey
+    public String getPrimaryKeyRangeKey() {
+        return this.getPrimaryKeyHashKey();
+    }
+
+    @Override
+    public void setPrimaryKeyRangeKey(String primaryRangeKey) {
+        //DO NOTHING
+    }
+
     public Set<AccessRight> getAccessRights() {
         return Objects.nonNull(this.accessRights) ? accessRights : Collections.emptySet();
     }
@@ -107,7 +138,7 @@ public class RoleDb implements WithCopy<Builder>, WithType, JsonSerializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RoleDao roleDbEntry = (RoleDao) o;
+        RoleDb roleDbEntry = (RoleDb) o;
         return Objects.equals(getAccessRights(), roleDbEntry.getAccessRights())
                && Objects.equals(getName(), roleDbEntry.getName());
     }
@@ -129,9 +160,7 @@ public class RoleDb implements WithCopy<Builder>, WithType, JsonSerializable {
             .orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));
     }
 
-    public RoleDao toRoleDao() {
-        return new RoleDao(this);
-    }
+
 
     public static class Builder {
 
@@ -154,7 +183,11 @@ public class RoleDb implements WithCopy<Builder>, WithType, JsonSerializable {
         }
 
         public RoleDb build() {
-            return new RoleDb(this);
+            if(StringUtils.isNotBlank(name)){
+                return new RoleDb(this);
+            }
+            throw new InvalidEntryInternalException(EMPTY_ROLE_NAME_ERROR);
+
         }
     }
 }

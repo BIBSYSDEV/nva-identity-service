@@ -73,6 +73,7 @@ public abstract class DatabaseAccessor implements WithEnvironment {
      * Closes db.
      */
     @AfterEach
+    @SuppressWarnings("PMD.NullAssignment")
     public void closeDB() {
         if (nonNull(localDynamo)) {
             localDynamo = null;

@@ -149,7 +149,7 @@ public class AddUserTest extends HandlerTest {
     }
 
     private DatabaseService databaseServiceReturnsAlwaysEmptyUser() {
-        return new DatabaseServiceImpl(localDynamo, envWithTableName) {
+        return new DatabaseServiceImpl(localDynamo) {
             @Override
             public UserDto getUser(UserDto queryObject) {
                 return null;

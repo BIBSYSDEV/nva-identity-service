@@ -12,6 +12,9 @@ import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 /**
@@ -29,11 +32,16 @@ public class ViewingScopeDb implements WithType {
     public static final String EXCLUDED_UNIS = "excludedUnis";
     public static final String INCLUDED_UNITS = "includedUnits";
     public static final String VIEWING_SCOPE_TYPE = "ViewingScope";
-    public static final boolean INCLUDE_NESTED_UNITS = true;
-    public static final boolean DO_NOT_INCLUDE_NESTED_UNITS = !INCLUDE_NESTED_UNITS;
-    private static final String NESTED_UNITS = "recursive";
-    @JsonProperty(NESTED_UNITS)
-    private boolean recursive;
+    public static final TableSchema<ViewingScopeDb> TABLE_SCHEMA = StaticTableSchema
+        .builder(ViewingScopeDb.class)
+        .addAttribute(EnhancedType.setOf(URI.class), at -> at.name(INCLUDED_UNITS)
+            .setter(ViewingScopeDb::setIncludedUnits)
+            .getter(ViewingScopeDb::getIncludedUnits))
+        .addAttribute(EnhancedType.setOf(URI.class), at -> at.name(EXCLUDED_UNIS)
+            .setter(ViewingScopeDb::setExcludedUnits)
+            .getter(ViewingScopeDb::getIncludedUnits))
+        .build();
+
     @JsonProperty(INCLUDED_UNITS)
     private Set<URI> includedUnits;
     @JsonProperty(EXCLUDED_UNIS)
@@ -43,13 +51,11 @@ public class ViewingScopeDb implements WithType {
     }
 
     public ViewingScopeDb(Set<URI> includedUnits,
-                          Set<URI> excludedUnits,
-                          Boolean recursive)
+                          Set<URI> excludedUnits)
 
         throws BadRequestException {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
-        this.recursive = Optional.ofNullable(recursive).orElse(false);
         validate(includedUnits);
     }
 
@@ -58,15 +64,7 @@ public class ViewingScopeDb implements WithType {
     }
 
     public ViewingScope toViewingScope() {
-        return attempt(() -> new ViewingScope(getIncludedUnits(), getExcludedUnits(), isRecursive())).orElseThrow();
-    }
-
-    public boolean isRecursive() {
-        return recursive;
-    }
-
-    public void setRecursive(boolean recursive) {
-        this.recursive = recursive;
+        return attempt(() -> new ViewingScope(getIncludedUnits(), getExcludedUnits())).orElseThrow();
     }
 
     public Set<URI> getIncludedUnits() {
@@ -92,6 +90,12 @@ public class ViewingScopeDb implements WithType {
 
     @JacocoGenerated
     @Override
+    public int hashCode() {
+        return Objects.hash(getIncludedUnits(), getExcludedUnits());
+    }
+
+    @JacocoGenerated
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -100,22 +104,14 @@ public class ViewingScopeDb implements WithType {
             return false;
         }
         ViewingScopeDb that = (ViewingScopeDb) o;
-        return isRecursive() == that.isRecursive()
-               && Objects.equals(getIncludedUnits(), that.getIncludedUnits())
+        return Objects.equals(getIncludedUnits(), that.getIncludedUnits())
                && Objects.equals(getExcludedUnits(), that.getExcludedUnits());
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(isRecursive(), getIncludedUnits(), getExcludedUnits());
     }
 
     private static ViewingScopeDb fromDto(ViewingScope dto) {
         var dao = new ViewingScopeDb();
         dao.setExcludedUnits(dto.getExcludedUnits());
         dao.setIncludedUnits(dto.getIncludedUnits());
-        dao.setRecursive(dto.isRecursive());
         attempt(() -> validate(dao.getIncludedUnits())).orElseThrow();
         return dao;
     }

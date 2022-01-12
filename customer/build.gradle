@@ -13,6 +13,7 @@ dependencies {
     implementation libs.aws.dynamodb
     implementation libs.guava
     testImplementation project(":customer-testing")
+    testImplementation project(":user-access-testing")
 
 }
 

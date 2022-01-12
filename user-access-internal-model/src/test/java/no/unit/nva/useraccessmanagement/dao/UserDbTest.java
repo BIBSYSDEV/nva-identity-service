@@ -1,14 +1,13 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDao.ERROR_DUE_TO_INVALID_ROLE;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.DO_NOT_INCLUDE_NESTED_UNITS;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -33,7 +32,6 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
@@ -44,7 +42,6 @@ import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,6 +57,9 @@ public class UserDbTest {
     public static final String SOME_INSTITUTION = "SomeInstitution";
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
     public static final Javers JAVERS = JaversBuilder.javers().build();
+    public static final String ROLES_AS_LISTS_WORKAROUND_EXPLANATION =
+        "BeanTableSchema does not support well Sets and roles are implemented as Lists. Edit equals to "
+        + "compare the roles as Sets";
 
     private UserDao userDao;
     private UserDao sampleUser;
@@ -87,11 +87,11 @@ public class UserDbTest {
 
     @Test
     public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() throws BadRequestException {
-        var includedCristinUnit = randomUri();
-        var excludedCristinUnit = randomUri();
-        var scope = new ViewingScopeDb(Set.of(includedCristinUnit),
-                                              Set.of(excludedCristinUnit),
-                                              DO_NOT_INCLUDE_NESTED_UNITS);
+
+        var includedCristinUnit = randomCristinOrgId();
+        var excludedCristinUnit = randomCristinOrgId();
+        ViewingScopeDb scope = new ViewingScopeDb(Set.of(includedCristinUnit),
+                                                  Set.of(excludedCristinUnit));
         UserDao userDao = UserDao.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
@@ -176,10 +176,12 @@ public class UserDbTest {
             .map(UserDao::toUserDto)
             .map(UserDao::fromUserDto)
             .orElseThrow();
-        Diff diff = JAVERS.compare(originalUser, converted);
-        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
+
+        assertThat(ROLES_AS_LISTS_WORKAROUND_EXPLANATION, originalUser,is(equalTo(converted)));
+//        Diff diff = JAVERS.compare(originalUser, converted);
+//        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(converted, doesNotHaveEmptyValues());
-        assertThat(originalUser, is(equalTo(converted)));
+
     }
 
     @ParameterizedTest(name = "fromUserDb throws Exception user contains invalidRole. Rolename:\"{0}\"")
@@ -189,7 +191,10 @@ public class UserDbTest {
         RoleDb invalidRole = new RoleDb();
         invalidRole.setName(invalidRoleName);
         List<RoleDb> invalidRoles = Collections.singletonList(invalidRole);
-        UserDao userDaoWithInvalidRole = UserDao.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
+        UserDao userDaoWithInvalidRole = UserDao.newBuilder()
+            .withUsername(SOME_USERNAME)
+            .withRoles(invalidRoles)
+            .build();
 
         Executable action = userDaoWithInvalidRole::toUserDto;
         RuntimeException exception = assertThrows(RuntimeException.class, action);
@@ -236,30 +241,17 @@ public class UserDbTest {
     @Test
     void shouldContainListOfCristinOrganizationIdsThatDefineCuratorsScope()
         throws InvalidEntryInternalException, BadRequestException {
-        URI someCristinUnit = randomUri();
-        URI someOtherCristinUnit = randomUri();
+        URI someCristinUnit = randomCristinOrgId();
+        URI someOtherCristinUnit = randomCristinOrgId();
         Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
-        var scope = new ViewingScopeDb(visisbleUnits, null,DO_NOT_INCLUDE_NESTED_UNITS);
+
+        ViewingScopeDb scope = new ViewingScopeDb(visisbleUnits, null);
         UserDao userDao = UserDao.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
 
         assertThat(userDao.getViewingScope().getIncludedUnits(),
                    containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
-    }
-
-    @Test
-    @DisplayName("should contain field that informs whether the viewing scope should include the children of the "
-                 + "included organizations ")
-    void shouldContainFieldInformingIfTheViewingScopeIncludesTheChildrenOfTheIncludedOrgs() throws BadRequestException {
-        var includedUnits = Set.of(randomUri());
-        var excludedUnits = Set.of(randomUri());
-        var recursiveScope = new ViewingScope(includedUnits, excludedUnits, INCLUDE_NESTED_UNITS);
-        assertThat(recursiveScope.isRecursive(), is(equalTo(INCLUDE_NESTED_UNITS)));
-
-
-        var nonRecursiveScope = new ViewingScope(includedUnits, excludedUnits, DO_NOT_INCLUDE_NESTED_UNITS);
-        assertThat(nonRecursiveScope.isRecursive(), is(equalTo(DO_NOT_INCLUDE_NESTED_UNITS)));
     }
 
     private static List<RoleDb> createSampleRoles() {
@@ -280,7 +272,7 @@ public class UserDbTest {
             .withGivenName(randomString())
             .withInstitution(randomString())
             .withRoles(randomRoles())
-            .withViewingScope(randomViewingScope())
+            .withViewingScope(ViewingScopeDb.fromViewingScope(randomViewingScope()))
             .build();
         assertThat(randomUser, doesNotHaveEmptyValues());
         return randomUser;
@@ -293,10 +285,6 @@ public class UserDbTest {
     private RoleDb randomRole() {
         Set<AccessRight> accessRight = Set.of(randomElement(AccessRight.values()));
         return RoleDb.newBuilder().withName(randomString()).withAccessRights(accessRight).build();
-    }
-
-    private ViewingScopeDb randomViewingScope() throws BadRequestException {
-        return new ViewingScopeDb(Set.of(randomUri()), Set.of(randomUri()), DO_NOT_INCLUDE_NESTED_UNITS);
     }
 
     private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {

@@ -10,7 +10,6 @@ import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
@@ -19,12 +18,13 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
     @JacocoGenerated
     public GetUserHandler() {
-        this(new Environment(), new DatabaseServiceImpl());
+        this(new DatabaseServiceImpl());
     }
 
-    public GetUserHandler(Environment environment, DatabaseService databaseService) {
-        super(Void.class, environment);
+    public GetUserHandler(DatabaseService databaseService) {
+        super(Void.class);
         this.databaseService = databaseService;
+
     }
 
     @Override
@@ -43,10 +43,10 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
     private String extractValidUserNameOrThrowException(RequestInfo requestInfo) throws BadRequestException {
         return Optional.of(requestInfo)
-                   .map(RequestInfo::getPathParameters)
-                   .map(map -> map.get(USERNAME_PATH_PARAMETER))
-                   .map(this::decodeUrlPart)
-                   .filter(not(String::isBlank))
-                   .orElseThrow(() -> new BadRequestException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
+            .map(RequestInfo::getPathParameters)
+            .map(map -> map.get(USERNAME_PATH_PARAMETER))
+            .map(this::decodeUrlPart)
+            .filter(not(String::isBlank))
+            .orElseThrow(() -> new BadRequestException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
     }
 }

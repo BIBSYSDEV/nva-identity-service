@@ -5,6 +5,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -90,7 +91,7 @@ public class CustomerTest {
             .withCname("CNAME")
             .withInstitutionDns("institution.dns")
             .withFeideOrganizationId("123456789")
-            .withCristinId("http://cristin.id")
+            .withCristinId(randomCristinOrgId().toString())
             .withVocabularySettings(vocabularySettings)
             .build();
     }

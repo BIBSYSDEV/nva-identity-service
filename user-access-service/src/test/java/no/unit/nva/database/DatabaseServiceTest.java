@@ -1,6 +1,7 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.database.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.database.EntityUtils.createRole;
 import static no.unit.nva.database.RoleService.ROLE_ALREADY_EXISTS_ERROR_MESSAGE;
@@ -10,8 +11,6 @@ import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -32,7 +31,6 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -66,12 +64,8 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     public void init() {
         db = createDatabaseServiceUsingLocalStorage();
         enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(localDynamo).build();
-        rolesTable = enhancedClient.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME,
-         TableSchema.fromBean(RoleDb.class));
-
-         userTableSchema = TableSchema.fromClass(UserDao.class);
-        usersTable = enhancedClient.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, userTableSchema);
-
+        rolesTable = enhancedClient.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, RoleDb.TABLE_SCHEMA);
+        usersTable = enhancedClient.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, UserDao.TABLE_SCHEMA);
     }
 
     @Test
@@ -331,14 +325,14 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
     @Test
     void userDbShouldBeReadFromDatabaseWithoutDataLoss() throws InvalidEntryInternalException, BadRequestException {
-        var viewingScope = new ViewingScopeDb(Set.of(randomUri()), Set.of(randomUri()), INCLUDE_NESTED_UNITS);
+
         UserDao insertedUser = UserDao.newBuilder()
             .withUsername(SOME_USERNAME)
             .withGivenName(SOME_GIVEN_NAME)
             .withFamilyName(SOME_FAMILY_NAME)
             .withInstitution(SOME_INSTITUTION)
             .withRoles(SAMPLE_ROLES)
-            .withViewingScope(viewingScope)
+            .withViewingScope(ViewingScopeDb.fromViewingScope(randomViewingScope()))
             .build();
 
         usersTable.putItem(insertedUser);
@@ -393,11 +387,10 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
     private UserDto createUserWithRole(String someUsername, String someInstitution, RoleDto existingRole)
         throws InvalidEntryInternalException, BadRequestException {
-        ViewingScope viewingScope = new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), false);
         return UserDto.newBuilder().withUsername(someUsername)
             .withInstitution(someInstitution)
             .withRoles(Collections.singletonList(existingRole))
-            .withViewingScope(viewingScope)
+            .withViewingScope(randomViewingScope())
             .build();
     }
 
@@ -447,10 +440,6 @@ public class DatabaseServiceTest extends DatabaseAccessor {
             .withFamilyName(SOME_FAMILY_NAME)
             .withViewingScope(randomViewingScope())
             .build();
-    }
-
-    private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), INCLUDE_NESTED_UNITS);
     }
 
     private RoleDto createSampleRoleAndAddToDb(String roleName)

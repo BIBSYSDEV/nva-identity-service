@@ -24,7 +24,6 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.JsonUtils;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +41,7 @@ class GetUserHandlerTest extends HandlerTest {
     @BeforeEach
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
-        getUserHandler = new GetUserHandler(envWithTableName, databaseService);
+        getUserHandler = new GetUserHandler(databaseService);
         context = mock(Context.class);
     }
 
@@ -74,6 +73,7 @@ class GetUserHandlerTest extends HandlerTest {
         requestInfo = createRequestInfoForGetUser(DEFAULT_USERNAME);
         UserDto expected = insertSampleUserToDatabase();
         UserDto actual = getUserHandler.processInput(null, requestInfo, context);
+
         assertThat(actual, is(equalTo(expected)));
     }
 

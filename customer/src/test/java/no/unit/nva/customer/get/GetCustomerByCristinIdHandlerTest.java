@@ -18,6 +18,7 @@ import no.unit.nva.customer.exception.NotFoundException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.GatewayResponse;
@@ -30,7 +31,7 @@ import org.zalando.problem.Problem;
 
 public class GetCustomerByCristinIdHandlerTest {
 
-    public static final String SAMPLE_CRISTIN_ID = "http://cristin.id";
+    public static final String SAMPLE_CRISTIN_ID = CustomerDataGenerator.randomCristinOrgId().toString();
     public static final String WILDCARD = "*";
     private GetCustomerByCristinIdHandler handler;
     private CustomerService customerService;

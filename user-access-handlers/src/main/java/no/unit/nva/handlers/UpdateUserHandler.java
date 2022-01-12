@@ -12,7 +12,6 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
@@ -25,12 +24,11 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
     @JacocoGenerated
     public UpdateUserHandler() {
-        this(new Environment(),
-            new DatabaseServiceImpl());
+        this(new DatabaseServiceImpl());
     }
 
-    public UpdateUserHandler(Environment environment, DatabaseService databaseService) {
-        super(UserDto.class, environment);
+    public UpdateUserHandler(DatabaseService databaseService) {
+        super(UserDto.class);
         this.databaseService = databaseService;
     }
 

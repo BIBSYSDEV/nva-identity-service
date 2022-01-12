@@ -1,9 +1,8 @@
 package no.unit.nva.handlers;
 
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;
-import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.Is.is;
@@ -19,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Map;
-import java.util.Set;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -122,7 +120,5 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
             .build();
     }
 
-    private ViewingScope randomViewingScope() throws BadRequestException {
-        return new ViewingScope(Set.of(randomUri()), Set.of(randomUri()), randomElement(true, false));
-    }
+
 }

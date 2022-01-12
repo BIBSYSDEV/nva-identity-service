@@ -6,6 +6,7 @@ plugins {
 dependencies {
     implementation project(':user-access-service')
     implementation project(':user-access-commons')
+    implementation libs.nva.apigateway
     implementation libs.bundles.aws.lambda
     implementation libs.aws.sdk2.dynamodb
     implementation libs.dynamoDbLocal

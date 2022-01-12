@@ -4,8 +4,10 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.dao.RoleDb.Builder;
@@ -18,8 +20,12 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonSerializable;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Try;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
@@ -27,11 +33,38 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType, JsonSerializable {
 
     public static String TYPE = "ROLE";
-    public static final String INVALID_PRIMARY_HASH_KEY = "PrimaryHashKey should start with \"" + TYPE + "\"";
-    public static final String INVALID_PRIMARY_RANGE_KEY = "PrimaryHashKey should start with \"" + TYPE + "\"";
-
     private Set<AccessRight> accessRights;
     private String name;
+    public static StaticTableSchema<RoleDb> TABLE_SCHEMA = StaticTableSchema
+        .builder(RoleDb.class)
+        .newItemSupplier(RoleDb::new)
+        .addAttribute(String.class,
+                      at -> at.name("name")
+                          .getter(RoleDb::getName)
+                          .setter(RoleDb::setName))
+        .addAttribute(EnhancedType.setOf(AccessRight.class),
+                      at -> at.name("accessRights")
+                          .getter(RoleDb::getAccessRights)
+                          .setter(RoleDb::setAccessRights)
+        )
+        .addAttribute(String.class,
+                      at -> at.name(PRIMARY_KEY_HASH_KEY)
+                          .getter(RoleDb::getPrimaryKeyHashKey)
+                          .setter(RoleDb::setPrimaryKeyHashKey)
+                          .addTag(StaticAttributeTags.primaryPartitionKey())
+        )
+        .addAttribute(String.class,
+                      at -> at.name(PRIMARY_KEY_RANGE_KEY)
+                          .getter(RoleDb::getPrimaryKeyRangeKey)
+                          .setter(RoleDb::setPrimaryKeyRangeKey)
+                          .addTag(StaticAttributeTags.primarySortKey())
+        )
+        .addAttribute(String.class,
+                      at -> at.name("type")
+                          .getter(RoleDb::getType)
+                          .setter(RoleDb::setType)
+        )
+        .build();
 
     public RoleDb() {
         super();
@@ -108,8 +141,12 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
         //DO NOTHING
     }
 
+    @DynamoDbAttribute("accessRights")
+    @DynamoDbIgnoreNulls
     public Set<AccessRight> getAccessRights() {
-        return Objects.nonNull(this.accessRights) ? accessRights : Collections.emptySet();
+        return nonNull(this.accessRights) && !this.accessRights.isEmpty()
+                   ? accessRights
+                   : null;
     }
 
     public void setAccessRights(Set<AccessRight> accessRights) {
@@ -150,17 +187,18 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
     }
 
     public RoleDto toRoleDto() {
-        Set<String> accessRightsStrings = this.getAccessRights().stream()
-            .map(AccessRight::toString)
-            .collect(Collectors.toSet());
+        Set<String> accessRightsStrings =
+            Optional.ofNullable(this.getAccessRights())
+                .stream()
+                .flatMap(Collection::stream)
+                .map(AccessRight::toString)
+                .collect(Collectors.toSet());
         return Try.attempt(() -> RoleDto.newBuilder()
                 .withName(this.getName())
                 .withAccessRights(accessRightsStrings)
                 .build())
             .orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));
     }
-
-
 
     public static class Builder {
 
@@ -183,11 +221,10 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
         }
 
         public RoleDb build() {
-            if(StringUtils.isNotBlank(name)){
+            if (StringUtils.isNotBlank(name)) {
                 return new RoleDb(this);
             }
             throw new InvalidEntryInternalException(EMPTY_ROLE_NAME_ERROR);
-
         }
     }
 }

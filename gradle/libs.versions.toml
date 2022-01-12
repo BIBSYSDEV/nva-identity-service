@@ -1,5 +1,5 @@
 [versions]
-nvaCommons = { strictly = '1.18.2' }
+nvaCommons = { strictly = '1.18.4' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.105' }
@@ -39,6 +39,7 @@ aws-dynamodb = { group = 'com.amazonaws', name = 'aws-java-sdk-dynamodb', versio
 aws-sdk2-dynamodb = { group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
 aws-sdk2-dynamodbenhanced = { group = 'software.amazon.awssdk', name = 'dynamodb-enhanced', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
+aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
 
 
 

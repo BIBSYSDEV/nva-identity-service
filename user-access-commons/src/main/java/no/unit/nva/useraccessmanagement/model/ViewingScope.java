@@ -2,14 +2,13 @@ package no.unit.nva.useraccessmanagement.model;
 
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
+import no.unit.nva.useraccessmanagement.constants.ServiceConstants;
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
@@ -30,29 +29,25 @@ public class ViewingScope implements WithType {
     public static final String VIEWING_SCOPE_TYPE = "ViewingScope";
     public static final boolean INCLUDE_NESTED_UNITS = true;
     public static final boolean DO_NOT_INCLUDE_NESTED_UNITS = !INCLUDE_NESTED_UNITS;
-    private static final String NESTED_UNITS = "recursive";
+    public static final String INVALID_VIEWING_SCOPE_URI_ERROR = "Invalid Viewing Scope URI:";
     @JsonProperty(INCLUDED_UNITS)
     private final Set<URI> includedUnits;
     @JsonProperty(EXCLUDED_UNIS)
     private final Set<URI> excludedUnits;
 
-    @JsonProperty(NESTED_UNITS)
-    private final boolean recursive;
-
     @JsonCreator
     public ViewingScope(@JsonProperty(INCLUDED_UNITS) Set<URI> includedUnits,
-                        @JsonProperty(EXCLUDED_UNIS) Set<URI> excludedUnits,
-                        @JsonProperty(NESTED_UNITS) Boolean recursive)
+                        @JsonProperty(EXCLUDED_UNIS) Set<URI> excludedUnits)
 
         throws BadRequestException {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
-        this.recursive = Optional.ofNullable(recursive).orElse(false);
-        validate(includedUnits);
+        validate();
     }
 
-    public boolean isRecursive() {
-        return recursive;
+    public static ViewingScope defaultViewingScope(URI organizationId) {
+        attempt(() -> validate(organizationId)).orElseThrow();
+        return attempt(() -> new ViewingScope(Set.of(organizationId),Collections.emptySet())).orElseThrow();
     }
 
     public Set<URI> getIncludedUnits() {
@@ -71,7 +66,7 @@ public class ViewingScope implements WithType {
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getIncludedUnits(), getExcludedUnits(), isRecursive());
+        return Objects.hash(getIncludedUnits(), getExcludedUnits());
     }
 
     @JacocoGenerated
@@ -84,14 +79,21 @@ public class ViewingScope implements WithType {
             return false;
         }
         ViewingScope that = (ViewingScope) o;
-        return isRecursive() == that.isRecursive()
-               && Objects.equals(getIncludedUnits(), that.getIncludedUnits())
+        return Objects.equals(getIncludedUnits(), that.getIncludedUnits())
                && Objects.equals(getExcludedUnits(), that.getExcludedUnits());
     }
 
-    private void validate(Set<URI> includedUnits) throws BadRequestException {
+    private void validate() throws BadRequestException {
         if (includedUnits.isEmpty()) {
             throw new BadRequestException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
+        }
+        validate(includedUnits);
+        validate(excludedUnits);
+    }
+
+    private void validate(Set<URI> uris) throws BadRequestException {
+        for (URI uri : uris) {
+            validate(uri);
         }
     }
 
@@ -99,11 +101,18 @@ public class ViewingScope implements WithType {
         return nonNull(units) ? units : Collections.emptySet();
     }
 
-    public static ViewingScope defaultViewingScope(URI organizationId) {
-        return attempt(() -> new ViewingScope(
-                Set.of(organizationId),
-                Collections.emptySet(),
-                false)
-        ).orElseThrow();
+    private static Void validate(URI uri) throws BadRequestException {
+        if (hostIsNotExpectedHost(uri) || pathIsNotExpectedPath(uri)) {
+            throw new BadRequestException(INVALID_VIEWING_SCOPE_URI_ERROR + uri);
+        }
+        return null;
+    }
+
+    private static boolean pathIsNotExpectedPath(URI uri) {
+        return !uri.getPath().startsWith(ServiceConstants.CRISTIN_PATH);
+    }
+
+    private static boolean hostIsNotExpectedHost(URI uri) {
+        return !ServiceConstants.API_HOST.equals(uri.getHost());
     }
 }

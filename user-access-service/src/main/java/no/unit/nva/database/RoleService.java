@@ -1,7 +1,6 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
-import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
@@ -12,7 +11,6 @@ import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class RoleService extends DatabaseSubService {
@@ -28,7 +26,7 @@ public class RoleService extends DatabaseSubService {
 
     protected RoleService(DynamoDbClient client) {
         super(client);
-        this.table = this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, TableSchema.fromClass(RoleDb.class));
+        this.table = this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, RoleDb.TABLE_SCHEMA);
     }
 
     /**
@@ -59,11 +57,7 @@ public class RoleService extends DatabaseSubService {
     }
 
     protected RoleDb fetchRoleDb(RoleDb queryObject) {
-        return fetchItem(queryObject);
-    }
-
-    private RoleDb fetchItem(RoleDb queryObject) {
-        return attempt(() -> table.getItem(queryObject)).orElse(fail -> null);
+        return table.getItem(queryObject);
     }
 
     private static NotFoundException handleRoleNotFound(RoleDto queryObject) {

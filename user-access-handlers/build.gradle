@@ -15,10 +15,18 @@ dependencies {
     implementation libs.nva.lambdaauthorizer
     implementation libs.nva.secrets
     implementation libs.bundles.aws.lambda
-    implementation libs.aws.secretsmanager
+    implementation libs.aws.sdk2.secrets
 
-    implementation libs.aws.dynamodb
+    implementation libs.aws.sdk2.dynamodbenhanced
+    implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.urlconnection
+
+
 
     testImplementation project(':user-access-internal-model')
     testImplementation project(':user-access-testing')
+}
+
+test{
+    environment "API_HOST", "api.dev.aws.unit.no"
 }

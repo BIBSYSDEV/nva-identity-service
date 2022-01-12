@@ -68,6 +68,10 @@ Globals:
     Timeout: 10
     Runtime: java11
     Tracing: Active
+    Environment:
+      Variables:
+        API_HOST: !Ref ApiDomain
+
   Api:
     Cors:
       AllowMethods: '''POST, PUT, GET,OPTIONS'''
@@ -225,6 +229,9 @@ Resources:
         - openid
         - aws.cognito.signin.user.admin
       ExplicitAuthFlows: !Ref ExplicitAuthFlows
+      RefreshTokenValidity: 1
+      TokenValidityUnits:
+        RefreshToken: hours
 
   IdentityPool:
     Type: AWS::Cognito::IdentityPool

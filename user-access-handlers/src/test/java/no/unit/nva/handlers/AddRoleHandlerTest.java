@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import no.unit.nva.Constants;
 import no.unit.nva.database.DatabaseService;
 import no.unit.nva.database.DatabaseServiceImpl;
@@ -48,7 +47,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     public void init() throws InvalidEntryInternalException {
         context = mock(Context.class);
 
-        DatabaseService service = new DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
+        DatabaseService service = new DatabaseServiceImpl(initializeTestDatabase());
         addRoleHandler = new AddRoleHandler(mockEnvironment(), service);
         sampleRole = sampleRole();
     }
@@ -169,7 +168,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     private DatabaseServiceImpl databaseServiceAddingButNotGettingArole() {
-        return new DatabaseServiceImpl(localDynamo, envWithTableName) {
+        return new DatabaseServiceImpl(localDynamo) {
 
             @Override
             public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
@@ -179,7 +178,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     private DatabaseServiceImpl databaseServiceWithSyncDelay() {
-        return new DatabaseServiceImpl(localDynamo, envWithTableName) {
+        return new DatabaseServiceImpl(localDynamo) {
             private int counter = 0;
 
             @Override

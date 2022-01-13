@@ -20,6 +20,8 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonSerializable;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Try;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -28,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @DynamoDbBean
 public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType, JsonSerializable {
@@ -65,6 +68,40 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
                           .setter(RoleDb::setType)
         )
         .build();
+
+    public static final AttributeConverter<Set<RoleDb>> CONVERTER = new AttributeConverter<>() {
+        @Override
+        public AttributeValue transformFrom(Set<RoleDb> input) {
+            var items = input.stream()
+                .map(role -> RoleDb.TABLE_SCHEMA.itemToMap(role, true))
+                .map(role -> AttributeValue.builder().m(role).build())
+                .collect(Collectors.toList());
+            return AttributeValue.builder().l(items).build();
+        }
+
+        @Override
+        public Set<RoleDb> transformTo(AttributeValue input) {
+            if (input.hasL()) {
+                return input.l().stream()
+                    .map(AttributeValue::m)
+                    .map(map -> RoleDb.TABLE_SCHEMA.mapToItem(map))
+                    .collect(Collectors.toSet());
+            }
+            return Collections.emptySet();
+        }
+
+        @JacocoGenerated
+        @Override
+        public EnhancedType<Set<RoleDb>> type() {
+            return EnhancedType.setOf(RoleDb.class);
+        }
+
+        @JacocoGenerated
+        @Override
+        public AttributeValueType attributeValueType() {
+            return AttributeValueType.BS;
+        }
+    };
 
     public RoleDb() {
         super();

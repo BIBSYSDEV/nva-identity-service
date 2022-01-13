@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
 import static no.unit.nva.useraccessmanagement.dao.RoleDb.Builder.EMPTY_ROLE_NAME_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -14,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Collections;
 import java.util.Set;
-import no.unit.nva.useraccessmanagement.dao.RoleDb.Builder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 import org.junit.jupiter.api.Test;
@@ -143,6 +143,15 @@ public class RoleDbTest {
         RoleDb copyRole = sampleRole.copy().build();
         assertThat(copyRole, is(equalTo(sampleRole)));
         assertThat(copyRole, is(not(sameInstance(sampleRole))));
+    }
+
+    @Test
+    void converterShouldConvertRoleToAttributeValueAndBackWithoutDataLoss() {
+        var expected = Set.of(sampleRole);
+        assertThat(sampleRole, doesNotHaveEmptyValues());
+        var attributeValue = RoleDb.CONVERTER.transformFrom(Set.of(sampleRole));
+        var actual = RoleDb.CONVERTER.transformTo(attributeValue);
+        assertThat(actual, is(equalTo(expected)));
     }
 
     private RoleDb createSampleRole() throws InvalidEntryInternalException {

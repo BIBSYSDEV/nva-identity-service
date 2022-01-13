@@ -1,9 +1,11 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -15,7 +17,7 @@ public final class EntityUtils {
 
     public static final String SOME_USERNAME = "SomeUsername";
     public static final String SOME_ROLENAME = "SomeRole";
-    public static final String SOME_INSTITUTION = "SomeInstitution";
+    public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final String EMPTY_STRING = "";
     public static final Set<String> SAMPLE_ACCESS_RIGHTS =
         Collections.singleton("APPROVE_DOI_REQUEST");

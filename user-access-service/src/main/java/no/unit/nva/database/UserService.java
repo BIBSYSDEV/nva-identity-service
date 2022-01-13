@@ -3,6 +3,7 @@ package no.unit.nva.database;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
 import static nva.commons.core.attempt.Try.attempt;
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -19,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -65,7 +65,7 @@ public class UserService extends DatabaseSubService {
      * @param institutionIdentifier the identifier of the institution
      * @return all users of the specified institution.
      */
-    public List<UserDto> listUsers(String institutionIdentifier) {
+    public List<UserDto> listUsers(URI institutionIdentifier) {
         QueryEnhancedRequest listUsersQuery = createListUsersByInstitutionQuery(institutionIdentifier);
         var result = institutionsIndex.query(listUsersQuery);
 
@@ -118,9 +118,9 @@ public class UserService extends DatabaseSubService {
         return Optional.ofNullable(searchResult);
     }
 
-    private QueryEnhancedRequest createListUsersByInstitutionQuery(String institution) {
+    private QueryEnhancedRequest createListUsersByInstitutionQuery(URI institution) {
         return QueryEnhancedRequest.builder()
-            .queryConditional(QueryConditional.keyEqualTo(Key.builder().partitionValue(institution).build()))
+            .queryConditional(QueryConditional.keyEqualTo(Key.builder().partitionValue(institution.toString()).build()))
             .consistentRead(false)
             .build();
     }

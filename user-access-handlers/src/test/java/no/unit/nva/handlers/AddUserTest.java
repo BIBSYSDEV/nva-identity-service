@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import no.unit.nva.Constants;
 import no.unit.nva.database.DatabaseService;
 import no.unit.nva.database.DatabaseServiceImpl;
@@ -38,7 +39,7 @@ import org.zalando.problem.Problem;
 
 public class AddUserTest extends HandlerTest {
 
-    public static final String EMPTY_INSTITUTION = null;
+    public static final URI EMPTY_INSTITUTION = null;
     private AddUserHandler handler;
     private RequestInfo requestInfo;
     private Context context;

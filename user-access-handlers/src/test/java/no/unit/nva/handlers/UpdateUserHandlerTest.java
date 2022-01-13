@@ -1,5 +1,6 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
 import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
@@ -22,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import no.unit.nva.Constants;
@@ -50,7 +52,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     public static final String SAMPLE_ROLE = "someRole";
     public static final String SAMPLE_USERNAME = "some@somewhere";
-    public static final String SAMPLE_INSTITUTION = "somewhere";
+    public static final URI SAMPLE_INSTITUTION = randomCristinOrgId();
     public static final String ANOTHER_ROLE = "ANOTHER_ROLE";
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
     private DatabaseServiceImpl databaseService;

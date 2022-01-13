@@ -1,6 +1,8 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.useraccessserivce.accessrights.AccessRight.APPROVE_DOI_REQUEST;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,7 +15,7 @@ public final class EntityUtils {
 
     public static final String SOME_USERNAME = "SomeUsername";
     public static final String SOME_ROLENAME = "SomeRole";
-    public static final String SOME_INSTITUTION = "SomeInstitution";
+    public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final String EMPTY_STRING = "";
     public static final Set<AccessRight> SAMPLE_ACCESS_RIGHTS =
         Collections.singleton(APPROVE_DOI_REQUEST);

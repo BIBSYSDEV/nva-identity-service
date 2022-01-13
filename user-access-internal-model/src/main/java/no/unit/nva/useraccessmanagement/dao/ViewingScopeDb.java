@@ -34,12 +34,13 @@ public class ViewingScopeDb implements WithType {
     public static final String VIEWING_SCOPE_TYPE = "ViewingScope";
     public static final TableSchema<ViewingScopeDb> TABLE_SCHEMA = StaticTableSchema
         .builder(ViewingScopeDb.class)
+        .newItemSupplier(ViewingScopeDb::new)
         .addAttribute(EnhancedType.setOf(URI.class), at -> at.name(INCLUDED_UNITS)
             .setter(ViewingScopeDb::setIncludedUnits)
             .getter(ViewingScopeDb::getIncludedUnits))
         .addAttribute(EnhancedType.setOf(URI.class), at -> at.name(EXCLUDED_UNIS)
             .setter(ViewingScopeDb::setExcludedUnits)
-            .getter(ViewingScopeDb::getIncludedUnits))
+            .getter(ViewingScopeDb::getExcludedUnits))
         .build();
 
     @JsonProperty(INCLUDED_UNITS)

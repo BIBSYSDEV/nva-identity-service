@@ -1,5 +1,6 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +39,7 @@ import org.junit.jupiter.api.function.Executable;
 class ListByInstitutionHandlerTest extends HandlerTest {
 
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
-    public static final String SOME_OTHER_INSTITUTION = "SomeOtherInstitution";
+    public static final URI SOME_OTHER_INSTITUTION = randomCristinOrgId();
     private ListByInstitutionHandler listByInstitutionHandler;
     private Context context;
 
@@ -175,8 +177,8 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         return new ByteArrayOutputStream();
     }
 
-    private InputStream createListRequest(String institutionId) throws JsonProcessingException {
-        Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId);
+    private InputStream createListRequest(URI institutionId) throws JsonProcessingException {
+        Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString());
         return new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withQueryParameters(queryParams)
             .build();

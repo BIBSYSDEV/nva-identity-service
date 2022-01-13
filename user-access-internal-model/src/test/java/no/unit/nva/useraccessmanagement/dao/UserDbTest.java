@@ -54,9 +54,8 @@ public class UserDbTest {
     public static final String SOME_ROLENAME = "someRole";
     public static final String SOME_GIVEN_NAME = "givenName";
     public static final String SOME_FAMILY_NAME = "familyName";
-    public static final String SOME_INSTITUTION = "SomeInstitution";
+    public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
-    public static final Javers JAVERS = JaversBuilder.javers().build();
     public static final String ROLES_AS_LISTS_WORKAROUND_EXPLANATION =
         "BeanTableSchema does not support well Sets and roles are implemented as Lists. Edit equals to "
         + "compare the roles as Sets";
@@ -270,7 +269,7 @@ public class UserDbTest {
             .withUsername(randomString())
             .withFamilyName(randomString())
             .withGivenName(randomString())
-            .withInstitution(randomString())
+            .withInstitution(randomCristinOrgId())
             .withRoles(randomRoles())
             .withViewingScope(ViewingScopeDb.fromViewingScope(randomViewingScope()))
             .build();

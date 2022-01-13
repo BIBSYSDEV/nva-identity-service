@@ -1,6 +1,7 @@
 package no.unit.nva.database;
 
 import static no.unit.nva.database.Constants.AWS_REGION;
+import java.net.URI;
 import java.util.List;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
@@ -36,12 +37,12 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public List<UserDto> listUsers(String institutionId) {
+    public List<UserDto> listUsers(URI institutionId) {
         return userService.listUsers(institutionId);
     }
 
     @Override
-    public void addUser(UserDto user) throws ConflictException, InvalidInputException {
+    public void addUser(UserDto user) throws ConflictException {
         this.userService.addUser(user);
     }
 

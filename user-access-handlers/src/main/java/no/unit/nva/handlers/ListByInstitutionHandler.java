@@ -2,6 +2,7 @@ package no.unit.nva.handlers;
 
 import static java.util.function.Predicate.not;
 import com.amazonaws.services.lambda.runtime.Context;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import no.unit.nva.database.DatabaseService;
@@ -35,7 +36,9 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
 
     @Override
     protected UserList processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        String institutionId = extractInstitutionIdFromRequest(requestInfo);
+        URI institutionId = Optional.ofNullable(extractInstitutionIdFromRequest(requestInfo))
+            .map(URI::create)
+            .orElse(null);
         List<UserDto> users = databaseService.listUsers(institutionId);
         return UserList.fromList(users);
     }

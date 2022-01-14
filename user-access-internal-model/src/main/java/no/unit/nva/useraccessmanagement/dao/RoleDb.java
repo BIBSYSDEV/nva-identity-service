@@ -3,6 +3,7 @@ package no.unit.nva.useraccessmanagement.dao;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessmanagement.dao.DynamoEntriesUtils.nonEmpty;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,88 +21,25 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonSerializable;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Try;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
-import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @DynamoDbBean
 public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType, JsonSerializable {
 
+    public static final String NAME_FIELD = "name";
+    public static final String TYPE_FIELD = "type";
+    public static final String ACCESS_RIGHTS_FIELDS = "accessRights";
+
     public static String TYPE = "ROLE";
+    public static TableSchema<RoleDb> TABLE_SCHEMA = TableSchema.fromClass(RoleDb.class);
     private Set<AccessRight> accessRights;
     private String name;
-    public static StaticTableSchema<RoleDb> TABLE_SCHEMA = StaticTableSchema
-        .builder(RoleDb.class)
-        .newItemSupplier(RoleDb::new)
-        .addAttribute(String.class,
-                      at -> at.name("name")
-                          .getter(RoleDb::getName)
-                          .setter(RoleDb::setName))
-        .addAttribute(EnhancedType.setOf(AccessRight.class),
-                      at -> at.name("accessRights")
-                          .getter(RoleDb::getAccessRights)
-                          .setter(RoleDb::setAccessRights)
-        )
-        .addAttribute(String.class,
-                      at -> at.name(PRIMARY_KEY_HASH_KEY)
-                          .getter(RoleDb::getPrimaryKeyHashKey)
-                          .setter(RoleDb::setPrimaryKeyHashKey)
-                          .addTag(StaticAttributeTags.primaryPartitionKey())
-        )
-        .addAttribute(String.class,
-                      at -> at.name(PRIMARY_KEY_RANGE_KEY)
-                          .getter(RoleDb::getPrimaryKeyRangeKey)
-                          .setter(RoleDb::setPrimaryKeyRangeKey)
-                          .addTag(StaticAttributeTags.primarySortKey())
-        )
-        .addAttribute(String.class,
-                      at -> at.name("type")
-                          .getter(RoleDb::getType)
-                          .setter(RoleDb::setType)
-        )
-        .build();
-
-    public static final AttributeConverter<Set<RoleDb>> CONVERTER = new AttributeConverter<>() {
-        @Override
-        public AttributeValue transformFrom(Set<RoleDb> input) {
-            var items = input.stream()
-                .map(role -> RoleDb.TABLE_SCHEMA.itemToMap(role, true))
-                .map(role -> AttributeValue.builder().m(role).build())
-                .collect(Collectors.toList());
-            return AttributeValue.builder().l(items).build();
-        }
-
-        @Override
-        public Set<RoleDb> transformTo(AttributeValue input) {
-            if (input.hasL()) {
-                return input.l().stream()
-                    .map(AttributeValue::m)
-                    .map(map -> RoleDb.TABLE_SCHEMA.mapToItem(map))
-                    .collect(Collectors.toSet());
-            }
-            return Collections.emptySet();
-        }
-
-        @JacocoGenerated
-        @Override
-        public EnhancedType<Set<RoleDb>> type() {
-            return EnhancedType.setOf(RoleDb.class);
-        }
-
-        @JacocoGenerated
-        @Override
-        public AttributeValueType attributeValueType() {
-            return AttributeValueType.BS;
-        }
-    };
 
     public RoleDb() {
         super();
@@ -137,6 +75,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
     }
 
     @JacocoGenerated
+    @DynamoDbAttribute(NAME_FIELD)
     public String getName() {
         return name;
     }
@@ -147,7 +86,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
     }
 
     @JacocoGenerated
-    @JsonProperty("type")
+    @JsonProperty(TYPE_FIELD)
     @Override
     public String getType() {
         return TYPE;
@@ -178,16 +117,21 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
         //DO NOTHING
     }
 
-    @DynamoDbAttribute("accessRights")
+    @DynamoDbAttribute(ACCESS_RIGHTS_FIELDS)
     @DynamoDbIgnoreNulls
     public Set<AccessRight> getAccessRights() {
-        return nonNull(this.accessRights) && !this.accessRights.isEmpty()
-                   ? accessRights
-                   : null;
+        return nonEmpty(accessRights) ? accessRights : null;
     }
 
+    @DynamoDbIgnore
+    @JacocoGenerated
+    public Set<AccessRight> getAccessRightsNonNull() {
+        return nonNull(accessRights) ? accessRights : Collections.emptySet();
+    }
+
+    @SuppressWarnings("PMD.NullAssignment")
     public void setAccessRights(Set<AccessRight> accessRights) {
-        this.accessRights = accessRights;
+        this.accessRights = nonEmpty(accessRights) ? accessRights : null;
     }
 
     @Override

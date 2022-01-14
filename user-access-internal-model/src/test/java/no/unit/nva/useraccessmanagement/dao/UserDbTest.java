@@ -59,6 +59,7 @@ public class UserDbTest {
     public static final String ROLES_AS_LISTS_WORKAROUND_EXPLANATION =
         "BeanTableSchema does not support well Sets and roles are implemented as Lists. Edit equals to "
         + "compare the roles as Sets";
+    private static final Javers JAVERS = JaversBuilder.javers().build();
 
     private UserDao userDao;
     private UserDao sampleUser;
@@ -177,8 +178,8 @@ public class UserDbTest {
             .orElseThrow();
 
         assertThat(ROLES_AS_LISTS_WORKAROUND_EXPLANATION, originalUser,is(equalTo(converted)));
-//        Diff diff = JAVERS.compare(originalUser, converted);
-//        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
+        Diff diff = JAVERS.compare(originalUser, converted);
+        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(converted, doesNotHaveEmptyValues());
 
     }

@@ -6,12 +6,8 @@ import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PR
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
-import static no.unit.nva.useraccessmanagement.dao.RoleDb.CONVERTER;
+import static no.unit.nva.useraccessmanagement.dao.DynamoEntriesUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,59 +29,34 @@ import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
+@DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType {
 
     public static final String TYPE = "USER";
     public static final String INVALID_USER_EMPTY_USERNAME = "Invalid user entry: Empty username is not allowed";
     public static final String ERROR_DUE_TO_INVALID_ROLE =
         "Failure while trying to create user with role without role-name";
-    public static StaticTableSchema<UserDao> TABLE_SCHEMA =
-        StaticTableSchema.builder(UserDao.class)
-            .newItemSupplier(UserDao::new)
-            .addAttribute(String.class, at -> at.name("username")
-                .getter(UserDao::getUsername)
-                .setter(UserDao::setUsername))
-            .addAttribute(URI.class, at -> at.name("institution")
-                .getter(UserDao::getInstitution)
-                .setter(UserDao::setInstitution))
-            .addAttribute(String.class, at -> at.name("givenName")
-                .getter(UserDao::getGivenName)
-                .setter(UserDao::setGivenName))
-            .addAttribute(String.class, at -> at.name("familyName")
-                .getter(UserDao::getFamilyName)
-                .setter(UserDao::setFamilyName))
-            .addAttribute(EnhancedType.setOf(RoleDb.class), at -> at.name("roles")
-                .getter(UserDao::getRoles)
-                .setter(UserDao::setRoles).attributeConverter(CONVERTER))
-            .addAttribute(EnhancedType.documentOf(ViewingScopeDb.class, ViewingScopeDb.TABLE_SCHEMA),
-                          at -> at.name("viewingScope")
-                              .getter(UserDao::getViewingScope)
-                              .setter(UserDao::setViewingScope))
-            .addAttribute(String.class,
-                          at -> at.name(PRIMARY_KEY_HASH_KEY)
-                              .getter(UserDao::getPrimaryKeyHashKey)
-                              .setter(UserDao::setPrimaryKeyHashKey)
-                              .tags(primaryPartitionKey()))
-            .addAttribute(String.class,
-                          at -> at.name(PRIMARY_KEY_RANGE_KEY)
-                              .getter(UserDao::getPrimaryKeyRangeKey)
-                              .setter(UserDao::setPrimaryKeyRangeKey)
-                              .tags(primarySortKey()))
-            .addAttribute(String.class,
-                          at -> at.name(SECONDARY_INDEX_1_HASH_KEY)
-                              .getter(UserDao::getSearchByInstitutionHashKey)
-                              .setter(UserDao::setSearchByInstitutionHashKey)
-                              .tags(secondaryPartitionKey(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME)))
-            .addAttribute(String.class,
-                          at -> at.name(SECONDARY_INDEX_1_RANGE_KEY)
-                              .getter(UserDao::getSearchByInstitutionRangeKey)
-                              .setter(UserDao::setSearchByInstitutionRangeKey)
-                              .tags(secondarySortKey(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME)))
-            .build();
-    private static Logger logger = LoggerFactory.getLogger(UserDao.class);
+    public static final String USERNAME_FIELD = "username";
+    public static final String GIVEN_NAME_FIELD = "givenName";
+    public static final String FAMILY_NAME_FIELD = "familyName";
+    public static final String ROLES_LIST = "roles";
+    public static final String INSTITUTION_FIELD = "institution";
+    public static final String TYPE_FIELD = "type";
+    public static TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+
     private String username;
     private URI institution;
     private Set<RoleDb> roles;
@@ -140,8 +111,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
 
     @JacocoGenerated
     @Override
-    //@DynamoDbPartitionKey
-    //@DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
+    @DynamoDbPartitionKey
+    @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
     public String getPrimaryKeyHashKey() {
         return formatPrimaryHashKey();
     }
@@ -153,6 +124,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
 
     @JacocoGenerated
     @Override
+    @DynamoDbSortKey
+    @DynamoDbAttribute(PRIMARY_KEY_RANGE_KEY)
     public String getPrimaryKeyRangeKey() {
         return formatPrimaryRangeKey();
     }
@@ -164,6 +137,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     }
 
     @JacocoGenerated
+    @DynamoDbSecondaryPartitionKey(indexNames = {SEARCH_USERS_BY_INSTITUTION_INDEX_NAME})
+    @DynamoDbAttribute(SECONDARY_INDEX_1_HASH_KEY)
     public String getSearchByInstitutionHashKey() {
         return nonNull(this.getInstitution()) ? this.getInstitution().toString() : null;
     }
@@ -174,6 +149,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     }
 
     @JacocoGenerated
+    @DynamoDbSecondarySortKey(indexNames = {SEARCH_USERS_BY_INSTITUTION_INDEX_NAME})
+    @DynamoDbAttribute(SECONDARY_INDEX_1_RANGE_KEY)
     public String getSearchByInstitutionRangeKey() {
         return this.getUsername();
     }
@@ -184,6 +161,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     }
 
     @JacocoGenerated
+    @DynamoDbAttribute(USERNAME_FIELD)
     public String getUsername() {
         return username;
     }
@@ -199,6 +177,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     }
 
     @JacocoGenerated
+    @DynamoDbAttribute(GIVEN_NAME_FIELD)
     public String getGivenName() {
         return givenName;
     }
@@ -213,7 +192,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     }
 
     @JacocoGenerated
-    //    @DynamoDbAttribute("familyName")
+    @DynamoDbAttribute(FAMILY_NAME_FIELD)
     public String getFamilyName() {
         return familyName;
     }
@@ -227,9 +206,14 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
         this.familyName = familyName;
     }
 
-    //    @DynamoDbAttribute("roles")
-    //    @DynamoDbIgnoreNulls
+    @DynamoDbAttribute(ROLES_LIST)
+    @DynamoDbIgnoreNulls
     public Set<RoleDb> getRoles() {
+        return nonEmpty(roles) ? roles : null;
+    }
+
+    @DynamoDbIgnore
+    public Set<RoleDb> getRolesNonNull() {
         return nonNull(roles) ? roles : Collections.emptySet();
     }
 
@@ -238,12 +222,13 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
      *
      * @param roles the roles.
      */
+    @SuppressWarnings("PMD.NullAssignment")
     public void setRoles(Set<RoleDb> roles) {
-        this.roles = nonNull(roles) ? roles : Collections.emptySet();
+        this.roles = nonEmpty(roles) ? roles : null;
     }
 
     @JacocoGenerated
-    //    @DynamoDbAttribute("institution")
+    @DynamoDbAttribute(INSTITUTION_FIELD)
     public URI getInstitution() {
         return institution;
     }
@@ -259,7 +244,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
 
     @JacocoGenerated
     @Override
-    //    @DynamoDbAttribute("type")
+    @DynamoDbAttribute(TYPE_FIELD)
     public String getType() {
         return TYPE;
     }
@@ -272,13 +257,13 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
             .withFamilyName(this.getFamilyName())
             .withInstitution(this.getInstitution())
             .withViewingScope(this.getViewingScope())
-            .withRoles(this.getRoles());
+            .withRoles(this.getRolesNonNull());
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
+        return Objects.hash(getUsername(), getInstitution(), getRolesNonNull(), getGivenName(), getFamilyName(),
                             getViewingScope());
     }
 
@@ -294,7 +279,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
         UserDao userDao = (UserDao) o;
         return Objects.equals(getUsername(), userDao.getUsername())
                && Objects.equals(getInstitution(), userDao.getInstitution())
-               && comparisonOfSetsThatAreImplementedAsListsAsWorkaroundForDynamoDbBug(userDao)
+               && Objects.equals(getRolesNonNull(),userDao.getRolesNonNull())
                && Objects.equals(getGivenName(), userDao.getGivenName())
                && Objects.equals(getFamilyName(), userDao.getFamilyName())
                && Objects.equals(getViewingScope(), userDao.getViewingScope());
@@ -310,7 +295,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     private static List<RoleDto> extractRoles(UserDao userDao) {
         return Optional.ofNullable(userDao)
             .stream()
-            .flatMap(user -> user.getRoles().stream())
+            .flatMap(user -> user.getRolesNonNull().stream())
             .map(attempt(RoleDb::toRoleDto))
             .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
             .collect(Collectors.toList());
@@ -320,10 +305,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     private static <T> IllegalStateException unexpectedException(Failure<T> failure) {
         logger.error(ERROR_DUE_TO_INVALID_ROLE);
         return new IllegalStateException(failure.getException());
-    }
-
-    private boolean comparisonOfSetsThatAreImplementedAsListsAsWorkaroundForDynamoDbBug(UserDao userDao) {
-        return Objects.equals(new HashSet<>(getRoles()), new HashSet<>(userDao.getRoles()));
     }
 
     private ViewingScope convertViewingScope() {

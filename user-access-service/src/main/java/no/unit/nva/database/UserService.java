@@ -41,8 +41,7 @@ public class UserService extends DatabaseSubService {
     public UserService(DynamoDbClient client, RoleService roleService) {
         super(client);
         this.roleService = roleService;
-        this.table =
-            this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, UserDao.TABLE_SCHEMA);
+        this.table = this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, UserDao.TABLE_SCHEMA);
         this.institutionsIndex = this.table.index(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME);
     }
 
@@ -167,8 +166,7 @@ public class UserService extends DatabaseSubService {
 
     // TODO: use batch query for minimizing the cost.
     private List<RoleDb> currentRoles(UserDao currentUser) {
-        return currentUser
-            .getRoles()
+        return currentUser.getRolesNonNull()
             .stream()
             .map(roleService::fetchRoleDb)
             .filter(Objects::nonNull)

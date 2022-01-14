@@ -15,6 +15,7 @@ import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 /**
@@ -68,6 +69,7 @@ public class ViewingScopeDb implements WithType {
         return attempt(() -> new ViewingScope(getIncludedUnits(), getExcludedUnits())).orElseThrow();
     }
 
+    @DynamoDbAttribute(INCLUDED_UNITS)
     public Set<URI> getIncludedUnits() {
         return includedUnits;
     }
@@ -76,6 +78,7 @@ public class ViewingScopeDb implements WithType {
         this.includedUnits = includedUnits;
     }
 
+    @DynamoDbAttribute(EXCLUDED_UNIS)
     public Set<URI> getExcludedUnits() {
         return excludedUnits;
     }

@@ -28,6 +28,7 @@ public class RoleDbTest {
     public static final String SOME_ROLE_NAME = "someRoleName";
     public static final String SOME_OTHER_RANGE_KEY = "SomeOtherRangeKey";
     public static final String SOME_TYPE = "SomeType";
+    public static final RoleSetConverter ROLE_SET_CONVERTER = new RoleSetConverter();
     private final RoleDb sampleRole = createSampleRole();
 
     public RoleDbTest() throws InvalidEntryInternalException {
@@ -149,8 +150,8 @@ public class RoleDbTest {
     void converterShouldConvertRoleToAttributeValueAndBackWithoutDataLoss() {
         var expected = Set.of(sampleRole);
         assertThat(sampleRole, doesNotHaveEmptyValues());
-        var attributeValue = RoleDb.CONVERTER.transformFrom(Set.of(sampleRole));
-        var actual = RoleDb.CONVERTER.transformTo(attributeValue);
+        var attributeValue = ROLE_SET_CONVERTER.transformFrom(Set.of(sampleRole));
+        var actual = ROLE_SET_CONVERTER.transformTo(attributeValue);
         assertThat(actual, is(equalTo(expected)));
     }
 

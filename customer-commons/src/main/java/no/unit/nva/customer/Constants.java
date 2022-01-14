@@ -1,9 +1,5 @@
 package no.unit.nva.customer;
 
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.google.common.net.MediaType;
 import java.net.URI;
 import java.util.List;
@@ -12,6 +8,10 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 
@@ -38,8 +38,8 @@ public final class Constants {
     }
 
     @JacocoGenerated
-    public static CustomerService defaultCustomerService(AmazonDynamoDB client) {
-        return new DynamoDBCustomerService(client, defaultDynamoConfigMapper, ENVIRONMENT);
+    public static CustomerService defaultCustomerService(DynamoDbClient client) {
+        return new DynamoDBCustomerService(client);
     }
 
     private static String dynamoDbServiceEndpoint() {
@@ -47,13 +47,12 @@ public final class Constants {
     }
 
     @JacocoGenerated
-    private static AmazonDynamoDB defaultDynamoDbClient() {
-        EndpointConfiguration endpointConfiguration =
-            new EndpointConfiguration(AWD_DYNAMODB_SERVICE_END_POINT,
-                                      AWS_REGION);
-        return AmazonDynamoDBClientBuilder.standard()
-            .withCredentials(new DefaultAWSCredentialsProviderChain())
-            .withEndpointConfiguration(endpointConfiguration)
-            .build();
+    private static DynamoDbClient defaultDynamoDbClient() {{
+            return DynamoDbClient.builder()
+                .httpClient(UrlConnectionHttpClient.create())
+                .credentialsProvider(DefaultCredentialsProvider.create())
+                .region(Region.of(AWS_REGION))
+                .build();
+        }
     }
 }

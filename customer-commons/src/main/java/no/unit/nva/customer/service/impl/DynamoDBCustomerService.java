@@ -1,38 +1,30 @@
 package no.unit.nva.customer.service.impl;
 
-import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Index;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemCollection;
-import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
-import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.api.QueryApi;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.DynamoDBException;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.exception.NotFoundException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
+import nva.commons.core.SingletonCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBCustomerService implements CustomerService {
 
-    public static final String TABLE_NAME = "TABLE_NAME";
-    public static final String BY_ORG_NUMBER_INDEX_NAME = "BY_ORG_NUMBER_INDEX_NAME";
     public static final String ERROR_MAPPING_ITEM_TO_CUSTOMER = "Error mapping Item to Customer";
     public static final String ERROR_MAPPING_CUSTOMER_TO_ITEM = "Error mapping Customer to Item";
     public static final String ERROR_WRITING_ITEM_TO_TABLE = "Error writing Item to Table";
@@ -40,78 +32,50 @@ public class DynamoDBCustomerService implements CustomerService {
     public static final String ERROR_READING_FROM_TABLE = "Error reading from Table";
     public static final String IDENTIFIERS_NOT_EQUAL = "Identifier in request parameters '%s' "
                                                        + "is not equal to identifier in customer object '%s'";
-    public static final String BY_CRISTIN_ID_INDEX_NAME = "BY_CRISTIN_ID_INDEX_NAME";
     public static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
                                                          + "DynamoDB connection";
+    private static final Environment ENVIRONMENT = new Environment();
+    public static final String TABLE_NAME = ENVIRONMENT.readEnv("TABLE_NAME");
+    public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
+    public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
-    private final Table table;
-    private final Index byOrgNumberIndex;
-    private final Index byCristinIdIndex;
-    private final ObjectMapper objectMapper;
+    private final DynamoDbTable<CustomerDao> table;
 
     /**
      * Constructor for DynamoDBCustomerService.
      *
-     * @param client       AmazonDynamoDB client
-     * @param objectMapper Jackson objectMapper
-     * @param environment  Environment reader
+     * @param client AmazonDynamoDB client
      */
-    public DynamoDBCustomerService(AmazonDynamoDB client,
-                                   ObjectMapper objectMapper,
-                                   Environment environment) {
-        String tableName = environment.readEnv(TABLE_NAME);
-        String byOrgNumberIndexName = environment.readEnv(BY_ORG_NUMBER_INDEX_NAME);
-        String byCristinIdIndexName = environment.readEnv(BY_CRISTIN_ID_INDEX_NAME);
-        DynamoDB dynamoDB = new DynamoDB(client);
-
-        this.table = dynamoDB.getTable(tableName);
-        this.byOrgNumberIndex = table.getIndex(byOrgNumberIndexName);
-        this.byCristinIdIndex = table.getIndex(byCristinIdIndexName);
-        this.objectMapper = objectMapper;
-
-        warmupDynamoDbConnection(table);
+    public DynamoDBCustomerService(DynamoDbClient client) {
+        this(createTable(client));
     }
 
-    /**
-     * Constructor for DynamoDBCustomerService.
-     *
-     * @param objectMapper     Jackson objectMapper
-     * @param table            table name
-     * @param byOrgNumberIndex index name
-     */
-    public DynamoDBCustomerService(ObjectMapper objectMapper,
-                                   Table table,
-                                   Index byOrgNumberIndex,
-                                   Index byCristinIdIndex) {
+    public DynamoDBCustomerService(DynamoDbTable<CustomerDao> table) {
         this.table = table;
-        this.byOrgNumberIndex = byOrgNumberIndex;
-        this.byCristinIdIndex = byCristinIdIndex;
-        this.objectMapper = objectMapper;
-
         warmupDynamoDbConnection(table);
     }
 
     @Override
     public CustomerDto getCustomer(UUID identifier) throws ApiGatewayException {
-        Item item = fetchItemFromQueryable(table, CustomerDao.IDENTIFIER, identifier.toString());
-        return itemToCustomer(item);
+        return Optional.of(CustomerDao.builder().withIdentifier(identifier).build())
+            .map(table::getItem)
+            .map(CustomerDao::toCustomerDto)
+            .orElseThrow(() -> notFoundException(identifier.toString()));
     }
 
     @Override
     public CustomerDto getCustomerByOrgNumber(String orgNumber) throws ApiGatewayException {
-        Item item = fetchItemFromQueryable(byOrgNumberIndex, CustomerDao.ORG_NUMBER, orgNumber);
-        return itemToCustomer(item);
+        CustomerDao query = createQueryForOrgNumber(orgNumber);
+        return sendQueryToIndex(orgNumber, query, BY_ORG_NUMBER_INDEX_NAME);
     }
 
     @Override
-    public List<CustomerDto> getCustomers() throws ApiGatewayException {
-        ItemCollection<ScanOutcome> scan;
-        try {
-            scan = table.scan();
-        } catch (Exception e) {
-            throw new DynamoDBException(ERROR_READING_FROM_TABLE, e);
-        }
-        return scanToCustomers(scan);
+    public List<CustomerDto> getCustomers() {
+        return table.scan()
+            .stream()
+            .flatMap(page -> page.items().stream())
+            .map(CustomerDao::toCustomerDto)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -122,7 +86,7 @@ public class DynamoDBCustomerService implements CustomerService {
             customer.setIdentifier(identifier);
             customer.setCreatedDate(now);
             customer.setModifiedDate(now);
-            table.putItem(customerToItem(customer));
+            table.putItem(CustomerDao.fromCustomerDto(customer));
         } catch (Exception e) {
             throw new DynamoDBException(ERROR_WRITING_ITEM_TO_TABLE, e);
         }
@@ -134,8 +98,7 @@ public class DynamoDBCustomerService implements CustomerService {
         validateIdentifier(identifier, customer);
         try {
             customer.setModifiedDate(Instant.now());
-            Item item = customerToItem(customer);
-            table.putItem(item);
+            table.putItem(CustomerDao.fromCustomerDto(customer));
         } catch (Exception e) {
             throw new DynamoDBException(ERROR_WRITING_ITEM_TO_TABLE, e);
         }
@@ -144,46 +107,47 @@ public class DynamoDBCustomerService implements CustomerService {
 
     @Override
     public CustomerDto getCustomerByCristinId(String cristinId) throws ApiGatewayException {
-        Item item = fetchItemFromQueryable(byCristinIdIndex, CustomerDao.CRISTIN_ID, cristinId);
-        return itemToCustomer(item);
+        CustomerDao queryObject = createQueryForCristinNumber(cristinId);
+        return sendQueryToIndex(cristinId, queryObject, BY_CRISTIN_ID_INDEX_NAME);
     }
 
-    protected List<CustomerDto> scanToCustomers(ItemCollection<ScanOutcome> scan) throws DynamoDBException {
-        List<CustomerDto> customers = new ArrayList<>();
-        for (Item item : scan) {
-            customers.add(itemToCustomer(item));
-        }
-        return customers;
+    private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
+        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
+        return enhancedClient.table(TABLE_NAME, CustomerDao.TABLE_SCHEMA);
     }
 
-    protected Item customerToItem(CustomerDto customer) throws InputException {
-        Item item;
+    private CustomerDto sendQueryToIndex(String queryValue, CustomerDao queryObject, String indexName)
+        throws NotFoundException {
+        QueryEnhancedRequest query = createQuery(queryObject);
+        return table.index(indexName)
+            .query(query)
+            .stream()
+            .flatMap(page -> page.items().stream())
+            .map(CustomerDao::toCustomerDto)
+            .collect(SingletonCollector.tryCollect())
+            .orElseThrow(fail -> notFoundException(queryValue));
+    }
+
+    private CustomerDao createQueryForOrgNumber(String orgNumber) {
+        return CustomerDao.builder().withFeideOrganizationId(orgNumber).build();
+    }
+
+    private CustomerDao createQueryForCristinNumber(String cristinId) {
+        return CustomerDao.builder().withCristinId(cristinId).build();
+    }
+
+    private QueryEnhancedRequest createQuery(CustomerDao queryObject) {
+        QueryConditional queryConditional = QueryConditional
+            .keyEqualTo(Key.builder().partitionValue(queryObject.getFeideOrganizationId()).build());
+        return QueryEnhancedRequest
+            .builder()
+            .queryConditional(queryConditional)
+            .build();
+    }
+
+    private void warmupDynamoDbConnection(DynamoDbTable<CustomerDao> table) {
         try {
-            CustomerDao dao = CustomerDao.fromCustomerDto(customer);
-            item = Item.fromJSON(objectMapper.writeValueAsString(dao));
-        } catch (JsonProcessingException e) {
-            throw new InputException(ERROR_MAPPING_CUSTOMER_TO_ITEM, e);
-        }
-        return item;
-    }
-
-    @SuppressWarnings("PMD.PrematureDeclaration")
-    protected CustomerDto itemToCustomer(Item item) throws DynamoDBException {
-        long start = System.currentTimeMillis();
-        CustomerDao customerOutcome;
-        try {
-            customerOutcome = objectMapper.readValue(item.toJSON(), CustomerDao.class);
-        } catch (Exception e) {
-            throw new DynamoDBException(ERROR_MAPPING_ITEM_TO_CUSTOMER, e);
-        }
-        long stop = System.currentTimeMillis();
-        logger.info("itemToCustomer took {} ms", stop - start);
-        return customerOutcome.toCustomerDto();
-    }
-
-    private void warmupDynamoDbConnection(Table table) {
-        try {
-            table.describe();
+            table.describeTable();
         } catch (Exception e) {
             logger.warn(DYNAMODB_WARMUP_PROBLEM, e);
         }
@@ -193,25 +157,6 @@ public class DynamoDBCustomerService implements CustomerService {
         if (!identifier.equals(customer.getIdentifier())) {
             throw new InputException(String.format(IDENTIFIERS_NOT_EQUAL, identifier, customer.getIdentifier()), null);
         }
-    }
-
-    private Item fetchItemFromQueryable(QueryApi index, String hashKeyName, String hashKeyValue)
-        throws DynamoDBException, NotFoundException {
-        long start = System.currentTimeMillis();
-        Optional<Item> queryResult = attempt(() -> index.query(hashKeyName, hashKeyValue))
-            .map(this::fetchSingleItem)
-            .orElseThrow(fail -> new DynamoDBException(ERROR_READING_FROM_TABLE, fail.getException()));
-        long stop = System.currentTimeMillis();
-        logger.info("fetchItemFromQueryable took {} ms", stop - start);
-        return queryResult.orElseThrow(() -> notFoundException(hashKeyValue));
-    }
-
-    private Optional<Item> fetchSingleItem(ItemCollection<QueryOutcome> query) {
-        Iterator<Item> iterator = query.iterator();
-        if (iterator.hasNext()) {
-            return Optional.of(iterator.next());
-        }
-        return Optional.empty();
     }
 
     private NotFoundException notFoundException(String queryValue) {

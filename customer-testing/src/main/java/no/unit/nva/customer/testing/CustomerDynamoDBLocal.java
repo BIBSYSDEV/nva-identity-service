@@ -2,22 +2,19 @@ package no.unit.nva.customer.testing;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Index;
-import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.BillingMode;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.Projection;
-import com.amazonaws.services.dynamodbv2.model.ProjectionType;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.Projection;
+import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 public class CustomerDynamoDBLocal {
 
@@ -27,73 +24,76 @@ public class CustomerDynamoDBLocal {
     public static final String IDENTIFIER = "identifier";
     public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
     public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
+    public static final long NOT_IMPORTANT = 100L;
 
-    protected AmazonDynamoDB ddb;
-    protected DynamoDB client;
-
-
-    protected void setupDatabase() {
-        ddb = DynamoDBEmbedded.create().amazonDynamoDB();
-        createCustomerTable(ddb);
-        client = new DynamoDB(ddb);
-    }
+    protected DynamoDbClient dynamoClient;
 
     @AfterEach
     public void deleteDatabase() {
-        if (ddb != null) {
-            ddb.shutdown();
+        if (dynamoClient != null) {
+            dynamoClient = null;
         }
     }
 
-    public Table getTable() {
-        return client.getTable(NVA_CUSTOMERS_TABLE_NAME);
+    protected void setupDatabase() {
+        dynamoClient = DynamoDBEmbedded.create().dynamoDbClient();
+        createCustomerTable(dynamoClient);
     }
 
-    public Index getIndex(String indexName) {
-        return client.getTable(NVA_CUSTOMERS_TABLE_NAME).getIndex(indexName);
-    }
-
-    private void createCustomerTable(AmazonDynamoDB ddb) {
+    private void createCustomerTable(DynamoDbClient ddb) {
         List<AttributeDefinition> attributeDefinitions = asList(
-            new AttributeDefinition(IDENTIFIER, ScalarAttributeType.S),
-            new AttributeDefinition(ORG_NUMBER, ScalarAttributeType.S),
-            new AttributeDefinition(CRISTIN_ID, ScalarAttributeType.S)
+            AttributeDefinition.builder().attributeName(IDENTIFIER).attributeType(ScalarAttributeType.S).build(),
+            AttributeDefinition.builder().attributeName(ORG_NUMBER).attributeType(ScalarAttributeType.S).build(),
+            AttributeDefinition.builder().attributeName(CRISTIN_ID).attributeType(ScalarAttributeType.S).build()
         );
 
         List<KeySchemaElement> keySchema = singletonList(
-            new KeySchemaElement(IDENTIFIER, KeyType.HASH)
+            KeySchemaElement.builder().attributeName(IDENTIFIER).keyType(KeyType.HASH).build()
         );
 
         List<KeySchemaElement> byOrgNumberKeyScheme = singletonList(
-            new KeySchemaElement(ORG_NUMBER, KeyType.HASH)
+            KeySchemaElement.builder().attributeName(ORG_NUMBER).keyType(KeyType.HASH).build()
         );
 
         List<KeySchemaElement> byCristinIdKeyScheme = singletonList(
-            new KeySchemaElement(CRISTIN_ID, KeyType.HASH)
+            KeySchemaElement.builder().attributeName(CRISTIN_ID).keyType(KeyType.HASH).build()
         );
 
-        Projection allProjection = new Projection()
-            .withProjectionType(ProjectionType.ALL);
+        Projection allProjection = Projection.builder()
+            .projectionType(ProjectionType.ALL)
+            .build();
 
         List<GlobalSecondaryIndex> globalSecondaryIndexes = asList(
-            new GlobalSecondaryIndex()
-                .withIndexName(BY_ORG_NUMBER_INDEX_NAME)
-                .withKeySchema(byOrgNumberKeyScheme)
-                .withProjection(allProjection),
-            new GlobalSecondaryIndex()
-                .withIndexName(BY_CRISTIN_ID_INDEX_NAME)
-                .withKeySchema(byCristinIdKeyScheme)
-                .withProjection(allProjection)
+            createGsi(byOrgNumberKeyScheme, allProjection, BY_ORG_NUMBER_INDEX_NAME),
+            createGsi(byCristinIdKeyScheme, allProjection, BY_CRISTIN_ID_INDEX_NAME)
         );
 
         CreateTableRequest createTableRequest =
-            new CreateTableRequest()
-                .withTableName(NVA_CUSTOMERS_TABLE_NAME)
-                .withAttributeDefinitions(attributeDefinitions)
-                .withKeySchema(keySchema)
-                .withGlobalSecondaryIndexes(globalSecondaryIndexes)
-                .withBillingMode(BillingMode.PAY_PER_REQUEST);
+            CreateTableRequest.builder()
+                .tableName(NVA_CUSTOMERS_TABLE_NAME)
+                .attributeDefinitions(attributeDefinitions)
+                .keySchema(keySchema)
+                .globalSecondaryIndexes(globalSecondaryIndexes)
+                .provisionedThroughput(provisionedThroughput())
+                .build();
 
         ddb.createTable(createTableRequest);
+    }
+
+    private GlobalSecondaryIndex createGsi(List<KeySchemaElement> byCristinIdKeyScheme, Projection allProjection,
+                                           String cristinId) {
+        return GlobalSecondaryIndex.builder()
+            .indexName(cristinId)
+            .keySchema(byCristinIdKeyScheme)
+            .projection(allProjection)
+            .provisionedThroughput(provisionedThroughput())
+            .build();
+    }
+
+    private ProvisionedThroughput provisionedThroughput() {
+        return ProvisionedThroughput.builder()
+            .readCapacityUnits(NOT_IMPORTANT)
+            .writeCapacityUnits(NOT_IMPORTANT)
+            .build();
     }
 }

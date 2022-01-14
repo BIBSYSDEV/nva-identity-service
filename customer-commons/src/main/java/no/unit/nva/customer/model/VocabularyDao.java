@@ -3,8 +3,9 @@ package no.unit.nva.customer.model;
 import java.net.URI;
 import java.util.Objects;
 import no.unit.nva.customer.model.interfaces.Vocabulary;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
-
+@DynamoDbBean
 public class VocabularyDao implements Vocabulary {
 
     private String name;

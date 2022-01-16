@@ -2,12 +2,18 @@ package no.unit.nva.customer.model;
 
 import java.net.URI;
 import java.util.Objects;
+import java.util.Set;
+import no.unit.nva.customer.model.dynamo.converters.VocabularySetConverter;
 import no.unit.nva.customer.model.interfaces.Vocabulary;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 @DynamoDbBean
 public class VocabularyDao implements Vocabulary {
 
+    public static final AttributeConverter<Set<VocabularyDao>> SET_CONVERTER = new VocabularySetConverter();
+    public static final TableSchema<VocabularyDao> SCHEMA = TableSchema.fromClass(VocabularyDao.class);
     private String name;
     private URI id;
     private VocabularyStatus status;

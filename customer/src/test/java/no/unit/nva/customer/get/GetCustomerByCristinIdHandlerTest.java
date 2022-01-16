@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
 
-import no.unit.nva.customer.exception.NotFoundException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -22,6 +21,7 @@ import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;

@@ -29,6 +29,7 @@ public class CustomerDynamoDBLocal {
     protected DynamoDbClient dynamoClient;
 
     @AfterEach
+    @SuppressWarnings("PMD.NullAssignment")
     public void deleteDatabase() {
         if (dynamoClient != null) {
             dynamoClient = null;

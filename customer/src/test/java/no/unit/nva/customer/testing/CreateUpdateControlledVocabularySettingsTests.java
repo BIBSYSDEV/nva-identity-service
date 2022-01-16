@@ -1,7 +1,6 @@
 package no.unit.nva.customer.testing;
 
 import static no.unit.nva.customer.ControlledVocabularyHandler.IDENTIFIER_PATH_PARAMETER;
-import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -25,7 +24,6 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 
 public abstract class CreateUpdateControlledVocabularySettingsTests extends CustomerDynamoDBLocal {
@@ -39,9 +37,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
     @BeforeEach
     public void init() throws ApiGatewayException {
         super.setupDatabase();
-        customerService = new DynamoDBCustomerService(this.ddb,
-                                                      defaultDynamoConfigMapper,
-                                                      new Environment());
+        customerService = new DynamoDBCustomerService(this.dynamoClient);
         existingCustomer = createExistingCustomer();
         customerService.createCustomer(existingCustomer);
         outputStream = new ByteArrayOutputStream();

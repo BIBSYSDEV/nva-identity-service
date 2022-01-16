@@ -13,8 +13,6 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
-
 @JacocoGenerated
 public final class Constants {
 
@@ -31,9 +29,8 @@ public final class Constants {
     private Constants() {
     }
 
-
     @JacocoGenerated
-    public static CustomerService defaultCustomerService(){
+    public static CustomerService defaultCustomerService() {
         return defaultCustomerService(defaultDynamoDbClient());
     }
 
@@ -47,7 +44,8 @@ public final class Constants {
     }
 
     @JacocoGenerated
-    private static DynamoDbClient defaultDynamoDbClient() {{
+    private static DynamoDbClient defaultDynamoDbClient() {
+        {
             return DynamoDbClient.builder()
                 .httpClient(UrlConnectionHttpClient.create())
                 .credentialsProvider(DefaultCredentialsProvider.create())

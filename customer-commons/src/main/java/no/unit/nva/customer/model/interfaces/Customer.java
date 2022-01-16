@@ -1,18 +1,9 @@
 package no.unit.nva.customer.model.interfaces;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-@SuppressWarnings("PMD.ExcessivePublicCount")
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = As.PROPERTY,
-    property = "type")
-@JsonTypeName("Customer")
 public interface Customer<T extends Vocabulary> {
 
     UUID getIdentifier();

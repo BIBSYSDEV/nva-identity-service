@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
     implementation libs.nva.apigateway
-    implementation libs.bundles.jackson
     implementation libs.bundles.aws.lambda
     implementation libs.guava
     implementation libs.aws.sdk2.dynamodbenhanced

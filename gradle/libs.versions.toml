@@ -38,7 +38,9 @@ aws-sdk2-dynamodbenhanced = { group = 'software.amazon.awssdk', name = 'dynamodb
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
 aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
 
-aws-java-sdk-cognitoidp = { group = 'com.amazonaws', name = 'aws-java-sdk-cognitoidp', version.ref = 'awsSdk' }
+#aws-java-sdk-cognitoidp = { group = 'com.amazonaws', name = 'aws-java-sdk-cognitoidp', version.ref = 'awsSdk' }
+aws-java-sdk2-cognitoidp = { group = 'software.amazon.awssdk', name = 'cognitoidentity', version.ref = 'awsSdk2' }
+
 
 jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
 jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }

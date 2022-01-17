@@ -1,10 +1,9 @@
 package no.unit.nva.useraccessmanagement.dao;
 
-import static java.util.Objects.nonNull;
+import static no.unit.nva.useraccessmanagement.dao.DynamoEntriesUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -14,6 +13,7 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 
 /**
  * This is a Curator's default viewing scope expressed as a set of included and excluded Cristin Units. The Curator's
@@ -57,17 +57,18 @@ public class ViewingScopeDb implements WithType {
     }
 
     @DynamoDbAttribute(INCLUDED_UNITS)
+    @DynamoDbIgnoreNulls
     public Set<URI> getIncludedUnits() {
-        return includedUnits;
+        return nonEmptyOrDefault(includedUnits);
     }
 
     public void setIncludedUnits(Set<URI> includedUnits) {
-        this.includedUnits = includedUnits;
+        this.includedUnits = nonEmptyOrDefault(includedUnits);
     }
 
     @DynamoDbAttribute(EXCLUDED_UNIS)
     public Set<URI> getExcludedUnits() {
-        return excludedUnits;
+        return nonEmptyOrDefault(excludedUnits);
     }
 
     public void setExcludedUnits(Set<URI> excludedUnits) {
@@ -115,6 +116,6 @@ public class ViewingScopeDb implements WithType {
     }
 
     private Set<URI> nonEmptyOrDefault(Set<URI> units) {
-        return nonNull(units) ? units : Collections.emptySet();
+        return nonEmpty(units) ? units : null;
     }
 }

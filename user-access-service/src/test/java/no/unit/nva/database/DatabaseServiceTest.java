@@ -12,6 +12,7 @@ import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -38,6 +39,9 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
+import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.TestAppender;
+import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -346,6 +350,24 @@ public class DatabaseServiceTest extends DatabaseAccessor {
                                                .sortValue(insertedUser.getPrimaryKeyRangeKey())
                                                .build());
         assertThat(savedUser, is(equalTo(insertedUser)));
+    }
+
+    @Test
+    void getRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
+        TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
+        RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
+        attempt(() -> databaseService.getRole(nonExistingRole));
+        assertThat(testAppender.getMessages(),
+                   StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
+    }
+
+    @Test
+    void getUserReturnsUserWhenUserHasEmptyValuesForCollections()
+        throws InvalidInputException, ConflictException, NotFoundException {
+        var user = UserDto.newBuilder().withUsername(randomString()).build();
+        databaseService.addUser(user);
+        var retrievedUser = databaseService.getUser(user);
+        assertThat(retrievedUser, is(equalTo(user)));
     }
 
     private static List<RoleDb> createSampleRoles() {

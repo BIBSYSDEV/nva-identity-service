@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
     implementation libs.nva.apigateway
-    implementation libs.bundles.jackson
 
     compileOnly project(":user-access-errors")
     testImplementation project(":user-access-errors")

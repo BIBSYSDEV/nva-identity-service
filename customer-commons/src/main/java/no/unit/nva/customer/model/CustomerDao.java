@@ -19,6 +19,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvide
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
@@ -46,7 +47,7 @@ public class CustomerDao implements Customer<VocabularyDao>, TypedDao {
     private Set<VocabularyDao> vocabularies;
 
     public CustomerDao() {
-        vocabularies = Collections.emptySet();
+        vocabularies = null;
     }
 
     public static Builder builder() {
@@ -186,6 +187,7 @@ public class CustomerDao implements Customer<VocabularyDao>, TypedDao {
     }
 
     @Override
+    @DynamoDbIgnoreNulls
     public Set<VocabularyDao> getVocabularies() {
         return nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }

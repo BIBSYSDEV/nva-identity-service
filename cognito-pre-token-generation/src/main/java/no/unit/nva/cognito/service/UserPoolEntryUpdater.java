@@ -7,11 +7,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import no.unit.nva.cognito.Constants;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
@@ -54,7 +57,9 @@ public class UserPoolEntryUpdater {
     private static CognitoIdentityProviderClient defaultCognitoProvider() {
         return CognitoIdentityProviderClient
             .builder()
-
+            .httpClient(UrlConnectionHttpClient.create())
+            .region(Constants.AWS_REGION)
+            .credentialsProvider(DefaultCredentialsProvider.create())
             .build();
     }
 

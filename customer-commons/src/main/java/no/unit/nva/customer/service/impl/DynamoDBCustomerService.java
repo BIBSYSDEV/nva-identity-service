@@ -33,7 +33,7 @@ public class DynamoDBCustomerService implements CustomerService {
     public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
     public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
     private static final Environment ENVIRONMENT = new Environment();
-    public static final String TABLE_NAME = ENVIRONMENT.readEnv("TABLE_NAME");
+    public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
     private final DynamoDbTable<CustomerDao> table;
 
@@ -101,7 +101,7 @@ public class DynamoDBCustomerService implements CustomerService {
 
     private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
-        return enhancedClient.table(TABLE_NAME, CustomerDao.TABLE_SCHEMA);
+        return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
     }
 
     private CustomerDto sendQueryToIndex(String queryValue, CustomerDao queryObject, String indexName,

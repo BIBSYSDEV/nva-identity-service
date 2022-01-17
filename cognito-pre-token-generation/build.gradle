@@ -13,8 +13,10 @@ dependencies {
 
     implementation libs.nva.apigateway
     implementation libs.bundles.aws.lambda
-    implementation libs.aws.java.sdk.cognitoidp
-    implementation libs.aws.dynamodb
+    implementation libs.aws.java.sdk2.cognitoidp
+    implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.urlconnection
+    implementation libs.bundles.jackson
 
     testImplementation project(':user-access-testing')
 }
@@ -22,4 +24,6 @@ dependencies {
 test {
     environment "ID_NAMESPACE", "http://example.org/namespace"
     environment "API_HOST", "api.dev.aws.unit.no"
+    environment "CUSTOMERS_TABLE_NAME","nva_customers"
+
 }

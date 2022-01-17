@@ -131,7 +131,7 @@ public class UserService {
                                           .withUsername(userDetails.getFeideId())
                                           .withRoles(roles);
 
-        calculateViewingScope(userDetails).ifPresent(viewingScope -> userBuilder.withViewingScope(viewingScope));
+        calculateViewingScope(userDetails).ifPresent(userBuilder::withViewingScope);
 
         return userBuilder.build();
     }
@@ -149,7 +149,7 @@ public class UserService {
         return userBuilder
                    .withFamilyName(userDetails.getFamilyName())
                    .withGivenName(userDetails.getGivenName())
-                   .withInstitution(userDetails.getCustomerId().orElse(null));
+                   .withInstitution(userDetails.getCustomerId().map(URI::create).orElse(null));
     }
 
     /**

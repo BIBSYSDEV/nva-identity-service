@@ -10,7 +10,7 @@ public class ConstantsTest {
 
     @Test
     public void testAwsRegion() {
-        assertThat(Constants.AWS_REGION_VALUE, is(notNullValue()));
+        assertThat(Constants.AWS_REGION, is(notNullValue()));
     }
 
 }

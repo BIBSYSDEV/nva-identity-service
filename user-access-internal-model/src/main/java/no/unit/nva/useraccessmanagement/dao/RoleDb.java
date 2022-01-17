@@ -37,7 +37,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
     public static final String ACCESS_RIGHTS_FIELDS = "accessRights";
 
     public static String TYPE = "ROLE";
-    public static TableSchema<RoleDb> TABLE_SCHEMA = TableSchema.fromClass(RoleDb.class);
+    public static final TableSchema<RoleDb> TABLE_SCHEMA = TableSchema.fromClass(RoleDb.class);
     private Set<AccessRight> accessRights;
     private String name;
 

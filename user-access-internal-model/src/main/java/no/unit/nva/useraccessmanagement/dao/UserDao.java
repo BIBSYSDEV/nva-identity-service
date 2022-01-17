@@ -53,7 +53,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     public static final String ROLES_LIST = "roles";
     public static final String INSTITUTION_FIELD = "institution";
     public static final String TYPE_FIELD = "type";
-    public static TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
+    public static final TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
 
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 

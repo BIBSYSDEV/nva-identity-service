@@ -31,7 +31,7 @@ public class CustomerDao implements Customer<VocabularyDao>, TypedDao {
     public static final String CRISTIN_ID = "cristinId";
     public static final String TYPE = "Customer";
     public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
-    public static TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
+    public static final TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
     private UUID identifier;
     private Instant createdDate;
     private Instant modifiedDate;

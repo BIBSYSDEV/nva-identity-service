@@ -1,5 +1,5 @@
 [versions]
-nvaCommons = { strictly = '1.17.0-alpha-2' }
+nvaCommons = { strictly = '1.18.6' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.105' }
@@ -37,9 +37,11 @@ aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core',
 aws-java-sdk-lambda = { group = 'com.amazonaws', name = 'aws-java-sdk-lambda', version.ref = 'awsSdk' }
 aws-dynamodb = { group = 'com.amazonaws', name = 'aws-java-sdk-dynamodb', version.ref = 'awsSdk' }
 aws-sdk2-dynamodb ={ group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
+aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
+
 
 aws-java-sdk-cognitoidp = { group = 'com.amazonaws', name = 'aws-java-sdk-cognitoidp', version.ref = 'awsSdk' }
-aws-secretsmanager = { group = 'com.amazonaws', name = 'aws-java-sdk-secretsmanager', version.ref = 'awsSdk' }
+
 
 jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
 jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }

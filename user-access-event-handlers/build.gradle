@@ -1,0 +1,8 @@
+plugins{
+    id 'nva.identity.service.java-application-conventions'
+
+}
+
+dependencies{
+    implemenation libs.
+}

@@ -17,7 +17,6 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -204,7 +203,8 @@ public class UpdateUserHandlerTest extends HandlerTest {
         assertThat(problem.getDetail(), containsString(illegalUri));
     }
 
-    private ObjectNode injectInvalidUriToViewingScope(String illegalUri, UserDto userDto) throws JsonProcessingException {
+    private ObjectNode injectInvalidUriToViewingScope(String illegalUri, UserDto userDto)
+        throws JsonProcessingException {
         var jsonString = JsonUtils.dtoObjectMapper.writeValueAsString(userDto);
         var userJson = (ObjectNode) JsonUtils.dtoObjectMapper.readTree(jsonString);
         var includedUrisNode = JsonUtils.dtoObjectMapper.createArrayNode();
@@ -278,8 +278,6 @@ public class UpdateUserHandlerTest extends HandlerTest {
             .withViewingScope(randomViewingScope())
             .build();
     }
-
-
 
     private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {
         RoleDto someOtherRole = RoleDto.newBuilder().withName(ANOTHER_ROLE).build();

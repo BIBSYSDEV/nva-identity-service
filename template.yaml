@@ -969,8 +969,8 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-          API_SECRET_NAME: !Sub 'IdentityServiceSecret-${Suffix}'
-          API_SECRET_KEY: IdentityServiceSecretKey
+          API_KEY_SECRET_NAME: !Sub 'IdentityServiceSecret-${Suffix}'
+          API_KEY_SECRET_KEY: IdentityServiceSecretKey
       Policies:
         - Version: 2012-10-17
           Statement:

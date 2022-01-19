@@ -1000,7 +1000,7 @@ Resources:
     Properties:
       CodeUri: user-access-event-handlers
       Handler: no.unit.nva.useraccess.events.StartBatchScan::handleRequest
-      Role: !Ref BatchScanRole
+      Role: !GetAtt BatchScanRole.Arn
       EventInvokeConfig:
         DestinationConfig:
           OnSuccess:
@@ -1011,7 +1011,7 @@ Resources:
     Properties:
       CodeUri: user-access-event-handlers
       Handler: no.unit.nva.useraccess.events.EventBasedScanHandler::handleRequest
-      Role: !Ref BatchScanRole
+      Role: !GetAtt BatchScanRole.Arn
       Events:
         ScanIdentityServiceEvent:
           Type: EventBridgeRule

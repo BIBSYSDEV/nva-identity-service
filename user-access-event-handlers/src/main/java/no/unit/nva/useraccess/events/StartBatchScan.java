@@ -1,26 +1,29 @@
 package no.unit.nva.useraccess.events;
 
+import static no.unit.nva.useraccess.events.EventsConfig.EVENT_BUS;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
 import static no.unit.nva.useraccess.events.EventsConfig.objectMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.Map;
 import no.unit.nva.events.models.ScanDatabaseRequest;
 import nva.commons.core.JacocoGenerated;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
 public class StartBatchScan implements RequestStreamHandler {
 
     public static final Map<String, AttributeValue> START_FROM_BEGINNING = null;
     public static final String DETAIL_TYPE = "topicInDetailType";
-    private  final EventBridgeClient eventClient;
+    private static final Logger logger = LoggerFactory.getLogger(StartBatchScan.class);
+    private final EventBridgeClient eventClient;
 
     @JacocoGenerated
     public StartBatchScan() {
@@ -33,22 +36,20 @@ public class StartBatchScan implements RequestStreamHandler {
 
     @Override
     public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
-        ScanDatabaseRequest potentiallyIncompleteRequest = objectMapper.readValue(input, ScanDatabaseRequest.class);
-        ScanDatabaseRequest requestWithTopic = createEventAsExpectedByEventListener(potentiallyIncompleteRequest);
+        ScanDatabaseRequest requestSentByUser = objectMapper.readValue(input, ScanDatabaseRequest.class);
+        ScanDatabaseRequest requestWithTopic = createEventAsExpectedByEventListener(requestSentByUser);
         eventClient.putEvents(createEvent(context, requestWithTopic));
-        writeOutput(output, requestWithTopic);
+        logger.info("Emitted request:" + requestWithTopic.toJsonString());
     }
 
     private PutEventsRequest createEvent(Context context, ScanDatabaseRequest request) {
-        return PutEventsRequest.builder().entries(request.createNewEventEntry(EventsConfig.EVENT_BUS,
-                                                                              DETAIL_TYPE,
-                                                                              context.getInvokedFunctionArn())).build();
+        return PutEventsRequest.builder().entries(createNewEventEntry(context, request)).build();
     }
 
-    private void writeOutput(OutputStream output, ScanDatabaseRequest newEvent) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output))) {
-            writer.write(newEvent.toJsonString());
-        }
+    private PutEventsRequestEntry createNewEventEntry(Context context, ScanDatabaseRequest request) {
+        return request.createNewEventEntry(EVENT_BUS,
+                                           DETAIL_TYPE,
+                                           context.getInvokedFunctionArn());
     }
 
     private ScanDatabaseRequest createEventAsExpectedByEventListener(ScanDatabaseRequest input) {

@@ -33,10 +33,10 @@ public class StartBatchScan implements RequestStreamHandler {
 
     @Override
     public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
-        ScanDatabaseRequest request = objectMapper.readValue(input, ScanDatabaseRequest.class);
-        ScanDatabaseRequest newEvent = createEventAsExpectedByEventListener(request);
-        eventClient.putEvents(createEvent(context, request));
-        writeOutput(output, newEvent);
+        ScanDatabaseRequest potentiallyIncompleteRequest = objectMapper.readValue(input, ScanDatabaseRequest.class);
+        ScanDatabaseRequest requestWithTopic = createEventAsExpectedByEventListener(potentiallyIncompleteRequest);
+        eventClient.putEvents(createEvent(context, requestWithTopic));
+        writeOutput(output, requestWithTopic);
     }
 
     private PutEventsRequest createEvent(Context context, ScanDatabaseRequest request) {

@@ -12,3 +12,8 @@ dependencies {
 
     testImplementation libs.nva.testutils
 }
+
+
+test{
+    environment "EVENT_BUS", "eventBus"
+}

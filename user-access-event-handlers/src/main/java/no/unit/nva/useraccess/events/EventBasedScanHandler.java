@@ -6,6 +6,7 @@ import no.unit.nva.events.handlers.DestinationsEventBridgeEventHandler;
 import no.unit.nva.events.models.AwsEventBridgeDetail;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.events.models.ScanDatabaseRequest;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,8 @@ public class EventBasedScanHandler
 
     private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
 
-    protected EventBasedScanHandler() {
+    @JacocoGenerated
+    public EventBasedScanHandler() {
         super(ScanDatabaseRequest.class);
     }
 

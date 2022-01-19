@@ -994,6 +994,73 @@ Resources:
       RestApiId: !Ref NvaCustomerApi
       Stage: !Ref NvaCustomerApi.Stage
 
+  ### Events ############################################################################################################
+  StartBatchScanHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-event-handlers
+      Handler: no.unit.nva.useraccess.events.StartBatchScan::handleRequest
+      Role: !Ref BatchScanRole
+      EventInvokeConfig:
+        DestinationConfig:
+          OnSuccess:
+            Type: EventBridge
+            Destination: !GetAtt InternalBus.Arn
+
+  InternalBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !Join [ '',[ 'identity-service-internal-bus',!Ref Suffix ] ]
+
+  ### Roles ############################################################################################################
+  BatchScanRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+
+
+  DefaultLambdaPermissions:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub DefaultLambdaPermissions-${AWS::StackName}
+      Roles:
+        - !Ref BatchScanRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - lambda:InvokeFunction
+            Resource: "*"
+
+  EventsLambdaPermissions:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub EventsLambdaPermissions-${AWS::StackName}
+      Roles:
+        - !Ref BatchScanRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - events:*
+              - sqs:SendMessage
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+            Resource: '*' # TODO: restrict the access to specific resources after we have established that the message is sent.
+
   ### Parameters #######################################################################################################
 
   CognitoAuthenticationDomainPrefixParameter:

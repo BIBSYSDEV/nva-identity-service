@@ -1,5 +1,5 @@
 [versions]
-nvaCommons = { strictly = '1.18.6' }
+nvaCommons = { strictly = '1.18.8' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.105' }
@@ -26,6 +26,7 @@ nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCo
 nva-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nvaCommons' }
 nva-lambdaauthorizer = { group = 'com.github.bibsysdev', name = 'lambdaauthorizer', version.ref = 'nvaCommons' }
 nva-secrets = { group = 'com.github.bibsysdev', name = 'secrets', version.ref = 'nvaCommons' }
+nva-events = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nvaCommons' }
 nva-testutils = { group = 'com.github.bibsysdev', name = 'nvatestutils', version.ref = 'nvaCommons' }
 
 aws-xray-recorder-sdk-core = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-core', version.ref = 'xraySdk' }
@@ -36,11 +37,12 @@ aws-sdk-core = { group = 'com.amazonaws', name = 'aws-java-sdk-core', version.re
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaCore' }
 aws-java-sdk-lambda = { group = 'com.amazonaws', name = 'aws-java-sdk-lambda', version.ref = 'awsSdk' }
 aws-dynamodb = { group = 'com.amazonaws', name = 'aws-java-sdk-dynamodb', version.ref = 'awsSdk' }
-aws-sdk2-dynamodb ={ group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
-aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
-
-
 aws-java-sdk-cognitoidp = { group = 'com.amazonaws', name = 'aws-java-sdk-cognitoidp', version.ref = 'awsSdk' }
+
+aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
+aws-sdk2-dynamodb = { group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
+aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
+
 
 
 jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }

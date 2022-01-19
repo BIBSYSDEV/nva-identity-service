@@ -20,9 +20,11 @@ public class EventBasedScanHandler
     }
 
     @Override
-    protected ScanDatabaseRequest processInputPayload(ScanDatabaseRequest input,
-                                                      AwsEventBridgeEvent<AwsEventBridgeDetail<ScanDatabaseRequest>> event,
-                                                      Context context) {
+    protected ScanDatabaseRequest processInputPayload(
+        ScanDatabaseRequest input,
+        AwsEventBridgeEvent<AwsEventBridgeDetail<ScanDatabaseRequest>> event,
+        Context context) {
+
         logger.info("Event:" + attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(event)).orElseThrow());
         return notImportant();
     }

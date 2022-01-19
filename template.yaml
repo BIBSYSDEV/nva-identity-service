@@ -1022,14 +1022,9 @@ Resources:
             EventBusName: !GetAtt InternalBus.Name
             Pattern:
               detail:
-                responsePayload:
                   topic:
                     - IdentityService.IdentityEntry.ScanAndUpdate
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt InternalBus.Arn
+
 
   InternalBus:
     Type: AWS::Events::EventBus

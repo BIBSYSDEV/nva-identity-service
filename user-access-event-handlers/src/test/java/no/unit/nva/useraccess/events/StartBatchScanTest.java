@@ -39,7 +39,6 @@ class StartBatchScanTest {
     }
 
     private InputStream emptyInput() {
-        var request = new ScanDatabaseRequest(null, null, null);
-        return IoUtils.stringToStream(request.toJsonString());
+        return IoUtils.stringToStream(EventsConfig.objectMapper.createObjectNode().toString());
     }
 }

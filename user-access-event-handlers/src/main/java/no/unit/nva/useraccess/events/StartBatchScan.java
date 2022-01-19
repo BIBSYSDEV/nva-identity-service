@@ -1,6 +1,7 @@
 package no.unit.nva.useraccess.events;
 
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
+import static no.unit.nva.useraccess.events.EventsConfig.objectMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -11,7 +12,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Map;
 import no.unit.nva.events.models.ScanDatabaseRequest;
-import nva.commons.core.JsonUtils;
 
 public class StartBatchScan implements RequestStreamHandler {
 
@@ -23,7 +23,7 @@ public class StartBatchScan implements RequestStreamHandler {
 
     @Override
     public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
-        ScanDatabaseRequest request = JsonUtils.dtoObjectMapper.readValue(input, ScanDatabaseRequest.class);
+        ScanDatabaseRequest request = objectMapper.readValue(input, ScanDatabaseRequest.class);
         ScanDatabaseRequest newEvent = createEventAsExpectedByEventListener(request);
         writeOutput(output, newEvent);
     }

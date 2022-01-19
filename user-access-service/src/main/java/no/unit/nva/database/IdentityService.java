@@ -7,7 +7,7 @@ import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 
-public interface DatabaseService {
+public interface IdentityService {
 
     String USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE = "USERS_AND_ROLES_TABLE";
 

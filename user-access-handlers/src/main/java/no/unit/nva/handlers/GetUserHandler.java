@@ -4,8 +4,8 @@ import static java.util.function.Predicate.not;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.util.Optional;
-import no.unit.nva.database.DatabaseService;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.RequestInfo;
@@ -15,14 +15,14 @@ import nva.commons.core.JacocoGenerated;
 
 public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
-    private final DatabaseService databaseService;
+    private final IdentityService databaseService;
 
     @JacocoGenerated
     public GetUserHandler() {
-        this(new Environment(), new DatabaseServiceImpl());
+        this(new Environment(), new IdentityServiceImpl());
     }
 
-    public GetUserHandler(Environment environment, DatabaseService databaseService) {
+    public GetUserHandler(Environment environment, IdentityService databaseService) {
         super(Void.class, environment);
         this.databaseService = databaseService;
     }

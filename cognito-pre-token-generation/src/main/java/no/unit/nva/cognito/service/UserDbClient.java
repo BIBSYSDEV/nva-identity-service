@@ -1,7 +1,7 @@
 package no.unit.nva.cognito.service;
 
 import no.unit.nva.cognito.exception.UserServiceException;
-import no.unit.nva.database.DatabaseService;
+import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,9 +15,9 @@ public class UserDbClient implements UserApi {
     public static final String ERROR_CREATING_USER = "Error creating user";
     public static final String ERROR_UPDATING_USER = "Error updating user";
 
-    private final DatabaseService databaseService;
+    private final IdentityService databaseService;
 
-    public UserDbClient(DatabaseService databaseService) {
+    public UserDbClient(IdentityService databaseService) {
         this.databaseService = databaseService;
     }
 

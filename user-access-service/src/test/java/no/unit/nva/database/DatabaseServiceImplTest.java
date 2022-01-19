@@ -30,20 +30,20 @@ public class DatabaseServiceImplTest extends DatabaseAccessor {
     public static final String EXPECTED_EXCEPTION_MESSAGE = "ExpectedExceptionMessage";
 
     private UserDto someUser;
-    private DatabaseServiceImpl databaseService;
+    private IdentityServiceImpl databaseService;
 
     @BeforeEach
     public void init() throws InvalidEntryInternalException {
 
         someUser = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
-        databaseService = new DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
+        databaseService = new IdentityServiceImpl(initializeTestDatabase(), envWithTableName);
     }
 
     @Test
     public void getRoleExceptionWhenItReceivesInvalidRoleFromDatabase()
         throws InvalidEntryInternalException {
 
-        DatabaseService serviceThrowingException = mockServiceThrowsExceptionWhenLoadingRole();
+        IdentityService serviceThrowingException = mockServiceThrowsExceptionWhenLoadingRole();
         RoleDto sampleRole = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
         Executable action = () -> serviceThrowingException.getRole(sampleRole);
         RuntimeException exception = assertThrows(RuntimeException.class, action);
@@ -55,7 +55,7 @@ public class DatabaseServiceImplTest extends DatabaseAccessor {
     public void getRoleThrowsInvalidEntryInternalExceptionWhenItReceivesInvalidRoleFromDatabase()
         throws InvalidEntryInternalException {
 
-        DatabaseService service = mockServiceReceivingInvalidRoleDbInstance();
+        IdentityService service = mockServiceReceivingInvalidRoleDbInstance();
         RoleDto sampleRole = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
         Executable action = () -> service.getRole(sampleRole);
         InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
@@ -74,22 +74,22 @@ public class DatabaseServiceImplTest extends DatabaseAccessor {
     }
 
 
-    private DatabaseService mockServiceReceivingInvalidUserDbInstance() {
+    private IdentityService mockServiceReceivingInvalidUserDbInstance() {
         UserDb userWithoutUsername = new UserDb();
         Table table = mockTableReturningInvalidEntry(userWithoutUsername);
-        return new DatabaseServiceImpl(table);
+        return new IdentityServiceImpl(table);
     }
 
-    private DatabaseService mockServiceReceivingInvalidRoleDbInstance() {
+    private IdentityService mockServiceReceivingInvalidRoleDbInstance() {
         RoleDb roleWithoutName = new RoleDb();
 
         Table table = mockTableReturningInvalidEntry(roleWithoutName);
-        return new DatabaseServiceImpl(table);
+        return new IdentityServiceImpl(table);
     }
 
-    private DatabaseService mockServiceThrowsExceptionWhenLoadingRole() {
+    private IdentityService mockServiceThrowsExceptionWhenLoadingRole() {
         Table mockMapper = mockMapperThrowingException();
-        return new DatabaseServiceImpl(mockMapper);
+        return new IdentityServiceImpl(mockMapper);
     }
 
     private Table mockMapperThrowingException() {

@@ -20,8 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import no.unit.nva.Constants;
-import no.unit.nva.database.DatabaseService;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -113,7 +113,7 @@ public class AddUserTest extends HandlerTest {
     @DisplayName("processInput() throws DataSyncException when database service cannot return saved item ")
     @Test
     public void processInputThrowsDataSyncExceptionWhenDatabaseServiceCannotReturnSavedItem() {
-        DatabaseService databaseService = databaseServiceReturnsAlwaysEmptyUser();
+        IdentityService databaseService = databaseServiceReturnsAlwaysEmptyUser();
 
         UserDto sampleUser = createUserWithRolesAndInstitution();
         AddUserHandler addUserHandler = new AddUserHandler(mockEnvironment(), databaseService);
@@ -148,8 +148,8 @@ public class AddUserTest extends HandlerTest {
         return outputStream;
     }
 
-    private DatabaseService databaseServiceReturnsAlwaysEmptyUser() {
-        return new DatabaseServiceImpl(localDynamo, envWithTableName) {
+    private IdentityService databaseServiceReturnsAlwaysEmptyUser() {
+        return new IdentityServiceImpl(localDynamo, envWithTableName) {
             @Override
             public UserDto getUser(UserDto queryObject) {
                 return null;

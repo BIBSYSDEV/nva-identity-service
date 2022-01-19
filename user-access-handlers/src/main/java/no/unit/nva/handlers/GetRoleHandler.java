@@ -3,8 +3,8 @@ package no.unit.nva.handlers;
 import static java.util.function.Predicate.not;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.util.Optional;
-import no.unit.nva.database.DatabaseService;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -19,17 +19,17 @@ public class GetRoleHandler extends ApiGatewayHandler<Void, RoleDto> {
     public static final String EMPTY_ROLE_NAME = "Role-name cannot be empty";
     public static final String ROLE_PATH_PARAMETER = "role";
 
-    private final DatabaseService databaseService;
+    private final IdentityService databaseService;
 
     /**
      * Default constructor used by AWS Lambda.
      */
     @JacocoGenerated
     public GetRoleHandler() {
-        this(new Environment(), new DatabaseServiceImpl());
+        this(new Environment(), new IdentityServiceImpl());
     }
 
-    public GetRoleHandler(Environment environment, DatabaseService databaseService) {
+    public GetRoleHandler(Environment environment, IdentityService databaseService) {
         super(Void.class, environment);
         this.databaseService = databaseService;
     }

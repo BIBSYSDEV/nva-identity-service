@@ -1,0 +1,11 @@
+plugins {
+    id 'nva.identity.service.java-application-conventions'
+
+}
+
+dependencies {
+    implementation libs.aws.lambda.java.core
+    implementation libs.aws.sdk2.eventbridge
+    implementation libs.aws.dynamodb
+    implementation libs.nva.events
+}

@@ -89,7 +89,7 @@ Resources:
     Properties:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
-      UsernameAttributes: [email]
+      UsernameAttributes: [ email ]
       EmailConfiguration:
         EmailSendingAccount: 'COGNITO_DEFAULT'
       MfaConfiguration: 'OFF'
@@ -270,7 +270,7 @@ Resources:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
                   - 'cognito-identity:*'
-                Resource: ['*']
+                Resource: [ '*' ]
 
   # IAM role used for unauthenticated users
   UnauthenticatedRole:
@@ -300,7 +300,7 @@ Resources:
                 Action:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
-                Resource: ['*']
+                Resource: [ '*' ]
 
   # Assigns the roles to the Identity Pool
   IdentityPoolRoleMapping:
@@ -339,7 +339,7 @@ Resources:
                 Action:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
-                Resource: ['*']
+                Resource: [ '*' ]
 
   FeideAuthenticatedGroup:
     Type: AWS::Cognito::UserPoolGroup
@@ -1001,11 +1001,13 @@ Resources:
       CodeUri: user-access-event-handlers
       Handler: no.unit.nva.useraccess.events.StartBatchScan::handleRequest
       Role: !GetAtt BatchScanRole.Arn
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt InternalBus.Arn
+      Environment:
+        Variables: !GetAtt InternalBus.Name
+  #      EventInvokeConfig:
+  #        DestinationConfig:
+  #          OnSuccess:
+  #            Type: EventBridge
+  #            Destination: !GetAtt InternalBus.Arn
   EventBasedScanHandler:
     Type: AWS::Serverless::Function
     Properties:

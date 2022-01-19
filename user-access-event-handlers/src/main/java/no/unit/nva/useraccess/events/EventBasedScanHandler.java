@@ -24,10 +24,10 @@ public class EventBasedScanHandler
                                                       AwsEventBridgeEvent<AwsEventBridgeDetail<ScanDatabaseRequest>> event,
                                                       Context context) {
         logger.info("Event:" + attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(event)).orElseThrow());
-        return notImportant(input);
+        return notImportant();
     }
 
-    private ScanDatabaseRequest notImportant(ScanDatabaseRequest input) {
-        return input;
+    private ScanDatabaseRequest notImportant() {
+        return null;
     }
 }

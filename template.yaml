@@ -1014,7 +1014,7 @@ Resources:
       Role: !Ref BatchScanRole
       Events:
         ScanIdentityServiceEvent:
-          Type: EventBrdigeRule
+          Type: EventBridgeRule
           Properties:
             EventBusName: !GetAtt InternalBus.Name
             Pattern:

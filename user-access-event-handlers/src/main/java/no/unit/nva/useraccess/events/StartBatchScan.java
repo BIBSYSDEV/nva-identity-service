@@ -36,10 +36,24 @@ public class StartBatchScan implements RequestStreamHandler {
 
     @Override
     public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
-        ScanDatabaseRequest requestSentByUser = objectMapper.readValue(input, ScanDatabaseRequest.class);
-        ScanDatabaseRequest requestWithTopic = createEventAsExpectedByEventListener(requestSentByUser);
-        eventClient.putEvents(createEvent(context, requestWithTopic));
+        var requestSentByUser = parseUserInput(input);
+        var requestWithTopic = createEventAsExpectedByEventListener(requestSentByUser);
+        emitEvent(context, requestWithTopic);
         logger.info("Emitted request:" + requestWithTopic.toJsonString());
+    }
+
+    private ScanDatabaseRequest parseUserInput(InputStream input) throws IOException {
+        return objectMapper.readValue(input, ScanDatabaseRequest.class);
+    }
+
+    private ScanDatabaseRequest createEventAsExpectedByEventListener(ScanDatabaseRequest input) {
+        return new ScanDatabaseRequest(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
+                                       input.getPageSize(),
+                                       START_FROM_BEGINNING);
+    }
+
+    private void emitEvent(Context context, ScanDatabaseRequest requestWithTopic) {
+        eventClient.putEvents(createEvent(context, requestWithTopic));
     }
 
     private PutEventsRequest createEvent(Context context, ScanDatabaseRequest request) {
@@ -50,11 +64,5 @@ public class StartBatchScan implements RequestStreamHandler {
         return request.createNewEventEntry(EVENT_BUS,
                                            DETAIL_TYPE,
                                            context.getInvokedFunctionArn());
-    }
-
-    private ScanDatabaseRequest createEventAsExpectedByEventListener(ScanDatabaseRequest input) {
-        return new ScanDatabaseRequest(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
-                                       input.getPageSize(),
-                                       START_FROM_BEGINNING);
     }
 }

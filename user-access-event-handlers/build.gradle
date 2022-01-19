@@ -1,6 +1,6 @@
 plugins {
     id 'nva.identity.service.java-application-conventions'
-
+    id 'nva.identity.service.dynamodblocal'
 }
 
 dependencies {
@@ -8,12 +8,20 @@ dependencies {
     implementation libs.aws.sdk2.eventbridge
     implementation libs.aws.dynamodb
     implementation libs.nva.events
+    implementation libs.nva.apigateway
     implementation libs.bundles.logging
+    implementation project(":user-access-service")
+    implementation project(":user-access-commons")
+    implementation project(":user-access-internal-model")
+    implementation project(":user-access-errors")
+    implementation project(":user-access-public-model")
 
     testImplementation libs.nva.testutils
+    testImplementation project(":user-access-testing")
 }
 
 
 test{
     environment "EVENT_BUS", "eventBus"
+    environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
 }

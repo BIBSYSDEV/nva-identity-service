@@ -1002,13 +1002,14 @@ Resources:
       Handler: no.unit.nva.useraccess.events.StartBatchScan::handleRequest
       Role: !GetAtt BatchScanRole.Arn
       Environment:
-        Variables: !GetAtt InternalBus.Name
+        Variables:
+          EVENT_BUS: !GetAtt InternalBus.Name
   #      EventInvokeConfig:
   #        DestinationConfig:
   #          OnSuccess:
   #            Type: EventBridge
   #            Destination: !GetAtt InternalBus.Arn
-  EventBasedScanHandler:
+  EventBasedBatchScanHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-event-handlers

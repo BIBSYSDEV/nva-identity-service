@@ -1006,6 +1006,27 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt InternalBus.Arn
+  EventBasedScanHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-event-handlers
+      Handler: no.unit.nva.useraccess.events.EventBasedScanHandler::handleRequest
+      Role: !Ref BatchScanRole
+      Events:
+        ScanIdentityServiceEvent:
+          Type: EventBrdigeRule
+          Properties:
+            EventBusName: !GetAtt InternalBus.Name
+            Pattern:
+              detail:
+                responsePayload:
+                  topic:
+                    - IdentityService.IdentityEntry.ScanAndUpdate
+      EventInvokeConfig:
+        DestinationConfig:
+          OnSuccess:
+            Type: EventBridge
+            Destination: !GetAtt InternalBus.Arn
 
   InternalBus:
     Type: AWS::Events::EventBus

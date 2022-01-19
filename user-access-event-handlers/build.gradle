@@ -8,4 +8,7 @@ dependencies {
     implementation libs.aws.sdk2.eventbridge
     implementation libs.aws.dynamodb
     implementation libs.nva.events
+    implementation libs.bundles.logging
+
+    testImplementation libs.nva.testutils
 }

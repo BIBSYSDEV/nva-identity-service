@@ -1065,7 +1065,19 @@ Resources:
               - logs:PutLogEvents
               - lambda:InvokeFunction
             Resource: "*"
-
+  ScanUsersTablePermsision:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ScanUsersTablePermsision-${AWS::StackName}
+      Roles:
+        - !Ref BatchScanRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:*
+            Resource: !GetAtt UserRoleMappings.Arn
   EventsLambdaPermissions:
     Type: AWS::IAM::Policy
     Properties:

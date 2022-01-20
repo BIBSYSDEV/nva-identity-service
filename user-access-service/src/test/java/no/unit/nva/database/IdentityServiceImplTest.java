@@ -31,7 +31,7 @@ public class IdentityServiceImplTest extends DatabaseAccessor {
     }
 
     @Test
-    public void getRoleExceptionWhenItReceivesInvalidRoleFromDatabase()
+    public void shouldThrowExceptionWhenClientThrowsException()
         throws InvalidEntryInternalException {
 
         IdentityService serviceThrowingException = mockServiceThrowsExceptionWhenLoadingRole();

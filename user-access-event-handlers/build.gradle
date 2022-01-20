@@ -4,8 +4,17 @@ plugins {
 }
 
 dependencies {
+    implementation project(":user-access-internal-model")
+    implementation project(":user-access-commons")
+    implementation project(':customer-commons')
+
     implementation libs.aws.lambda.java.core
     implementation libs.aws.sdk2.eventbridge
     implementation libs.aws.dynamodb
     implementation libs.nva.events
+    implementation libs.nva.apigateway
+}
+
+test{
+    environment "API_HOST", "localhost"
 }

@@ -5,17 +5,17 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessmanagement.dao.UserDb;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.net.URI;
 
 import static java.util.UUID.randomUUID;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class UserMigrationServiceTest {
@@ -27,29 +27,29 @@ public class UserMigrationServiceTest {
 
     @BeforeEach
     public void init() {
-        customerService = Mockito.mock(CustomerService.class);
+        customerService = mock(CustomerService.class);
         userMigrationService = new UserMigrationServiceImpl(customerService);
     }
 
     @Test
     void shouldReturnUserWithDefaultViewingScope() throws Exception {
-        var customer = getCustomer();
+        var customer = createSampleCustomerDto();
         when(customerService.getCustomer(any())).thenReturn(customer);
 
-        UserDb user = getUser();
-        UserDb updatedUser = userMigrationService.migrateUser(user);
+        var user = createSampleUserDb();
+        var actualUser = userMigrationService.migrateUser(user);
+        var expectedUser = user.copy().withViewingScope(defaultViewingScope(SAMPLE_ORG_ID)).build();
 
-        assertThat(updatedUser, is(notNullValue()));
-        assertThat(updatedUser.getViewingScope().getIncludedUnits(), contains(SAMPLE_ORG_ID));
+        assertThat(actualUser, is(equalTo(expectedUser)));
     }
 
-    private CustomerDto getCustomer() {
+    private CustomerDto createSampleCustomerDto() {
         return CustomerDto.builder()
                 .withCristinId(SAMPLE_ORG_ID.toString())
                 .build();
     }
 
-    private UserDb getUser() {
+    private UserDb createSampleUserDb() {
         return UserDb.newBuilder()
                 .withUsername(randomString())
                 .withGivenName(randomString())

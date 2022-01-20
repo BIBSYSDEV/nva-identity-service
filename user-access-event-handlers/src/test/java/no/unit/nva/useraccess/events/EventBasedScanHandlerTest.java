@@ -14,6 +14,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -85,6 +86,49 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         assertThat(actualTableEntry, is(equalTo(expectedTableEntry)));
     }
 
+    @ParameterizedTest(name = "should scan all users in database and not enter an infinite loop. PageSize:{0}")
+    @ValueSource(ints = {1, 5, 10, 20, 99, 100, 101, 200})
+    void shouldScanAllUsersInDatabaseAndNotEnterAnInfiniteLoop(int pageSize) throws JsonProcessingException {
+        final var insertedUsers = insertRandomUsers(100);
+        var firstEvent = sampleEventWithoutStartingPointer(pageSize);
+        performScandInEntireDatabase(firstEvent);
+        assertThat(migrationService.getScannedUsers(), contains(insertedUsers.toArray(UserDto[]::new)));
+    }
+
+    @ParameterizedTest(name = "should apply migration action to all users in database.PageSize:{0}")
+    @ValueSource(ints = {1, 5, 10, 20, 99, 100, 101, 200})
+    void shouldApplyMigrationActionToAllUsersInDatabase(int pageSize) throws JsonProcessingException {
+        String expectedFamilyName = randomString();
+        final var insertedUsers = insertRandomUsers(100);
+        FamilyNameChangeMigration migrationService = new FamilyNameChangeMigration(expectedFamilyName);
+        handler = new EventBasedScanHandler(localDynamo, eventClient, migrationService);
+        final var expectedUsers = migrateUsersDirectly(insertedUsers, expectedFamilyName);
+        var firstEvent = sampleEventWithoutStartingPointer(pageSize);
+        performScandInEntireDatabase(firstEvent);
+        assertThat(migrationService.getMigratedUsers(), contains(expectedUsers.toArray(UserDto[]::new)));
+    }
+
+    private void performScandInEntireDatabase(InputStream firstEvent) throws JsonProcessingException {
+        handler.handleRequest(firstEvent, outputStream, CONTEXT);
+        while (!eventClient.getRequestEntries().isEmpty()) {
+            InputStream reconstructEvent = fetchNextEventFromEventBridgeClient();
+            eventClient.getRequestEntries().remove(0);
+            handler.handleRequest(reconstructEvent, outputStream, CONTEXT);
+        }
+    }
+
+    private InputStream fetchNextEventFromEventBridgeClient() throws JsonProcessingException {
+        PutEventsRequestEntry emittedEvent = eventClient.getRequestEntries().get(0);
+        ScanDatabaseRequest scanRequest = ScanDatabaseRequest.fromJson(emittedEvent.detail());
+        return EventBridgeEventBuilder.sampleEvent(scanRequest);
+    }
+
+    private List<UserDto> migrateUsersDirectly(List<UserDto> insertedUsers,String expectedFilename) {
+        return insertedUsers.stream()
+            .map(user -> user.copy().withFamilyName(expectedFilename).build())
+            .collect(Collectors.toList());
+    }
+
     private UserDto fetchLastScannedUserUsingTheEmittedEvent(ScanDatabaseRequest emittedScanRequest) {
         return attempt(emittedScanRequest::getStartMarker)
             .map(startMarker -> localDynamo.getItem(USERS_AND_ROLES_TABLE, startMarker))
@@ -137,12 +181,32 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
     }
 
     private InputStream sampleEventWithoutStartingPointer(Integer pageSize) {
-        return EventBridgeEventBuilder.sampleLambdaDestinationsEvent(createSampleScanRequest(pageSize));
+        return EventBridgeEventBuilder.sampleEvent(createSampleScanRequest(pageSize));
     }
 
     private ScanDatabaseRequest createSampleScanRequest(Integer pageSize) {
         return new ScanDatabaseRequest(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC, pageSize, NO_START_MARKER);
     }
 
+    private static class FamilyNameChangeMigration implements MigrationService {
 
+        private final String familyName;
+        private final ArrayList<UserDto> migratedUsers;
+
+        private FamilyNameChangeMigration(String familyName) {
+            this.familyName = familyName;
+            migratedUsers = new ArrayList<>();
+        }
+
+        public ArrayList<UserDto> getMigratedUsers() {
+            return migratedUsers;
+        }
+
+        @Override
+        public UserDto migrateUserDto(UserDto userDto) {
+            var migratedUser = userDto.copy().withFamilyName(familyName).build();
+            migratedUsers.add(migratedUser);
+            return migratedUser;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package no.unit.nva.useraccess.events;
 
+import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
@@ -12,8 +13,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import no.unit.nva.events.handlers.DestinationsEventBridgeEventHandler;
-import no.unit.nva.events.models.AwsEventBridgeDetail;
+import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.useraccessmanagement.dao.UserDb;
@@ -27,8 +27,7 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
-public class EventBasedScanHandler
-    extends DestinationsEventBridgeEventHandler<ScanDatabaseRequest, Void> {
+public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Void> {
 
     public static final Void VOID = null;
     private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
@@ -52,25 +51,30 @@ public class EventBasedScanHandler
     }
 
     @Override
-    protected Void processInputPayload(
+    protected Void processInput(
         ScanDatabaseRequest scanDatabaseRequest,
-        AwsEventBridgeEvent<AwsEventBridgeDetail<ScanDatabaseRequest>> event,
+        AwsEventBridgeEvent<ScanDatabaseRequest> event,
         Context context) {
 
         var scanResult = fetchOnePageOfUsers(scanDatabaseRequest);
-        migrateUsers(scanResult.getRetrievedUsers());
+         migrateUsers(scanResult.getRetrievedUsers());
         var eventForNextScanRequest = creteEventForNextPageScan(scanDatabaseRequest, scanResult, context);
-        eventsClient.putEvents(eventForNextScanRequest);
+        if (scanResult.thereAreMoreEntries()) {
+            eventsClient.putEvents(eventForNextScanRequest);
+        } else {
+            logger.info("Last event was processed.");
+        }
+
         logger.info("nextEvent:" + eventForNextScanRequest);
         return VOID;
     }
 
-    private void migrateUsers(List<UserDto> users) {
-        var migratedUsers = users
+    private List<UserDto> migrateUsers(List<UserDto> users) {
+        return users
             .stream()
             .map(migrationService::migrateUserDto)
+            .peek(user -> logger.info("migratedUser:" + user.toJsonString()))
             .collect(Collectors.toList());
-        migratedUsers.forEach(user -> logger.info("migratedUser:" + user.toJsonString()));
     }
 
     private PutEventsRequest creteEventForNextPageScan(ScanDatabaseRequest inputScanRequest,
@@ -96,11 +100,16 @@ public class EventBasedScanHandler
         var result = scanDynamoDb(scanRequest);
         var startMarkerForNextScan = result.getLastEvaluatedKey();
         var retrievedUsers = parseUsersFromScanResult(result);
-        return new UserScanResult(retrievedUsers, startMarkerForNextScan);
+        var thereAreMoreEntries = thereAreMoreEntries(result);
+        return new UserScanResult(retrievedUsers, startMarkerForNextScan, thereAreMoreEntries);
+    }
+
+    private boolean thereAreMoreEntries(ScanResult result) {
+        return nonNull(result.getLastEvaluatedKey());
     }
 
     private ScanResult scanDynamoDb(ScanDatabaseRequest scanRequest) {
-        var dynamoScanRequest = createrScanDynamoRequest(scanRequest);
+        var dynamoScanRequest = createScanDynamoRequest(scanRequest);
         return dynamoDbClient.scan(dynamoScanRequest);
     }
 
@@ -118,7 +127,7 @@ public class EventBasedScanHandler
         return item.getString(WithType.TYPE_FIELD).equals(UserDb.TYPE);
     }
 
-    private ScanRequest createrScanDynamoRequest(ScanDatabaseRequest input) {
+    private ScanRequest createScanDynamoRequest(ScanDatabaseRequest input) {
         return new ScanRequest()
             .withTableName(USERS_AND_ROLES_TABLE)
             .withLimit(input.getPageSize())
@@ -129,11 +138,17 @@ public class EventBasedScanHandler
 
         private final List<UserDto> retrievedUsers;
         private final Map<String, AttributeValue> startMarkerForNextScan;
+        private final boolean moreEntriesExist;
 
         public UserScanResult(List<UserDto> retrievedUsers,
-                              Map<String, AttributeValue> startMarkerForNextScan) {
+                              Map<String, AttributeValue> startMarkerForNextScan, boolean thereAreMoreEntries) {
             this.retrievedUsers = retrievedUsers;
             this.startMarkerForNextScan = startMarkerForNextScan;
+            this.moreEntriesExist = thereAreMoreEntries;
+        }
+
+        public boolean thereAreMoreEntries() {
+            return moreEntriesExist;
         }
 
         public List<UserDto> getRetrievedUsers() {

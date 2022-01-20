@@ -23,6 +23,7 @@ import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.JsonUtils;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
@@ -268,6 +269,10 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     public int hashCode() {
         return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
                             getViewingScope());
+    }
+
+    public static UserDb fromJson(String json) {
+        return attempt(() -> JsonUtils.dynamoObjectMapper.readValue(json, UserDb.class)).orElseThrow();
     }
 
     private static Collection<RoleDb> createRoleDbList(UserDto userDto) {

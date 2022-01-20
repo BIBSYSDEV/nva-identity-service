@@ -5,12 +5,9 @@ import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDb.ERROR_DUE_TO_INVALID_ROLE;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.DO_NOT_INCLUDE_NESTED_UNITS;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -46,7 +43,6 @@ import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -249,6 +245,13 @@ public class UserDbTest {
                    containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
     }
 
+    @Test
+    void shouldCreateUserDbFromJson() throws BadRequestException {
+        var expectedUser = randomUserDb();
+        String json = expectedUser.toJsonString();
+        var actualUser = UserDb.fromJson(json);
+        assertThat(actualUser, is(equalTo(expectedUser)));
+    }
 
     private static List<RoleDb> createSampleRoles() {
         return Stream.of("Role1", "Role2")
@@ -282,7 +285,6 @@ public class UserDbTest {
         Set<AccessRight> accessRight = Set.of(randomElement(AccessRight.values()));
         return RoleDb.newBuilder().withName(randomString()).withAccessRights(accessRight).build();
     }
-
 
     private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {
         return UserDb.fromUserDto(userDto).toUserDto();

@@ -2,10 +2,11 @@ package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
-import static no.unit.nva.database.IdentityServiceImpl.DYNAMO_DB_CLIENT_NOT_SET_ERROR;
-import static no.unit.nva.database.IdentityServiceImpl.createTable;
 import static no.unit.nva.database.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.database.EntityUtils.createRole;
+import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
+import static no.unit.nva.database.IdentityServiceImpl.DYNAMO_DB_CLIENT_NOT_SET_ERROR;
+import static no.unit.nva.database.IdentityServiceImpl.createTable;
 import static no.unit.nva.database.RoleService.ROLE_ALREADY_EXISTS_ERROR_MESSAGE;
 import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
 import static no.unit.nva.database.UserService.USER_ALREADY_EXISTS_ERROR_MESSAGE;
@@ -24,17 +25,23 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsSame.sameInstance;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemUtils;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
 import no.unit.nva.useraccessmanagement.dao.UserDb;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
+import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
@@ -50,7 +57,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
-public class DatabaseServiceTest extends DatabaseAccessor {
+public class IdentityServiceTest extends DatabaseAccessor {
 
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
     private static final String SOME_USERNAME = "someusername";
@@ -60,18 +67,18 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     private static final String SOME_INSTITUTION = "SomeInstitution";
     private static final String SOME_OTHER_ROLE = "SOME_OTHER_ROLE";
     private static final String SOME_OTHER_INSTITUTION = "Some other institution";
-    private IdentityService db;
+    private IdentityService identityService;
 
     @BeforeEach
     public void init() {
-        db = createDatabaseServiceUsingLocalStorage();
+        identityService = createDatabaseServiceUsingLocalStorage();
     }
 
     @Test
     public void databaseServiceHasAMethodForInsertingAUser()
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, BadRequestException {
         UserDto user = createSampleUserWithoutInstitutionOrRoles(SOME_USERNAME);
-        db.addUser(user);
+        identityService.addUser(user);
     }
 
     @DisplayName("getRole() returns non empty role when role-name exists in database")
@@ -79,7 +86,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     public void databaseServiceReturnsNonEmptyRoleWhenRoleNameExistsInDatabase()
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, NotFoundException {
         RoleDto insertedRole = createSampleRoleAndAddToDb(SOME_ROLENAME);
-        RoleDto savedRole = db.getRole(insertedRole);
+        RoleDto savedRole = identityService.getRole(insertedRole);
 
         assertThat(insertedRole, doesNotHaveEmptyValues());
         assertThat(savedRole, is(equalTo(insertedRole)));
@@ -89,7 +96,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     @Test
     public void databaseServiceThrowsNotFoundExceptionWhenRoleNameDoesNotExist() throws InvalidEntryInternalException {
         RoleDto queryObject = createRole(SOME_ROLENAME);
-        Executable action = () -> db.getRole(queryObject);
+        Executable action = () -> identityService.getRole(queryObject);
 
         NotFoundException exception = assertThrows(NotFoundException.class, action);
         assertThat(exception.getMessage(), containsString(ROLE_NOT_FOUND_MESSAGE));
@@ -100,7 +107,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     public void addRoleInsertsValidItemInDatabase()
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, NotFoundException {
         RoleDto insertedUser = createSampleRoleAndAddToDb(SOME_ROLENAME);
-        RoleDto savedUser = db.getRole(insertedUser);
+        RoleDto savedUser = identityService.getRole(insertedUser);
 
         assertThat(insertedUser, doesNotHaveEmptyValues());
         assertThat(savedUser, is(equalTo(insertedUser)));
@@ -110,7 +117,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     @Test
     public void addRoleShouldNotSaveUserWithoutUsername() throws InvalidEntryInternalException {
         RoleDto illegalRole = createIllegalRole();
-        Executable illegalAction = () -> db.addRole(illegalRole);
+        Executable illegalAction = () -> identityService.addRole(illegalRole);
         InvalidInputException exception = assertThrows(InvalidInputException.class, illegalAction);
         assertThat(exception.getMessage(), containsString(RoleDto.MISSING_ROLE_NAME_ERROR));
     }
@@ -125,7 +132,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
         RoleDto conflictingRole = createRole(conflictingRoleName);
 
-        Executable action = () -> db.addRole(conflictingRole);
+        Executable action = () -> identityService.addRole(conflictingRole);
         ConflictException exception = assertThrows(ConflictException.class, action);
         assertThat(exception.getMessage(), containsString(ROLE_ALREADY_EXISTS_ERROR_MESSAGE));
     }
@@ -136,7 +143,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, NotFoundException,
                BadRequestException {
         UserDto insertedUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
-        UserDto savedUser = db.getUser(insertedUser);
+        UserDto savedUser = identityService.getUser(insertedUser);
 
         assertThat(insertedUser, doesNotHaveEmptyValues());
         assertThat(savedUser, is(equalTo(insertedUser)));
@@ -147,7 +154,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     public void databaseServiceThrowsNotFoundExceptionWhenUsernameDoesNotExist()
         throws InvalidEntryInternalException {
         UserDto queryObject = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
-        Executable action = () -> db.getUser(queryObject);
+        Executable action = () -> identityService.getUser(queryObject);
 
         NotFoundException exception = assertThrows(NotFoundException.class, action);
         assertThat(exception.getMessage(), containsString(USER_NOT_FOUND_MESSAGE));
@@ -159,7 +166,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, NotFoundException,
                BadRequestException {
         UserDto insertedUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
-        UserDto savedUser = db.getUser(insertedUser);
+        UserDto savedUser = identityService.getUser(insertedUser);
 
         assertThat(insertedUser, doesNotHaveEmptyValues());
         assertThat(savedUser, is(equalTo(insertedUser)));
@@ -171,7 +178,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
                                                              InvalidInputException, NotFoundException,
                                                              BadRequestException {
         UserDto expectedUser = createSampleUserAndAddUserToDb(SOME_USERNAME, null, SOME_ROLENAME);
-        UserDto actualUser = db.getUser(expectedUser);
+        UserDto actualUser = identityService.getUser(expectedUser);
 
         assertThat(actualUser, is(equalTo(expectedUser)));
         assertThat(actualUser.getInstitution(), is(equalTo(null)));
@@ -183,7 +190,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, NotFoundException,
                BadRequestException {
         UserDto expectedUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, null);
-        UserDto actualUser = db.getUser(expectedUser);
+        UserDto actualUser = identityService.getUser(expectedUser);
 
         assertThat(actualUser, is(equalTo(expectedUser)));
     }
@@ -191,7 +198,8 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     @DisplayName("addUser() throws ConflictException when trying to save user with existing username")
     @Test
     public void addUserThrowsConflictExceptionWhenTryingToSaveAlreadyExistingUser()
-        throws ConflictException, InvalidEntryInternalException, InvalidInputException, BadRequestException {
+        throws ConflictException, InvalidEntryInternalException, InvalidInputException, BadRequestException,
+               NotFoundException {
 
         String conflictingUsername = SOME_USERNAME;
         createSampleUserAndAddUserToDb(conflictingUsername, SOME_INSTITUTION, SOME_ROLENAME);
@@ -199,7 +207,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         UserDto conflictingUser = createUserWithRole(conflictingUsername,
                                                      SOME_OTHER_INSTITUTION, createRole(SOME_OTHER_ROLE));
 
-        Executable action = () -> db.addUser(conflictingUser);
+        Executable action = () -> identityService.addUser(conflictingUser);
         ConflictException exception = assertThrows(ConflictException.class, action);
         assertThat(exception.getMessage(), containsString(USER_ALREADY_EXISTS_ERROR_MESSAGE));
     }
@@ -212,8 +220,8 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         assertThat(existingRole, doesNotHaveEmptyValues());
 
         UserDto userWithoutRoleDetails = createUserWithRoleReference(existingRole);
-        db.addUser(userWithoutRoleDetails);
-        UserDto savedUser = db.getUser(userWithoutRoleDetails);
+        identityService.addUser(userWithoutRoleDetails);
+        UserDto savedUser = identityService.getUser(userWithoutRoleDetails);
         RoleDto actualRole = savedUser.getRoles().stream().collect(SingletonCollector.collect());
         assertThat(actualRole, is(equalTo(existingRole)));
     }
@@ -223,9 +231,9 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         throws Exception {
         UserDto userWithNonExistingRole = createUserWithRole(SOME_USERNAME, SOME_INSTITUTION,
                                                              createRole(SOME_ROLENAME));
-        db.addUser(userWithNonExistingRole);
+        identityService.addUser(userWithNonExistingRole);
 
-        UserDto actualUser = db.getUser(userWithNonExistingRole);
+        UserDto actualUser = identityService.getUser(userWithNonExistingRole);
         UserDto expectedUser = userWithNonExistingRole.copy().withRoles(Collections.emptyList()).build();
 
         assertThat(actualUser, is(equalTo(expectedUser)));
@@ -236,15 +244,15 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     public void updateUserUpdatesAssignsCorrectVersionOfRoleInUser()
         throws Exception {
         RoleDto existingRole = createRole(SOME_ROLENAME);
-        db.addRole(existingRole);
+        identityService.addRole(existingRole);
         UserDto existingUser = createUserWithRole(SOME_USERNAME, SOME_INSTITUTION, existingRole);
-        db.addUser(existingUser);
+        identityService.addUser(existingUser);
 
         UserDto userUpdate = userUpdateWithRoleMissingAccessRights(existingUser);
 
         UserDto expectedUser = existingUser.copy().withGivenName(SOME_GIVEN_NAME).build();
-        db.updateUser(userUpdate);
-        UserDto actualUser = db.getUser(expectedUser);
+        identityService.updateUser(userUpdate);
+        UserDto actualUser = identityService.getUser(expectedUser);
         assertThat(actualUser, is(equalTo(expectedUser)));
         assertThat(actualUser, is(not(sameInstance(expectedUser))));
     }
@@ -257,8 +265,8 @@ public class DatabaseServiceTest extends DatabaseAccessor {
         UserDto existingUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
         UserDto expectedUser = cloneAndChangeRole(existingUser);
 
-        db.updateUser(expectedUser);
-        UserDto actualUser = db.getUser(expectedUser);
+        identityService.updateUser(expectedUser);
+        UserDto actualUser = identityService.getUser(expectedUser);
         assertThat(actualUser, is(equalTo(expectedUser)));
         assertThat(actualUser, is(not(sameInstance(expectedUser))));
     }
@@ -268,7 +276,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     public void updateUserThrowsNotFoundExceptionWhenTheInputUsernameDoesNotExist()
         throws InvalidEntryInternalException, BadRequestException {
         UserDto userUpdate = createSampleUser(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
-        Executable action = () -> db.updateUser(userUpdate);
+        Executable action = () -> identityService.updateUser(userUpdate);
         NotFoundException exception = assertThrows(NotFoundException.class, action);
         assertThat(exception.getMessage(), containsString(USER_NOT_FOUND_MESSAGE));
     }
@@ -276,27 +284,30 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     @DisplayName("updateUser() throws Exception when the input is invalid ")
     @Test
     public void updateUserThrowsExceptionWhenTheInputIsInvalid()
-        throws ConflictException, InvalidEntryInternalException, InvalidInputException, BadRequestException {
+        throws ConflictException, InvalidEntryInternalException, InvalidInputException, BadRequestException,
+               NotFoundException {
         createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
         UserDto invalidUser = new UserDto();
-        Executable action = () -> db.updateUser(invalidUser);
+        Executable action = () -> identityService.updateUser(invalidUser);
         assertThrows(RuntimeException.class, action);
     }
 
     @Test
     public void listUsersByInstitutionReturnsAllUsersForSpecifiedInstitution()
-        throws ConflictException, InvalidEntryInternalException, InvalidInputException, BadRequestException {
+        throws ConflictException, InvalidEntryInternalException, InvalidInputException, BadRequestException,
+               NotFoundException {
         UserDto someUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
         UserDto someOtherUser = createSampleUserAndAddUserToDb(SOME_OTHER_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
-        List<UserDto> queryResult = db.listUsers(SOME_INSTITUTION);
+        List<UserDto> queryResult = identityService.listUsers(SOME_INSTITUTION);
         assertThat(queryResult, containsInAnyOrder(someUser, someOtherUser));
     }
 
     @Test
     public void listUsersByInstitutionReturnsEmptyListWhenThereAreNoUsersForSpecifiedInstitution()
-        throws ConflictException, InvalidEntryInternalException, InvalidInputException, BadRequestException {
+        throws ConflictException, InvalidEntryInternalException, InvalidInputException, BadRequestException,
+               NotFoundException {
         createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
-        List<UserDto> queryResult = db.listUsers(SOME_OTHER_INSTITUTION);
+        List<UserDto> queryResult = identityService.listUsers(SOME_OTHER_INSTITUTION);
         assertThat(queryResult, is(empty()));
     }
 
@@ -322,7 +333,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     void userDbShouldBeWriteableToDatabase() throws InvalidEntryInternalException {
         UserDb sampleUser = UserDb.newBuilder().withUsername(SOME_USERNAME).build();
 
-        Table table = IdentityServiceImpl.createTable(initializeTestDatabase(), envWithTableName);
+        Table table = IdentityServiceImpl.createTable(initializeTestDatabase());
         Assertions.assertDoesNotThrow(() -> table.putItem(sampleUser.toItem()));
     }
 
@@ -348,7 +359,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     @Test
     void createTableThrowsExceptionWhenDynamoClientIsNull() {
         Executable action =
-            () -> createTable(null, mockEnvironment());
+            () -> createTable(null);
         RuntimeException exception = assertThrows(RuntimeException.class, action);
         assertThat(exception.getCause(), instanceOf(NullPointerException.class));
     }
@@ -357,9 +368,40 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     void createMapperOverridingHardCodedTableNameLogsErrorSayingThatMapperIsNull() {
         TestAppender appender = LogUtils.getTestingAppender(IdentityServiceImpl.class);
         Executable action =
-            () -> createTable(null, mockEnvironment());
+            () -> createTable(null);
         assertThrows(RuntimeException.class, action);
         assertThat(appender.getMessages(), containsString(DYNAMO_DB_CLIENT_NOT_SET_ERROR));
+    }
+
+    @Test
+    void shouldReturnPageOfResultsWhenScanDatabaseRequestIsSubmitted()
+        throws InvalidInputException, ConflictException, BadRequestException, NotFoundException {
+        int totalNumberOfUsers = 100;
+        int pageSize = 15;
+        createSampleUsers(totalNumberOfUsers);
+        var request = new ScanDatabaseRequest(randomString(), pageSize, null);
+        var firstPageOfUsers = databaseService.fetchOnePageOfUsers(request);
+        var expectedFirstPageOfUsers = scanDatabaseDirectlyAndGetAllUsersInExpectedOrderIgnoringRoleEntries(pageSize);
+        assertEquals(expectedFirstPageOfUsers, firstPageOfUsers.getRetrievedUsers());
+        assertThat(firstPageOfUsers.getRetrievedUsers(), is(equalTo(expectedFirstPageOfUsers)));
+    }
+
+    private void createSampleUsers(int numberOfUsers)
+        throws InvalidInputException, ConflictException, BadRequestException, NotFoundException {
+        for (int counter = 0; counter < numberOfUsers; counter++) {
+            createSampleUserAndAddUserToDb(randomString(), randomString(), randomString());
+        }
+    }
+
+    private List<UserDto> scanDatabaseDirectlyAndGetAllUsersInExpectedOrderIgnoringRoleEntries(int pageSize) {
+        return localDynamo.scan(new ScanRequest(USERS_AND_ROLES_TABLE).withLimit(pageSize))
+            .getItems()
+            .stream()
+            .map(ItemUtils::toItem)
+            .filter(item -> UserDb.TYPE.equals(item.getString(WithType.TYPE_FIELD)))
+            .map(item -> UserDb.fromItem(item, UserDb.class))
+            .map(UserDb::toUserDto)
+            .collect(Collectors.toList());
     }
 
     private static List<RoleDb> createSampleRoles() {
@@ -395,15 +437,14 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     private UserDto userUpdateWithRoleMissingAccessRights(UserDto existingUser)
         throws InvalidEntryInternalException {
         RoleDto roleWithOnlyRolename = RoleDto.newBuilder().withName(SOME_ROLENAME).build();
-        UserDto userUpdate = existingUser.copy()
+        return existingUser.copy()
             .withGivenName(SOME_GIVEN_NAME)
             .withRoles(Collections.singletonList(roleWithOnlyRolename))
             .build();
-        return userUpdate;
     }
 
     private UserDto createUserWithRole(String someUsername, String someInstitution, RoleDto existingRole)
-            throws InvalidEntryInternalException, BadRequestException {
+        throws InvalidEntryInternalException, BadRequestException {
         return UserDto.newBuilder().withUsername(someUsername)
             .withInstitution(someInstitution)
             .withRoles(Collections.singletonList(existingRole))
@@ -429,17 +470,19 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     }
 
     private UserDto createSampleUserAndAddUserToDb(String username, String institution, String roleName)
-        throws InvalidEntryInternalException, ConflictException, InvalidInputException, BadRequestException {
+        throws InvalidEntryInternalException, ConflictException, InvalidInputException, BadRequestException,
+               NotFoundException {
         UserDto userDto = createSampleUser(username, institution, roleName);
         Set<RoleDto> roles = userDto.getRoles();
-        roles.stream().forEach(this::addRoleToDb);
-        db.addUser(userDto);
-        return userDto;
+        roles.forEach(this::addRoleToDb);
+        identityService.addUser(userDto);
+
+        return identityService.getUser(userDto);
     }
 
     private void addRoleToDb(RoleDto role) {
         try {
-            db.addRole(role);
+            identityService.addRole(role);
         } catch (InvalidInputException | InvalidEntryInternalException e) {
             throw new RuntimeException(e);
         } catch (ConflictException e) {
@@ -462,7 +505,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     private RoleDto createSampleRoleAndAddToDb(String roleName)
         throws InvalidEntryInternalException, ConflictException, InvalidInputException {
         RoleDto roleDto = createRole(roleName);
-        db.addRole(roleDto);
+        identityService.addRole(roleDto);
         return roleDto;
     }
 
@@ -476,6 +519,6 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     }
 
     private Table clientToLocalDatabase() {
-        return IdentityServiceImpl.createTable(initializeTestDatabase(), envWithTableName);
+        return IdentityServiceImpl.createTable(initializeTestDatabase());
     }
 }

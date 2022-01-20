@@ -1,6 +1,7 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
@@ -26,22 +27,19 @@ import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import java.util.ArrayList;
 import java.util.List;
 import no.unit.nva.database.interfaces.WithEnvironment;
-import nva.commons.core.Environment;
 import org.junit.jupiter.api.AfterEach;
 
 public abstract class DatabaseAccessor implements WithEnvironment {
 
-    public static final String USERS_AND_ROLES_TABLE = "UsersAndRolesTable";
 
     public static final int SINGLE_TABLE_EXPECTED = 1;
     private static final Long CAPACITY_DOES_NOT_MATTER = 1000L;
 
-    protected final Environment envWithTableName = mockEnvironment(USERS_AND_ROLES_TABLE);
     protected AmazonDynamoDB localDynamo;
     protected IdentityService databaseService;
 
     public IdentityServiceImpl createDatabaseServiceUsingLocalStorage() {
-        databaseService = new IdentityServiceImpl(initializeTestDatabase(), envWithTableName);
+        databaseService = new IdentityServiceImpl(initializeTestDatabase());
         //return the field just to not break the current API.
         //TODO: remove return after merging.
         return (IdentityServiceImpl) databaseService;
@@ -55,15 +53,15 @@ public abstract class DatabaseAccessor implements WithEnvironment {
     public AmazonDynamoDB initializeTestDatabase() {
 
         localDynamo = createLocalDynamoDbMock();
-        String tableName = readTableNameFromEnvironment();
-        CreateTableResult createTableResult = createTable(localDynamo, tableName);
+
+        CreateTableResult createTableResult = createTable(localDynamo, USERS_AND_ROLES_TABLE);
         TableDescription tableDescription = createTableResult.getTableDescription();
-        assertEquals(tableName, tableDescription.getTableName());
+        assertEquals(USERS_AND_ROLES_TABLE, tableDescription.getTableName());
 
         assertThatTableKeySchemaContainsBothKeys(tableDescription.getKeySchema());
 
         assertEquals("ACTIVE", tableDescription.getTableStatus());
-        assertThat(tableDescription.getTableArn(), containsString(tableName));
+        assertThat(tableDescription.getTableArn(), containsString(USERS_AND_ROLES_TABLE));
 
         ListTablesResult tables = localDynamo.listTables();
         assertEquals(SINGLE_TABLE_EXPECTED, tables.getTableNames().size());
@@ -87,10 +85,6 @@ public abstract class DatabaseAccessor implements WithEnvironment {
 
     private AmazonDynamoDB createLocalDynamoDbMock() {
         return DynamoDBEmbedded.create().amazonDynamoDB();
-    }
-
-    private String readTableNameFromEnvironment() {
-        return envWithTableName.readEnv(IdentityService.USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE);
     }
 
     private static CreateTableResult createTable(AmazonDynamoDB ddb, String tableName) {

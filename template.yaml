@@ -1018,6 +1018,7 @@ Resources:
       Environment:
         Variables:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+          EVENT_BUS: !GetAtt InternalBus.Name
       Events:
         ScanIdentityServiceEvent:
           Type: EventBridgeRule

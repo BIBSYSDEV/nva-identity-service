@@ -4,6 +4,10 @@ plugins {
 }
 
 dependencies {
+    implementation project(":user-access-internal-model")
+    implementation project(":user-access-commons")
+    implementation project(':customer-commons')
+
     implementation libs.aws.lambda.java.core
     implementation libs.aws.sdk2.eventbridge
     implementation libs.aws.dynamodb
@@ -22,6 +26,7 @@ dependencies {
 
 
 test{
+    environment "API_HOST", "localhost"
     environment "EVENT_BUS", "eventBus"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
 }

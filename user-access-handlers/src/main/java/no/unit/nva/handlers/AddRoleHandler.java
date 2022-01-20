@@ -2,8 +2,8 @@ package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
-import no.unit.nva.database.DatabaseService;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
@@ -16,20 +16,20 @@ import nva.commons.core.JacocoGenerated;
 public class AddRoleHandler extends HandlerWithEventualConsistency<RoleDto, RoleDto> {
 
     public static final String ERROR_FETCHING_SAVED_ROLE = "Could not fetch role with name: ";
-    private final DatabaseService databaseService;
+    private final IdentityService databaseService;
 
     /**
      * Default constructor.
      */
     @JacocoGenerated
     public AddRoleHandler() {
-        this(new Environment(), new DatabaseServiceImpl()
+        this(new Environment(), new IdentityServiceImpl()
         );
     }
 
     public AddRoleHandler(
         Environment environment,
-        DatabaseService databaseService
+        IdentityService databaseService
     ) {
         super(RoleDto.class, environment);
         this.databaseService = databaseService;

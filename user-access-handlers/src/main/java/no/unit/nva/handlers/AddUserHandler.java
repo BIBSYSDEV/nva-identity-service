@@ -1,8 +1,8 @@
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import no.unit.nva.database.DatabaseService;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.RequestInfo;
@@ -14,18 +14,18 @@ import org.apache.http.HttpStatus;
 public class AddUserHandler extends HandlerWithEventualConsistency<UserDto, UserDto> {
 
     public static final String SYNC_ERROR_MESSAGE = "Error while trying to retrieve saved user:";
-    private final DatabaseService databaseService;
+    private final IdentityService databaseService;
 
     /**
      * Default constructor.
      */
     @JacocoGenerated
     public AddUserHandler() {
-        this(new Environment(), new DatabaseServiceImpl());
+        this(new Environment(), new IdentityServiceImpl());
     }
 
     public AddUserHandler(Environment environment,
-                          DatabaseService databaseService) {
+                          IdentityService databaseService) {
         super(UserDto.class, environment);
         this.databaseService = databaseService;
     }

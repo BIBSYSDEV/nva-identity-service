@@ -14,8 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import no.unit.nva.Constants;
-import no.unit.nva.database.DatabaseService;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.RoleService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
@@ -48,7 +48,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     public void init() throws InvalidEntryInternalException {
         context = mock(Context.class);
 
-        DatabaseService service = new DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
+        IdentityService service = new IdentityServiceImpl(initializeTestDatabase(), envWithTableName);
         addRoleHandler = new AddRoleHandler(mockEnvironment(), service);
         sampleRole = sampleRole();
     }
@@ -84,7 +84,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     public void handlerRequestReturnsTheGeneratedObjectAfterWaitingForSyncingToComplete()
         throws InvalidEntryInternalException, IOException {
         RoleDto actualRole = sampleRole();
-        DatabaseService service = databaseServiceWithSyncDelay();
+        IdentityService service = databaseServiceWithSyncDelay();
         addRoleHandler = new AddRoleHandler(mockEnvironment(), service);
 
         GatewayResponse<RoleDto> response = sendRequest(actualRole);
@@ -96,7 +96,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     public void handleRequestReturnsInternalServerErrorWhenDatabaseFailsToSaveTheData()
         throws InvalidEntryInternalException, IOException {
         RoleDto actualRole = sampleRole();
-        DatabaseService service = databaseServiceAddingButNotGettingArole();
+        IdentityService service = databaseServiceAddingButNotGettingArole();
         addRoleHandler = new AddRoleHandler(mockEnvironment(), service);
 
         GatewayResponse<Problem> response = sendRequest(actualRole);
@@ -163,13 +163,13 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     private AddRoleHandler addRoleHandlerDoesNotFindRoleAfterAddingIt() {
-        DatabaseService databaseNotFoundingRoles = databaseServiceAddingButNotGettingArole();
+        IdentityService databaseNotFoundingRoles = databaseServiceAddingButNotGettingArole();
 
         return new AddRoleHandler(mockEnvironment(), databaseNotFoundingRoles);
     }
 
-    private DatabaseServiceImpl databaseServiceAddingButNotGettingArole() {
-        return new DatabaseServiceImpl(localDynamo, envWithTableName) {
+    private IdentityServiceImpl databaseServiceAddingButNotGettingArole() {
+        return new IdentityServiceImpl(localDynamo, envWithTableName) {
 
             @Override
             public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
@@ -178,8 +178,8 @@ public class AddRoleHandlerTest extends HandlerTest {
         };
     }
 
-    private DatabaseServiceImpl databaseServiceWithSyncDelay() {
-        return new DatabaseServiceImpl(localDynamo, envWithTableName) {
+    private IdentityServiceImpl databaseServiceWithSyncDelay() {
+        return new IdentityServiceImpl(localDynamo, envWithTableName) {
             private int counter = 0;
 
             @Override

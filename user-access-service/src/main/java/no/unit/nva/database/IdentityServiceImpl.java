@@ -19,30 +19,30 @@ import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DatabaseServiceImpl implements DatabaseService {
+public class IdentityServiceImpl implements IdentityService {
 
     public static final String DYNAMO_DB_CLIENT_NOT_SET_ERROR = "DynamoDb client has not been set";
 
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(IdentityServiceImpl.class);
 
     private final UserService userService;
     private final RoleService roleService;
 
     @JacocoGenerated
-    public DatabaseServiceImpl() {
+    public IdentityServiceImpl() {
         this(defaultDynamoClient(), new Environment());
     }
 
     @JacocoGenerated
-    public DatabaseServiceImpl(AmazonDynamoDB dynamoDBClient) {
+    public IdentityServiceImpl(AmazonDynamoDB dynamoDBClient) {
         this(dynamoDBClient, new Environment());
     }
 
-    public DatabaseServiceImpl(AmazonDynamoDB dynamoDbClient, Environment environment) {
+    public IdentityServiceImpl(AmazonDynamoDB dynamoDbClient, Environment environment) {
         this(createTable(dynamoDbClient, environment));
     }
 
-    public DatabaseServiceImpl(Table table) {
+    public IdentityServiceImpl(Table table) {
         super();
         this.roleService = new RoleService(table);
         this.userService = new UserService(table, roleService);
@@ -97,7 +97,7 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     private static void assertDynamoClientIsNotNull(AmazonDynamoDB dynamoDbClient) {
         attempt(() -> requireNonNull(dynamoDbClient))
-            .orElseThrow(DatabaseServiceImpl::logErrorWithDynamoClientAndThrowException);
+            .orElseThrow(IdentityServiceImpl::logErrorWithDynamoClientAndThrowException);
     }
 
     private static RuntimeException logErrorWithDynamoClientAndThrowException(Failure<AmazonDynamoDB> failure) {

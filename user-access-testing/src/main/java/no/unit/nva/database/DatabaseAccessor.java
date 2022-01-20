@@ -38,13 +38,13 @@ public abstract class DatabaseAccessor implements WithEnvironment {
 
     protected final Environment envWithTableName = mockEnvironment(USERS_AND_ROLES_TABLE);
     protected AmazonDynamoDB localDynamo;
-    protected DatabaseService databaseService;
+    protected IdentityService databaseService;
 
-    public DatabaseServiceImpl createDatabaseServiceUsingLocalStorage() {
-        databaseService = new DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
+    public IdentityServiceImpl createDatabaseServiceUsingLocalStorage() {
+        databaseService = new IdentityServiceImpl(initializeTestDatabase(), envWithTableName);
         //return the field just to not break the current API.
         //TODO: remove return after merging.
-        return (DatabaseServiceImpl) databaseService;
+        return (IdentityServiceImpl) databaseService;
     }
 
     /**
@@ -90,7 +90,7 @@ public abstract class DatabaseAccessor implements WithEnvironment {
     }
 
     private String readTableNameFromEnvironment() {
-        return envWithTableName.readEnv(DatabaseService.USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE);
+        return envWithTableName.readEnv(IdentityService.USERS_AND_ROLES_TABLE_NAME_ENV_VARIABLE);
     }
 
     private static CreateTableResult createTable(AmazonDynamoDB ddb, String tableName) {

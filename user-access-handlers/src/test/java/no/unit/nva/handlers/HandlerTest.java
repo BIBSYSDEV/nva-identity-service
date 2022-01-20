@@ -10,7 +10,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import no.unit.nva.database.DatabaseAccessor;
-import no.unit.nva.database.DatabaseService;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;

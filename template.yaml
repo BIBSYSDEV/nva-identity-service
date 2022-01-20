@@ -89,7 +89,7 @@ Resources:
     Properties:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
-      UsernameAttributes: [email]
+      UsernameAttributes: [ email ]
       EmailConfiguration:
         EmailSendingAccount: 'COGNITO_DEFAULT'
       MfaConfiguration: 'OFF'
@@ -270,7 +270,7 @@ Resources:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
                   - 'cognito-identity:*'
-                Resource: ['*']
+                Resource: [ '*' ]
 
   # IAM role used for unauthenticated users
   UnauthenticatedRole:
@@ -300,7 +300,7 @@ Resources:
                 Action:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
-                Resource: ['*']
+                Resource: [ '*' ]
 
   # Assigns the roles to the Identity Pool
   IdentityPoolRoleMapping:
@@ -339,7 +339,7 @@ Resources:
                 Action:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
-                Resource: ['*']
+                Resource: [ '*' ]
 
   FeideAuthenticatedGroup:
     Type: AWS::Cognito::UserPoolGroup
@@ -1000,12 +1000,31 @@ Resources:
     Properties:
       CodeUri: user-access-event-handlers
       Handler: no.unit.nva.useraccess.events.StartBatchScan::handleRequest
-      Role: !Ref BatchScanRole
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt InternalBus.Arn
+      Role: !GetAtt BatchScanRole.Arn
+      Environment:
+        Variables:
+          EVENT_BUS: !GetAtt InternalBus.Name
+  #      EventInvokeConfig:
+  #        DestinationConfig:
+  #          OnSuccess:
+  #            Type: EventBridge
+  #            Destination: !GetAtt InternalBus.Arn
+  EventBasedBatchScanHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-event-handlers
+      Handler: no.unit.nva.useraccess.events.EventBasedScanHandler::handleRequest
+      Role: !GetAtt BatchScanRole.Arn
+      Events:
+        ScanIdentityServiceEvent:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !GetAtt InternalBus.Name
+            Pattern:
+              detail:
+                  topic:
+                    - IdentityService.IdentityEntry.ScanAndUpdate
+
 
   InternalBus:
     Type: AWS::Events::EventBus

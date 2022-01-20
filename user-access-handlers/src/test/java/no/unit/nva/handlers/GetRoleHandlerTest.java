@@ -18,7 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import no.unit.nva.database.DatabaseAccessor;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.interfaces.WithEnvironment;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
@@ -41,7 +41,7 @@ public class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironm
     public static final String THE_ROLE = "theRole";
     public static final String BLANK_STR = " ";
     public static final String TYPE_ATTRIBUTE = "type";
-    private DatabaseServiceImpl databaseService;
+    private IdentityServiceImpl databaseService;
     private GetRoleHandler getRoleHandler;
     private Context context;
 

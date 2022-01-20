@@ -25,7 +25,7 @@ import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Map;
 import no.unit.nva.Constants;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
@@ -53,14 +53,14 @@ public class UpdateUserHandlerTest extends HandlerTest {
     public static final String SAMPLE_INSTITUTION = "somewhere";
     public static final String ANOTHER_ROLE = "ANOTHER_ROLE";
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
-    private DatabaseServiceImpl databaseService;
+    private IdentityServiceImpl databaseService;
     private Context context;
 
     private ByteArrayOutputStream output;
 
     @BeforeEach
     public void init() {
-        databaseService = new DatabaseServiceImpl(initializeTestDatabase(), envWithTableName);
+        databaseService = new IdentityServiceImpl(initializeTestDatabase(), envWithTableName);
         context = mock(Context.class);
         output = new ByteArrayOutputStream();
     }

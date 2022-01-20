@@ -1,10 +1,9 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
-import static no.unit.nva.database.DatabaseServiceImpl.DYNAMO_DB_CLIENT_NOT_SET_ERROR;
-import static no.unit.nva.database.DatabaseServiceImpl.createTable;
+import static no.unit.nva.database.IdentityServiceImpl.DYNAMO_DB_CLIENT_NOT_SET_ERROR;
+import static no.unit.nva.database.IdentityServiceImpl.createTable;
 import static no.unit.nva.database.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.database.EntityUtils.createRole;
 import static no.unit.nva.database.RoleService.ROLE_ALREADY_EXISTS_ERROR_MESSAGE;
@@ -14,10 +13,8 @@ import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDE_NESTED_UNITS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -40,7 +37,6 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -64,7 +60,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     private static final String SOME_INSTITUTION = "SomeInstitution";
     private static final String SOME_OTHER_ROLE = "SOME_OTHER_ROLE";
     private static final String SOME_OTHER_INSTITUTION = "Some other institution";
-    private DatabaseService db;
+    private IdentityService db;
 
     @BeforeEach
     public void init() {
@@ -326,7 +322,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     void userDbShouldBeWriteableToDatabase() throws InvalidEntryInternalException {
         UserDb sampleUser = UserDb.newBuilder().withUsername(SOME_USERNAME).build();
 
-        Table table = DatabaseServiceImpl.createTable(initializeTestDatabase(), envWithTableName);
+        Table table = IdentityServiceImpl.createTable(initializeTestDatabase(), envWithTableName);
         Assertions.assertDoesNotThrow(() -> table.putItem(sampleUser.toItem()));
     }
 
@@ -359,7 +355,7 @@ public class DatabaseServiceTest extends DatabaseAccessor {
 
     @Test
     void createMapperOverridingHardCodedTableNameLogsErrorSayingThatMapperIsNull() {
-        TestAppender appender = LogUtils.getTestingAppender(DatabaseServiceImpl.class);
+        TestAppender appender = LogUtils.getTestingAppender(IdentityServiceImpl.class);
         Executable action =
             () -> createTable(null, mockEnvironment());
         assertThrows(RuntimeException.class, action);
@@ -480,6 +476,6 @@ public class DatabaseServiceTest extends DatabaseAccessor {
     }
 
     private Table clientToLocalDatabase() {
-        return DatabaseServiceImpl.createTable(initializeTestDatabase(), envWithTableName);
+        return IdentityServiceImpl.createTable(initializeTestDatabase(), envWithTableName);
     }
 }

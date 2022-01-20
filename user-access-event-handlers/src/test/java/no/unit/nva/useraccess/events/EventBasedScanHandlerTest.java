@@ -1,5 +1,6 @@
 package no.unit.nva.useraccess.events;
 
+import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
 import static nva.commons.core.attempt.Try.attempt;

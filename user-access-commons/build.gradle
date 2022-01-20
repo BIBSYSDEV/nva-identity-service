@@ -8,6 +8,7 @@ dependencies {
     implementation libs.nva.core
     implementation libs.nva.apigateway
     implementation libs.bundles.jackson
+    implementation libs.nva.events
     testImplementation libs.bundles.testing
     testImplementation project(":user-access-testing")
 }

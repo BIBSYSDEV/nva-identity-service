@@ -24,7 +24,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.JsonUtils;
+import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,11 +38,13 @@ class GetUserHandlerTest extends HandlerTest {
     private RequestInfo requestInfo;
     private Context context;
     private GetUserHandler getUserHandler;
+    private static final Environment ENVIRONMENT= new Environment();
+
 
     @BeforeEach
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
-        getUserHandler = new GetUserHandler(envWithTableName, databaseService);
+        getUserHandler = new GetUserHandler(ENVIRONMENT, databaseService);
         context = mock(Context.class);
     }
 
@@ -77,7 +79,7 @@ class GetUserHandlerTest extends HandlerTest {
         assertThat(actual, is(equalTo(expected)));
     }
 
-    @DisplayName("processInput() handles enccoded path parameters")
+    @DisplayName("processInput() handles encoded path parameters")
     @Test
     void processInputReturnsUserDtoWhenPathParameterContainsTheUsernameOfExistingUserEnc() throws ApiGatewayException {
 

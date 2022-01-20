@@ -25,4 +25,5 @@ dependencies {
 
 test{
     environment "API_HOST", "api.dev.aws.unit.no"
+    environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
 }

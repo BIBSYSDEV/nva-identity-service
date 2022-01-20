@@ -37,6 +37,7 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JsonUtils;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,10 +58,11 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private Context context;
 
     private ByteArrayOutputStream output;
+    private static final Environment ENVIRONMENT = new Environment();
 
     @BeforeEach
     public void init() {
-        databaseService = new IdentityServiceImpl(initializeTestDatabase(), envWithTableName);
+        databaseService = new IdentityServiceImpl(initializeTestDatabase());
         context = mock(Context.class);
         output = new ByteArrayOutputStream();
     }
@@ -250,7 +252,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private <I, O> GatewayResponse<O> sendUpdateRequest(String userId, I userUpdate)
         throws IOException {
-        UpdateUserHandler updateUserHandler = new UpdateUserHandler(envWithTableName, databaseService);
+        UpdateUserHandler updateUserHandler = new UpdateUserHandler(ENVIRONMENT, databaseService);
         InputStream input = new HandlerRequestBuilder<I>(defaultRestObjectMapper)
             .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
             .withBody(userUpdate)
@@ -261,7 +263,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private GatewayResponse<Problem> sendUpdateRequestWithoutPathParameters(UserDto userUpdate)
         throws IOException {
-        UpdateUserHandler updateUserHandler = new UpdateUserHandler(envWithTableName, databaseService);
+        UpdateUserHandler updateUserHandler = new UpdateUserHandler(ENVIRONMENT, databaseService);
         InputStream input = new HandlerRequestBuilder<UserDto>(defaultRestObjectMapper)
             .withBody(userUpdate)
             .build();

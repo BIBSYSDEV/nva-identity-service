@@ -41,7 +41,6 @@ import nva.commons.core.JsonUtils;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
@@ -69,15 +68,6 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         handler = new EventBasedScanHandler(localDynamo, eventClient, migrationService);
     }
 
-    @Test
-    void shouldScanSingleUserWhenSingleUserExistsInDatabaseAndInputRequestHasNoStartMarker()
-        throws InvalidInputException, ConflictException, NotFoundException {
-        var firstUser = randomUser();
-        var inputEvent = sampleEventWithoutStartingPointer(NO_PAGE_SIZE);
-        handler.handleRequest(inputEvent, outputStream, CONTEXT);
-        assertThat(migrationService.getScannedUsers(), contains(firstUser));
-    }
-
     @ParameterizedTest(name = "should send message to Event Bridge for next scan containing the key of the last "
                               + "scanned object.Page size:{0}")
     @ValueSource(ints = {1, 5, 10, 50})
@@ -94,8 +84,8 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
 
     @ParameterizedTest(name = "should scan all users in database and not enter an infinite loop. PageSize:{0}")
     @ValueSource(ints = {1, 5, 10, 20, 99, 100, 101, 200})
-    void shouldScanAllUsersInDatabaseAndNotEnterAnInfiniteLoop(int pageSize) throws JsonProcessingException {
-        final var insertedUsers = insertRandomUsers(100);
+    void shouldNotEnterAnInfiniteLoop(int pageSize) throws JsonProcessingException {
+        insertRandomUsers(100);
         var firstEvent = sampleEventWithoutStartingPointer(pageSize);
         performEventDrivenScanInWholeDatabase(firstEvent);
     }
@@ -103,11 +93,13 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
     @ParameterizedTest(name = "should apply migration action to all users in database.PageSize:{0}")
     @ValueSource(ints = {1, 5, 10, 20, 99, 100, 101, 200})
     void shouldApplyMigrationActionToAllUsersInDatabase(int pageSize) throws JsonProcessingException {
-        String expectedFamilyName = randomString();
+        var expectedFamilyName = randomString();
         final var insertedUsers = insertRandomUsers(100);
-        FamilyNameChangeMigration migrationService = new FamilyNameChangeMigration(expectedFamilyName);
+        var migrationService = new FamilyNameChangeMigration(expectedFamilyName);
+
         handler = new EventBasedScanHandler(localDynamo, eventClient, migrationService);
         final var expectedUsers = migrateUsersDirectly(insertedUsers, expectedFamilyName);
+
         var firstEvent = sampleEventWithoutStartingPointer(pageSize);
         performEventDrivenScanInWholeDatabase(firstEvent);
         var updatedUsers = scanAllUsersInDatabaseDirectly();

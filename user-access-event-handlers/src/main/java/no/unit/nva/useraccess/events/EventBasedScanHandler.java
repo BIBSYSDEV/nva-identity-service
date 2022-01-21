@@ -13,6 +13,7 @@ import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.exceptions.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -23,6 +24,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
 
     public static final Void VOID = null;
     private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
+    public static final String END_OF_SCAN_MESSAGE = "Last event was processed.";
     private final MigrationService migrationService;
     private final EventBridgeClient eventsClient;
     private final IdentityServiceImpl identityService;
@@ -47,9 +49,19 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
                                 Context context) {
 
         var scanResult = identityService.fetchOnePageOfUsers(scanDatabaseRequest);
-        migrateUsers(scanResult.getRetrievedUsers());
+        var migratedUsers = migrateUsers(scanResult.getRetrievedUsers());
+        migratedUsers.forEach(this::updateUser);
         sendNextIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
         return VOID;
+    }
+
+    private void updateUser(UserDto user) {
+        try {
+            identityService.updateUser(user);
+        } catch (Exception e) {
+            logger.error(ExceptionUtils.stackTraceInSingleLine(e));
+            throw new RuntimeException(e);
+        }
     }
 
     private void sendNextIfThereAreMoreResults(UserScanResult scanResult,
@@ -58,7 +70,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
         if (scanResult.thereAreMoreEntries()) {
             emitNextScanRequest(scanResult, inputRequest, context);
         } else {
-            logger.info("Last event was processed.");
+            logger.info(END_OF_SCAN_MESSAGE);
         }
     }
 

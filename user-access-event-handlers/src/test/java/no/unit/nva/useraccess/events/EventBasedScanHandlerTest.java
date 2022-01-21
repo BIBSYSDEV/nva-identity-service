@@ -11,6 +11,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemUtils;
+import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 import no.unit.nva.database.DatabaseAccessor;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.models.ScanDatabaseRequest;
@@ -47,6 +49,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
     public static final Context CONTEXT = mock(Context.class);
     public static final Integer NO_PAGE_SIZE = null;
     public static final Map<String, AttributeValue> NO_START_MARKER = null;
+    public static final boolean SEQUENTIAL = false;
     private ByteArrayOutputStream outputStream;
     private EventBasedScanHandler handler;
 
@@ -92,8 +95,19 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
     void shouldScanAllUsersInDatabaseAndNotEnterAnInfiniteLoop(int pageSize) throws JsonProcessingException {
         final var insertedUsers = insertRandomUsers(100);
         var firstEvent = sampleEventWithoutStartingPointer(pageSize);
-        performScandInEntireDatabase(firstEvent);
-        assertThat(migrationService.getScannedUsers(), contains(insertedUsers.toArray(UserDto[]::new)));
+        performEventDrivenScanInWholeDatabase(firstEvent);
+
+    }
+
+    private List<UserDto> scanAllUsersInDatabaseDirectly() {
+        Table table = new Table(localDynamo, USERS_AND_ROLES_TABLE);
+        var items = table.scan().spliterator();
+        return StreamSupport.stream(items, SEQUENTIAL)
+            .filter(item -> UserDb.TYPE.equals(item.getString("type")))
+            .map(Item::toJSON)
+            .map(UserDb::fromJson)
+            .map(UserDb::toUserDto)
+            .collect(Collectors.toList());
     }
 
     @ParameterizedTest(name = "should apply migration action to all users in database.PageSize:{0}")
@@ -105,11 +119,13 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         handler = new EventBasedScanHandler(localDynamo, eventClient, migrationService);
         final var expectedUsers = migrateUsersDirectly(insertedUsers, expectedFamilyName);
         var firstEvent = sampleEventWithoutStartingPointer(pageSize);
-        performScandInEntireDatabase(firstEvent);
-        assertThat(migrationService.getMigratedUsers(), contains(expectedUsers.toArray(UserDto[]::new)));
+        performEventDrivenScanInWholeDatabase(firstEvent);
+        var updatedUsers = scanAllUsersInDatabaseDirectly();
+        assertThat(updatedUsers, contains(expectedUsers.toArray(UserDto[]::new)));
+
     }
 
-    private void performScandInEntireDatabase(InputStream firstEvent) throws JsonProcessingException {
+    private void performEventDrivenScanInWholeDatabase(InputStream firstEvent) throws JsonProcessingException {
         handler.handleRequest(firstEvent, outputStream, CONTEXT);
         while (!eventClient.getRequestEntries().isEmpty()) {
             InputStream reconstructEvent = fetchNextEventFromEventBridgeClient();
@@ -124,7 +140,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         return EventBridgeEventBuilder.sampleEvent(scanRequest);
     }
 
-    private List<UserDto> migrateUsersDirectly(List<UserDto> insertedUsers,String expectedFilename) {
+    private List<UserDto> migrateUsersDirectly(List<UserDto> insertedUsers, String expectedFilename) {
         return insertedUsers.stream()
             .map(user -> user.copy().withFamilyName(expectedFilename).build())
             .collect(Collectors.toList());

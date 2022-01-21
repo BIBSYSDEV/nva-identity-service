@@ -30,6 +30,8 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.stubs.FakeEventBridgeClient;
 import no.unit.nva.testutils.EventBridgeEventBuilder;
+import no.unit.nva.useraccess.events.service.EchoMigrationService;
+import no.unit.nva.useraccess.events.service.UserMigrationService;
 import no.unit.nva.useraccessmanagement.dao.UserDb;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -203,7 +205,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         return new ScanDatabaseRequest(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC, pageSize, NO_START_MARKER);
     }
 
-    private static class FamilyNameChangeMigration implements MigrationService {
+    private static class FamilyNameChangeMigration implements UserMigrationService {
 
         private final String familyName;
         private final ArrayList<UserDto> migratedUsers;
@@ -218,7 +220,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         }
 
         @Override
-        public UserDto migrateUserDto(UserDto userDto) {
+        public UserDto migrateUser(UserDto userDto) {
             var migratedUser = userDto.copy().withFamilyName(familyName).build();
             migratedUsers.add(migratedUser);
             return migratedUser;

@@ -10,6 +10,8 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.events.models.ScanDatabaseRequest;
+import no.unit.nva.useraccess.events.service.EchoMigrationService;
+import no.unit.nva.useraccess.events.service.UserMigrationService;
 import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
@@ -25,7 +27,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
     public static final Void VOID = null;
     private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
     public static final String END_OF_SCAN_MESSAGE = "Last event was processed.";
-    private final MigrationService migrationService;
+    private final UserMigrationService migrationService;
     private final EventBridgeClient eventsClient;
     private final IdentityServiceImpl identityService;
 
@@ -36,7 +38,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
 
     public EventBasedScanHandler(AmazonDynamoDB dynamoDbClient,
                                  EventBridgeClient eventsClient,
-                                 MigrationService migrationService) {
+                                 UserMigrationService migrationService) {
         super(ScanDatabaseRequest.class);
         this.migrationService = migrationService;
         this.identityService = new IdentityServiceImpl(dynamoDbClient);
@@ -83,7 +85,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
     private List<UserDto> migrateUsers(List<UserDto> users) {
         return users
             .stream()
-            .map(migrationService::migrateUserDto)
+            .map(migrationService::migrateUser)
             .peek(user -> logger.info("migratedUser:" + user.toJsonString()))
             .collect(Collectors.toList());
     }

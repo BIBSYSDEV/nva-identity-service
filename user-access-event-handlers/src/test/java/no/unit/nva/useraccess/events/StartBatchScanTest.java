@@ -40,7 +40,7 @@ class StartBatchScanTest {
     }
 
     @Test
-    void shouldSendEventContainingTheEventTypeAndNullStartingPointWhenInputIsAnEmptyObject()
+    void shouldSendEventContainingTheEventTypeForBatchScanningAndNullStartingPointWhenInputIsAnEmptyObject()
         throws IOException {
         batchScanner.handleRequest(emptyInput(), outputStream, CONTEXT);
         var emittedEventBody = extractEventBody();

@@ -53,7 +53,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
         var scanResult = identityService.fetchOnePageOfUsers(scanDatabaseRequest);
         var migratedUsers = migrateUsers(scanResult.getRetrievedUsers());
         migratedUsers.forEach(this::updateUser);
-        sendNextIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
+        emitNexScanRequestIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
         return VOID;
     }
 
@@ -66,9 +66,9 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
         }
     }
 
-    private void sendNextIfThereAreMoreResults(UserScanResult scanResult,
-                                               ScanDatabaseRequest inputRequest,
-                                               Context context) {
+    private void emitNexScanRequestIfThereAreMoreResults(UserScanResult scanResult,
+                                                         ScanDatabaseRequest inputRequest,
+                                                         Context context) {
         if (scanResult.thereAreMoreEntries()) {
             emitNextScanRequest(scanResult, inputRequest, context);
         } else {

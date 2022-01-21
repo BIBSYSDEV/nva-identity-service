@@ -1,9 +1,8 @@
 package no.unit.nva.useraccess.events.service;
 
-import no.unit.nva.useraccessmanagement.dao.UserDb;
+import no.unit.nva.useraccessmanagement.model.UserDto;
 
 public interface UserMigrationService {
 
-    UserDb migrateUser(UserDb user);
-
+    UserDto migrateUser(UserDto user);
 }

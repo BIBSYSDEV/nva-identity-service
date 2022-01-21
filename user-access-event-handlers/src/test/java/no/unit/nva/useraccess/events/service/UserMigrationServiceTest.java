@@ -1,13 +1,5 @@
 package no.unit.nva.useraccess.events.service;
 
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.net.URI;
-
 import static java.util.UUID.randomUUID;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
@@ -17,6 +9,12 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.net.URI;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.useraccessmanagement.model.UserDto;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class UserMigrationServiceTest {
 
@@ -49,8 +47,8 @@ public class UserMigrationServiceTest {
                 .build();
     }
 
-    private UserDb createSampleUserDb() {
-        return UserDb.newBuilder()
+    private UserDto createSampleUserDb() {
+        return UserDto.newBuilder()
                 .withUsername(randomString())
                 .withGivenName(randomString())
                 .withFamilyName(randomString())

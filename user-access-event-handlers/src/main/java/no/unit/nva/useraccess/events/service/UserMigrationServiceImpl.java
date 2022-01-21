@@ -1,13 +1,11 @@
 package no.unit.nva.useraccess.events.service;
 
-import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
-
+import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.UUID;
-
-import static nva.commons.core.attempt.Try.attempt;
+import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessmanagement.model.ViewingScope;
 
 public class UserMigrationServiceImpl implements UserMigrationService {
 
@@ -18,7 +16,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     }
 
     @Override
-    public UserDb migrateUser(UserDb user) {
+    public UserDto migrateUser(UserDto user) {
         var customerIdentifier = getCustomerIdentifier(user);
         var organizationId = getOrganizationId(customerIdentifier);
 
@@ -29,11 +27,11 @@ public class UserMigrationServiceImpl implements UserMigrationService {
         return user;
     }
 
-    private UUID getCustomerIdentifier(UserDb user) {
+    private UUID getCustomerIdentifier(UserDto user) {
         return UUID.fromString(user.getInstitution());
     }
 
-    private void resetViewingScope(UserDb user, URI organizationId) {
+    private void resetViewingScope(UserDto user, URI organizationId) {
         user.setViewingScope(ViewingScope.defaultViewingScope(organizationId));
     }
 

@@ -96,18 +96,6 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         final var insertedUsers = insertRandomUsers(100);
         var firstEvent = sampleEventWithoutStartingPointer(pageSize);
         performEventDrivenScanInWholeDatabase(firstEvent);
-
-    }
-
-    private List<UserDto> scanAllUsersInDatabaseDirectly() {
-        Table table = new Table(localDynamo, USERS_AND_ROLES_TABLE);
-        var items = table.scan().spliterator();
-        return StreamSupport.stream(items, SEQUENTIAL)
-            .filter(item -> UserDb.TYPE.equals(item.getString("type")))
-            .map(Item::toJSON)
-            .map(UserDb::fromJson)
-            .map(UserDb::toUserDto)
-            .collect(Collectors.toList());
     }
 
     @ParameterizedTest(name = "should apply migration action to all users in database.PageSize:{0}")
@@ -122,7 +110,17 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         performEventDrivenScanInWholeDatabase(firstEvent);
         var updatedUsers = scanAllUsersInDatabaseDirectly();
         assertThat(updatedUsers, contains(expectedUsers.toArray(UserDto[]::new)));
+    }
 
+    private List<UserDto> scanAllUsersInDatabaseDirectly() {
+        Table table = new Table(localDynamo, USERS_AND_ROLES_TABLE);
+        var items = table.scan().spliterator();
+        return StreamSupport.stream(items, SEQUENTIAL)
+            .filter(item -> UserDb.TYPE.equals(item.getString("type")))
+            .map(Item::toJSON)
+            .map(UserDb::fromJson)
+            .map(UserDb::toUserDto)
+            .collect(Collectors.toList());
     }
 
     private void performEventDrivenScanInWholeDatabase(InputStream firstEvent) throws JsonProcessingException {

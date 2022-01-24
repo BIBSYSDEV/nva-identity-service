@@ -5,7 +5,7 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
 import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
 import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
+import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import nva.commons.secrets.ErrorReadingSecretException;
@@ -59,11 +59,11 @@ public class UserMigrationServiceTest {
 
     @Test
     void shouldReturnUserWithDefaultViewingScope() throws Exception {
-        var customer = createSampleCustomerDto();
+        var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
         prepareOkAndThenOkResponse(createSampleAuthorityResponse().toJson());
 
-        var user = createSampleUserDb();
+        var user = createSampleUser();
         var actualUser = userMigrationService.migrateUser(user);
         var expectedUser = user.copy().withViewingScope(defaultViewingScope(SAMPLE_ORG_ID)).build();
 
@@ -72,11 +72,11 @@ public class UserMigrationServiceTest {
 
     @Test
     void shouldUpdateBareOnceOnInvalidOrganizationId() throws Exception {
-        var customer = createSampleCustomerDto();
+        var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
         prepareOkAndThenOkResponse(createSampleAuthorityResponseWithInvalidOrganizationId().toJson());
 
-        var user = createSampleUserDb();
+        var user = createSampleUser();
         userMigrationService.migrateUser(user);
 
         verify(httpClientMock, times(2)).send(any(),any());
@@ -84,11 +84,11 @@ public class UserMigrationServiceTest {
 
     @Test
     void shouldNotUpdateBareOnValidOrganizationId() throws Exception {
-        var customer = createSampleCustomerDto();
+        var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
         prepareOkAndThenOkResponse(createSampleAuthorityResponse().toJson());
 
-        var user = createSampleUserDb();
+        var user = createSampleUser();
         userMigrationService.migrateUser(user);
 
         verify(httpClientMock, times(1)).send(any(),any());
@@ -96,11 +96,11 @@ public class UserMigrationServiceTest {
 
     @Test
     void shouldFinishEvenWhenBareUpdateReturnsBadGateway() throws Exception {
-        var customer = createSampleCustomerDto();
+        var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
         prepareOkResponseThenBadGatewayResponse(createSampleAuthorityResponseWithInvalidOrganizationId().toJson());
 
-        var user = createSampleUserDb();
+        var user = createSampleUser();
         userMigrationService.migrateUser(user);
 
         verify(httpClientMock, times(2)).send(any(),any());
@@ -108,11 +108,11 @@ public class UserMigrationServiceTest {
 
     @Test
     void shouldNotUpdateBareOnUserNotFound() throws Exception {
-        var customer = createSampleCustomerDto();
+        var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
         prepareNotFoundResponse();
 
-        var user = createSampleUserDb();
+        var user = createSampleUser();
         userMigrationService.migrateUser(user);
 
         verify(httpClientMock, times(1)).send(any(),any());
@@ -176,14 +176,14 @@ public class UserMigrationServiceTest {
         return authority;
     }
 
-    private CustomerDto createSampleCustomerDto() {
+    private CustomerDto createSampleCustomer() {
         return CustomerDto.builder()
                 .withCristinId(SAMPLE_ORG_ID.toString())
                 .build();
     }
 
-    private UserDb createSampleUserDb() {
-        return UserDb.newBuilder()
+    private UserDto createSampleUser() {
+        return UserDto.newBuilder()
                 .withUsername(randomString())
                 .withGivenName(randomString())
                 .withFamilyName(randomString())

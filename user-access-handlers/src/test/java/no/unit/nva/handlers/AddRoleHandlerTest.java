@@ -48,7 +48,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     public void init() throws InvalidEntryInternalException {
         context = mock(Context.class);
 
-        IdentityService service = new IdentityServiceImpl(initializeTestDatabase(), envWithTableName);
+        IdentityService service = new IdentityServiceImpl(initializeTestDatabase());
         addRoleHandler = new AddRoleHandler(mockEnvironment(), service);
         sampleRole = sampleRole();
     }
@@ -169,7 +169,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     private IdentityServiceImpl databaseServiceAddingButNotGettingArole() {
-        return new IdentityServiceImpl(localDynamo, envWithTableName) {
+        return new IdentityServiceImpl(localDynamo) {
 
             @Override
             public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
@@ -179,7 +179,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     private IdentityServiceImpl databaseServiceWithSyncDelay() {
-        return new IdentityServiceImpl(localDynamo, envWithTableName) {
+        return new IdentityServiceImpl(localDynamo) {
             private int counter = 0;
 
             @Override

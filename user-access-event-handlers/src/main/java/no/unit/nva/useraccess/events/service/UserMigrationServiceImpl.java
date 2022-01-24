@@ -2,7 +2,7 @@ package no.unit.nva.useraccess.events.service;
 
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
+import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
 
 import java.net.URI;
@@ -21,7 +21,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     }
 
     @Override
-    public UserDb migrateUser(UserDb user) {
+    public UserDto migrateUser(UserDto user) {
         var customerIdentifier = getCustomerIdentifier(user);
         var organizationId = getOrganizationId(customerIdentifier);
 
@@ -46,11 +46,11 @@ public class UserMigrationServiceImpl implements UserMigrationService {
         bareProxyClient.deleteAuthorityOrganizationId(systemControlNumber, organizationId);
     }
 
-    private UUID getCustomerIdentifier(UserDb user) {
+    private UUID getCustomerIdentifier(UserDto user) {
         return UUID.fromString(user.getInstitution());
     }
 
-    private void resetViewingScope(UserDb user, URI organizationId) {
+    private void resetViewingScope(UserDto user, URI organizationId) {
         user.setViewingScope(ViewingScope.defaultViewingScope(organizationId));
     }
 

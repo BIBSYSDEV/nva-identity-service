@@ -1015,6 +1015,10 @@ Resources:
       CodeUri: user-access-event-handlers
       Handler: no.unit.nva.useraccess.events.EventBasedScanHandler::handleRequest
       Role: !GetAtt BatchScanRole.Arn
+      Environment:
+        Variables:
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+          EVENT_BUS: !GetAtt InternalBus.Name
       Events:
         ScanIdentityServiceEvent:
           Type: EventBridgeRule
@@ -1022,8 +1026,8 @@ Resources:
             EventBusName: !GetAtt InternalBus.Name
             Pattern:
               detail:
-                  topic:
-                    - IdentityService.IdentityEntry.ScanAndUpdate
+                topic:
+                  - IdentityService.IdentityEntry.ScanAndUpdate
 
 
   InternalBus:
@@ -1062,7 +1066,19 @@ Resources:
               - logs:PutLogEvents
               - lambda:InvokeFunction
             Resource: "*"
-
+  ScanUsersTablePermsision:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ScanUsersTablePermsision-${AWS::StackName}
+      Roles:
+        - !Ref BatchScanRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:*
+            Resource: !GetAtt UserRoleMappings.Arn
   EventsLambdaPermissions:
     Type: AWS::IAM::Policy
     Properties:

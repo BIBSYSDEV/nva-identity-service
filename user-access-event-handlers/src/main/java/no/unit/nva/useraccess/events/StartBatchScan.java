@@ -2,6 +2,7 @@ package no.unit.nva.useraccess.events;
 
 import static no.unit.nva.useraccess.events.EventsConfig.EVENT_BUS;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
+import static no.unit.nva.useraccess.events.EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE;
 import static no.unit.nva.useraccess.events.EventsConfig.objectMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -21,7 +22,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 public class StartBatchScan implements RequestStreamHandler {
 
     public static final Map<String, AttributeValue> START_FROM_BEGINNING = null;
-    public static final String DETAIL_TYPE = "topicInDetailType";
+
     private static final Logger logger = LoggerFactory.getLogger(StartBatchScan.class);
     private final EventBridgeClient eventClient;
 
@@ -62,7 +63,7 @@ public class StartBatchScan implements RequestStreamHandler {
 
     private PutEventsRequestEntry createNewEventEntry(Context context, ScanDatabaseRequest request) {
         return request.createNewEventEntry(EVENT_BUS,
-                                           DETAIL_TYPE,
+                                           SCAN_REQUEST_EVENTS_DETAIL_TYPE,
                                            context.getInvokedFunctionArn());
     }
 }

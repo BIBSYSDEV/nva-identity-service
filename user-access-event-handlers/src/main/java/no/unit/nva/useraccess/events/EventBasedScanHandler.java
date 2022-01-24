@@ -2,84 +2,110 @@ package no.unit.nva.useraccess.events;
 
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemUtils;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import no.unit.nva.events.handlers.DestinationsEventBridgeEventHandler;
-import no.unit.nva.events.models.AwsEventBridgeDetail;
+import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.events.models.ScanDatabaseRequest;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
-import no.unit.nva.useraccessmanagement.interfaces.WithType;
+import no.unit.nva.useraccess.events.service.EchoMigrationService;
+import no.unit.nva.useraccess.events.service.UserMigrationService;
+import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.JsonUtils;
-import nva.commons.core.attempt.Try;
+import nva.commons.core.exceptions.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
-public class EventBasedScanHandler
-    extends DestinationsEventBridgeEventHandler<ScanDatabaseRequest, ScanDatabaseRequest> {
+public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Void> {
 
+    public static final Void VOID = null;
     private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
-    private final MigrationService migrationService;
-    private final AmazonDynamoDB dynamoDbClient;
-    private final String USERS_AND_ROLES_TABLE = new Environment().readEnv("USERS_AND_ROLES_TABLE");
+    public static final String END_OF_SCAN_MESSAGE = "Last event was processed.";
+    private final UserMigrationService migrationService;
+    private final EventBridgeClient eventsClient;
+    private final IdentityServiceImpl identityService;
 
     @JacocoGenerated
-    public EventBasedScanHandler(AmazonDynamoDB dynamoDbClient, MigrationService migrationService) {
+    public EventBasedScanHandler() {
+        this(AmazonDynamoDBClientBuilder.defaultClient(), EventBridgeClient.create(), new EchoMigrationService());
+    }
+
+    public EventBasedScanHandler(AmazonDynamoDB dynamoDbClient,
+                                 EventBridgeClient eventsClient,
+                                 UserMigrationService migrationService) {
         super(ScanDatabaseRequest.class);
         this.migrationService = migrationService;
-        this.dynamoDbClient = dynamoDbClient;
+        this.identityService = new IdentityServiceImpl(dynamoDbClient);
+        this.eventsClient = eventsClient;
     }
 
     @Override
-    protected ScanDatabaseRequest processInputPayload(
-        ScanDatabaseRequest input,
-        AwsEventBridgeEvent<AwsEventBridgeDetail<ScanDatabaseRequest>> event,
-        Context context) {
-        ScanRequest scanRequest = createScanRequest(input);
+    protected Void processInput(ScanDatabaseRequest scanDatabaseRequest,
+                                AwsEventBridgeEvent<ScanDatabaseRequest> event,
+                                Context context) {
 
-        List<UserDto> users = fetchOnePageOfUsers(scanRequest);
-        var migratedUsers = users.stream().map(migrationService::migrateUserDto).collect(Collectors.toList());
-        migratedUsers.forEach(user->logger.info("migratedUser:"+user.toJsonString()));
-        return notImportant();
+        var scanResult = identityService.fetchOnePageOfUsers(scanDatabaseRequest);
+        var migratedUsers = migrateUsers(scanResult.getRetrievedUsers());
+        migratedUsers.forEach(this::updateUser);
+        emitNexScanRequestIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
+        return VOID;
     }
 
-    private List<UserDto> fetchOnePageOfUsers(ScanRequest scanRequest) {
-        var result = dynamoDbClient.scan(scanRequest);
-        return result.getItems().stream()
-            .map(ItemUtils::toItem)
-            .filter(this::databaseEntyIsUser)
-            .map(Item::toJSON)
-            .map(attempt(this::parseDao))
-            .map(Try::orElseThrow)
-            .map(UserDb::toUserDto)
+    private void updateUser(UserDto user) {
+        try {
+            identityService.updateUser(user);
+        } catch (Exception e) {
+            logger.error(ExceptionUtils.stackTraceInSingleLine(e));
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void emitNexScanRequestIfThereAreMoreResults(UserScanResult scanResult,
+                                                         ScanDatabaseRequest inputRequest,
+                                                         Context context) {
+        if (scanResult.thereAreMoreEntries()) {
+            emitNextScanRequest(scanResult, inputRequest, context);
+        } else {
+            logger.info(END_OF_SCAN_MESSAGE);
+        }
+    }
+
+    private void emitNextScanRequest(UserScanResult scanResult, ScanDatabaseRequest inputRequest, Context context) {
+        var eventForNextScanRequest = creteEventForNextPageScan(inputRequest, scanResult, context);
+        eventsClient.putEvents(eventForNextScanRequest);
+        logger.info("nextEvent:" + eventForNextScanRequest);
+    }
+
+    private List<UserDto> migrateUsers(List<UserDto> users) {
+        return users
+            .stream()
+            .map(migrationService::migrateUser)
+            .peek(user -> logger.info("migratedUser:" + user.toJsonString()))
             .collect(Collectors.toList());
     }
 
-    private UserDb parseDao(String json) throws IOException {
-        return JsonUtils.dtoObjectMapper.readValue(json, UserDb.class);
+    private PutEventsRequest creteEventForNextPageScan(ScanDatabaseRequest inputScanRequest,
+                                                       UserScanResult scanResult,
+                                                       Context context) {
+        return attempt(() -> createNextScanRequest(inputScanRequest, scanResult))
+            .map(scanRequest -> createNewEventEntry(context, scanRequest))
+            .map(eventEntry -> PutEventsRequest.builder().entries(eventEntry).build())
+            .orElseThrow();
     }
 
-    private boolean databaseEntyIsUser(Item item) {
-        return item.getString(WithType.TYPE_FIELD).equals(UserDb.TYPE);
+    private PutEventsRequestEntry createNewEventEntry(Context context, ScanDatabaseRequest scanRequest) {
+        return scanRequest.createNewEventEntry(EventsConfig.EVENT_BUS,
+                                               EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE,
+                                               context.getInvokedFunctionArn());
     }
 
-    private ScanRequest createScanRequest(ScanDatabaseRequest input) {
-        var scanRequest = new ScanRequest()
-            .withTableName(USERS_AND_ROLES_TABLE)
-            .withLimit(input.getPageSize())
-            .withExclusiveStartKey(input.getStartMarker());
-        return scanRequest;
-    }
-
-    private ScanDatabaseRequest notImportant() {
-        return null;
+    private ScanDatabaseRequest createNextScanRequest(ScanDatabaseRequest input, UserScanResult scanResult) {
+        return input.newScanDatabaseRequest(scanResult.getStartMarkerForNextScan());
     }
 }

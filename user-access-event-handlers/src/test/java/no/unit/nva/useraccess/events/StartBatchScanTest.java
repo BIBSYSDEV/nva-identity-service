@@ -40,13 +40,13 @@ class StartBatchScanTest {
     }
 
     @Test
-    void shouldSendEventContainingTheEventTypeAndNullStartingPointWhenInputIsAnEmptyObject()
+    void shouldSendEventContainingTheEventTypeForBatchScanningAndNullStartingPointWhenInputIsAnEmptyObject()
         throws IOException {
         batchScanner.handleRequest(emptyInput(), outputStream, CONTEXT);
-        var emittedEventBody= extractEventBody();
+        var emittedEventBody = extractEventBody();
         var expectedEmittedEventBody = new ScanDatabaseRequest(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
-                                                    ScanDatabaseRequest.DEFAULT_PAGE_SIZE,
-                                                    null);
+                                                               ScanDatabaseRequest.DEFAULT_PAGE_SIZE,
+                                                               null);
         assertThat(emittedEventBody, is(equalTo(expectedEmittedEventBody)));
     }
 
@@ -54,7 +54,7 @@ class StartBatchScanTest {
     void shouldSendEventToEventBusDefinedInTheEnvironment()
         throws IOException {
         batchScanner.handleRequest(emptyInput(), outputStream, CONTEXT);
-        var actualEventBus= extractEventBus();
+        var actualEventBus = extractEventBus();
         var expectedEventBus = EventsConfig.EVENT_BUS;
         assertThat(actualEventBus, is(equalTo(expectedEventBus)));
     }

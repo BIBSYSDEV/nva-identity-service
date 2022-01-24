@@ -1019,6 +1019,8 @@ Resources:
         Variables:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           EVENT_BUS: !GetAtt InternalBus.Name
+          IDENTITY_SERVICE_SECRET_NAME: 'BareProxySecret'
+          IDENTITY_SERVICE_SECRET_KEY: 'BareProxySecretKey'
       Events:
         ScanIdentityServiceEvent:
           Type: EventBridgeRule
@@ -1079,6 +1081,19 @@ Resources:
             Action:
               - dynamodb:*
             Resource: !GetAtt UserRoleMappings.Arn
+  GetBareProxySecretPermission:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub GetBareProxySecretPermission-${AWS::StackName}
+      Roles:
+        - !Ref BatchScanRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BareProxySecret*'
   EventsLambdaPermissions:
     Type: AWS::IAM::Policy
     Properties:

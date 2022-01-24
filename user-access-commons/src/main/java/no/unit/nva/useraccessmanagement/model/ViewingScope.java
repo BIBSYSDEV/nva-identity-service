@@ -101,10 +101,14 @@ public class ViewingScope implements WithType {
     }
 
     private static Void validate(URI uri) throws BadRequestException {
-        if (hostIsNotExpectedHost(uri) || pathIsNotExpectedPath(uri)) {
+        if (isNotValidOrganizationId(uri)) {
             throw new BadRequestException(INVALID_VIEWING_SCOPE_URI_ERROR + uri);
         }
         return null;
+    }
+
+    public static Boolean isNotValidOrganizationId(URI uri) {
+        return pathIsNotExpectedPath(uri) || hostIsNotExpectedHost(uri);
     }
 
     private static boolean pathIsNotExpectedPath(URI uri) {

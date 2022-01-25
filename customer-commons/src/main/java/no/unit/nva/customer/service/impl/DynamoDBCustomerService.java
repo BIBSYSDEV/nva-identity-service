@@ -31,8 +31,10 @@ import org.slf4j.LoggerFactory;
 
 public class DynamoDBCustomerService implements CustomerService {
 
+
+
     public static final String CUSTOMERS_TABLE_NAME = "CUSTOMERS_TABLE_NAME";
-    public static final String BY_ORG_NUMBER_INDEX_NAME = "BY_ORG_NUMBER_INDEX_NAME";
+    public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
     public static final String ERROR_MAPPING_ITEM_TO_CUSTOMER = "Error mapping Item to Customer";
     public static final String ERROR_MAPPING_CUSTOMER_TO_ITEM = "Error mapping Customer to Item";
     public static final String ERROR_WRITING_ITEM_TO_TABLE = "Error writing Item to Table";
@@ -40,7 +42,7 @@ public class DynamoDBCustomerService implements CustomerService {
     public static final String ERROR_READING_FROM_TABLE = "Error reading from Table";
     public static final String IDENTIFIERS_NOT_EQUAL = "Identifier in request parameters '%s' "
                                                        + "is not equal to identifier in customer object '%s'";
-    public static final String BY_CRISTIN_ID_INDEX_NAME = "BY_CRISTIN_ID_INDEX_NAME";
+    public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
     public static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
                                                          + "DynamoDB connection";
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
@@ -60,13 +62,11 @@ public class DynamoDBCustomerService implements CustomerService {
                                    ObjectMapper objectMapper,
                                    Environment environment) {
         String tableName = environment.readEnv(CUSTOMERS_TABLE_NAME);
-        String byOrgNumberIndexName = environment.readEnv(BY_ORG_NUMBER_INDEX_NAME);
-        String byCristinIdIndexName = environment.readEnv(BY_CRISTIN_ID_INDEX_NAME);
         DynamoDB dynamoDB = new DynamoDB(client);
 
         this.table = dynamoDB.getTable(tableName);
-        this.byOrgNumberIndex = table.getIndex(byOrgNumberIndexName);
-        this.byCristinIdIndex = table.getIndex(byCristinIdIndexName);
+        this.byOrgNumberIndex = table.getIndex(BY_ORG_NUMBER_INDEX_NAME);
+        this.byCristinIdIndex = table.getIndex(BY_CRISTIN_ID_INDEX_NAME);
         this.objectMapper = objectMapper;
 
         warmupDynamoDbConnection(table);

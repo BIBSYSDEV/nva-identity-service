@@ -59,6 +59,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
         return VOID;
     }
 
+    @JacocoGenerated
     private static AmazonDynamoDB defaultDynamoSdk1Client() {
         return AmazonDynamoDBClientBuilder.standard()
             .withRegion(AWS_REGION)

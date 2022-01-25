@@ -2,6 +2,7 @@ package no.unit.nva.useraccess.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonUtils;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
@@ -23,6 +24,7 @@ public final class EventsConfig {
 
     }
 
+    @JacocoGenerated
     private static EventBridgeClient defaultEventBridgeClient() {
         return EventBridgeClient.builder()
             .region(Region.of(AWS_REGION))

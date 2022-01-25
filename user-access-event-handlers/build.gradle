@@ -14,6 +14,8 @@ dependencies {
 
     implementation libs.aws.lambda.java.core
     implementation libs.aws.sdk2.eventbridge
+    implementation libs.aws.sdk2.urlconnection
+
     implementation libs.aws.dynamodb
     implementation libs.nva.events
     implementation libs.nva.apigateway
@@ -28,6 +30,7 @@ dependencies {
 
 test {
     environment "API_HOST", "localhost"
+    environment "AWS_REGION", "eu-west-1"
     environment "EVENT_BUS", "eventBus"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "BARE_PROXY_SECRET_NAME", "bareProxysecretName"

@@ -1,5 +1,6 @@
 package no.unit.nva.useraccess.events;
 
+import static no.unit.nva.useraccess.events.EventsConfig.EVENTS_CLIENT;
 import static no.unit.nva.useraccess.events.EventsConfig.EVENT_BUS;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
 import static no.unit.nva.useraccess.events.EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE;
@@ -21,14 +22,14 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
 public class StartBatchScan implements RequestStreamHandler {
 
-    public static final Map<String, AttributeValue> START_FROM_BEGINNING = null;
+    private static final Map<String, AttributeValue> START_FROM_BEGINNING = null;
 
     private static final Logger logger = LoggerFactory.getLogger(StartBatchScan.class);
     private final EventBridgeClient eventClient;
 
     @JacocoGenerated
     public StartBatchScan() {
-        this(EventBridgeClient.create());
+        this(EVENTS_CLIENT);
     }
 
     public StartBatchScan(EventBridgeClient eventClient) {
@@ -40,7 +41,7 @@ public class StartBatchScan implements RequestStreamHandler {
         var requestSentByUser = parseUserInput(input);
         var requestWithTopic = createEventAsExpectedByEventListener(requestSentByUser);
         emitEvent(context, requestWithTopic);
-        logger.info("Emitted request:" + requestWithTopic.toJsonString());
+        logger.info("Emitted request {}", requestWithTopic.toJsonString());
     }
 
     private ScanDatabaseRequest parseUserInput(InputStream input) throws IOException {

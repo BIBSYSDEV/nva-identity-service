@@ -14,7 +14,7 @@ public final class EventsConfig {
     public static final String IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC = "IdentityService.IdentityEntry.ScanAndUpdate";
     public static final String SCAN_REQUEST_EVENTS_DETAIL_TYPE = "topicInDetailType";
     public static final ObjectMapper objectMapper = JsonUtils.dtoObjectMapper;
-    private static final Environment ENVIRONMENT = new Environment();
+    public static final Environment ENVIRONMENT = new Environment();
     public static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
     public static final String AWS_REGION = ENVIRONMENT.readEnv("AWS_REGION");
 

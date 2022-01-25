@@ -1,5 +1,6 @@
 package no.unit.nva.customer;
 
+import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
@@ -12,8 +13,6 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-
-import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 
 @JacocoGenerated
 public final class Constants {

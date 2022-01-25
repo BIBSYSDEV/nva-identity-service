@@ -421,8 +421,6 @@ Resources:
       Environment:
         Variables:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
 
@@ -665,8 +663,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -687,8 +683,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
 
       Policies:
@@ -710,8 +704,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -732,8 +724,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -754,8 +744,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -776,8 +764,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -798,8 +784,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -820,8 +804,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -842,8 +824,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -915,8 +895,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -1018,8 +996,6 @@ Resources:
           IDENTITY_SERVICE_SECRET_NAME: 'BareProxySecret'
           IDENTITY_SERVICE_SECRET_KEY: 'BareProxySecretKey'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
-          BY_CRISTIN_ID_INDEX_NAME: byCristinId
       Events:
         ScanIdentityServiceEvent:
           Type: EventBridgeRule

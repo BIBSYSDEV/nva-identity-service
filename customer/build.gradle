@@ -8,7 +8,6 @@ dependencies {
 
     implementation libs.nva.apigateway
 
-//    implementation libs.bundles.jackson
     implementation libs.bundles.aws.lambda
     implementation libs.aws.dynamodb
     implementation libs.guava
@@ -19,6 +18,4 @@ dependencies {
 
 test{
     environment "CUSTOMERS_TABLE_NAME","nva_customers"
-    environment "BY_ORG_NUMBER_INDEX_NAME", "byOrgNumber"
-    environment "BY_CRISTIN_ID_INDEX_NAME", "byCristinId"
 }

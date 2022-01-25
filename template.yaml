@@ -1055,7 +1055,10 @@ Resources:
           - Effect: Allow
             Action:
               - dynamodb:*
-            Resource: !GetAtt UserRoleMappings.Arn
+            Resource:
+              - !GetAtt UserRoleMappings.Arn
+              - !GetAtt NvaCustomersTable.Arn
+
   GetBareProxySecretPermission:
     Type: AWS::IAM::Policy
     Properties:

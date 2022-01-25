@@ -8,15 +8,18 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.util.List;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.events.models.ScanDatabaseRequest;
-import no.unit.nva.useraccess.events.service.EchoMigrationService;
+import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
 import no.unit.nva.useraccess.events.service.UserMigrationService;
+import no.unit.nva.useraccess.events.service.UserMigrationServiceImpl;
 import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.JsonUtils;
 import nva.commons.core.exceptions.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +37,22 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
     private final IdentityServiceImpl identityService;
 
     @JacocoGenerated
-    public EventBasedScanHandler() {
-        this(defaultDynamoSdk1Client(), EventsConfig.EVENTS_CLIENT, new EchoMigrationService());
+    public EventBasedScanHandler(){
+        this(defaultDynamoSdk1Client());
+    }
+
+    @JacocoGenerated
+    public EventBasedScanHandler(AmazonDynamoDB dynamoDBClient) {
+        this(dynamoDBClient, EventsConfig.EVENTS_CLIENT, defaultMigrationService(dynamoDBClient));
+    }
+
+    @JacocoGenerated
+    private static UserMigrationServiceImpl defaultMigrationService(
+        AmazonDynamoDB dynamoDBClient) {
+        DynamoDBCustomerService customerService = new DynamoDBCustomerService(dynamoDBClient,
+                                                                              JsonUtils.dynamoObjectMapper,
+                                                                              EventsConfig.ENVIRONMENT);
+        return new UserMigrationServiceImpl(customerService, new BareProxyClientImpl());
     }
 
     public EventBasedScanHandler(AmazonDynamoDB dynamoDbClient,
@@ -59,6 +76,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
         return VOID;
     }
 
+    @JacocoGenerated
     private static AmazonDynamoDB defaultDynamoSdk1Client() {
         return AmazonDynamoDBClientBuilder.standard()
             .withRegion(AWS_REGION)

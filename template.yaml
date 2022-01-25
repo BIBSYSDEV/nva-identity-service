@@ -1004,11 +1004,7 @@ Resources:
       Environment:
         Variables:
           EVENT_BUS: !GetAtt InternalBus.Name
-  #      EventInvokeConfig:
-  #        DestinationConfig:
-  #          OnSuccess:
-  #            Type: EventBridge
-  #            Destination: !GetAtt InternalBus.Arn
+
   EventBasedBatchScanHandler:
     Type: AWS::Serverless::Function
     Properties:

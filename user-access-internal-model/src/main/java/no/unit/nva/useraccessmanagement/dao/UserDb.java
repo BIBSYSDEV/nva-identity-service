@@ -7,6 +7,7 @@ import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SE
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -41,7 +42,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     @JsonProperty("username")
     private String username;
     @JsonProperty("institution")
-    private String institution;
+    private URI institution;
     @JsonProperty("roles")
     private Set<RoleDb> roles;
     @JsonProperty("givenName")
@@ -138,7 +139,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     @JacocoGenerated
     @JsonProperty(SECONDARY_INDEX_1_HASH_KEY)
     public String getSearchByInstitutionHashKey() {
-        return this.getInstitution();
+        return Optional.ofNullable(this.getInstitution()).map(URI::toString).orElse(null);
     }
 
     @JacocoGenerated
@@ -215,7 +216,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @JacocoGenerated
-    public String getInstitution() {
+    public URI getInstitution() {
         return institution;
     }
 
@@ -224,7 +225,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      *
      * @param institution the institution.
      */
-    public void setInstitution(String institution) {
+    public void setInstitution(URI institution) {
         this.institution = institution;
     }
 
@@ -336,7 +337,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             return this;
         }
 
-        public Builder withInstitution(String institution) {
+        public Builder withInstitution(URI institution) {
             userDb.setInstitution(institution);
             return this;
         }

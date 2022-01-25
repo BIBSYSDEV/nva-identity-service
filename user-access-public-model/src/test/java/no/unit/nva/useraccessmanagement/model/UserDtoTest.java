@@ -49,7 +49,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class UserDtoTest extends DtoTest {
 
     public static final Set<RoleDto> sampleRoles = createSampleRoles();
-    public static final String SOME_INSTITUTION = "someInstitution";
+    public static final URI SOME_INSTITUTION = randomUri();
     public static final String SOME_OTHER_ROLENAME = "SomeOtherRolename";
     protected static final String USER_TYPE_LITERAL = "User";
     private static final String FIRST_ACCESS_RIGHT = "ApproveDoi";
@@ -96,7 +96,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    public void getAccessRightsReturnsAccessRightsWithoutDuplicates() throws InvalidInputException {
+    public void getAccessRightsReturnsAccessRightsWithoutDuplicates() {
         final UserDto user = createUserWithRoleWithoutInstitution();
         final Set<String> expectedAccessRights = new HashSet<>(user.getAccessRights());
         List<RoleDto> newRoles = duplicateRoles(user);
@@ -139,7 +139,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void builderReturnsUserDtoWhenInstitutionIsEmpty() throws InvalidInputException {
+    void builderReturnsUserDtoWhenInstitutionIsEmpty() {
         UserDto user = createUserWithRoleWithoutInstitution();
         assertThat(user.getUsername(), is(equalTo(SOME_USERNAME)));
         assertThat(user.getRoles(), is(equalTo(sampleRoles)));

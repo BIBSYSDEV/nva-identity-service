@@ -6,6 +6,7 @@ import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
 import static no.unit.nva.handlers.UpdateUserHandler.INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR;
 import static no.unit.nva.handlers.UpdateUserHandler.LOCATION_HEADER;
 import static no.unit.nva.handlers.UpdateUserHandler.USERNAME_PATH_PARAMETER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.useraccessmanagement.model.UserDto.VIEWING_SCOPE_FIELD;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDED_UNITS;
@@ -22,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import no.unit.nva.Constants;
@@ -51,7 +53,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     public static final String SAMPLE_ROLE = "someRole";
     public static final String SAMPLE_USERNAME = "some@somewhere";
-    public static final String SAMPLE_INSTITUTION = "somewhere";
+    public static final URI SAMPLE_INSTITUTION = randomUri();
     public static final String ANOTHER_ROLE = "ANOTHER_ROLE";
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
     private IdentityServiceImpl databaseService;

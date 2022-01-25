@@ -4,6 +4,7 @@ import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,7 +32,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
 
     @JsonProperty(USERNAME_FIELD)
     private String username;
-    private String institution;
+    private URI institution;
     private String givenName;
     private String familyName;
     @JsonProperty(VIEWING_SCOPE_FIELD)
@@ -88,11 +89,11 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
         this.familyName = familyName;
     }
 
-    public String getInstitution() {
+    public URI getInstitution() {
         return institution;
     }
 
-    private void setInstitution(String institution) {
+    private void setInstitution(URI institution) {
         this.institution = institution;
     }
 
@@ -183,7 +184,7 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
             }).orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));
         }
 
-        public Builder withInstitution(String institution) {
+        public Builder withInstitution(URI institution) {
             userDto.setInstitution(institution);
             return this;
         }

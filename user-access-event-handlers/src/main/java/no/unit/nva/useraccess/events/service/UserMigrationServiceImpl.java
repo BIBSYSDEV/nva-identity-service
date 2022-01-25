@@ -1,14 +1,13 @@
 package no.unit.nva.useraccess.events.service;
 
+import static nva.commons.core.attempt.Try.attempt;
+import java.net.URI;
+import java.util.UUID;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
-
-import java.net.URI;
-import java.util.UUID;
-
-import static nva.commons.core.attempt.Try.attempt;
+import nva.commons.core.paths.UriWrapper;
 
 public class UserMigrationServiceImpl implements UserMigrationService {
 
@@ -37,8 +36,8 @@ public class UserMigrationServiceImpl implements UserMigrationService {
             var systemControlNumber = authority.get().getSystemControlNumber();
             var organizationIds = authority.get().getOrganizationIds();
             organizationIds.stream()
-                    .filter(ViewingScope::isNotValidOrganizationId)
-                    .forEach(uri -> deleteFromAuthority(systemControlNumber, uri));
+                .filter(ViewingScope::isNotValidOrganizationId)
+                .forEach(uri -> deleteFromAuthority(systemControlNumber, uri));
         }
     }
 
@@ -47,7 +46,11 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     }
 
     private UUID getCustomerIdentifier(UserDto user) {
-        return UUID.fromString(user.getInstitution());
+        return attempt(user::getInstitution)
+            .map(UriWrapper::new)
+            .map(UriWrapper::getFilename)
+            .map(UUID::fromString)
+            .orElseThrow();
     }
 
     private void resetViewingScope(UserDto user, URI organizationId) {

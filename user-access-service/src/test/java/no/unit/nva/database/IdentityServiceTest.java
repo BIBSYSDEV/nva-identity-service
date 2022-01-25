@@ -14,6 +14,7 @@ import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,6 +32,7 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemUtils;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -64,9 +66,9 @@ public class IdentityServiceTest extends DatabaseAccessor {
     private static final String SOME_OTHER_USERNAME = "someotherusername";
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
-    private static final String SOME_INSTITUTION = "SomeInstitution";
+    private static final URI SOME_INSTITUTION = randomUri();
     private static final String SOME_OTHER_ROLE = "SOME_OTHER_ROLE";
-    private static final String SOME_OTHER_INSTITUTION = "Some other institution";
+    private static final URI SOME_OTHER_INSTITUTION = randomUri();
     private IdentityService identityService;
 
     @BeforeEach
@@ -389,7 +391,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
     private void createSampleUsers(int numberOfUsers)
         throws InvalidInputException, ConflictException, BadRequestException, NotFoundException {
         for (int counter = 0; counter < numberOfUsers; counter++) {
-            createSampleUserAndAddUserToDb(randomString(), randomString(), randomString());
+            createSampleUserAndAddUserToDb(randomString(), randomUri(), randomString());
         }
     }
 
@@ -443,7 +445,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
             .build();
     }
 
-    private UserDto createUserWithRole(String someUsername, String someInstitution, RoleDto existingRole)
+    private UserDto createUserWithRole(String someUsername, URI someInstitution, RoleDto existingRole)
         throws InvalidEntryInternalException, BadRequestException {
         return UserDto.newBuilder().withUsername(someUsername)
             .withInstitution(someInstitution)
@@ -469,7 +471,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
         return existingUser.copy().withRoles(Collections.singletonList(someOtherRole)).build();
     }
 
-    private UserDto createSampleUserAndAddUserToDb(String username, String institution, String roleName)
+    private UserDto createSampleUserAndAddUserToDb(String username, URI institution, String roleName)
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, BadRequestException,
                NotFoundException {
         UserDto userDto = createSampleUser(username, institution, roleName);
@@ -490,7 +492,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
         }
     }
 
-    private UserDto createSampleUser(String username, String institution, String roleName)
+    private UserDto createSampleUser(String username, URI institution, String roleName)
         throws InvalidEntryInternalException, BadRequestException {
         return UserDto.newBuilder()
             .withRoles(createRoleList(roleName))

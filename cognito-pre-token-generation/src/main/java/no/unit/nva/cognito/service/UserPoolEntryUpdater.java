@@ -75,7 +75,7 @@ public class UserPoolEntryUpdater {
         List<AttributeType> userAttributeTypes = new ArrayList<>();
 
         if (user.getInstitution() != null) {
-            userAttributeTypes.add(toAttributeType(CUSTOM_CUSTOMER_ID, user.getInstitution()));
+            userAttributeTypes.add(toAttributeType(CUSTOM_CUSTOMER_ID, user.getInstitution().toString()));
         }
         userDetails.getCristinId()
             .ifPresent(cristinId -> userAttributeTypes.add(toAttributeType(CUSTOM_CRISTIN_ID, cristinId)));

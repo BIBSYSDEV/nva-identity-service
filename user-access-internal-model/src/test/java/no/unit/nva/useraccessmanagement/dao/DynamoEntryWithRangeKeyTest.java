@@ -2,12 +2,13 @@ package no.unit.nva.useraccessmanagement.dao;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.DO_NOT_INCLUDE_NESTED_UNITS;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.amazonaws.services.dynamodbv2.document.Item;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
@@ -26,7 +27,7 @@ class DynamoEntryWithRangeKeyTest {
     public static final String SOME_FAMILY_NAME = "SomeFamilyName";
     public static final String SOME_USER_NAME = "SomeUserName";
     public static final String SOME_ROLE_NAME = "SomeRole";
-    public static final String SOME_INSTITUTION = "SomeInstitution";
+    public static final URI SOME_INSTITUTION = randomUri();
 
     @Test
     public void fromItemReturnsEntryWithoutDataLoss() throws InvalidEntryInternalException, BadRequestException {

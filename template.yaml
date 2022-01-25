@@ -993,8 +993,8 @@ Resources:
         Variables:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           EVENT_BUS: !GetAtt InternalBus.Name
-          IDENTITY_SERVICE_SECRET_NAME: 'BareProxySecret'
-          IDENTITY_SERVICE_SECRET_KEY: 'BareProxySecretKey'
+          BARE_PROXY_SECRET_NAME: 'BareProxySecret'
+          BARE_PROXY_SECRET_KEY: 'BareProxySecretKey'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
       Events:
         ScanIdentityServiceEvent:

@@ -1,6 +1,8 @@
 package no.unit.nva.useraccess.events;
 
+import static no.unit.nva.useraccess.events.EventsConfig.AWS_REGION;
 import static nva.commons.core.attempt.Try.attempt;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -25,15 +27,15 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Void> {
 
     public static final Void VOID = null;
-    private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
     public static final String END_OF_SCAN_MESSAGE = "Last event was processed.";
+    private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
     private final UserMigrationService migrationService;
     private final EventBridgeClient eventsClient;
     private final IdentityServiceImpl identityService;
 
     @JacocoGenerated
     public EventBasedScanHandler() {
-        this(AmazonDynamoDBClientBuilder.defaultClient(), EventBridgeClient.create(), new EchoMigrationService());
+        this(defaultDynamoSdk1Client(), EventsConfig.EVENTS_CLIENT, new EchoMigrationService());
     }
 
     public EventBasedScanHandler(AmazonDynamoDB dynamoDbClient,
@@ -55,6 +57,13 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
         migratedUsers.forEach(this::updateUser);
         emitNexScanRequestIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
         return VOID;
+    }
+
+    private static AmazonDynamoDB defaultDynamoSdk1Client() {
+        return AmazonDynamoDBClientBuilder.standard()
+            .withRegion(AWS_REGION)
+            .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
+            .build();
     }
 
     private void updateUser(UserDto user) {

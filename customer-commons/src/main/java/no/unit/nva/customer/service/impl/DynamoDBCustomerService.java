@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class DynamoDBCustomerService implements CustomerService {
 
-    public static final String TABLE_NAME = "TABLE_NAME";
+    public static final String CUSTOMERS_TABLE_NAME = "CUSTOMERS_TABLE_NAME";
     public static final String BY_ORG_NUMBER_INDEX_NAME = "BY_ORG_NUMBER_INDEX_NAME";
     public static final String ERROR_MAPPING_ITEM_TO_CUSTOMER = "Error mapping Item to Customer";
     public static final String ERROR_MAPPING_CUSTOMER_TO_ITEM = "Error mapping Customer to Item";
@@ -59,7 +59,7 @@ public class DynamoDBCustomerService implements CustomerService {
     public DynamoDBCustomerService(AmazonDynamoDB client,
                                    ObjectMapper objectMapper,
                                    Environment environment) {
-        String tableName = environment.readEnv(TABLE_NAME);
+        String tableName = environment.readEnv(CUSTOMERS_TABLE_NAME);
         String byOrgNumberIndexName = environment.readEnv(BY_ORG_NUMBER_INDEX_NAME);
         String byCristinIdIndexName = environment.readEnv(BY_CRISTIN_ID_INDEX_NAME);
         DynamoDB dynamoDB = new DynamoDB(client);

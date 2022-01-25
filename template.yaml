@@ -420,7 +420,7 @@ Resources:
       Timeout: 10
       Environment:
         Variables:
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -664,7 +664,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -686,7 +686,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -709,7 +709,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -731,7 +731,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -753,7 +753,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -775,7 +775,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -797,7 +797,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -819,7 +819,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -841,7 +841,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -914,7 +914,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref NvaCustomersTable
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           BY_ORG_NUMBER_INDEX_NAME: byOrgNumber
           BY_CRISTIN_ID_INDEX_NAME: byCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -1017,6 +1017,7 @@ Resources:
           EVENT_BUS: !GetAtt InternalBus.Name
           IDENTITY_SERVICE_SECRET_NAME: 'BareProxySecret'
           IDENTITY_SERVICE_SECRET_KEY: 'BareProxySecretKey'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
       Events:
         ScanIdentityServiceEvent:
           Type: EventBridgeRule

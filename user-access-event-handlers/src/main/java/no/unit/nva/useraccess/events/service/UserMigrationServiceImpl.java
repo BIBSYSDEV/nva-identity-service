@@ -25,8 +25,8 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     @Override
     public UserDto migrateUser(UserDto user) {
         var customerIdentifier = getCustomerIdentifier(user);
+        logger.trace("Updating user:{}", user.getUsername());
         var organizationId = getOrganizationId(customerIdentifier);
-        logger.trace("Updating user:{}",user.getUsername());
         removeOldPatternOrganizationIds(user.getUsername());
         resetViewingScope(user, organizationId);
 
@@ -53,7 +53,16 @@ public class UserMigrationServiceImpl implements UserMigrationService {
             .map(UriWrapper::new)
             .map(UriWrapper::getFilename)
             .map(UUID::fromString)
-            .orElseThrow();
+            .orElseThrow(f -> logInvalidInstitutionUriAndThrowException(f.getException(), user));
+    }
+
+    private RuntimeException logInvalidInstitutionUriAndThrowException(Exception exception, UserDto user) {
+        logger.error("Customer Id {} is invalid for user {}", user.getInstitution(), user.getUsername());
+        if (exception instanceof RuntimeException) {
+            return (RuntimeException) exception;
+        } else {
+            return new RuntimeException(exception);
+        }
     }
 
     private void resetViewingScope(UserDto user, URI organizationId) {

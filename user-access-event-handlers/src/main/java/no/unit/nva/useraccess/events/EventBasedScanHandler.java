@@ -37,22 +37,13 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
     private final IdentityServiceImpl identityService;
 
     @JacocoGenerated
-    public EventBasedScanHandler(){
+    public EventBasedScanHandler() {
         this(defaultDynamoSdk1Client());
     }
 
     @JacocoGenerated
     public EventBasedScanHandler(AmazonDynamoDB dynamoDBClient) {
         this(dynamoDBClient, EventsConfig.EVENTS_CLIENT, defaultMigrationService(dynamoDBClient));
-    }
-
-    @JacocoGenerated
-    private static UserMigrationServiceImpl defaultMigrationService(
-        AmazonDynamoDB dynamoDBClient) {
-        DynamoDBCustomerService customerService = new DynamoDBCustomerService(dynamoDBClient,
-                                                                              JsonUtils.dynamoObjectMapper,
-                                                                              EventsConfig.ENVIRONMENT);
-        return new UserMigrationServiceImpl(customerService, new BareProxyClientImpl());
     }
 
     public EventBasedScanHandler(AmazonDynamoDB dynamoDbClient,
@@ -74,6 +65,15 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
         migratedUsers.forEach(this::updateUser);
         emitNexScanRequestIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
         return VOID;
+    }
+
+    @JacocoGenerated
+    private static UserMigrationServiceImpl defaultMigrationService(
+        AmazonDynamoDB dynamoDBClient) {
+        DynamoDBCustomerService customerService = new DynamoDBCustomerService(dynamoDBClient,
+                                                                              JsonUtils.dynamoObjectMapper,
+                                                                              EventsConfig.ENVIRONMENT);
+        return new UserMigrationServiceImpl(customerService, new BareProxyClientImpl());
     }
 
     @JacocoGenerated

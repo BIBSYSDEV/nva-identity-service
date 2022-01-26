@@ -1,28 +1,5 @@
 package no.unit.nva.useraccess.events.service;
 
-import java.util.UUID;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.useraccess.events.client.BareProxyClient;
-import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
-import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
-import nva.commons.secrets.ErrorReadingSecretException;
-import nva.commons.secrets.SecretsReader;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
-import java.util.List;
-
-import static java.util.UUID.randomUUID;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccess.events.client.BareProxyClientImpl.ERROR_READING_SECRETS_ERROR;
@@ -38,6 +15,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.UUID;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.useraccess.events.client.BareProxyClient;
+import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
+import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
+import no.unit.nva.useraccessmanagement.model.UserDto;
+import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.TestAppender;
+import nva.commons.secrets.ErrorReadingSecretException;
+import nva.commons.secrets.SecretsReader;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 public class UserMigrationServiceTest {
 
@@ -80,7 +77,7 @@ public class UserMigrationServiceTest {
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
 
-        verify(httpClientMock, times(2)).send(any(),any());
+        verify(httpClientMock, times(2)).send(any(), any());
     }
 
     @Test
@@ -92,7 +89,7 @@ public class UserMigrationServiceTest {
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
 
-        verify(httpClientMock, times(1)).send(any(),any());
+        verify(httpClientMock, times(1)).send(any(), any());
     }
 
     @Test
@@ -104,7 +101,7 @@ public class UserMigrationServiceTest {
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
 
-        verify(httpClientMock, times(2)).send(any(),any());
+        verify(httpClientMock, times(2)).send(any(), any());
     }
 
     @Test
@@ -116,7 +113,7 @@ public class UserMigrationServiceTest {
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
 
-        verify(httpClientMock, times(1)).send(any(),any());
+        verify(httpClientMock, times(1)).send(any(), any());
     }
 
     @Test
@@ -127,6 +124,21 @@ public class UserMigrationServiceTest {
         Executable action = () -> new BareProxyClientImpl(secretsReader, httpClient);
         assertThrows(RuntimeException.class, action);
         assertThat(appender.getMessages(), containsString(ERROR_READING_SECRETS_ERROR));
+    }
+
+    @Test
+    void shouldLogMessageWhenCustomerIdentifierIsNotValidUuid() {
+        final TestAppender appender = LogUtils.getTestingAppenderForRootLogger();
+        var user = createSampleUserWithInvalidCustomerId();
+        var customerIdExpectedInLogMessage = user.getInstitution().toString();
+        var usernameExpectedInLogMessage = user.getUsername();
+        assertThrows(RuntimeException.class, () -> userMigrationService.migrateUser(user));
+        assertThat(appender.getMessages(), containsString(customerIdExpectedInLogMessage));
+        assertThat(appender.getMessages(), containsString(usernameExpectedInLogMessage));
+    }
+
+    private UserDto createSampleUserWithInvalidCustomerId() {
+        return createSampleUser().copy().withInstitution(randomUri()).build();
     }
 
     private SecretsReader failingSecretsReader() throws ErrorReadingSecretException {
@@ -142,8 +154,8 @@ public class UserMigrationServiceTest {
         HttpResponse<String> okResponseWithoutBody = mock(HttpResponse.class);
         when(okResponseWithoutBody.statusCode()).thenReturn(HttpURLConnection.HTTP_OK);
         when(httpClientMock.<String>send(any(), any()))
-                .thenReturn(okResponseWithBody)
-                .thenReturn(okResponseWithoutBody);
+            .thenReturn(okResponseWithBody)
+            .thenReturn(okResponseWithoutBody);
     }
 
     private void prepareNotFoundResponse() throws IOException, InterruptedException {
@@ -159,8 +171,8 @@ public class UserMigrationServiceTest {
         HttpResponse<String> badGatewayResponse = mock(HttpResponse.class);
         when(badGatewayResponse.statusCode()).thenReturn(HttpURLConnection.HTTP_BAD_GATEWAY);
         when(httpClientMock.<String>send(any(), any()))
-                .thenReturn(okResponse)
-                .thenReturn(badGatewayResponse);
+            .thenReturn(okResponse)
+            .thenReturn(badGatewayResponse);
     }
 
     private SimpleAuthorityResponse createSampleAuthorityResponseWithInvalidOrganizationId() {
@@ -179,17 +191,17 @@ public class UserMigrationServiceTest {
 
     private CustomerDto createSampleCustomer() {
         return CustomerDto.builder()
-                .withCristinId(SAMPLE_ORG_ID.toString())
-                .build();
+            .withCristinId(SAMPLE_ORG_ID.toString())
+            .build();
     }
 
     private UserDto createSampleUser() {
         return UserDto.newBuilder()
-                .withUsername(randomString())
-                .withGivenName(randomString())
-                .withFamilyName(randomString())
-                .withInstitution(randomInstitutionUri())
-                .build();
+            .withUsername(randomString())
+            .withGivenName(randomString())
+            .withFamilyName(randomString())
+            .withInstitution(randomInstitutionUri())
+            .build();
     }
 
     private URI randomInstitutionUri() {

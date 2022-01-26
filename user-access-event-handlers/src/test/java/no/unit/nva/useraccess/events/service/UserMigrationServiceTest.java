@@ -8,6 +8,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -36,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
-public class UserMigrationServiceTest {
+class UserMigrationServiceTest {
 
     private static final URI SAMPLE_ORG_ID = URI.create("https://localhost/cristin/organization/123.0.0.0");
 
@@ -132,7 +133,7 @@ public class UserMigrationServiceTest {
         var user = createSampleUserWithInvalidCustomerId();
         var customerIdExpectedInLogMessage = user.getInstitution().toString();
         var usernameExpectedInLogMessage = user.getUsername();
-        assertThrows(RuntimeException.class, () -> userMigrationService.migrateUser(user));
+        assertDoesNotThrow(() -> userMigrationService.migrateUser(user));
         assertThat(appender.getMessages(), containsString(customerIdExpectedInLogMessage));
         assertThat(appender.getMessages(), containsString(usernameExpectedInLogMessage));
     }

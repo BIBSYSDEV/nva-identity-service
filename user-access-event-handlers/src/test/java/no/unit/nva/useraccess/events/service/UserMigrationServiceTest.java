@@ -1,5 +1,6 @@
 package no.unit.nva.useraccess.events.service;
 
+import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
@@ -187,8 +188,11 @@ public class UserMigrationServiceTest {
                 .withUsername(randomString())
                 .withGivenName(randomString())
                 .withFamilyName(randomString())
-                .withInstitution(randomUUID().toString())
+                .withInstitution(randomInstitutionUri())
                 .build();
     }
 
+    private URI randomInstitutionUri() {
+        return URI.create("https://www.example.com/" + UUID.randomUUID());
+    }
 }

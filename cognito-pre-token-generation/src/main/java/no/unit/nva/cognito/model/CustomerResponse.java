@@ -2,21 +2,22 @@ package no.unit.nva.cognito.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
 
 public class CustomerResponse {
 
-    private final String customerId;
+    private final URI customerId;
     private final String cristinId;
 
     @JsonCreator
     public CustomerResponse(
-        @JsonProperty("customerId") String customerId,
+        @JsonProperty("customerId") URI customerId,
         @JsonProperty("cristinId") String cristinId) {
         this.customerId = customerId;
         this.cristinId = cristinId;
     }
 
-    public String getCustomerId() {
+    public URI getCustomerId() {
         return customerId;
     }
 

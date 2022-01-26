@@ -33,12 +33,12 @@ public class RoleDbTest {
     }
 
     @Test
-    public void getPrimaryHashKeyReturnsStringContainingTypeRole() {
+    void getPrimaryHashKeyReturnsStringContainingTypeRole() {
         assertThat(sampleRole.getPrimaryHashKey(), containsString(RoleDb.TYPE));
     }
 
     @Test
-    public void equalsComparesAllFields() throws InvalidEntryInternalException {
+    void equalsComparesAllFields() throws InvalidEntryInternalException {
         RoleDb left = sampleRole;
         RoleDb right = sampleRole.copy().build();
         assertThat(sampleRole, doesNotHaveNullOrEmptyFields());
@@ -46,7 +46,7 @@ public class RoleDbTest {
     }
 
     @Test
-    public void equalsReturnsFalseWhenNameIsDifferent() throws InvalidEntryInternalException {
+    void equalsReturnsFalseWhenNameIsDifferent() throws InvalidEntryInternalException {
         RoleDb left = sampleRole;
         RoleDb right = sampleRole.copy().withName("SomeOtherName").build();
 
@@ -54,7 +54,7 @@ public class RoleDbTest {
     }
 
     @Test
-    public void equalsReturnsFalseWhenAccessRightListIsDifferent() throws InvalidEntryInternalException {
+    void equalsReturnsFalseWhenAccessRightListIsDifferent() throws InvalidEntryInternalException {
 
         Set<AccessRight> differentAccessRights = Collections.singleton(AccessRight.REJECT_DOI_REQUEST);
         assertThat(sampleRole.getAccessRights().containsAll(differentAccessRights), is(equalTo(false)));

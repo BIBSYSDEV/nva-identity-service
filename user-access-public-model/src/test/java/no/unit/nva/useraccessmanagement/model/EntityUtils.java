@@ -1,11 +1,13 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -17,7 +19,7 @@ public final class EntityUtils {
 
     public static final String SOME_USERNAME = "SomeUsername";
     public static final String SOME_ROLENAME = "SomeRole";
-    public static final String SOME_INSTITUTION = "SomeInstitution";
+    public static final URI SOME_INSTITUTION = randomUri();
     public static final String EMPTY_STRING = "";
     public static final Set<String> SAMPLE_ACCESS_RIGHTS =
         Collections.singleton("APPROVE_DOI_REQUEST");
@@ -101,7 +103,7 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
     public static UserDto createUserWithRolesAndInstitutionAndViewingScope()
-        throws InvalidEntryInternalException, InvalidInputException, BadRequestException {
+        throws InvalidEntryInternalException, BadRequestException {
         return createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .withViewingScope(randomViewingScope())

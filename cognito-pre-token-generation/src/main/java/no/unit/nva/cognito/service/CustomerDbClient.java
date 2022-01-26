@@ -34,7 +34,7 @@ public class CustomerDbClient implements CustomerApi {
 
     private CustomerResponse toCustomerResponse(CustomerDto customerDto) {
         return new CustomerResponse(
-            customerDto.getId().toString(),
+            customerDto.getId(),
             customerDto.getCristinId()
         );
     }

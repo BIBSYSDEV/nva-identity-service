@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +39,7 @@ import org.junit.jupiter.api.function.Executable;
 class ListByInstitutionHandlerTest extends HandlerTest {
 
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
-    public static final String SOME_OTHER_INSTITUTION = "SomeOtherInstitution";
+    public static final URI SOME_OTHER_INSTITUTION = randomUri();
     private ListByInstitutionHandler listByInstitutionHandler;
     private Context context;
 
@@ -49,7 +51,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsOkUponSuccessfulRequest() throws IOException {
+    void handleRequestReturnsOkUponSuccessfulRequest() throws IOException {
         InputStream validRequest = createListRequest(DEFAULT_INSTITUTION);
 
         ByteArrayOutputStream output = sendRequestToHandler(validRequest);
@@ -59,7 +61,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsListOfUsersGivenAnInstitution()
+    void handleRequestReturnsListOfUsersGivenAnInstitution()
         throws IOException, ConflictException, InvalidEntryInternalException, InvalidInputException {
         UserList expectedUsers = insertTwoUsersOfSameInstitution();
 
@@ -74,7 +76,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsListOfUsersContainingOnlyUsersOfGivenInstitution()
+    void handleRequestReturnsListOfUsersContainingOnlyUsersOfGivenInstitution()
         throws IOException, ConflictException, InvalidEntryInternalException, InvalidInputException {
         UserList insertedUsers = insertTwoUsersOfDifferentInstitutions();
 
@@ -93,7 +95,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsEmptyListOfUsersWhenNoUsersOfSpecifiedInstitutionAreFound()
+    void handleRequestReturnsEmptyListOfUsersWhenNoUsersOfSpecifiedInstitutionAreFound()
         throws IOException, ConflictException, InvalidEntryInternalException, InvalidInputException {
         insertTwoUsersOfSameInstitution();
 
@@ -107,7 +109,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void processInputThrowsIllegalStateExceptionWhenPathParameterIsMissing() {
+    void processInputThrowsIllegalStateExceptionWhenPathParameterIsMissing() {
         RequestInfo requestInfo = new RequestInfo();
 
         Executable action = () -> listByInstitutionHandler.processInput(null, requestInfo, context);
@@ -175,8 +177,8 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         return new ByteArrayOutputStream();
     }
 
-    private InputStream createListRequest(String institutionId) throws JsonProcessingException {
-        Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId);
+    private InputStream createListRequest(URI institutionId) throws JsonProcessingException {
+        Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString());
         return new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
             .withQueryParameters(queryParams)
             .build();

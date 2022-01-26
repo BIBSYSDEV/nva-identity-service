@@ -12,6 +12,7 @@ import com.amazonaws.services.dynamodbv2.document.ItemUtils;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 import no.unit.nva.events.models.ScanDatabaseRequest;
@@ -56,7 +57,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public List<UserDto> listUsers(String institutionId) {
+    public List<UserDto> listUsers(URI institutionId) {
         return userService.listUsers(institutionId);
     }
 

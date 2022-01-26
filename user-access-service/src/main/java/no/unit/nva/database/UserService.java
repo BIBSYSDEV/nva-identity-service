@@ -10,6 +10,7 @@ import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -59,11 +60,11 @@ public class UserService extends DatabaseSubService {
     /**
      * List of users for a specified institution.
      *
-     * @param institutionIdentifier the identifier of the institution
+     * @param institutionId the id of the institution
      * @return all users of the specified institution.
      */
-    public List<UserDto> listUsers(String institutionIdentifier) {
-        QuerySpec listUsersQuery = createListUsersByInstitutionQuery(institutionIdentifier);
+    public List<UserDto> listUsers(URI institutionId) {
+        QuerySpec listUsersQuery = createListUsersByInstitutionQuery(institutionId);
         List<Item> items = toList(institutionsIndex.query(listUsersQuery));
 
         return items.stream()
@@ -114,8 +115,8 @@ public class UserService extends DatabaseSubService {
         return Optional.ofNullable(searchResult);
     }
 
-    private QuerySpec createListUsersByInstitutionQuery(String institution) {
-        return new QuerySpec().withHashKey(SECONDARY_INDEX_1_HASH_KEY, institution)
+    private QuerySpec createListUsersByInstitutionQuery(URI institution) {
+        return new QuerySpec().withHashKey(SECONDARY_INDEX_1_HASH_KEY, institution.toString())
             .withConsistentRead(false);
     }
 

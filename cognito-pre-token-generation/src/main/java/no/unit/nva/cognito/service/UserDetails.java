@@ -1,5 +1,6 @@
 package no.unit.nva.cognito.service;
 
+import java.net.URI;
 import java.util.Optional;
 import no.unit.nva.cognito.model.CustomerResponse;
 import no.unit.nva.cognito.model.Event;
@@ -8,11 +9,12 @@ import nva.commons.core.StringUtils;
 
 public class UserDetails {
 
-    public static final String NO_CUSTOMER_INFO = null;
+    public static final URI NO_CUSTOMER_INFO = null;
+    private static final String NO_CUSTOMER_INFO_STRING = null;
     private final String feideId;
     private final String givenName;
     private final String familyName;
-    private final String customerId;
+    private final URI customerId;
     private final String affiliation;
     private final String cristinId;
     private final String cognitoUserName;
@@ -35,7 +37,7 @@ public class UserDetails {
         this.feideId = userAttributes.getFeideId();
         this.affiliation = nonBlankOrNull(userAttributes.getAffiliation());
         this.customerId = NO_CUSTOMER_INFO;
-        this.cristinId = NO_CUSTOMER_INFO;
+        this.cristinId = NO_CUSTOMER_INFO_STRING;
         this.givenName = userAttributes.getGivenName();
         this.familyName = userAttributes.getFamilyName();
         this.cognitoUserPool = event.getUserPoolId();
@@ -66,7 +68,7 @@ public class UserDetails {
         return familyName;
     }
 
-    public Optional<String> getCustomerId() {
+    public Optional<URI> getCustomerId() {
         return Optional.ofNullable(customerId);
     }
 
@@ -78,7 +80,7 @@ public class UserDetails {
         return Optional.ofNullable(customer).map(CustomerResponse::getCristinId).orElse(null);
     }
 
-    private String extractCustomerId(CustomerResponse customer) {
+    private URI extractCustomerId(CustomerResponse customer) {
         return Optional.ofNullable(customer).map(CustomerResponse::getCustomerId).orElse(null);
     }
 

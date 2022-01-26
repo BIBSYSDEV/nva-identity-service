@@ -5,6 +5,7 @@ import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDb.ERROR_DUE_TO_INVALID_ROLE;
@@ -55,7 +56,7 @@ public class UserDbTest {
     public static final String SOME_ROLENAME = "someRole";
     public static final String SOME_GIVEN_NAME = "givenName";
     public static final String SOME_FAMILY_NAME = "familyName";
-    public static final String SOME_INSTITUTION = "SomeInstitution";
+    public static final URI SOME_INSTITUTION = randomUri();
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
     public static final Javers JAVERS = JaversBuilder.javers().build();
 
@@ -269,7 +270,7 @@ public class UserDbTest {
             .withUsername(randomString())
             .withFamilyName(randomString())
             .withGivenName(randomString())
-            .withInstitution(randomString())
+            .withInstitution(randomUri())
             .withRoles(randomRoles())
             .withViewingScope(randomViewingScope())
             .build();

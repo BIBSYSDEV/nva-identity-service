@@ -2,6 +2,7 @@ package no.unit.nva.handlers;
 
 import static java.util.function.Predicate.not;
 import com.amazonaws.services.lambda.runtime.Context;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService;
@@ -18,8 +19,8 @@ import org.apache.http.HttpStatus;
 public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> {
 
     public static final String INSTITUTION_ID_QUERY_PARAMETER = "institution";
-    public static final String MISSING_QUERY_PARAMETER_ERROR = "Missing institution path parameter. "
-        + "Probably error in the Lambda function definition.";
+    public static final String MISSING_QUERY_PARAMETER_ERROR = "Institution Id query parameter is not a URI. "
+                                                               + "Probably error in the Lambda function definition.";
     private final IdentityService databaseService;
 
     @SuppressWarnings("unused")
@@ -35,7 +36,7 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
 
     @Override
     protected UserList processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        String institutionId = extractInstitutionIdFromRequest(requestInfo);
+        URI institutionId = extractInstitutionIdFromRequest(requestInfo);
         List<UserDto> users = databaseService.listUsers(institutionId);
         return UserList.fromList(users);
     }
@@ -45,11 +46,12 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
         return HttpStatus.SC_OK;
     }
 
-    private String extractInstitutionIdFromRequest(RequestInfo requestInfo) {
+    private URI extractInstitutionIdFromRequest(RequestInfo requestInfo) {
         return Optional.of(requestInfo)
             .map(RequestInfo::getQueryParameters)
             .map(queryParams -> queryParams.get(INSTITUTION_ID_QUERY_PARAMETER))
             .filter(not(String::isBlank))
+            .map(URI::create)
             .orElseThrow(() -> new IllegalStateException(MISSING_QUERY_PARAMETER_ERROR));
     }
 }

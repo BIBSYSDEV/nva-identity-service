@@ -1,5 +1,6 @@
 package no.unit.nva.database;
 
+import java.net.URI;
 import java.util.List;
 import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
@@ -16,7 +17,7 @@ public interface IdentityService {
 
     UserDto getUser(UserDto queryObject) throws  NotFoundException, InvalidInputException;
 
-    List<UserDto> listUsers(String institutionId);
+    List<UserDto> listUsers(URI institutionId);
 
     void addUser(UserDto user) throws ConflictException, InvalidInputException;
 

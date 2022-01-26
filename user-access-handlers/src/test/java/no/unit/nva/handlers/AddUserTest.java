@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import no.unit.nva.Constants;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
@@ -36,9 +37,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.zalando.problem.Problem;
 
-public class AddUserTest extends HandlerTest {
+class AddUserTest extends HandlerTest {
 
-    public static final String EMPTY_INSTITUTION = null;
+    public static final URI EMPTY_INSTITUTION = null;
     private AddUserHandler handler;
     private RequestInfo requestInfo;
     private Context context;
@@ -54,14 +55,14 @@ public class AddUserTest extends HandlerTest {
 
     @DisplayName("getSuccessCode returns OK")
     @Test
-    public void getSuccessCodeReturnsOk() {
+    void getSuccessCodeReturnsOk() {
         Integer successCode = handler.getSuccessStatusCode(null, null);
         assertThat(successCode, is(equalTo(HttpStatus.SC_OK)));
     }
 
     @DisplayName("processInput() adds user to database when input is a user with username and without roles")
     @Test
-    public void processInputAddsUserToDatabaseWhenInputIsUserWithUsernameWithoutRoles() throws ApiGatewayException {
+    void processInputAddsUserToDatabaseWhenInputIsUserWithUsernameWithoutRoles() throws ApiGatewayException {
         UserDto expectedUser = createUserWithoutRoles();
         UserDto savedUser = handler.processInput(expectedUser, requestInfo, context);
         assertThat(savedUser, is(not(sameInstance(expectedUser))));
@@ -70,7 +71,7 @@ public class AddUserTest extends HandlerTest {
 
     @DisplayName("processInput() adds user to database when input is a user with username and roles")
     @Test
-    public void processInputAddsUserToDatabaseWhenInputIsUserWithNamesAndRoles() throws ApiGatewayException {
+    void processInputAddsUserToDatabaseWhenInputIsUserWithNamesAndRoles() throws ApiGatewayException {
         UserDto expectedUser = createSampleUserWithExistingRoles(DEFAULT_USERNAME, EMPTY_INSTITUTION);
         UserDto savedUser = handler.processInput(expectedUser, requestInfo, context);
         assertThat(savedUser, is(not(sameInstance(expectedUser))));
@@ -80,7 +81,7 @@ public class AddUserTest extends HandlerTest {
     @DisplayName("processInput() adds user to database when input is a user with username and roles and with"
         + " institutions")
     @Test
-    public void processInputAddsUserToDatabaseWhenInputIsUserWithNamesAndRolesAndInstitutions()
+    void processInputAddsUserToDatabaseWhenInputIsUserWithNamesAndRolesAndInstitutions()
         throws ApiGatewayException {
         UserDto expectedUser = createSampleUserWithExistingRoles();
 
@@ -91,7 +92,7 @@ public class AddUserTest extends HandlerTest {
 
     @DisplayName("processInput() throws ConflictException when input user exists already")
     @Test
-    public void processInputThrowsConflictExceptionWhenAddedUserAlreadyExists()
+    void processInputThrowsConflictExceptionWhenAddedUserAlreadyExists()
         throws ApiGatewayException {
         UserDto sampleUser = createUserWithRolesAndInstitution();
         addUserFirstTime(sampleUser);
@@ -100,7 +101,7 @@ public class AddUserTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsBadRequestWhenInputUserDoesNotHaveUsername() throws  IOException {
+    void handleRequestReturnsBadRequestWhenInputUserDoesNotHaveUsername() throws  IOException {
 
         InputStream requestWithUserWithoutUsername = createRequestWithUserWithoutUsername();
         ByteArrayOutputStream outputStream = sendRequestToHandler(requestWithUserWithoutUsername);
@@ -112,7 +113,7 @@ public class AddUserTest extends HandlerTest {
 
     @DisplayName("processInput() throws DataSyncException when database service cannot return saved item ")
     @Test
-    public void processInputThrowsDataSyncExceptionWhenDatabaseServiceCannotReturnSavedItem() {
+    void processInputThrowsDataSyncExceptionWhenDatabaseServiceCannotReturnSavedItem() {
         IdentityService databaseService = databaseServiceReturnsAlwaysEmptyUser();
 
         UserDto sampleUser = createUserWithRolesAndInstitution();
@@ -124,7 +125,7 @@ public class AddUserTest extends HandlerTest {
 
     @DisplayName("handleRequest() returns BadRequest when input object has no type")
     @Test
-    public void handlerRequestReturnsBadRequestWhenInputObjectHasNoType()
+    void handlerRequestReturnsBadRequestWhenInputObjectHasNoType()
         throws InvalidEntryInternalException, IOException {
 
         UserDto sampleUser = createUserWithRolesAndInstitution();

@@ -8,11 +8,14 @@ import no.unit.nva.useraccess.events.client.BareProxyClient;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.core.paths.UriWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UserMigrationServiceImpl implements UserMigrationService {
 
     private final CustomerService customerService;
     private final BareProxyClient bareProxyClient;
+    private static final Logger logger = LoggerFactory.getLogger(UserMigrationServiceImpl.class);
 
     public UserMigrationServiceImpl(CustomerService customerService, BareProxyClient bareProxyClient) {
         this.customerService = customerService;
@@ -23,7 +26,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     public UserDto migrateUser(UserDto user) {
         var customerIdentifier = getCustomerIdentifier(user);
         var organizationId = getOrganizationId(customerIdentifier);
-
+        logger.trace("Updating user:{}",user.getUsername());
         removeOldPatternOrganizationIds(user.getUsername());
         resetViewingScope(user, organizationId);
 

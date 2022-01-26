@@ -996,6 +996,7 @@ Resources:
           BARE_PROXY_SECRET_NAME: 'BareProxySecret'
           BARE_PROXY_SECRET_KEY: 'BareProxySecretKey'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Events:
         ScanIdentityServiceEvent:
           Type: EventBridgeRule

@@ -34,12 +34,10 @@ import org.junit.jupiter.api.function.Executable;
 class GetUserHandlerTest extends HandlerTest {
 
     private static final String BLANK_STRING = " ";
-
+    private static final Environment ENVIRONMENT = new Environment();
     private RequestInfo requestInfo;
     private Context context;
     private GetUserHandler getUserHandler;
-    private static final Environment ENVIRONMENT= new Environment();
-
 
     @BeforeEach
     public void init() {
@@ -91,7 +89,7 @@ class GetUserHandlerTest extends HandlerTest {
     }
 
     @DisplayName("processInput() throws NotFoundException when path parameter is a string that is not an existing "
-        + "username")
+                 + "username")
     @Test
     void processInputThrowsNotFoundExceptionWhenPathParameterIsNonExistingUsername() {
 

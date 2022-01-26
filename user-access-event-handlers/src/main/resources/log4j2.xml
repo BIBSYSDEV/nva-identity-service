@@ -10,7 +10,7 @@
 
   </Appenders>
   <Loggers>
-    <Root level="info">
+    <Root level="trace">
       <AppenderRef ref="Lambda"/>
     </Root>
   </Loggers>

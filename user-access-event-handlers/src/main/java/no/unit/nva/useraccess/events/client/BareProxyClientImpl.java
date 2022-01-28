@@ -124,7 +124,7 @@ public class BareProxyClientImpl implements BareProxyClient {
         logger.info(CREATING_REQUEST_TO + uri);
         return HttpRequest.newBuilder()
                 .uri(uri)
-                .headers(HttpHeaders.ACCEPT, JSON_UTF_8.toString())
+                .headers(HttpHeaders.ACCEPT, JSON_UTF_8.toString(), AUTHORIZATION, bareProxySecret)
                 .GET()
                 .build();
     }

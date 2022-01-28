@@ -34,7 +34,7 @@ public class BareProxyClientImpl implements BareProxyClient {
     public static final String BARE_PROXY_SECRET_KEY = ENVIRONMENT
             .readEnv("BARE_PROXY_SECRET_KEY");
     public static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
-    public static final String USER_INTERNAL_SERVICE_PATH = "bare-proxy-internal";
+    public static final String PERSON_INTERNAL_SERVICE_PATH = "person-internal";
     public static final String FEIDE_ID_QUERY_PARAM = "feideId";
     public static final String DELETE_ORG_ID_ERROR = "Error deleting organizationId from authority";
     public static final String GET_AUTHORIY_ERROR = "Error getting authority for feideId";
@@ -101,7 +101,7 @@ public class BareProxyClientImpl implements BareProxyClient {
 
     private HttpRequest createAuthorityDeleteHttpRequest(String systemControlNumber, URI organizationId) {
         URI uri = new UriWrapper(HTTPS_SCHEME, API_HOST)
-                .addChild(USER_INTERNAL_SERVICE_PATH)
+                .addChild(PERSON_INTERNAL_SERVICE_PATH)
                 .addChild(systemControlNumber)
                 .addChild("identifiers")
                 .addChild("orgunitid")
@@ -118,7 +118,7 @@ public class BareProxyClientImpl implements BareProxyClient {
 
     private HttpRequest createAuthorityGetHttpRequest(String feideId) {
         URI uri = new UriWrapper(HTTPS_SCHEME, API_HOST)
-                .addChild(USER_INTERNAL_SERVICE_PATH)
+                .addChild(PERSON_INTERNAL_SERVICE_PATH)
                 .addQueryParameter(FEIDE_ID_QUERY_PARAM, feideId)
                 .getUri();
         logger.info(CREATING_REQUEST_TO + uri);

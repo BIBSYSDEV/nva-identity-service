@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 public class UserMigrationServiceImpl implements UserMigrationService {
 
+    public static final String CRISTIN_API_HOST = "api.cristin.no";
+
     private final CustomerService customerService;
     private final BareProxyClient bareProxyClient;
     private static final Logger logger = LoggerFactory.getLogger(UserMigrationServiceImpl.class);
@@ -31,7 +33,9 @@ public class UserMigrationServiceImpl implements UserMigrationService {
         logger.trace("Updating user:{}", user.getUsername());
         getCustomerIdentifier(user)
             .map(this::getOrganizationId)
-            .ifPresent(orgId -> updateBareProxyAndIdentityService(orgId.get(), user));
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .ifPresent(orgId -> updateBareProxyAndIdentityService(orgId, user));
 
         return user;
     }
@@ -47,9 +51,13 @@ public class UserMigrationServiceImpl implements UserMigrationService {
             var systemControlNumber = authority.get().getSystemControlNumber();
             var organizationIds = authority.get().getOrganizationIds();
             organizationIds.stream()
-                .filter(ViewingScope::isNotValidOrganizationId)
+                .filter(this::isUriToCristinApi)
                 .forEach(uri -> deleteFromAuthority(systemControlNumber, uri));
         }
+    }
+
+    private boolean isUriToCristinApi(URI organizationId) {
+        return CRISTIN_API_HOST.equals(organizationId.getHost());
     }
 
     private void deleteFromAuthority(String systemControlNumber, URI organizationId) {

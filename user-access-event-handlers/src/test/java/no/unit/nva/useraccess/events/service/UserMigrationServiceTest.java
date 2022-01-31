@@ -3,6 +3,7 @@ package no.unit.nva.useraccess.events.service;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccess.events.client.BareProxyClientImpl.ERROR_READING_SECRETS_ERROR;
+import static no.unit.nva.useraccess.events.service.UserMigrationServiceImpl.CRISTIN_API_HOST;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -31,6 +32,7 @@ import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JsonUtils;
 import nva.commons.core.attempt.Try;
+import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import nva.commons.secrets.ErrorReadingSecretException;
@@ -42,6 +44,8 @@ import org.junit.jupiter.api.function.Executable;
 class UserMigrationServiceTest {
 
     private static final URI SAMPLE_ORG_ID = URI.create("https://localhost/cristin/organization/123.0.0.0");
+    private static final URI SAMPLE_CRISTIN_API_ORG_ID =
+            new UriWrapper("https", CRISTIN_API_HOST).addChild(randomString()).getUri();
 
     private CustomerService customerServiceMock;
     private BareProxyClient bareProxyClient;
@@ -185,7 +189,7 @@ class UserMigrationServiceTest {
     private List<SimpleAuthorityResponse> createSampleAuthorityResponseWithInvalidOrganizationId() {
         var authority = new SimpleAuthorityResponse();
         authority.setId(randomUri());
-        authority.setOrganizationIds(List.of(randomUri()));
+        authority.setOrganizationIds(List.of(SAMPLE_CRISTIN_API_ORG_ID));
         return List.of(authority);
     }
 

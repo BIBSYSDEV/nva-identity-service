@@ -4,6 +4,8 @@ import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
+
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -29,7 +31,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
         logger.trace("Updating user:{}", user.getUsername());
         getCustomerIdentifier(user)
             .map(this::getOrganizationId)
-            .ifPresent(orgId -> updateBareProxyAndIdentityService(orgId, user));
+            .ifPresent(orgId -> updateBareProxyAndIdentityService(orgId.get(), user));
 
         return user;
     }
@@ -71,8 +73,10 @@ public class UserMigrationServiceImpl implements UserMigrationService {
         user.setViewingScope(ViewingScope.defaultViewingScope(organizationId));
     }
 
-    private URI getOrganizationId(UUID customerIdentifier) {
-        var customer = attempt(() -> customerService.getCustomer(customerIdentifier)).orElseThrow();
-        return URI.create(customer.getCristinId());
+    private Optional<URI> getOrganizationId(UUID customerIdentifier) {
+        return attempt(() -> customerService.getCustomer(customerIdentifier))
+                .map(CustomerDto::getCristinId)
+                .map(URI::create)
+                .toOptional();
     }
 }

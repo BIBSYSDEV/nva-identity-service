@@ -29,6 +29,8 @@ import no.unit.nva.useraccess.events.client.BareProxyClient;
 import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
 import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
 import no.unit.nva.useraccessmanagement.model.UserDto;
+import nva.commons.core.JsonUtils;
+import nva.commons.core.attempt.Try;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import nva.commons.secrets.ErrorReadingSecretException;
@@ -60,7 +62,7 @@ class UserMigrationServiceTest {
     void shouldReturnUserWithDefaultViewingScope() throws Exception {
         var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
-        prepareOkAndThenOkResponse(createSampleAuthorityResponse().toJson());
+        prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponse()));
 
         var user = createSampleUser();
         var actualUser = userMigrationService.migrateUser(user);
@@ -73,7 +75,7 @@ class UserMigrationServiceTest {
     void shouldUpdateBareOnceOnInvalidOrganizationId() throws Exception {
         var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
-        prepareOkAndThenOkResponse(createSampleAuthorityResponseWithInvalidOrganizationId().toJson());
+        prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponseWithInvalidOrganizationId()));
 
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
@@ -85,7 +87,7 @@ class UserMigrationServiceTest {
     void shouldNotUpdateBareOnValidOrganizationId() throws Exception {
         var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
-        prepareOkAndThenOkResponse(createSampleAuthorityResponse().toJson());
+        prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponse()));
 
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
@@ -93,11 +95,15 @@ class UserMigrationServiceTest {
         verify(httpClientMock, times(1)).send(any(), any());
     }
 
+    private String toJson(List<SimpleAuthorityResponse> authorityResponseList) {
+        return Try.attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(authorityResponseList)).orElseThrow();
+    }
+
     @Test
     void shouldFinishEvenWhenBareUpdateReturnsBadGateway() throws Exception {
         var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
-        prepareOkResponseThenBadGatewayResponse(createSampleAuthorityResponseWithInvalidOrganizationId().toJson());
+        prepareOkResponseThenBadGatewayResponse(toJson(createSampleAuthorityResponseWithInvalidOrganizationId()));
 
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
@@ -176,18 +182,18 @@ class UserMigrationServiceTest {
             .thenReturn(badGatewayResponse);
     }
 
-    private SimpleAuthorityResponse createSampleAuthorityResponseWithInvalidOrganizationId() {
+    private List<SimpleAuthorityResponse> createSampleAuthorityResponseWithInvalidOrganizationId() {
         var authority = new SimpleAuthorityResponse();
         authority.setId(randomUri());
         authority.setOrganizationIds(List.of(randomUri()));
-        return authority;
+        return List.of(authority);
     }
 
-    private SimpleAuthorityResponse createSampleAuthorityResponse() {
+    private List<SimpleAuthorityResponse> createSampleAuthorityResponse() {
         var authority = new SimpleAuthorityResponse();
         authority.setId(randomUri());
         authority.setOrganizationIds(List.of(SAMPLE_ORG_ID));
-        return authority;
+        return List.of(authority);
     }
 
     private CustomerDto createSampleCustomer() {

@@ -1,8 +1,10 @@
 package no.unit.nva.useraccess.events.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.net.HttpHeaders;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.JsonUtils;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
 import org.slf4j.Logger;
@@ -13,6 +15,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.Optional;
 
 import static com.amazonaws.http.HttpMethodName.DELETE;
@@ -57,19 +60,27 @@ public class BareProxyClientImpl implements BareProxyClient {
 
     @Override
     public Optional<SimpleAuthorityResponse> getAuthorityByFeideId(String feideId) {
-        SimpleAuthorityResponse authorityResponse = null;
+        Optional<SimpleAuthorityResponse> authorityResponse = Optional.empty();
         try {
             HttpRequest request = createAuthorityGetHttpRequest(feideId);
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == HTTP_OK) {
-                authorityResponse = SimpleAuthorityResponse.fromJson(response.body());
+                List<SimpleAuthorityResponse> list = fromJson(response);
+                authorityResponse = list.stream().findAny();
             } else {
                 logWarning(response);
             }
         } catch (IOException | InterruptedException e) {
             logger.warn(GET_AUTHORIY_ERROR, e);
         }
-        return Optional.ofNullable(authorityResponse);
+        return authorityResponse;
+    }
+
+    private List<SimpleAuthorityResponse> fromJson(HttpResponse<String> response) throws IOException {
+        return JsonUtils.dtoObjectMapper.readValue(
+                response.body(),
+                new TypeReference<List<SimpleAuthorityResponse>>(){}
+        );
     }
 
     @Override

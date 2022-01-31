@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 public class UserMigrationServiceImpl implements UserMigrationService {
 
-    public static final String CRISTIN_API_URI = "https://api.cristin.no";
+    public static final String CRISTIN_API_HOST = "api.cristin.no";
 
     private final CustomerService customerService;
     private final BareProxyClient bareProxyClient;
@@ -57,7 +57,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     }
 
     private boolean isUriToCristinApi(URI organizationId) {
-        return organizationId.toString().startsWith(CRISTIN_API_URI);
+        return CRISTIN_API_HOST.equals(organizationId.getHost());
     }
 
     private void deleteFromAuthority(String systemControlNumber, URI organizationId) {

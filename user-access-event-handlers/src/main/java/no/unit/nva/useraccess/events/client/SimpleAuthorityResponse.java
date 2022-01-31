@@ -1,7 +1,9 @@
 package no.unit.nva.useraccess.events.client;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import nva.commons.core.JsonUtils;
+import nva.commons.core.paths.UnixPath;
 
 import java.net.URI;
 import java.util.Collections;
@@ -11,10 +13,10 @@ import static java.util.Objects.nonNull;
 import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SimpleAuthorityResponse {
 
-    @JsonProperty("systemControlNumber")
-    private String systemControlNumber;
+    private URI id;
     @JsonProperty("orgunitids")
     private List<URI> organizationIds;
 
@@ -25,12 +27,16 @@ public class SimpleAuthorityResponse {
         return attempt(() -> JsonUtils.dtoObjectMapper.readValue(body, SimpleAuthorityResponse.class)).orElseThrow();
     }
 
-    public String getSystemControlNumber() {
-        return systemControlNumber;
+    public URI getId() {
+        return id;
     }
 
-    public void setSystemControlNumber(String systemControlNumber) {
-        this.systemControlNumber = systemControlNumber;
+    public void setId(URI id) {
+        this.id = id;
+    }
+
+    public String getSystemControlNumber() {
+        return UnixPath.of(id.toString()).getFilename();
     }
 
     public List<URI> getOrganizationIds() {

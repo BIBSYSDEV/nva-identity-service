@@ -178,14 +178,14 @@ class UserMigrationServiceTest {
 
     private SimpleAuthorityResponse createSampleAuthorityResponseWithInvalidOrganizationId() {
         var authority = new SimpleAuthorityResponse();
-        authority.setSystemControlNumber(randomString());
+        authority.setId(randomUri());
         authority.setOrganizationIds(List.of(randomUri()));
         return authority;
     }
 
     private SimpleAuthorityResponse createSampleAuthorityResponse() {
         var authority = new SimpleAuthorityResponse();
-        authority.setSystemControlNumber(randomString());
+        authority.setId(randomUri());
         authority.setOrganizationIds(List.of(SAMPLE_ORG_ID));
         return authority;
     }

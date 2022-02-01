@@ -18,10 +18,9 @@ import no.unit.nva.useraccess.events.service.UserMigrationService;
 import no.unit.nva.useraccess.events.service.UserMigrationServiceImpl;
 import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonUtils;
-import nva.commons.core.exceptions.ExceptionUtils;
+import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -33,8 +32,6 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
     public static final Void VOID = null;
     public static final String END_OF_SCAN_MESSAGE = "Last event was processed.";
     private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
-    public static final int WAIT_FOR_ENV_CONSISTENCY = new Environment().readEnvOpt("WAIT")
-        .map(Integer::parseInt).orElse(100);
     private final UserMigrationService migrationService;
     private final EventBridgeClient eventsClient;
     private final IdentityServiceImpl identityService;
@@ -65,34 +62,9 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
 
         var scanResult = identityService.fetchOnePageOfUsers(scanDatabaseRequest);
         var migratedUsers = migrateUsers(scanResult.getRetrievedUsers());
-        logger.info("Number of migratedUsers:" + migratedUsers.size());
-        for (UserDto userDto : migratedUsers) {
-            logger.info("UserUpdate:" + userDto.toJsonString());
-            updateUser(userDto);
-            var updatedUser = attempt(() -> identityService.getUser(userDto)).orElseThrow();
-            waitForEventualConsistency();
-            logger.info("UpdatedUser:" + updatedUser.toJsonString());
-        }
-
-        //        var updatedUsers = migratedUsers.stream()
-        //            .map(this::updateUser)
-        //            .collect(Collectors.toList());
-        //
-        //        updatedUsers.stream()
-        //            .map(attempt(identityService::getUser))
-        //            .map(Try::orElseThrow)
-        //            .forEach(user -> logger.info("migratedUser:" + user.toJsonString()));
-
+        persistMigratedUsersToDatabase(migratedUsers);
         emitNexScanRequestIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
         return VOID;
-    }
-
-    private void waitForEventualConsistency() {
-        try {
-            Thread.sleep(WAIT_FOR_ENV_CONSISTENCY);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     @JacocoGenerated
@@ -112,12 +84,22 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
             .build();
     }
 
+    private List<UserDto> persistMigratedUsersToDatabase(List<UserDto> migratedUsers) {
+        var updatedUsers = migratedUsers.stream()
+            .map(this::updateUser)
+            .map(attempt(identityService::getUser))
+            .map(Try::orElseThrow)
+            .collect(Collectors.toList());
+
+        updatedUsers.forEach(user -> logger.info("UpdatedUser:" + user.toJsonString()));
+
+        return updatedUsers;
+    }
+
     private UserDto updateUser(UserDto user) {
         try {
-            logger.info("UserUpdate:" + user.toJsonString());
             identityService.updateUser(user);
         } catch (Exception e) {
-            logger.error(ExceptionUtils.stackTraceInSingleLine(e));
             throw new RuntimeException(e);
         }
         return user;
@@ -140,10 +122,12 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
     }
 
     private List<UserDto> migrateUsers(List<UserDto> users) {
-        return users
+        var migratedUsers = users
             .stream()
             .map(migrationService::migrateUser)
             .collect(Collectors.toList());
+        logger.info("Number of users to be migrated:" + migratedUsers.size());
+        return migratedUsers;
     }
 
     private PutEventsRequest creteEventForNextPageScan(ScanDatabaseRequest inputScanRequest,

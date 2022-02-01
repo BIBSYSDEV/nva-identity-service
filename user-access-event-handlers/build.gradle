@@ -35,5 +35,4 @@ test {
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "BARE_PROXY_SECRET_NAME", "bareProxysecretName"
     environment "BARE_PROXY_SECRET_KEY", "bareProxysecretKey"
-    environment "WAIT", 1
 }

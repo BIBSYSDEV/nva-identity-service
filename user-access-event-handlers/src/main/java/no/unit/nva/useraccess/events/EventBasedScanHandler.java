@@ -96,6 +96,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
 
     private UserDto updateUser(UserDto user) {
         try {
+            logger.info("UserUpdate:"+user.toJsonString());
             identityService.updateUser(user);
         } catch (Exception e) {
             logger.error(ExceptionUtils.stackTraceInSingleLine(e));

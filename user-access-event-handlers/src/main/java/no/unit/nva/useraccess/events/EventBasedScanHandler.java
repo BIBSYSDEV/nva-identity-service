@@ -18,9 +18,9 @@ import no.unit.nva.useraccess.events.service.UserMigrationService;
 import no.unit.nva.useraccess.events.service.UserMigrationServiceImpl;
 import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.UserDto;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonUtils;
-import nva.commons.core.attempt.Try;
 import nva.commons.core.exceptions.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +33,8 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
     public static final Void VOID = null;
     public static final String END_OF_SCAN_MESSAGE = "Last event was processed.";
     private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
+    public static final int WAIT_FOR_ENV_CONSISTENCY = new Environment().readEnvOpt("WAIT")
+        .map(Integer::parseInt).orElse(100);
     private final UserMigrationService migrationService;
     private final EventBridgeClient eventsClient;
     private final IdentityServiceImpl identityService;
@@ -63,19 +65,35 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
 
         var scanResult = identityService.fetchOnePageOfUsers(scanDatabaseRequest);
         var migratedUsers = migrateUsers(scanResult.getRetrievedUsers());
-        var updatedUsers = migratedUsers.stream()
-            .map(this::updateUser)
-            .collect(Collectors.toList());
+        logger.info("Number of migratedUsers:" + migratedUsers.size());
+        for (UserDto userDto : migratedUsers) {
+            logger.info("UserUpdate:" + userDto.toJsonString());
+            updateUser(userDto);
+            var updatedUser = attempt(() -> identityService.getUser(userDto)).orElseThrow();
+            waitForEventualConsistency();
+            logger.info("UpdatedUser:" + updatedUser.toJsonString());
+        }
 
-        updatedUsers.stream()
-            .map(attempt(identityService::getUser))
-            .map(Try::orElseThrow)
-            .forEach(user -> logger.info("migratedUser:" + user.toJsonString()));
+        //        var updatedUsers = migratedUsers.stream()
+        //            .map(this::updateUser)
+        //            .collect(Collectors.toList());
+        //
+        //        updatedUsers.stream()
+        //            .map(attempt(identityService::getUser))
+        //            .map(Try::orElseThrow)
+        //            .forEach(user -> logger.info("migratedUser:" + user.toJsonString()));
 
         emitNexScanRequestIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
         return VOID;
     }
 
+    private void waitForEventualConsistency() {
+        try {
+            Thread.sleep(WAIT_FOR_ENV_CONSISTENCY);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
     @JacocoGenerated
     private static UserMigrationServiceImpl defaultMigrationService(
@@ -96,7 +114,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
 
     private UserDto updateUser(UserDto user) {
         try {
-            logger.info("UserUpdate:"+user.toJsonString());
+            logger.info("UserUpdate:" + user.toJsonString());
             identityService.updateUser(user);
         } catch (Exception e) {
             logger.error(ExceptionUtils.stackTraceInSingleLine(e));

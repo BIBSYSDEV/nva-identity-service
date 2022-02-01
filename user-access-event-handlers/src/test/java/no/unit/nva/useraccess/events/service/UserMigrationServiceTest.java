@@ -69,7 +69,7 @@ class UserMigrationServiceTest {
         prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponse()));
 
         var user = createSampleUser();
-        var actualUser = userMigrationService.migrateUser(user);
+        var actualUser = userMigrationService.migrateUser(user.copy().build());
         var expectedUser = user.copy().withViewingScope(defaultViewingScope(SAMPLE_ORG_ID)).build();
 
         assertThat(actualUser, is(equalTo(expectedUser)));

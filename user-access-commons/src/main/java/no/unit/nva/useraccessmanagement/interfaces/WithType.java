@@ -1,15 +1,14 @@
 package no.unit.nva.useraccessmanagement.interfaces;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import nva.commons.core.JacocoGenerated;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 
 public interface WithType {
 
-    @JsonProperty("type")
+    String TYPE_FIELD = "type";
+
+    @DynamoDbAttribute(TYPE_FIELD)
     String getType();
 
-    @JacocoGenerated
-    default void setType(String type) {
-        // Do nothing.
-    }
+    void setType(String ignored);
+
 }

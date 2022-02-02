@@ -34,7 +34,7 @@ public class CustomerDbClientTest {
     }
 
     @Test
-    public void getCustomerReturnsCustomerResponseIfCustomerExists() throws ApiGatewayException {
+    void getCustomerReturnsCustomerResponseIfCustomerExists() throws ApiGatewayException {
         UUID identifier = UUID.randomUUID();
         CustomerDao customerDb = getCustomerDb(identifier);
         when(dynamoDBCustomerService.getCustomerByOrgNumber(anyString())).thenReturn(customerDb.toCustomerDto());
@@ -42,13 +42,13 @@ public class CustomerDbClientTest {
         Optional<CustomerResponse> customer = customerDbClient.getCustomer(SAMPLE_ORG_NUMBER);
 
         assertThat(customer.isPresent(), is(true));
-        assertThat(customer.get().getCustomerId(), is(join(DELIMITER, SAMPLE_NAMESPACE, identifier.toString())));
+        assertThat(customer.get().getCustomerId().toString(), is(join(DELIMITER, SAMPLE_NAMESPACE, identifier.toString())));
         assertThat(customer.get().getCristinId(), is(SAMPLE_CRISTIN_ID));
 
     }
 
     @Test
-    public void getCustomerReturnsOptionalEmptyIfCustomerNotFound() throws ApiGatewayException {
+    void getCustomerReturnsOptionalEmptyIfCustomerNotFound() throws ApiGatewayException {
         when(dynamoDBCustomerService.getCustomerByOrgNumber(anyString())).thenThrow(NotFoundException.class);
 
         Optional<CustomerResponse> customer = customerDbClient.getCustomer(SAMPLE_ORG_NUMBER);

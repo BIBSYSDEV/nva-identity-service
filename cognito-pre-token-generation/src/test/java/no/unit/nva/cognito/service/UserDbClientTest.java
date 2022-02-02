@@ -10,7 +10,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import java.util.Optional;
 import no.unit.nva.cognito.exception.UserServiceException;
-import no.unit.nva.database.DatabaseService;
+import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -24,12 +24,12 @@ public class UserDbClientTest {
 
     public static final String SAMPLE_USERNAME = "username";
     private UserApi userApi;
-    private DatabaseService databaseService;
+    private IdentityService databaseService;
 
     @BeforeEach
     public void setUp() {
         //TODO: use DatabaseServiceImpl with DynamoDbLocal
-        databaseService = Mockito.mock(DatabaseService.class);
+        databaseService = Mockito.mock(IdentityService.class);
         userApi = new UserDbClient(databaseService);
     }
 

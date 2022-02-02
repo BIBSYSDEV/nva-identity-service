@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
@@ -54,6 +53,7 @@ public class UserDbTest {
     public static final String SOME_ROLENAME = "someRole";
     public static final String SOME_GIVEN_NAME = "givenName";
     public static final String SOME_FAMILY_NAME = "familyName";
+
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
     public static final String ROLES_AS_LISTS_WORKAROUND_EXPLANATION =
@@ -73,13 +73,13 @@ public class UserDbTest {
     @Test
     public void builderShouldSetTheHashKeyBasedOnUsername() throws InvalidEntryInternalException {
         sampleUser.setPrimaryKeyHashKey("SomeOtherHashKey");
-        String expectedHashKey = String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE, SOME_USERNAME);
+        String expectedHashKey = String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE_VALUE, SOME_USERNAME);
         assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
     }
 
     @Test
     public void extractRolesDoesNotThrowExceptionWhenRolesAreValid()
-        throws InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException {
         UserDao userWithValidRole = UserDao.fromUserDto(createUserWithRolesAndInstitution());
         Executable action = userWithValidRole::toUserDto;
         assertDoesNotThrow(action);
@@ -114,18 +114,18 @@ public class UserDbTest {
 
     @Test
     void getTypeShouldReturnConstantTypeValue() {
-        assertThat(userDao.getType(), is(equalTo(UserDao.TYPE)));
+        assertThat(userDao.getType(), is(equalTo(UserDao.TYPE_VALUE)));
     }
 
     @Test
     void setTypeShouldNotChangeTheReturnedTypeValue() {
         userDao.setType("NotExpectedType");
-        assertThat(userDao.getType(), is(equalTo(UserDao.TYPE)));
+        assertThat(userDao.getType(), is(equalTo(UserDao.TYPE_VALUE)));
     }
 
     @Test
     void getHashKeyKeyShouldReturnTypeAndUsernameConcatenation() {
-        String expectedHashKey = String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE, SOME_USERNAME);
+        String expectedHashKey = String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE_VALUE, SOME_USERNAME);
         assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
     }
 

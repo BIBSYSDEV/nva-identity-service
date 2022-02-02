@@ -80,6 +80,12 @@ public class ViewingScopeDb implements WithType {
         return VIEWING_SCOPE_TYPE;
     }
 
+    @Override
+    @JacocoGenerated
+    public void setType(String type){
+        //DO NOTHING
+    }
+
     @JacocoGenerated
     @Override
     public int hashCode() {

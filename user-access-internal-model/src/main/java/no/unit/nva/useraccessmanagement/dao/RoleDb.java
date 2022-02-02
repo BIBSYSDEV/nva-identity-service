@@ -4,7 +4,6 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import static no.unit.nva.useraccessmanagement.dao.DynamoEntriesUtils.nonEmpty;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -18,7 +17,6 @@ import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.JsonSerializable;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Try;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -30,14 +28,14 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 @DynamoDbBean
-public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType, JsonSerializable {
+public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType {
 
     public static final String NAME_FIELD = "name";
     public static final String TYPE_FIELD = "type";
     public static final String ACCESS_RIGHTS_FIELDS = "accessRights";
 
-    public static String TYPE = "ROLE";
-    public static final TableSchema<RoleDb> TABLE_SCHEMA = TableSchema.fromClass(RoleDb.class);
+    public static final String TYPE_VALUE = "ROLE";
+    public static final TableSchema<RoleDb> TABLE_SCHEMA = TableSchema.fromBean(RoleDb.class);
     private Set<AccessRight> accessRights;
     private String name;
 
@@ -86,10 +84,15 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
     }
 
     @JacocoGenerated
-    @JsonProperty(TYPE_FIELD)
+    @DynamoDbAttribute(TYPE_FIELD)
     @Override
     public String getType() {
-        return TYPE;
+        return TYPE_VALUE;
+    }
+
+    @Override
+    public void setType(String ignored){
+        //DO NOTHING
     }
 
     @JacocoGenerated
@@ -159,12 +162,6 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
         RoleDb roleDbEntry = (RoleDb) o;
         return Objects.equals(getAccessRights(), roleDbEntry.getAccessRights())
                && Objects.equals(getName(), roleDbEntry.getName());
-    }
-
-    @JacocoGenerated
-    @Override
-    public String toString() {
-        return this.toJsonString();
     }
 
     public RoleDto toRoleDto() {

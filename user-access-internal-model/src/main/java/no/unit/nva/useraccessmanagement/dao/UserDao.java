@@ -43,7 +43,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType {
 
-    public static final String TYPE = "USER";
+    public static final String TYPE_VALUE = "USER";
     public static final String INVALID_USER_EMPTY_USERNAME = "Invalid user entry: Empty username is not allowed";
     public static final String ERROR_DUE_TO_INVALID_ROLE =
         "Failure while trying to create user with role without role-name";
@@ -246,7 +246,12 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     @Override
     @DynamoDbAttribute(TYPE_FIELD)
     public String getType() {
-        return TYPE;
+        return TYPE_VALUE;
+    }
+
+    @Override
+    public void setType(String ignored){
+        //DO nothing
     }
 
     @Override
@@ -284,6 +289,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
                && Objects.equals(getFamilyName(), userDao.getFamilyName())
                && Objects.equals(getViewingScope(), userDao.getViewingScope());
     }
+
 
     private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
         return userDto.getRoles().stream()
@@ -324,7 +330,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
 
     private String formatPrimaryHashKey() {
         checkUsername(username);
-        return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE, username);
+        return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE_VALUE, username);
     }
 
     public static final class Builder {

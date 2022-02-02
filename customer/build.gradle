@@ -3,6 +3,7 @@ plugins {
     id 'nva.identity.service.dynamodblocal'
 }
 apply plugin: 'nva.identity.service.java-common-conventions'
+
 dependencies {
     implementation project(":customer-commons")
 
@@ -17,6 +18,4 @@ dependencies {
 
 test{
     environment "CUSTOMERS_TABLE_NAME","nva_customers"
-    environment "BY_ORG_NUMBER_INDEX_NAME", "byOrgNumber"
-    environment "BY_CRISTIN_ID_INDEX_NAME", "byCristinId"
 }

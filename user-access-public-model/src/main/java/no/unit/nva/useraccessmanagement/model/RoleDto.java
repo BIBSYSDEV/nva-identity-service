@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
+import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
@@ -14,7 +15,7 @@ import no.unit.nva.useraccessmanagement.model.RoleDto.Builder;
 import no.unit.nva.useraccessmanagement.model.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.model.interfaces.Validable;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.JsonSerializable;
+
 
 @JsonTypeName(RoleDto.TYPE)
 public class RoleDto implements WithCopy<Builder>, JsonSerializable, Validable, Typed {

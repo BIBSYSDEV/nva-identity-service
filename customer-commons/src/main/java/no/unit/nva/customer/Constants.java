@@ -44,13 +44,11 @@ public final class Constants {
     }
 
     @JacocoGenerated
-    private static DynamoDbClient defaultDynamoDbClient() {
-        {
-            return DynamoDbClient.builder()
-                .httpClient(UrlConnectionHttpClient.create())
-                .credentialsProvider(DefaultCredentialsProvider.create())
-                .region(Region.of(AWS_REGION))
-                .build();
-        }
+    public static DynamoDbClient defaultDynamoDbClient() {
+        return DynamoDbClient.builder()
+            .httpClient(UrlConnectionHttpClient.create())
+            .credentialsProvider(DefaultCredentialsProvider.create())
+            .region(Region.of(AWS_REGION))
+            .build();
     }
 }

@@ -6,7 +6,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
@@ -16,7 +15,7 @@ public final class EntityUtils {
     public static final String SOME_USERNAME = "SomeUsername";
     public static final String SOME_ROLENAME = "SomeRole";
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
-    public static final String EMPTY_STRING = "";
+
     public static final Set<AccessRight> SAMPLE_ACCESS_RIGHTS =
         Collections.singleton(APPROVE_DOI_REQUEST);
     private static final String SOME_GIVEN_NAME = "givenName";
@@ -25,7 +24,7 @@ public final class EntityUtils {
     /**
      * Intention is to create a user with all fields filled.
      */
-    public static UserDto createUserWithRolesAndInstitution() throws InvalidInputException {
+    public static UserDto createUserWithRolesAndInstitution() {
         return createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .build();

@@ -25,13 +25,17 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBCustomerService implements CustomerService {
 
+
+
+
+    public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found: ";
     public static final String IDENTIFIERS_NOT_EQUAL = "Identifier in request parameters '%s' "
                                                        + "is not equal to identifier in customer object '%s'";
+    public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
+
     public static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
                                                          + "DynamoDB connection";
-    public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
-    public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
@@ -42,8 +46,10 @@ public class DynamoDBCustomerService implements CustomerService {
      *
      * @param client AmazonDynamoDB client
      */
+
     public DynamoDBCustomerService(DynamoDbClient client) {
         this(createTable(client));
+
     }
 
     public DynamoDBCustomerService(DynamoDbTable<CustomerDao> table) {

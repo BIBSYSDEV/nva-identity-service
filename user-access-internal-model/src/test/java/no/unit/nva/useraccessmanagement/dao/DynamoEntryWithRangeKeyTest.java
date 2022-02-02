@@ -1,8 +1,10 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import org.junit.jupiter.api.Test;
 

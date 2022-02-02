@@ -93,7 +93,7 @@ Resources:
     Properties:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
-      UsernameAttributes: [email]
+      UsernameAttributes: [ email ]
       EmailConfiguration:
         EmailSendingAccount: 'COGNITO_DEFAULT'
       MfaConfiguration: 'OFF'
@@ -274,7 +274,7 @@ Resources:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
                   - 'cognito-identity:*'
-                Resource: ['*']
+                Resource: [ '*' ]
 
   # IAM role used for unauthenticated users
   UnauthenticatedRole:
@@ -304,7 +304,7 @@ Resources:
                 Action:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
-                Resource: ['*']
+                Resource: [ '*' ]
 
   # Assigns the roles to the Identity Pool
   IdentityPoolRoleMapping:
@@ -343,7 +343,7 @@ Resources:
                 Action:
                   - 'mobileanalytics:PutEvents'
                   - 'cognito-sync:*'
-                Resource: ['*']
+                Resource: [ '*' ]
 
   FeideAuthenticatedGroup:
     Type: AWS::Cognito::UserPoolGroup
@@ -424,6 +424,10 @@ Resources:
       Timeout: 10
       Environment:
         Variables:
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
 
 
@@ -659,6 +663,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -678,6 +686,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
 
       Policies:
@@ -698,6 +710,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -717,6 +733,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -736,6 +756,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -755,6 +779,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -774,6 +802,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -793,6 +825,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -812,6 +848,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -882,6 +922,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
+=======
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -933,8 +977,14 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+<<<<<<< HEAD
           API_SECRET_NAME: !Sub 'IdentityServiceSecret-${Suffix}'
           API_SECRET_KEY: IdentityServiceSecretKey
+=======
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+          API_KEY_SECRET_NAME: !Sub 'IdentityServiceSecret-${Suffix}'
+          API_KEY_SECRET_KEY: IdentityServiceSecretKey
+>>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
       Policies:
         - Version: 2012-10-17
           Statement:
@@ -957,6 +1007,125 @@ Resources:
       DomainName: !Ref ApiDomain
       RestApiId: !Ref NvaCustomerApi
       Stage: !Ref NvaCustomerApi.Stage
+
+  ### Events ############################################################################################################
+  StartBatchScanHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-event-handlers
+      Handler: no.unit.nva.useraccess.events.StartBatchScan::handleRequest
+      Role: !GetAtt BatchScanRole.Arn
+      Environment:
+        Variables:
+          EVENT_BUS: !GetAtt InternalBus.Name
+
+  EventBasedBatchScanHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-event-handlers
+      Handler: no.unit.nva.useraccess.events.EventBasedScanHandler::handleRequest
+      Role: !GetAtt BatchScanRole.Arn
+      Timeout: 900
+      Environment:
+        Variables:
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+          EVENT_BUS: !GetAtt InternalBus.Name
+          BARE_PROXY_SECRET_NAME: 'BareProxySecret'
+          BARE_PROXY_SECRET_KEY: 'BareProxySecretKey'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+      Events:
+        ScanIdentityServiceEvent:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !GetAtt InternalBus.Name
+            Pattern:
+              detail:
+                topic:
+                  - IdentityService.IdentityEntry.ScanAndUpdate
+
+
+  InternalBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !Join [ '',[ 'identity-service-internal-bus',!Ref Suffix ] ]
+
+  ### Roles ############################################################################################################
+  BatchScanRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+
+
+  DefaultLambdaPermissions:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub DefaultLambdaPermissions-${AWS::StackName}
+      Roles:
+        - !Ref BatchScanRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - lambda:InvokeFunction
+            Resource: "*"
+  ScanUsersTablePermsision:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ScanUsersTablePermsision-${AWS::StackName}
+      Roles:
+        - !Ref BatchScanRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:*
+            Resource:
+              - !GetAtt UserRoleMappings.Arn
+              - !GetAtt NvaCustomersTable.Arn
+
+  GetBareProxySecretPermission:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub GetBareProxySecretPermission-${AWS::StackName}
+      Roles:
+        - !Ref BatchScanRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BareProxySecret*'
+  EventsLambdaPermissions:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub EventsLambdaPermissions-${AWS::StackName}
+      Roles:
+        - !Ref BatchScanRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - events:*
+              - sqs:SendMessage
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+            Resource: '*' # TODO: restrict the access to specific resources after we have established that the message is sent.
 
   ### Parameters #######################################################################################################
 

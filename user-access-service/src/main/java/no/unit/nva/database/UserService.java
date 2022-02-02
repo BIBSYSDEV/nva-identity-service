@@ -41,7 +41,7 @@ public class UserService extends DatabaseSubService {
     public UserService(DynamoDbClient client, RoleService roleService) {
         super(client);
         this.roleService = roleService;
-        this.table = this.client.table(DatabaseService.USERS_AND_ROLES_TABLE_NAME, UserDao.TABLE_SCHEMA);
+        this.table = this.client.table(IdentityService.USERS_AND_ROLES_TABLE, UserDao.TABLE_SCHEMA);
         this.institutionsIndex = this.table.index(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME);
     }
 
@@ -61,11 +61,12 @@ public class UserService extends DatabaseSubService {
     /**
      * List of users for a specified institution.
      *
-     * @param institutionIdentifier the identifier of the institution
+     * @param institutionId the id of the institution
      * @return all users of the specified institution.
      */
-    public List<UserDto> listUsers(URI institutionIdentifier) {
-        QueryEnhancedRequest listUsersQuery = createListUsersByInstitutionQuery(institutionIdentifier);
+
+    public List<UserDto> listUsers(URI institutionId) {
+        QueryEnhancedRequest listUsersQuery = createListUsersByInstitutionQuery(institutionId);
         var result = institutionsIndex.query(listUsersQuery);
 
         var users = result.stream()
@@ -117,6 +118,7 @@ public class UserService extends DatabaseSubService {
         return Optional.ofNullable(searchResult);
     }
 
+
     private QueryEnhancedRequest createListUsersByInstitutionQuery(URI institution) {
         return QueryEnhancedRequest.builder()
             .queryConditional(QueryConditional.keyEqualTo(Key.builder().partitionValue(institution.toString()).build()))
@@ -154,6 +156,7 @@ public class UserService extends DatabaseSubService {
     private boolean userHasChanged(UserDto existingUser, UserDao desiredUpdateWithSyncedRoles) {
         return !desiredUpdateWithSyncedRoles.equals(UserDao.fromUserDto(existingUser));
     }
+
 
     private void updateTable(UserDao userUpdateWithSyncedRoles) {
         table.putItem(userUpdateWithSyncedRoles);

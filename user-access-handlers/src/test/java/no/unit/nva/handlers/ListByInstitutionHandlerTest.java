@@ -51,7 +51,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsOkUponSuccessfulRequest() throws IOException {
+    void handleRequestReturnsOkUponSuccessfulRequest() throws IOException {
         InputStream validRequest = createListRequest(DEFAULT_INSTITUTION);
 
         ByteArrayOutputStream output = sendRequestToHandler(validRequest);
@@ -61,7 +61,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsListOfUsersGivenAnInstitution()
+    void handleRequestReturnsListOfUsersGivenAnInstitution()
         throws IOException, ConflictException, InvalidEntryInternalException, InvalidInputException {
         UserList expectedUsers = insertTwoUsersOfSameInstitution();
 
@@ -76,7 +76,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsListOfUsersContainingOnlyUsersOfGivenInstitution()
+    void handleRequestReturnsListOfUsersContainingOnlyUsersOfGivenInstitution()
         throws IOException, ConflictException, InvalidEntryInternalException, InvalidInputException {
         UserList insertedUsers = insertTwoUsersOfDifferentInstitutions();
 
@@ -95,7 +95,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsEmptyListOfUsersWhenNoUsersOfSpecifiedInstitutionAreFound()
+    void handleRequestReturnsEmptyListOfUsersWhenNoUsersOfSpecifiedInstitutionAreFound()
         throws IOException, ConflictException, InvalidEntryInternalException, InvalidInputException {
         insertTwoUsersOfSameInstitution();
 
@@ -109,7 +109,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void processInputThrowsIllegalStateExceptionWhenPathParameterIsMissing() {
+    void processInputThrowsIllegalStateExceptionWhenPathParameterIsMissing() {
         RequestInfo requestInfo = new RequestInfo();
 
         Executable action = () -> listByInstitutionHandler.processInput(null, requestInfo, context);

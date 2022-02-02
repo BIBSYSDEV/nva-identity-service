@@ -26,7 +26,7 @@ import no.unit.nva.cognito.service.UserDbClient;
 import no.unit.nva.cognito.service.UserDetails;
 import no.unit.nva.cognito.service.UserPoolEntryUpdater;
 import no.unit.nva.cognito.service.UserService;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
@@ -85,7 +85,7 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
 
     @JacocoGenerated
     private static UserService defaultUserService() {
-        return new UserService(new UserDbClient(new DatabaseServiceImpl(DYNAMODB_CLIENT)));
+        return new UserService(new UserDbClient(new IdentityServiceImpl(DYNAMODB_CLIENT)));
     }
 
     private UserDetails extractUserDetails(Event event) {

@@ -1,5 +1,6 @@
 [versions]
-nvaCommons = { strictly = '1.18.4' }
+
+nvaCommons = { strictly = '1.20.7' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.105' }
@@ -23,9 +24,12 @@ log4j = { strictly = '2.17.1' }
 
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }
+nva-json = { group = 'com.github.bibsysdev', name = 'json', version.ref = 'nvaCommons' }
+
 nva-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nvaCommons' }
 nva-lambdaauthorizer = { group = 'com.github.bibsysdev', name = 'lambdaauthorizer', version.ref = 'nvaCommons' }
 nva-secrets = { group = 'com.github.bibsysdev', name = 'secrets', version.ref = 'nvaCommons' }
+nva-events = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nvaCommons' }
 nva-testutils = { group = 'com.github.bibsysdev', name = 'nvatestutils', version.ref = 'nvaCommons' }
 
 aws-xray-recorder-sdk-core = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-core', version.ref = 'xraySdk' }
@@ -33,16 +37,13 @@ aws-xray-recorder-sdk-aws-sdk = { group = 'com.amazonaws', name = 'aws-xray-reco
 aws-xray-recorder-sdk-aws-sdk-instrumentor = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version.ref = 'xraySdk' }
 
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaCore' }
+
 aws-sdk2-dynamodb = { group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
 aws-sdk2-dynamodbenhanced = { group = 'software.amazon.awssdk', name = 'dynamodb-enhanced', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
 aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
-
-#aws-java-sdk-cognitoidp = { group = 'com.amazonaws', name = 'aws-java-sdk-cognitoidp', version.ref = 'awsSdk' }
-#aws-java-sdk2-cognitoidp = { group = 'software.amazon.awssdk', name = 'cognitoidentity', version.ref = 'awsSdk2' }
+aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
 aws-java-sdk2-cognitoidp = { group = 'software.amazon.awssdk', name = 'cognitoidentityprovider', version.ref = 'awsSdk2' }
-
-
 
 jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
 jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }

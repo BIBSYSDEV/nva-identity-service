@@ -1,0 +1,40 @@
+plugins {
+    id 'nva.identity.service.java-application-conventions'
+    id 'nva.identity.service.dynamodblocal'
+}
+
+dependencies {
+    implementation project(":user-access-internal-model")
+    implementation project(":user-access-commons")
+    implementation project(":user-access-service")
+    implementation project(":user-access-errors")
+    implementation project(":user-access-public-model")
+
+    implementation project(':customer-commons')
+
+    implementation libs.aws.lambda.java.core
+    implementation libs.aws.sdk2.eventbridge
+    implementation libs.aws.sdk2.urlconnection
+    implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.dynamodbenhanced
+
+    implementation libs.nva.events
+    implementation libs.nva.apigateway
+    implementation libs.nva.secrets
+    implementation libs.nva.json
+    implementation libs.guava
+    implementation libs.bundles.logging
+
+    testImplementation libs.nva.testutils
+    testImplementation project(":user-access-testing")
+}
+
+
+test {
+    environment "API_HOST", "localhost"
+    environment "AWS_REGION", "eu-west-1"
+    environment "EVENT_BUS", "eventBus"
+    environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
+    environment "BARE_PROXY_SECRET_NAME", "bareProxysecretName"
+    environment "BARE_PROXY_SECRET_KEY", "bareProxysecretKey"
+}

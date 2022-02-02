@@ -2,11 +2,11 @@ package no.unit.nva.database;
 
 import static java.util.Objects.isNull;
 import java.util.Optional;
+import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.useraccessmanagement.exceptions.EmptyInputException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.interfaces.Validable;
-import nva.commons.core.JsonSerializable;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

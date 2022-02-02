@@ -17,6 +17,7 @@ public final class EntityUtils {
 
     public static final String SOME_USERNAME = "SomeUsername";
     public static final String SOME_ROLENAME = "SomeRole";
+
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final String EMPTY_STRING = "";
     public static final Set<String> SAMPLE_ACCESS_RIGHTS =

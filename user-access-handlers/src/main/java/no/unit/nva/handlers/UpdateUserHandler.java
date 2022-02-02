@@ -6,8 +6,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import no.unit.nva.database.DatabaseService;
-import no.unit.nva.database.DatabaseServiceImpl;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.RequestInfo;
@@ -20,14 +20,14 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
     public static final String INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR =
         "Path username is different from input object's user-id";
-    private final DatabaseService databaseService;
+    private final IdentityService databaseService;
 
     @JacocoGenerated
     public UpdateUserHandler() {
-        this(new DatabaseServiceImpl());
+        this(new IdentityServiceImpl());
     }
 
-    public UpdateUserHandler(DatabaseService databaseService) {
+    public UpdateUserHandler(IdentityService databaseService) {
         super(UserDto.class);
         this.databaseService = databaseService;
     }

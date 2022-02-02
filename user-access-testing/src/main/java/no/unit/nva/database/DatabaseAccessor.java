@@ -1,6 +1,7 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
@@ -36,14 +37,16 @@ public abstract class DatabaseAccessor implements WithEnvironment {
     public static final String STRING = "S";
     private static final Long CAPACITY_DOES_NOT_MATTER = 1000L;
 
-    protected DynamoDbClient localDynamo;
-    protected DatabaseService databaseService;
 
-    public DatabaseServiceImpl createDatabaseServiceUsingLocalStorage() {
-        databaseService = new DatabaseServiceImpl(initializeTestDatabase());
+    protected DynamoDbClient localDynamo;
+    protected IdentityService databaseService;
+
+    public IdentityServiceImpl createDatabaseServiceUsingLocalStorage() {
+        databaseService = new IdentityServiceImpl(initializeTestDatabase());
+
         //return the field just to not break the current API.
         //TODO: remove return after merging.
-        return (DatabaseServiceImpl) databaseService;
+        return (IdentityServiceImpl) databaseService;
     }
 
     /**
@@ -54,13 +57,12 @@ public abstract class DatabaseAccessor implements WithEnvironment {
     public DynamoDbClient initializeTestDatabase() {
 
         localDynamo = createLocalDynamoDbMock();
-        String tableName = DatabaseService.USERS_AND_ROLES_TABLE_NAME;
+
+        String tableName = USERS_AND_ROLES_TABLE;
         CreateTableResponse createTableResult = createTable(localDynamo, tableName);
         TableDescription tableDescription = createTableResult.tableDescription();
         assertEquals(tableName, tableDescription.tableName());
-
         assertThatTableKeySchemaContainsBothKeys(tableDescription.keySchema());
-
         assertEquals(TableStatus.ACTIVE, tableDescription.tableStatus());
         assertThat(tableDescription.tableArn(), containsString(tableName));
 

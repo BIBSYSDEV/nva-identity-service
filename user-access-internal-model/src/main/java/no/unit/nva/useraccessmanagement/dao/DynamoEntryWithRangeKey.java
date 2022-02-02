@@ -1,10 +1,8 @@
 package no.unit.nva.useraccessmanagement.dao;
 
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
-import nva.commons.core.JsonSerializable;
 
-public interface DynamoEntryWithRangeKey extends WithType, JsonSerializable {
-
+public interface DynamoEntryWithRangeKey extends WithType {
     String FIELD_DELIMITER = "#";
 
     //    @DynamoDbPartitionKey

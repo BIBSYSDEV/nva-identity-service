@@ -2,6 +2,7 @@ package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.InputStream;
@@ -86,7 +87,7 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
     public static UserDto createUserWithRolesAndInstitutionAndViewingScope()
-        throws InvalidEntryInternalException, InvalidInputException, BadRequestException {
+        throws InvalidEntryInternalException, BadRequestException {
         return createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .withViewingScope(randomViewingScope())

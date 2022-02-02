@@ -24,6 +24,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +34,7 @@ import org.junit.jupiter.api.function.Executable;
 class GetUserHandlerTest extends HandlerTest {
 
     private static final String BLANK_STRING = " ";
-
+    private static final Environment ENVIRONMENT = new Environment();
     private RequestInfo requestInfo;
     private Context context;
     private GetUserHandler getUserHandler;
@@ -77,7 +78,7 @@ class GetUserHandlerTest extends HandlerTest {
         assertThat(actual, is(equalTo(expected)));
     }
 
-    @DisplayName("processInput() handles enccoded path parameters")
+    @DisplayName("processInput() handles encoded path parameters")
     @Test
     void processInputReturnsUserDtoWhenPathParameterContainsTheUsernameOfExistingUserEnc() throws ApiGatewayException {
 
@@ -89,7 +90,7 @@ class GetUserHandlerTest extends HandlerTest {
     }
 
     @DisplayName("processInput() throws NotFoundException when path parameter is a string that is not an existing "
-        + "username")
+                 + "username")
     @Test
     void processInputThrowsNotFoundExceptionWhenPathParameterIsNonExistingUsername() {
 

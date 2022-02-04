@@ -138,7 +138,8 @@ class UserMigrationServiceTest {
     }
 
     @Test
-    void shouldLogMessageWhenCustomerIdentifierIsNotValidUuid() {
+    void shouldLogMessageWhenCustomerIdentifierIsNotValidUuid() throws IOException, InterruptedException {
+        prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponse()));
         final TestAppender appender = LogUtils.getTestingAppenderForRootLogger();
         var user = createSampleUserWithInvalidCustomerId();
         var customerIdExpectedInLogMessage = user.getInstitution().toString();

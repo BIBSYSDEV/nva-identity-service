@@ -989,6 +989,7 @@ Resources:
       CodeUri: user-access-event-handlers
       Handler: no.unit.nva.useraccess.events.EventBasedScanHandler::handleRequest
       Role: !GetAtt BatchScanRole.Arn
+      Timeout: 900
       Environment:
         Variables:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings

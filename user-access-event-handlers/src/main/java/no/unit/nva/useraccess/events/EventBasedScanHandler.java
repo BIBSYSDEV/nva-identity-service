@@ -20,7 +20,7 @@ import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.JsonUtils;
-import nva.commons.core.exceptions.ExceptionUtils;
+import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -62,7 +62,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
 
         var scanResult = identityService.fetchOnePageOfUsers(scanDatabaseRequest);
         var migratedUsers = migrateUsers(scanResult.getRetrievedUsers());
-        migratedUsers.forEach(this::updateUser);
+        persistMigratedUsersToDatabase(migratedUsers);
         emitNexScanRequestIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
         return VOID;
     }
@@ -84,13 +84,25 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
             .build();
     }
 
-    private void updateUser(UserDto user) {
+    private List<UserDto> persistMigratedUsersToDatabase(List<UserDto> migratedUsers) {
+        var updatedUsers = migratedUsers.stream()
+            .map(this::updateUser)
+            .map(attempt(identityService::getUser))
+            .map(Try::orElseThrow)
+            .collect(Collectors.toList());
+
+        updatedUsers.forEach(user -> logger.info("UpdatedUser:" + user.toJsonString()));
+
+        return updatedUsers;
+    }
+
+    private UserDto updateUser(UserDto user) {
         try {
             identityService.updateUser(user);
         } catch (Exception e) {
-            logger.error(ExceptionUtils.stackTraceInSingleLine(e));
             throw new RuntimeException(e);
         }
+        return user;
     }
 
     private void emitNexScanRequestIfThereAreMoreResults(UserScanResult scanResult,
@@ -110,11 +122,12 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
     }
 
     private List<UserDto> migrateUsers(List<UserDto> users) {
-        return users
+        var migratedUsers = users
             .stream()
             .map(migrationService::migrateUser)
-            .peek(user -> logger.info("migratedUser:" + user.toJsonString()))
             .collect(Collectors.toList());
+        logger.info("Number of users to be migrated:" + migratedUsers.size());
+        return migratedUsers;
     }
 
     private PutEventsRequest creteEventForNextPageScan(ScanDatabaseRequest inputScanRequest,

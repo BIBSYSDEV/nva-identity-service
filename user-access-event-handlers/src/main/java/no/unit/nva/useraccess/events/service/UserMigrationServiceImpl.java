@@ -31,18 +31,21 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     @Override
     public UserDto migrateUser(UserDto user) {
         logger.trace("Updating user:{}", user.getUsername());
+        resetViewingScope(user);
+        removeOldPatternOrganizationIds(user.getUsername());
+        return user;
+    }
+
+    private void resetViewingScope(UserDto user) {
         getCustomerIdentifier(user)
             .map(this::getOrganizationId)
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .ifPresent(orgId -> updateBareProxyAndIdentityService(orgId, user));
-
-        return user;
+            .ifPresent(orgId -> resetViewingScope(user, orgId));
     }
 
-    private void updateBareProxyAndIdentityService(URI orgId, UserDto user) {
-        removeOldPatternOrganizationIds(user.getUsername());
-        resetViewingScope(user, orgId);
+    private void resetViewingScope(UserDto user, URI organizationId) {
+        user.setViewingScope(ViewingScope.defaultViewingScope(organizationId));
     }
 
     private void removeOldPatternOrganizationIds(String username) {
@@ -75,10 +78,6 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     private void logInvalidInstitutionUriAndReturnEmpty(Exception exception, UserDto user) {
         logger.error("Customer Id {} is invalid for user {}", user.getInstitution(), user.getUsername());
         logger.error(ExceptionUtils.stackTraceInSingleLine(exception));
-    }
-
-    private void resetViewingScope(UserDto user, URI organizationId) {
-        user.setViewingScope(ViewingScope.defaultViewingScope(organizationId));
     }
 
     private Optional<URI> getOrganizationId(UUID customerIdentifier) {

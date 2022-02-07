@@ -13,7 +13,8 @@ public enum AccessRight {
     REJECT_DOI_REQUEST,
     READ_DOI_REQUEST,
     EDIT_OWN_INSTITUTION_RESOURCES,
-    EDIT_OWN_INSTITUTION_USERS;
+    EDIT_OWN_INSTITUTION_USERS,
+    EDIT_OWN_INSTITUTION_PROJECTS;
 
     private static final Map<String, AccessRight> index = createIndex();
 

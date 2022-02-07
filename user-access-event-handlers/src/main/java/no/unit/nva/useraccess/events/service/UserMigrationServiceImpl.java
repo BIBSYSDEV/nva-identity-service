@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 public class UserMigrationServiceImpl implements UserMigrationService {
 
     public static final String CRISTIN_API_HOST = "api.cristin.no";
+    public static final String UNDEFINED = "undefined";
 
     private final CustomerService customerService;
     private final BareProxyClient bareProxyClient;
@@ -54,13 +55,14 @@ public class UserMigrationServiceImpl implements UserMigrationService {
             var systemControlNumber = authority.get().getSystemControlNumber();
             var organizationIds = authority.get().getOrganizationIds();
             organizationIds.stream()
-                .filter(this::isUriToCristinApi)
+                .filter(this::isUnwantedUri)
                 .forEach(uri -> deleteFromAuthority(systemControlNumber, uri));
         }
     }
 
-    private boolean isUriToCristinApi(URI organizationId) {
-        return CRISTIN_API_HOST.equals(organizationId.getHost());
+    private boolean isUnwantedUri(URI organizationId) {
+        return CRISTIN_API_HOST.equals(organizationId.getHost()) ||
+                UNDEFINED.equals(organizationId.toString());
     }
 
     private void deleteFromAuthority(String systemControlNumber, URI organizationId) {

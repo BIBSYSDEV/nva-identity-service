@@ -24,6 +24,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.UUID;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;

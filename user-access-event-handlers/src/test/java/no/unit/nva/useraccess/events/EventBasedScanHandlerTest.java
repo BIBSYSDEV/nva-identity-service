@@ -132,7 +132,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
 
     private InputStream fetchNextEventFromEventBridgeClient() throws JsonProcessingException {
         PutEventsRequestEntry emittedEvent = eventClient.getRequestEntries().get(0);
-        ScanDatabaseRequest scanRequest = ScanDatabaseRequest.fromJson(emittedEvent.detail());
+        ScanDatabaseRequestV2 scanRequest = ScanDatabaseRequestV2.fromJson(emittedEvent.detail());
         return EventBridgeEventBuilder.sampleEvent(scanRequest);
     }
 

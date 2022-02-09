@@ -47,7 +47,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
     public EventBasedScanHandler(DynamoDbClient dynamoDbClient,
                                  EventBridgeClient eventsClient,
                                  UserMigrationService migrationService) {
-        super(ScanDatabaseRequest.class);
+        super(ScanDatabaseRequestV2.class);
         this.migrationService = migrationService;
         this.identityService = new IdentityServiceImpl(dynamoDbClient);
         this.eventsClient = eventsClient;

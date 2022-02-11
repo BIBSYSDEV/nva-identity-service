@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.unit.nva.database.DatabaseAccessor;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeEventBridgeClient;
 import no.unit.nva.testutils.EventBridgeEventBuilder;
@@ -47,9 +46,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 class EventBasedScanHandlerTest extends DatabaseAccessor {
 
     public static final Context CONTEXT = mock(Context.class);
-    public static final Integer NO_PAGE_SIZE = null;
-    public static final Map<String, AttributeValue> NO_START_MARKER = null;
-    public static final boolean SEQUENTIAL = false;
+    public static final Map<String, String> NO_START_MARKER = null;
     private ByteArrayOutputStream outputStream;
     private EventBasedScanHandler handler;
 
@@ -143,7 +140,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
     }
 
     private UserDto fetchLastScannedUserUsingTheEmittedEvent(ScanDatabaseRequestV2 emittedScanRequest) {
-        return attempt(emittedScanRequest::getStartMarker)
+        return attempt(emittedScanRequest::toDynamoScanMarker)
             .map(this::createGetItemRequest)
             .map(getItemRequest -> localDynamo.getItem(getItemRequest))
             .map(GetItemResponse::item)

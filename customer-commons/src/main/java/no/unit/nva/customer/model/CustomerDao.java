@@ -6,7 +6,6 @@ import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRIST
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_NUMBER_INDEX_NAME;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -47,7 +46,7 @@ public class CustomerDao implements Customer<VocabularyDao>, TypedDao {
     private Set<VocabularyDao> vocabularies;
 
     public CustomerDao() {
-        vocabularies = null;
+        vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     public static Builder builder() {

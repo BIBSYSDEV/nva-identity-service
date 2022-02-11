@@ -73,11 +73,7 @@ public class TriggerHandlerTest {
 
     public static final String EMPTY_AFFILIATION = "[]";
     public static final String SAMPLE_FEIDE_ID = "feideId";
-<<<<<<< HEAD
     public static final URI SAMPLE_CUSTOMER_ID = randomUri();
-=======
-    public static final URI SAMPLE_CUSTOMER_ID = URI.create("http://example.org/customer/123");
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
 
     public static final String SAMPLE_USER_POOL_ID = "userPoolId";
     public static final String SAMPLE_USER_NAME = "userName";
@@ -407,9 +403,7 @@ public class TriggerHandlerTest {
 
     private void mockCustomerApiWithExistingCustomer() {
         when(customerApi.getCustomer(anyString()))
-            .thenReturn(Optional.of(new CustomerResponse(SAMPLE_CUSTOMER_ID.toString(),
-                                                         SAMPLE_CRISTIN_ORG_ID.toString()))
-            );
+            .thenReturn(Optional.of(new CustomerResponse(SAMPLE_CUSTOMER_ID,SAMPLE_CRISTIN_ORG_ID.toString())));
     }
 
     private void mockCustomerApiWithNoCustomer() {

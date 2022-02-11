@@ -1,6 +1,5 @@
 package no.unit.nva.database;
 
-import static java.util.Objects.nonNull;
 import static no.unit.nva.database.Constants.DEFAULT_DYNAMO_CLIENT;
 import java.net.URI;
 import java.util.List;
@@ -86,7 +85,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     private boolean thereAreMoreEntries(ScanResponse result) {
-        return nonNull(result.lastEvaluatedKey());
+        return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty() ;
     }
 
     private ScanResponse scanDynamoDb(ScanDatabaseRequestV2 scanRequest) {
@@ -114,7 +113,7 @@ public class IdentityServiceImpl implements IdentityService {
         return ScanRequest.builder()
             .tableName(USERS_AND_ROLES_TABLE)
             .limit(input.getPageSize())
-            .exclusiveStartKey(input.getStartMarker())
+            .exclusiveStartKey(input.toDynamoScanMarker())
             .build();
     }
 }

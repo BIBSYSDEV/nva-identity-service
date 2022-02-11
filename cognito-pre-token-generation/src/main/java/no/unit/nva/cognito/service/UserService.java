@@ -149,7 +149,7 @@ public class UserService {
         return userBuilder
                    .withFamilyName(userDetails.getFamilyName())
                    .withGivenName(userDetails.getGivenName())
-                   .withInstitution(userDetails.getCustomerId().map(URI::create).orElse(null));
+                   .withInstitution(userDetails.getCustomerId().orElse(null));
     }
 
     /**

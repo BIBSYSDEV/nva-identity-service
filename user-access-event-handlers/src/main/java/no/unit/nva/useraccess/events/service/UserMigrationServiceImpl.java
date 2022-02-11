@@ -4,7 +4,6 @@ import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
-
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
@@ -18,10 +17,10 @@ import org.slf4j.LoggerFactory;
 public class UserMigrationServiceImpl implements UserMigrationService {
 
     public static final String CRISTIN_API_HOST = "api.cristin.no";
-
+    public static final String UNDEFINED = "undefined";
+    private static final Logger logger = LoggerFactory.getLogger(UserMigrationServiceImpl.class);
     private final CustomerService customerService;
     private final BareProxyClient bareProxyClient;
-    private static final Logger logger = LoggerFactory.getLogger(UserMigrationServiceImpl.class);
 
     public UserMigrationServiceImpl(CustomerService customerService, BareProxyClient bareProxyClient) {
         this.customerService = customerService;
@@ -31,18 +30,21 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     @Override
     public UserDto migrateUser(UserDto user) {
         logger.trace("Updating user:{}", user.getUsername());
+        resetViewingScope(user);
+        removeOldPatternOrganizationIds(user.getUsername());
+        return user;
+    }
+
+    private void resetViewingScope(UserDto user) {
         getCustomerIdentifier(user)
             .map(this::getOrganizationId)
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .ifPresent(orgId -> updateBareProxyAndIdentityService(orgId, user));
-
-        return user;
+            .ifPresent(orgId -> resetViewingScope(user, orgId));
     }
 
-    private void updateBareProxyAndIdentityService(URI orgId, UserDto user) {
-        removeOldPatternOrganizationIds(user.getUsername());
-        resetViewingScope(user, orgId);
+    private void resetViewingScope(UserDto user, URI organizationId) {
+        user.setViewingScope(ViewingScope.defaultViewingScope(organizationId));
     }
 
     private void removeOldPatternOrganizationIds(String username) {
@@ -51,13 +53,14 @@ public class UserMigrationServiceImpl implements UserMigrationService {
             var systemControlNumber = authority.get().getSystemControlNumber();
             var organizationIds = authority.get().getOrganizationIds();
             organizationIds.stream()
-                .filter(this::isUriToCristinApi)
+                .filter(this::isUnwantedUri)
                 .forEach(uri -> deleteFromAuthority(systemControlNumber, uri));
         }
     }
 
-    private boolean isUriToCristinApi(URI organizationId) {
-        return CRISTIN_API_HOST.equals(organizationId.getHost());
+    private boolean isUnwantedUri(URI organizationId) {
+        return CRISTIN_API_HOST.equals(organizationId.getHost())
+               || UNDEFINED.equals(organizationId.toString());
     }
 
     private void deleteFromAuthority(String systemControlNumber, URI organizationId) {
@@ -77,14 +80,10 @@ public class UserMigrationServiceImpl implements UserMigrationService {
         logger.error(ExceptionUtils.stackTraceInSingleLine(exception));
     }
 
-    private void resetViewingScope(UserDto user, URI organizationId) {
-        user.setViewingScope(ViewingScope.defaultViewingScope(organizationId));
-    }
-
     private Optional<URI> getOrganizationId(UUID customerIdentifier) {
         return attempt(() -> customerService.getCustomer(customerIdentifier))
-                .map(CustomerDto::getCristinId)
-                .map(URI::create)
-                .toOptional();
+            .map(CustomerDto::getCristinId)
+            .map(URI::create)
+            .toOptional();
     }
 }

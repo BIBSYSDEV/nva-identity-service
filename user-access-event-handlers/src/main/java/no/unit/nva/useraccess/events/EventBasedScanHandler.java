@@ -1,15 +1,14 @@
 package no.unit.nva.useraccess.events;
 
+import static no.unit.nva.database.Constants.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.util.List;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import no.unit.nva.database.Constants;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
-import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
 import no.unit.nva.useraccess.events.service.UserMigrationService;
@@ -36,7 +35,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
 
     @JacocoGenerated
     public EventBasedScanHandler() {
-        this(Constants.DEFAULT_DYNAMO_CLIENT);
+        this(DEFAULT_DYNAMO_CLIENT);
     }
 
     @JacocoGenerated

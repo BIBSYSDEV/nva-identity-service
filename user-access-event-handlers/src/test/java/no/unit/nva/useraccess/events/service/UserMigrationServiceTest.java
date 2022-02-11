@@ -24,6 +24,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -40,12 +41,15 @@ import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class UserMigrationServiceTest {
 
     private static final URI SAMPLE_ORG_ID = URI.create("https://localhost/cristin/organization/123.0.0.0");
     private static final URI SAMPLE_CRISTIN_API_ORG_ID =
             new UriWrapper("https", CRISTIN_API_HOST).addChild(randomString()).getUri();
+    private static final URI UNDEFINED = URI.create("undefined");
 
     private CustomerService customerServiceMock;
     private BareProxyClient bareProxyClient;
@@ -75,16 +79,21 @@ class UserMigrationServiceTest {
         assertThat(actualUser, is(equalTo(expectedUser)));
     }
 
-    @Test
-    void shouldUpdateBareOnceOnInvalidOrganizationId() throws Exception {
+    @ParameterizedTest
+    @MethodSource("provideInvalidOrganizationIds")
+    void shouldUpdateBareOnceOnInvalidOrganizationId(URI uri) throws Exception {
         var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
-        prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponseWithInvalidOrganizationId()));
+        prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponseWithInvalidOrganizationId(uri)));
 
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
 
         verify(httpClientMock, times(2)).send(any(), any());
+    }
+
+    private static Stream<URI> provideInvalidOrganizationIds() {
+        return Stream.of(SAMPLE_CRISTIN_API_ORG_ID,UNDEFINED);
     }
 
     @Test
@@ -107,7 +116,8 @@ class UserMigrationServiceTest {
     void shouldFinishEvenWhenBareUpdateReturnsBadGateway() throws Exception {
         var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
-        prepareOkResponseThenBadGatewayResponse(toJson(createSampleAuthorityResponseWithInvalidOrganizationId()));
+        prepareOkResponseThenBadGatewayResponse(
+                toJson(createSampleAuthorityResponseWithInvalidOrganizationId(SAMPLE_CRISTIN_API_ORG_ID)));
 
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
@@ -138,7 +148,8 @@ class UserMigrationServiceTest {
     }
 
     @Test
-    void shouldLogMessageWhenCustomerIdentifierIsNotValidUuid() {
+    void shouldLogMessageWhenCustomerIdentifierIsNotValidUuid() throws IOException, InterruptedException {
+        prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponse()));
         final TestAppender appender = LogUtils.getTestingAppenderForRootLogger();
         var user = createSampleUserWithInvalidCustomerId();
         var customerIdExpectedInLogMessage = user.getInstitution().toString();
@@ -186,10 +197,10 @@ class UserMigrationServiceTest {
             .thenReturn(badGatewayResponse);
     }
 
-    private List<SimpleAuthorityResponse> createSampleAuthorityResponseWithInvalidOrganizationId() {
+    private List<SimpleAuthorityResponse> createSampleAuthorityResponseWithInvalidOrganizationId(URI uri) {
         var authority = new SimpleAuthorityResponse();
         authority.setId(randomUri());
-        authority.setOrganizationIds(List.of(SAMPLE_CRISTIN_API_ORG_ID));
+        authority.setOrganizationIds(List.of(uri));
         return List.of(authority);
     }
 

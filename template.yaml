@@ -424,10 +424,7 @@ Resources:
       Timeout: 10
       Environment:
         Variables:
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
 
 
@@ -663,10 +660,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -686,12 +680,8 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -710,10 +700,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -733,10 +720,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -756,10 +740,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -779,10 +760,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -802,10 +780,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -825,10 +800,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -848,10 +820,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -922,10 +891,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-=======
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
@@ -977,14 +943,9 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-<<<<<<< HEAD
-          API_SECRET_NAME: !Sub 'IdentityServiceSecret-${Suffix}'
-          API_SECRET_KEY: IdentityServiceSecretKey
-=======
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           API_KEY_SECRET_NAME: !Sub 'IdentityServiceSecret-${Suffix}'
           API_KEY_SECRET_KEY: IdentityServiceSecretKey
->>>>>>> 6bf4e3a870b38bd725fae6d0179c133526edb4a2
       Policies:
         - Version: 2012-10-17
           Statement:

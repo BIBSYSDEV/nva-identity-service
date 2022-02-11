@@ -5,7 +5,6 @@ import static no.unit.nva.useraccess.events.EventsConfig.EVENT_BUS;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
 import static no.unit.nva.useraccess.events.EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE;
 import static no.unit.nva.useraccess.events.EventsConfig.objectMapper;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import java.io.IOException;
@@ -17,14 +16,13 @@ import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
 public class StartBatchScan implements RequestStreamHandler {
 
-    private static final Map<String, AttributeValue> START_FROM_BEGINNING = null;
+    private static final Map<String, String> START_FROM_BEGINNING = null;
 
     private static final Logger logger = LoggerFactory.getLogger(StartBatchScan.class);
     private final EventBridgeClient eventClient;

@@ -1,10 +1,10 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.handlers.AddUserHandler.SYNC_ERROR_MESSAGE;
 import static no.unit.nva.handlers.EntityUtils.createRequestWithUserWithoutUsername;
 import static no.unit.nva.handlers.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.handlers.EntityUtils.createUserWithoutRoles;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.Is.is;
@@ -163,7 +163,7 @@ class AddUserTest extends HandlerTest {
         throws IOException {
         String outputString = outputStream.toString();
         TypeReference<GatewayResponse<Problem>> typeReference = new TypeReference<>() {};
-        return defaultRestObjectMapper.readValue(outputString, typeReference);
+        return dtoObjectMapper.readValue(outputString, typeReference);
     }
 
     private void addUserFirstTime(UserDto inputUser) throws ApiGatewayException {

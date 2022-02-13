@@ -1,8 +1,8 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -179,7 +179,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     private InputStream createListRequest(URI institutionId) throws JsonProcessingException {
         Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString());
-        return new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
             .withQueryParameters(queryParams)
             .build();
     }

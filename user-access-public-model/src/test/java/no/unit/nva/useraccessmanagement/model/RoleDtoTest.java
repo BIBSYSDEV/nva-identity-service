@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessmanagement.model;
 
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createRole;
@@ -102,7 +102,7 @@ public class RoleDtoTest extends DtoTest {
     @Test
     public void roleDtoSerializedObjectContainsTypeWithValueRole() throws InvalidEntryInternalException {
         RoleDto sampleRole = createRole(SOME_ROLENAME);
-        ObjectNode json = defaultRestObjectMapper.convertValue(sampleRole, ObjectNode.class);
+        ObjectNode json = dtoObjectMapper.convertValue(sampleRole, ObjectNode.class);
 
         String actualType = json.get(JSON_TYPE_ATTRIBUTE).asText();
         assertThat(actualType, is(equalTo(ROLE_TYPE_LITERAL)));
@@ -112,11 +112,11 @@ public class RoleDtoTest extends DtoTest {
     @Test
     public void userDtoCannotBeCreatedWithoutTypeValue() throws InvalidEntryInternalException, JsonProcessingException {
         RoleDto sampleUser = createRole(SOME_ROLE_NAME);
-        ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
+        ObjectNode json = dtoObjectMapper.convertValue(sampleUser, ObjectNode.class);
         JsonNode objectWithoutType = json.remove(JSON_TYPE_ATTRIBUTE);
-        String jsonStringWithoutType = defaultRestObjectMapper.writeValueAsString(objectWithoutType);
+        String jsonStringWithoutType = dtoObjectMapper.writeValueAsString(objectWithoutType);
 
-        Executable action = () -> defaultRestObjectMapper.readValue(jsonStringWithoutType, RoleDto.class);
+        Executable action = () -> dtoObjectMapper.readValue(jsonStringWithoutType, RoleDto.class);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
         assertThat(exception.getMessage(), StringContains.containsString(RoleDto.TYPE));
     }
@@ -126,12 +126,12 @@ public class RoleDtoTest extends DtoTest {
     public void roleDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
         throws InvalidEntryInternalException, IOException {
         RoleDto someRole = createRole(SOME_ROLE_NAME);
-        ObjectNode json = defaultRestObjectMapper.convertValue(someRole, ObjectNode.class);
+        ObjectNode json = dtoObjectMapper.convertValue(someRole, ObjectNode.class);
         assertThatSerializedItemContainsType(json, ROLE_TYPE_LITERAL);
 
-        String jsonStringWithType = defaultRestObjectMapper.writeValueAsString(json);
+        String jsonStringWithType = dtoObjectMapper.writeValueAsString(json);
 
-        RoleDto deserializedItem = defaultRestObjectMapper.readValue(jsonStringWithType, RoleDto.class);
+        RoleDto deserializedItem = dtoObjectMapper.readValue(jsonStringWithType, RoleDto.class);
 
         assertThat(deserializedItem, is(equalTo(someRole)));
         assertThat(deserializedItem, is(not(IsSame.sameInstance(someRole))));

@@ -2,8 +2,8 @@ package no.unit.nva.handlers.authorizer;
 
 import static no.unit.commons.apigateway.authentication.DefaultRequestAuthorizer.API_KEY_SECRET_KEY;
 import static no.unit.commons.apigateway.authentication.DefaultRequestAuthorizer.API_KEY_SECRET_NAME;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -21,7 +21,6 @@ import no.unit.commons.apigateway.authentication.AuthorizerResponse;
 import no.unit.commons.apigateway.authentication.StatementElement;
 import no.unit.nva.database.interfaces.WithEnvironment;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.core.Environment;
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +44,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
     public static final String METHOD_ARN_REQUEST_FIELD = "methodArn";
     private SecretsManagerClient secretsManager;
 
-    private Context context;
+    private final Context context;
 
     public LambdaAuthorizerTest() {
         context = mock(Context.class);
@@ -130,7 +129,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
     }
 
     private InputStream buildRequest(String submittedSecret) throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
             .withHeaders(Map.of(HttpHeaders.AUTHORIZATION, submittedSecret))
             .withOtherProperties(Map.of(METHOD_ARN_REQUEST_FIELD, DEFAULT_METHOD_ARN))
             .build();
@@ -152,6 +151,6 @@ public class LambdaAuthorizerTest implements WithEnvironment {
 
     private String createSecretAsJson(String secretKey, String secreteValue) throws JsonProcessingException {
         Map<String, String> secret = Map.of(secretKey, secreteValue);
-        return defaultRestObjectMapper.writeValueAsString(secret);
+        return dtoObjectMapper.writeValueAsString(secret);
     }
 }

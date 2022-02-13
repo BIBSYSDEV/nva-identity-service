@@ -2,10 +2,10 @@ package no.unit.nva.useraccessmanagement.dao;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDao.ERROR_DUE_TO_INVALID_ROLE;
 import static nva.commons.core.attempt.Try.attempt;
@@ -155,7 +155,7 @@ public class UserDbTest {
     @Test
     void serializationThrowsExceptionWhenUserHasNullUserName() {
         UserDao userDao = new UserDao();
-        Executable action = () -> defaultDynamoConfigMapper.writeValueAsString(userDao);
+        Executable action = () -> dtoObjectMapper.writeValueAsString(userDao);
         JsonMappingException thrownException = assertThrows(JsonMappingException.class, action);
         assertThat(thrownException.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
     }

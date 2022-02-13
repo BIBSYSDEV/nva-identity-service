@@ -27,8 +27,6 @@ public class ViewingScope implements WithType {
     public static final String EXCLUDED_UNIS = "excludedUnis";
     public static final String INCLUDED_UNITS = "includedUnits";
     public static final String VIEWING_SCOPE_TYPE = "ViewingScope";
-    public static final boolean INCLUDE_NESTED_UNITS = true;
-    public static final boolean DO_NOT_INCLUDE_NESTED_UNITS = !INCLUDE_NESTED_UNITS;
     public static final String INVALID_VIEWING_SCOPE_URI_ERROR = "Invalid Viewing Scope URI:";
     @JsonProperty(INCLUDED_UNITS)
     private final Set<URI> includedUnits;

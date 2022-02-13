@@ -2,8 +2,8 @@ package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -12,6 +12,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.RandomUserDataGenerator;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
@@ -45,7 +46,7 @@ public final class EntityUtils {
                NoSuchMethodException, IllegalAccessException, InvocationTargetException, InvalidInputException,
                BadRequestException {
         UserDto userWithoutUsername = createUserWithoutUsername();
-        return new HandlerRequestBuilder<UserDto>(defaultRestObjectMapper)
+        return new HandlerRequestBuilder<UserDto>(dtoObjectMapper)
             .withBody(userWithoutUsername);
     }
 

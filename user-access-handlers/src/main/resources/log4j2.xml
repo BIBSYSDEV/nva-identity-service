@@ -4,7 +4,7 @@
   <Appenders>
     <Appender name="Lambda" type="Lambda">
       <PatternLayout>
-        <pattern>%d{ISO8601_OFFSET_DATE_TIME_HHCMM} %X{AWSRequestId} %-5p %c{1.}:%L - %m%n</pattern>
+        <pattern>%d{ISO8601_OFFSET_DATE_TIME_HHCMM} %X{AWSRequestId} %-5p %m%n</pattern>
       </PatternLayout>
     </Appender>
 

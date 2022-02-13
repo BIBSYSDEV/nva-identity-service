@@ -1,6 +1,6 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -24,7 +24,6 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +33,6 @@ import org.junit.jupiter.api.function.Executable;
 class GetUserHandlerTest extends HandlerTest {
 
     private static final String BLANK_STRING = " ";
-    private static final Environment ENVIRONMENT = new Environment();
     private RequestInfo requestInfo;
     private Context context;
     private GetUserHandler getUserHandler;
@@ -117,7 +115,7 @@ class GetUserHandlerTest extends HandlerTest {
 
     private ByteArrayOutputStream sendGetUserRequestToHandler() throws IOException {
         requestInfo = createRequestInfoForGetUser(DEFAULT_USERNAME);
-        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
+        InputStream inputStream = new HandlerRequestBuilder<Void>(dtoObjectMapper)
             .withPathParameters(requestInfo.getPathParameters())
             .build();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

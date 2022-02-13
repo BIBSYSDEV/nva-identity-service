@@ -1,7 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.InputStream;
@@ -37,7 +37,7 @@ public final class EntityUtils {
     public static HandlerRequestBuilder<ObjectNode> createRequestBuilderWithUserWithoutUsername()
         throws JsonProcessingException, InvalidEntryInternalException {
         ObjectNode userWithoutUsername = createUserWithoutUsername();
-        return new HandlerRequestBuilder<ObjectNode>(defaultRestObjectMapper)
+        return new HandlerRequestBuilder<ObjectNode>(dtoObjectMapper)
             .withBody(userWithoutUsername);
     }
 
@@ -65,7 +65,7 @@ public final class EntityUtils {
     public static ObjectNode createUserWithoutUsername()
         throws InvalidEntryInternalException {
         UserDto userDto = createUserWithRolesAndInstitution();
-        ObjectNode json = defaultRestObjectMapper.convertValue(userDto, ObjectNode.class);
+        ObjectNode json = dtoObjectMapper.convertValue(userDto, ObjectNode.class);
         json.put("username", EMPTY_STRING);
         return json;
     }

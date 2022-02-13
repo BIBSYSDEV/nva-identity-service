@@ -2,12 +2,12 @@ package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
 import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
 import static no.unit.nva.handlers.UpdateUserHandler.INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR;
 import static no.unit.nva.handlers.UpdateUserHandler.LOCATION_HEADER;
 import static no.unit.nva.handlers.UpdateUserHandler.USERNAME_PATH_PARAMETER;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.useraccessmanagement.model.UserDto.VIEWING_SCOPE_FIELD;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDED_UNITS;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,7 +27,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import no.unit.nva.Constants;
-import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
@@ -40,7 +39,6 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,7 +59,6 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private Context context;
 
     private ByteArrayOutputStream output;
-    private static final Environment ENVIRONMENT = new Environment();
 
     @BeforeEach
     public void init() {
@@ -197,8 +194,8 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
 
     @ParameterizedTest
-    //diable temporary for performing the migration
-    //    @ValueSource(strings = {"##some?malformed?uri", "https://www.example.com/194.63.0.0"})
+    //disable temporary for performing the migration
+    //   @ValueSource(strings = {"##some?malformed?uri", "https://www.example.com/194.63.0.0"})
     @ValueSource(strings = {"##some?malformed?uri"})
     void shouldReturnBadRequestWhenInputViewingScopeContainsMalformedUris(String illegalUri)
         throws IOException, BadRequestException {
@@ -212,9 +209,9 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private ObjectNode injectInvalidUriToViewingScope(String illegalUri, UserDto userDto)
         throws JsonProcessingException {
-        var jsonString = JsonUtils.dtoObjectMapper.writeValueAsString(userDto);
-        var userJson = (ObjectNode) JsonUtils.dtoObjectMapper.readTree(jsonString);
-        var includedUrisNode = JsonUtils.dtoObjectMapper.createArrayNode();
+        var jsonString = dtoObjectMapper.writeValueAsString(userDto);
+        var userJson = (ObjectNode) dtoObjectMapper.readTree(jsonString);
+        var includedUrisNode = dtoObjectMapper.createArrayNode();
         includedUrisNode.add(illegalUri);
         var viewingScopeNode = (ObjectNode) userJson.get(VIEWING_SCOPE_FIELD);
         viewingScopeNode.set(INCLUDED_UNITS, includedUrisNode);
@@ -244,7 +241,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
 
     private ObjectNode inputObjectWithoutType(UserDto userDto) {
-        ObjectNode objectWithoutType = defaultRestObjectMapper.convertValue(userDto, ObjectNode.class);
+        ObjectNode objectWithoutType = dtoObjectMapper.convertValue(userDto, ObjectNode.class);
         objectWithoutType.remove(TYPE_ATTRIBUTE);
         return objectWithoutType;
     }
@@ -258,7 +255,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private <I, O> GatewayResponse<O> sendUpdateRequest(String userId, I userUpdate)
         throws IOException {
         UpdateUserHandler updateUserHandler = new UpdateUserHandler(databaseService);
-        InputStream input = new HandlerRequestBuilder<I>(defaultRestObjectMapper)
+        InputStream input = new HandlerRequestBuilder<I>(dtoObjectMapper)
             .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
             .withBody(userUpdate)
             .build();
@@ -269,7 +266,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private GatewayResponse<Problem> sendUpdateRequestWithoutPathParameters(UserDto userUpdate)
         throws IOException {
         UpdateUserHandler updateUserHandler = new UpdateUserHandler(databaseService);
-        InputStream input = new HandlerRequestBuilder<UserDto>(defaultRestObjectMapper)
+        InputStream input = new HandlerRequestBuilder<UserDto>(dtoObjectMapper)
             .withBody(userUpdate)
             .build();
         updateUserHandler.handleRequest(input, output, context);

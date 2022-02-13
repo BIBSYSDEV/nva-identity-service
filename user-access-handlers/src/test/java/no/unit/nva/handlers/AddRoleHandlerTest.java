@@ -1,6 +1,6 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -127,7 +127,7 @@ public class AddRoleHandlerTest extends HandlerTest {
         TestAppender testingAppender = LogUtils.getTestingAppender(RestRequestHandler.class);
 
         AddRoleHandler addRoleHandler = addRoleHandlerDoesNotFindRoleAfterAddingIt();
-        InputStream inputRequest = new HandlerRequestBuilder<>(defaultRestObjectMapper).withBody(sampleRole).build();
+        InputStream inputRequest = new HandlerRequestBuilder<>(dtoObjectMapper).withBody(sampleRole).build();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         addRoleHandler.handleRequest(inputRequest, outputStream, context);
@@ -192,7 +192,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     private <T> GatewayResponse<T> sendRequest(RoleDto build) throws IOException {
-        InputStream input = new HandlerRequestBuilder<RoleDto>(defaultRestObjectMapper)
+        InputStream input = new HandlerRequestBuilder<RoleDto>(dtoObjectMapper)
             .withBody(build)
             .build();
         ByteArrayOutputStream output = new ByteArrayOutputStream();

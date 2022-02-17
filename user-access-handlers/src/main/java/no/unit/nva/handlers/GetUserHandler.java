@@ -22,23 +22,24 @@ public class GetUserHandler extends ApiGatewayHandlerV2<Void, UserDto> {
 
     private final IdentityService databaseService;
     private final Logger logger = LoggerFactory.getLogger(ApiGatewayHandlerV2.class);
+
     @JacocoGenerated
     public GetUserHandler() {
         this(new IdentityServiceImpl());
     }
 
     public GetUserHandler(IdentityService databaseService) {
-        super(Void.class);
+        super();
         this.databaseService = databaseService;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, UserDto output) {
+    protected Integer getSuccessStatusCode(String input, UserDto output) {
         return HttpURLConnection.HTTP_OK;
     }
 
     @Override
-    protected UserDto processInput(Void body,
+    protected UserDto processInput(String body,
                                    APIGatewayProxyRequestEvent input,
                                    Context context) throws ApiGatewayException {
         logger.info("Hello from ApiGatewayHandlerV2");

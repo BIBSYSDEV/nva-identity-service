@@ -1,18 +1,22 @@
 package no.unit.nva.handlers;
 
 import static java.util.function.Predicate.not;
+import static no.unit.nva.handlers.HandlerAccessingUser.EMPTY_USERNAME_PATH_PARAMETER_ERROR;
+import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.ApiGatewayHandlerV2;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 
-public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
+public class GetUserHandler extends ApiGatewayHandlerV2<Void, UserDto> {
 
     private final IdentityService databaseService;
 
@@ -24,16 +28,6 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
     public GetUserHandler(IdentityService databaseService) {
         super(Void.class);
         this.databaseService = databaseService;
-
-    }
-
-    @Override
-    protected UserDto processInput(Void input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-
-        String username = extractValidUserNameOrThrowException(requestInfo);
-        UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
-        return databaseService.getUser(queryObject);
     }
 
     @Override
@@ -41,9 +35,23 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private String extractValidUserNameOrThrowException(RequestInfo requestInfo) throws BadRequestException {
+    @Override
+    protected UserDto processInput(Void body,
+                                   APIGatewayProxyRequestEvent input,
+                                   Context context) throws ApiGatewayException {
+        String username = extractValidUserNameOrThrowException(input);
+        UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
+        return databaseService.getUser(queryObject);
+    }
+
+    protected String decodeUrlPart(String encodedString) {
+        return java.net.URLDecoder.decode(encodedString, StandardCharsets.UTF_8);
+    }
+
+    private String extractValidUserNameOrThrowException(APIGatewayProxyRequestEvent requestInfo)
+        throws BadRequestException {
         return Optional.of(requestInfo)
-            .map(RequestInfo::getPathParameters)
+            .map(APIGatewayProxyRequestEvent::getPathParameters)
             .map(map -> map.get(USERNAME_PATH_PARAMETER))
             .map(this::decodeUrlPart)
             .filter(not(String::isBlank))

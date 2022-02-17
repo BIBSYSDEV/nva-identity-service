@@ -1,6 +1,5 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -9,18 +8,16 @@ import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
-import no.unit.nva.testutils.HandlerRequestBuilder;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -33,7 +30,7 @@ import org.junit.jupiter.api.function.Executable;
 class GetUserHandlerTest extends HandlerTest {
 
     private static final String BLANK_STRING = " ";
-    private RequestInfo requestInfo;
+    private APIGatewayProxyRequestEvent requestInfo;
     private Context context;
     private GetUserHandler getUserHandler;
 
@@ -50,10 +47,9 @@ class GetUserHandlerTest extends HandlerTest {
         throws ConflictException, InvalidEntryInternalException, InvalidInputException, IOException {
         insertSampleUserToDatabase();
 
-        ByteArrayOutputStream outputStream = sendGetUserRequestToHandler();
-
-        GatewayResponse<ObjectNode> response = GatewayResponse.fromOutputStream(outputStream);
-        ObjectNode bodyObject = response.getBodyObject(ObjectNode.class);
+        requestInfo = createRequestInfoForGetUser(DEFAULT_USERNAME);
+        var response = getUserHandler.handleRequest(requestInfo, context);
+        var bodyObject = (ObjectNode) JsonUtils.dtoObjectMapper.readTree(response.getBody());
 
         assertThat(bodyObject.get(TYPE_ATTRIBUTE), is(not(nullValue())));
         String type = bodyObject.get(TYPE_ATTRIBUTE).asText();
@@ -113,19 +109,9 @@ class GetUserHandlerTest extends HandlerTest {
         assertThrows(BadRequestException.class, action);
     }
 
-    private ByteArrayOutputStream sendGetUserRequestToHandler() throws IOException {
-        requestInfo = createRequestInfoForGetUser(DEFAULT_USERNAME);
-        InputStream inputStream = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-            .withPathParameters(requestInfo.getPathParameters())
-            .build();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        getUserHandler.handleRequest(inputStream, outputStream, context);
-        return outputStream;
-    }
-
-    private RequestInfo createRequestInfoForGetUser(String username) {
-        RequestInfo reqInfo = new RequestInfo();
-        reqInfo.setPathParameters(Collections.singletonMap(GetUserHandler.USERNAME_PATH_PARAMETER, username));
+    private APIGatewayProxyRequestEvent createRequestInfoForGetUser(String username) {
+        APIGatewayProxyRequestEvent reqInfo = new APIGatewayProxyRequestEvent();
+        reqInfo.setPathParameters(Collections.singletonMap(HandlerAccessingUser.USERNAME_PATH_PARAMETER, username));
         return reqInfo;
     }
 }

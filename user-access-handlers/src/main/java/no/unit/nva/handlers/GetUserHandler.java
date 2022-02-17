@@ -15,11 +15,13 @@ import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.ApiGatewayHandlerV2;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GetUserHandler extends ApiGatewayHandlerV2<Void, UserDto> {
 
     private final IdentityService databaseService;
-
+    private final Logger logger = LoggerFactory.getLogger(ApiGatewayHandlerV2.class);
     @JacocoGenerated
     public GetUserHandler() {
         this(new IdentityServiceImpl());
@@ -39,6 +41,8 @@ public class GetUserHandler extends ApiGatewayHandlerV2<Void, UserDto> {
     protected UserDto processInput(Void body,
                                    APIGatewayProxyRequestEvent input,
                                    Context context) throws ApiGatewayException {
+        logger.info("Hello from ApiGatewayHandlerV2");
+        logger.info(input.toString());
         String username = extractValidUserNameOrThrowException(input);
         UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
         return databaseService.getUser(queryObject);

@@ -424,6 +424,14 @@ Resources:
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
 
+  TriggerFunctionOpenId:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.PreTokenGenerationHandler::handleRequest
+      Role: !GetAtt TriggerExecutionRole.Arn
+      Timeout: 10
+
   ### User Access Service ##############################################################################################
 
   UserRoleMappings:

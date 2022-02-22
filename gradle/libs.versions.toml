@@ -51,6 +51,10 @@ jackson-annotations = { group = 'com.fasterxml.jackson.core', name = 'jackson-an
 jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jsr310', version.ref = 'jackson' }
 jackson-datatype-jdk8 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
 
+jackson-jr-objects = { group = 'com.fasterxml.jackson.jr', name = 'jackson-jr-objects', version.ref = 'jackson' }
+
+
+
 slf4j = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
 log4j-core = { group = 'org.apache.logging.log4j', name = 'log4j-core', version.ref = 'log4j' }
 log4j-api = { group = 'org.apache.logging.log4j', name = 'log4j-api', version.ref = 'log4j' }

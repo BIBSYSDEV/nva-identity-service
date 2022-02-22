@@ -1,0 +1,13 @@
+plugins {
+    id 'nva.identity.service.java-application-conventions'
+    id 'nva.identity.service.dynamodblocal'
+
+}
+
+dependencies {
+
+    implementation libs.aws.lambda.java.core
+    implementation libs.jackson.jr.objects
+    testImplementation project(':user-access-testing')
+}
+

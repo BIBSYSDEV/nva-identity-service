@@ -1,0 +1,48 @@
+{
+  "version": "1",
+  "triggerSource": "TokenGeneration_HostedAuth",
+  "region": "eu-west-1",
+  "userPoolId": "eu-west-1_ZgmwmNtMp",
+  "userName": "FeideIdentityProvider_fd42d7f46888c456162728642d6b2fd14bc0917f",
+  "callerContext": {
+    "awsSdkVersion": "aws-sdk-unknown-unknown",
+    "clientId": "5lvkqvapt1bbbnalce5qu3agbi"
+  },
+  "request": {
+    "userAttributes": {
+      "custom:feideTargetedId": "13375c598a0f23791bdc6d7b8e1951c2364ec8da",
+      "sub": "3366c711-2f02-4924-8cee-10ebd92784eb",
+      "custom:identifiers": "feide:og@unit.no",
+      "email_verified": "false",
+      "cognito:user_status": "EXTERNAL_PROVIDER",
+      "custom:orgLegalName": "Unit",
+      "custom:yearOfBirth": "1984",
+      "custom:cristinId": "https://api.cristin.no/v2/institutions/20202",
+      "custom:orgName": "UNIT",
+      "custom:orgNumber": "NO919477822",
+      "custom:schoolList": "NO919477822",
+      "custom:orgEmail": "noreply@unit.no",
+      "given_name": "Orestis Stylianos",
+      "custom:application": "NVA",
+      "custom:customerId": "https://api.dev.nva.aws.unit.no/customer/f54c8aa9-073a-46a1-8f7c-dde66c853934",
+      "custom:applicationRoles": "Creator,User",
+      "identities": "[{\"userId\":\"fd42d7f46888c456162728642d6b2fd14bc0917f\",\"providerName\":\"FeideIdentityProvider\",\"providerType\":\"SAML\",\"issuer\":\"https://idp-test.feide.no\",\"primary\":true,\"dateCreated\":1594031316217}]",
+      "name": "Orestis Stylianos Gkorgkas",
+      "custom:commonName": "Orestis Stylianos Gkorgkas",
+      "custom:feideId": "og@unit.no",
+      "family_name": "Gkorgkas",
+      "email": "orestis.gkorgkas@unit.no",
+      "custom:affiliation": "[member, employee, staff]"
+    },
+    "groupConfiguration": {
+      "groupsToOverride": [
+        "eu-west-1_ZgmwmNtMp_FeideIdentityProvider",
+        "PublisherGroup"
+      ],
+      "iamRolesToOverride": [
+        "arn:aws:iam::884807050265:role/nva-cognito-develop-PublisherRole-1QQSZVZUL53KW"
+      ]
+    }
+  },
+  "response": {}
+}

@@ -21,14 +21,14 @@ public class PreTokenGenerationHandler implements RequestStreamHandler {
     public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
         String inputString = Optional.ofNullable(input)
             .map(IoUtils::streamToString)
-            .orElse("Input was empty");
+            .orElse("");
         context.getLogger().log(inputString);
-        writeOutput(output);
+        writeOutput(output,inputString);
     }
 
-    private void writeOutput(OutputStream output) {
+    private void writeOutput(OutputStream output, String outputString) {
         try (OutputStreamWriter writer = new OutputStreamWriter(output)) {
-            writer.write("Not important output");
+            writer.write(outputString);
         } catch (IOException e) {
             e.printStackTrace();
         }

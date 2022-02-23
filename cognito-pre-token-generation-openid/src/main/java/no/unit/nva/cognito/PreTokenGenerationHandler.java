@@ -1,14 +1,16 @@
 package no.unit.nva.cognito;
 
-
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.fasterxml.jackson.jr.ob.JSON;
+import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import java.io.IOException;
-import java.util.Map;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.Optional;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.ioutils.IoUtils;
 
-public class PreTokenGenerationHandler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
+public class PreTokenGenerationHandler implements RequestStreamHandler {
 
     @JacocoGenerated
     public PreTokenGenerationHandler() {
@@ -16,15 +18,19 @@ public class PreTokenGenerationHandler implements RequestHandler<Map<String, Obj
     }
 
     @Override
-    public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
-        try{
-            var json = JSON.std.asString(input);
-            context.getLogger().log(json);
-            return input;
-        }
-        catch (IOException e){
-            throw new RuntimeException(e);
-        }
+    public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
+        String inputString = Optional.ofNullable(input)
+            .map(IoUtils::streamToString)
+            .orElse("Input was empty");
+        context.getLogger().log(inputString);
+        writeOutput(output);
+    }
 
+    private void writeOutput(OutputStream output) {
+        try (OutputStreamWriter writer = new OutputStreamWriter(output)) {
+            writer.write("Not important output");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

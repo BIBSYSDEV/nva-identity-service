@@ -411,6 +411,7 @@ Resources:
       FunctionName: !Ref TriggerFunction
       Principal: cognito-idp.amazonaws.com
 
+
   TriggerFunction:
     Type: AWS::Serverless::Function
     Properties:

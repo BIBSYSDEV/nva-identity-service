@@ -8,6 +8,7 @@ dependencies {
 
     implementation libs.aws.lambda.java.core
     implementation libs.jackson.jr.objects
+    implementation libs.nva.core
     testImplementation project(':user-access-testing')
 }
 

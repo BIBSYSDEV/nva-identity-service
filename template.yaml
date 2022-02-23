@@ -1259,6 +1259,67 @@ Resources:
       Timestamp: '${BUILD_TIMESTAMP}'
       AuthorizerArn: !GetAtt UserPool.Arn
 
+### New Cognito ########################################################################################################
+  NewUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms: []
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      MfaConfiguration: "OFF"
+      LambdaConfig:
+        PostAuthentication: !GetAtt PostAuthenticationHandler.Arn
+        PreAuthentication: !GetAtt PreAuthenticationHandler.Arn
+        PreTokenGeneration: !GetAtt PreTokenGenerationnHandler.Arn
+      Schema:
+        - Name: nin
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: feideId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: username
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+
+
+
+
+  PreAuthenticationHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.EchoCognitoTriggerHandler::handleRequest
+      Role: !GetAtt TriggerExecutionRole.Arn
+      Timeout: 10
+
+  PostAuthenticationHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.EchoCognitoTriggerHandler::handleRequest
+      Role: !GetAtt TriggerExecutionRole.Arn
+      Timeout: 10
+
+  PreTokenGenerationnHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.EchoCognitoTriggerHandler::handleRequest
+      Role: !GetAtt TriggerExecutionRole.Arn
+      Timeout: 10
+
+
+
+
 ### Outputs ############################################################################################################
 
 Outputs:

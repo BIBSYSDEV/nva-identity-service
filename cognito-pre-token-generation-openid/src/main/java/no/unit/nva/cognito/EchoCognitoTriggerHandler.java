@@ -10,10 +10,10 @@ import java.util.Optional;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.ioutils.IoUtils;
 
-public class PreTokenGenerationHandler implements RequestStreamHandler {
+public class EchoCognitoTriggerHandler implements RequestStreamHandler {
 
     @JacocoGenerated
-    public PreTokenGenerationHandler() {
+    public EchoCognitoTriggerHandler() {
 
     }
 

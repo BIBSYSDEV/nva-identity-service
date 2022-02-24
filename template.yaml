@@ -33,7 +33,6 @@ Parameters:
     Type: CommaDelimitedList
     Default: ALLOW_ADMIN_USER_PASSWORD_AUTH, ALLOW_CUSTOM_AUTH, ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH
     Description: Set explicit authenticaton flows.
-
   ApiDomain:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApiDomain
@@ -1287,7 +1286,20 @@ Resources:
         CaseSensitive: true
       UserPoolName: !Sub "IdentityService-UserPoolTest-${AWS::AccountId}"
 
-
+  ConnectionToDataportenUsingOnlyIdNumber:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: nin
+      ProviderDetails:
+        client_id: '{{resolve:secretsManager:DataportenClientId}}'
+        client_secret: '{{resolve:secretsManager:DataportenClientSecret}}'
+        attributes_request_method: POST
+        oidc_issuer: '"https://auth.dataporten.no"'
+        authorize_scopes: 'openid'
+      ProviderName: Dataporten
+      ProviderType: OIDC
+      UserPoolId: !Ref NewUserPool
 
   PreAuthenticationHandler:
     Type: AWS::Serverless::Function

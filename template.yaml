@@ -1295,7 +1295,7 @@ Resources:
         client_id: '{{resolve:secretsManager:DataportenClientId}}'
         client_secret: '{{resolve:secretsManager:DataportenClientSecret}}'
         attributes_request_method: POST
-        oidc_issuer: '"https://auth.dataporten.no"'
+        oidc_issuer: 'https://auth.dataporten.no'
         authorize_scopes: 'openid'
       ProviderName: Dataporten
       ProviderType: OIDC

@@ -1293,7 +1293,7 @@ Resources:
         custom:nin: nin
       ProviderDetails:
         client_id: '{{resolve:secretsManager:DataportenClient:SecretString:clientId}}'
-          client_secret: '{{resolve:secretsManager:DataportenClient:SecretString:secret}}'
+        client_secret: '{{resolve:secretsManager:DataportenClient:SecretString:secret}}'
         attributes_request_method: POST
         oidc_issuer: 'https://auth.dataporten.no'
         authorize_scopes: 'openid'

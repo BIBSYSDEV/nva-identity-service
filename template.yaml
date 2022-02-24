@@ -1317,7 +1317,7 @@ Resources:
         - openid
         - email
         - phone
-        - profile
+        - profile # it seems to be necessary for the custom attributes to appear
       CallbackURLs:
         - 'http://localhost:3000'
       ClientName: NvaApplicationClient

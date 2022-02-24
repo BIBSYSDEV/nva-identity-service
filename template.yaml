@@ -1265,10 +1265,10 @@ Resources:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"
-      LambdaConfig:
-        PostAuthentication: !GetAtt PostAuthenticationHandler.Arn
-        PreAuthentication: !GetAtt PreAuthenticationHandler.Arn
-        PreTokenGeneration: !GetAtt PreTokenGenerationnHandler.Arn
+#      LambdaConfig:
+#        PostAuthentication: !GetAtt PostAuthenticationHandler.Arn
+#        PreAuthentication: !GetAtt PreAuthenticationHandler.Arn
+#        PreTokenGeneration: !GetAtt PreTokenGenerationnHandler.Arn
       Schema:
         - Name: nin
           AttributeDataType: String

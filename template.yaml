@@ -1296,6 +1296,10 @@ Resources:
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
         attributes_request_method: POST
         oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://auth.dataporten.no/openid/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
         authorize_scopes: 'openid'
       ProviderName: Dataporten
       ProviderType: OIDC

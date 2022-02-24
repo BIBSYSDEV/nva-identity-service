@@ -1316,7 +1316,7 @@ Resources:
       CallbackURLs:
         - 'http://localhost:3000'
       ClientName: NvaApplicationClient
-      DefaultRedirectURI: String
+      DefaultRedirectURI: 'http://localhost:3000'
       EnableTokenRevocation: false
       ExplicitAuthFlows:
         - ALLOW_ADMIN_USER_PASSWORD_AUTH

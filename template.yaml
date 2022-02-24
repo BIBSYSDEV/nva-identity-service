@@ -1283,10 +1283,9 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: username
-          AttributeDataType: String
-          Mutable: true
-          Required: true
+      UsernameConfiguration:
+        CaseSensitive: true
+      UserPoolName: !Sub "IdentityService-UserPoolTest-${AWS::AccountId}"
 
 
 

@@ -1263,8 +1263,6 @@ Resources:
   NewUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      AccountRecoverySetting:
-        RecoveryMechanisms: []
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"

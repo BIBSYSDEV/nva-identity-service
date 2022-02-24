@@ -1317,6 +1317,7 @@ Resources:
         - openid
         - email
         - phone
+        - profile
       CallbackURLs:
         - 'http://localhost:3000'
       ClientName: NvaApplicationClient

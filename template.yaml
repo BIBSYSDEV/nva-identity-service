@@ -1290,7 +1290,7 @@ Resources:
     Type: AWS::Cognito::UserPoolIdentityProvider
     Properties:
       AttributeMapping:
-        custom:nin: nin
+        custom:nin: https://n.feide.no/claims/nin
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'

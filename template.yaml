@@ -1328,8 +1328,8 @@ Resources:
       ReadAttributes:
         - address
         - birthdate
-        - custom:feideId (mutable)
-        - custom:nin (mutable)
+        - custom:feideId
+        - custom:nin
         - email
         - email_verified
         - family_name
@@ -1360,8 +1360,8 @@ Resources:
       WriteAttributes:
         - address
           - birthdate
-          - custom:feideId (mutable)
-          - custom:nin (mutable)
+          - custom:feideId
+          - custom:nin
           - email
           - email_verified
           - family_name

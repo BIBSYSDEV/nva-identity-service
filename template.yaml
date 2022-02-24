@@ -1301,6 +1301,86 @@ Resources:
       ProviderType: OIDC
       UserPoolId: !Ref NewUserPool
 
+  NewApplicationClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - aws.cognito.signin.user.admin
+        - openid
+        - email
+        - phone
+      CallbackURLs:
+        - 'http://localhost:3000'
+      ClientName: NvaApplicationClient
+      DefaultRedirectURI: String
+      EnableTokenRevocation: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - address
+        - birthdate
+        - custom:feideId (mutable)
+        - custom:nin (mutable)
+        - email
+        - email_verified
+        - family_name
+        - gender
+        - given_name
+        - locale
+        - middle_name
+        - name
+        - nickname
+        - phone_number
+        - phone_number_verified
+        - picture
+        - preferred_username
+        - profile
+        - updated_at
+        - website
+        - zoneinfo
+      AccessTokenValidity: 1
+      IdTokenValidity: 30
+      RefreshTokenValidity: 2
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: minutes
+        RefreshToken: hours
+      SupportedIdentityProviders:
+        - COGNITO
+      UserPoolId: !Ref NewUserPool
+      WriteAttributes:
+        - address
+          - birthdate
+          - custom:feideId (mutable)
+          - custom:nin (mutable)
+          - email
+          - email_verified
+          - family_name
+          - gender
+          - given_name
+          - locale
+          - middle_name
+          - name
+          - nickname
+          - phone_number
+          - phone_number_verified
+          - picture
+          - preferred_username
+          - profile
+          - updated_at
+          - website
+          - zoneinfo
+
+
   PreAuthenticationHandler:
     Type: AWS::Serverless::Function
     Properties:

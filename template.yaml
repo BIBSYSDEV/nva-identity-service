@@ -1292,8 +1292,8 @@ Resources:
       AttributeMapping:
         custom:nin: nin
       ProviderDetails:
-        client_id: '{{resolve:secretsManager:DataportenClientId}}'
-        client_secret: '{{resolve:secretsManager:DataportenClientSecret}}'
+        client_id: '{{resolve:secretsManager:DataportenClient:SecretString:clientId}}'
+          client_secret: '{{resolve:secretsManager:DataportenClient:SecretString:secret}}'
         attributes_request_method: POST
         oidc_issuer: 'https://auth.dataporten.no'
         authorize_scopes: 'openid'
@@ -1354,13 +1354,18 @@ Resources:
         IdToken: minutes
         RefreshToken: hours
       SupportedIdentityProviders:
-        - COGNITO
+        - !Ref ConnectionToDataportenUsingOnlyIdNumber
       UserPoolId: !Ref NewUserPool
       WriteAttributes:
         - custom:feideId
         - custom:nin
 
 
+  NewUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId: !Ref NewUserPool
+      Domain: sandbox-orestis
 
   PreAuthenticationHandler:
     Type: AWS::Serverless::Function

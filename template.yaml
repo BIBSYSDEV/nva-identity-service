@@ -1304,7 +1304,6 @@ Resources:
   NewApplicationClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-
       AllowedOAuthFlows:
         - code
         - implicit
@@ -1358,27 +1357,9 @@ Resources:
         - COGNITO
       UserPoolId: !Ref NewUserPool
       WriteAttributes:
-        - address
-        - birthdate
         - custom:feideId
         - custom:nin
-        - email
-        - email_verified
-        - family_name
-        - gender
-        - given_name
-        - locale
-        - middle_name
-        - name
-        - nickname
-        - phone_number
-        - phone_number_verified
-        - picture
-        - preferred_username
-        - profile
-        - updated_at
-        - website
-        - zoneinfo
+
 
 
   PreAuthenticationHandler:

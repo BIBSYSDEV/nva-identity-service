@@ -1331,7 +1331,7 @@ Resources:
       GenerateSecret: false
       PreventUserExistenceErrors: LEGACY
       ReadAttributes:
-        - custom:feideId
+        - custom:feideid
         - custom:nin
       AccessTokenValidity: 1
       IdTokenValidity: 30
@@ -1344,7 +1344,7 @@ Resources:
         - !Ref ConnectionToDataportenUsingOnlyIdNumber
       UserPoolId: !Ref NewUserPool
       WriteAttributes:
-        - custom:feideId
+        - custom:feideid
         - custom:nin
 
 

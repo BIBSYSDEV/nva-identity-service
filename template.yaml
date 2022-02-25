@@ -1266,8 +1266,9 @@ Resources:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"
       LambdaConfig:
+        PreAuthentication: !GetAtt PreAuthenticationHandler.Arn
 #        PostAuthentication: !GetAtt PostAuthenticationHandler.Arn
-#        PreAuthentication: !GetAtt PreAuthenticationHandler.Arn
+
         PreTokenGeneration: !GetAtt PreTokenGenerationnHandler.Arn
       Schema:
         - Name: nin
@@ -1384,6 +1385,14 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref PreTokenGenerationnHandler
       Principal: cognito-idp.amazonaws.com
+
+  PreAuthenticationHandlerTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PostAuthenticationHandler
+      Principal: cognito-idp.amazonaws.com
+
 
 
 ### Outputs ############################################################################################################

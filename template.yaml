@@ -1268,7 +1268,7 @@ Resources:
       LambdaConfig:
 #        PostAuthentication: !GetAtt PostAuthenticationHandler.Arn
 #        PreAuthentication: !GetAtt PreAuthenticationHandler.Arn
-        PreTokenGeneration: !GetAtt PreTokenGenerationnHandler.Arn
+#        PreTokenGeneration: !GetAtt PreTokenGenerationnHandler.Arn
       Schema:
         - Name: nin
           AttributeDataType: String

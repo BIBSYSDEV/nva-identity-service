@@ -1267,7 +1267,7 @@ Resources:
       MfaConfiguration: "OFF"
       LambdaConfig:
         PreAuthentication: !GetAtt PreAuthenticationHandler.Arn
-#        PostAuthentication: !GetAtt PostAuthenticationHandler.Arn
+        PostAuthentication: !GetAtt PostAuthenticationHandler.Arn
 
         PreTokenGeneration: !GetAtt PreTokenGenerationnHandler.Arn
       Schema:
@@ -1390,8 +1390,16 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
+      FunctionName: !Ref PreAuthenticationHandler
+      Principal: cognito-idp.amazonaws.com
+
+  PostAuthenticationHandlerTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
       FunctionName: !Ref PostAuthenticationHandler
       Principal: cognito-idp.amazonaws.com
+
 
 
 

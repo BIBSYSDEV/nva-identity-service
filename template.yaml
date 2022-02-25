@@ -1378,7 +1378,12 @@ Resources:
       Role: !GetAtt TriggerExecutionRole.Arn
       Timeout: 10
 
-
+  PreTokenGenerationnHandlerTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PreTokenGenerationnHandler
+      Principal: cognito-idp.amazonaws.com
 
 
 ### Outputs ############################################################################################################

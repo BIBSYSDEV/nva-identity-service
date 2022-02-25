@@ -19,6 +19,7 @@ apiGuardian = { strictly = '1.1.2' }
 guava = { strictly = '31.0.1-jre' }
 hamcrestJackson = { strictly = '1.2.0' }
 log4j = { strictly = '2.17.1' }
+awsLambdaEvents = { strictly = '3.11.0' }
 
 
 [libraries]
@@ -39,6 +40,9 @@ aws-java-sdk-lambda = { group = 'com.amazonaws', name = 'aws-java-sdk-lambda', v
 aws-dynamodb = { group = 'com.amazonaws', name = 'aws-java-sdk-dynamodb', version.ref = 'awsSdk' }
 aws-java-sdk-cognitoidp = { group = 'com.amazonaws', name = 'aws-java-sdk-cognitoidp', version.ref = 'awsSdk' }
 
+
+aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsLambdaEvents' }
+
 aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
 aws-sdk2-dynamodb = { group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
 aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
@@ -52,8 +56,6 @@ jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'ja
 jackson-datatype-jdk8 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
 
 jackson-jr-objects = { group = 'com.fasterxml.jackson.jr', name = 'jackson-jr-objects', version.ref = 'jackson' }
-
-
 
 slf4j = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
 log4j-core = { group = 'org.apache.logging.log4j', name = 'log4j-core', version.ref = 'log4j' }

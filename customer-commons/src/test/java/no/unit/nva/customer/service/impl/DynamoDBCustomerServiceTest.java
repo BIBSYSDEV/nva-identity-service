@@ -5,7 +5,7 @@ import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_MA
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_MAPPING_ITEM_TO_CUSTOMER;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_READING_FROM_TABLE;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.ERROR_WRITING_ITEM_TO_TABLE;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDao;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -32,6 +32,7 @@ import no.unit.nva.customer.exception.NotFoundException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
 import nva.commons.core.Environment;
 import org.hamcrest.Matchers;
@@ -67,49 +68,47 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
 
     @Test
     public void createNewCustomerReturnsTheCustomer() throws Exception {
-        CustomerDto customer = getNewCustomer();
-        CustomerDto createdCustomer = service.createCustomer(customer);
+        CustomerDao customer = createSampleCustomerDao();
+        CustomerDao createdCustomer = service.createCustomer(customer);
 
         assertNotNull(createdCustomer.getIdentifier());
-        //inject automatically generated id
-        customer.setId(createdCustomer.getId());
         assertThat(createdCustomer, is(equalTo(createdCustomer)));
     }
 
     @Test
     public void updateExistingCustomerWithNewName() throws Exception {
         String newName = "New name";
-        CustomerDto customer = getNewCustomer();
-        CustomerDto createdCustomer = service.createCustomer(customer);
+        CustomerDao customer = createSampleCustomerDao();
+        CustomerDao createdCustomer = service.createCustomer(customer);
         assertNotEquals(newName, createdCustomer.getName());
 
         createdCustomer.setName(newName);
-        CustomerDto updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+        CustomerDao updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
         assertEquals(newName, updatedCustomer.getName());
     }
 
     @Test
     public void updateExistingCustomerChangesModifiedDate() throws Exception {
-        CustomerDto customer = getNewCustomer();
-        CustomerDto createdCustomer = service.createCustomer(customer);
-
-        CustomerDto updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
-        assertNotEquals(customer.getModifiedDate(), updatedCustomer.getModifiedDate());
+        CustomerDto customerOneMinuteInThePast = createCustomerOneMinuteInThePast();
+        CustomerDao createdCustomer = service.createCustomer(CustomerDao.fromCustomerDto(customerOneMinuteInThePast));
+        Thread.sleep(1000L);
+        CustomerDao updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+        assertNotEquals(createdCustomer.getModifiedDate(), updatedCustomer.getModifiedDate());
     }
 
     @Test
     public void updateExistingCustomerPreservesCreatedDate() throws Exception {
-        CustomerDto customer = getNewCustomer();
-        CustomerDto createdCustomer = service.createCustomer(customer);
+        CustomerDao customer = createSampleCustomerDao();
+        CustomerDao createdCustomer = service.createCustomer(customer);
 
-        CustomerDto updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+        CustomerDao updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
         assertEquals(customer.getCreatedDate(), updatedCustomer.getCreatedDate());
     }
 
     @Test
     public void updateExistingCustomerWithDifferentIdentifiersThrowsException() throws Exception {
-        CustomerDto customer = getNewCustomer();
-        CustomerDto createdCustomer = service.createCustomer(customer);
+        CustomerDao customer = createSampleCustomerDao();
+        CustomerDao createdCustomer = service.createCustomer(customer);
         UUID differentIdentifier = UUID.randomUUID();
 
         InputException exception = assertThrows(InputException.class,
@@ -121,36 +120,36 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
 
     @Test
     public void getExistingCustomerReturnsTheCustomer() throws Exception {
-        CustomerDto customer = getNewCustomer();
-        CustomerDto createdCustomer = service.createCustomer(customer);
-        CustomerDto getCustomer = service.getCustomer(createdCustomer.getIdentifier());
-        assertEquals(createdCustomer, getCustomer);
+        CustomerDao customer = createSampleCustomerDao();
+        CustomerDao createdCustomer = service.createCustomer(customer);
+        CustomerDao getCustomer = service.getCustomer(createdCustomer.getIdentifier());
+        assertThat(createdCustomer, is(equalTo(getCustomer)));
     }
 
     @Test
     public void getCustomerByOrgNumberReturnsTheCustomer() throws Exception {
-        CustomerDto customer = getNewCustomer();
-        CustomerDto createdCustomer = service.createCustomer(customer);
-        CustomerDto getCustomer = service.getCustomerByOrgNumber(createdCustomer.getFeideOrganizationId());
+        CustomerDao customer = createSampleCustomerDao();
+        CustomerDao createdCustomer = service.createCustomer(customer);
+        CustomerDao getCustomer = service.getCustomerByOrgNumber(createdCustomer.getFeideOrganizationId());
         assertEquals(createdCustomer, getCustomer);
     }
 
     @Test
     public void getCustomerByCristinIdReturnsTheCustomer() throws Exception {
-        CustomerDto customer = getNewCustomer();
-        CustomerDto createdCustomer = service.createCustomer(customer);
-        CustomerDto getCustomer = service.getCustomerByCristinId(createdCustomer.getCristinId());
+        CustomerDao customer = createSampleCustomerDao();
+        CustomerDao createdCustomer = service.createCustomer(customer);
+        CustomerDao getCustomer = service.getCustomerByCristinId(createdCustomer.getCristinId());
         assertEquals(createdCustomer, getCustomer);
     }
 
     @Test
     public void getAllCustomersReturnsListOfCustomers() throws Exception {
         // create three customers
-        service.createCustomer(getNewCustomer());
-        service.createCustomer(getNewCustomer());
-        service.createCustomer(getNewCustomer());
+        service.createCustomer(createSampleCustomerDao());
+        service.createCustomer(createSampleCustomerDao());
+        service.createCustomer(createSampleCustomerDao());
 
-        List<CustomerDto> customers = service.getCustomers();
+        List<CustomerDao> customers = service.getCustomers();
         assertEquals(3, customers.size());
     }
 
@@ -202,7 +201,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
             getByCristinIdIndex()
         );
         DynamoDBException exception = assertThrows(DynamoDBException.class,
-                                                   () -> failingService.createCustomer(getNewCustomer()));
+                                                   () -> failingService.createCustomer(createSampleCustomerDao()));
         assertEquals(ERROR_WRITING_ITEM_TO_TABLE, exception.getMessage());
     }
 
@@ -216,8 +215,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
             getByOrgNumberIndex(),
             getByCristinIdIndex()
         );
-        CustomerDto customer = getNewCustomer();
-        customer.setIdentifier(UUID.randomUUID());
+        CustomerDao customer = createSampleCustomerDao();
         DynamoDBException exception = assertThrows(DynamoDBException.class,
                                                    () -> failingService.updateCustomer(customer.getIdentifier(),
                                                                                        customer));
@@ -235,7 +233,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
             getByCristinIdIndex()
         );
         InputException exception = assertThrows(InputException.class,
-                                                () -> failingService.customerToItem(getNewCustomer()));
+                                                () -> failingService.customerToItem(createSampleCustomerDao()));
         assertEquals(ERROR_MAPPING_CUSTOMER_TO_ITEM, exception.getMessage());
     }
 
@@ -248,20 +246,14 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         assertEquals(ERROR_MAPPING_ITEM_TO_CUSTOMER, exception.getMessage());
     }
 
-    private CustomerDto getNewCustomer() {
+    private CustomerDto createCustomerOneMinuteInThePast() {
         Instant oneMinuteInThePast = Instant.now().minusSeconds(60L);
-        return CustomerDto.builder()
-            .withName("Name")
-            .withShortName("SN")
-            .withCreatedDate(oneMinuteInThePast)
-            .withModifiedDate(oneMinuteInThePast)
-            .withDisplayName("Display Name")
-            .withArchiveName("Archive Name")
-            .withCname("CNAME")
-            .withInstitutionDns("institution.dns")
-            .withFeideOrganizationId("123456789")
-            .withCristinId(randomCristinOrgId().toString())
-            .build();
+
+        CustomerDto customer = CustomerDataGenerator.createSampleCustomerDto();
+        customer.setCreatedDate(oneMinuteInThePast);
+        customer.setModifiedDate(oneMinuteInThePast);
+
+        return customer;
     }
 
     private Index getByOrgNumberIndex() {

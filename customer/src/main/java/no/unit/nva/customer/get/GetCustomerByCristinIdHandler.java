@@ -4,7 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.responses.CustomerResponse;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
@@ -17,7 +17,7 @@ import java.util.List;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 
-public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, CustomerDto> {
+public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, CustomerResponse> {
 
     public static final String CRISTIN_ID = "cristinId";
 
@@ -49,14 +49,14 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
     }
 
     @Override
-    protected CustomerDto processInput(Void input, RequestInfo requestInfo, Context context)
+    protected CustomerResponse processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         String cristinId = getCristinId(requestInfo);
-        return customerService.getCustomerByCristinId(cristinId);
+        return CustomerResponse.toCustomerResponse(customerService.getCustomerByCristinId(cristinId));
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
+    protected Integer getSuccessStatusCode(Void input, CustomerResponse output) {
         return HttpStatus.SC_OK;
     }
 

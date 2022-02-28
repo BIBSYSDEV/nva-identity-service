@@ -1,5 +1,34 @@
 package no.unit.nva.useraccess.events.service;
 
+import no.unit.nva.customer.model.CustomerDao;
+import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
+import no.unit.nva.useraccess.events.client.BareProxyClient;
+import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
+import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
+import no.unit.nva.useraccessmanagement.model.UserDto;
+import nva.commons.core.JsonUtils;
+import nva.commons.core.attempt.Try;
+import nva.commons.core.paths.UriWrapper;
+import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.TestAppender;
+import nva.commons.secrets.ErrorReadingSecretException;
+import nva.commons.secrets.SecretsReader;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
+
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccess.events.client.BareProxyClientImpl.ERROR_READING_SECRETS_ERROR;
@@ -17,33 +46,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.useraccess.events.client.BareProxyClient;
-import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
-import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.core.JsonUtils;
-import nva.commons.core.attempt.Try;
-import nva.commons.core.paths.UriWrapper;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
-import nva.commons.secrets.ErrorReadingSecretException;
-import nva.commons.secrets.SecretsReader;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 class UserMigrationServiceTest {
 
@@ -215,10 +217,10 @@ class UserMigrationServiceTest {
         return List.of(authority);
     }
 
-    private CustomerDto createSampleCustomer() {
-        return CustomerDto.builder()
-            .withCristinId(SAMPLE_ORG_ID.toString())
-            .build();
+    private CustomerDao createSampleCustomer() {
+        var customer = CustomerDataGenerator.createSampleCustomerDao();
+        customer.setCristinId(SAMPLE_ORG_ID.toString());
+        return customer;
     }
 
     private UserDto createSampleUser() {

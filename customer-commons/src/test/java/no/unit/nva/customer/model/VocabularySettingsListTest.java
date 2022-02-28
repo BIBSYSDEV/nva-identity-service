@@ -1,8 +1,7 @@
-package no.unit.nva.customer.model.interfaces;
+package no.unit.nva.customer.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +21,7 @@ class VocabularySettingsListTest {
 
     @Test
     void serializationReturnsObjectWithContextEqualToCustomersContext() throws JsonProcessingException {
-        VocabularyList list = randomVocabularyList();
+        VocabularyListDto list = randomVocabularyList();
         ObjectNode json = toJson(list);
         assertThat(json.get(LINKED_DATA_CONTEXT).textValue(), is(equalTo(LINKED_DATA_CONTEXT_VALUE.toString())));
     }
@@ -31,7 +30,7 @@ class VocabularySettingsListTest {
     void serializationReturnsObjectWithIdEqualToTheGetPathForRetrievingTheVocabularyList()
         throws JsonProcessingException {
         CustomerDto customer = CustomerDataGenerator.createSampleCustomerDto();
-        VocabularyList list = VocabularyList.fromCustomerDto(customer);
+        VocabularyListDto list = VocabularyListDto.fromCustomerDto(customer);
         URI expectedListId = URI.create(customer.getId() + "/vocabularies");
         ObjectNode json = toJson(list);
 
@@ -39,11 +38,11 @@ class VocabularySettingsListTest {
         assertThat(json.get(LINKED_DATA_ID).textValue(), is(equalTo(expectedListId.toString())));
     }
 
-    private VocabularyList randomVocabularyList() {
-        return VocabularyList.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
+    private VocabularyListDto randomVocabularyList() {
+        return VocabularyListDto.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
     }
 
-    private ObjectNode toJson(VocabularyList list) throws JsonProcessingException {
+    private ObjectNode toJson(VocabularyListDto list) throws JsonProcessingException {
         String jsonString = defaultRestObjectMapper.writeValueAsString(list);
         return (ObjectNode) defaultRestObjectMapper.readTree(jsonString);
     }

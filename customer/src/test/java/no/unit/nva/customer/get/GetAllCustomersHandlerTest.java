@@ -3,8 +3,9 @@ package no.unit.nva.customer.get;
 import com.amazonaws.services.lambda.runtime.Context;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerList;
+import no.unit.nva.customer.model.responses.CustomerListResponse;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
@@ -15,7 +16,6 @@ import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
@@ -53,13 +53,9 @@ public class GetAllCustomersHandlerTest {
     @Test
     @SuppressWarnings("unchecked")
     public void requestToHandlerReturnsCustomerList() throws Exception {
-        UUID identifier = UUID.randomUUID();
-        CustomerDao customerDb = new CustomerDao.Builder()
-                .withIdentifier(identifier)
-                .build();
+        CustomerDao customerDb = CustomerDataGenerator.createSampleCustomerDao();
 
-        CustomerDto customerDto = customerDb.toCustomerDto();
-        when(customerServiceMock.getCustomers()).thenReturn(singletonList(customerDto));
+        when(customerServiceMock.getCustomers()).thenReturn(singletonList(customerDb));
 
         InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
                 .withHeaders(getRequestHeaders())
@@ -67,14 +63,15 @@ public class GetAllCustomersHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerList> actual = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CustomerListResponse> actual = GatewayResponse.fromOutputStream(outputStream);
 
         assertEquals(HttpStatus.SC_OK, actual.getStatusCode());
-        CustomerList actualCustomerList = actual.getBodyObject(CustomerList.class);
+        CustomerListResponse actualCustomerList = actual.getBodyObject(CustomerListResponse.class);
         assertThat(actualCustomerList.getId(), notNullValue());
         assertThat(actualCustomerList.getContext(), notNullValue());
 
-        CustomerList customerList = new CustomerList(singletonList(customerDto));
+        CustomerDto customerDto = customerDb.toCustomerDto();
+        CustomerListResponse customerList = new CustomerListResponse(singletonList(customerDto));
         assertThat(actualCustomerList, equalTo(customerList));
     }
 }

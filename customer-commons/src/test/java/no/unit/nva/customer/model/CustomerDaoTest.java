@@ -1,8 +1,7 @@
 package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomInstant;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDao;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -10,9 +9,8 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.net.URI;
+
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import no.unit.nva.customer.testing.CustomerDataGenerator;
@@ -27,7 +25,7 @@ class CustomerDaoTest {
 
     @Test
     public void toCustomerDtoReturnsDtoWithoutLossOfInformation() {
-        CustomerDao expected = CustomerDataGenerator.createSampleCustomerDao();
+        CustomerDao expected = createSampleCustomerDao();
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
@@ -38,18 +36,17 @@ class CustomerDaoTest {
 
     @Test
     public void fromCustomerDbReturnsDbWithoutLossOfInformation() {
-        CustomerDto expected = crateSampleCustomerDto();
-        CustomerDao customerDb = CustomerDao.fromCustomerDto(expected);
-        CustomerDto actual = customerDb.toCustomerDto();
+        CustomerDao expected = CustomerDataGenerator.createSampleCustomerDao();
+        CustomerDao actual = CustomerDao.fromCustomerDto(expected.toCustomerDto());
+        assertThat(expected, doesNotHaveEmptyValues());
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(customerDb, doesNotHaveEmptyValues());
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
     }
 
     @Test
     void daoCanBeDeserializedWhenJsonDoesNotIncludeType() throws JsonProcessingException {
-        CustomerDao someDao = sampleCustomerDao();
+        CustomerDao someDao = createSampleCustomerDao();
         ObjectNode json = defaultDynamoConfigMapper.convertValue(someDao, ObjectNode.class);
         json.remove("type");
         CustomerDao deserialized = defaultDynamoConfigMapper.readValue(json.toString(), CustomerDao.class);
@@ -58,36 +55,12 @@ class CustomerDaoTest {
 
     @Test
     void daoIsSerializedWithType() throws JsonProcessingException {
-        CustomerDao someDao = sampleCustomerDao();
+        CustomerDao someDao = createSampleCustomerDao();
         ObjectNode json = defaultDynamoConfigMapper.convertValue(someDao, ObjectNode.class);
         assertThat(json.has("type"), is((true)));
 
         CustomerDao deserialized = defaultDynamoConfigMapper.readValue(json.toString(), CustomerDao.class);
         assertThat(deserialized, is(equalTo(someDao)));
-    }
-
-    private CustomerDto crateSampleCustomerDto() {
-        UUID identifier = UUID.randomUUID();
-        URI id = LinkedDataContextUtils.toId(identifier);
-        CustomerDto customer = CustomerDto.builder()
-            .withName(randomString())
-            .withCristinId(randomString())
-            .withFeideOrganizationId(randomString())
-            .withModifiedDate(randomInstant())
-            .withIdentifier(identifier)
-            .withId(id)
-            .withCname(randomString())
-            .withContext(LINKED_DATA_CONTEXT_VALUE)
-            .withArchiveName(randomString())
-            .withShortName(randomString())
-            .withInstitutionDns(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withVocabularies(randomVocabularyDtoSettings())
-            .build();
-
-        assertThat(customer, doesNotHaveEmptyValues());
-        return customer;
     }
 
     private Set<VocabularyDto> randomVocabularyDtoSettings() {
@@ -101,12 +74,5 @@ class CustomerDaoTest {
         VocabularyDao vocabulary = new VocabularyDao(randomString(), CustomerDataGenerator.randomUri(),
                                                      CustomerDataGenerator.randomElement(VocabularyStatus.values()));
         return Set.of(vocabulary);
-    }
-
-    private CustomerDao sampleCustomerDao() {
-        return CustomerDao.builder()
-            .withArchiveName("someName")
-            .withIdentifier(UUID.randomUUID())
-            .build();
     }
 }

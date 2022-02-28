@@ -4,7 +4,8 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.requests.UpdateCustomerRequest;
+import no.unit.nva.customer.model.responses.CustomerResponse;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
@@ -18,7 +19,7 @@ import java.util.UUID;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 
-public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDto, CustomerDto> {
+public class UpdateCustomerHandler extends ApiGatewayHandler<UpdateCustomerRequest, CustomerResponse> {
 
     public static final String IDENTIFIER = "identifier";
     public static final String IDENTIFIER_IS_NOT_A_VALID_UUID = "Identifier is not a valid UUID: ";
@@ -41,7 +42,7 @@ public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDto, Custom
     public UpdateCustomerHandler(
         CustomerService customerService,
         Environment environment) {
-        super(CustomerDto.class, environment);
+        super(UpdateCustomerRequest.class, environment);
         this.customerService = customerService;
     }
 
@@ -61,14 +62,14 @@ public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDto, Custom
     }
 
     @Override
-    protected CustomerDto processInput(CustomerDto input, RequestInfo requestInfo, Context context)
+    protected CustomerResponse processInput(UpdateCustomerRequest input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         UUID identifier = getIdentifier(requestInfo);
-        return customerService.updateCustomer(identifier, input);
+        return CustomerResponse.toCustomerResponse(customerService.updateCustomer(identifier, input.toCustomerDao()));
     }
 
     @Override
-    protected Integer getSuccessStatusCode(CustomerDto input, CustomerDto output) {
+    protected Integer getSuccessStatusCode(UpdateCustomerRequest input, CustomerResponse output) {
         return HttpStatus.SC_OK;
     }
 }

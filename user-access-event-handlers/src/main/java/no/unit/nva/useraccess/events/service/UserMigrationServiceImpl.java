@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
@@ -61,8 +62,8 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     }
 
     private boolean isUnwantedUri(URI organizationId) {
-        return CRISTIN_API_HOST.equals(organizationId.getHost()) ||
-                UNDEFINED.equals(organizationId.toString());
+        return CRISTIN_API_HOST.equals(organizationId.getHost())
+                || UNDEFINED.equals(organizationId.toString());
     }
 
     private void deleteFromAuthority(String systemControlNumber, URI organizationId) {
@@ -84,6 +85,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
 
     private Optional<URI> getOrganizationId(UUID customerIdentifier) {
         return attempt(() -> customerService.getCustomer(customerIdentifier))
+                .map(CustomerDao::toCustomerDto)
                 .map(CustomerDto::getCristinId)
                 .map(URI::create)
                 .toOptional();

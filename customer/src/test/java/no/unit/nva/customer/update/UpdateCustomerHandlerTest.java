@@ -23,7 +23,9 @@ import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.responses.CustomerResponse;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -60,8 +62,8 @@ public class UpdateCustomerHandlerTest {
 
     @Test
     public void handleRequestReturnsOkForValidRequest() throws IOException, ApiGatewayException {
-        CustomerDto customer = createCustomer(UUID.randomUUID());
-        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
+        CustomerDao customer = CustomerDataGenerator.createSampleCustomerDao();
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDao.class))).thenReturn(customer);
 
         InputStream request = IoUtils.inputStreamFromResources("update_request.json");
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -76,24 +78,24 @@ public class UpdateCustomerHandlerTest {
     @SuppressWarnings("unchecked")
     public void requestToHandlerReturnsCustomerUpdated() throws Exception {
         UUID identifier = UUID.randomUUID();
-        CustomerDto customer = createCustomer(identifier);
-        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
+        CustomerDao customer = CustomerDataGenerator.createSampleCustomerDao();
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDao.class))).thenReturn(customer);
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(defaultRestObjectMapper)
-            .withBody(customer)
+            .withBody(customer.toCustomerDto())
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters)
             .build();
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerDto> actual = defaultRestObjectMapper.readValue(
+        GatewayResponse<CustomerResponse> actual = defaultRestObjectMapper.readValue(
             outputStream.toByteArray(),
             GatewayResponse.class);
 
-        GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
-            defaultRestObjectMapper.writeValueAsString(customer),
+        GatewayResponse<CustomerResponse> expected = new GatewayResponse<>(
+            defaultRestObjectMapper.writeValueAsString(CustomerResponse.toCustomerResponse(customer)),
             getResponseHeaders(),
             HttpStatus.SC_OK
         );
@@ -105,8 +107,7 @@ public class UpdateCustomerHandlerTest {
     @SuppressWarnings("unchecked")
     public void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws Exception {
         String malformedIdentifier = "for-testing";
-        CustomerDto customer = createCustomer(UUID.randomUUID());
-
+        CustomerDto customer = CustomerDataGenerator.createSampleCustomerDto();
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, malformedIdentifier);
         InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(defaultRestObjectMapper)
@@ -135,13 +136,5 @@ public class UpdateCustomerHandlerTest {
         );
 
         assertEquals(expected, actual);
-    }
-
-    private CustomerDto createCustomer(UUID uuid) {
-        return new CustomerDao.Builder()
-            .withIdentifier(uuid)
-            .withName("New Customer")
-            .build()
-            .toCustomerDto();
     }
 }

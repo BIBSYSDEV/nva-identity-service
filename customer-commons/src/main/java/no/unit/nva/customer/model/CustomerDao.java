@@ -13,7 +13,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import no.unit.nva.customer.model.interfaces.Customer;
+
+import no.unit.nva.customer.model.interfaces.WithDataFields;
+import no.unit.nva.customer.model.interfaces.WithInternalFields;
+import no.unit.nva.customer.model.interfaces.WithLoginMethods;
+import no.unit.nva.customer.model.interfaces.WithVocabulary;
 import nva.commons.core.JacocoGenerated;
 
 @JsonTypeInfo(
@@ -23,7 +27,8 @@ import nva.commons.core.JacocoGenerated;
     defaultImpl = CustomerDao.class
 )
 @JsonTypeName("Customer")
-public class CustomerDao implements Customer<VocabularyDao> {
+public class CustomerDao
+        implements WithDataFields, WithInternalFields, WithVocabulary<VocabularyDao>, WithLoginMethods {
 
     public static final String IDENTIFIER = "identifier";
     public static final String ORG_NUMBER = "feideOrganizationId";
@@ -41,30 +46,53 @@ public class CustomerDao implements Customer<VocabularyDao> {
     private String feideOrganizationId;
     private String cristinId;
     private Set<VocabularyDao> vocabularies;
+    private LoginMethods loginMethods;
 
     public CustomerDao() {
         vocabularies = Collections.emptySet();
-    }
-
-    public static Builder builder() {
-        return new Builder();
+        loginMethods = new LoginMethods();
     }
 
     public static CustomerDao fromCustomerDto(CustomerDto dto) {
-        return builder().withArchiveName(dto.getArchiveName())
-            .withCname(dto.getCname())
-            .withCreatedDate(dto.getCreatedDate())
-            .withCristinId(dto.getCristinId())
-            .withDisplayName(dto.getDisplayName())
-            .withIdentifier(dto.getIdentifier())
-            .withInstitutionDns(dto.getInstitutionDns())
-            .withShortName(dto.getShortName())
-            .withFeideOrganizationId(dto.getFeideOrganizationId())
-            .withModifiedDate(dto.getModifiedDate())
-            .withVocabularySettings(extractVocabularySettings(dto))
-            .withName(dto.getName())
-            .build();
+        CustomerDao customer = new CustomerDao();
+
+        customer.setArchiveName(dto.getArchiveName());
+        customer.setCname(dto.getCname());
+        customer.setCreatedDate(dto.getCreatedDate());
+        customer.setCristinId(dto.getCristinId());
+        customer.setDisplayName(dto.getDisplayName());
+        customer.setIdentifier(dto.getIdentifier());
+        customer.setInstitutionDns(dto.getInstitutionDns());
+        customer.setShortName(dto.getShortName());
+        customer.setFeideOrganizationId(dto.getFeideOrganizationId());
+        customer.setModifiedDate(dto.getModifiedDate());
+        customer.setVocabularies(extractVocabularySettings(dto));
+        customer.setName(dto.getName());
+        customer.setLoginMethods(dto.getLoginMethods());
+
+        return customer;
     }
+
+    public CustomerDao copy() {
+        CustomerDao customer = new CustomerDao();
+
+        customer.setArchiveName(getArchiveName());
+        customer.setCname(getCname());
+        customer.setCreatedDate(getCreatedDate());
+        customer.setCristinId(getCristinId());
+        customer.setDisplayName(getDisplayName());
+        customer.setIdentifier(getIdentifier());
+        customer.setInstitutionDns(getInstitutionDns());
+        customer.setShortName(getShortName());
+        customer.setFeideOrganizationId(getFeideOrganizationId());
+        customer.setModifiedDate(getModifiedDate());
+        customer.setVocabularies(getVocabularies());
+        customer.setName(getName());
+        customer.setLoginMethods(getLoginMethods());
+
+        return customer;
+    }
+
 
     @Override
     public UUID getIdentifier() {
@@ -187,56 +215,38 @@ public class CustomerDao implements Customer<VocabularyDao> {
     }
 
     @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
-                            getCristinId(), getVocabularies());
+    public LoginMethods getLoginMethods() {
+        return loginMethods;
     }
 
     @Override
-    @JacocoGenerated
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        CustomerDao that = (CustomerDao) o;
-        return Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getArchiveName(), that.getArchiveName())
-               && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
-               && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getVocabularies(), that.getVocabularies());
+    public void setLoginMethods(LoginMethods loginMethods) {
+        this.loginMethods = loginMethods;
     }
 
     public CustomerDto toCustomerDto() {
-        CustomerDto customerDto = CustomerDto.builder()
-            .withCname(this.getCname())
-            .withName(getName())
-            .withIdentifier(this.getIdentifier())
-            .withArchiveName(this.getArchiveName())
-            .withCreatedDate(this.getCreatedDate())
-            .withDisplayName(this.getDisplayName())
-            .withInstitutionDns(this.getInstitutionDns())
-            .withShortName(this.getShortName())
-            .withVocabularies(extractVocabularySettings())
-            .withModifiedDate(getModifiedDate())
-            .withFeideOrganizationId(getFeideOrganizationId())
-            .withCristinId(getCristinId())
-            .build();
-        return LinkedDataContextUtils.addContextAndId(customerDto);
+        CustomerDto customer = new CustomerDto();
+
+        customer.setCname(getCname());
+        customer.setName(getName());
+        customer.setIdentifier(getIdentifier());
+        customer.setArchiveName(getArchiveName());
+        customer.setCreatedDate(getCreatedDate());
+        customer.setDisplayName(getDisplayName());
+        customer.setInstitutionDns(getInstitutionDns());
+        customer.setShortName(getShortName());
+        customer.setVocabularies(extractVocabularySettings());
+        customer.setModifiedDate(getModifiedDate());
+        customer.setFeideOrganizationId(getFeideOrganizationId());
+        customer.setCristinId(getCristinId());
+        customer.setLoginMethods(getLoginMethods());
+
+        customer.setId(LinkedDataContextUtils.toId(getIdentifier()));
+
+        return customer;
     }
 
-    private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {
+    public static Set<VocabularyDao> extractVocabularySettings(WithVocabulary<VocabularyDto> dto) {
         return Optional.ofNullable(dto.getVocabularies())
             .stream()
             .flatMap(Collection::stream)
@@ -252,76 +262,36 @@ public class CustomerDao implements Customer<VocabularyDao> {
             .collect(Collectors.toSet());
     }
 
-    public static final class Builder {
-
-        private final CustomerDao customerDb;
-
-        public Builder() {
-            customerDb = new CustomerDao();
+    @Override
+    @JacocoGenerated
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
         }
-
-        public Builder withIdentifier(UUID identifier) {
-            customerDb.setIdentifier(identifier);
-            return this;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
         }
+        CustomerDao that = (CustomerDao) o;
+        return Objects.equals(getIdentifier(), that.getIdentifier())
+                && Objects.equals(getCreatedDate(), that.getCreatedDate())
+                && Objects.equals(getModifiedDate(), that.getModifiedDate())
+                && Objects.equals(getName(), that.getName())
+                && Objects.equals(getDisplayName(), that.getDisplayName())
+                && Objects.equals(getShortName(), that.getShortName())
+                && Objects.equals(getArchiveName(), that.getArchiveName())
+                && Objects.equals(getCname(), that.getCname())
+                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
+                && Objects.equals(getCristinId(), that.getCristinId())
+                && Objects.equals(getVocabularies(), that.getVocabularies())
+                && Objects.equals(getLoginMethods(), that.getLoginMethods());
+    }
 
-        public Builder withCreatedDate(Instant createdDate) {
-            customerDb.setCreatedDate(createdDate);
-            return this;
-        }
-
-        public Builder withModifiedDate(Instant modifiedDate) {
-            customerDb.setModifiedDate(modifiedDate);
-            return this;
-        }
-
-        public Builder withName(String name) {
-            customerDb.setName(name);
-            return this;
-        }
-
-        public Builder withDisplayName(String displayName) {
-            customerDb.setDisplayName(displayName);
-            return this;
-        }
-
-        public Builder withShortName(String shortName) {
-            customerDb.setShortName(shortName);
-            return this;
-        }
-
-        public Builder withArchiveName(String archiveName) {
-            customerDb.setArchiveName(archiveName);
-            return this;
-        }
-
-        public Builder withCname(String cname) {
-            customerDb.setCname(cname);
-            return this;
-        }
-
-        public Builder withInstitutionDns(String institutionDns) {
-            customerDb.setInstitutionDns(institutionDns);
-            return this;
-        }
-
-        public Builder withFeideOrganizationId(String feideOrganizationId) {
-            customerDb.setFeideOrganizationId(feideOrganizationId);
-            return this;
-        }
-
-        public Builder withCristinId(String cristinId) {
-            customerDb.setCristinId(cristinId);
-            return this;
-        }
-
-        public Builder withVocabularySettings(Set<VocabularyDao> vocabularySettings) {
-            customerDb.setVocabularies(vocabularySettings);
-            return this;
-        }
-
-        public CustomerDao build() {
-            return customerDb;
-        }
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
+                getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                getCristinId(), getVocabularies(), getLoginMethods());
     }
 }

@@ -12,11 +12,9 @@ import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.UUID;
 
 import no.unit.nva.customer.exception.NotFoundException;
-import no.unit.nva.customer.model.CustomerDao;
-import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.responses.CustomerResponse;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -64,9 +62,9 @@ public class GetCustomerByCristinIdHandlerTest {
 
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerDto> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CustomerResponse> response = GatewayResponse.fromOutputStream(outputStream);
 
-        assertNotNull(response.getBodyObject(CustomerDto.class));
+        assertNotNull(response.getBodyObject(CustomerResponse.class));
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
     }
 
@@ -93,14 +91,7 @@ public class GetCustomerByCristinIdHandlerTest {
     }
 
     private void prepareMocksWithExistingCustomer() throws ApiGatewayException {
-        when(customerService.getCustomerByCristinId(SAMPLE_CRISTIN_ID)).thenReturn(createCustomer());
-    }
-
-    private CustomerDto createCustomer() {
-        CustomerDao customer = new CustomerDao.Builder()
-            .withIdentifier(UUID.randomUUID())
-            .withCristinId(SAMPLE_CRISTIN_ID)
-            .build();
-        return customer.toCustomerDto();
+        when(customerService.getCustomerByCristinId(SAMPLE_CRISTIN_ID))
+                .thenReturn(CustomerDataGenerator.createSampleCustomerDao());
     }
 }

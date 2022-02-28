@@ -53,7 +53,7 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandler<Void, Custo
         throws ApiGatewayException {
         long start = System.currentTimeMillis();
         String orgNumber = getOrgNumber(requestInfo);
-        CustomerDto customerDto = customerService.getCustomerByOrgNumber(orgNumber);
+        CustomerDto customerDto = customerService.getCustomerByOrgNumber(orgNumber).toCustomerDto();
         URI customerId = customerDto.getId();
         URI cristinId = URI.create(customerDto.getCristinId());
         long stop = System.currentTimeMillis();

@@ -17,8 +17,8 @@ import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao;
-import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
@@ -58,14 +58,8 @@ public class GetCustomerByOrgNumberHandlerTest {
     @Test
     @SuppressWarnings("unchecked")
     public void getCustomerByOrgNumberReturnsCustomerWhenInputIsExistingCustomerOrgNumber() throws Exception {
-        UUID identifier = UUID.randomUUID();
-        CustomerDao customerDb = new CustomerDao.Builder()
-            .withIdentifier(identifier)
-            .withFeideOrganizationId(SAMPLE_ORG_NUMBER)
-            .withCristinId(SAMPLE_CRISTIN_ID)
-            .build();
-        CustomerDto customerDto = customerDb.toCustomerDto();
-        when(customerServiceMock.getCustomerByOrgNumber(SAMPLE_ORG_NUMBER)).thenReturn(customerDto);
+        CustomerDao customerDb = CustomerDataGenerator.createSampleCustomerDao();
+        when(customerServiceMock.getCustomerByOrgNumber(SAMPLE_ORG_NUMBER)).thenReturn(customerDb);
 
         Map<String, String> pathParameters = Map.of(GetCustomerByOrgNumberHandler.ORG_NUMBER, SAMPLE_ORG_NUMBER);
         InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
@@ -80,8 +74,8 @@ public class GetCustomerByOrgNumberHandlerTest {
 
         GatewayResponse<CustomerIdentifiers> expected = new GatewayResponse<>(
                 defaultRestObjectMapper.writeValueAsString(
-                new CustomerIdentifiers(customerDto.getId(),
-                                        URI.create(SAMPLE_CRISTIN_ID))),
+                new CustomerIdentifiers(customerDb.toCustomerDto().getId(),
+                                        URI.create(customerDb.getCristinId()))),
             getResponseHeaders(),
             HttpStatus.SC_OK
         );

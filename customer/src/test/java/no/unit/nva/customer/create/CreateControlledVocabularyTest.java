@@ -14,9 +14,11 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
-import no.unit.nva.customer.model.interfaces.VocabularyList;
+import no.unit.nva.customer.model.VocabularyListDto;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import nva.commons.apigateway.GatewayResponse;
@@ -29,25 +31,25 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
     @Test
     public void handleRequestReturnsCreatedWhenCreatingVocabularyForExistingCustomer() throws IOException {
         sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<VocabularyListDto> response = GatewayResponse.fromOutputStream(outputStream);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
     }
 
     @Test
     public void handleRequestReturnsCreatedVocabularyListWhenCreatingVocabularyForExistingCustomer()
         throws IOException {
-        VocabularyList expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
-        VocabularyList body = response.getBodyObject(VocabularyList.class);
+        VocabularyListDto expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
+        GatewayResponse<VocabularyListDto> response = GatewayResponse.fromOutputStream(outputStream);
+        VocabularyListDto body = response.getBodyObject(VocabularyListDto.class);
         assertThat(body, is(equalTo(expectedBody)));
     }
 
     @Test
     public void handleRequestSavesVocabularySettingsToDatabaseWhenCreatingSettingsForExistingCustomer()
         throws IOException, ApiGatewayException {
-        VocabularyList expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
+        VocabularyListDto expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
         Set<VocabularyDto> savedVocabularySettings =
-            customerService.getCustomer(existingIdentifier()).getVocabularies();
+            customerService.getCustomer(existingIdentifier()).toCustomerDto().getVocabularies();
         assertThat(savedVocabularySettings, is(equalTo(expectedBody.getVocabularies())));
     }
 
@@ -55,7 +57,7 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
     public void handleRequestReturnsNotFoundWhenTryingToSaveSettingsForNonExistingCustomer()
         throws IOException {
         sendRequestAcceptingJsonLd(UUID.randomUUID());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<VocabularyListDto> response = GatewayResponse.fromOutputStream(outputStream);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
@@ -66,21 +68,21 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
         InputStream request = addVocabularyForCustomer(existingIdentifier(), invalidBody,
                                                        MediaTypes.APPLICATION_JSON_LD);
         handler.handleRequest(request, outputStream, CONTEXT);
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<VocabularyListDto> response = GatewayResponse.fromOutputStream(outputStream);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
     @Test
     public void handleRequestReturnsResponseWithContentTypeJsonLdWhenAcceptHeaderIsJsonLd() throws IOException {
         sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<VocabularyListDto> response = GatewayResponse.fromOutputStream(outputStream);
         assertThat(responseContentType(response), is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
     }
 
     @Test
     public void handleRequestReturnsResponseWithContentTypeJsonWhenAcceptHeaderIsJson() throws IOException {
         sendRequest(existingIdentifier(), MediaType.JSON_UTF_8);
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<VocabularyListDto> response = GatewayResponse.fromOutputStream(outputStream);
         String content = responseContentType(response);
         assertThat(content, is(equalTo(MediaType.JSON_UTF_8.toString())));
     }
@@ -103,7 +105,7 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
         sendRequestAcceptingJsonLd(existingIdentifier());
         outputStream = new ByteArrayOutputStream();
         sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<VocabularyListDto> response = GatewayResponse.fromOutputStream(outputStream);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
     }
 
@@ -113,9 +115,9 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
     }
 
     @Override
-    protected CustomerDto createExistingCustomer() {
-        return CustomerDataGenerator.createSampleCustomerDto().copy()
-            .withVocabularies(Collections.emptySet())
-            .build();
+    protected CustomerDao createExistingCustomer() {
+        CustomerDao customerDao = CustomerDataGenerator.createSampleCustomerDao();
+        customerDao.setVocabularies(Collections.emptySet());
+        return customerDao;
     }
 }

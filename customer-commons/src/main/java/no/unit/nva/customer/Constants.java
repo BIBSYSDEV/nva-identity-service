@@ -32,7 +32,7 @@ public final class Constants {
 
 
     @JacocoGenerated
-    public static CustomerService defaultCustomerService(){
+    public static CustomerService defaultCustomerService() {
         return defaultCustomerService(defaultDynamoDbClient());
     }
 

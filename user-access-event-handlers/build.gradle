@@ -25,6 +25,7 @@ dependencies {
 
     testImplementation libs.nva.testutils
     testImplementation project(":user-access-testing")
+    testImplementation project(":customer-testing")
 }
 
 

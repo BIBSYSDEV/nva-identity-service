@@ -1,5 +1,22 @@
 package no.unit.nva.customer.create;
 
+import com.amazonaws.services.lambda.runtime.Context;
+import no.unit.nva.customer.model.CustomerDao;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.responses.CustomerResponse;
+import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
+import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.GatewayResponse;
+import nva.commons.core.Environment;
+import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
@@ -8,22 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import com.amazonaws.services.lambda.runtime.Context;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.UUID;
-
-import no.unit.nva.customer.model.CustomerDao.Builder;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.core.Environment;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 public class CreateCustomerHandlerTest {
 
@@ -50,14 +51,10 @@ public class CreateCustomerHandlerTest {
 
     @Test
     public void requestToHandlerReturnsCustomerCreated() throws Exception {
-        CustomerDto customerDto = new Builder()
-            .withName("New Customer")
-            .withIdentifier(UUID.randomUUID())
-            .withVocabularySettings(Collections.emptySet())
-            .build()
-            .toCustomerDto();
-        when(customerServiceMock.createCustomer(any(CustomerDto.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        CustomerDto customerDto = CustomerDataGenerator.createSampleCustomerDto();
+        CustomerDao customerDao = CustomerDao.fromCustomerDto(customerDto);
+        when(customerServiceMock.createCustomer(any(CustomerDao.class)))
+            .thenReturn(customerDao);
 
         InputStream inputStream = new HandlerRequestBuilder<CustomerDto>(defaultRestObjectMapper)
             .withBody(customerDto)
@@ -65,10 +62,10 @@ public class CreateCustomerHandlerTest {
             .build();
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerDto> actual = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CustomerResponse> actual = GatewayResponse.fromOutputStream(outputStream);
 
-        GatewayResponse<CustomerDto> expected = new GatewayResponse<>(
-            defaultRestObjectMapper.writeValueAsString(customerDto),
+        GatewayResponse<CustomerResponse> expected = new GatewayResponse<>(
+            defaultRestObjectMapper.writeValueAsString(CustomerResponse.toCustomerResponse(customerDao)),
             getResponseHeaders(),
             HttpStatus.SC_CREATED
         );

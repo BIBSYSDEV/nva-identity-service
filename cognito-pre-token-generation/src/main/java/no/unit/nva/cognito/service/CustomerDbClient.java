@@ -3,6 +3,7 @@ package no.unit.nva.cognito.service;
 import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
 import no.unit.nva.cognito.model.CustomerResponse;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.core.attempt.Failure;
@@ -24,6 +25,7 @@ public class CustomerDbClient implements CustomerApi {
     @Override
     public Optional<CustomerResponse> getCustomer(String orgNumber) {
         return attempt(() -> service.getCustomerByOrgNumber(orgNumber))
+            .map(CustomerDao::toCustomerDto)
             .map(this::toCustomerResponse)
             .toOptional(fail -> handleError(fail, orgNumber));
     }

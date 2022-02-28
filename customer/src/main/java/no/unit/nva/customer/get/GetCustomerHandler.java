@@ -4,7 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.responses.CustomerResponse;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
@@ -18,7 +18,7 @@ import java.util.UUID;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static org.apache.http.HttpStatus.SC_OK;
 
-public class GetCustomerHandler extends ApiGatewayHandler<Void, CustomerDto> {
+public class GetCustomerHandler extends ApiGatewayHandler<Void, CustomerResponse> {
 
     public static final String IDENTIFIER = "identifier";
     public static final String IDENTIFIER_IS_NOT_A_VALID_UUID = "Identifier is not a valid UUID: ";
@@ -61,13 +61,13 @@ public class GetCustomerHandler extends ApiGatewayHandler<Void, CustomerDto> {
     }
 
     @Override
-    protected CustomerDto processInput(Void input, RequestInfo requestInfo, Context context)
+    protected CustomerResponse processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
-        return customerService.getCustomer(getIdentifier(requestInfo));
+        return CustomerResponse.toCustomerResponse(customerService.getCustomer(getIdentifier(requestInfo)));
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
+    protected Integer getSuccessStatusCode(Void input, CustomerResponse output) {
         return SC_OK;
     }
 }

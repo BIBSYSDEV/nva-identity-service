@@ -1,26 +1,28 @@
-package no.unit.nva.customer.model;
+package no.unit.nva.customer.model.requests;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.Objects;
+import no.unit.nva.customer.model.CustomerDao;
+import no.unit.nva.customer.model.LoginMethods;
+import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.interfaces.WithDataFields;
-import no.unit.nva.customer.model.interfaces.WithId;
-import no.unit.nva.customer.model.interfaces.WithInternalFields;
 import no.unit.nva.customer.model.interfaces.WithLoginMethods;
 import no.unit.nva.customer.model.interfaces.WithVocabulary;
 import nva.commons.core.JacocoGenerated;
 
-import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
-public class CustomerDto
-        implements WithId, WithDataFields, WithInternalFields, WithVocabulary<VocabularyDto>, WithLoginMethods {
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "type"
+)
+@JsonTypeName("Customer")
+public class UpdateCustomerRequest implements WithDataFields, WithVocabulary<VocabularyDto>, WithLoginMethods {
 
-    private URI id;
-    private UUID identifier;
-    private Instant createdDate;
-    private Instant modifiedDate;
     private String name;
     private String displayName;
     private String shortName;
@@ -32,7 +34,7 @@ public class CustomerDto
     private Set<VocabularyDto> vocabularies;
     private LoginMethods loginMethods;
 
-    public CustomerDto() {
+    public UpdateCustomerRequest() {
         this.vocabularies = Collections.emptySet();
         this.loginMethods = new LoginMethods();
     }
@@ -118,46 +120,6 @@ public class CustomerDto
     }
 
     @Override
-    public URI getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(URI id) {
-        this.id = id;
-    }
-
-    @Override
-    public UUID getIdentifier() {
-        return identifier;
-    }
-
-    @Override
-    public void setIdentifier(UUID identifier) {
-        this.identifier = identifier;
-    }
-
-    @Override
-    public Instant getCreatedDate() {
-        return createdDate;
-    }
-
-    @Override
-    public void setCreatedDate(Instant createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    @Override
-    public Instant getModifiedDate() {
-        return modifiedDate;
-    }
-
-    @Override
-    public void setModifiedDate(Instant modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
-
-    @Override
     public LoginMethods getLoginMethods() {
         return loginMethods;
     }
@@ -177,6 +139,27 @@ public class CustomerDto
         this.vocabularies = vocabularies;
     }
 
+    public CustomerDao toCustomerDao() {
+        Instant now = Instant.now();
+        CustomerDao customer = new CustomerDao();
+
+        customer.setArchiveName(getArchiveName());
+        customer.setCname(getCname());
+        customer.setCreatedDate(now);
+        customer.setCristinId(getCristinId());
+        customer.setDisplayName(getDisplayName());
+        customer.setIdentifier(UUID.randomUUID());
+        customer.setInstitutionDns(getInstitutionDns());
+        customer.setShortName(getShortName());
+        customer.setFeideOrganizationId(getFeideOrganizationId());
+        customer.setModifiedDate(now);
+        customer.setVocabularies(CustomerDao.extractVocabularySettings(this));
+        customer.setName(getName());
+        customer.setLoginMethods(getLoginMethods());
+
+        return customer;
+    }
+
     @Override
     @JacocoGenerated
     public boolean equals(Object o) {
@@ -186,12 +169,8 @@ public class CustomerDto
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        CustomerDto that = (CustomerDto) o;
-        return Objects.equal(getId(), that.getId())
-                && Objects.equal(getIdentifier(), that.getIdentifier())
-                && Objects.equal(getCreatedDate(), that.getCreatedDate())
-                && Objects.equal(getModifiedDate(), that.getModifiedDate())
-                && Objects.equal(getName(), that.getName())
+        UpdateCustomerRequest that = (UpdateCustomerRequest) o;
+        return Objects.equal(getName(), that.getName())
                 && Objects.equal(getDisplayName(), that.getDisplayName())
                 && Objects.equal(getShortName(), that.getShortName())
                 && Objects.equal(getArchiveName(), that.getArchiveName())
@@ -206,8 +185,7 @@ public class CustomerDto
     @Override
     @JacocoGenerated
     public int hashCode() {
-        return Objects.hashCode(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
-                getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                getFeideOrganizationId(), getCristinId(), getVocabularies(), getLoginMethods());
+        return Objects.hashCode(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
+                getInstitutionDns(), getFeideOrganizationId(), getCristinId(), getVocabularies(), getLoginMethods());
     }
 }

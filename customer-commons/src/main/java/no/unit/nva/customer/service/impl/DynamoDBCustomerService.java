@@ -1,6 +1,5 @@
 package no.unit.nva.customer.service.impl;
 
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Index;
@@ -12,26 +11,26 @@ import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.api.QueryApi;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import no.unit.nva.customer.exception.DynamoDBException;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.exception.NotFoundException;
 import no.unit.nva.customer.model.CustomerDao;
-import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static nva.commons.core.attempt.Try.attempt;
+
 public class DynamoDBCustomerService implements CustomerService {
-
-
 
     public static final String CUSTOMERS_TABLE_NAME = "CUSTOMERS_TABLE_NAME";
     public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
@@ -92,19 +91,19 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomer(UUID identifier) throws ApiGatewayException {
+    public CustomerDao getCustomer(UUID identifier) throws ApiGatewayException {
         Item item = fetchItemFromQueryable(table, CustomerDao.IDENTIFIER, identifier.toString());
         return itemToCustomer(item);
     }
 
     @Override
-    public CustomerDto getCustomerByOrgNumber(String orgNumber) throws ApiGatewayException {
+    public CustomerDao getCustomerByOrgNumber(String orgNumber) throws ApiGatewayException {
         Item item = fetchItemFromQueryable(byOrgNumberIndex, CustomerDao.ORG_NUMBER, orgNumber);
         return itemToCustomer(item);
     }
 
     @Override
-    public List<CustomerDto> getCustomers() throws ApiGatewayException {
+    public List<CustomerDao> getCustomers() throws ApiGatewayException {
         ItemCollection<ScanOutcome> scan;
         try {
             scan = table.scan();
@@ -115,26 +114,24 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto createCustomer(CustomerDto customer) throws ApiGatewayException {
-        UUID identifier = UUID.randomUUID();
-        Instant now = Instant.now();
+    public CustomerDao createCustomer(CustomerDao customer) throws ApiGatewayException {
         try {
-            customer.setIdentifier(identifier);
-            customer.setCreatedDate(now);
-            customer.setModifiedDate(now);
-            table.putItem(customerToItem(customer));
+            CustomerDao customerCopy = customer.copy();
+            customerCopy.setModifiedDate(Instant.now());
+            table.putItem(customerToItem(customerCopy));
         } catch (Exception e) {
             throw new DynamoDBException(ERROR_WRITING_ITEM_TO_TABLE, e);
         }
-        return getCustomer(identifier);
+        return getCustomer(customer.getIdentifier());
     }
 
     @Override
-    public CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws ApiGatewayException {
+    public CustomerDao updateCustomer(UUID identifier, CustomerDao customer) throws ApiGatewayException {
         validateIdentifier(identifier, customer);
         try {
-            customer.setModifiedDate(Instant.now());
-            Item item = customerToItem(customer);
+            CustomerDao customerCopy = customer.copy();
+            customerCopy.setModifiedDate(Instant.now());
+            Item item = customerToItem(customerCopy);
             table.putItem(item);
         } catch (Exception e) {
             throw new DynamoDBException(ERROR_WRITING_ITEM_TO_TABLE, e);
@@ -143,24 +140,23 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomerByCristinId(String cristinId) throws ApiGatewayException {
+    public CustomerDao getCustomerByCristinId(String cristinId) throws ApiGatewayException {
         Item item = fetchItemFromQueryable(byCristinIdIndex, CustomerDao.CRISTIN_ID, cristinId);
         return itemToCustomer(item);
     }
 
-    protected List<CustomerDto> scanToCustomers(ItemCollection<ScanOutcome> scan) throws DynamoDBException {
-        List<CustomerDto> customers = new ArrayList<>();
+    protected List<CustomerDao> scanToCustomers(ItemCollection<ScanOutcome> scan) throws DynamoDBException {
+        List<CustomerDao> customers = new ArrayList<>();
         for (Item item : scan) {
             customers.add(itemToCustomer(item));
         }
         return customers;
     }
 
-    protected Item customerToItem(CustomerDto customer) throws InputException {
+    protected Item customerToItem(CustomerDao customer) throws InputException {
         Item item;
         try {
-            CustomerDao dao = CustomerDao.fromCustomerDto(customer);
-            item = Item.fromJSON(objectMapper.writeValueAsString(dao));
+            item = Item.fromJSON(objectMapper.writeValueAsString(customer));
         } catch (JsonProcessingException e) {
             throw new InputException(ERROR_MAPPING_CUSTOMER_TO_ITEM, e);
         }
@@ -168,7 +164,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @SuppressWarnings("PMD.PrematureDeclaration")
-    protected CustomerDto itemToCustomer(Item item) throws DynamoDBException {
+    protected CustomerDao itemToCustomer(Item item) throws DynamoDBException {
         long start = System.currentTimeMillis();
         CustomerDao customerOutcome;
         try {
@@ -178,7 +174,7 @@ public class DynamoDBCustomerService implements CustomerService {
         }
         long stop = System.currentTimeMillis();
         logger.info("itemToCustomer took {} ms", stop - start);
-        return customerOutcome.toCustomerDto();
+        return customerOutcome;
     }
 
     private void warmupDynamoDbConnection(Table table) {
@@ -189,7 +185,7 @@ public class DynamoDBCustomerService implements CustomerService {
         }
     }
 
-    private void validateIdentifier(UUID identifier, CustomerDto customer) throws InputException {
+    private void validateIdentifier(UUID identifier, CustomerDao customer) throws InputException {
         if (!identifier.equals(customer.getIdentifier())) {
             throw new InputException(String.format(IDENTIFIERS_NOT_EQUAL, identifier, customer.getIdentifier()), null);
         }

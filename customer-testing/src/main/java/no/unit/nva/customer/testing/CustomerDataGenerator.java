@@ -26,56 +26,64 @@ public class CustomerDataGenerator {
     private static final String API_HOST = "api.dev.aws.nva.unit.no";
     private static final String CRISTIN_PATH = "/cristin/organization";
 
-    public static CustomerDto createSampleCustomerDto() {
-        UUID identifier = UUID.randomUUID();
-        URI id = LinkedDataContextUtils.toId(identifier);
-        CustomerDto customer = CustomerDto.builder()
-            .withName(randomString())
-            .withCristinId(randomString())
-            .withFeideOrganizationId(randomString())
-            .withModifiedDate(randomInstant())
-            .withIdentifier(identifier)
-            .withId(id)
-            .withCname(randomString())
-            .withContext(LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE)
-            .withArchiveName(randomString())
-            .withShortName(randomString())
-            .withInstitutionDns(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withVocabularies(randomVocabularyDtoSettings())
-            .build();
+    public static CustomerDao createSampleCustomerDao() {
+        CustomerDao customer = new CustomerDao();
+
+        customer.setName(randomString());
+        customer.setCristinId(randomCristinOrgId().toString());
+        customer.setFeideOrganizationId(randomString());
+        customer.setModifiedDate(randomInstant());
+        customer.setIdentifier(randomIdentifier());
+        customer.setCname(randomString());
+        customer.setArchiveName(randomString());
+        customer.setShortName(randomString());
+        customer.setInstitutionDns(randomString());
+        customer.setDisplayName(randomString());
+        customer.setCreatedDate(randomInstant());
+        customer.setVocabularies(randomVocabularyDaoSettings());
 
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
+    }
+
+
+    public static CustomerDto createSampleCustomerDto() {
+        UUID identifier = UUID.randomUUID();
+        URI id = LinkedDataContextUtils.toId(identifier);
+
+        CustomerDto customer = new CustomerDto();
+
+        customer.setId(id);
+        customer.setName(randomString());
+        customer.setCristinId(randomCristinOrgId().toString());
+        customer.setFeideOrganizationId(randomString());
+        customer.setModifiedDate(randomInstant());
+        customer.setIdentifier(randomIdentifier());
+        customer.setCname(randomString());
+        customer.setArchiveName(randomString());
+        customer.setShortName(randomString());
+        customer.setInstitutionDns(randomString());
+        customer.setDisplayName(randomString());
+        customer.setCreatedDate(randomInstant());
+        customer.setVocabularies(randomVocabularyDtoSettings());
+
+        assertThat(customer, doesNotHaveEmptyValues());
+        return customer;
+    }
+
+    public static Set<VocabularyDao> randomVocabularyDaoSettings() {
+        VocabularyDao vocabulary = randomVocabulary();
+        return Set.of(vocabulary)
+            .stream()
+            .collect(Collectors.toSet());
     }
 
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
         VocabularyDao vocabulary = randomVocabulary();
         return Set.of(vocabulary)
-            .stream()
-            .map(VocabularyDao::toVocabularySettingsDto)
-            .collect(Collectors.toSet());
-    }
-
-    public static CustomerDao createSampleCustomerDao() {
-        VocabularyDao vocabulary = randomVocabulary();
-        CustomerDao customer = CustomerDao.builder()
-            .withIdentifier(randomIdentifier())
-            .withName(randomString())
-            .withModifiedDate(randomInstant())
-            .withShortName(randomString())
-            .withCristinId(randomString())
-            .withVocabularySettings(Set.of(vocabulary))
-            .withInstitutionDns(randomString())
-            .withFeideOrganizationId(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withCname(randomString())
-            .withArchiveName(randomString())
-            .build();
-        assertThat(customer, doesNotHaveEmptyValues());
-        return customer;
+                .stream()
+                .map(VocabularyDao::toVocabularySettingsDto)
+                .collect(Collectors.toSet());
     }
 
     public static <T> T randomElement(T... values) {

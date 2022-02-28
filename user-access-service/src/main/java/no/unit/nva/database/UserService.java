@@ -157,7 +157,7 @@ public class UserService extends DatabaseSubService {
     }
 
     private void updateTable(UserDb userUpdateWithSyncedRoles) {
-         table.putItem(userUpdateWithSyncedRoles.toItem());
+        table.putItem(userUpdateWithSyncedRoles.toItem());
     }
 
     private UserDb userWithSyncedRoles(UserDb currentUser) {

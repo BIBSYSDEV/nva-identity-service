@@ -2,13 +2,13 @@ package no.unit.nva.customer.get;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import no.unit.nva.customer.RestConfig;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.responses.CustomerResponse;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
@@ -25,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Map;
-import java.util.UUID;
 
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
@@ -72,19 +71,18 @@ public class GetCustomerHandlerTest {
 
     @Test
     public void requestToHandlerReturnsCustomer() throws Exception {
-        UUID identifier = UUID.randomUUID();
-        CustomerDto customerDto = prepareServiceWithCustomer(identifier);
+        CustomerDao customerDao = prepareServiceWithCustomer();
 
-        InputStream inputStream = createGetCustomerRequest(customerDto);
+        InputStream inputStream = createGetCustomerRequest(customerDao.toCustomerDto());
         handler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CustomerDto> actual = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CustomerResponse> actual = GatewayResponse.fromOutputStream(outputStream);
 
         assertEquals(HttpStatus.SC_OK, actual.getStatusCode());
-        CustomerDto actualCustomerDto = actual.getBodyObject(CustomerDto.class);
+        CustomerResponse actualCustomerDto = actual.getBodyObject(CustomerResponse.class);
         assertThat(actualCustomerDto.getId(), notNullValue());
         assertThat(actualCustomerDto.getContext(), notNullValue());
-        assertThat(actualCustomerDto, equalTo(customerDto));
+        assertThat(actualCustomerDto, equalTo(CustomerResponse.toCustomerResponse(customerDao)));
     }
 
     @Test
@@ -118,10 +116,9 @@ public class GetCustomerHandlerTest {
 
     @Test
     public void requestToHandlerWithUnsupportedAcceptHeaderReturnsUnsupportedMediaType() throws Exception {
-        UUID identifier = UUID.randomUUID();
-        prepareServiceWithCustomer(identifier);
+        CustomerDto customerDto = prepareServiceWithCustomer().toCustomerDto();
 
-        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
         InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(defaultRestObjectMapper)
             .withHeaders(getRequestHeadersWithUnsupportedMediaType())
             .withPathParameters(pathParameters)
@@ -136,10 +133,9 @@ public class GetCustomerHandlerTest {
 
     @Test
     public void requestToHandlerWithJsonLdAcceptHeaderReturnsJsonLdMediaType() throws Exception {
-        UUID identifier = UUID.randomUUID();
-        prepareServiceWithCustomer(identifier);
+        CustomerDto customerDto = prepareServiceWithCustomer().toCustomerDto();
 
-        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
         InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(defaultRestObjectMapper)
             .withHeaders(getRequestHeadersWithMediaType(MediaTypes.APPLICATION_JSON_LD))
             .withPathParameters(pathParameters)
@@ -176,12 +172,10 @@ public class GetCustomerHandlerTest {
             .build();
     }
 
-    private CustomerDto prepareServiceWithCustomer(UUID identifier) throws ApiGatewayException {
-        CustomerDao customerDb = new CustomerDao.Builder()
-            .withIdentifier(identifier)
-            .build();
+    private CustomerDao prepareServiceWithCustomer() throws ApiGatewayException {
+        CustomerDao customerDb = CustomerDataGenerator.createSampleCustomerDao();
         CustomerDto customerDto = customerDb.toCustomerDto();
-        when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);
-        return customerDto;
+        when(customerServiceMock.getCustomer(customerDto.getIdentifier())).thenReturn(customerDb);
+        return customerDb;
     }
 }

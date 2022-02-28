@@ -3,7 +3,7 @@ package no.unit.nva.customer.update;
 import java.net.HttpURLConnection;
 import no.unit.nva.customer.create.CreateControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.interfaces.VocabularyList;
+import no.unit.nva.customer.model.VocabularyListDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -24,16 +24,17 @@ public class UpdateControlledVocabularyHandler extends CreateControlledVocabular
     }
 
     @Override
-    protected CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer)
+    protected CustomerDto updateVocabularySettings(VocabularyListDto input, CustomerDto customer)
         throws ApiGatewayException {
         if (!customer.getVocabularies().isEmpty()) {
-            return customer.copy().withVocabularies(input.getVocabularies()).build();
+            customer.setVocabularies(input.getVocabularies());
+            return customer;
         }
         throw new NotFoundException(VOCABULARY_SETTINGS_NOT_DEFINED_ERROR);
     }
 
     @Override
-    protected Integer getSuccessStatusCode(VocabularyList input, VocabularyList output) {
+    protected Integer getSuccessStatusCode(VocabularyListDto input, VocabularyListDto output) {
         return HttpURLConnection.HTTP_ACCEPTED;
     }
 }

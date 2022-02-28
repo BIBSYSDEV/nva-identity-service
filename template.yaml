@@ -1307,6 +1307,28 @@ Resources:
       ProviderType: OIDC
       UserPoolId: !Ref NewUserPool
 
+  AnotherIdentityProvider:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://auth.dataporten.no/openid/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid'
+      ProviderName: AnotherIdentityProvider
+      ProviderType: OIDC
+      UserPoolId: !Ref NewUserPool
+
+
+
   NewApplicationClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
@@ -1343,6 +1365,7 @@ Resources:
         RefreshToken: hours
       SupportedIdentityProviders:
         - !Ref ConnectionToDataportenUsingOnlyIdNumber
+        - !Ref AnotherIdentityProvider
       UserPoolId: !Ref NewUserPool
       WriteAttributes:
         - custom:feideid

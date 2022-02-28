@@ -1375,7 +1375,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.UserPoolEntryUpdateHandler::handleRequest
+      Handler: no.unit.nva.cognito.EchoCognitoTriggerHandler::handleRequest
       Role: !GetAtt TriggerExecutionRole.Arn
       Timeout: 10
 

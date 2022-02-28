@@ -1382,7 +1382,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.EchoCognitoTriggerHandler::handleRequest
+      Handler: no.unit.nva.cognito.IdentityServiceEntryUpdateHandler::handleRequest
       Role: !GetAtt TriggerExecutionRole.Arn
       Timeout: 10
 
@@ -1390,7 +1390,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.EchoCognitoTriggerHandler::handleRequest
+      Handler: no.unit.nva.cognito.IdentityServiceEntryUpdateHandler::handleRequest
       Role: !GetAtt TriggerExecutionRole.Arn
       Timeout: 10
 
@@ -1398,7 +1398,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.EchoCognitoTriggerHandler::handleRequest
+      Handler: no.unit.nva.cognito.IdentityServiceEntryUpdateHandler::handleRequest
       Role: !GetAtt TriggerExecutionRole.Arn
       Timeout: 10
 

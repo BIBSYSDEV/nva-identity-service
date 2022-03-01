@@ -332,7 +332,6 @@ Resources:
                 - Authorization
               ReauthorizeEvery: 1
         DefaultAuthorizer: CognitoAuthorizer
-
       EndpointConfiguration: REGIONAL
       DefinitionBody:
         'Fn::Transform':

@@ -2,29 +2,28 @@ package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
-import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.dynamodbv2.document.Index;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemCollection;
-import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
+import no.unit.nva.useraccessmanagement.dao.UserDao;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class UserService extends DatabaseSubService {
 
@@ -35,13 +34,15 @@ public class UserService extends DatabaseSubService {
     public static final String USER_ALREADY_EXISTS_ERROR_MESSAGE = "User already exists: ";
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-    private final Index institutionsIndex;
+    private final DynamoDbIndex<UserDao> institutionsIndex;
     private final RoleService roleService;
+    private final DynamoDbTable<UserDao> table;
 
-    public UserService(Table table, RoleService roleService) {
-        super(table);
+    public UserService(DynamoDbClient client, RoleService roleService) {
+        super(client);
         this.roleService = roleService;
-        this.institutionsIndex = this.table.getIndex(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME);
+        this.table = this.client.table(IdentityService.USERS_AND_ROLES_TABLE, UserDao.TABLE_SCHEMA);
+        this.institutionsIndex = this.table.index(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME);
     }
 
     /**
@@ -63,14 +64,16 @@ public class UserService extends DatabaseSubService {
      * @param institutionId the id of the institution
      * @return all users of the specified institution.
      */
-    public List<UserDto> listUsers(URI institutionId) {
-        QuerySpec listUsersQuery = createListUsersByInstitutionQuery(institutionId);
-        List<Item> items = toList(institutionsIndex.query(listUsersQuery));
 
-        return items.stream()
-            .map(item -> UserDb.fromItem(item, UserDb.class))
-            .map(attempt(UserDb::toUserDto))
-            .flatMap(Try::stream)
+    public List<UserDto> listUsers(URI institutionId) {
+        QueryEnhancedRequest listUsersQuery = createListUsersByInstitutionQuery(institutionId);
+        var result = institutionsIndex.query(listUsersQuery);
+
+        var users = result.stream()
+            .map(Page::items)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+        return users.stream().map(UserDao::toUserDto)
             .collect(Collectors.toList());
     }
 
@@ -83,8 +86,8 @@ public class UserService extends DatabaseSubService {
     public void addUser(UserDto user) throws ConflictException {
         logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
         checkUserDoesNotAlreadyExist(user);
-        UserDb databaseEntryWithSyncedRoles = syncRoleDetails(UserDb.fromUserDto(user));
-        table.putItem(databaseEntryWithSyncedRoles.toItem());
+        UserDao databaseEntryWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(user));
+        table.putItem(databaseEntryWithSyncedRoles);
     }
 
     /**
@@ -99,13 +102,13 @@ public class UserService extends DatabaseSubService {
 
         logger.debug(UPDATE_USER_DEBUG_MESSAGE + updateObject.toJsonString());
         UserDto existingUser = getExistingUserOrSendNotFoundError(updateObject);
-        UserDb updatedObjectWithSyncedRoles = syncRoleDetails(UserDb.fromUserDto(updateObject));
+        UserDao updatedObjectWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(updateObject));
         if (userHasChanged(existingUser, updatedObjectWithSyncedRoles)) {
             updateTable(updatedObjectWithSyncedRoles);
         }
     }
 
-    private UserDb syncRoleDetails(UserDb updateObject) {
+    private UserDao syncRoleDetails(UserDao updateObject) {
         return userWithSyncedRoles(updateObject);
     }
 
@@ -115,9 +118,12 @@ public class UserService extends DatabaseSubService {
         return Optional.ofNullable(searchResult);
     }
 
-    private QuerySpec createListUsersByInstitutionQuery(URI institution) {
-        return new QuerySpec().withHashKey(SECONDARY_INDEX_1_HASH_KEY, institution.toString())
-            .withConsistentRead(false);
+
+    private QueryEnhancedRequest createListUsersByInstitutionQuery(URI institution) {
+        return QueryEnhancedRequest.builder()
+            .queryConditional(QueryConditional.keyEqualTo(Key.builder().partitionValue(institution.toString()).build()))
+            .consistentRead(false)
+            .build();
     }
 
     private void checkUserDoesNotAlreadyExist(UserDto user) throws ConflictException {
@@ -136,41 +142,36 @@ public class UserService extends DatabaseSubService {
         return this.getUserAsOptional(user).isPresent();
     }
 
-    private List<Item> toList(ItemCollection<QueryOutcome> searchResult) {
-        List<Item> items = new ArrayList<>();
-        for (Item item : searchResult) {
-            items.add(item);
-        }
-        return items;
-    }
-
     private UserDto attemptToFetchObject(UserDto queryObject) {
-        UserDb userDb = attempt(() -> UserDb.fromUserDto(queryObject))
+        UserDao userDao = attempt(() -> UserDao.fromUserDto(queryObject))
             .map(this::fetchItem)
-            .map(item -> UserDb.fromItem(item, UserDb.class))
             .orElseThrow(DatabaseSubService::handleError);
-        return nonNull(userDb) ? userDb.toUserDto() : null;
+        return nonNull(userDao) ? userDao.toUserDto() : null;
     }
 
-    private boolean userHasChanged(UserDto existingUser, UserDb desiredUpdateWithSyncedRoles) {
-        return !desiredUpdateWithSyncedRoles.equals(UserDb.fromUserDto(existingUser));
+    private UserDao fetchItem(UserDao userDao) {
+        return table.getItem(userDao);
     }
 
-    private void updateTable(UserDb userUpdateWithSyncedRoles) {
-         table.putItem(userUpdateWithSyncedRoles.toItem());
+    private boolean userHasChanged(UserDto existingUser, UserDao desiredUpdateWithSyncedRoles) {
+        return !desiredUpdateWithSyncedRoles.equals(UserDao.fromUserDto(existingUser));
     }
 
-    private UserDb userWithSyncedRoles(UserDb currentUser) {
+
+    private void updateTable(UserDao userUpdateWithSyncedRoles) {
+        table.putItem(userUpdateWithSyncedRoles);
+    }
+
+    private UserDao userWithSyncedRoles(UserDao currentUser) {
         List<RoleDb> roles = currentRoles(currentUser);
         return currentUser.copy().withRoles(roles).build();
     }
 
     // TODO: use batch query for minimizing the cost.
-    private List<RoleDb> currentRoles(UserDb currentUser) {
-        return currentUser
-            .getRoles()
+    private List<RoleDb> currentRoles(UserDao currentUser) {
+        return currentUser.getRolesNonNull()
             .stream()
-            .map(roleService::fetchRoleDao)
+            .map(roleService::fetchRoleDb)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }

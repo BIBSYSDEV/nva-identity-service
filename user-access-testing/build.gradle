@@ -8,7 +8,7 @@ dependencies {
     implementation project(':user-access-commons')
     implementation libs.nva.apigateway
     implementation libs.bundles.aws.lambda
-    implementation libs.aws.dynamodb
+    implementation libs.aws.sdk2.dynamodb
     implementation libs.dynamoDbLocal
     implementation(libs.bundles.testing) {
         exclude group: 'org.hamcrest', module: 'hamcrest-core'

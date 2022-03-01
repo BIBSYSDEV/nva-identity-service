@@ -49,8 +49,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class UserDtoTest extends DtoTest {
 
     public static final Set<RoleDto> sampleRoles = createSampleRoles();
-    public static final URI SOME_INSTITUTION = randomUri();
-    public static final String SOME_OTHER_ROLENAME = "SomeOtherRolename";
+
+    public static final URI SOME_INSTITUTION = randomCristinOrgId();
+    public static final String SOME_OTHER_ROLENAME = randomString();
+
     protected static final String USER_TYPE_LITERAL = "User";
     private static final String FIRST_ACCESS_RIGHT = "ApproveDoi";
     private static final String SECOND_ACCESS_RIGHT = "RejectDoi";

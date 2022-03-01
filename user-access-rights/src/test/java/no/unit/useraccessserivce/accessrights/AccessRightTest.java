@@ -9,7 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nva.commons.core.JsonUtils;
+
+import no.unit.nva.commons.json.JsonUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
@@ -36,14 +37,12 @@ class AccessRightTest {
     @Test
     public void accessRightIsSerializedUpperCase() throws JsonProcessingException {
         String value = objectMapper.writeValueAsString(AccessRight.APPROVE_DOI_REQUEST);
-        String expectedValue = APPROVE_DOI_REQUEST_STRING;
-        assertThat(value, is(equalTo(expectedValue)));
+        assertThat(value, is(equalTo(APPROVE_DOI_REQUEST_STRING)));
     }
 
     @Test
     public void accessRightIsDeserializedFromString() throws IOException {
-        String accessRightString = APPROVE_DOI_REQUEST_STRING;
-        AccessRight accessRight = objectMapper.readValue(accessRightString, AccessRight.class);
+        AccessRight accessRight = objectMapper.readValue(APPROVE_DOI_REQUEST_STRING, AccessRight.class);
         assertThat(accessRight, is(equalTo(AccessRight.APPROVE_DOI_REQUEST)));
     }
 }

@@ -2,7 +2,8 @@ package no.unit.nva.database;
 
 import java.net.URI;
 import java.util.List;
-import no.unit.nva.events.models.ScanDatabaseRequest;
+
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
@@ -27,5 +28,5 @@ public interface IdentityService {
 
     RoleDto getRole(RoleDto input) throws  NotFoundException;
 
-    UserScanResult fetchOnePageOfUsers(ScanDatabaseRequest scanRequest);
+    UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest);
 }

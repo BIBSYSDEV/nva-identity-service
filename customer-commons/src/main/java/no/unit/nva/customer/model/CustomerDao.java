@@ -1,34 +1,37 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_NUMBER_INDEX_NAME;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.Customer;
 import nva.commons.core.JacocoGenerated;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
-@JsonTypeInfo(
-    use = Id.NAME,
-    include = As.PROPERTY,
-    property = "type",
-    defaultImpl = CustomerDao.class
-)
-@JsonTypeName("Customer")
-public class CustomerDao implements Customer<VocabularyDao> {
+@DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
+@SuppressWarnings("PMD.ExcessivePublicCount")
+public class CustomerDao implements Customer<VocabularyDao>, TypedDao {
 
     public static final String IDENTIFIER = "identifier";
     public static final String ORG_NUMBER = "feideOrganizationId";
     public static final String CRISTIN_ID = "cristinId";
-
+    public static final String TYPE = "Customer";
+    public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
+    public static final TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
     private UUID identifier;
     private Instant createdDate;
     private Instant modifiedDate;
@@ -43,7 +46,7 @@ public class CustomerDao implements Customer<VocabularyDao> {
     private Set<VocabularyDao> vocabularies;
 
     public CustomerDao() {
-        vocabularies = Collections.emptySet();
+        vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     public static Builder builder() {
@@ -67,6 +70,8 @@ public class CustomerDao implements Customer<VocabularyDao> {
     }
 
     @Override
+    @DynamoDbPartitionKey
+    @DynamoDbAttribute(IDENTIFIER)
     public UUID getIdentifier() {
         return identifier;
     }
@@ -157,6 +162,8 @@ public class CustomerDao implements Customer<VocabularyDao> {
     }
 
     @Override
+    @DynamoDbSecondaryPartitionKey(indexNames = {BY_ORG_NUMBER_INDEX_NAME})
+    @DynamoDbAttribute(ORG_NUMBER)
     public String getFeideOrganizationId() {
         return feideOrganizationId;
     }
@@ -167,6 +174,8 @@ public class CustomerDao implements Customer<VocabularyDao> {
     }
 
     @Override
+    @DynamoDbSecondaryPartitionKey(indexNames = {BY_CRISTIN_ID_INDEX_NAME})
+    @DynamoDbAttribute(CRISTIN_ID)
     public String getCristinId() {
         return cristinId;
     }
@@ -177,13 +186,14 @@ public class CustomerDao implements Customer<VocabularyDao> {
     }
 
     @Override
+    @DynamoDbIgnoreNulls
     public Set<VocabularyDao> getVocabularies() {
-        return nonNull(vocabularies) ? vocabularies : Collections.emptySet();
+        return nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     @Override
     public void setVocabularies(Set<VocabularyDao> vocabularies) {
-        this.vocabularies = nonNull(vocabularies) ? vocabularies : Collections.emptySet();
+        this.vocabularies = nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     @Override
@@ -234,6 +244,19 @@ public class CustomerDao implements Customer<VocabularyDao> {
             .withCristinId(getCristinId())
             .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
+    }
+
+    @Override
+    public String getType() {
+        return TYPE;
+    }
+
+    @JacocoGenerated
+    @Override
+    public void setType(String type) {
+        if (nonNull(type) && !TYPE.equals(type)) {
+            throw new IllegalStateException("Wrong type for Customer:" + type);
+        }
     }
 
     private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {

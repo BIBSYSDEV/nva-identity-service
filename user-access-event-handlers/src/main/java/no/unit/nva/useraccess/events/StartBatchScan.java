@@ -5,7 +5,6 @@ import static no.unit.nva.useraccess.events.EventsConfig.EVENT_BUS;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
 import static no.unit.nva.useraccess.events.EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE;
 import static no.unit.nva.useraccess.events.EventsConfig.objectMapper;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import java.io.IOException;
@@ -13,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import no.unit.nva.events.models.ScanDatabaseRequest;
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
 public class StartBatchScan implements RequestStreamHandler {
 
-    private static final Map<String, AttributeValue> START_FROM_BEGINNING = null;
+    private static final Map<String, String> START_FROM_BEGINNING = null;
 
     private static final Logger logger = LoggerFactory.getLogger(StartBatchScan.class);
     private final EventBridgeClient eventClient;
@@ -48,21 +48,21 @@ public class StartBatchScan implements RequestStreamHandler {
         return objectMapper.readValue(input, ScanDatabaseRequest.class);
     }
 
-    private ScanDatabaseRequest createEventAsExpectedByEventListener(ScanDatabaseRequest input) {
-        return new ScanDatabaseRequest(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
-                                       input.getPageSize(),
-                                       START_FROM_BEGINNING);
+    private ScanDatabaseRequestV2 createEventAsExpectedByEventListener(ScanDatabaseRequest input) {
+        return new ScanDatabaseRequestV2(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
+                                         input.getPageSize(),
+                                         START_FROM_BEGINNING);
     }
 
-    private void emitEvent(Context context, ScanDatabaseRequest requestWithTopic) {
+    private void emitEvent(Context context, ScanDatabaseRequestV2 requestWithTopic) {
         eventClient.putEvents(createEvent(context, requestWithTopic));
     }
 
-    private PutEventsRequest createEvent(Context context, ScanDatabaseRequest request) {
+    private PutEventsRequest createEvent(Context context, ScanDatabaseRequestV2 request) {
         return PutEventsRequest.builder().entries(createNewEventEntry(context, request)).build();
     }
 
-    private PutEventsRequestEntry createNewEventEntry(Context context, ScanDatabaseRequest request) {
+    private PutEventsRequestEntry createNewEventEntry(Context context, ScanDatabaseRequestV2 request) {
         return request.createNewEventEntry(EVENT_BUS,
                                            SCAN_REQUEST_EVENTS_DETAIL_TYPE,
                                            context.getInvokedFunctionArn());

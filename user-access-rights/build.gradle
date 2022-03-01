@@ -5,5 +5,5 @@ plugins {
 }
 
 dependencies {
-    implementation libs.bundles.jackson
+    implementation libs.nva.json
 }

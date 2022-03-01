@@ -42,7 +42,7 @@ class GetUserHandlerTest extends HandlerTest {
     @BeforeEach
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
-        getUserHandler = new GetUserHandler(ENVIRONMENT, databaseService);
+        getUserHandler = new GetUserHandler(databaseService);
         context = mock(Context.class);
     }
 
@@ -74,6 +74,7 @@ class GetUserHandlerTest extends HandlerTest {
         requestInfo = createRequestInfoForGetUser(DEFAULT_USERNAME);
         UserDto expected = insertSampleUserToDatabase();
         UserDto actual = getUserHandler.processInput(null, requestInfo, context);
+
         assertThat(actual, is(equalTo(expected)));
     }
 

@@ -3,10 +3,11 @@ package no.unit.nva.useraccessmanagement.dao;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
 import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
+import static no.unit.nva.useraccessmanagement.dao.DynamoEntriesUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,7 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.useraccessmanagement.dao.UserDb.Builder;
+import no.unit.nva.useraccessmanagement.dao.UserDao.Builder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.interfaces.WithType;
@@ -24,35 +25,46 @@ import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.JsonUtils;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
-public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>, WithType {
+@DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
+public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType {
 
-    public static final String TYPE = "USER";
+    public static final String TYPE_VALUE = "USER";
     public static final String INVALID_USER_EMPTY_USERNAME = "Invalid user entry: Empty username is not allowed";
     public static final String ERROR_DUE_TO_INVALID_ROLE =
         "Failure while trying to create user with role without role-name";
+    public static final String USERNAME_FIELD = "username";
+    public static final String GIVEN_NAME_FIELD = "givenName";
+    public static final String FAMILY_NAME_FIELD = "familyName";
+    public static final String ROLES_LIST = "roles";
+    public static final String INSTITUTION_FIELD = "institution";
+    public static final String TYPE_FIELD = "type";
+    public static final TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
 
-    private static Logger logger = LoggerFactory.getLogger(UserDb.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
-    @JsonProperty("username")
     private String username;
-    @JsonProperty("institution")
     private URI institution;
-    @JsonProperty("roles")
     private Set<RoleDb> roles;
-    @JsonProperty("givenName")
     private String givenName;
-    @JsonProperty("familyName")
     private String familyName;
-    @JsonProperty("viewingScope")
-    private ViewingScope viewingScope;
+    private ViewingScopeDb viewingScope;
 
-    public UserDb() {
+    public UserDao() {
         super();
     }
 
@@ -60,28 +72,28 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         return new Builder();
     }
 
-    public static UserDb fromUserDto(UserDto userDto) {
-        UserDb.Builder userDb = UserDb.newBuilder()
+    public static UserDao fromUserDto(UserDto userDto) {
+        UserDao.Builder userDb = UserDao.newBuilder()
             .withUsername(userDto.getUsername())
             .withGivenName(userDto.getGivenName())
             .withFamilyName(userDto.getFamilyName())
             .withInstitution(userDto.getInstitution())
-            .withRoles(createRoleDbList(userDto))
-            .withViewingScope(userDto.getViewingScope());
+            .withRoles(createRoleDbSet(userDto))
+            .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()));
 
         return userDb.build();
     }
 
-    public ViewingScope getViewingScope() {
+    public ViewingScopeDb getViewingScope() {
         return viewingScope;
     }
 
-    public void setViewingScope(ViewingScope viewingScope) {
+    public void setViewingScope(ViewingScopeDb viewingScope) {
         this.viewingScope = viewingScope;
     }
 
     /**
-     * Creates a {@link UserDto} from a {@link UserDb}.
+     * Creates a {@link UserDto} from a {@link UserDao}.
      *
      * @return a data transfer object {@link UserDto}
      */
@@ -93,53 +105,42 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
             .withFamilyName(this.getFamilyName())
             .withRoles(extractRoles(this))
             .withInstitution(this.getInstitution())
-            .withViewingScope(this.getViewingScope());
+            .withViewingScope(convertViewingScope());
         return userDto.build();
     }
 
     @JacocoGenerated
     @Override
-    @JsonProperty(PRIMARY_KEY_HASH_KEY)
-    public String getPrimaryHashKey() {
+    @DynamoDbPartitionKey
+    @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
+    public String getPrimaryKeyHashKey() {
         return formatPrimaryHashKey();
     }
 
-    /**
-     * Do not use this function. This function is defined only for internal usage (by DynamoDB). The function does not
-     * reset the primaryKey once it has been set. It does not throw an Exception because this method is supposed ot be
-     * used only by DynamoDb. For any other purpose use the {@link UserDb.Builder}
-     *
-     * @param primaryHashKeyKey the primaryKey
-     */
     @Override
-    public void setPrimaryHashKey(String primaryHashKeyKey) {
-        // DO NOTHING
+    public void setPrimaryKeyHashKey(String primaryRangeKey) {
+        //DO NOTHING
     }
 
-    @JsonProperty(PRIMARY_KEY_RANGE_KEY)
     @JacocoGenerated
     @Override
-    public String getPrimaryRangeKey() {
+    @DynamoDbSortKey
+    @DynamoDbAttribute(PRIMARY_KEY_RANGE_KEY)
+    public String getPrimaryKeyRangeKey() {
         return formatPrimaryRangeKey();
     }
 
-    /**
-     * Do not use this function. This function is defined only for internal usage (by DynamoDB). The function does not
-     * reset the primaryKey once it has been set. It does not throw an Exception because this method is supposed ot be
-     * used only by DynamoDb. For any other purpose use the {@link UserDb.Builder}
-     *
-     * @param rangeKey the primaryRangeKey
-     */
-    @JacocoGenerated
     @Override
-    public void setPrimaryRangeKey(String rangeKey) {
-        // do nothing
+    @JacocoGenerated
+    public void setPrimaryKeyRangeKey(String primaryRangeKey) {
+        //DO NOTHING
     }
 
     @JacocoGenerated
-    @JsonProperty(SECONDARY_INDEX_1_HASH_KEY)
+    @DynamoDbSecondaryPartitionKey(indexNames = {SEARCH_USERS_BY_INSTITUTION_INDEX_NAME})
+    @DynamoDbAttribute(SECONDARY_INDEX_1_HASH_KEY)
     public String getSearchByInstitutionHashKey() {
-        return Optional.ofNullable(this.getInstitution()).map(URI::toString).orElse(null);
+        return nonNull(this.getInstitution()) ? this.getInstitution().toString() : null;
     }
 
     @JacocoGenerated
@@ -148,7 +149,8 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @JacocoGenerated
-    @JsonProperty(SECONDARY_INDEX_1_RANGE_KEY)
+    @DynamoDbSecondarySortKey(indexNames = {SEARCH_USERS_BY_INSTITUTION_INDEX_NAME})
+    @DynamoDbAttribute(SECONDARY_INDEX_1_RANGE_KEY)
     public String getSearchByInstitutionRangeKey() {
         return this.getUsername();
     }
@@ -159,6 +161,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @JacocoGenerated
+    @DynamoDbAttribute(USERNAME_FIELD)
     public String getUsername() {
         return username;
     }
@@ -174,6 +177,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @JacocoGenerated
+    @DynamoDbAttribute(GIVEN_NAME_FIELD)
     public String getGivenName() {
         return givenName;
     }
@@ -188,6 +192,7 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @JacocoGenerated
+    @DynamoDbAttribute(FAMILY_NAME_FIELD)
     public String getFamilyName() {
         return familyName;
     }
@@ -201,8 +206,14 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         this.familyName = familyName;
     }
 
-    @JacocoGenerated
+    @DynamoDbAttribute(ROLES_LIST)
+    @DynamoDbIgnoreNulls
     public Set<RoleDb> getRoles() {
+        return nonEmpty(roles) ? roles : null;
+    }
+
+    @DynamoDbIgnore
+    public Set<RoleDb> getRolesNonNull() {
         return nonNull(roles) ? roles : Collections.emptySet();
     }
 
@@ -211,11 +222,13 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
      *
      * @param roles the roles.
      */
-    public void setRoles(Collection<RoleDb> roles) {
-        this.roles = nonNull(roles) ? new HashSet<>(roles) : Collections.emptySet();
+    @SuppressWarnings("PMD.NullAssignment")
+    public void setRoles(Set<RoleDb> roles) {
+        this.roles = nonEmpty(roles) ? roles : null;
     }
 
     @JacocoGenerated
+    @DynamoDbAttribute(INSTITUTION_FIELD)
     public URI getInstitution() {
         return institution;
     }
@@ -230,21 +243,33 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     }
 
     @JacocoGenerated
-    @JsonProperty("type")
     @Override
+    @DynamoDbAttribute(TYPE_FIELD)
     public String getType() {
-        return TYPE;
+        return TYPE_VALUE;
     }
 
     @Override
-    public UserDb.Builder copy() {
+    public void setType(String ignored){
+        //DO nothing
+    }
+
+    @Override
+    public UserDao.Builder copy() {
         return newBuilder()
             .withUsername(this.getUsername())
             .withGivenName(this.getGivenName())
             .withFamilyName(this.getFamilyName())
             .withInstitution(this.getInstitution())
             .withViewingScope(this.getViewingScope())
-            .withRoles(this.getRoles());
+            .withRoles(this.getRolesNonNull());
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUsername(), getInstitution(), getRolesNonNull(), getGivenName(), getFamilyName(),
+                            getViewingScope());
     }
 
     @JacocoGenerated
@@ -253,42 +278,32 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
         if (this == o) {
             return true;
         }
-        if (!(o instanceof UserDb)) {
+        if (!(o instanceof UserDao)) {
             return false;
         }
-        UserDb userDb = (UserDb) o;
-        return Objects.equals(getUsername(), userDb.getUsername())
-               && Objects.equals(getInstitution(), userDb.getInstitution())
-               && Objects.equals(getRoles(), userDb.getRoles())
-               && Objects.equals(getGivenName(), userDb.getGivenName())
-               && Objects.equals(getFamilyName(), userDb.getFamilyName())
-               && Objects.equals(getViewingScope(), userDb.getViewingScope());
+        UserDao userDao = (UserDao) o;
+        return Objects.equals(getUsername(), userDao.getUsername())
+               && Objects.equals(getInstitution(), userDao.getInstitution())
+               && Objects.equals(getRolesNonNull(),userDao.getRolesNonNull())
+               && Objects.equals(getGivenName(), userDao.getGivenName())
+               && Objects.equals(getFamilyName(), userDao.getFamilyName())
+               && Objects.equals(getViewingScope(), userDao.getViewingScope());
     }
 
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
-                            getViewingScope());
-    }
 
-    public static UserDb fromJson(String json) {
-        return attempt(() -> JsonUtils.dynamoObjectMapper.readValue(json, UserDb.class)).orElseThrow();
-    }
-
-    private static Collection<RoleDb> createRoleDbList(UserDto userDto) {
+    private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
         return userDto.getRoles().stream()
             .map(attempt(RoleDb::fromRoleDto))
-            .map(attempt -> attempt.orElseThrow(UserDb::unexpectedException))
+            .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
             .collect(Collectors.toSet());
     }
 
-    private static List<RoleDto> extractRoles(UserDb userDb) {
-        return Optional.ofNullable(userDb)
+    private static List<RoleDto> extractRoles(UserDao userDao) {
+        return Optional.ofNullable(userDao)
             .stream()
-            .flatMap(user -> user.getRoles().stream())
+            .flatMap(user -> user.getRolesNonNull().stream())
             .map(attempt(RoleDb::toRoleDto))
-            .map(attempt -> attempt.orElseThrow(UserDb::unexpectedException))
+            .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
             .collect(Collectors.toList());
     }
 
@@ -296,6 +311,10 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
     private static <T> IllegalStateException unexpectedException(Failure<T> failure) {
         logger.error(ERROR_DUE_TO_INVALID_ROLE);
         return new IllegalStateException(failure.getException());
+    }
+
+    private ViewingScope convertViewingScope() {
+        return Optional.ofNullable(this.getViewingScope()).map(ViewingScopeDb::toViewingScope).orElse(null);
     }
 
     private void checkUsername(String username) {
@@ -311,49 +330,49 @@ public class UserDb extends DynamoEntryWithRangeKey implements WithCopy<Builder>
 
     private String formatPrimaryHashKey() {
         checkUsername(username);
-        return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE, username);
+        return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE_VALUE, username);
     }
 
     public static final class Builder {
 
-        private final UserDb userDb;
+        private final UserDao userDao;
 
         private Builder() {
-            this.userDb = new UserDb();
+            this.userDao = new UserDao();
         }
 
         public Builder withUsername(String username) {
-            userDb.setUsername(username);
+            userDao.setUsername(username);
             return this;
         }
 
         public Builder withGivenName(String givenName) {
-            userDb.setGivenName(givenName);
+            userDao.setGivenName(givenName);
             return this;
         }
 
         public Builder withFamilyName(String familyName) {
-            userDb.setFamilyName(familyName);
+            userDao.setFamilyName(familyName);
             return this;
         }
 
         public Builder withInstitution(URI institution) {
-            userDb.setInstitution(institution);
+            userDao.setInstitution(institution);
             return this;
         }
 
         public Builder withRoles(Collection<RoleDb> roles) {
-            userDb.setRoles(roles);
+            userDao.setRoles(new HashSet<>(roles));
             return this;
         }
 
-        public Builder withViewingScope(ViewingScope viewingScope) {
-            userDb.setViewingScope(viewingScope);
+        public Builder withViewingScope(ViewingScopeDb viewingScope) {
+            userDao.setViewingScope(viewingScope);
             return this;
         }
 
-        public UserDb build() {
-            return userDb;
+        public UserDao build() {
+            return userDao;
         }
     }
 }

@@ -25,14 +25,13 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
-
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
 import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
 import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.core.JsonUtils;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
@@ -94,10 +93,7 @@ class UserMigrationServiceTest {
     }
 
     private static Stream<URI> provideInvalidOrganizationIds() {
-        return Stream.of(
-                SAMPLE_CRISTIN_API_ORG_ID,
-                UNDEFINED
-        );
+        return Stream.of(SAMPLE_CRISTIN_API_ORG_ID,UNDEFINED);
     }
 
     @Test

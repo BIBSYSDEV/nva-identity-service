@@ -9,12 +9,6 @@ import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.mock;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemUtils;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
@@ -24,43 +18,47 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
 import no.unit.nva.database.DatabaseAccessor;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.events.models.ScanDatabaseRequest;
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeEventBridgeClient;
 import no.unit.nva.testutils.EventBridgeEventBuilder;
 import no.unit.nva.useraccess.events.service.EchoMigrationService;
 import no.unit.nva.useraccess.events.service.UserMigrationService;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
+import no.unit.nva.useraccessmanagement.dao.UserDao;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
+import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.JsonUtils;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
 class EventBasedScanHandlerTest extends DatabaseAccessor {
 
     public static final Context CONTEXT = mock(Context.class);
-    public static final Integer NO_PAGE_SIZE = null;
-    public static final Map<String, AttributeValue> NO_START_MARKER = null;
-    public static final boolean SEQUENTIAL = false;
+    public static final Map<String, String> NO_START_MARKER = null;
     private ByteArrayOutputStream outputStream;
     private EventBasedScanHandler handler;
 
     private IdentityServiceImpl identityService;
     private EchoMigrationService migrationService;
     private FakeEventBridgeClient eventClient;
+    private DynamoDbEnhancedClient enhancedClient;
 
     @BeforeEach
     public void init() {
         super.initializeTestDatabase();
+        this.enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(localDynamo).build();
         this.identityService = new IdentityServiceImpl(localDynamo);
         this.eventClient = new FakeEventBridgeClient();
         outputStream = new ByteArrayOutputStream();
@@ -107,14 +105,17 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
     }
 
     private List<UserDto> scanAllUsersInDatabaseDirectly() {
-        Table table = new Table(localDynamo, USERS_AND_ROLES_TABLE);
-        var items = table.scan().spliterator();
-        return StreamSupport.stream(items, SEQUENTIAL)
-            .filter(item -> UserDb.TYPE.equals(item.getString("type")))
-            .map(Item::toJSON)
-            .map(UserDb::fromJson)
-            .map(UserDb::toUserDto)
+        return localDynamo.scanPaginator(ScanRequest.builder().tableName(USERS_AND_ROLES_TABLE).build())
+            .stream()
+            .flatMap(page -> page.items().stream())
+            .filter(this::isUser)
+            .map(UserDao.TABLE_SCHEMA::mapToItem)
+            .map(UserDao::toUserDto)
             .collect(Collectors.toList());
+    }
+
+    private boolean isUser(Map<String, AttributeValue> entry) {
+        return entry.get(WithType.TYPE_FIELD).s().equals(UserDao.TYPE_VALUE);
     }
 
     private void performEventDrivenScanInWholeDatabase(InputStream firstEvent) throws JsonProcessingException {
@@ -128,7 +129,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
 
     private InputStream fetchNextEventFromEventBridgeClient() throws JsonProcessingException {
         PutEventsRequestEntry emittedEvent = eventClient.getRequestEntries().get(0);
-        ScanDatabaseRequest scanRequest = ScanDatabaseRequest.fromJson(emittedEvent.detail());
+        ScanDatabaseRequestV2 scanRequest = ScanDatabaseRequestV2.fromJson(emittedEvent.detail());
         return EventBridgeEventBuilder.sampleEvent(scanRequest);
     }
 
@@ -138,15 +139,21 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
             .collect(Collectors.toList());
     }
 
-    private UserDto fetchLastScannedUserUsingTheEmittedEvent(ScanDatabaseRequest emittedScanRequest) {
-        return attempt(emittedScanRequest::getStartMarker)
-            .map(startMarker -> localDynamo.getItem(USERS_AND_ROLES_TABLE, startMarker))
-            .map(GetItemResult::getItem)
-            .map(ItemUtils::toItem)
-            .map(Item::toJSON)
-            .map(UserDb::fromJson)
-            .map(UserDb::toUserDto)
+    private UserDto fetchLastScannedUserUsingTheEmittedEvent(ScanDatabaseRequestV2 emittedScanRequest) {
+        return attempt(emittedScanRequest::toDynamoScanMarker)
+            .map(this::createGetItemRequest)
+            .map(getItemRequest -> localDynamo.getItem(getItemRequest))
+            .map(GetItemResponse::item)
+            .map(UserDao.TABLE_SCHEMA::mapToItem)
+            .map(UserDao::toUserDto)
             .orElseThrow();
+    }
+
+    private GetItemRequest createGetItemRequest(Map<String, AttributeValue> startMarker) {
+        return GetItemRequest.builder()
+            .tableName(USERS_AND_ROLES_TABLE)
+            .key(startMarker)
+            .build();
     }
 
     private UserDto calculateLastScannedUser(int pageSize, List<UserDto> insertedUsers) {
@@ -157,11 +164,11 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         return pageSize - 1;
     }
 
-    private ScanDatabaseRequest extractScanRequestFromEmittedMessage() {
+    private ScanDatabaseRequestV2 extractScanRequestFromEmittedMessage() {
         return eventClient.getRequestEntries()
             .stream()
             .map(PutEventsRequestEntry::detail)
-            .map(attempt(ScanDatabaseRequest::fromJson))
+            .map(attempt(ScanDatabaseRequestV2::fromJson))
             .flatMap(Try::stream)
             .collect(SingletonCollector.collect());
     }
@@ -172,15 +179,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
             .map(attempt(i -> randomUser()))
             .map(Try::orElseThrow)
             .collect(Collectors.toList());
-        return localDynamo.scan(new ScanRequest().withTableName(USERS_AND_ROLES_TABLE))
-            .getItems()
-            .stream()
-            .map(ItemUtils::toItem)
-            .map(Item::toJSON)
-            .map(attempt(json -> JsonUtils.dtoObjectMapper.readValue(json, UserDb.class)))
-            .map(Try::orElseThrow)
-            .map(UserDb::toUserDto)
-            .collect(Collectors.toList());
+        return scanAllUsersInDatabaseDirectly();
     }
 
     private UserDto randomUser() throws InvalidInputException, NotFoundException, ConflictException {
@@ -193,8 +192,8 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         return EventBridgeEventBuilder.sampleEvent(createSampleScanRequest(pageSize));
     }
 
-    private ScanDatabaseRequest createSampleScanRequest(Integer pageSize) {
-        return new ScanDatabaseRequest(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC, pageSize, NO_START_MARKER);
+    private ScanDatabaseRequestV2 createSampleScanRequest(Integer pageSize) {
+        return new ScanDatabaseRequestV2(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC, pageSize, NO_START_MARKER);
     }
 
     private static class FamilyNameChangeMigration implements UserMigrationService {

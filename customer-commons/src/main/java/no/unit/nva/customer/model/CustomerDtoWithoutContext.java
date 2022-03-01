@@ -1,6 +1,9 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
@@ -11,6 +14,12 @@ import no.unit.nva.customer.model.interfaces.Customer;
 import no.unit.nva.customer.model.interfaces.Resource;
 import nva.commons.core.JacocoGenerated;
 
+@SuppressWarnings("PMD.ExcessivePublicCount")
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = As.PROPERTY,
+    property = "type")
+@JsonTypeName("Customer")
 public class CustomerDtoWithoutContext implements Customer<VocabularyDto>, Resource {
 
     private URI id;

@@ -41,7 +41,6 @@ import static org.mockito.Mockito.mock;
 public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
 
     public static final Context CONTEXT = mock(Context.class);
-    private final Environment environment = new Environment();
     private ByteArrayOutputStream outputStream;
     private GetControlledVocabularyHandler handler;
     private DynamoDBCustomerService customerService;
@@ -51,7 +50,7 @@ public class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
     public void init() {
         super.setupDatabase();
         this.outputStream = new ByteArrayOutputStream();
-        customerService = new DynamoDBCustomerService(ddb, defaultDynamoConfigMapper, environment);
+        customerService = new DynamoDBCustomerService(dynamoClient);
         existingCustomer = attempt(CustomerDataGenerator::createSampleCustomerDto)
             .map(customerInput -> customerService.createCustomer(customerInput))
             .orElseThrow();

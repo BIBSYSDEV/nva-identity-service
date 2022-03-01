@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import no.unit.nva.Constants;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
@@ -47,7 +46,6 @@ public class AddRoleHandlerTest extends HandlerTest {
     @BeforeEach
     public void init() throws InvalidEntryInternalException {
         context = mock(Context.class);
-
         IdentityService service = new IdentityServiceImpl(initializeTestDatabase());
         addRoleHandler = new AddRoleHandler(mockEnvironment(), service);
         sampleRole = sampleRole();
@@ -96,7 +94,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     public void handleRequestReturnsInternalServerErrorWhenDatabaseFailsToSaveTheData()
         throws InvalidEntryInternalException, IOException {
         RoleDto actualRole = sampleRole();
-        IdentityService service = databaseServiceAddingButNotGettingArole();
+        IdentityService service = databaseServiceAddingButNotGettingARole();
         addRoleHandler = new AddRoleHandler(mockEnvironment(), service);
 
         GatewayResponse<Problem> response = sendRequest(actualRole);
@@ -163,12 +161,12 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     private AddRoleHandler addRoleHandlerDoesNotFindRoleAfterAddingIt() {
-        IdentityService databaseNotFoundingRoles = databaseServiceAddingButNotGettingArole();
+        IdentityService databaseNotFoundingRoles = databaseServiceAddingButNotGettingARole();
 
         return new AddRoleHandler(mockEnvironment(), databaseNotFoundingRoles);
     }
 
-    private IdentityServiceImpl databaseServiceAddingButNotGettingArole() {
+    private IdentityServiceImpl databaseServiceAddingButNotGettingARole() {
         return new IdentityServiceImpl(localDynamo) {
 
             @Override

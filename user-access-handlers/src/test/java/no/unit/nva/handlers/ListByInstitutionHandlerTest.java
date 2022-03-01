@@ -1,7 +1,7 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -39,7 +39,7 @@ import org.junit.jupiter.api.function.Executable;
 class ListByInstitutionHandlerTest extends HandlerTest {
 
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
-    public static final URI SOME_OTHER_INSTITUTION = randomUri();
+    public static final URI SOME_OTHER_INSTITUTION = randomCristinOrgId();
     private ListByInstitutionHandler listByInstitutionHandler;
     private Context context;
 

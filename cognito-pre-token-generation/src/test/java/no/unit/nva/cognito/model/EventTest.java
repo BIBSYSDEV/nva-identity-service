@@ -2,7 +2,6 @@ package no.unit.nva.cognito.model;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import nva.commons.core.JsonUtils;
 import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

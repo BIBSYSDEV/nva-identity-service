@@ -14,10 +14,16 @@ dependencies {
     implementation libs.nva.apigateway
     implementation libs.nva.lambdaauthorizer
     implementation libs.nva.secrets
+    implementation libs.nva.json
     implementation libs.bundles.aws.lambda
-    implementation libs.aws.sdk2.secrets
+    implementation libs.bundles.jackson
 
-    implementation libs.aws.dynamodb
+    implementation libs.aws.sdk2.secrets
+    implementation libs.aws.sdk2.dynamodbenhanced
+    implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.urlconnection
+
+
 
     testImplementation project(':user-access-internal-model')
     testImplementation project(':user-access-testing')
@@ -26,4 +32,6 @@ dependencies {
 test{
     environment "API_HOST", "api.dev.aws.unit.no"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
+    environment "API_KEY_SECRET_NAME", "ApiKeySecretName"
+    environment "API_KEY_SECRET_KEY", "ApiKeySecretKey"
 }

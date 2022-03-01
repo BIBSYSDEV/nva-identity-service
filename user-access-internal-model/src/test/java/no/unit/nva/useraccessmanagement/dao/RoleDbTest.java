@@ -1,6 +1,8 @@
 package no.unit.nva.useraccessmanagement.dao;
 
-import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessmanagement.dao.RoleDb.Builder.EMPTY_ROLE_NAME_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -11,9 +13,10 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.hamcrest.text.IsEmptyString.emptyString;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
 import java.util.Collections;
 import java.util.Set;
-import no.unit.nva.useraccessmanagement.dao.RoleDb.Builder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 import org.junit.jupiter.api.Test;
@@ -27,21 +30,35 @@ public class RoleDbTest {
     public static final String SOME_ROLE_NAME = "someRoleName";
     public static final String SOME_OTHER_RANGE_KEY = "SomeOtherRangeKey";
     public static final String SOME_TYPE = "SomeType";
+    public static final RoleSetConverter ROLE_SET_CONVERTER = new RoleSetConverter();
     private final RoleDb sampleRole = createSampleRole();
 
     public RoleDbTest() throws InvalidEntryInternalException {
     }
 
     @Test
-    void getPrimaryHashKeyReturnsStringContainingTypeRole() {
-        assertThat(sampleRole.getPrimaryHashKey(), containsString(RoleDb.TYPE));
+    public void getPrimaryHashKeyReturnsStringContainingTypeRole() {
+        assertThat(sampleRole.getPrimaryKeyHashKey(), containsString(RoleDb.TYPE_VALUE));
+    }
+
+    @Test
+    public void objectIsStoredWithType() throws IntrospectionException {
+        var role = RoleDb.newBuilder().withName(randomString()).build();
+        var beanInfo = Introspector.getBeanInfo(RoleDb.class);
+        var item = RoleDb.TABLE_SCHEMA.itemToMap(role, true);
+        assertThat(item.get(RoleDb.TYPE_FIELD), is(not(nullValue())));
+    }
+
+    @Test
+    public void roleDbHasListOfAccessRights() {
+        assertThat(sampleRole.getAccessRights(), is(not(nullValue())));
     }
 
     @Test
     void equalsComparesAllFields() throws InvalidEntryInternalException {
         RoleDb left = sampleRole;
         RoleDb right = sampleRole.copy().build();
-        assertThat(sampleRole, doesNotHaveNullOrEmptyFields());
+        assertThat(sampleRole, doesNotHaveEmptyValues());
         assertThat(left, is(equalTo(right)));
     }
 
@@ -49,7 +66,6 @@ public class RoleDbTest {
     void equalsReturnsFalseWhenNameIsDifferent() throws InvalidEntryInternalException {
         RoleDb left = sampleRole;
         RoleDb right = sampleRole.copy().withName("SomeOtherName").build();
-
         assertThat(left, is(not(equalTo(right))));
     }
 
@@ -64,11 +80,6 @@ public class RoleDbTest {
     }
 
     @Test
-    public void roleDbHasListOfAccessRights() {
-        assertThat(sampleRole.getAccessRights(), is(not(nullValue())));
-    }
-
-    @Test
     void roleDbHasBuilder() {
         RoleDb.Builder builder = RoleDb.newBuilder();
         assertNotNull(builder);
@@ -76,8 +87,8 @@ public class RoleDbTest {
 
     @Test
     void roleDbHasRoleName() throws InvalidEntryInternalException {
-        RoleDb roleDb = createSampleRole();
-        assertThat(roleDb.getName(), is(equalTo(SOME_ROLE_NAME)));
+        RoleDb roleDbEntry = createSampleRole();
+        assertThat(roleDbEntry.getName(), is(equalTo(SOME_ROLE_NAME)));
     }
 
     @Test
@@ -89,8 +100,8 @@ public class RoleDbTest {
     @Test
     void buildReturnsObjectWithInitializedPrimaryHashKey() throws InvalidEntryInternalException {
         RoleDb role = RoleDb.newBuilder().withName(SOME_ROLE_NAME).build();
-        assertThat(role.getPrimaryHashKey(), is(not(nullValue())));
-        assertThat(role.getPrimaryHashKey(), is(not(emptyString())));
+        assertThat(role.getPrimaryKeyHashKey(), is(not(nullValue())));
+        assertThat(role.getPrimaryKeyHashKey(), is(not(emptyString())));
     }
 
     @Test
@@ -101,16 +112,16 @@ public class RoleDbTest {
 
     @Test
     void getPrimaryHashKeyReturnsStringContainingRoleName() {
-        assertThat(sampleRole.getPrimaryHashKey(), containsString(sampleRole.getName()));
+        assertThat(sampleRole.getPrimaryKeyHashKey(), containsString(sampleRole.getName()));
     }
 
     @Test
     void setPrimaryHashKeyShouldNotChangeTheValueOfAlreadySetPrimaryHashKey() throws InvalidEntryInternalException {
         String someOtherHashKey = "SomeOtherHashKey";
-        sampleRole.setPrimaryHashKey(someOtherHashKey);
-        assertThat(sampleRole.getPrimaryHashKey(), is(not(equalTo(someOtherHashKey))));
-        assertThat(sampleRole.getPrimaryHashKey(), containsString(sampleRole.getName()));
-        assertThat(sampleRole.getPrimaryHashKey(), containsString(RoleDb.TYPE));
+        sampleRole.setPrimaryKeyHashKey(someOtherHashKey);
+        assertThat(sampleRole.getPrimaryKeyHashKey(), is(not(equalTo(someOtherHashKey))));
+        assertThat(sampleRole.getPrimaryKeyHashKey(), containsString(sampleRole.getName()));
+        assertThat(sampleRole.getPrimaryKeyHashKey(), containsString(RoleDb.TYPE_VALUE));
     }
 
     @ParameterizedTest(name = "setPrimaryHashKey throws exception when input is:\"{0}\"")
@@ -119,14 +130,14 @@ public class RoleDbTest {
     void setPrimaryHashKeyThrowsExceptionWhenInputIsBlankOrNullString(String blankString) {
         Executable action = () -> RoleDb.newBuilder().withName(blankString).build();
         InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
-        assertThat(exception.getMessage(), containsString(Builder.EMPTY_ROLE_NAME_ERROR));
+        assertThat(exception.getMessage(), containsString(EMPTY_ROLE_NAME_ERROR));
     }
 
     @Test
     void setPrimaryRangeKeyHasNoEffect() throws InvalidEntryInternalException {
         RoleDb originalRole = RoleDb.newBuilder().withName(SOME_ROLE_NAME).build();
         RoleDb copy = originalRole.copy().build();
-        copy.setPrimaryRangeKey(SOME_OTHER_RANGE_KEY);
+        copy.setPrimaryKeyRangeKey(SOME_OTHER_RANGE_KEY);
         assertThat(originalRole, is(equalTo(copy)));
     }
 
@@ -143,6 +154,15 @@ public class RoleDbTest {
         RoleDb copyRole = sampleRole.copy().build();
         assertThat(copyRole, is(equalTo(sampleRole)));
         assertThat(copyRole, is(not(sameInstance(sampleRole))));
+    }
+
+    @Test
+    void converterShouldConvertRoleToAttributeValueAndBackWithoutDataLoss() {
+        var expected = Set.of(sampleRole);
+        assertThat(sampleRole, doesNotHaveEmptyValues());
+        var attributeValue = ROLE_SET_CONVERTER.transformFrom(Set.of(sampleRole));
+        var actual = ROLE_SET_CONVERTER.transformTo(attributeValue);
+        assertThat(actual, is(equalTo(expected)));
     }
 
     private RoleDb createSampleRole() throws InvalidEntryInternalException {

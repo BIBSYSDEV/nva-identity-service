@@ -149,6 +149,7 @@ class AddUserTest extends HandlerTest {
         return outputStream;
     }
 
+
     private IdentityService databaseServiceReturnsAlwaysEmptyUser() {
         return new IdentityServiceImpl(localDynamo) {
             @Override

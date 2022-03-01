@@ -7,15 +7,14 @@ import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
 
 public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope, Void> {
 
-    public static final Environment ENVIRONMENT = new Environment();
     private final IdentityService databaseService;
 
     public UpdateViewingScopeHandler(IdentityService databaseService) {
-        super(ViewingScope.class, ENVIRONMENT);
+        super(ViewingScope.class);
+
         this.databaseService = databaseService;
     }
 

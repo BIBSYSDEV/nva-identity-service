@@ -6,6 +6,7 @@ import static no.unit.nva.cognito.service.UserApiMock.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.cognito.service.UserApiMock.SECOND_ACCESS_RIGHT;
 import static no.unit.nva.cognito.service.UserPoolEntryUpdater.CUSTOM_APPLICATION_ACCESS_RIGHTS;
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -20,12 +21,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
-import com.amazonaws.services.cognitoidp.model.AdminGetUserRequest;
-import com.amazonaws.services.cognitoidp.model.AdminGetUserResult;
-import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
-import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesResult;
-import com.amazonaws.services.cognitoidp.model.AttributeType;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.URI;
 import java.util.ArrayList;
@@ -58,6 +53,12 @@ import org.javers.core.JaversBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
 @SuppressWarnings("unchecked")
 public class TriggerHandlerTest {
@@ -72,7 +73,7 @@ public class TriggerHandlerTest {
 
     public static final String EMPTY_AFFILIATION = "[]";
     public static final String SAMPLE_FEIDE_ID = "feideId";
-    public static final URI SAMPLE_CUSTOMER_ID = URI.create("http://example.org/customer/123");
+    public static final URI SAMPLE_CUSTOMER_ID = randomUri();
 
     public static final String SAMPLE_USER_POOL_ID = "userPoolId";
     public static final String SAMPLE_USER_NAME = "userName";
@@ -82,7 +83,7 @@ public class TriggerHandlerTest {
     public static final String CREATOR = "Creator";
     public static final String USER = "User";
 
-    public static final AdminUpdateUserAttributesResult UNUSED_RESULT = null;
+    public static final AdminUpdateUserAttributesResponse UNUSED_RESULT = null;
     public static final Javers JAVERS = JaversBuilder.javers().build();
     public static final Context CONTEXT = mock(Context.class);
     public static final URI SAMPLE_CRISTIN_ORG_ID = randomCristinOrgId();
@@ -92,7 +93,7 @@ public class TriggerHandlerTest {
     private UserApiMock userApi;
     private TriggerHandler handler;
     private UserPoolEntryUpdater userPoolEntryUpdater;
-    private AWSCognitoIdentityProvider awsCognitoProvider;
+    private CognitoIdentityProviderClient awsCognitoProvider;
     private UserService userService;
 
     public TriggerHandlerTest() {
@@ -362,13 +363,13 @@ public class TriggerHandlerTest {
     private String extractAccessRightsFromUserAttributes() {
         return attributeTypesBuffer.get()
             .stream()
-            .filter(attr -> attr.getName().equals(CUSTOM_APPLICATION_ACCESS_RIGHTS))
-            .map(AttributeType::getValue)
+            .filter(attr -> attr.name().equals(CUSTOM_APPLICATION_ACCESS_RIGHTS))
+            .map(AttributeType::value)
             .collect(SingletonCollector.collect());
     }
 
-    private AWSCognitoIdentityProvider mockAwsIdentityProvider() {
-        AWSCognitoIdentityProvider provider = mock(AWSCognitoIdentityProvider.class);
+    private CognitoIdentityProviderClient mockAwsIdentityProvider() {
+        CognitoIdentityProviderClient provider = mock(CognitoIdentityProviderClient.class);
         when(provider.adminUpdateUserAttributes(any(AdminUpdateUserAttributesRequest.class)))
             .thenAnswer(this::storeUserAttributes);
         when(provider.adminGetUser(any(AdminGetUserRequest.class)))
@@ -376,18 +377,19 @@ public class TriggerHandlerTest {
         return provider;
     }
 
-    private AdminGetUserResult returnUserAttributes(InvocationOnMock invocationOnMock) {
-        return new AdminGetUserResult().withUserAttributes(attributeTypesBuffer.get());
+    private AdminGetUserResponse returnUserAttributes(InvocationOnMock invocationOnMock) {
+        return AdminGetUserResponse.builder().userAttributes(attributeTypesBuffer.get()).build();
     }
 
-    private AdminUpdateUserAttributesResult storeUserAttributes(InvocationOnMock invocation) {
+    private AdminUpdateUserAttributesResponse storeUserAttributes(InvocationOnMock invocation) {
         AdminUpdateUserAttributesRequest request = invocation.getArgument(0);
-        attributeTypesBuffer.set(request.getUserAttributes());
+        attributeTypesBuffer.set(request.userAttributes());
         return UNUSED_RESULT;
     }
 
     private void verifyNumberOfAttributeUpdatesInCognito(int numberOfUpdates) {
-        verify(awsCognitoProvider, times(numberOfUpdates)).adminUpdateUserAttributes(any());
+        verify(awsCognitoProvider, times(numberOfUpdates))
+            .adminUpdateUserAttributes(any(AdminUpdateUserAttributesRequest.class));
     }
 
     private UserDto getUserFromMock() {
@@ -401,7 +403,7 @@ public class TriggerHandlerTest {
 
     private void mockCustomerApiWithExistingCustomer() {
         when(customerApi.getCustomer(anyString()))
-            .thenReturn(Optional.of(new CustomerResponse(SAMPLE_CUSTOMER_ID, SAMPLE_CRISTIN_ORG_ID.toString())));
+            .thenReturn(Optional.of(new CustomerResponse(SAMPLE_CUSTOMER_ID,SAMPLE_CRISTIN_ORG_ID.toString())));
     }
 
     private void mockCustomerApiWithNoCustomer() {
@@ -444,7 +446,7 @@ public class TriggerHandlerTest {
     }
 
     private UserDto userWithInstitution(UserDto user) throws InvalidEntryInternalException {
-        ViewingScope viewingScope =  ViewingScope.defaultViewingScope(SAMPLE_CRISTIN_ORG_ID);
+        ViewingScope viewingScope = ViewingScope.defaultViewingScope(SAMPLE_CRISTIN_ORG_ID);
         return user.copy().withInstitution(SAMPLE_CUSTOMER_ID).withViewingScope(viewingScope).build();
     }
 

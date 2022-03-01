@@ -1,10 +1,7 @@
 package no.unit.nva.useraccess.events;
 
-import static no.unit.nva.useraccess.events.EventsConfig.AWS_REGION;
+import static no.unit.nva.database.Constants.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,22 +9,22 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
-import no.unit.nva.events.models.ScanDatabaseRequest;
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
 import no.unit.nva.useraccess.events.service.UserMigrationService;
 import no.unit.nva.useraccess.events.service.UserMigrationServiceImpl;
 import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.JsonUtils;
 import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
-public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Void> {
+public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, Void> {
 
     public static final Void VOID = null;
     public static final String END_OF_SCAN_MESSAGE = "Last event was processed.";
@@ -38,26 +35,26 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
 
     @JacocoGenerated
     public EventBasedScanHandler() {
-        this(defaultDynamoSdk1Client());
+        this(DEFAULT_DYNAMO_CLIENT);
     }
 
     @JacocoGenerated
-    public EventBasedScanHandler(AmazonDynamoDB dynamoDBClient) {
+    public EventBasedScanHandler(DynamoDbClient dynamoDBClient) {
         this(dynamoDBClient, EventsConfig.EVENTS_CLIENT, defaultMigrationService(dynamoDBClient));
     }
 
-    public EventBasedScanHandler(AmazonDynamoDB dynamoDbClient,
+    public EventBasedScanHandler(DynamoDbClient dynamoDbClient,
                                  EventBridgeClient eventsClient,
                                  UserMigrationService migrationService) {
-        super(ScanDatabaseRequest.class);
+        super(ScanDatabaseRequestV2.class);
         this.migrationService = migrationService;
         this.identityService = new IdentityServiceImpl(dynamoDbClient);
         this.eventsClient = eventsClient;
     }
 
     @Override
-    protected Void processInput(ScanDatabaseRequest scanDatabaseRequest,
-                                AwsEventBridgeEvent<ScanDatabaseRequest> event,
+    protected Void processInput(ScanDatabaseRequestV2 scanDatabaseRequest,
+                                AwsEventBridgeEvent<ScanDatabaseRequestV2> event,
                                 Context context) {
 
         var scanResult = identityService.fetchOnePageOfUsers(scanDatabaseRequest);
@@ -69,20 +66,11 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
 
     @JacocoGenerated
     private static UserMigrationServiceImpl defaultMigrationService(
-        AmazonDynamoDB dynamoDBClient) {
-        DynamoDBCustomerService customerService = new DynamoDBCustomerService(dynamoDBClient,
-                                                                              JsonUtils.dynamoObjectMapper,
-                                                                              EventsConfig.ENVIRONMENT);
+        DynamoDbClient dynamoDBClient) {
+        DynamoDBCustomerService customerService = new DynamoDBCustomerService(dynamoDBClient);
         return new UserMigrationServiceImpl(customerService, new BareProxyClientImpl());
     }
 
-    @JacocoGenerated
-    private static AmazonDynamoDB defaultDynamoSdk1Client() {
-        return AmazonDynamoDBClientBuilder.standard()
-            .withRegion(AWS_REGION)
-            .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
-            .build();
-    }
 
     private List<UserDto> persistMigratedUsersToDatabase(List<UserDto> migratedUsers) {
         var updatedUsers = migratedUsers.stream()
@@ -106,7 +94,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
     }
 
     private void emitNexScanRequestIfThereAreMoreResults(UserScanResult scanResult,
-                                                         ScanDatabaseRequest inputRequest,
+                                                         ScanDatabaseRequestV2 inputRequest,
                                                          Context context) {
         if (scanResult.thereAreMoreEntries()) {
             emitNextScanRequest(scanResult, inputRequest, context);
@@ -115,7 +103,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
         }
     }
 
-    private void emitNextScanRequest(UserScanResult scanResult, ScanDatabaseRequest inputRequest, Context context) {
+    private void emitNextScanRequest(UserScanResult scanResult, ScanDatabaseRequestV2 inputRequest, Context context) {
         var eventForNextScanRequest = creteEventForNextPageScan(inputRequest, scanResult, context);
         eventsClient.putEvents(eventForNextScanRequest);
         logger.info("nextEvent:" + eventForNextScanRequest);
@@ -130,7 +118,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
         return migratedUsers;
     }
 
-    private PutEventsRequest creteEventForNextPageScan(ScanDatabaseRequest inputScanRequest,
+    private PutEventsRequest creteEventForNextPageScan(ScanDatabaseRequestV2 inputScanRequest,
                                                        UserScanResult scanResult,
                                                        Context context) {
         return attempt(() -> createNextScanRequest(inputScanRequest, scanResult))
@@ -139,13 +127,13 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequest, Voi
             .orElseThrow();
     }
 
-    private PutEventsRequestEntry createNewEventEntry(Context context, ScanDatabaseRequest scanRequest) {
+    private PutEventsRequestEntry createNewEventEntry(Context context, ScanDatabaseRequestV2 scanRequest) {
         return scanRequest.createNewEventEntry(EventsConfig.EVENT_BUS,
                                                EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE,
                                                context.getInvokedFunctionArn());
     }
 
-    private ScanDatabaseRequest createNextScanRequest(ScanDatabaseRequest input, UserScanResult scanResult) {
+    private ScanDatabaseRequestV2 createNextScanRequest(ScanDatabaseRequestV2 input, UserScanResult scanResult) {
         return input.newScanDatabaseRequest(scanResult.getStartMarkerForNextScan());
     }
 }

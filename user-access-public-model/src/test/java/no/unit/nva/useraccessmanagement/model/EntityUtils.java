@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessmanagement.model;
 
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
@@ -10,6 +11,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
+import no.unit.nva.RandomUserDataGenerator;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
@@ -19,7 +21,7 @@ public final class EntityUtils {
 
     public static final String SOME_USERNAME = "SomeUsername";
     public static final String SOME_ROLENAME = "SomeRole";
-    public static final URI SOME_INSTITUTION = randomUri();
+    public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final String EMPTY_STRING = "";
     public static final Set<String> SAMPLE_ACCESS_RIGHTS =
         Collections.singleton("APPROVE_DOI_REQUEST");
@@ -47,24 +49,6 @@ public final class EntityUtils {
             .withBody(userWithoutUsername);
     }
 
-    /**
-     * Creates a request for adding a user without a username. To be used with {@code handleRequest()} method.
-     *
-     * @return an InputStream containing the ApiGateway request to be handled by a {@link
-     *     com.amazonaws.services.lambda.runtime.RequestStreamHandler}.
-     * @throws JsonProcessingException       if JSON serialization fails.
-     * @throws InvalidEntryInternalException unlikely. The object is intentionally invalid.
-     * @throws InvalidEntryInternalException when role is invalid.
-     * @throws NoSuchMethodException         reflection related.
-     * @throws IllegalAccessException        reflection related.
-     * @throws InvocationTargetException     reflection related.
-     */
-    public static InputStream createRequestWithUserWithoutUsername()
-        throws JsonProcessingException, InvalidEntryInternalException,
-               NoSuchMethodException, IllegalAccessException, InvocationTargetException, InvalidInputException,
-               BadRequestException {
-        return createRequestBuilderWithUserWithoutUsername().build();
-    }
 
     /**
      * Creates a user without a username. For testing output on invalid input.

@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
 import no.unit.nva.useraccessmanagement.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.JsonSerializable;
 import nva.commons.core.StringUtils;
 
 @JsonTypeName(UserDto.TYPE)

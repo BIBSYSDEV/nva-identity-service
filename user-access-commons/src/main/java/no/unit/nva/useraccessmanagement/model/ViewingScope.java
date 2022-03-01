@@ -21,6 +21,7 @@ import nva.commons.core.JacocoGenerated;
  * are using the service (i.e., per query) but not their default ViewingScope as this has been set by some
  * Administrator.
  */
+
 public class ViewingScope implements WithType {
 
     public static final String EXCLUDED_UNIS = "excludedUnis";
@@ -72,6 +73,12 @@ public class ViewingScope implements WithType {
     @Override
     public String getType() {
         return VIEWING_SCOPE_TYPE;
+    }
+
+    @JacocoGenerated
+    @Override
+    public void setType(String type) {
+        //DO NOTHING
     }
 
     @JacocoGenerated

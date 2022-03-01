@@ -131,7 +131,7 @@ public class UserService {
                                           .withUsername(userDetails.getFeideId())
                                           .withRoles(roles);
 
-        calculateViewingScope(userDetails).ifPresent(viewingScope -> userBuilder.withViewingScope(viewingScope));
+        calculateViewingScope(userDetails).ifPresent(userBuilder::withViewingScope);
 
         return userBuilder.build();
     }

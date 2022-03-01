@@ -1,12 +1,7 @@
 package no.unit.nva.cognito.service;
 
 import static no.unit.nva.cognito.TriggerHandler.COMMA_DELIMITER;
-import static no.unit.nva.cognito.TriggerHandler.EMPTY_STRING;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
-import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProviderClientBuilder;
-import com.amazonaws.services.cognitoidp.model.AdminUpdateUserAttributesRequest;
-import com.amazonaws.services.cognitoidp.model.AttributeType;
+import static nva.commons.core.StringUtils.EMPTY_STRING;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -18,6 +13,11 @@ import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
 public class UserPoolEntryUpdater {
 
@@ -32,14 +32,14 @@ public class UserPoolEntryUpdater {
     public static final String NVA = "NVA";
     public static final String COGNITO_UPDATE_FAILURE_WARNING = "The following attributes have not been registered:";
     private static final Logger logger = LoggerFactory.getLogger(UserPoolEntryUpdater.class);
-    private final AWSCognitoIdentityProvider awsCognitoIdentityProvider;
+    private final CognitoIdentityProviderClient awsCognitoIdentityProvider;
 
     @JacocoGenerated
     public UserPoolEntryUpdater() {
         this(defaultCognitoProvider());
     }
 
-    public UserPoolEntryUpdater(AWSCognitoIdentityProvider awsCognitoIdentityProvider) {
+    public UserPoolEntryUpdater(CognitoIdentityProviderClient awsCognitoIdentityProvider) {
         this.awsCognitoIdentityProvider = awsCognitoIdentityProvider;
     }
 
@@ -54,21 +54,24 @@ public class UserPoolEntryUpdater {
     }
 
     @JacocoGenerated
-    private static AWSCognitoIdentityProvider defaultCognitoProvider() {
-        return AWSCognitoIdentityProviderClientBuilder
-            .standard()
-            .withRegion(Constants.AWS_REGION_VALUE.getName())
-            .withCredentials(new DefaultAWSCredentialsProviderChain())
+    private static CognitoIdentityProviderClient defaultCognitoProvider() {
+        return CognitoIdentityProviderClient
+            .builder()
+            .httpClient(UrlConnectionHttpClient.create())
+            .region(Constants.AWS_REGION)
+            .credentialsProvider(DefaultCredentialsProvider.create())
             .build();
     }
 
     private AdminUpdateUserAttributesRequest createUpateRequestForUserEntryInCognito(
         UserDetails userDetails,
         List<AttributeType> userAttributes) {
-        return new AdminUpdateUserAttributesRequest()
-            .withUserPoolId(userDetails.getCognitoUserPool())
-            .withUsername(userDetails.getCognitoUserName())
-            .withUserAttributes(userAttributes);
+        return AdminUpdateUserAttributesRequest
+            .builder()
+            .userPoolId(userDetails.getCognitoUserPool())
+            .username(userDetails.getCognitoUserName())
+            .userAttributes(userAttributes)
+            .build();
     }
 
     private List<AttributeType> createUserAttributes(UserDetails userDetails, UserDto user) {
@@ -107,10 +110,10 @@ public class UserPoolEntryUpdater {
     }
 
     private AttributeType toAttributeType(String name, String value) {
-        AttributeType attributeType = new AttributeType();
-        attributeType.setName(name);
-        attributeType.setValue(value);
-        return attributeType;
+        return AttributeType.builder()
+            .name(name)
+            .value(value)
+            .build();
     }
 
     private <T> String toCsv(Collection<T> roles, Function<T, String> stringRepresentation) {

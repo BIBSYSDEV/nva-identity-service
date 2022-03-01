@@ -30,13 +30,10 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
-import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
-
-    public static final String COMMA_DELIMITER = ",";
 
     public static final String BIBSYS_HOST = "@bibsys.no";
     public static final String EMPTY_STRING = "";
@@ -49,8 +46,9 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
         "Overriding orgNumber({}) with hostedOrgNumber({}) and hostedAffiliation";
     public static final String PROBLEM_DECODING_HOSTED_USERS_AFFILIATION =
         "Problem decoding hosted users affiliation, using original";
+    public static final String COMMA_DELIMITER = ",";
     private static final Logger logger = LoggerFactory.getLogger(TriggerHandler.class);
-    private final UserService userService;
+    private final UserService userClient;
     private final CustomerApi customerApi;
     private final UserPoolEntryUpdater userPoolEntryUpdater;
 
@@ -59,9 +57,9 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
         this(defaultUserService(), defaultCustomerDbClient(), new UserPoolEntryUpdater());
     }
 
-    public TriggerHandler(UserService userService, CustomerApi customerApi,
+    public TriggerHandler(UserService userDbClient, CustomerApi customerApi,
                           UserPoolEntryUpdater userPoolEntryUpdater) {
-        this.userService = userService;
+        this.userClient = userDbClient;
         this.customerApi = customerApi;
         this.userPoolEntryUpdater = userPoolEntryUpdater;
     }
@@ -132,10 +130,10 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     }
 
     private UserDto getAndUpdateUserDetails(UserDetails userDetails) {
-        return userService.getUser(userDetails.getFeideId())
-            .map(attempt(user -> userService.updateUser(user, userDetails)))
-            .map(Try::orElseThrow)
-            .orElseGet(() -> userService.createUser(userDetails));
+        return
+            userClient.getUser(userDetails.getFeideId())
+                .map(user -> userClient.updateUser(user, userDetails))
+                .orElseGet(() -> userClient.createUser(userDetails));
     }
 
     private Optional<CustomerResponse> mapOrgNumberToCustomer(String orgNumber) {

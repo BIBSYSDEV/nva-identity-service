@@ -6,9 +6,10 @@ plugins {
 dependencies {
 
     implementation libs.bundles.logging
-    implementation libs.bundles.jackson
     implementation libs.nva.apigateway
-    implementation libs.aws.dynamodb
+    implementation libs.nva.json
+    implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.dynamodbenhanced
 
 
     compileOnly project(":user-access-rights")

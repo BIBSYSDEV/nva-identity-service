@@ -1110,7 +1110,6 @@ Resources:
       LambdaConfig:
         PreAuthentication: !GetAtt PreAuthenticationHandler.Arn
         PostAuthentication: !GetAtt PostAuthenticationHandler.Arn
-
         PreTokenGeneration: !GetAtt PreTokenGenerationnHandler.Arn
       Schema:
         - Name: nin
@@ -1127,7 +1126,7 @@ Resources:
           Required: false
       UsernameConfiguration:
         CaseSensitive: true
-      UserPoolName: !Sub "IdentityService-UserPoolTest-${AWS::AccountId}"
+      UserPoolName: !Sub "IdentityService-UserPool-${AWS::AccountId}"
 
   ConnectionToDataporten:
     Type: AWS::Cognito::UserPoolIdentityProvider

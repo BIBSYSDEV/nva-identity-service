@@ -29,10 +29,6 @@ Parameters:
     Type: String
     Description: Prefix used for naming parameters.
     Default: ''
-  ExplicitAuthFlows:
-    Type: CommaDelimitedList
-    Default: ALLOW_ADMIN_USER_PASSWORD_AUTH, ALLOW_CUSTOM_AUTH, ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH
-    Description: Set explicit authenticaton flows.
   ApiDomain:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApiDomain
@@ -81,164 +77,9 @@ Resources:
 
   ### Cognito ##########################################################################################################
 
-  UserPool:
-    Type: AWS::Cognito::UserPool
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-    Properties:
-      AdminCreateUserConfig:
-        AllowAdminCreateUserOnly: true
-      UsernameAttributes: [ email ]
-      EmailConfiguration:
-        EmailSendingAccount: 'COGNITO_DEFAULT'
-      MfaConfiguration: 'OFF'
-      LambdaConfig:
-        PreTokenGeneration: !GetAtt TriggerFunction.Arn
-      Schema:
-        - Name: affiliation
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: application
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: applicationRoles
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: commonName
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: email
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: feideTargetedId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: feideId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: identifiers
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: name
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: orgEmail
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: orgLegalName
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: orgName
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: orgNumber
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: schoolList
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: yearOfBirth
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: customerId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: cristinId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: accessRights
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: hostedOrgNumber
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: hostedAffiliation
-          AttributeDataType: String
-          Mutable: true
-          Required: false
 
-  UserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain
-    Properties:
-      UserPoolId: !Ref UserPool
-      Domain: !Ref AuthenticationDomainPrefix
 
-  UserPoolIdentityProviderFeide:
-    Type: AWS::Cognito::UserPoolIdentityProvider
-    Properties:
-      AttributeMapping:
-        custom:affiliation: eduPersonAffiliation
-        custom:commonName: cn
-        custom:feideId: eduPersonPrincipalName
-        custom:feideTargetedId: eduPersonTargetedID
-        custom:orgLegalName: eduPersonOrgDN:eduOrgLegalName
-        name: displayName
-        custom:orgEmail: eduPersonOrgDN:mail
-        custom:orgName: eduPersonOrgDN:o
-        custom:orgNumber: eduPersonOrgDN:norEduOrgNIN
-        custom:schoolList: feideSchoolList
-        custom:yearOfBirth: feideYearOfBirth
-        given_name: givenName
-        email: mail
-        family_name: sn
-        custom:hostedOrgNumber: eduPersonOrgUnitDN:norEduOrgUnitUniqueIdentifier
-        custom:hostedAffiliation: eduPersonScopedAffiliation
-      UserPoolId: !Ref UserPool
-      ProviderName: FeideIdentityProvider
-      ProviderType: SAML
-      ProviderDetails:
-        MetadataURL: !Ref FeideMetadataUrl
 
-  UserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      GenerateSecret: false
-      SupportedIdentityProviders:
-        - !Ref UserPoolIdentityProviderFeide
-      UserPoolId: !Ref UserPool
-      CallbackURLs:
-        - !Sub 'https://${ApplicationDomain}'
-        - 'http://localhost:3000' # todo: make this conditional in parameters
-      LogoutURLs:
-        - !Sub 'https://${ApplicationDomain}/logout'
-        - 'http://localhost:3000/logout' # todo: make this conditional in parameters
-      AllowedOAuthFlowsUserPoolClient: True
-      AllowedOAuthFlows:
-        - code
-      AllowedOAuthScopes:
-        - openid
-        - aws.cognito.signin.user.admin
-      ExplicitAuthFlows: !Ref ExplicitAuthFlows
-      RefreshTokenValidity: 1
-      TokenValidityUnits:
-        RefreshToken: hours
-
-  IdentityPool:
-    Type: AWS::Cognito::IdentityPool
-    Properties:
-      AllowUnauthenticatedIdentities: True
-      CognitoIdentityProviders:
-        - ClientId: !Ref UserPoolClient
-          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
 
   # IAM role used for authenticated users
   FeideAuthenticatedRole:
@@ -1171,7 +1012,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}CognitoUserPoolAppClientId'
       Description: Identifier to use for the app clients to access this user pool
       Type: String
-      Value: !Ref UserPoolClient
+      Value: !Ref ApplicationClient
 
   CognitoURNParameter:
     Type: AWS::SSM::Parameter
@@ -1259,7 +1100,8 @@ Resources:
       AuthorizerArn: !GetAtt UserPool.Arn
 
 ### New Cognito ########################################################################################################
-  NewUserPool:
+
+  UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
       AdminCreateUserConfig:
@@ -1287,7 +1129,7 @@ Resources:
         CaseSensitive: true
       UserPoolName: !Sub "IdentityService-UserPoolTest-${AWS::AccountId}"
 
-  ConnectionToDataportenUsingOnlyIdNumber:
+  ConnectionToDataporten:
     Type: AWS::Cognito::UserPoolIdentityProvider
     Properties:
       AttributeMapping:
@@ -1305,31 +1147,10 @@ Resources:
         authorize_scopes: 'openid'
       ProviderName: Dataporten
       ProviderType: OIDC
-      UserPoolId: !Ref NewUserPool
-
-  AnotherIdentityProvider:
-    Type: AWS::Cognito::UserPoolIdentityProvider
-    Properties:
-      AttributeMapping:
-        custom:nin: https://n.feide.no/claims/nin
-        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
-      ProviderDetails:
-        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
-        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
-        attributes_request_method: POST
-        oidc_issuer: 'https://auth.dataporten.no'
-        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
-        token_url: 'https://auth.dataporten.no/oauth/token'
-        attributes_url: 'https://auth.dataporten.no/openid/userinfo'
-        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
-        authorize_scopes: 'openid'
-      ProviderName: AnotherIdentityProvider
-      ProviderType: OIDC
-      UserPoolId: !Ref NewUserPool
+      UserPoolId: !Ref UserPool
 
 
-
-  NewApplicationClient:
+  ApplicationClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       AllowedOAuthFlows:
@@ -1364,19 +1185,28 @@ Resources:
         IdToken: minutes
         RefreshToken: hours
       SupportedIdentityProviders:
-        - !Ref ConnectionToDataportenUsingOnlyIdNumber
-        - !Ref AnotherIdentityProvider
-      UserPoolId: !Ref NewUserPool
+        - !Ref ConnectionToDataporten
+      UserPoolId: !Ref UserPool
       WriteAttributes:
         - custom:feideid
         - custom:nin
 
 
-  NewUserPoolDomain:
+  UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      UserPoolId: !Ref NewUserPool
+      UserPoolId: !Ref UserPool
       Domain: sandbox-orestis
+
+
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: True
+      CognitoIdentityProviders:
+        - ClientId: !Ref ApplicationClient
+          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+
 
   PreAuthenticationHandler:
     Type: AWS::Serverless::Function

@@ -11,8 +11,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayCustomAuthorizerEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -20,8 +20,6 @@ import java.util.Map;
 import no.unit.commons.apigateway.authentication.AuthorizerResponse;
 import no.unit.commons.apigateway.authentication.StatementElement;
 import no.unit.nva.database.interfaces.WithEnvironment;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.core.Environment;
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -122,18 +120,18 @@ public class LambdaAuthorizerTest implements WithEnvironment {
     }
 
     private AuthorizerResponse sendRequest(String submittedSecret) throws IOException {
-        LambdaAuthorizer authorizer = new LambdaAuthorizer(secretsManager);
-        InputStream request = buildRequest(submittedSecret);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        authorizer.handleRequest(request, outputStream, context);
-        return AuthorizerResponse.fromOutputStream(outputStream);
+        var authorizer = new LambdaAuthorizer(secretsManager);
+        var request = buildRequest(submittedSecret);
+        return authorizer.handleRequest(request,  context);
+
     }
 
-    private InputStream buildRequest(String submittedSecret) throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
-            .withHeaders(Map.of(HttpHeaders.AUTHORIZATION, submittedSecret))
-            .withOtherProperties(Map.of(METHOD_ARN_REQUEST_FIELD, DEFAULT_METHOD_ARN))
-            .build();
+    private APIGatewayCustomAuthorizerEvent buildRequest(String submittedSecret) {
+        return APIGatewayCustomAuthorizerEvent.builder()
+                   .withHeaders(Map.of(HttpHeaders.AUTHORIZATION,submittedSecret))
+                   .withMethodArn(DEFAULT_METHOD_ARN)
+                   .build();
+
     }
 
     private Answer<GetSecretValueResponse> provideSecret() {

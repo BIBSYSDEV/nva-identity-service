@@ -85,7 +85,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     private boolean thereAreMoreEntries(ScanResponse result) {
-        return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty() ;
+        return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty();
     }
 
     private ScanResponse scanDynamoDb(ScanDatabaseRequestV2 scanRequest) {

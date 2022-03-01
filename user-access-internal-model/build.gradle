@@ -8,9 +8,9 @@ dependencies {
     implementation libs.bundles.logging
     implementation libs.nva.apigateway
     implementation libs.nva.json
+
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.dynamodbenhanced
-
 
     compileOnly project(":user-access-rights")
     testImplementation project(":user-access-rights")

@@ -17,6 +17,7 @@ dependencies {
     implementation libs.nva.json
     implementation libs.bundles.aws.lambda
     implementation libs.bundles.jackson
+    implementation libs.aws.lambda.events
 
     implementation libs.aws.sdk2.secrets
     implementation libs.aws.sdk2.dynamodbenhanced

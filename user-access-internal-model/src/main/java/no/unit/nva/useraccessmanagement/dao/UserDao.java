@@ -212,11 +212,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
         return nonEmpty(roles) ? roles : null;
     }
 
-    @DynamoDbIgnore
-    public Set<RoleDb> getRolesNonNull() {
-        return nonNull(roles) ? roles : Collections.emptySet();
-    }
-
     /**
      * Method to be used only by DynamoDb mapper. Do not use. Use the builder instead.
      *
@@ -225,6 +220,11 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     @SuppressWarnings("PMD.NullAssignment")
     public void setRoles(Set<RoleDb> roles) {
         this.roles = nonEmpty(roles) ? roles : null;
+    }
+
+    @DynamoDbIgnore
+    public Set<RoleDb> getRolesNonNull() {
+        return nonNull(roles) ? roles : Collections.emptySet();
     }
 
     @JacocoGenerated
@@ -250,7 +250,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     }
 
     @Override
-    public void setType(String ignored){
+    public void setType(String ignored) {
         //DO nothing
     }
 
@@ -284,12 +284,11 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
         UserDao userDao = (UserDao) o;
         return Objects.equals(getUsername(), userDao.getUsername())
                && Objects.equals(getInstitution(), userDao.getInstitution())
-               && Objects.equals(getRolesNonNull(),userDao.getRolesNonNull())
+               && Objects.equals(getRolesNonNull(), userDao.getRolesNonNull())
                && Objects.equals(getGivenName(), userDao.getGivenName())
                && Objects.equals(getFamilyName(), userDao.getFamilyName())
                && Objects.equals(getViewingScope(), userDao.getViewingScope());
     }
-
 
     private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
         return userDto.getRoles().stream()

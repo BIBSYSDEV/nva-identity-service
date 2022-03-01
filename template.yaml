@@ -316,6 +316,23 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+            Identity:
+              Header: Authorization
+              ValidationExpression: Bearer.*
+              ReauthorizeEvery: 10
+          LambdaRequestAuthorizer:
+            FunctionArn: !GetAtt GetUserAuthorizer.Arn
+            FunctionPayloadType: REQUEST
+            Identity:
+              Headers:
+                - Authorization
+              ReauthorizeEvery: 1
+        DefaultAuthorizer: CognitoAuthorizer
+
       EndpointConfiguration: REGIONAL
       DefinitionBody:
         'Fn::Transform':
@@ -397,24 +414,23 @@ Resources:
             Path: /users/{username}
             Method: get
             RestApiId: !Ref UsersAndRolesApi
-  UpdateUserHandler:
+
+  GetUserAuthorizer:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /users/{username}
-            Method: put
-            RestApiId: !Ref UsersAndRolesApi
+      Handler: no.unit.nva.handlers.authorizer.GetUserAuthorizer::handleRequest
+      MemorySize: 512
+
+  GetUserAuthorizerPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - UsersAndRolesApi
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetUserAuthorizer
+      Principal: apigateway.amazonaws.com
+
   ListByInstitutionHandler:
     Type: AWS::Serverless::Function
     Properties:

@@ -1,9 +1,9 @@
 [versions]
-nvaCommons = { strictly = '1.20.16' }
+nvaCommons = { strictly = '1.20.17' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.105' }
-jackson = { strictly = "2.13.0" }
+jackson = { strictly = "2.13.1" }
 xraySdk = { strictly = '2.9.1' }
 dynamoDbLocal = { strictly = '1.17.2' }
 zalandoProblem = { strictly = '0.26.0' }
@@ -26,6 +26,7 @@ awsLambdaEvents = { strictly = '3.11.0' }
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }
 nva-json = { group = 'com.github.bibsysdev', name = 'json', version.ref = 'nvaCommons' }
 nva-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nvaCommons' }
+nva-apigatewayv2 = { group = 'com.github.bibsysdev', name = 'apigatewayv2', version.ref = 'nvaCommons' }
 nva-lambdaauthorizer = { group = 'com.github.bibsysdev', name = 'lambdaauthorizer', version.ref = 'nvaCommons' }
 nva-secrets = { group = 'com.github.bibsysdev', name = 'secrets', version.ref = 'nvaCommons' }
 nva-events = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nvaCommons' }

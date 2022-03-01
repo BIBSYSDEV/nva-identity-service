@@ -395,6 +395,26 @@ Resources:
             Method: post
             RestApiId: !Ref UsersAndRolesApi
 
+
+  UpdateUserHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserRoleMappings
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: put
+            RestApiId: !Ref UsersAndRolesApi
+
   GetUserHandler:
     Type: AWS::Serverless::Function
     Properties:

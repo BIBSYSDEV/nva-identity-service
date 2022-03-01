@@ -1227,7 +1227,7 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       UserPoolId: !Ref UserPool
-      Domain: sandbox-orestis
+      Domain: !Ref AuthenticationDomainPrefix
 
 
   IdentityPool:

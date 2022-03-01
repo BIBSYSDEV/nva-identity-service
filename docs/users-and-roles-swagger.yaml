@@ -220,5 +220,6 @@ components:
       x-amazon-apigateway-authorizer:
         type: token
         identitySource : method.request.header.Authorization
-        authorizerUri: !Sub "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${AWS::AccountId}:function:GetUserAuthorizer/invocations"
+        authorizerUri:
+          Fn::Sub: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${AWS::AccountId}:function:GetUserAuthorizer/invocations"
         authorizerResultTtlInSeconds: 10

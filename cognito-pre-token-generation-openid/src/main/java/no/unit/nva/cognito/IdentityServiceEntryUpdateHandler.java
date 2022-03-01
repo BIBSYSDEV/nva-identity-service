@@ -12,8 +12,8 @@ public class IdentityServiceEntryUpdateHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
-        String userAttributes=
-            attempt(()->JSON.std.asString(input.getRequest().getUserAttributes().entrySet()))
+        String userAttributes =
+            attempt(() -> JSON.std.asString(input.getRequest().getUserAttributes().entrySet()))
                 .orElseThrow();
         context.getLogger().log(userAttributes);
         return input;

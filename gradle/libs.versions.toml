@@ -1,7 +1,7 @@
 [versions]
-nvaCommons = { strictly = '1.20.17' }
+nvaCommons = { strictly = '1.20.19' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
-awsSdk = { require = "1.11.1000" }
+#awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.105' }
 jackson = { strictly = "2.13.1" }
 xraySdk = { strictly = '2.9.1' }
@@ -32,9 +32,9 @@ nva-secrets = { group = 'com.github.bibsysdev', name = 'secrets', version.ref = 
 nva-events = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nvaCommons' }
 nva-testutils = { group = 'com.github.bibsysdev', name = 'nvatestutils', version.ref = 'nvaCommons' }
 
-aws-xray-recorder-sdk-core = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-core', version.ref = 'xraySdk' }
-aws-xray-recorder-sdk-aws-sdk = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-aws-sdk', version.ref = 'xraySdk' }
-aws-xray-recorder-sdk-aws-sdk-instrumentor = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version.ref = 'xraySdk' }
+#aws-xray-recorder-sdk-core = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-core', version.ref = 'xraySdk' }
+#aws-xray-recorder-sdk-aws-sdk = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-aws-sdk', version.ref = 'xraySdk' }
+#aws-xray-recorder-sdk-aws-sdk-instrumentor = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version.ref = 'xraySdk' }
 
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaCore' }
 
@@ -46,13 +46,15 @@ aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connect
 aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
 aws-java-sdk2-cognitoidp = { group = 'software.amazon.awssdk', name = 'cognitoidentityprovider', version.ref = 'awsSdk2' }
 
-jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
-jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }
-jackson-annotations = { group = 'com.fasterxml.jackson.core', name = 'jackson-annotations', version.ref = 'jackson' }
-jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jsr310', version.ref = 'jackson' }
-jackson-datatype-jdk8 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
+#jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
+#jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }
+#jackson-annotations = { group = 'com.fasterxml.jackson.core', name = 'jackson-annotations', version.ref = 'jackson' }
+#jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jsr310', version.ref = 'jackson' }
+#jackson-datatype-jdk8 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
 
 jackson-jr-objects = { group = 'com.fasterxml.jackson.jr', name = 'jackson-jr-objects', version.ref = 'jackson' }
+jackson-jr-annotations= { group= 'com.fasterxml.jackson.jr', name= 'jackson-jr-annotation-support', version.ref= 'jackson'}
+
 
 slf4j = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
 log4j-core = { group = 'org.apache.logging.log4j', name = 'log4j-core', version.ref = 'log4j' }
@@ -80,7 +82,6 @@ guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 [bundles]
 logging = ['log4j-core', 'log4j-api', 'slf4j']
 testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core', 'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils', 'hamcrest-jackson']
-problem = ['zalando-problem', 'jackson-datatype-problem']
-jackson = ['jackson-core', 'jackson-databind', 'jackson-annotations', 'jackson-datatype-jsr310']
-aws-xray = ['aws-xray-recorder-sdk-core', 'aws-xray-recorder-sdk-aws-sdk', 'aws-xray-recorder-sdk-aws-sdk-instrumentor']
-aws-lambda = ['aws-lambda-java-core', 'zalando-problem', 'jackson-datatype-problem', 'slf4j']
+jackson = ['jackson-jr-objects', 'jackson-jr-annotations']
+#aws-xray = ['aws-xray-recorder-sdk-core', 'aws-xray-recorder-sdk-aws-sdk', 'aws-xray-recorder-sdk-aws-sdk-instrumentor']
+aws-lambda = ['aws-lambda-java-core', 'zalando-problem', 'aws-lambda-events']

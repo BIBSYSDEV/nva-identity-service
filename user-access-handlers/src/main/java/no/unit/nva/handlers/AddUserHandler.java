@@ -1,15 +1,18 @@
 package no.unit.nva.handlers;
 
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.fasterxml.jackson.jr.ob.JSON;
+import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
+import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
-import org.apache.http.HttpStatus;
+
 
 public class AddUserHandler extends HandlerWithEventualConsistency<UserDto, UserDto> {
 
@@ -21,24 +24,30 @@ public class AddUserHandler extends HandlerWithEventualConsistency<UserDto, User
      */
     @JacocoGenerated
     public AddUserHandler() {
-        this(new Environment(), new IdentityServiceImpl());
+        this(new IdentityServiceImpl());
     }
 
-    public AddUserHandler(Environment environment,
-                          IdentityService databaseService) {
-        super(UserDto.class, environment);
+    public AddUserHandler(IdentityService databaseService) {
+        super();
         this.databaseService = databaseService;
     }
 
     @Override
-    protected UserDto processInput(UserDto input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        databaseService.addUser(input);
-        return getEventuallyConsistent(() -> databaseService.getUser(input))
-            .orElseThrow(() -> new DataSyncException(SYNC_ERROR_MESSAGE + input.getUsername()));
+    protected UserDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context)
+        throws ApiGatewayException {
+        var inputObject = parseUser(input);
+        databaseService.addUser(inputObject);
+        return getEventuallyConsistent(() -> databaseService.getUser(inputObject))
+            .orElseThrow(() -> new DataSyncException(SYNC_ERROR_MESSAGE + inputObject.getUsername()));
+    }
+
+    private UserDto parseUser(String input) throws BadRequestException {
+        return attempt(()->JSON.std.beanFrom(UserDto.class, input))
+            .orElseThrow(fail->new BadRequestException(fail.getException().getMessage()));
     }
 
     @Override
-    protected Integer getSuccessStatusCode(UserDto input, UserDto output) {
-        return HttpStatus.SC_OK;
+    protected Integer getSuccessStatusCode(String input, UserDto output) {
+        return HttpURLConnection.HTTP_OK;
     }
 }

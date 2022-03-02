@@ -3,7 +3,7 @@ package no.unit.nva.handlers.authorizer;
 import static no.unit.commons.apigateway.authentication.DefaultRequestAuthorizer.API_KEY_SECRET_KEY;
 import static no.unit.commons.apigateway.authentication.DefaultRequestAuthorizer.API_KEY_SECRET_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -12,9 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayCustomAuthorizerEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.IOException;
-import java.io.InputStream;
+import com.fasterxml.jackson.jr.ob.JSON;
 import java.util.List;
 import java.util.Map;
 import no.unit.commons.apigateway.authentication.AuthorizerResponse;
@@ -29,7 +27,7 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
-public class LambdaAuthorizerTest implements WithEnvironment {
+class LambdaAuthorizerTest implements WithEnvironment {
 
     public static final String CORRECT_SECRET_VALUE = "someSecretValue";
     public static final String AWS_SERCRETS_MANAGER_ERROR_MESSAGE = "AwsSercretsManager message";
@@ -40,10 +38,9 @@ public class LambdaAuthorizerTest implements WithEnvironment {
 
     public static final String DEFAULT_METHOD_ARN = "arn:aws:execute-api:eu-west-1:884807050265:2lcqynkwke/Prod/GET"
                                                     + "/service/users/orestis@unit.no";
-    public static final String METHOD_ARN_REQUEST_FIELD = "methodArn";
     private SecretsManagerClient secretsManager;
 
-    private Context context;
+    private final Context context;
 
     public LambdaAuthorizerTest() {
         context = mock(Context.class);
@@ -55,7 +52,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
     }
 
     @Test
-    void shouldReturnAcceptPolicyWhenSecretIsCorrect() throws IOException {
+    void shouldReturnAcceptPolicyWhenSecretIsCorrect() {
 
         AuthorizerResponse response = sendRequest(CORRECT_SECRET_VALUE);
         List<StatementElement> statements = response.getPolicyDocument().getStatement();
@@ -67,7 +64,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
     }
 
     @Test
-    void shouldReturnDenyPolicyWhenSecretNameIsWrong() throws IOException {
+    void shouldReturnDenyPolicyWhenSecretNameIsWrong() {
         secretsManagerCannotFindTheSecret();
         AuthorizerResponse response = sendRequest(randomString());
 
@@ -80,7 +77,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
     }
 
     @Test
-    void shouldReturnDenyPolicyWhenSecretKeyIsWrong() throws IOException {
+    void shouldReturnDenyPolicyWhenSecretKeyIsWrong() {
         secretsManagerReturnsSecretForRequestedSecretNameButSecretDoesNotContainExpetedKey();
         AuthorizerResponse response = sendRequest(randomString());
 
@@ -106,7 +103,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
             .thenAnswer(ignored -> secretWithCorrectNameButWrongKey());
     }
 
-    private GetSecretValueResponse secretWithCorrectNameButWrongKey() throws JsonProcessingException {
+    private GetSecretValueResponse secretWithCorrectNameButWrongKey() {
         return GetSecretValueResponse.builder()
             .secretString(createSecretAsJson(randomString(), randomString()))
             .build();
@@ -119,7 +116,7 @@ public class LambdaAuthorizerTest implements WithEnvironment {
         return awsSecretsManager;
     }
 
-    private AuthorizerResponse sendRequest(String submittedSecret) throws IOException {
+    private AuthorizerResponse sendRequest(String submittedSecret) {
         var authorizer = new LambdaAuthorizer(secretsManager);
         var request = buildRequest(submittedSecret);
         return authorizer.handleRequest(request,  context);
@@ -148,8 +145,8 @@ public class LambdaAuthorizerTest implements WithEnvironment {
         };
     }
 
-    private String createSecretAsJson(String secretKey, String secreteValue) throws JsonProcessingException {
+    private String createSecretAsJson(String secretKey, String secreteValue) {
         Map<String, String> secret = Map.of(secretKey, secreteValue);
-        return defaultRestObjectMapper.writeValueAsString(secret);
+        return attempt(()->JSON.std.asString(secret)).orElseThrow();
     }
 }

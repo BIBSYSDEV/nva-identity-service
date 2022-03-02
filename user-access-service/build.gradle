@@ -11,19 +11,15 @@ dependencies {
     implementation project(":user-access-public-model")
     implementation project(":user-access-rights")
 
+    implementation libs.nva.core
+    implementation libs.nva.apigatewayv2
     implementation libs.aws.sdk2.dynamodbenhanced
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.urlconnection
 
-    implementation(libs.nva.apigateway) {
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
-        exclude group: 'com.fasterxml.jackson.datatype', module: 'jackson-datatype-jdk8'
-        exclude group: 'com.fasterxml.jackson.datatype', module: 'jackson-datatype-jsr310'
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
-        exclude group: 'com.fasterxml.jackson.module', module: 'jackson-module-parameter-names'
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
-    }
+    implementation libs.bundles.jackson
     implementation libs.nva.json
+
     implementation libs.nva.events
     implementation libs.slf4j
     implementation libs.bundles.aws.lambda

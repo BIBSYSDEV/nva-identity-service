@@ -2,14 +2,14 @@ package no.unit.nva.handlers;
 
 import static java.util.function.Predicate.not;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 
 public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
@@ -22,13 +22,13 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
     }
 
     public GetUserHandler(IdentityService databaseService) {
-        super(Void.class);
+        super();
         this.databaseService = databaseService;
 
     }
 
     @Override
-    protected UserDto processInput(Void input, RequestInfo requestInfo, Context context)
+    protected UserDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context)
         throws ApiGatewayException {
 
         String username = extractValidUserNameOrThrowException(requestInfo);
@@ -37,13 +37,13 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, UserDto output) {
+    protected Integer getSuccessStatusCode(String input, UserDto output) {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private String extractValidUserNameOrThrowException(RequestInfo requestInfo) throws BadRequestException {
+    private String extractValidUserNameOrThrowException(APIGatewayProxyRequestEvent requestInfo) throws BadRequestException {
         return Optional.of(requestInfo)
-            .map(RequestInfo::getPathParameters)
+            .map(APIGatewayProxyRequestEvent::getPathParameters)
             .map(map -> map.get(USERNAME_PATH_PARAMETER))
             .map(this::decodeUrlPart)
             .filter(not(String::isBlank))

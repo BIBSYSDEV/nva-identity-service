@@ -1,14 +1,16 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
+
+import static nva.commons.core.attempt.Try.attempt;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
-import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -30,15 +32,15 @@ public final class EntityUtils {
      *
      * @return an RequestBuilder that can produce an {@link InputStream} that contains a request to be processed by a
      *     {@link com.amazonaws.services.lambda.runtime.RequestStreamHandler}.
-     * @throws JsonProcessingException       if JSON serialization fails.
      * @throws InvalidEntryInternalException unlikely. The object is intentionally invalid.
      * @throws InvalidEntryInternalException when role is invalid.
      */
-    public static HandlerRequestBuilder<ObjectNode> createRequestBuilderWithUserWithoutUsername()
-        throws JsonProcessingException, InvalidEntryInternalException {
-        ObjectNode userWithoutUsername = createUserWithoutUsername();
-        return new HandlerRequestBuilder<ObjectNode>(defaultRestObjectMapper)
-            .withBody(userWithoutUsername);
+    public static APIGatewayProxyRequestEvent createRequestBuilderWithUserWithoutUsername()
+        throws InvalidEntryInternalException {
+
+        var userWithoutUsername = createUserWithoutUsername();
+        var jsonString  = attempt(()->JSON.std.asString(userWithoutUsername)).orElseThrow();
+        return new APIGatewayProxyRequestEvent().withBody(jsonString);
     }
 
     /**
@@ -50,9 +52,9 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException unlikely. The object is intentionally invalid.
      * @throws InvalidEntryInternalException when role is invalid.
      */
-    public static InputStream createRequestWithUserWithoutUsername()
+    public static APIGatewayProxyRequestEvent createRequestWithUserWithoutUsername()
         throws JsonProcessingException, InvalidEntryInternalException {
-        return createRequestBuilderWithUserWithoutUsername().build();
+        return createRequestBuilderWithUserWithoutUsername();
     }
 
     /**
@@ -62,12 +64,12 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException when the added role is invalid.
      * @throws InvalidEntryInternalException unlikely.  The object is intentionally invalid.
      */
-    public static ObjectNode createUserWithoutUsername()
+    public static Map<String, Object> createUserWithoutUsername()
         throws InvalidEntryInternalException {
         UserDto userDto = createUserWithRolesAndInstitution();
-        ObjectNode json = defaultRestObjectMapper.convertValue(userDto, ObjectNode.class);
-        json.put("username", EMPTY_STRING);
-        return json;
+         var jsonMap = attempt(()->JSON.std.asString(userDto)).map(JSON.std::mapFrom).orElseThrow();
+         jsonMap.put(UserDto.USERNAME_FIELD,EMPTY_STRING);
+         return jsonMap;
     }
 
     /**
@@ -119,7 +121,7 @@ public final class EntityUtils {
     public static RoleDto createRole(String someRole) throws InvalidEntryInternalException {
         return
             RoleDto.newBuilder()
-                .withName(someRole)
+                .withRoleName(someRole)
                 .withAccessRights(SAMPLE_ACCESS_RIGHTS)
                 .build();
     }

@@ -42,9 +42,9 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigatewayv2.exceptions.ConflictException;
+import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
@@ -56,7 +56,6 @@ import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
@@ -74,29 +73,27 @@ public class IdentityServiceTest extends DatabaseAccessor {
     private static final String SOME_OTHER_ROLE = "SOME_OTHER_ROLE";
     private static final URI SOME_OTHER_INSTITUTION = randomCristinOrgId();
     private IdentityService identityService;
-    private DynamoDbEnhancedClient enhancedClient;
     private DynamoDbTable<RoleDb> rolesTable;
     private DynamoDbTable<UserDao> usersTable;
-    private TableSchema<UserDao> userTableSchema;
 
     @BeforeEach
     public void init() {
         identityService = createDatabaseServiceUsingLocalStorage();
-        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(localDynamo).build();
+        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(localDynamo).build();
         rolesTable = enhancedClient.table(IdentityService.USERS_AND_ROLES_TABLE, RoleDb.TABLE_SCHEMA);
         usersTable = enhancedClient.table(IdentityService.USERS_AND_ROLES_TABLE, UserDao.TABLE_SCHEMA);
     }
 
     @Test
-    public void databaseServiceHasAMethodForInsertingAUser()
-        throws InvalidEntryInternalException, ConflictException, InvalidInputException, BadRequestException {
+    void databaseServiceHasAMethodForInsertingAUser()
+        throws InvalidEntryInternalException, ConflictException, InvalidInputException {
         UserDto user = createSampleUserWithoutInstitutionOrRoles(SOME_USERNAME);
         identityService.addUser(user);
     }
 
     @DisplayName("getRole() returns non empty role when role-name exists in database")
     @Test
-    public void databaseServiceReturnsNonEmptyRoleWhenRoleNameExistsInDatabase()
+    void databaseServiceReturnsNonEmptyRoleWhenRoleNameExistsInDatabase()
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, NotFoundException {
         RoleDto insertedRole = createSampleRoleAndAddToDb(SOME_ROLENAME);
         RoleDto savedRole = identityService.getRole(insertedRole);
@@ -351,7 +348,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
     }
 
     @Test
-    void userDbShouldBeReadFromDatabaseWithoutDataLoss() throws InvalidEntryInternalException, BadRequestException {
+    void userDbShouldBeReadFromDatabaseWithoutDataLoss() throws InvalidEntryInternalException {
 
         UserDao insertedUser = UserDao.newBuilder()
             .withUsername(SOME_USERNAME)
@@ -447,8 +444,8 @@ public class IdentityServiceTest extends DatabaseAccessor {
 
     private UserDto createUserWithRoleReference(RoleDto existingRole)
         throws InvalidEntryInternalException, BadRequestException {
-        RoleDto roleWithoutDetails = RoleDto.newBuilder().withName(existingRole.getRoleName()).build();
-        RoleDto.newBuilder().withName(existingRole.getRoleName()).build();
+        RoleDto roleWithoutDetails = RoleDto.newBuilder().withRoleName(existingRole.getRoleName()).build();
+        RoleDto.newBuilder().withRoleName(existingRole.getRoleName()).build();
         return createSampleUser(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME)
             .copy()
             .withRoles(Collections.singletonList(roleWithoutDetails))
@@ -464,7 +461,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
 
     private UserDto userUpdateWithRoleMissingAccessRights(UserDto existingUser)
         throws InvalidEntryInternalException {
-        RoleDto roleWithOnlyRolename = RoleDto.newBuilder().withName(SOME_ROLENAME).build();
+        RoleDto roleWithOnlyRolename = RoleDto.newBuilder().withRoleName(SOME_ROLENAME).build();
         return existingUser.copy()
             .withGivenName(SOME_GIVEN_NAME)
             .withRoles(Collections.singletonList(roleWithOnlyRolename))
@@ -472,7 +469,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
     }
 
     private UserDto createUserWithRole(String someUsername, URI someInstitution, RoleDto existingRole)
-        throws InvalidEntryInternalException, BadRequestException {
+        throws InvalidEntryInternalException {
         return UserDto.newBuilder().withUsername(someUsername)
             .withInstitution(someInstitution)
             .withRoles(Collections.singletonList(existingRole))
@@ -481,7 +478,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
     }
 
     private UserDto createSampleUserWithoutInstitutionOrRoles(String username)
-        throws InvalidEntryInternalException, BadRequestException {
+        throws InvalidEntryInternalException {
         return createSampleUser(username, null, null);
     }
 
@@ -498,10 +495,10 @@ public class IdentityServiceTest extends DatabaseAccessor {
     }
 
     private UserDto createSampleUserAndAddUserToDb(String username, URI institution, String roleName)
-        throws InvalidEntryInternalException, ConflictException, InvalidInputException, BadRequestException,
+        throws InvalidEntryInternalException, ConflictException, InvalidInputException,
                NotFoundException {
-        UserDto userDto = createSampleUser(username, institution, roleName);
-        Set<RoleDto> roles = userDto.getRoles();
+        var userDto = createSampleUser(username, institution, roleName);
+        var roles = userDto.getRoles();
         roles.forEach(this::addRoleToDb);
         identityService.addUser(userDto);
 
@@ -519,7 +516,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
     }
 
     private UserDto createSampleUser(String username, URI institution, String roleName)
-        throws InvalidEntryInternalException, BadRequestException {
+        throws InvalidEntryInternalException {
         return UserDto.newBuilder()
             .withRoles(createRoleList(roleName))
             .withInstitution(institution)

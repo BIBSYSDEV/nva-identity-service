@@ -3,8 +3,6 @@ package no.unit.nva.useraccessmanagement.model;
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_USERNAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createRole;
@@ -13,6 +11,7 @@ import static no.unit.nva.useraccessmanagement.model.EntityUtils.createUserWithR
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -22,10 +21,8 @@ import static org.hamcrest.core.IsSame.sameInstance;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -35,10 +32,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
-import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -46,7 +43,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-public class UserDtoTest extends DtoTest {
+ class UserDtoTest extends DtoTest {
 
     public static final Set<RoleDto> sampleRoles = createSampleRoles();
 
@@ -56,49 +53,48 @@ public class UserDtoTest extends DtoTest {
     protected static final String USER_TYPE_LITERAL = "User";
     private static final String FIRST_ACCESS_RIGHT = "ApproveDoi";
     private static final String SECOND_ACCESS_RIGHT = "RejectDoi";
+    private static final JSON defaultRestObjectMapper = JSON.std;
 
     @DisplayName("UserDto object contains type with value \"User\"")
     @Test
-    public void userDtoSerializedObjectContainsTypeWithValueUser() throws InvalidInputException, BadRequestException {
+     void userDtoSerializedObjectContainsTypeWithValueUser() throws IOException {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
-        ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
+        var jsonMap = toMap(sampleUser);
 
-        String actualType = json.get(JSON_TYPE_ATTRIBUTE).asText();
+        String actualType = jsonMap.get(JSON_TYPE_ATTRIBUTE).toString();
         assertThat(actualType, is(equalTo(USER_TYPE_LITERAL)));
     }
 
     @DisplayName("UserDto cannot be created without type value")
     @Test
-    public void userDtoCannotBeCreatedWithoutTypeValue()
-        throws JsonProcessingException, InvalidInputException, BadRequestException {
+    @Disabled("We have no technical ability with Jackson-jr (2.13.1) to impose setting the type")
+    void userDtoCannotBeCreatedWithoutTypeValue() throws IOException {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
-        ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
-        JsonNode objectWithoutType = json.remove(JSON_TYPE_ATTRIBUTE);
-        String jsonStringWithoutType = defaultRestObjectMapper.writeValueAsString(objectWithoutType);
-
-        Executable action = () -> defaultRestObjectMapper.readValue(jsonStringWithoutType, UserDto.class);
+        var jsonMap = toMap(sampleUser);
+        jsonMap.remove(JSON_TYPE_ATTRIBUTE);
+        String jsonStringWithoutType = JSON.std.asString(jsonMap);
+        Executable action = () -> JSON.std.beanFrom(UserDto.class, jsonStringWithoutType);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
         assertThat(exception.getMessage(), containsString(UserDto.TYPE));
     }
 
     @DisplayName("UserDto can be created when it contains the right type value")
     @Test
-    public void userDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
-        throws InvalidEntryInternalException, IOException, InvalidInputException, BadRequestException {
+     void userDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
+        throws InvalidEntryInternalException, IOException {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
-        ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
+        var json = toMap(sampleUser);
         assertThatSerializedItemContainsType(json, USER_TYPE_LITERAL);
 
-        String jsonStringWithType = defaultRestObjectMapper.writeValueAsString(json);
-
-        UserDto deserializedItem = defaultRestObjectMapper.readValue(jsonStringWithType, UserDto.class);
+        String jsonStringWithType = defaultRestObjectMapper.asString(json);
+        UserDto deserializedItem = defaultRestObjectMapper.beanFrom(UserDto.class, jsonStringWithType);
 
         assertThat(deserializedItem, is(equalTo(sampleUser)));
         assertThat(deserializedItem, is(not(sameInstance(sampleUser))));
     }
 
     @Test
-    public void getAccessRightsReturnsAccessRightsWithoutDuplicates() {
+     void getAccessRightsReturnsAccessRightsWithoutDuplicates() {
         final UserDto user = createUserWithRoleWithoutInstitution();
         final Set<String> expectedAccessRights = new HashSet<>(user.getAccessRights());
         List<RoleDto> newRoles = duplicateRoles(user);
@@ -109,7 +105,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    public void getAccessRightsReturnsAllAccessRightsContainedInTheUsersRoles() {
+     void getAccessRightsReturnsAllAccessRightsContainedInTheUsersRoles() {
 
         RoleDto firstRole = sampleRole(FIRST_ACCESS_RIGHT, SOME_ROLENAME);
         RoleDto secondRole = sampleRole(SECOND_ACCESS_RIGHT, SOME_OTHER_ROLENAME);
@@ -118,13 +114,13 @@ public class UserDtoTest extends DtoTest {
         UserDto user = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(roles).build();
 
         Set<String> expectedAccessRights = Set.of(FIRST_ACCESS_RIGHT, SECOND_ACCESS_RIGHT);
-        assertThat(user.getAccessRights(), is(equalTo(expectedAccessRights)));
+        assertThat(user.getAccessRights(), containsInAnyOrder(expectedAccessRights.toArray(String[]::new)));
     }
 
     @Test
-    public void getRolesReturnsEmptyListWhenRolesIsNull() {
+    void getRolesReturnsEmptyListWhenRolesIsNull() {
         UserDto userDto = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(null).build();
-        Set<RoleDto> roles = userDto.getRoles();
+        var roles = userDto.getRoles();
         assertThat(roles, is(not(nullValue())));
         assertThat(roles, is(empty()));
     }
@@ -144,7 +140,7 @@ public class UserDtoTest extends DtoTest {
     void builderReturnsUserDtoWhenInstitutionIsEmpty() {
         UserDto user = createUserWithRoleWithoutInstitution();
         assertThat(user.getUsername(), is(equalTo(SOME_USERNAME)));
-        assertThat(user.getRoles(), is(equalTo(sampleRoles)));
+        assertThat(user.getRoles(), containsInAnyOrder(sampleRoles.toArray(RoleDto[]::new)));
         assertThat(user.getInstitution(), is(equalTo(null)));
     }
 
@@ -166,7 +162,7 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void copyShouldCopyUserDto() throws InvalidInputException, BadRequestException {
+    void copyShouldCopyUserDto() {
         UserDto initialUser = createUserWithRolesAndInstitutionAndViewingScope();
         UserDto copiedUser = initialUser.copy().build();
 
@@ -175,17 +171,18 @@ public class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void userDtoIsSerialized() throws IOException, InvalidInputException, BadRequestException {
+    void userDtoIsSerialized() throws IOException {
         UserDto initialUser = createUserWithRolesAndInstitutionAndViewingScope();
 
         assertThat(initialUser, doesNotHaveEmptyValues());
 
-        String jsonString = defaultRestObjectMapper.writeValueAsString(initialUser);
-        JsonNode actualJson = defaultRestObjectMapper.readTree(jsonString);
-        JsonNode expectedJson = defaultRestObjectMapper.convertValue(initialUser, JsonNode.class);
+        String jsonString = JSON.std.asString(initialUser);
+
+        var actualJson = JSON.std.mapFrom(jsonString);
+        var expectedJson = toMap(initialUser);
         assertThat(actualJson, is(equalTo(expectedJson)));
 
-        UserDto deserializedObject = defaultRestObjectMapper.readValue(jsonString, UserDto.class);
+        var deserializedObject = JSON.std.beanFrom(UserDto.class,jsonString);
         assertThat(deserializedObject, is(equalTo(initialUser)));
         assertThat(deserializedObject, is(not(sameInstance(initialUser))));
     }
@@ -228,14 +225,14 @@ public class UserDtoTest extends DtoTest {
         throws InvalidEntryInternalException {
         Set<String> accessRights = Collections.singleton(approveDoiRequest);
         return RoleDto.newBuilder()
-            .withName(someRolename)
+            .withRoleName(someRolename)
             .withAccessRights(accessRights)
             .build();
     }
 
     private List<RoleDto> duplicateRoles(UserDto user) {
         List<RoleDto> duplicateRoles = user.getRoles().stream()
-            .map(attempt(r -> r.copy().withName(r.getRoleName() + "_copy").build()))
+            .map(attempt(r -> r.copy().withRoleName(r.getRoleName() + "_copy").build()))
             .flatMap(Try::stream)
             .collect(Collectors.toList());
         ArrayList<RoleDto> newRoles = new ArrayList<>(user.getRoles());

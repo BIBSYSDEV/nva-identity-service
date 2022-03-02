@@ -3,26 +3,25 @@ package no.unit.nva.useraccessmanagement.model;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.jr.ob.JSON;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
+import no.unit.nva.useraccessmanagement.interfaces.JacksonJrDoesNotSupportSets;
+import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
-import no.unit.nva.useraccessmanagement.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 
-@JsonTypeName(UserDto.TYPE)
-public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
+public class UserDto implements WithCopy<Builder>, Typed {
 
     public static final String TYPE = "User";
     public static final String MISSING_FIELD_ERROR = "Invalid User. Missing obligatory field: ";
@@ -52,10 +51,11 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
     }
 
     @JsonProperty("accessRights")
-    public Set<String> getAccessRights() {
+    public List<String> getAccessRights() {
         return getRoles().stream()
             .flatMap(role -> role.getAccessRights().stream())
-            .collect(Collectors.toSet());
+            .distinct()
+            .collect(Collectors.toList());
     }
 
     public void setAccessRights(List<String> accessRights) {
@@ -97,12 +97,28 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
         this.institution = institution;
     }
 
-    public Set<RoleDto> getRoles() {
-        return nonNull(roles) ? roles : Collections.emptySet();
+    @Override
+    @JsonProperty(Typed.TYPE_FIELD)
+    public String getType() {
+        return UserDto.TYPE;
     }
 
-    private void setRoles(Collection<RoleDto> roles) {
-        this.roles = nonNull(roles) ? new HashSet<>(roles) : Collections.emptySet();
+    @Override
+    public void setType(String type) {
+        Typed.super.setType(type);
+    }
+
+    public List<RoleDto> getRoles() {
+        return JacksonJrDoesNotSupportSets.toList(roles);
+    }
+
+    private void setRoles(List<RoleDto> roles) {
+        this.roles = JacksonJrDoesNotSupportSets.toSet(roles);
+    }
+
+    @Override
+    public String toString() {
+        return attempt(() -> JSON.std.asString(this)).orElseThrow();
     }
 
     /**
@@ -145,12 +161,6 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
                && Objects.equals(getRoles(), userDto.getRoles());
     }
 
-    @Override
-    @JacocoGenerated
-    public String toString() {
-        return toJsonString();
-    }
-
     public ViewingScope getViewingScope() {
         return this.viewingScope;
     }
@@ -190,7 +200,10 @@ public class UserDto implements WithCopy<Builder>, JsonSerializable, Typed {
         }
 
         public Builder withRoles(Collection<RoleDto> listRoles) {
-            userDto.setRoles(listRoles);
+            if (nonNull(listRoles)) {
+                userDto.setRoles(new ArrayList<>(listRoles));
+            }
+
             return this;
         }
 

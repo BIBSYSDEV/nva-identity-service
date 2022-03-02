@@ -1,8 +1,8 @@
 package no.unit.nva.useraccessmanagement.dao;
 
-import no.unit.nva.useraccessmanagement.interfaces.WithType;
+import no.unit.nva.useraccessmanagement.interfaces.Typed;
 
-public interface DynamoEntryWithRangeKey extends WithType {
+public interface DynamoEntryWithRangeKey extends Typed {
     String FIELD_DELIMITER = "#";
 
     //    @DynamoDbPartitionKey

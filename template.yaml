@@ -318,26 +318,15 @@ Resources:
       StageName: Prod
       Auth:
         Authorizers:
-#          CognitoAuthorizer:
-#            UserPoolArn: !GetAtt UserPool.Arn
-#            Identity:
-#              Header: Authorization
-#              ValidationExpression: Bearer.*
-#              ReauthorizeEvery: 10
-          LambdaRequestAuthorizer:
-            FunctionArn: !GetAtt GetUserAuthorizer.Arn
-            FunctionPayloadType: REQUEST
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
             Identity:
-              Headers:
-                - Authorization
-              ReauthorizeEvery: 1
-        DefaultAuthorizer: LambdaRequestAuthorizer
+              Header: Authorization
+              ValidationExpression: Bearer.*
+              ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
-#      DefinitionBody:
-#        'Fn::Transform':
-#          Name: AWS::Include
-#          Parameters:
-#            Location: ./docs/users-and-roles-swagger.yaml
+      OpenApiVersion: 3.0.3
+
 
   AddRoleHandler:
     Type: AWS::Serverless::Function
@@ -430,6 +419,8 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
+            Auth:
+              Authorizer: LambdaRequestAuthorizer
             Path: /users/{username}
             Method: get
             RestApiId: !Ref UsersAndRolesApi

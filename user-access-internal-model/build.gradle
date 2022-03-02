@@ -6,9 +6,9 @@ plugins {
 dependencies {
 
     implementation libs.bundles.logging
-    implementation libs.nva.apigateway
-    implementation libs.nva.json
-
+    implementation libs.nva.core
+    implementation libs.nva.apigatewayv2
+    implementation libs.bundles.jackson
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.dynamodbenhanced
 
@@ -27,6 +27,6 @@ dependencies {
 
 }
 
-test{
+test {
     environment "API_HOST", "api.dev.aws.nva.unit.no"
 }

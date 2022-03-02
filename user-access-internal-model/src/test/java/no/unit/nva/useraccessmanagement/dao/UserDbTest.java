@@ -5,11 +5,11 @@ import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.useraccessmanagement.DynamoConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDao.ERROR_DUE_TO_INVALID_ROLE;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
@@ -21,6 +21,8 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.jr.ob.JSON;
+import com.fasterxml.jackson.jr.ob.JSONObjectException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,10 +31,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
-import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
@@ -79,7 +82,7 @@ public class UserDbTest {
 
     @Test
     public void extractRolesDoesNotThrowExceptionWhenRolesAreValid()
-        throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException, InvalidInputException {
         UserDao userWithValidRole = UserDao.fromUserDto(createUserWithRolesAndInstitution());
         Executable action = userWithValidRole::toUserDto;
         assertDoesNotThrow(action);
@@ -118,9 +121,10 @@ public class UserDbTest {
     }
 
     @Test
-    void setTypeShouldNotChangeTheReturnedTypeValue() {
-        userDao.setType("NotExpectedType");
-        assertThat(userDao.getType(), is(equalTo(UserDao.TYPE_VALUE)));
+    void setTypeShouldNotAcceptWrongTypeValues() {
+        String illegalType = "NotExpectedType";
+        var exception = assertThrows(IllegalArgumentException.class, () -> userDao.setType(illegalType));
+        assertThat(exception.getMessage(), allOf(containsString(illegalType), containsString(UserDao.TYPE_VALUE)));
     }
 
     @Test
@@ -152,16 +156,9 @@ public class UserDbTest {
         assertThrows(InvalidEntryInternalException.class, () -> userDao.setUsername(invalidUsername));
     }
 
-    @Test
-    void serializationThrowsExceptionWhenUserHasNullUserName() {
-        UserDao userDao = new UserDao();
-        Executable action = () -> defaultDynamoConfigMapper.writeValueAsString(userDao);
-        JsonMappingException thrownException = assertThrows(JsonMappingException.class, action);
-        assertThat(thrownException.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
-    }
 
     @Test
-    void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException, BadRequestException {
+    void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException {
         UserDao originalUser = randomUserDb();
         UserDao copy = originalUser.copy().build();
         assertThat(copy, is(equalTo(originalUser)));
@@ -170,18 +167,17 @@ public class UserDbTest {
     }
 
     @Test
-    void shouldConvertToDtoAndBackWithoutInformationLoss() throws BadRequestException {
+    void shouldConvertToDtoAndBackWithoutInformationLoss() {
         UserDao originalUser = randomUserDb();
         UserDao converted = Try.of(originalUser)
             .map(UserDao::toUserDto)
             .map(UserDao::fromUserDto)
             .orElseThrow();
 
-        assertThat(ROLES_AS_LISTS_WORKAROUND_EXPLANATION, originalUser,is(equalTo(converted)));
+        assertThat(ROLES_AS_LISTS_WORKAROUND_EXPLANATION, originalUser, is(equalTo(converted)));
         Diff diff = JAVERS.compare(originalUser, converted);
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(converted, doesNotHaveEmptyValues());
-
     }
 
     @ParameterizedTest(name = "fromUserDb throws Exception user contains invalidRole. Rolename:\"{0}\"")
@@ -204,8 +200,8 @@ public class UserDbTest {
     @ParameterizedTest
     @NullAndEmptySource
     void toUserDbThrowsExceptionWhenUserDbContainsInvalidRole(String invalidRoleName)
-        throws InvalidEntryInternalException {
-        RoleDto invalidRole = RoleDto.newBuilder().withName(SOME_ROLENAME).build();
+        throws InvalidEntryInternalException, InvalidInputException {
+        RoleDto invalidRole = RoleDto.newBuilder().withRoleName(SOME_ROLENAME).build();
         invalidRole.setRoleName(invalidRoleName);
         List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
         UserDto userWithInvalidRole = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
@@ -219,7 +215,7 @@ public class UserDbTest {
     void roleValidationMethodLogsError()
         throws InvalidEntryInternalException {
         TestAppender appender = LogUtils.getTestingAppender(UserDao.class);
-        RoleDto invalidRole = RoleDto.newBuilder().withName(SOME_ROLENAME).build();
+        RoleDto invalidRole = RoleDto.newBuilder().withRoleName(SOME_ROLENAME).build();
         invalidRole.setRoleName(null);
 
         List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
@@ -265,7 +261,7 @@ public class UserDbTest {
         return RoleDb.newBuilder().withName(str).build();
     }
 
-    private UserDao randomUserDb() throws BadRequestException {
+    private UserDao randomUserDb() {
         UserDao randomUser = UserDao.newBuilder()
             .withUsername(randomString())
             .withFamilyName(randomString())

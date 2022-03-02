@@ -12,8 +12,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.dao.RoleDb.Builder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
-import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 import nva.commons.core.JacocoGenerated;
@@ -28,10 +28,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 @DynamoDbBean
-public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType {
+public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed {
 
     public static final String NAME_FIELD = "name";
-    public static final String TYPE_FIELD = "type";
     public static final String ACCESS_RIGHTS_FIELDS = "accessRights";
 
     public static final String TYPE_VALUE = "ROLE";
@@ -172,7 +171,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithT
                 .map(AccessRight::toString)
                 .collect(Collectors.toSet());
         return Try.attempt(() -> RoleDto.newBuilder()
-                .withName(this.getName())
+                .withRoleName(this.getName())
                 .withAccessRights(accessRightsStrings)
                 .build())
             .orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));

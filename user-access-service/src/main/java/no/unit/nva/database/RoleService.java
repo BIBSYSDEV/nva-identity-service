@@ -2,13 +2,12 @@ package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
-
 import java.util.Optional;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigatewayv2.exceptions.ConflictException;
+import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

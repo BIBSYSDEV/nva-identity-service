@@ -1,13 +1,14 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.isNull;
+import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
-import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.useraccessmanagement.exceptions.EmptyInputException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.interfaces.Validable;
 import nva.commons.core.attempt.Failure;
+import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -36,8 +37,11 @@ public class DatabaseSubService {
         return isNull(validable) || validable.isInvalid();
     }
 
-    protected static String convertToStringOrWriteErrorMessage(JsonSerializable queryObject) {
-        return Optional.ofNullable(queryObject).map(JsonSerializable::toString).orElse(EMPTY_INPUT_ERROR_MESSAGE);
+    protected static String convertToStringOrWriteErrorMessage(Object queryObject) {
+        return Optional.ofNullable(queryObject)
+            .map(attempt(DatabaseConfig.Json::asString))
+            .map(Try::orElseThrow)
+            .orElse(EMPTY_INPUT_ERROR_MESSAGE);
     }
 
     // PMD complains about the log error format but this call seems legit according to SLF4J

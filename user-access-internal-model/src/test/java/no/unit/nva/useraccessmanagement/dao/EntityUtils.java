@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
+import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
@@ -24,7 +25,7 @@ public final class EntityUtils {
     /**
      * Intention is to create a user with all fields filled.
      */
-    public static UserDto createUserWithRolesAndInstitution() {
+    public static UserDto createUserWithRolesAndInstitution() throws InvalidInputException {
         return createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .build();
@@ -35,7 +36,7 @@ public final class EntityUtils {
      *
      * @return {@link UserDto}
      */
-    public static UserDto createUserWithRoleWithoutInstitution() {
+    public static UserDto createUserWithRoleWithoutInstitution() throws InvalidInputException {
         RoleDto sampleRole = createRole(SOME_ROLENAME);
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)
@@ -51,14 +52,14 @@ public final class EntityUtils {
      * @param someRole the role name.
      * @return the sample role.
      */
-    public static RoleDto createRole(String someRole) {
+    public static RoleDto createRole(String someRole) throws InvalidInputException {
         Set<String> accessRights = SAMPLE_ACCESS_RIGHTS
             .stream()
             .map(AccessRight::toString)
             .collect(Collectors.toSet());
         return
             RoleDto.newBuilder()
-                .withName(someRole)
+                .withRoleName(someRole)
                 .withAccessRights(accessRights)
                 .build();
     }

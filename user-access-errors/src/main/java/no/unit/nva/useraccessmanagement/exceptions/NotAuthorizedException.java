@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessmanagement.exceptions;
 
 import java.net.HttpURLConnection;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 
 public class NotAuthorizedException extends ApiGatewayException {
 

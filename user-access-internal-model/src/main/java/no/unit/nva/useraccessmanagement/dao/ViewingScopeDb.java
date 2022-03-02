@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessmanagement.dao;
 
+import static java.util.Objects.isNull;
 import static no.unit.nva.useraccessmanagement.dao.DynamoEntriesUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,9 +8,10 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import no.unit.nva.useraccessmanagement.interfaces.WithType;
+import no.unit.nva.useraccessmanagement.interfaces.JacksonJrDoesNotSupportSets;
+import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
-import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
@@ -25,7 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
  */
 
 @DynamoDbBean
-public class ViewingScopeDb implements WithType {
+public class ViewingScopeDb implements Typed {
 
     public static final String EXCLUDED_UNIS = "excludedUnis";
     public static final String INCLUDED_UNITS = "includedUnits";
@@ -39,8 +41,7 @@ public class ViewingScopeDb implements WithType {
     public ViewingScopeDb() {
     }
 
-    public ViewingScopeDb(Set<URI> includedUnits,
-                          Set<URI> excludedUnits)
+    public ViewingScopeDb(Set<URI> includedUnits, Set<URI> excludedUnits)
 
         throws BadRequestException {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
@@ -82,8 +83,8 @@ public class ViewingScopeDb implements WithType {
 
     @Override
     @JacocoGenerated
-    public void setType(String type){
-        //DO NOTHING
+    public void setType(String type) {
+        Typed.super.setType(type);
     }
 
     @JacocoGenerated
@@ -108,14 +109,14 @@ public class ViewingScopeDb implements WithType {
 
     private static ViewingScopeDb fromDto(ViewingScope dto) {
         var dao = new ViewingScopeDb();
-        dao.setExcludedUnits(dto.getExcludedUnits());
-        dao.setIncludedUnits(dto.getIncludedUnits());
+        dao.setExcludedUnits(JacksonJrDoesNotSupportSets.toSet(dto.getExcludedUnits()));
+        dao.setIncludedUnits(JacksonJrDoesNotSupportSets.toSet(dto.getIncludedUnits()));
         attempt(() -> validate(dao.getIncludedUnits())).orElseThrow();
         return dao;
     }
 
     private static Void validate(Set<URI> includedUnits) throws BadRequestException {
-        if (includedUnits.isEmpty()) {
+        if (isNull(includedUnits) || includedUnits.isEmpty()) {
             throw new BadRequestException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
         }
         return null;

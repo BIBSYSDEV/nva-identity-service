@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.dao.UserDao.Builder;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
-import no.unit.nva.useraccessmanagement.interfaces.WithType;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
@@ -41,7 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
-public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, WithType {
+public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public static final String TYPE_VALUE = "USER";
     public static final String INVALID_USER_EMPTY_USERNAME = "Invalid user entry: Empty username is not allowed";
@@ -52,7 +51,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     public static final String FAMILY_NAME_FIELD = "familyName";
     public static final String ROLES_LIST = "roles";
     public static final String INSTITUTION_FIELD = "institution";
-    public static final String TYPE_FIELD = "type";
     public static final TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
 
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
@@ -250,8 +248,9 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder>, With
     }
 
     @Override
-    public void setType(String ignored) {
-        //DO nothing
+    @JacocoGenerated
+    public void setType(String type) {
+        DynamoEntryWithRangeKey.super.setType(type);
     }
 
     @Override

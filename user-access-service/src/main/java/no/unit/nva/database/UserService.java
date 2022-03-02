@@ -13,8 +13,8 @@ import no.unit.nva.useraccessmanagement.dao.RoleDb;
 import no.unit.nva.useraccessmanagement.dao.UserDao;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigatewayv2.exceptions.ConflictException;
+import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
@@ -30,7 +30,6 @@ public class UserService extends DatabaseSubService {
     public static final String USER_NOT_FOUND_MESSAGE = "Could not find user with username: ";
     public static final String GET_USER_DEBUG_MESSAGE = "Getting user: ";
     public static final String ADD_USER_DEBUG_MESSAGE = "Adding user: ";
-    public static final String UPDATE_USER_DEBUG_MESSAGE = "Updating user: ";
     public static final String USER_ALREADY_EXISTS_ERROR_MESSAGE = "User already exists: ";
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -53,7 +52,7 @@ public class UserService extends DatabaseSubService {
      * @throws NotFoundException when there is no use with that username
      */
     public UserDto getUser(UserDto queryObject)
-        throws NotFoundException, InvalidInputException {
+        throws NotFoundException {
         return getUserAsOptional(queryObject)
             .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }
@@ -98,9 +97,8 @@ public class UserService extends DatabaseSubService {
      * @throws NotFoundException     when there is no user with the same username in the database.
      */
     public void updateUser(UserDto updateObject)
-        throws InvalidInputException, NotFoundException {
+        throws  NotFoundException {
 
-        logger.debug(UPDATE_USER_DEBUG_MESSAGE + updateObject.toJsonString());
         UserDto existingUser = getExistingUserOrSendNotFoundError(updateObject);
         UserDao updatedObjectWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(updateObject));
         if (userHasChanged(existingUser, updatedObjectWithSyncedRoles)) {

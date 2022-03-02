@@ -1,12 +1,12 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createRole;
 import static no.unit.nva.useraccessmanagement.model.RoleDto.MISSING_ROLE_NAME_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.Is.is;
@@ -14,10 +14,8 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,6 +24,7 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto.Builder;
 import org.hamcrest.core.IsSame;
 import org.hamcrest.core.StringContains;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -33,52 +32,53 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-public class RoleDtoTest extends DtoTest {
+class RoleDtoTest extends DtoTest {
 
     public static final String SOME_ROLE_NAME = "someRoleName";
     protected static final String ROLE_TYPE_LITERAL = "Role";
 
     @Test
-    public void roleDtoShouldHaveABuilder() {
+    void roleDtoShouldHaveABuilder() {
         Builder builder = RoleDto.newBuilder();
         assertNotNull(builder);
     }
 
     @Test
-    public void builderShouldAllowSettingRoleName() throws InvalidEntryInternalException {
-        RoleDto role = RoleDto.newBuilder().withName(SOME_ROLE_NAME).build();
+    void builderShouldAllowSettingRoleName() throws InvalidEntryInternalException {
+        RoleDto role = RoleDto.newBuilder().withRoleName(SOME_ROLE_NAME).build();
         assertThat(role.getRoleName(), is(equalTo(SOME_ROLE_NAME)));
     }
 
     @Test
-    public void builderAllowsSettingAccessRights() throws InvalidEntryInternalException {
+    void builderAllowsSettingAccessRights() throws InvalidEntryInternalException {
         RoleDto sampleRole = RoleDto.newBuilder()
-            .withName(SOME_ROLE_NAME)
+            .withRoleName(SOME_ROLE_NAME)
             .withAccessRights(SAMPLE_ACCESS_RIGHTS)
             .build();
 
-        assertThat(sampleRole.getAccessRights(), is(equalTo(SAMPLE_ACCESS_RIGHTS)));
+        assertThat(sampleRole.getAccessRights(), containsInAnyOrder(SAMPLE_ACCESS_RIGHTS.toArray(String[]::new)));
     }
 
     @ParameterizedTest(name = "builder should throw exception when rolename is:\"{0}\"")
     @NullAndEmptySource
     @ValueSource(strings = {"", " "})
-    public void builderShouldNotAllowEmptyRoleName(String rolename) {
-        Executable action = () -> RoleDto.newBuilder().withName(rolename).build();
+    void builderShouldNotAllowEmptyRoleName(String rolename) {
+        Executable action = () -> RoleDto.newBuilder().withRoleName(rolename).build();
         assertThrows(InvalidEntryInternalException.class, action);
     }
 
     @Test
-    public void toStringReturnsStringContainingTheNameOfTheRole() throws InvalidEntryInternalException {
-        RoleDto role = RoleDto.newBuilder().withName(SOME_ROLE_NAME).build();
+    void toStringReturnsStringContainingTheNameOfTheRole() {
+        RoleDto role = RoleDto.newBuilder().withRoleName(SOME_ROLE_NAME).build();
         assertThat(role.toString(), containsString(role.getRoleName()));
     }
 
     @Test
-    public void copyReturnsABuilderWithAllFieldsOfOriginalObjectPreserved() throws InvalidEntryInternalException {
+    void copyReturnsABuilderWithAllFieldsOfOriginalObjectPreserved()
+        throws InvalidEntryInternalException, InvalidInputException {
         RoleDto original = RoleDto
             .newBuilder()
-            .withName(SOME_ROLE_NAME)
+            .withRoleName(SOME_ROLE_NAME)
             .withAccessRights(SAMPLE_ACCESS_RIGHTS)
             .build();
         RoleDto copy = original.copy().build();
@@ -89,7 +89,7 @@ public class RoleDtoTest extends DtoTest {
 
     @ParameterizedTest(name = "isValid() returns false when username is \"{0}\"")
     @NullAndEmptySource
-    public void isValidReturnsFalseWhenUsernameIsNullOrBlank(String emptyOrNullRoleName)
+    void isValidReturnsFalseWhenUsernameIsNullOrBlank(String emptyOrNullRoleName)
         throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         RoleDto roleDto = new RoleDto();
         Method setter = RoleDto.class.getDeclaredMethod("setRoleName", String.class);
@@ -100,45 +100,45 @@ public class RoleDtoTest extends DtoTest {
 
     @DisplayName("RoleDto object contains type with value \"Role\"")
     @Test
-    public void roleDtoSerializedObjectContainsTypeWithValueRole() throws InvalidEntryInternalException {
+    void roleDtoSerializedObjectContainsTypeWithValueRole() throws InvalidEntryInternalException, IOException {
         RoleDto sampleRole = createRole(SOME_ROLENAME);
-        ObjectNode json = defaultRestObjectMapper.convertValue(sampleRole, ObjectNode.class);
+        var jsonMap = toMap(sampleRole);
 
-        String actualType = json.get(JSON_TYPE_ATTRIBUTE).asText();
+        String actualType = jsonMap.get(JSON_TYPE_ATTRIBUTE).toString();
         assertThat(actualType, is(equalTo(ROLE_TYPE_LITERAL)));
     }
 
     @DisplayName("RoleDto cannot be created without type value")
     @Test
-    public void userDtoCannotBeCreatedWithoutTypeValue() throws InvalidEntryInternalException, JsonProcessingException {
+    @Disabled("We cannot do this when we are using Jackson-jr")
+    void userDtoCannotBeCreatedWithoutTypeValue() throws InvalidEntryInternalException, IOException {
         RoleDto sampleUser = createRole(SOME_ROLE_NAME);
-        ObjectNode json = defaultRestObjectMapper.convertValue(sampleUser, ObjectNode.class);
-        JsonNode objectWithoutType = json.remove(JSON_TYPE_ATTRIBUTE);
-        String jsonStringWithoutType = defaultRestObjectMapper.writeValueAsString(objectWithoutType);
+        var jsonMap = toMap(sampleUser);
+        var objectWithoutType = jsonMap.remove(JSON_TYPE_ATTRIBUTE);
+        String jsonStringWithoutType = JSON.std.asString(objectWithoutType);
 
-        Executable action = () -> defaultRestObjectMapper.readValue(jsonStringWithoutType, RoleDto.class);
+        Executable action = () -> JSON.std.beanFrom(RoleDto.class, jsonStringWithoutType);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
         assertThat(exception.getMessage(), StringContains.containsString(RoleDto.TYPE));
     }
 
     @DisplayName("RoleDto can be created when it contains the right type value")
     @Test
-    public void roleDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
+    void roleDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
         throws InvalidEntryInternalException, IOException {
-        RoleDto someRole = createRole(SOME_ROLE_NAME);
-        ObjectNode json = defaultRestObjectMapper.convertValue(someRole, ObjectNode.class);
-        assertThatSerializedItemContainsType(json, ROLE_TYPE_LITERAL);
+        var someRole = createRole(SOME_ROLE_NAME);
+        var jsonMap = toMap(someRole);
+        assertThatSerializedItemContainsType(jsonMap, ROLE_TYPE_LITERAL);
 
-        String jsonStringWithType = defaultRestObjectMapper.writeValueAsString(json);
-
-        RoleDto deserializedItem = defaultRestObjectMapper.readValue(jsonStringWithType, RoleDto.class);
+        String jsonStringWithType = JSON.std.asString(jsonMap);
+        RoleDto deserializedItem = JSON.std.beanFrom(RoleDto.class, jsonStringWithType);
 
         assertThat(deserializedItem, is(equalTo(someRole)));
         assertThat(deserializedItem, is(not(IsSame.sameInstance(someRole))));
     }
 
     @Test
-    public void exceptionWhenInvalidReturnsInvalidInputException() throws InvalidEntryInternalException {
+    void exceptionWhenInvalidReturnsInvalidInputException() throws InvalidEntryInternalException {
         RoleDto roleDto = createRole(SOME_ROLE_NAME);
         InvalidInputException exception = roleDto.exceptionWhenInvalid();
 

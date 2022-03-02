@@ -1,5 +1,7 @@
 package no.unit.nva.useraccessmanagement.model;
 
+import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.jr.ob.JSON;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -78,18 +80,6 @@ public class UserList implements List<UserDto> {
 
     @Override
     @JacocoGenerated
-    public void add(int index, UserDto element) {
-        users.add(index, element);
-    }
-
-    @Override
-    @JacocoGenerated
-    public UserDto remove(int index) {
-        return users.remove(index);
-    }
-
-    @Override
-    @JacocoGenerated
     public boolean remove(Object o) {
         return users.remove(o);
     }
@@ -144,6 +134,18 @@ public class UserList implements List<UserDto> {
 
     @Override
     @JacocoGenerated
+    public void add(int index, UserDto element) {
+        users.add(index, element);
+    }
+
+    @Override
+    @JacocoGenerated
+    public UserDto remove(int index) {
+        return users.remove(index);
+    }
+
+    @Override
+    @JacocoGenerated
     public int indexOf(Object o) {
         return users.indexOf(o);
     }
@@ -174,6 +176,12 @@ public class UserList implements List<UserDto> {
 
     @Override
     @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(users);
+    }
+
+    @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -185,10 +193,8 @@ public class UserList implements List<UserDto> {
         return Objects.equals(users, userDtos.users);
     }
 
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(users);
+    public String toString() {
+        return attempt(() -> JSON.std.asString(this)).orElseThrow();
     }
 
     public List<UserDto> getWrappedList() {

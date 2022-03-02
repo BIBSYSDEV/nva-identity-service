@@ -11,13 +11,15 @@ dependencies {
     implementation project(':user-access-service')
     implementation project(':user-access-rights')
 
-    implementation libs.nva.apigateway
+    implementation libs.nva.apigatewayv2
+    implementation libs.nva.json
+    implementation libs.nva.core
     implementation libs.nva.lambdaauthorizer
     implementation libs.nva.secrets
-    implementation libs.nva.json
+    implementation libs.aws.lambda.events
     implementation libs.bundles.aws.lambda
     implementation libs.bundles.jackson
-    implementation libs.aws.lambda.events
+
 
     implementation libs.aws.sdk2.secrets
     implementation libs.aws.sdk2.dynamodbenhanced

@@ -55,7 +55,7 @@ public final class EntityUtils {
             .collect(Collectors.toSet());
         return
             RoleDto.newBuilder()
-                .withName(someRole)
+                .withRoleName(someRole)
                 .withAccessRights(sampleAccessRights)
                 .build();
     }

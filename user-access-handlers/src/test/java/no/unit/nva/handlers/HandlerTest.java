@@ -1,25 +1,22 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.InputStream;
+import com.fasterxml.jackson.jr.ob.JSON;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import no.unit.nva.RandomUserDataGenerator;
 import no.unit.nva.database.DatabaseAccessor;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.testutils.RandomDataGenerator;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigatewayv2.exceptions.ConflictException;
 
 public class HandlerTest extends DatabaseAccessor {
 
@@ -55,7 +52,7 @@ public class HandlerTest extends DatabaseAccessor {
     }
 
     protected UserDto createSampleUser(String username, URI institution) throws InvalidEntryInternalException {
-        RoleDto someRole = RoleDto.newBuilder().withName(DEFAULT_ROLE).build();
+        RoleDto someRole = RoleDto.newBuilder().withRoleName(DEFAULT_ROLE).build();
         return UserDto.newBuilder()
             .withUsername(username)
             .withRoles(Collections.singletonList(someRole))
@@ -63,17 +60,11 @@ public class HandlerTest extends DatabaseAccessor {
             .build();
     }
 
-    protected <T> InputStream createRequestInputStream(T bodyObject)
+    protected <T> APIGatewayProxyRequestEvent createRequestInputStream(T bodyObject)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<T>(defaultRestObjectMapper)
-            .withBody(bodyObject)
-            .build();
-    }
+        var bodyString = attempt(()->JSON.std.asString(bodyObject)).orElseThrow();
+        return  new APIGatewayProxyRequestEvent().withBody(bodyString);
 
-    protected <I> ObjectNode createInputObjectWithoutType(I dtoObject) {
-        ObjectNode objectWithoutType = defaultRestObjectMapper.convertValue(dtoObject, ObjectNode.class);
-        objectWithoutType.remove(TYPE_ATTRIBUTE);
-        return objectWithoutType;
     }
 
     protected String encodeString(String inputContainingSpecialCharacter) {

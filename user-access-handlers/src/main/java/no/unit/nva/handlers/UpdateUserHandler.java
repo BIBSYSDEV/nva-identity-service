@@ -1,6 +1,9 @@
 package no.unit.nva.handlers;
 
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.fasterxml.jackson.jr.ob.JSON;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Map;
@@ -8,10 +11,10 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 
 public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
@@ -28,34 +31,41 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
     }
 
     public UpdateUserHandler(IdentityService databaseService) {
-        super(UserDto.class);
+        super();
         this.databaseService = databaseService;
     }
 
     @Override
-    protected Void processInput(UserDto input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        validateRequest(input, requestInfo);
-        databaseService.updateUser(input);
-        addAdditionalHeaders(addLocationHeaderToResponseSupplier(input));
+    protected Void processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context)
+        throws ApiGatewayException {
+        UserDto inputObject = parseUser(input);
+        validateRequest(inputObject, requestInfo);
+        databaseService.updateUser(inputObject);
+        addAdditionalSuccessHeaders(addLocationHeaderToResponseSupplier(inputObject));
         return null;
     }
 
+    private UserDto parseUser(String input) throws BadRequestException {
+        return attempt(() -> JSON.std.beanFrom(UserDto.class, input))
+            .orElseThrow(fail -> new BadRequestException(fail.getException().getMessage()));
+    }
+
     @Override
-    protected Integer getSuccessStatusCode(UserDto input, Void output) {
+    protected Integer getSuccessStatusCode(String input, Void output) {
         return HttpURLConnection.HTTP_ACCEPTED;
     }
 
-    private void validateRequest(UserDto input, RequestInfo requestInfo)
+    private void validateRequest(UserDto input, APIGatewayProxyRequestEvent requestInfo)
         throws InvalidInputException {
         String userIdFromPath = extractUsernameFromPathParameters(requestInfo);
         comparePathAndInputObjectUsername(input, userIdFromPath);
     }
 
-    private String extractUsernameFromPathParameters(RequestInfo requestInfo) {
+    private String extractUsernameFromPathParameters(APIGatewayProxyRequestEvent requestInfo) {
         return Optional.ofNullable(requestInfo.getPathParameters())
-                   .flatMap(pathParams -> Optional.ofNullable(pathParams.get(USERNAME_PATH_PARAMETER)))
-                   .map(this::decodeUrlPart)
-                   .orElseThrow(() -> new RuntimeException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
+            .flatMap(pathParams -> Optional.ofNullable(pathParams.get(USERNAME_PATH_PARAMETER)))
+            .map(this::decodeUrlPart)
+            .orElseThrow(() -> new RuntimeException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
     }
 
     private void comparePathAndInputObjectUsername(UserDto input, String userIdFromPathParameter)

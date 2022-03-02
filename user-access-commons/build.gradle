@@ -6,13 +6,14 @@ plugins {
 dependencies {
     implementation project(":user-access-errors")
     implementation libs.nva.core
-    implementation libs.nva.json
-    implementation libs.nva.apigateway
-    implementation libs.bundles.jackson
+
+    implementation libs.nva.apigatewayv2
     implementation libs.nva.events
 
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.dynamodbenhanced
+    implementation libs.bundles.jackson
+
     testImplementation libs.bundles.testing
     testImplementation project(":user-access-testing")
 }

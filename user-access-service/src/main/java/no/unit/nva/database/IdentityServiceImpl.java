@@ -9,12 +9,12 @@ import java.util.stream.Collectors;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccessmanagement.dao.UserDao;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.interfaces.WithType;
+import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigatewayv2.exceptions.ConflictException;
+import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -62,8 +62,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public void updateUser(UserDto user)
-        throws InvalidInputException, NotFoundException {
+    public void updateUser(UserDto user) throws NotFoundException {
         this.userService.updateUser(user);
     }
 
@@ -95,7 +94,7 @@ public class IdentityServiceImpl implements IdentityService {
 
     private boolean databaseEntryIsUser(Map<String, AttributeValue> databaseEntry) {
         return Optional.ofNullable(databaseEntry)
-            .map(item -> item.get(WithType.TYPE_FIELD))
+            .map(item -> item.get(Typed.TYPE_FIELD))
             .map(fields -> UserDao.TYPE_VALUE.equals(fields.s()))
             .orElse(false);
     }

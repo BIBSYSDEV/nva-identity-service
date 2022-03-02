@@ -2,15 +2,16 @@ package no.unit.nva.useraccessmanagement.model;
 
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import no.unit.nva.useraccessmanagement.constants.ServiceConstants;
-import no.unit.nva.useraccessmanagement.interfaces.WithType;
-import nva.commons.apigateway.exceptions.BadRequestException;
+import no.unit.nva.useraccessmanagement.interfaces.JacksonJrDoesNotSupportSets;
+import no.unit.nva.useraccessmanagement.interfaces.Typed;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 /**
@@ -22,30 +23,29 @@ import nva.commons.core.JacocoGenerated;
  * Administrator.
  */
 
-public class ViewingScope implements WithType {
+public class ViewingScope implements Typed {
 
     public static final String EXCLUDED_UNIS = "excludedUnis";
     public static final String INCLUDED_UNITS = "includedUnits";
     public static final String VIEWING_SCOPE_TYPE = "ViewingScope";
-    public static final boolean INCLUDE_NESTED_UNITS = true;
-    public static final boolean DO_NOT_INCLUDE_NESTED_UNITS = !INCLUDE_NESTED_UNITS;
     public static final String INVALID_VIEWING_SCOPE_URI_ERROR = "Invalid Viewing Scope URI:";
-    @JsonProperty(INCLUDED_UNITS)
-    private final Set<URI> includedUnits;
-    @JsonProperty(EXCLUDED_UNIS)
-    private final Set<URI> excludedUnits;
 
-    public ViewingScope(@JsonProperty(INCLUDED_UNITS) Set<URI> includedUnits,
-                        @JsonProperty(EXCLUDED_UNIS) Set<URI> excludedUnits) throws BadRequestException {
+    @JsonProperty(INCLUDED_UNITS)
+    private Set<URI> includedUnits;
+    @JsonProperty(EXCLUDED_UNIS)
+    private Set<URI> excludedUnits;
+
+    @JacocoGenerated
+    public ViewingScope() {
+
+    }
+
+    public ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits) throws BadRequestException {
 
         this(includedUnits, excludedUnits, VIEWING_SCOPE_TYPE);
     }
 
-    @JacocoGenerated
-    @JsonCreator
-    public ViewingScope(@JsonProperty(INCLUDED_UNITS) Set<URI> includedUnits,
-                        @JsonProperty(EXCLUDED_UNIS) Set<URI> excludedUnits,
-                        @JsonProperty(TYPE_FIELD) String type)
+    private ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits, String type)
 
         throws BadRequestException {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
@@ -53,8 +53,7 @@ public class ViewingScope implements WithType {
         if (!VIEWING_SCOPE_TYPE.equals(type)) {
             throw new BadRequestException("Expected type is " + VIEWING_SCOPE_TYPE);
         }
-        //TODO: re-enable after migration
-        //validate();
+        validate();
     }
 
     public static ViewingScope defaultViewingScope(URI organizationId) {
@@ -62,12 +61,28 @@ public class ViewingScope implements WithType {
         return attempt(() -> new ViewingScope(Set.of(organizationId), Collections.emptySet())).orElseThrow();
     }
 
-    public Set<URI> getIncludedUnits() {
-        return includedUnits;
+    public static boolean isNotValidOrganizationId(URI uri) {
+        return pathIsNotExpectedPath(uri) || hostIsNotExpectedHost(uri);
     }
 
-    public Set<URI> getExcludedUnits() {
-        return excludedUnits;
+    @JacocoGenerated
+    public List<URI> getIncludedUnits() {
+        return JacksonJrDoesNotSupportSets.toList(includedUnits);
+    }
+
+    @JacocoGenerated
+    public void setIncludedUnits(List<URI> includedUnits) {
+        this.includedUnits = JacksonJrDoesNotSupportSets.toSet(includedUnits);
+    }
+
+    @JacocoGenerated
+    public List<URI> getExcludedUnits() {
+        return JacksonJrDoesNotSupportSets.toList(excludedUnits);
+    }
+
+    @JacocoGenerated
+    public void setExcludedUnits(List<URI> excludedUnits) {
+        this.excludedUnits = JacksonJrDoesNotSupportSets.toSet(excludedUnits);
     }
 
     @Override
@@ -78,7 +93,9 @@ public class ViewingScope implements WithType {
     @JacocoGenerated
     @Override
     public void setType(String type) {
-        //DO NOTHING
+        if (!VIEWING_SCOPE_TYPE.equals(type)) {
+            throw new IllegalArgumentException("ViewingScope type is not " + VIEWING_SCOPE_TYPE);
+        }
     }
 
     @JacocoGenerated
@@ -100,27 +117,6 @@ public class ViewingScope implements WithType {
         return Objects.equals(getIncludedUnits(), that.getIncludedUnits())
                && Objects.equals(getExcludedUnits(), that.getExcludedUnits());
     }
-    //TODO: re-enable after migration
-    //    @JacocoGenerated
-    //    private void validate() throws BadRequestException {
-    //        if (includedUnits.isEmpty()) {
-    //            throw new BadRequestException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
-    //        }
-    //        validate(includedUnits);
-    //        validate(excludedUnits);
-    //    }
-    //
-    //    //TODO: re-enable after migration
-    //    @JacocoGenerated
-    //    private void validate(Set<URI> uris) throws BadRequestException {
-    //        for (URI uri : uris) {
-    //            validate(uri);
-    //        }
-    //    }
-
-    private Set<URI> nonEmptyOrDefault(Set<URI> units) {
-        return nonNull(units) ? units : Collections.emptySet();
-    }
 
     private static Void validate(URI uri) throws BadRequestException {
         if (isNotValidOrganizationId(uri)) {
@@ -129,15 +125,31 @@ public class ViewingScope implements WithType {
         return null;
     }
 
-    public static boolean isNotValidOrganizationId(URI uri) {
-        return pathIsNotExpectedPath(uri) || hostIsNotExpectedHost(uri);
-    }
-
     private static boolean pathIsNotExpectedPath(URI uri) {
         return !uri.getPath().startsWith(ServiceConstants.CRISTIN_PATH);
     }
 
     private static boolean hostIsNotExpectedHost(URI uri) {
         return !ServiceConstants.API_HOST.equals(uri.getHost());
+    }
+
+    @JacocoGenerated
+    private void validate() throws BadRequestException {
+        if (includedUnits.isEmpty()) {
+            throw new BadRequestException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
+        }
+        validate(includedUnits);
+        validate(excludedUnits);
+    }
+
+    @JacocoGenerated
+    private void validate(Set<URI> uris) throws BadRequestException {
+        for (URI uri : uris) {
+            validate(uri);
+        }
+    }
+
+    private Set<URI> nonEmptyOrDefault(Set<URI> units) {
+        return nonNull(units) ? units : Collections.emptySet();
     }
 }

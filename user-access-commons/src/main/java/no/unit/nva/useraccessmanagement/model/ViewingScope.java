@@ -40,14 +40,12 @@ public class ViewingScope implements Typed {
 
     }
 
-    public ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits) throws BadRequestException {
+    public ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits) {
 
         this(includedUnits, excludedUnits, VIEWING_SCOPE_TYPE);
     }
 
-    private ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits, String type)
-
-        throws BadRequestException {
+    private ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits, String type) {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
         if (!VIEWING_SCOPE_TYPE.equals(type)) {
@@ -118,7 +116,7 @@ public class ViewingScope implements Typed {
                && Objects.equals(getExcludedUnits(), that.getExcludedUnits());
     }
 
-    private static Void validate(URI uri) throws BadRequestException {
+    private static Void validate(URI uri) {
         if (isNotValidOrganizationId(uri)) {
             throw new BadRequestException(INVALID_VIEWING_SCOPE_URI_ERROR + uri);
         }
@@ -134,7 +132,7 @@ public class ViewingScope implements Typed {
     }
 
     @JacocoGenerated
-    private void validate() throws BadRequestException {
+    private void validate() {
         if (includedUnits.isEmpty()) {
             throw new BadRequestException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
         }
@@ -143,7 +141,7 @@ public class ViewingScope implements Typed {
     }
 
     @JacocoGenerated
-    private void validate(Set<URI> uris) throws BadRequestException {
+    private void validate(Set<URI> uris) {
         for (URI uri : uris) {
             validate(uri);
         }

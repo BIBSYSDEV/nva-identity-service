@@ -39,7 +39,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     @Override
-    public Builder copy() throws InvalidInputException {
+    public Builder copy() {
         return new Builder()
             .withAccessRights(this.getAccessRights())
             .withRoleName(this.getRoleName());

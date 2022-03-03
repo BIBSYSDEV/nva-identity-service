@@ -91,8 +91,8 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         var response = sendRequestToHandler(validRequest);
 
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
-        UserList actualUsers = parseResponseBody(response);
-        assertThat(actualUsers, is(empty()));
+        UserList actualUserList = parseResponseBody(response);
+        assertThat(actualUserList.getUsers(), is(empty()));
     }
 
 
@@ -101,24 +101,24 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     private UserList unexpectedUsers(UserList insertedUsers, UserList expectedUsers) {
-        UserDto[] insertedUsersCopy = insertedUsers.toArray(UserDto[]::new);
+        UserDto[] insertedUsersCopy = insertedUsers.getUsers().toArray(UserDto[]::new);
 
         // use ArrayList explicitly because the List returned by the asList() method does not support removeAll
         UserList unexpectedUsers = UserList.fromList(new ArrayList<>(Arrays.asList(insertedUsersCopy)));
-        unexpectedUsers.removeAll(expectedUsers);
+        unexpectedUsers.getUsers().removeAll(expectedUsers.getUsers());
 
         return unexpectedUsers;
     }
 
     private void assertThatActualResultDoesNotContainUnexpectedEntities(UserList actualUsers,
                                                                         UserList unexpectedUsers) {
-        UserDto[] unexpectedUsersArray = new UserDto[unexpectedUsers.size()];
-        unexpectedUsers.toArray(unexpectedUsersArray);
-        assertThat(actualUsers, not(contains(unexpectedUsersArray)));
+        UserDto[] unexpectedUsersArray = new UserDto[unexpectedUsers.getUsers().size()];
+        unexpectedUsers.getUsers().toArray(unexpectedUsersArray);
+        assertThat(actualUsers.getUsers(), not(contains(unexpectedUsersArray)));
     }
 
     private UserList expectedUsersOfInstitution(UserList insertedUsers) {
-        List<UserDto> users = insertedUsers.stream()
+        List<UserDto> users = insertedUsers.getUsers().stream()
             .filter(userDto -> userDto.getInstitution().equals(HandlerTest.DEFAULT_INSTITUTION))
             .collect(Collectors.toList());
         return UserList.fromList(users);
@@ -127,8 +127,8 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     private UserList insertTwoUsersOfDifferentInstitutions()
         throws InvalidEntryInternalException, ConflictException, InvalidInputException {
         UserList users = new UserList();
-        users.add(insertSampleUserToDatabase(DEFAULT_USERNAME, HandlerTest.DEFAULT_INSTITUTION));
-        users.add(insertSampleUserToDatabase(SOME_OTHER_USERNAME, SOME_OTHER_INSTITUTION));
+        users.getUsers().add(insertSampleUserToDatabase(DEFAULT_USERNAME, HandlerTest.DEFAULT_INSTITUTION));
+        users.getUsers().add(insertSampleUserToDatabase(SOME_OTHER_USERNAME, SOME_OTHER_INSTITUTION));
 
         return users;
     }
@@ -139,15 +139,15 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     private void assertThatListsAreEquivalent(UserList expectedUsers, UserList actualUsers) {
-        assertThat(actualUsers, containsInAnyOrder(expectedUsers.toArray()));
-        assertThat(expectedUsers, containsInAnyOrder(actualUsers.toArray()));
+        assertThat(actualUsers.getUsers(), containsInAnyOrder(expectedUsers.getUsers().toArray(UserDto[]::new)));
+        assertThat(expectedUsers.getUsers(), containsInAnyOrder(actualUsers.getUsers().toArray()));
     }
 
     private UserList insertTwoUsersOfSameInstitution()
         throws ConflictException, InvalidEntryInternalException, InvalidInputException {
         UserList users = new UserList();
-        users.add(insertSampleUserToDatabase(DEFAULT_USERNAME, DEFAULT_INSTITUTION));
-        users.add(insertSampleUserToDatabase(SOME_OTHER_USERNAME, DEFAULT_INSTITUTION));
+        users.getUsers().add(insertSampleUserToDatabase(DEFAULT_USERNAME, DEFAULT_INSTITUTION));
+        users.getUsers().add(insertSampleUserToDatabase(SOME_OTHER_USERNAME, DEFAULT_INSTITUTION));
         return users;
     }
 

@@ -57,7 +57,7 @@ class AddUserTest extends HandlerTest {
     @DisplayName("processInput() adds user to database when input is a user with username and roles")
     @Test
     void processInputAddsUserToDatabaseWhenInputIsUserWithNamesAndRoles() {
-        UserDto expectedUser = createSampleUserWithExistingRoles(DEFAULT_USERNAME, EMPTY_INSTITUTION);
+        UserDto expectedUser = createSampleUserAndInsertUserRoles(DEFAULT_USERNAME, EMPTY_INSTITUTION);
         UserDto savedUser = sendRequest(expectedUser);
         assertThat(savedUser, is(not(sameInstance(expectedUser))));
         assertThat(savedUser, is(equalTo(expectedUser)));
@@ -67,7 +67,7 @@ class AddUserTest extends HandlerTest {
                  + " institutions")
     @Test
     void processInputAddsUserToDatabaseWhenInputIsUserWithNamesAndRolesAndInstitutions() {
-        var expectedUser = createSampleUserWithExistingRoles();
+        var expectedUser = createSampleUserAndInsertUserRoles();
         var savedUser = sendRequest(expectedUser);
         assertThat(savedUser, is(not(sameInstance(expectedUser))));
         assertThat(savedUser, is(equalTo(expectedUser)));

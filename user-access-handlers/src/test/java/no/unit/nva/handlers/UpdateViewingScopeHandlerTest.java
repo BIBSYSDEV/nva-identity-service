@@ -59,7 +59,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     @Test
     void shouldReturnNotFoundWhenUsernameDoesNotExist() {
-        var sampleUser = createSampleUserWithExistingRoles();
+        var sampleUser = createSampleUserAndInsertUserRoles();
         var request = createUpdateViewingScopeRequest(sampleUser, randomViewingScope());
         var response = handler.handleRequest(request, CONTEXT);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
@@ -86,7 +86,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
     }
 
     private UserDto addSampleUserToDb() throws ConflictException, InvalidInputException {
-        var sampleUser = createSampleUserWithExistingRoles();
+        var sampleUser = createSampleUserAndInsertUserRoles();
         databaseService.addUser(sampleUser);
         return sampleUser;
     }

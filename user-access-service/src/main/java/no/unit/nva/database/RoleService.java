@@ -4,7 +4,6 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import java.util.Optional;
 import no.unit.nva.useraccessmanagement.dao.RoleDb;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
@@ -21,7 +20,7 @@ public class RoleService extends DatabaseSubService {
     public static final String ROLE_NOT_FOUND_MESSAGE = "Could not find role: ";
     public static final String GET_ROLE_DEBUG_MESSAGE = "Getting role:";
 
-    public static final String ADD_ROLE_DEBUG_MESSAGE = "Adding role:";
+    public static final String ADD_ROLE_DEBUG_MESSAGE = "Adding role:{}";
     private static final Logger logger = LoggerFactory.getLogger(RoleService.class);
     private final DynamoDbTable<RoleDb> table;
 
@@ -34,12 +33,9 @@ public class RoleService extends DatabaseSubService {
      * Add role to the database.
      *
      * @param roleDto the role to be added.
-     * @throws ConflictException     when a role with the same name exists.
-     * @throws InvalidInputException when the input entry is not valid.
      */
-    public void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException {
-
-        logger.debug(ADD_ROLE_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(roleDto));
+    public void addRole(RoleDto roleDto) {
+        logger.debug(ADD_ROLE_DEBUG_MESSAGE, convertToStringOrWriteErrorMessage(roleDto));
         validate(roleDto);
         checkRoleDoesNotExist(roleDto);
         table.putItem(RoleDb.fromRoleDto(roleDto));
@@ -50,9 +46,8 @@ public class RoleService extends DatabaseSubService {
      *
      * @param queryObject the query object containing the rolename.
      * @return the Role that corresponds to the given rolename.
-     * @throws NotFoundException when a role with the specified name does not exist in the database.
      */
-    public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
+    public RoleDto getRole(RoleDto queryObject) {
         return getRoleAsOptional(queryObject)
             .orElseThrow(() -> handleRoleNotFound(queryObject));
     }
@@ -71,7 +66,7 @@ public class RoleService extends DatabaseSubService {
         return Optional.ofNullable(attemptFetchRole(queryObject));
     }
 
-    private void checkRoleDoesNotExist(RoleDto roleDto) throws ConflictException {
+    private void checkRoleDoesNotExist(RoleDto roleDto) {
         if (roleAlreadyExists(roleDto)) {
             throw new ConflictException(ROLE_ALREADY_EXISTS_ERROR_MESSAGE + roleDto.getRoleName());
         }

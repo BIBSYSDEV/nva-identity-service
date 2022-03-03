@@ -14,7 +14,6 @@ import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
-import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -40,8 +39,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public UserDto getUser(UserDto queryObject)
-        throws NotFoundException, InvalidInputException {
+    public UserDto getUser(UserDto queryObject) {
         return userService.getUser(queryObject);
     }
 
@@ -51,23 +49,22 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public void addUser(UserDto user) throws ConflictException {
+    public void addUser(UserDto user) {
         this.userService.addUser(user);
     }
 
     @Override
-    public void addRole(RoleDto roleDto)
-        throws InvalidInputException, ConflictException {
+    public void addRole(RoleDto roleDto){
         this.roleService.addRole(roleDto);
     }
 
     @Override
-    public void updateUser(UserDto user) throws NotFoundException {
+    public void updateUser(UserDto user) {
         this.userService.updateUser(user);
     }
 
     @Override
-    public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
+    public RoleDto getRole(RoleDto queryObject)  {
         return this.roleService.getRole(queryObject);
     }
 

@@ -4,8 +4,6 @@ import static java.util.Objects.isNull;
 import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
 import no.unit.nva.useraccessmanagement.exceptions.EmptyInputException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.interfaces.Validable;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.attempt.Try;
@@ -24,7 +22,7 @@ public class DatabaseSubService {
         this.client = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
     }
 
-    protected static void validate(Validable input) throws InvalidInputException {
+    protected static void validate(Validable input) {
         if (isNull(input)) {
             throw new EmptyInputException(EMPTY_INPUT_ERROR_MESSAGE);
         }
@@ -47,10 +45,10 @@ public class DatabaseSubService {
     // PMD complains about the log error format but this call seems legit according to SLF4J
     // see http://slf4j.org/faq.html#exception_message
     @SuppressWarnings("PMD.InvalidLogMessageFormat")
-    protected static <T> InvalidEntryInternalException handleError(Failure<T> fail) {
+    protected static <T> RuntimeException handleError(Failure<T> fail) {
         logger.error("Error fetching user:", fail.getException());
-        if (fail.getException() instanceof InvalidEntryInternalException) {
-            return (InvalidEntryInternalException) fail.getException();
+        if (fail.getException() instanceof RuntimeException) {
+            return (RuntimeException) fail.getException();
         } else {
             throw new RuntimeException(fail.getException());
         }

@@ -66,7 +66,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
         return username;
     }
 
-    public void setUsername(String username) throws InvalidInputException {
+    public void setUsername(String username) {
         if (StringUtils.isBlank(username)) {
             throw new InvalidInputException(MISSING_FIELD_ERROR + "username");
         }
@@ -116,11 +116,6 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.roles = JacksonJrDoesNotSupportSets.toSet(roles);
     }
 
-    @Override
-    public String toString() {
-        return attempt(() -> JSON.std.asString(this)).orElseThrow();
-    }
-
     /**
      * Creates a copy of the object.
      *
@@ -159,6 +154,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
                && Objects.equals(getInstitution(), userDto.getInstitution())
                && Objects.equals(getViewingScope(), userDto.getViewingScope())
                && Objects.equals(getRoles(), userDto.getRoles());
+    }
+
+    @Override
+    public String toString() {
+        return attempt(() -> JSON.std.asString(this)).orElseThrow();
     }
 
     public ViewingScope getViewingScope() {

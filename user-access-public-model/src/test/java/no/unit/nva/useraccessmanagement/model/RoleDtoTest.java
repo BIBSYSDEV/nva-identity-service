@@ -1,6 +1,8 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createRole;
@@ -19,9 +21,11 @@ import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Set;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto.Builder;
+
 import org.hamcrest.core.IsSame;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Disabled;
@@ -143,5 +147,18 @@ class RoleDtoTest extends DtoTest {
         InvalidInputException exception = roleDto.exceptionWhenInvalid();
 
         assertThat(exception.getMessage(), StringContains.containsString(MISSING_ROLE_NAME_ERROR));
+    }
+
+    @Test
+    void shouldSerializeAsJson() throws IOException {
+        Set<String> randomAccessRights = Set.of(randomString(),randomString());
+        var sample = RoleDto.newBuilder()
+            .withRoleName(randomString())
+            .withAccessRights(randomAccessRights)
+            .build();
+
+        var json = sample.toString();
+        var deserialized = JSON.std.beanFrom(RoleDto.class,json);
+        assertThat(deserialized,is(equalTo(sample)));
     }
 }

@@ -1,12 +1,10 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +19,6 @@ import nva.commons.apigatewayv2.exceptions.ConflictException;
 public class HandlerTest extends DatabaseAccessor {
 
     public static final String DEFAULT_USERNAME = "someUsername@inst";
-    public static final String DEFAULT_ROLE = "SomeRole";
     public static final URI DEFAULT_INSTITUTION = randomCristinOrgId();
     public static final String TYPE_ATTRIBUTE = "type";
     private static final String SPECIAL_CHARACTER = "@";
@@ -30,7 +27,7 @@ public class HandlerTest extends DatabaseAccessor {
 
     protected UserDto insertSampleUserToDatabase(String username, URI institution)
         throws InvalidEntryInternalException, ConflictException, InvalidInputException {
-        UserDto sampleUser = createSampleUserWithExistingRoles(username, institution);
+        UserDto sampleUser = createSampleUserAndInsertUserRoles(username, institution);
         databaseService.addUser(sampleUser);
         return sampleUser;
     }
@@ -40,19 +37,19 @@ public class HandlerTest extends DatabaseAccessor {
         return insertSampleUserToDatabase(DEFAULT_USERNAME, DEFAULT_INSTITUTION);
     }
 
-    protected UserDto createSampleUserWithExistingRoles(String username, URI institution)
+    protected UserDto createSampleUserAndInsertUserRoles(String username, URI institution)
         throws InvalidEntryInternalException {
         UserDto sampleUser = createSampleUser(username, institution);
         sampleUser.getRoles().forEach((this::insertRole));
         return sampleUser;
     }
 
-    protected UserDto createSampleUserWithExistingRoles() throws InvalidEntryInternalException {
-        return createSampleUserWithExistingRoles(DEFAULT_USERNAME, DEFAULT_INSTITUTION);
+    protected UserDto createSampleUserAndInsertUserRoles() throws InvalidEntryInternalException {
+        return createSampleUserAndInsertUserRoles(DEFAULT_USERNAME, DEFAULT_INSTITUTION);
     }
 
     protected UserDto createSampleUser(String username, URI institution) throws InvalidEntryInternalException {
-        RoleDto someRole = RoleDto.newBuilder().withRoleName(DEFAULT_ROLE).build();
+        RoleDto someRole = RoleDto.newBuilder().withRoleName(randomString()).build();
         return UserDto.newBuilder()
             .withUsername(username)
             .withRoles(Collections.singletonList(someRole))
@@ -60,12 +57,6 @@ public class HandlerTest extends DatabaseAccessor {
             .build();
     }
 
-    protected <T> APIGatewayProxyRequestEvent createRequestInputStream(T bodyObject)
-        throws JsonProcessingException {
-        var bodyString = attempt(()->JSON.std.asString(bodyObject)).orElseThrow();
-        return  new APIGatewayProxyRequestEvent().withBody(bodyString);
-
-    }
 
     protected String encodeString(String inputContainingSpecialCharacter) {
         assertThat(inputContainingSpecialCharacter, containsString(SPECIAL_CHARACTER));

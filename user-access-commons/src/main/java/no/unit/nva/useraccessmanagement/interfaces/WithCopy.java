@@ -1,7 +1,5 @@
 package no.unit.nva.useraccessmanagement.interfaces;
 
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-
 /**
  * Example usage:
  * <br/><pre>{@code
@@ -23,5 +21,5 @@ public interface WithCopy<T> {
      *
      * @return a builder instance with filled in data.
      */
-    T copy() throws InvalidInputException;
+    T copy();
 }

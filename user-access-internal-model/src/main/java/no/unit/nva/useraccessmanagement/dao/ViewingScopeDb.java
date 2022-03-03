@@ -41,9 +41,7 @@ public class ViewingScopeDb implements Typed {
     public ViewingScopeDb() {
     }
 
-    public ViewingScopeDb(Set<URI> includedUnits, Set<URI> excludedUnits)
-
-        throws BadRequestException {
+    public ViewingScopeDb(Set<URI> includedUnits, Set<URI> excludedUnits) {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
         validate(includedUnits);
@@ -115,7 +113,7 @@ public class ViewingScopeDb implements Typed {
         return dao;
     }
 
-    private static Void validate(Set<URI> includedUnits) throws BadRequestException {
+    private static Void validate(Set<URI> includedUnits)  {
         if (isNull(includedUnits) || includedUnits.isEmpty()) {
             throw new BadRequestException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
         }

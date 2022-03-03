@@ -51,8 +51,7 @@ public class UserService extends DatabaseSubService {
      * @return the DTO of the user in the database.
      * @throws NotFoundException when there is no use with that username
      */
-    public UserDto getUser(UserDto queryObject)
-        throws NotFoundException {
+    public UserDto getUser(UserDto queryObject) {
         return getUserAsOptional(queryObject)
             .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }
@@ -82,7 +81,7 @@ public class UserService extends DatabaseSubService {
      * @param user the user to be added.
      * @throws ConflictException when the entry exists.
      */
-    public void addUser(UserDto user) throws ConflictException {
+    public void addUser(UserDto user) {
         logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
         checkUserDoesNotAlreadyExist(user);
         UserDao databaseEntryWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(user));
@@ -96,8 +95,7 @@ public class UserService extends DatabaseSubService {
      * @throws InvalidInputException when the input entry is invalid.
      * @throws NotFoundException     when there is no user with the same username in the database.
      */
-    public void updateUser(UserDto updateObject)
-        throws  NotFoundException {
+    public void updateUser(UserDto updateObject) {
 
         UserDto existingUser = getExistingUserOrSendNotFoundError(updateObject);
         UserDao updatedObjectWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(updateObject));
@@ -116,7 +114,6 @@ public class UserService extends DatabaseSubService {
         return Optional.ofNullable(searchResult);
     }
 
-
     private QueryEnhancedRequest createListUsersByInstitutionQuery(URI institution) {
         return QueryEnhancedRequest.builder()
             .queryConditional(QueryConditional.keyEqualTo(Key.builder().partitionValue(institution.toString()).build()))
@@ -124,14 +121,13 @@ public class UserService extends DatabaseSubService {
             .build();
     }
 
-    private void checkUserDoesNotAlreadyExist(UserDto user) throws ConflictException {
+    private void checkUserDoesNotAlreadyExist(UserDto user) {
         if (userAlreadyExists(user)) {
             throw new ConflictException(USER_ALREADY_EXISTS_ERROR_MESSAGE + user.getUsername());
         }
     }
 
-    private UserDto getExistingUserOrSendNotFoundError(UserDto queryObject)
-        throws NotFoundException {
+    private UserDto getExistingUserOrSendNotFoundError(UserDto queryObject) {
         return getUserAsOptional(queryObject)
             .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }
@@ -154,7 +150,6 @@ public class UserService extends DatabaseSubService {
     private boolean userHasChanged(UserDto existingUser, UserDao desiredUpdateWithSyncedRoles) {
         return !desiredUpdateWithSyncedRoles.equals(UserDao.fromUserDto(existingUser));
     }
-
 
     private void updateTable(UserDao userUpdateWithSyncedRoles) {
         table.putItem(userUpdateWithSyncedRoles);

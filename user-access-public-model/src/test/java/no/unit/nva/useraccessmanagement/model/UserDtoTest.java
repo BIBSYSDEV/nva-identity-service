@@ -1,8 +1,10 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_USERNAME;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.createRole;
@@ -43,7 +45,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
- class UserDtoTest extends DtoTest {
+class UserDtoTest extends DtoTest {
 
     public static final Set<RoleDto> sampleRoles = createSampleRoles();
 
@@ -57,7 +59,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
     @DisplayName("UserDto object contains type with value \"User\"")
     @Test
-     void userDtoSerializedObjectContainsTypeWithValueUser() throws IOException {
+    void userDtoSerializedObjectContainsTypeWithValueUser() throws IOException {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
         var jsonMap = toMap(sampleUser);
 
@@ -80,7 +82,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
     @DisplayName("UserDto can be created when it contains the right type value")
     @Test
-     void userDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
+    void userDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
         throws InvalidEntryInternalException, IOException {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
         var json = toMap(sampleUser);
@@ -94,7 +96,7 @@ import org.junit.jupiter.params.provider.ValueSource;
     }
 
     @Test
-     void getAccessRightsReturnsAccessRightsWithoutDuplicates() {
+    void getAccessRightsReturnsAccessRightsWithoutDuplicates() {
         final UserDto user = createUserWithRoleWithoutInstitution();
         final Set<String> expectedAccessRights = new HashSet<>(user.getAccessRights());
         List<RoleDto> newRoles = duplicateRoles(user);
@@ -105,7 +107,7 @@ import org.junit.jupiter.params.provider.ValueSource;
     }
 
     @Test
-     void getAccessRightsReturnsAllAccessRightsContainedInTheUsersRoles() {
+    void getAccessRightsReturnsAllAccessRightsContainedInTheUsersRoles() {
 
         RoleDto firstRole = sampleRole(FIRST_ACCESS_RIGHT, SOME_ROLENAME);
         RoleDto secondRole = sampleRole(SECOND_ACCESS_RIGHT, SOME_OTHER_ROLENAME);
@@ -182,7 +184,7 @@ import org.junit.jupiter.params.provider.ValueSource;
         var expectedJson = toMap(initialUser);
         assertThat(actualJson, is(equalTo(expectedJson)));
 
-        var deserializedObject = JSON.std.beanFrom(UserDto.class,jsonString);
+        var deserializedObject = JSON.std.beanFrom(UserDto.class, jsonString);
         assertThat(deserializedObject, is(equalTo(initialUser)));
         assertThat(deserializedObject, is(not(sameInstance(initialUser))));
     }
@@ -211,6 +213,21 @@ import org.junit.jupiter.params.provider.ValueSource;
         ViewingScope actualViewingScope = userDto.getViewingScope();
         assertThat(actualViewingScope.getIncludedUnits(), contains(cristinUnitIncludedInDefaultCuratorsView));
         assertThat(actualViewingScope.getExcludedUnits(), contains(cristinUnitExcludedFromDefaultCuratorsView));
+    }
+
+    @Test
+    void shouldSerializeAsJson() throws IOException {
+        var sample = UserDto.newBuilder()
+            .withUsername(randomString())
+            .withFamilyName(randomString())
+            .withGivenName(randomString())
+            .withInstitution(randomUri())
+            .withRoles(sampleRoles)
+            .withViewingScope(randomViewingScope())
+            .build();
+        var json = sample.toString();
+        var deserialized = JSON.std.beanFrom(UserDto.class,json);
+        assertThat(deserialized,is(equalTo(sample)));
     }
 
     private static Set<RoleDto> createSampleRoles() {

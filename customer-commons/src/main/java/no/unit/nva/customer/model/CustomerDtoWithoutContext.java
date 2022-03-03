@@ -1,27 +1,20 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import no.unit.nva.customer.model.interfaces.Customer;
+import java.util.stream.Collectors;
 import no.unit.nva.customer.model.interfaces.Resource;
+import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
 
-@SuppressWarnings("PMD.ExcessivePublicCount")
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = As.PROPERTY,
-    property = "type")
-@JsonTypeName("Customer")
-public class CustomerDtoWithoutContext implements Customer<VocabularyDto>, Resource {
+public class CustomerDtoWithoutContext implements Resource, Typed {
 
+    private static final String TYPE = "Customer";
     private URI id;
     private UUID identifier;
     private Instant createdDate;
@@ -34,7 +27,7 @@ public class CustomerDtoWithoutContext implements Customer<VocabularyDto>, Resou
     private String institutionDns;
     private String feideOrganizationId;
     private String cristinId;
-    private Set<VocabularyDto> vocabularySettings;
+    private List<VocabularyDto> vocabularySettings;
 
     public CustomerDtoWithoutContext() {
 
@@ -50,124 +43,102 @@ public class CustomerDtoWithoutContext implements Customer<VocabularyDto>, Resou
         this.id = id;
     }
 
-    @Override
     public UUID getIdentifier() {
         return identifier;
     }
 
-    @Override
     public void setIdentifier(UUID identifier) {
         this.identifier = identifier;
     }
 
-    @Override
-    public Instant getCreatedDate() {
-        return createdDate;
+    public String getCreatedDate() {
+        return nonNull(createdDate) ? createdDate.toString() : null;
     }
 
-    @Override
-    public void setCreatedDate(Instant createdDate) {
-        this.createdDate = createdDate;
+    public void setCreatedDate(String createdDate) {
+        this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
     }
 
-    @Override
-    public Instant getModifiedDate() {
-        return modifiedDate;
+    public String getModifiedDate() {
+        return nonNull(modifiedDate) ? modifiedDate.toString() : null;
     }
 
-    @Override
-    public void setModifiedDate(Instant modifiedDate) {
-        this.modifiedDate = modifiedDate;
+    public void setModifiedDate(String modifiedDate) {
+        this.modifiedDate = nonNull(modifiedDate) ? Instant.parse(modifiedDate) : null;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public void setName(String name) {
         this.name = name;
     }
 
-    @Override
     public String getDisplayName() {
         return displayName;
     }
 
-    @Override
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
-    @Override
     public String getShortName() {
         return shortName;
     }
 
-    @Override
     public void setShortName(String shortName) {
         this.shortName = shortName;
     }
 
-    @Override
     public String getArchiveName() {
         return archiveName;
     }
 
-    @Override
     public void setArchiveName(String archiveName) {
         this.archiveName = archiveName;
     }
 
-    @Override
     public String getCname() {
         return cname;
     }
 
-    @Override
     public void setCname(String cname) {
         this.cname = cname;
     }
 
-    @Override
     public String getInstitutionDns() {
         return institutionDns;
     }
 
-    @Override
     public void setInstitutionDns(String institutionDns) {
         this.institutionDns = institutionDns;
     }
 
-    @Override
     public String getFeideOrganizationId() {
         return feideOrganizationId;
     }
 
-    @Override
     public void setFeideOrganizationId(String feideOrganizationId) {
         this.feideOrganizationId = feideOrganizationId;
     }
 
-    @Override
     public String getCristinId() {
         return cristinId;
     }
 
-    @Override
     public void setCristinId(String cristinId) {
         this.cristinId = cristinId;
     }
 
-    @Override
-    public Set<VocabularyDto> getVocabularies() {
-        return nonNull(vocabularySettings) ? vocabularySettings : Collections.emptySet();
+    public List<VocabularyDto> getVocabularies() {
+        return nonNull(vocabularySettings) ? vocabularySettings : Collections.emptyList();
     }
 
-    @Override
-    public void setVocabularies(Set<VocabularyDto> vocabularySettings) {
-        this.vocabularySettings = vocabularySettings;
+    public void setVocabularies(List<VocabularyDto> vocabularySettings) {
+        this.vocabularySettings = nonNull(vocabularySettings)
+                                      ? vocabularySettings.stream().distinct().collect(Collectors.toList())
+                                      : Collections.emptyList();
     }
 
     @Override
@@ -201,5 +172,15 @@ public class CustomerDtoWithoutContext implements Customer<VocabularyDto>, Resou
                && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies());
+    }
+
+    @Override
+    public String getType() {
+        return CustomerDtoWithoutContext.TYPE;
+    }
+
+    @Override
+    public void setType(String type) {
+        Typed.super.setType(type);
     }
 }

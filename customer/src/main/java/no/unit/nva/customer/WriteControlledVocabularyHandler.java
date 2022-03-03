@@ -32,6 +32,6 @@ public abstract class WriteControlledVocabularyHandler
 
     private VocabularyList parseInput(String input) {
         return attempt(() -> RestConfig.defaultRestObjectMapper.beanFrom(VocabularyList.class, input))
-            .orElseThrow(fail -> new BadRequestException("Invalid input object"));
+            .orElseThrow(fail -> new BadRequestException("Invalid input object",fail.getException()));
     }
 }

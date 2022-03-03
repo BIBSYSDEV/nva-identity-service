@@ -15,7 +15,6 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
-import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 public class UpdateCustomerHandler extends ApiGatewayHandlerV2<CustomerDto, CustomerDto> {
@@ -53,8 +52,8 @@ public class UpdateCustomerHandler extends ApiGatewayHandlerV2<CustomerDto, Cust
     }
 
     @Override
-    protected List<MediaType> listSupportedMediaTypes() {
-        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
+    protected Integer getSuccessStatusCode(String input, CustomerDto output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     @Override
@@ -64,13 +63,13 @@ public class UpdateCustomerHandler extends ApiGatewayHandlerV2<CustomerDto, Cust
         return customerService.updateCustomer(identifier, parsedCustomer);
     }
 
-    private CustomerDto parseInput(String input) {
-        return attempt(() -> RestConfig.defaultRestObjectMapper.beanFrom(CustomerDto.class, input))
-            .orElseThrow(fail -> new BadRequestException("Could not parse input"));
+    @Override
+    protected List<MediaType> listSupportedMediaTypes() {
+        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
 
-    @Override
-    protected Integer getSuccessStatusCode(String input, CustomerDto output) {
-        return HttpURLConnection.HTTP_OK;
+    private CustomerDto parseInput(String input) {
+        return attempt(() -> RestConfig.defaultRestObjectMapper.beanFrom(CustomerDto.class, input))
+            .orElseThrow(fail -> new BadRequestException("Could not parse input" + input, fail.getException()));
     }
 }

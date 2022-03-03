@@ -13,6 +13,7 @@ import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
@@ -66,13 +67,14 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
         return VocabularyList.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
     }
 
-    protected <T> APIGatewayProxyRequestEvent createRequest(UUID customerIdentifer, T expectedBody,
-                                                            MediaType acceptedMediaType)
-        throws JsonProcessingException {
+    protected <T> APIGatewayProxyRequestEvent createRequest(UUID customerIdentifier,
+                                                            T expectedBody,
+                                                            MediaType acceptedMediaType) {
         return new APIGatewayProxyRequestEvent()
-            .withPathParameters(identifierToPathParameter(customerIdentifer))
+            .withPathParameters(identifierToPathParameter(customerIdentifier))
             .withBody(expectedBody.toString())
-            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()));
+            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()))
+            .withMultiValueHeaders(Map.of(HttpHeaders.ACCEPT, List.of(acceptedMediaType.toString())));
     }
 
     protected Map<String, String> identifierToPathParameter(UUID identifier) {

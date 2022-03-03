@@ -1,5 +1,6 @@
 package no.unit.nva.customer.update;
 
+import static no.unit.nva.customer.testing.TestHeaders.getMultiValuedHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static nva.commons.core.ioutils.IoUtils.stringFromResources;
@@ -49,7 +50,7 @@ public class UpdateCustomerHandlerTest {
     }
 
     @Test
-    void handleRequestReturnsOkForValidRequest()  {
+    void shouldReturnOkForValidRequest()  {
         CustomerDto customer = createCustomer(UUID.randomUUID());
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
 
@@ -73,21 +74,20 @@ public class UpdateCustomerHandlerTest {
 
         var response =handler.handleRequest(input, context);
 
-
         assertThat(response.getStatusCode(),is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE), is(equalTo(MediaType.JSON_UTF_8)));
+        assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE), is(equalTo(MediaType.JSON_UTF_8.toString())));
     }
 
     private APIGatewayProxyRequestEvent createInput(CustomerDto customer, Map<String, String> pathParameters) {
         return new APIGatewayProxyRequestEvent()
             .withBody(customer.toString())
             .withHeaders(getRequestHeaders())
+            .withMultiValueHeaders(getMultiValuedHeaders())
             .withPathParameters(pathParameters);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws Exception {
+    void requestToHandlerWithMalformedIdentifierReturnsBadRequest() {
         String malformedIdentifier = "for-testing";
         CustomerDto customer = createCustomer(UUID.randomUUID());
 

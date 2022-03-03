@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class CustomerListTest {
+class CustomerListTest {
 
     @Test
-    public void customerListFromCustomer() {
+    void customerListFromCustomer() {
         CustomerDto customer = new CustomerDto();
         CustomerList customerList = new CustomerList(List.of(customer));
         assertEquals(1, customerList.getCustomers().size());
@@ -19,7 +19,7 @@ public class CustomerListTest {
     }
 
     @Test
-    public void customerListFromNull() {
+    void customerListFromNull() {
         List<CustomerDto> list = new ArrayList<>();
         list.add(null);
         CustomerList customerList = new CustomerList(list);
@@ -27,7 +27,7 @@ public class CustomerListTest {
     }
 
     @Test
-    public void customerListCanBeConvertedToJsonAndBack() throws IOException {
+    void customerListCanBeConvertedToJsonAndBack() throws IOException {
         List<CustomerDto> customerDtos = List.of(new CustomerDto());
         CustomerList customerList = new CustomerList(customerDtos);
         String customerListJson = defaultRestObjectMapper.asString(customerList);

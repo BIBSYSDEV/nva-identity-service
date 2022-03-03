@@ -5,16 +5,18 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
-public class CustomerDto extends CustomerDtoWithoutContext implements Context, Typed {
+public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
     public static final String TYPE = "Customer";
     @JsonProperty("@context")
@@ -22,7 +24,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context, T
 
     public CustomerDto() {
         super();
-        setVocabularies(Collections.emptySet());
+        setVocabularies(Collections.emptyList());
     }
 
     public static CustomerDto fromJson(String json) {
@@ -110,7 +112,137 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context, T
 
     @Override
     public void setType(String type) {
-        Typed.super.setType(type);
+        super.setType(type);
+    }
+
+    @Override
+    public URI getId() {
+        return super.getId();
+    }
+
+    @Override
+    public void setId(URI id) {
+        super.setId(id);
+    }
+
+    @Override
+    public UUID getIdentifier() {
+        return super.getIdentifier();
+    }
+
+    @Override
+    public void setIdentifier(UUID identifier) {
+        super.setIdentifier(identifier);
+    }
+
+    @Override
+    public String getCreatedDate() {
+        return super.getCreatedDate();
+    }
+
+    @Override
+    public void setCreatedDate(String createdDate) {
+        super.setCreatedDate(createdDate);
+    }
+
+    @Override
+    public String getModifiedDate() {
+        return super.getModifiedDate();
+    }
+
+    @Override
+    public void setModifiedDate(String modifiedDate) {
+        super.setModifiedDate(modifiedDate);
+    }
+
+    @Override
+    public String getName() {
+        return super.getName();
+    }
+
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return super.getDisplayName();
+    }
+
+    @Override
+    public void setDisplayName(String displayName) {
+        super.setDisplayName(displayName);
+    }
+
+    @Override
+    public String getShortName() {
+        return super.getShortName();
+    }
+
+    @Override
+    public void setShortName(String shortName) {
+        super.setShortName(shortName);
+    }
+
+    @Override
+    public String getArchiveName() {
+        return super.getArchiveName();
+    }
+
+    @Override
+    public void setArchiveName(String archiveName) {
+        super.setArchiveName(archiveName);
+    }
+
+    @Override
+    public String getCname() {
+        return super.getCname();
+    }
+
+    @Override
+    public void setCname(String cname) {
+        super.setCname(cname);
+    }
+
+    @Override
+    public String getInstitutionDns() {
+        return super.getInstitutionDns();
+    }
+
+    @Override
+    public void setInstitutionDns(String institutionDns) {
+        super.setInstitutionDns(institutionDns);
+    }
+
+    @Override
+    public String getFeideOrganizationId() {
+        return super.getFeideOrganizationId();
+    }
+
+    @Override
+    public void setFeideOrganizationId(String feideOrganizationId) {
+        super.setFeideOrganizationId(feideOrganizationId);
+    }
+
+    @Override
+    public String getCristinId() {
+        return super.getCristinId();
+    }
+
+    @Override
+    public void setCristinId(String cristinId) {
+        super.setCristinId(cristinId);
+    }
+
+    @Override
+    public List<VocabularyDto> getVocabularies() {
+        return super.getVocabularies();
+    }
+
+    @Override
+    public void setVocabularies(List<VocabularyDto> vocabularySettings) {
+        super.setVocabularies(vocabularySettings);
     }
 
     public String toString() {
@@ -135,12 +267,12 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context, T
             return this;
         }
 
-        public Builder withCreatedDate(Instant createdDate) {
+        public Builder withCreatedDate(String createdDate) {
             customerDto.setCreatedDate(createdDate);
             return this;
         }
 
-        public Builder withModifiedDate(Instant modifiedDate) {
+        public Builder withModifiedDate(String modifiedDate) {
             customerDto.setModifiedDate(modifiedDate);
             return this;
         }
@@ -185,8 +317,8 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context, T
             return this;
         }
 
-        public Builder withVocabularies(Set<VocabularyDto> vocabularies) {
-            customerDto.setVocabularies(vocabularies);
+        public Builder withVocabularies(Collection<VocabularyDto> vocabularies) {
+            customerDto.setVocabularies(new ArrayList<>(vocabularies));
             return this;
         }
 

@@ -1,5 +1,6 @@
 package no.unit.nva.customer.testing;
 
+import java.util.List;
 import nva.commons.core.JacocoGenerated;
 
 import java.util.Map;
@@ -23,6 +24,12 @@ public class TestHeaders {
         return Map.of(
             CONTENT_TYPE, JSON_UTF_8.toString(),
             ACCEPT, JSON_UTF_8.toString());
+    }
+
+    public static Map<String, List<String>> getMultiValuedHeaders(){
+        return Map.of(
+            CONTENT_TYPE, List.of(JSON_UTF_8.toString()),
+            ACCEPT, List.of(JSON_UTF_8.toString()));
     }
 
     /**

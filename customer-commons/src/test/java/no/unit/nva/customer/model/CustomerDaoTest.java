@@ -26,7 +26,7 @@ class CustomerDaoTest {
     public static final Javers JAVERS = JaversBuilder.javers().build();
 
     @Test
-    public void toCustomerDtoReturnsDtoWithoutLossOfInformation() {
+    void toCustomerDtoReturnsDtoWithoutLossOfInformation() {
         CustomerDao expected = CustomerDataGenerator.createSampleCustomerDao();
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
@@ -37,7 +37,7 @@ class CustomerDaoTest {
     }
 
     @Test
-    public void fromCustomerDbReturnsDbWithoutLossOfInformation() {
+    void fromCustomerDbReturnsDbWithoutLossOfInformation() {
         CustomerDto expected = crateSampleCustomerDto();
         CustomerDao customerDb = CustomerDao.fromCustomerDto(expected);
         CustomerDto actual = customerDb.toCustomerDto();
@@ -79,7 +79,7 @@ class CustomerDaoTest {
             .withName(randomString())
             .withCristinId(randomString())
             .withFeideOrganizationId(randomString())
-            .withModifiedDate(randomInstant())
+            .withModifiedDate(randomInstant().toString())
             .withIdentifier(identifier)
             .withId(id)
             .withCname(randomString())
@@ -88,7 +88,7 @@ class CustomerDaoTest {
             .withShortName(randomString())
             .withInstitutionDns(randomString())
             .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
+            .withCreatedDate(randomInstant().toString())
             .withVocabularies(randomVocabularyDtoSettings())
             .build();
 

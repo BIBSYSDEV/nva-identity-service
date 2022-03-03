@@ -4,7 +4,6 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static nva.commons.core.attempt.Try.attempt;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.net.URI;
@@ -23,12 +22,14 @@ import nva.commons.core.JacocoGenerated;
 public class CustomerList {
 
     public static final String CUSTOMERS = "customers";
-
     @JsonProperty(CUSTOMERS)
-    private final List<CustomerDtoWithoutContext> customers;
+    private List<CustomerDtoWithoutContext> customers;
 
-    @JsonCreator
-    public CustomerList(@JsonProperty(CUSTOMERS) List<CustomerDto> customers) {
+    public CustomerList() {
+
+    }
+
+    public CustomerList(List<CustomerDto> customers) {
         this.customers = extractCustomers(customers);
     }
 
@@ -49,6 +50,10 @@ public class CustomerList {
 
     public List<CustomerDtoWithoutContext> getCustomers() {
         return nonNull(customers) ? customers : Collections.emptyList();
+    }
+
+    public void setCustomers(List<CustomerDtoWithoutContext> customers) {
+        this.customers = customers;
     }
 
     @Override

@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
-import no.unit.nva.customer.model.interfaces.Customer;
+import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -24,7 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
 @SuppressWarnings("PMD.ExcessivePublicCount")
-public class CustomerDao implements Customer<VocabularyDao>, TypedDao {
+public class CustomerDao implements Typed {
 
     public static final String IDENTIFIER = "identifier";
     public static final String ORG_NUMBER = "feideOrganizationId";
@@ -56,156 +56,158 @@ public class CustomerDao implements Customer<VocabularyDao>, TypedDao {
     public static CustomerDao fromCustomerDto(CustomerDto dto) {
         return builder().withArchiveName(dto.getArchiveName())
             .withCname(dto.getCname())
-            .withCreatedDate(dto.getCreatedDate())
+            .withCreatedDate(Instant.parse(dto.getCreatedDate()))
             .withCristinId(dto.getCristinId())
             .withDisplayName(dto.getDisplayName())
             .withIdentifier(dto.getIdentifier())
             .withInstitutionDns(dto.getInstitutionDns())
             .withShortName(dto.getShortName())
             .withFeideOrganizationId(dto.getFeideOrganizationId())
-            .withModifiedDate(dto.getModifiedDate())
+            .withModifiedDate(Instant.parse(dto.getModifiedDate()))
             .withVocabularySettings(extractVocabularySettings(dto))
             .withName(dto.getName())
             .build();
     }
 
-    @Override
+
     @DynamoDbPartitionKey
     @DynamoDbAttribute(IDENTIFIER)
     public UUID getIdentifier() {
         return identifier;
     }
 
-    @Override
+
     public void setIdentifier(UUID identifier) {
         this.identifier = identifier;
     }
 
-    @Override
+
     public Instant getCreatedDate() {
         return createdDate;
     }
 
-    @Override
+
     public void setCreatedDate(Instant createdDate) {
         this.createdDate = createdDate;
     }
 
-    @Override
+
     public Instant getModifiedDate() {
         return modifiedDate;
     }
 
-    @Override
+
     public void setModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
 
-    @Override
+
     public String getName() {
         return name;
     }
 
-    @Override
+
     public void setName(String name) {
         this.name = name;
     }
 
-    @Override
+
     public String getDisplayName() {
         return displayName;
     }
 
-    @Override
+
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
-    @Override
+
     public String getShortName() {
         return shortName;
     }
 
-    @Override
+
     public void setShortName(String shortName) {
         this.shortName = shortName;
     }
 
-    @Override
+
     public String getArchiveName() {
         return archiveName;
     }
 
-    @Override
+
     public void setArchiveName(String archiveName) {
         this.archiveName = archiveName;
     }
 
-    @Override
+
     public String getCname() {
         return cname;
     }
 
-    @Override
+
     public void setCname(String cname) {
         this.cname = cname;
     }
 
-    @Override
+
     public String getInstitutionDns() {
         return institutionDns;
     }
 
-    @Override
+
     public void setInstitutionDns(String institutionDns) {
         this.institutionDns = institutionDns;
     }
 
-    @Override
+
     @DynamoDbSecondaryPartitionKey(indexNames = {BY_ORG_NUMBER_INDEX_NAME})
     @DynamoDbAttribute(ORG_NUMBER)
     public String getFeideOrganizationId() {
         return feideOrganizationId;
     }
 
-    @Override
+
     public void setFeideOrganizationId(String feideOrganizationId) {
         this.feideOrganizationId = feideOrganizationId;
     }
 
-    @Override
+
     @DynamoDbSecondaryPartitionKey(indexNames = {BY_CRISTIN_ID_INDEX_NAME})
     @DynamoDbAttribute(CRISTIN_ID)
     public String getCristinId() {
         return cristinId;
     }
 
-    @Override
+
     public void setCristinId(String cristinId) {
         this.cristinId = cristinId;
     }
 
-    @Override
+
     @DynamoDbIgnoreNulls
     public Set<VocabularyDao> getVocabularies() {
         return nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
-    @Override
+
     public void setVocabularies(Set<VocabularyDao> vocabularies) {
         this.vocabularies = nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
-    @Override
+
     @JacocoGenerated
+    @Override
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
                             getCristinId(), getVocabularies());
     }
 
-    @Override
+
     @JacocoGenerated
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -234,19 +236,19 @@ public class CustomerDao implements Customer<VocabularyDao>, TypedDao {
             .withName(getName())
             .withIdentifier(this.getIdentifier())
             .withArchiveName(this.getArchiveName())
-            .withCreatedDate(this.getCreatedDate())
+            .withCreatedDate(Optional.ofNullable(this.getCreatedDate()).map(Objects::toString).orElse(null))
             .withDisplayName(this.getDisplayName())
             .withInstitutionDns(this.getInstitutionDns())
             .withShortName(this.getShortName())
             .withVocabularies(extractVocabularySettings())
-            .withModifiedDate(getModifiedDate())
+            .withModifiedDate(Optional.ofNullable(getModifiedDate()).map(Objects::toString).orElse(null))
             .withFeideOrganizationId(getFeideOrganizationId())
             .withCristinId(getCristinId())
             .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
 
-    @Override
+
     public String getType() {
         return TYPE;
     }

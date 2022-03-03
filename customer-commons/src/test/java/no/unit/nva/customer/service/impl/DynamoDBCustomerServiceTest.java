@@ -27,7 +27,6 @@ import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
-import nva.commons.core.Environment;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -211,8 +210,8 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         var customer = CustomerDto.builder()
             .withName(randomString())
             .withShortName(randomString())
-            .withCreatedDate(oneMinuteInThePast)
-            .withModifiedDate(oneMinuteInThePast)
+            .withCreatedDate(oneMinuteInThePast.toString())
+            .withModifiedDate(oneMinuteInThePast.toString())
             .withDisplayName(randomString())
             .withArchiveName(randomString())
             .withCname(randomString())

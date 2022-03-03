@@ -1,16 +1,19 @@
 package no.unit.nva.customer.model.interfaces;
 
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
 import static nva.commons.core.attempt.Try.attempt;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import no.unit.nva.customer.RestConfig;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.JacksonJrDoesNotSupportSets;
 import no.unit.nva.customer.model.VocabularyDto;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
@@ -22,37 +25,47 @@ public class VocabularyList implements Context, Typed {
     public static final String VOCABULARY_SETTINGS = "vocabularies";
     public static final String TYPE = "VocabularyList";
     @JsonProperty(VOCABULARY_SETTINGS)
-    private final Set<VocabularyDto> vocabularies;
+    private Set<VocabularyDto> vocabularies;
     @JsonProperty(LINKED_DATA_ID)
-    private final URI id;
+    private URI id;
 
-    @JsonCreator
-    public VocabularyList(@JsonProperty(LINKED_DATA_ID) URI id,
-                          @JsonProperty(VOCABULARY_SETTINGS) Set<VocabularyDto> vocabularies) {
-        this.vocabularies = vocabularies;
+    public VocabularyList() {
+
+    }
+
+    public VocabularyList(URI id,
+                          Set<VocabularyDto> vocabularies) {
+        this.vocabularies = new HashSet<>(vocabularies);
         this.id = id;
     }
 
     public static VocabularyList fromCustomerDto(CustomerDto customerDto) {
 
         URI id = new UriWrapper(customerDto.getId()).addChild(VOCABULARY_SETTINGS).getUri();
-        Set<VocabularyDto> vocabularies = customerDto.getVocabularies();
+        Set<VocabularyDto> vocabularies = new HashSet<>(customerDto.getVocabularies());
         return new VocabularyList(id, vocabularies);
     }
 
-    public static VocabularyList fromJson(String json){
-        return attempt(()-> RestConfig.defaultRestObjectMapper.beanFrom(VocabularyList.class,json))
-                   .orElseThrow(fail-> new BadRequestException("Could not read input: "+json));
+    public static VocabularyList fromJson(String json) {
+        return attempt(() -> defaultRestObjectMapper.beanFrom(VocabularyList.class, json))
+            .orElseThrow(fail -> new BadRequestException("Could not read input: " + json));
     }
 
+    public List<VocabularyDto> getVocabularies() {
+        return JacksonJrDoesNotSupportSets.toList(vocabularies);
+    }
 
-    public Set<VocabularyDto> getVocabularies() {
-        return vocabularies;
+    public void setVocabularies(List<VocabularyDto> vocabularies) {
+        this.vocabularies = JacksonJrDoesNotSupportSets.toSet(vocabularies);
     }
 
     @JsonProperty(LINKED_DATA_ID)
     public URI getId() {
         return id;
+    }
+
+    public void setId(URI id) {
+        this.id = id;
     }
 
     @Override
@@ -84,6 +97,11 @@ public class VocabularyList implements Context, Typed {
         }
         VocabularyList that = (VocabularyList) o;
         return Objects.equals(getVocabularies(), that.getVocabularies());
+    }
+
+    @Override
+    public String toString() {
+        return attempt(() -> defaultRestObjectMapper.asString(this)).orElseThrow();
     }
 
     @Override

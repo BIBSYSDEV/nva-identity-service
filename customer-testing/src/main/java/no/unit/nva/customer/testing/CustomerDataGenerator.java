@@ -33,7 +33,7 @@ public class CustomerDataGenerator {
             .withName(randomString())
             .withCristinId(randomString())
             .withFeideOrganizationId(randomString())
-            .withModifiedDate(randomInstant())
+            .withModifiedDate(randomInstant().toString())
             .withIdentifier(identifier)
             .withId(id)
             .withCname(randomString())
@@ -42,7 +42,7 @@ public class CustomerDataGenerator {
             .withShortName(randomString())
             .withInstitutionDns(randomString())
             .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
+            .withCreatedDate(randomInstant().toString())
             .withVocabularies(randomVocabularyDtoSettings())
             .build();
 

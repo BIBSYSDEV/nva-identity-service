@@ -20,20 +20,10 @@ import java.util.UUID;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-public class CustomerTest {
+class CustomerTest {
 
     @Test
-    public void customerMappedToJsonAndBack() throws IOException {
-        CustomerDao customer = createCustomerDb();
-        CustomerDao mappedCustomer = defaultRestObjectMapper.beanFrom(
-                CustomerDao.class,defaultRestObjectMapper.asString(customer));
-
-        assertEquals(customer, mappedCustomer);
-        assertThat(customer, doesNotHaveEmptyValues());
-    }
-
-    @Test
-    public void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() {
+    void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() {
         CustomerDao customerDb = createCustomerDb();
         CustomerDto customerDto = customerDb.toCustomerDto();
 
@@ -45,7 +35,7 @@ public class CustomerTest {
     }
 
     @Test
-    public void customerMapperCanMapCustomerDbToCustomerDto() {
+    void customerMapperCanMapCustomerDbToCustomerDto() {
         CustomerDao customerDb = createCustomerDb();
         CustomerDto customerDto = customerDb.toCustomerDto();
         assertNotNull(customerDto);
@@ -53,7 +43,7 @@ public class CustomerTest {
     }
 
     @Test
-    public void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
+    void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
         String value = "Unknown";
         IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
                                                        () -> VocabularyStatus.lookup(value));
@@ -67,7 +57,7 @@ public class CustomerTest {
     }
 
     @Test
-    public void vocacularySettingsDoesNotContainDuplicates() {
+    void vocacularySettingsDoesNotContainDuplicates() {
         CustomerDao customerDb = createCustomerDb();
         customerDb.getVocabularies().add(vocabularySetting());
 

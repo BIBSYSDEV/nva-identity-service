@@ -84,8 +84,8 @@ public class DynamoDBCustomerService implements CustomerService {
         UUID identifier = UUID.randomUUID();
         Instant now = Instant.now();
         customer.setIdentifier(identifier);
-        customer.setCreatedDate(now);
-        customer.setModifiedDate(now);
+        customer.setCreatedDate(now.toString());
+        customer.setModifiedDate(now.toString());
         table.putItem(CustomerDao.fromCustomerDto(customer));
         return getCustomer(identifier);
     }
@@ -93,7 +93,7 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public CustomerDto updateCustomer(UUID identifier, CustomerDto customer)  {
         validateIdentifier(identifier, customer);
-        customer.setModifiedDate(Instant.now());
+        customer.setModifiedDate(Instant.now().toString());
         table.putItem(CustomerDao.fromCustomerDto(customer));
         return getCustomer(identifier);
     }

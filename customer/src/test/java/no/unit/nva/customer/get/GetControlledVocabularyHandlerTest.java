@@ -84,7 +84,7 @@ class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
         throws IOException {
         var response = sendGetRequest(getExistingCustomerIdentifier());
         VocabularyList body = VocabularyList.fromJson(response.getBody());
-        Set<VocabularyDto> actualVocabularySettings = body.getVocabularies();
+        var actualVocabularySettings = body.getVocabularies();
         assertThat(actualVocabularySettings, is(equalTo(existingCustomer.getVocabularies())));
     }
 

@@ -1,5 +1,6 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -85,6 +86,13 @@ class GetUserHandlerTest extends HandlerTest {
         var request = createRequest(DEFAULT_USERNAME);
         var response = getUserHandler.handleRequest(request, context);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
+    }
+
+    @Test
+    void shouldReturnBadRequestWheRequestBodyIsInValid() throws InvalidEntryInternalException {
+        var request = new APIGatewayProxyRequestEvent().withBody(randomString());
+        var response = getUserHandler.handleRequest(request,context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
     private APIGatewayProxyRequestEvent createRequest(String username) {

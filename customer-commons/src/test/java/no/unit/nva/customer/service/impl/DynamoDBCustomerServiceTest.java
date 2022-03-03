@@ -26,17 +26,16 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
-public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
+class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
 
     private DynamoDBCustomerService service;
-    private Environment environment;
 
     /**
      * Set up environment.
@@ -44,12 +43,11 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     @BeforeEach
     public void setUp() {
         super.setupDatabase();
-        environment = new Environment();
         service = new DynamoDBCustomerService(dynamoClient);
     }
 
     @Test
-    public void createNewCustomerReturnsTheCustomer() throws Exception {
+    void createNewCustomerReturnsTheCustomer() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
 
@@ -60,7 +58,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void updateExistingCustomerWithNewName() throws Exception {
+    void updateExistingCustomerWithNewName() {
         String newName = "New name";
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
@@ -72,7 +70,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void updateExistingCustomerChangesModifiedDate() throws Exception {
+    void updateExistingCustomerChangesModifiedDate() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
 
@@ -81,7 +79,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void updateExistingCustomerPreservesCreatedDate() throws Exception {
+    void updateExistingCustomerPreservesCreatedDate() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
@@ -89,7 +87,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void updateExistingCustomerWithDifferentIdentifiersThrowsException() throws Exception {
+    void updateExistingCustomerWithDifferentIdentifiersThrowsException() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         var differentIdentifier = UUID.randomUUID();
@@ -101,7 +99,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void getExistingCustomerReturnsTheCustomer() throws Exception {
+    void getExistingCustomerReturnsTheCustomer() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         var getCustomer = service.getCustomer(createdCustomer.getIdentifier());
@@ -109,7 +107,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void getCustomerByOrgNumberReturnsTheCustomer() throws Exception {
+    void getCustomerByOrgNumberReturnsTheCustomer() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         var getCustomer = service.getCustomerByOrgNumber(createdCustomer.getFeideOrganizationId());
@@ -117,7 +115,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void getCustomerByCristinIdReturnsTheCustomer() throws Exception {
+    void getCustomerByCristinIdReturnsTheCustomer() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         assertThat(createdCustomer, doesNotHaveEmptyValues());
@@ -126,14 +124,14 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void shouldThrowNotFoundExceptionWhenQueryResultIsEmpty() throws Exception {
+    void shouldThrowNotFoundExceptionWhenQueryResultIsEmpty() {
         var customer = newCustomerDto();
         service.createCustomer(customer);
         assertThrows(NotFoundException.class, () -> service.getCustomerByCristinId(randomUri().toString()));
     }
 
     @Test
-    public void getAllCustomersReturnsListOfCustomers() throws Exception {
+    void getAllCustomersReturnsListOfCustomers() {
         // create three customers
         service.createCustomer(newCustomerDto());
         service.createCustomer(newCustomerDto());
@@ -144,7 +142,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void getCustomerNotFoundThrowsException() {
+    void getCustomerNotFoundThrowsException() {
         var nonExistingCustomer = UUID.randomUUID();
         var exception = assertThrows(NotFoundException.class,
                                      () -> service.getCustomer(nonExistingCustomer));
@@ -152,7 +150,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void getCustomerTableErrorThrowsException() {
+    void getCustomerTableErrorThrowsException() {
         final var expectedMessage = randomString();
         DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
         when(failingTable.getItem(any(CustomerDao.class)))
@@ -166,7 +164,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void getCustomersTableErrorThrowsException() {
+    void getCustomersTableErrorThrowsException() {
         DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
         final var expectedMessage = randomString();
         when(failingTable.scan()).thenAnswer(ignored -> {
@@ -178,7 +176,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void createCustomerTableErrorThrowsException() {
+    void createCustomerTableErrorThrowsException() {
         DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
         final var expectedMessage = randomString();
         doAnswer(ignored -> {
@@ -192,7 +190,7 @@ public class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    public void updateCustomerTableErrorThrowsException() {
+    void updateCustomerTableErrorThrowsException() {
         DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
         final var expectedMessage = randomString();
         doAnswer(ignored -> {

@@ -9,10 +9,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
-import nva.commons.apigatewayv2.exceptions.ConflictException;
-import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
 public class AddRoleHandler extends HandlerWithEventualConsistency<RoleDto, RoleDto> {
@@ -39,8 +36,7 @@ public class AddRoleHandler extends HandlerWithEventualConsistency<RoleDto, Role
     }
 
     @Override
-    protected RoleDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context)
-        throws DataSyncException, ConflictException, InvalidInputException, BadRequestException {
+    protected RoleDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
 
         var inputRole = attempt(() -> JSON.std.beanFrom(RoleDto.class, input))
             .orElseThrow(fail -> new BadRequestException(fail.getException().getMessage()));
@@ -49,7 +45,7 @@ public class AddRoleHandler extends HandlerWithEventualConsistency<RoleDto, Role
             .orElseThrow(() -> new DataSyncException(ERROR_FETCHING_SAVED_ROLE + inputRole.getRoleName()));
     }
 
-    private RoleDto getRole(RoleDto input) throws NotFoundException {
+    private RoleDto getRole(RoleDto input) {
         return databaseService.getRole(input);
     }
 }

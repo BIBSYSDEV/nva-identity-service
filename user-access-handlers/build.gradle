@@ -27,7 +27,6 @@ dependencies {
     implementation libs.aws.sdk2.urlconnection
 
 
-
     testImplementation project(':user-access-internal-model')
     testImplementation project(':user-access-testing')
 }

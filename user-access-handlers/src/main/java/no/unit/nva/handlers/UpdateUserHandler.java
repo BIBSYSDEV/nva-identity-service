@@ -14,7 +14,6 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 
 public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
@@ -36,8 +35,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
     }
 
     @Override
-    protected Void processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context)
-        throws ApiGatewayException {
+    protected Void processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
         UserDto inputObject = parseUser(input);
         validateRequest(inputObject, requestInfo);
         databaseService.updateUser(inputObject);
@@ -45,7 +43,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
         return null;
     }
 
-    private UserDto parseUser(String input) throws BadRequestException {
+    private UserDto parseUser(String input) {
         return attempt(() -> JSON.std.beanFrom(UserDto.class, input))
             .orElseThrow(fail -> new BadRequestException(fail.getException().getMessage()));
     }
@@ -55,8 +53,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
         return HttpURLConnection.HTTP_ACCEPTED;
     }
 
-    private void validateRequest(UserDto input, APIGatewayProxyRequestEvent requestInfo)
-        throws InvalidInputException {
+    private void validateRequest(UserDto input, APIGatewayProxyRequestEvent requestInfo) {
         String userIdFromPath = extractUsernameFromPathParameters(requestInfo);
         comparePathAndInputObjectUsername(input, userIdFromPath);
     }
@@ -68,8 +65,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
             .orElseThrow(() -> new RuntimeException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
     }
 
-    private void comparePathAndInputObjectUsername(UserDto input, String userIdFromPathParameter)
-        throws InvalidInputException {
+    private void comparePathAndInputObjectUsername(UserDto input, String userIdFromPathParameter){
         if (!userIdFromPathParameter.equals(input.getUsername())) {
             throw new InvalidInputException(INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR);
         }

@@ -1,24 +1,24 @@
 package no.unit.nva.customer.update;
 
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
+import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.UUID;
 import no.unit.nva.customer.Constants;
+import no.unit.nva.customer.RestConfig;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigateway.ApiGatewayHandler;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import org.apache.http.HttpStatus;
 
-import java.util.List;
-import java.util.UUID;
-
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-
-public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDto, CustomerDto> {
+public class UpdateCustomerHandler extends ApiGatewayHandlerV2<CustomerDto, CustomerDto> {
 
     public static final String IDENTIFIER = "identifier";
     public static final String IDENTIFIER_IS_NOT_A_VALID_UUID = "Identifier is not a valid UUID: ";
@@ -29,23 +29,20 @@ public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDto, Custom
      */
     @JacocoGenerated
     public UpdateCustomerHandler() {
-        this(defaultCustomerService(), new Environment());
+        this(defaultCustomerService());
     }
 
     /**
      * Constructor for UpdateCustomerHandler.
      *
      * @param customerService customerService
-     * @param environment     environment
      */
-    public UpdateCustomerHandler(
-        CustomerService customerService,
-        Environment environment) {
-        super(CustomerDto.class, environment);
+    public UpdateCustomerHandler(CustomerService customerService) {
+        super();
         this.customerService = customerService;
     }
 
-    protected UUID getIdentifier(RequestInfo requestInfo) throws ApiGatewayException {
+    protected UUID getIdentifier(APIGatewayProxyRequestEvent requestInfo) {
         String identifier = null;
         try {
             identifier = requestInfo.getPathParameters().get(IDENTIFIER);
@@ -61,14 +58,19 @@ public class UpdateCustomerHandler extends ApiGatewayHandler<CustomerDto, Custom
     }
 
     @Override
-    protected CustomerDto processInput(CustomerDto input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
+    protected CustomerDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
         UUID identifier = getIdentifier(requestInfo);
-        return customerService.updateCustomer(identifier, input);
+        var parsedCustomer = parseInput(input);
+        return customerService.updateCustomer(identifier, parsedCustomer);
+    }
+
+    private CustomerDto parseInput(String input) {
+        return attempt(() -> RestConfig.defaultRestObjectMapper.beanFrom(CustomerDto.class, input))
+            .orElseThrow(fail -> new BadRequestException("Could not parse input"));
     }
 
     @Override
-    protected Integer getSuccessStatusCode(CustomerDto input, CustomerDto output) {
-        return HttpStatus.SC_OK;
+    protected Integer getSuccessStatusCode(String input, CustomerDto output) {
+        return HttpURLConnection.HTTP_OK;
     }
 }

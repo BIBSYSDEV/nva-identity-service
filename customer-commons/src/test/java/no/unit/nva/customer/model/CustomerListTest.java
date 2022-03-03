@@ -1,14 +1,12 @@
 package no.unit.nva.customer.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 public class CustomerListTest {
 
@@ -29,11 +27,11 @@ public class CustomerListTest {
     }
 
     @Test
-    public void customerListCanBeConvertedToJsonAndBack() throws JsonProcessingException {
+    public void customerListCanBeConvertedToJsonAndBack() throws IOException {
         List<CustomerDto> customerDtos = List.of(new CustomerDto());
         CustomerList customerList = new CustomerList(customerDtos);
-        String customerListJson = defaultRestObjectMapper.writeValueAsString(customerList);
-        CustomerList mappedCustomerList = defaultRestObjectMapper.readValue(customerListJson, CustomerList.class);
+        String customerListJson = defaultRestObjectMapper.asString(customerList);
+        CustomerList mappedCustomerList = defaultRestObjectMapper.beanFrom(CustomerList.class, customerListJson);
         assertNotNull(mappedCustomerList);
     }
 }

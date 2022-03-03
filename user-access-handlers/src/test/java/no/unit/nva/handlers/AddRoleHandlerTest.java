@@ -1,5 +1,6 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,7 +24,7 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class AddRoleHandlerTest extends HandlerTest {
+class AddRoleHandlerTest extends HandlerTest {
 
     public static final String SOME_ROLE_NAME = "someRoleName";
     private RoleDto sampleRole;
@@ -44,39 +45,41 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsBadRequestWhenRequestBodyIsEmpty() {
+    void handleRequestReturnsBadRequestWhenRequestBodyIsEmpty() {
         var response = sendRequest(null);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
     @Test
-    public void handleRequestReturnsBadRequestWhenRequestBodyIsAnEmptyObject() {
+    void handleRequestReturnsBadRequestWhenRequestBodyIsAnEmptyObject() {
         var response = sendRequest(new RoleDto());
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
     @Test
-    public void handlerRequestReturnsOkWheRequestBodyIsValid() throws InvalidEntryInternalException {
+    void handlerRequestReturnsOkWheRequestBodyIsValid() throws InvalidEntryInternalException {
         var response = sendRequest(sampleRole());
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_OK)));
     }
 
     @Test
-    public void handlerRequestReturnsTheGeneratedObjectWhenInputIsValid()
+    void shouldReturnBadRequestWheRequestBodyIsInValid() throws InvalidEntryInternalException {
+        var request = new APIGatewayProxyRequestEvent().withBody(randomString());
+        var response = addRoleHandler.handleRequest(request, context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
+    }
+
+    @Test
+    void handlerRequestReturnsTheGeneratedObjectWhenInputIsValid()
         throws InvalidEntryInternalException, IOException {
         var actualRole = sampleRole();
-        var  response = sendRequest(actualRole);
+        var response = sendRequest(actualRole);
         RoleDto savedRole = extractResponseBody(response);
         assertThat(savedRole, is(equalTo(actualRole)));
     }
 
-    private RoleDto extractResponseBody(APIGatewayProxyResponseEvent response) throws IOException {
-        var responseBody = response.getBody();
-        return JSON.std.beanFrom(RoleDto.class, responseBody);
-    }
-
     @Test
-    public void handlerRequestReturnsTheGeneratedObjectAfterWaitingForSyncingToComplete()
+    void handlerRequestReturnsTheGeneratedObjectAfterWaitingForSyncingToComplete()
         throws InvalidEntryInternalException, IOException {
         var actualRole = sampleRole();
         var service = databaseServiceWithSyncDelay();
@@ -87,7 +90,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsInternalServerErrorWhenDatabaseFailsToSaveTheData()
+    void handleRequestReturnsInternalServerErrorWhenDatabaseFailsToSaveTheData()
         throws InvalidEntryInternalException {
         RoleDto actualRole = sampleRole();
         IdentityService service = databaseServiceAddingButNotGettingARole();
@@ -99,13 +102,13 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void statusCodeReturnsOkWhenRequestIsSuccessful() {
+    void statusCodeReturnsOkWhenRequestIsSuccessful() {
         Integer successCode = addRoleHandler.getSuccessStatusCode(null, null);
         assertThat(successCode, is(equalTo(HttpStatus.SC_OK)));
     }
 
     @Test
-    public void addRoleHandlerThrowsDataSyncExceptionWhenDatabaseServiceCannotFetchSavedRole()
+    void addRoleHandlerThrowsDataSyncExceptionWhenDatabaseServiceCannotFetchSavedRole()
         throws InvalidEntryInternalException {
 
         RoleDto inputRole = sampleRole();
@@ -116,7 +119,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void errorMessageIsLoggedWhenAddRoleHandlerThrowsDatasyncException() {
+    void errorMessageIsLoggedWhenAddRoleHandlerThrowsDatasyncException() {
         TestAppender testingAppender = LogUtils.getTestingAppenderForRootLogger();
         var addRoleHandler = addRoleHandlerDoesNotFindRoleAfterAddingIt();
         var inputRequest = createRequest(sampleRole);
@@ -125,7 +128,10 @@ public class AddRoleHandlerTest extends HandlerTest {
         assertThat(testingAppender.getMessages(), containsString(AddRoleHandler.ERROR_FETCHING_SAVED_ROLE));
     }
 
-
+    private RoleDto extractResponseBody(APIGatewayProxyResponseEvent response) throws IOException {
+        var responseBody = response.getBody();
+        return JSON.std.beanFrom(RoleDto.class, responseBody);
+    }
 
     private APIGatewayProxyRequestEvent createRequest(RoleDto inputRole) {
         var body = attempt(() -> JSON.std.asString(inputRole)).orElseThrow();
@@ -136,7 +142,6 @@ public class AddRoleHandlerTest extends HandlerTest {
         return new APIGatewayProxyRequestEvent()
             .withBody(body);
     }
-
 
     private RoleDto sampleRole() throws InvalidEntryInternalException {
         return RoleDto.newBuilder().withRoleName(SOME_ROLE_NAME).build();
@@ -174,8 +179,7 @@ public class AddRoleHandlerTest extends HandlerTest {
     }
 
     private APIGatewayProxyResponseEvent sendRequest(RoleDto role) {
-        var input=createRequest(role);
-        return addRoleHandler.handleRequest(input,  context);
-
+        var input = createRequest(role);
+        return addRoleHandler.handleRequest(input, context);
     }
 }

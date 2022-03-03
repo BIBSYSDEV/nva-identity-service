@@ -1,24 +1,20 @@
 package no.unit.nva.customer.get;
 
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
+import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.UUID;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigateway.ApiGatewayHandler;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
+import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
 import nva.commons.core.JacocoGenerated;
 
-import java.util.List;
-import java.util.UUID;
-
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static org.apache.http.HttpStatus.SC_OK;
-
-public class GetCustomerHandler extends ApiGatewayHandler<Void, CustomerDto> {
+public class GetCustomerHandler extends ApiGatewayHandlerV2<Void, CustomerDto> {
 
     public static final String IDENTIFIER = "identifier";
     public static final String IDENTIFIER_IS_NOT_A_VALID_UUID = "Identifier is not a valid UUID: ";
@@ -30,22 +26,20 @@ public class GetCustomerHandler extends ApiGatewayHandler<Void, CustomerDto> {
      */
     @JacocoGenerated
     public GetCustomerHandler() {
-        this(defaultCustomerService(), new Environment()
-        );
+        this(defaultCustomerService());
     }
 
     /**
      * Constructor for CreateCustomerHandler.
      *
      * @param customerService customerService
-     * @param environment     environment
      */
-    public GetCustomerHandler(CustomerService customerService, Environment environment) {
-        super(Void.class, environment);
+    public GetCustomerHandler(CustomerService customerService) {
+        super();
         this.customerService = customerService;
     }
 
-    protected UUID getIdentifier(RequestInfo requestInfo) throws ApiGatewayException {
+    protected UUID getIdentifier(APIGatewayProxyRequestEvent requestInfo) {
         String identifier = null;
         try {
             identifier = requestInfo.getPathParameters().get(IDENTIFIER);
@@ -56,18 +50,17 @@ public class GetCustomerHandler extends ApiGatewayHandler<Void, CustomerDto> {
     }
 
     @Override
+    protected CustomerDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
+        return customerService.getCustomer(getIdentifier(requestInfo));
+    }
+
+    @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
 
     @Override
-    protected CustomerDto processInput(Void input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-        return customerService.getCustomer(getIdentifier(requestInfo));
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
-        return SC_OK;
+    protected Integer getSuccessStatusCode(String input, CustomerDto output) {
+        return HttpURLConnection.HTTP_OK;
     }
 }

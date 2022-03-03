@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
-import nva.commons.core.Environment;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

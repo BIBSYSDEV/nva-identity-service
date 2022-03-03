@@ -4,12 +4,14 @@ plugins {
 }
 
 dependencies {
-    implementation libs.nva.apigateway
-    implementation libs.nva.json
+    implementation libs.nva.apigatewayv2
+    implementation libs.nva.core
+    implementation libs.bundles.jackson
     implementation libs.guava
     implementation libs.aws.sdk2.dynamodbenhanced
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.urlconnection
+
     testImplementation project (":customer-testing")
 }
 

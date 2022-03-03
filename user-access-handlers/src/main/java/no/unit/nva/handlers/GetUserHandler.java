@@ -9,7 +9,6 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 
 public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
@@ -28,8 +27,7 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
     }
 
     @Override
-    protected UserDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context)
-        throws ApiGatewayException {
+    protected UserDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
 
         String username = extractValidUserNameOrThrowException(requestInfo);
         UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
@@ -41,7 +39,7 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private String extractValidUserNameOrThrowException(APIGatewayProxyRequestEvent requestInfo) throws BadRequestException {
+    private String extractValidUserNameOrThrowException(APIGatewayProxyRequestEvent requestInfo) {
         return Optional.of(requestInfo)
             .map(APIGatewayProxyRequestEvent::getPathParameters)
             .map(map -> map.get(USERNAME_PATH_PARAMETER))

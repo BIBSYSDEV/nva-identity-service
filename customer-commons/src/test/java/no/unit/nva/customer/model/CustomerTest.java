@@ -3,7 +3,7 @@ package no.unit.nva.customer.model;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
-import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.HashSet;
@@ -23,10 +23,10 @@ import org.junit.jupiter.api.Test;
 public class CustomerTest {
 
     @Test
-    public void customerMappedToJsonAndBack() throws JsonProcessingException {
+    public void customerMappedToJsonAndBack() throws IOException {
         CustomerDao customer = createCustomerDb();
-        CustomerDao mappedCustomer = defaultDynamoConfigMapper.readValue(
-                defaultDynamoConfigMapper.writeValueAsString(customer), CustomerDao.class);
+        CustomerDao mappedCustomer = defaultRestObjectMapper.beanFrom(
+                CustomerDao.class,defaultRestObjectMapper.asString(customer));
 
         assertEquals(customer, mappedCustomer);
         assertThat(customer, doesNotHaveEmptyValues());

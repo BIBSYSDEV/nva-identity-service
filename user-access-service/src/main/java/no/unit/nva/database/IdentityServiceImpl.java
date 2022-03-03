@@ -8,12 +8,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccessmanagement.dao.UserDao;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.internals.UserScanResult;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigatewayv2.exceptions.ConflictException;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -54,7 +52,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public void addRole(RoleDto roleDto){
+    public void addRole(RoleDto roleDto) {
         this.roleService.addRole(roleDto);
     }
 
@@ -64,7 +62,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public RoleDto getRole(RoleDto queryObject)  {
+    public RoleDto getRole(RoleDto queryObject) {
         return this.roleService.getRole(queryObject);
     }
 

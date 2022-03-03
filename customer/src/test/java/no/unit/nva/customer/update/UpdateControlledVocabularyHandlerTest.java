@@ -21,9 +21,6 @@ import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.interfaces.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.MediaTypes;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
@@ -33,34 +30,32 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Test
     public void handleRequestReturnsAcceptedWhenUpdatingVocabularyForExistingCustomer() throws IOException {
-        sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
+        var response =sendRequestAcceptingJsonLd(existingIdentifier()).getResponse();
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_ACCEPTED)));
     }
 
     @Test
     public void handleRequestReturnsUpdatedVocabularyListWhenUpdatingVocabularyForExistingCustomer()
         throws IOException {
-        VocabularyList expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
-        VocabularyList body = response.getBodyObject(VocabularyList.class);
-        assertThat(body, is(equalTo(expectedBody)));
+        var result = sendRequestAcceptingJsonLd(existingIdentifier());
+        var actualBody =VocabularyList.fromJson(result.getResponse().getBody());
+        assertThat(actualBody, is(equalTo(result.getExpectedBody())));
     }
 
     @Test
     public void handleRequestSavesVocabularySettingsToDatabaseWhenUpdatingSettingsForExistingCustomer()
-        throws IOException, ApiGatewayException {
-        VocabularyList expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
+        throws IOException {
+        var  result= sendRequestAcceptingJsonLd(existingIdentifier());
         Set<VocabularyDto> savedVocabularySettings =
             customerService.getCustomer(existingIdentifier()).getVocabularies();
-        assertThat(savedVocabularySettings, is(equalTo(expectedBody.getVocabularies())));
+
+        assertThat(savedVocabularySettings, is(equalTo(result.getExpectedBody().getVocabularies())));
     }
 
     @Test
     public void handleRequestReturnsNotFoundWhenTryingToSaveSettingsForNonExistingCustomer()
         throws IOException {
-        sendRequestAcceptingJsonLd(UUID.randomUUID());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
+        var response= sendRequestAcceptingJsonLd(UUID.randomUUID()).getResponse();
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
@@ -68,8 +63,8 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
     public void handleRequestReturnsBadRequestWhenInputBodyIsNotValid()
         throws IOException {
         CustomerDto invalidBody = CustomerDataGenerator.createSampleCustomerDto();
-        InputStream request = addVocabularyForCustomer(existingIdentifier(), invalidBody,
-                                                       MediaTypes.APPLICATION_JSON_LD);
+        InputStream request = createRequest(existingIdentifier(), invalidBody,
+                                            MediaTypes.APPLICATION_JSON_LD);
         handler.handleRequest(request, outputStream, CONTEXT);
         GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));

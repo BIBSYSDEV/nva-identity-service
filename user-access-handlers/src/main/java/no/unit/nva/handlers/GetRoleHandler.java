@@ -10,8 +10,6 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
-import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 public class GetRoleHandler extends ApiGatewayHandlerV2<Void, RoleDto> {
@@ -35,8 +33,7 @@ public class GetRoleHandler extends ApiGatewayHandlerV2<Void, RoleDto> {
     }
 
     @Override
-    public RoleDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context)
-        throws ApiGatewayException {
+    public RoleDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
         String roleName = roleNameThatIsNotNullOrBlank(requestInfo);
 
         RoleDto searchObject = RoleDto.newBuilder().withRoleName(roleName).build();
@@ -48,7 +45,7 @@ public class GetRoleHandler extends ApiGatewayHandlerV2<Void, RoleDto> {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private String roleNameThatIsNotNullOrBlank(APIGatewayProxyRequestEvent requestInfo) throws BadRequestException {
+    private String roleNameThatIsNotNullOrBlank(APIGatewayProxyRequestEvent requestInfo) {
         return Optional.ofNullable(requestInfo.getPathParameters())
             .map(pathParams -> pathParams.get(ROLE_PATH_PARAMETER))
             .filter(not(String::isBlank))

@@ -1,45 +1,32 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
-import static no.unit.nva.customer.testing.TestHeaders.getErrorResponseHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
-import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.zalando.problem.Status.BAD_REQUEST;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.URI;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import java.net.HttpURLConnection;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.core.Environment;
-import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.zalando.problem.Problem;
-import org.zalando.problem.ThrowableProblem;
 
-public class GetCustomerByOrgNumberHandlerTest {
+class GetCustomerByOrgNumberHandlerTest {
 
-    public static final String WILDCARD = "*";
-    public static final String REQUEST_ID = "requestId";
     public static final String SAMPLE_ORG_NUMBER = "123";
     public static final String EXPECTED_ERROR_MESSAGE = "Missing from pathParameters: orgNumber";
     public static final String SAMPLE_CRISTIN_ID = "https://cristin.id";
 
     private CustomerService customerServiceMock;
     private GetCustomerByOrgNumberHandler handler;
-    private ByteArrayOutputStream outputStream;
     private Context context;
 
     /**
@@ -48,16 +35,12 @@ public class GetCustomerByOrgNumberHandlerTest {
     @BeforeEach
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
-        Environment environmentMock = mock(Environment.class);
-        when(environmentMock.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
-        handler = new GetCustomerByOrgNumberHandler(customerServiceMock, environmentMock);
-        outputStream = new ByteArrayOutputStream();
+        handler = new GetCustomerByOrgNumberHandler(customerServiceMock);
         context = Mockito.mock(Context.class);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void getCustomerByOrgNumberReturnsCustomerWhenInputIsExistingCustomerOrgNumber() throws Exception {
+    void getCustomerByOrgNumberReturnsCustomerWhenInputIsExistingCustomerOrgNumber() {
         UUID identifier = UUID.randomUUID();
         CustomerDao customerDb = new CustomerDao.Builder()
             .withIdentifier(identifier)
@@ -67,55 +50,29 @@ public class GetCustomerByOrgNumberHandlerTest {
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomerByOrgNumber(SAMPLE_ORG_NUMBER)).thenReturn(customerDto);
 
-        Map<String, String> pathParameters = Map.of(GetCustomerByOrgNumberHandler.ORG_NUMBER, SAMPLE_ORG_NUMBER);
-        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
-            .withHeaders(getRequestHeaders())
-            .withPathParameters(pathParameters)
-            .build();
-        handler.handleRequest(inputStream, outputStream, context);
+        var pathParameters = Map.of(GetCustomerByOrgNumberHandler.ORG_NUMBER, SAMPLE_ORG_NUMBER);
+        var inputStream = createRequest(customerDto, pathParameters);
+        var response = handler.handleRequest(inputStream, context);
 
-        GatewayResponse<CustomerIdentifiers> actual = defaultRestObjectMapper.readValue(
-            outputStream.toByteArray(),
-            GatewayResponse.class);
-
-        GatewayResponse<CustomerIdentifiers> expected = new GatewayResponse<>(
-                defaultRestObjectMapper.writeValueAsString(
-                new CustomerIdentifiers(customerDto.getId(),
-                                        URI.create(SAMPLE_CRISTIN_ID))),
-            getResponseHeaders(),
-            HttpStatus.SC_OK
-        );
-
-        assertEquals(expected, actual);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(response.getBody(), containsString(customerDto.getId().toString()));
+        assertThat(response.getBody(), containsString(SAMPLE_CRISTIN_ID));
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void getCustomerByOrgNumberReturnsBadRequestWhenOrgNumberisNull() throws Exception {
+    void getCustomerByOrgNumberReturnsBadRequestWhenOrgNumberisNull() {
 
-        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
-            .withHeaders(getRequestHeaders())
-            .build();
+        var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
+        var response = handler.handleRequest(input, context);
 
-        handler.handleRequest(inputStream, outputStream, context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(response.getBody(), containsString(EXPECTED_ERROR_MESSAGE));
+    }
 
-        GatewayResponse<Problem> actual = defaultRestObjectMapper.readValue(
-            outputStream.toByteArray(),
-            GatewayResponse.class);
-
-        ThrowableProblem problem = Problem.builder()
-                .withStatus(BAD_REQUEST)
-                .withTitle(BAD_REQUEST.getReasonPhrase())
-                .withDetail(EXPECTED_ERROR_MESSAGE)
-                .with(REQUEST_ID, null)
-                .build();
-
-        GatewayResponse<Problem> expected = new GatewayResponse<>(
-            defaultRestObjectMapper.writeValueAsString(problem),
-            getErrorResponseHeaders(),
-            SC_BAD_REQUEST
-        );
-
-        assertEquals(expected, actual);
+    private APIGatewayProxyRequestEvent createRequest(CustomerDto customerDto, Map<String, String> pathParameters) {
+        return new APIGatewayProxyRequestEvent()
+            .withBody(customerDto.toString())
+            .withPathParameters(pathParameters)
+            .withHeaders(getRequestHeaders());
     }
 }

@@ -1,23 +1,19 @@
 package no.unit.nva.customer.get;
 
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
+import java.net.HttpURLConnection;
+import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigateway.ApiGatewayHandler;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
+import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
 import nva.commons.core.JacocoGenerated;
-import org.apache.http.HttpStatus;
 
-import java.util.List;
-
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-
-public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, CustomerDto> {
+public class GetCustomerByCristinIdHandler extends ApiGatewayHandlerV2<Void, CustomerDto> {
 
     public static final String CRISTIN_ID = "cristinId";
 
@@ -25,22 +21,27 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
 
     @JacocoGenerated
     public GetCustomerByCristinIdHandler() {
-        this(defaultCustomerService(),
-             new Environment()
-        );
+        this(defaultCustomerService());
     }
 
     /**
      * Constructor for GetCustomerByCristinIdHandler.
      *
      * @param customerService customerService
-     * @param environment     environment
      */
-    public GetCustomerByCristinIdHandler(
-        CustomerService customerService,
-        Environment environment) {
-        super(Void.class, environment);
+    public GetCustomerByCristinIdHandler(CustomerService customerService) {
         this.customerService = customerService;
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(String input, CustomerDto output) {
+        return HttpURLConnection.HTTP_OK;
+    }
+
+    @Override
+    protected CustomerDto processInput(String input, APIGatewayProxyRequestEvent request, Context context) {
+        String cristinId = getCristinId(request);
+        return customerService.getCustomerByCristinId(cristinId);
     }
 
     @Override
@@ -48,21 +49,9 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
 
-    @Override
-    protected CustomerDto processInput(Void input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-        String cristinId = getCristinId(requestInfo);
-        return customerService.getCustomerByCristinId(cristinId);
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
-        return HttpStatus.SC_OK;
-    }
-
-    private String getCristinId(RequestInfo requestInfo) throws InputException {
+    private String getCristinId(APIGatewayProxyRequestEvent request) throws InputException {
         try {
-            return requestInfo.getPathParameter(CRISTIN_ID);
+            return request.getPathParameters().get(CRISTIN_ID);
         } catch (IllegalArgumentException e) {
             throw new InputException(e.getMessage(), e);
         }

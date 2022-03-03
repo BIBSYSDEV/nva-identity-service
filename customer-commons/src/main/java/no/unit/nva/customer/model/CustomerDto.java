@@ -3,27 +3,20 @@ package no.unit.nva.customer.model;
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-
 import no.unit.nva.customer.model.interfaces.Context;
+import no.unit.nva.customer.model.interfaces.Typed;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
-@SuppressWarnings("PMD.ExcessivePublicCount")
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = As.PROPERTY,
-    property = "type")
-@JsonTypeName("Customer")
-public class CustomerDto extends CustomerDtoWithoutContext implements Context {
+public class CustomerDto extends CustomerDtoWithoutContext implements Context, Typed {
 
+    public static final String TYPE = "Customer";
     @JsonProperty("@context")
     private URI context;
 
@@ -32,12 +25,19 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
         setVocabularies(Collections.emptySet());
     }
 
-    public CustomerDtoWithoutContext withoutContext() {
-        return attempt(() -> defaultRestObjectMapper.convertValue(this, CustomerDtoWithoutContext.class)).orElseThrow();
+    public static CustomerDto fromJson(String json) {
+        return attempt(() -> defaultRestObjectMapper.beanFrom(CustomerDto.class, json))
+            .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json));
     }
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public CustomerDtoWithoutContext withoutContext() {
+        return attempt(() -> defaultRestObjectMapper.asString(this))
+            .map(json -> defaultRestObjectMapper.beanFrom(CustomerDtoWithoutContext.class, json))
+            .orElseThrow();
     }
 
     @Override
@@ -100,6 +100,21 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getContext(), that.getContext());
+    }
+
+    @Override
+    @JsonProperty(Typed.TYPE_FIELD)
+    public String getType() {
+        return TYPE;
+    }
+
+    @Override
+    public void setType(String type) {
+        Typed.super.setType(type);
+    }
+
+    public String toString() {
+        return attempt(() -> defaultRestObjectMapper.asString(this)).orElseThrow();
     }
 
     public static final class Builder {

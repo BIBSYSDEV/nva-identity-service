@@ -4,11 +4,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Set;
@@ -19,78 +16,70 @@ import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.interfaces.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.MediaTypes;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigatewayv2.MediaTypes;
 import org.junit.jupiter.api.Test;
 
 public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySettingsTests {
 
     @Test
     public void handleRequestReturnsCreatedWhenCreatingVocabularyForExistingCustomer() throws IOException {
-        sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
+        var result = sendRequestAcceptingJsonLd(existingIdentifier());
+        assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
     }
 
     @Test
     public void handleRequestReturnsCreatedVocabularyListWhenCreatingVocabularyForExistingCustomer()
         throws IOException {
-        VocabularyList expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
-        VocabularyList body = response.getBodyObject(VocabularyList.class);
-        assertThat(body, is(equalTo(expectedBody)));
+        var result = sendRequestAcceptingJsonLd(existingIdentifier());
+
+        VocabularyList actualBody = VocabularyList.fromJson(result.getResponse().getBody());
+        assertThat(actualBody, is(equalTo(result.getExpectedBody())));
     }
 
     @Test
     public void handleRequestSavesVocabularySettingsToDatabaseWhenCreatingSettingsForExistingCustomer()
-        throws IOException, ApiGatewayException {
-        VocabularyList expectedBody = sendRequestAcceptingJsonLd(existingIdentifier());
+        throws IOException {
+        var result = sendRequestAcceptingJsonLd(existingIdentifier());
         Set<VocabularyDto> savedVocabularySettings =
             customerService.getCustomer(existingIdentifier()).getVocabularies();
-        assertThat(savedVocabularySettings, is(equalTo(expectedBody.getVocabularies())));
+        assertThat(savedVocabularySettings, is(equalTo(result.getExpectedBody().getVocabularies())));
     }
 
     @Test
     public void handleRequestReturnsNotFoundWhenTryingToSaveSettingsForNonExistingCustomer()
         throws IOException {
-        sendRequestAcceptingJsonLd(UUID.randomUUID());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
+        var result = sendRequestAcceptingJsonLd(UUID.randomUUID());
+        assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
     @Test
     public void handleRequestReturnsBadRequestWhenInputBodyIsNotValid()
         throws IOException {
         CustomerDto invalidBody = CustomerDataGenerator.createSampleCustomerDto();
-        InputStream request = addVocabularyForCustomer(existingIdentifier(), invalidBody,
-                                                       MediaTypes.APPLICATION_JSON_LD);
-        handler.handleRequest(request, outputStream, CONTEXT);
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
+        var request = createRequest(existingIdentifier(), invalidBody, MediaTypes.APPLICATION_JSON_LD);
+        var response = handler.handleRequest(request, CONTEXT);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
     @Test
     public void handleRequestReturnsResponseWithContentTypeJsonLdWhenAcceptHeaderIsJsonLd() throws IOException {
-        sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
-        assertThat(responseContentType(response), is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
+        var result= sendRequestAcceptingJsonLd(existingIdentifier());
+        assertThat(responseContentType(result.getResponse()), is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
     }
 
     @Test
     public void handleRequestReturnsResponseWithContentTypeJsonWhenAcceptHeaderIsJson() throws IOException {
-        sendRequest(existingIdentifier(), MediaType.JSON_UTF_8);
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
-        String content = responseContentType(response);
+        var result=sendRequest(existingIdentifier(), MediaType.JSON_UTF_8);
+        String content = responseContentType(result.getResponse());
         assertThat(content, is(equalTo(MediaType.JSON_UTF_8.toString())));
     }
 
     @Test
     public void handleRequestReturnsUnsupportedTypeWhenAcceptedContentTypeIsNotSupported() throws IOException {
-        sendRequest(existingIdentifier(), MediaType.SOAP_XML_UTF_8);
-        GatewayResponse<JsonNode> response = GatewayResponse.fromOutputStream(outputStream);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_UNSUPPORTED_TYPE)));
-        String body = response.getBodyObject(JsonNode.class).toString();
+        var result = sendRequest(existingIdentifier(), MediaType.SOAP_XML_UTF_8);
+
+        assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_UNSUPPORTED_TYPE)));
+        String body = result.getResponse().getBody();
         for (MediaType mediaType : ControlledVocabularyHandler.SUPPORTED_MEDIA_TYPES) {
             assertThat(body, containsString(mediaType.toString()));
         }
@@ -99,12 +88,10 @@ public class CreateControlledVocabularyTest extends CreateUpdateControlledVocabu
     @Test
     public void handleRequestReturnsConflictWhenCustomerAlreadyHasVocabularySettings() throws IOException {
         assertThatExistingUserHasEmptyVocabularySettings();
-        outputStream = new ByteArrayOutputStream();
         sendRequestAcceptingJsonLd(existingIdentifier());
-        outputStream = new ByteArrayOutputStream();
-        sendRequestAcceptingJsonLd(existingIdentifier());
-        GatewayResponse<VocabularyList> response = GatewayResponse.fromOutputStream(outputStream);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+        var result= sendRequestAcceptingJsonLd(existingIdentifier());
+
+        assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
     }
 
     @Override

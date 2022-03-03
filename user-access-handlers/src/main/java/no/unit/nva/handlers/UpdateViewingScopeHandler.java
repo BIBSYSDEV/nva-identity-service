@@ -9,7 +9,6 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
-import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 
 public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope, Void> {
 
@@ -21,8 +20,7 @@ public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope
     }
 
     @Override
-    protected Void processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context)
-        throws ApiGatewayException {
+    protected Void processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
         ViewingScope inputObject = parseInput(input);
         String username = requestInfo.getPathParameters().get(USERNAME_PATH_PARAMETER);
         UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
@@ -32,9 +30,9 @@ public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope
         return null;
     }
 
-    private ViewingScope parseInput(String input) throws BadRequestException {
-        return attempt(()-> JSON.std.beanFrom(ViewingScope.class,input))
-                   .orElseThrow(fail->new BadRequestException(fail.getException().getMessage()));
+    private ViewingScope parseInput(String input) {
+        return attempt(() -> JSON.std.beanFrom(ViewingScope.class, input))
+            .orElseThrow(fail -> new BadRequestException(fail.getException().getMessage()));
     }
 
     @Override

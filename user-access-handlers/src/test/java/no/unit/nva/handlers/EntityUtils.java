@@ -1,7 +1,6 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,14 +31,11 @@ public final class EntityUtils {
      *
      * @return an RequestBuilder that can produce an {@link InputStream} that contains a request to be processed by a
      *     {@link com.amazonaws.services.lambda.runtime.RequestStreamHandler}.
-     * @throws InvalidEntryInternalException unlikely. The object is intentionally invalid.
-     * @throws InvalidEntryInternalException when role is invalid.
      */
-    public static APIGatewayProxyRequestEvent createRequestBuilderWithUserWithoutUsername()
-        throws InvalidEntryInternalException {
+    public static APIGatewayProxyRequestEvent createRequestBuilderWithUserWithoutUsername() {
 
         var userWithoutUsername = createUserWithoutUsername();
-        var jsonString  = attempt(()->JSON.std.asString(userWithoutUsername)).orElseThrow();
+        var jsonString = attempt(() -> JSON.std.asString(userWithoutUsername)).orElseThrow();
         return new APIGatewayProxyRequestEvent().withBody(jsonString);
     }
 
@@ -48,12 +44,8 @@ public final class EntityUtils {
      *
      * @return an InputStream containing the ApiGateway request to be handled by a {@link
      *     com.amazonaws.services.lambda.runtime.RequestStreamHandler}.
-     * @throws JsonProcessingException       if JSON serialization fails.
-     * @throws InvalidEntryInternalException unlikely. The object is intentionally invalid.
-     * @throws InvalidEntryInternalException when role is invalid.
      */
-    public static APIGatewayProxyRequestEvent createRequestWithUserWithoutUsername()
-        throws JsonProcessingException, InvalidEntryInternalException {
+    public static APIGatewayProxyRequestEvent createRequestWithUserWithoutUsername(){
         return createRequestBuilderWithUserWithoutUsername();
     }
 
@@ -61,15 +53,13 @@ public final class EntityUtils {
      * Creates a user without a username. For testing output on invalid input.
      *
      * @return a {@link UserDto}
-     * @throws InvalidEntryInternalException when the added role is invalid.
-     * @throws InvalidEntryInternalException unlikely.  The object is intentionally invalid.
      */
     public static Map<String, Object> createUserWithoutUsername()
         throws InvalidEntryInternalException {
         UserDto userDto = createUserWithRolesAndInstitution();
-         var jsonMap = attempt(()->JSON.std.asString(userDto)).map(JSON.std::mapFrom).orElseThrow();
-         jsonMap.put(UserDto.USERNAME_FIELD,EMPTY_STRING);
-         return jsonMap;
+        var jsonMap = attempt(() -> JSON.std.asString(userDto)).map(JSON.std::mapFrom).orElseThrow();
+        jsonMap.put(UserDto.USERNAME_FIELD, EMPTY_STRING);
+        return jsonMap;
     }
 
     /**

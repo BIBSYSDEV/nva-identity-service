@@ -2,11 +2,13 @@ package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -26,6 +28,7 @@ import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.UserList;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
+import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -95,6 +98,12 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         assertThat(actualUserList.getUsers(), is(empty()));
     }
 
+    @Test
+    void shouldReturnBadRequestWheRequestParameterIsMissing() throws InvalidEntryInternalException {
+        var request = new APIGatewayProxyRequestEvent();
+        var response = listByInstitutionHandler.handleRequest(request, context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
+    }
 
     private UserList parseResponseBody(APIGatewayProxyResponseEvent response) throws IOException {
         return JSON.std.beanFrom(UserList.class, response.getBody());
@@ -150,7 +159,6 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         users.getUsers().add(insertSampleUserToDatabase(SOME_OTHER_USERNAME, DEFAULT_INSTITUTION));
         return users;
     }
-
 
     private APIGatewayProxyRequestEvent createListRequest(URI institutionId) {
         Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString());

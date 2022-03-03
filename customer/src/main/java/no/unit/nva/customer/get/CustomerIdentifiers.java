@@ -1,6 +1,8 @@
 package no.unit.nva.customer.get;
 
+import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
+import no.unit.nva.customer.RestConfig;
 
 public class CustomerIdentifiers {
 
@@ -18,5 +20,9 @@ public class CustomerIdentifiers {
 
     public URI getCristinId() {
         return cristinId;
+    }
+
+    public String toString() {
+        return attempt(() -> RestConfig.defaultRestObjectMapper.asString(this)).orElseThrow();
     }
 }

@@ -3,6 +3,7 @@ package no.unit.nva.handlers;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
@@ -15,11 +16,13 @@ import com.fasterxml.jackson.jr.ob.JSON;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.util.Map;
+import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
+import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -83,6 +86,13 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_ACCEPTED)));
         assertThat(response.getHeaders(), hasEntry(CONTENT_TYPE, MediaType.JSON_UTF_8.toString()));
+    }
+
+    @Test
+    void shouldReturnBadRequestWheRequestBodyIsInValid() throws InvalidEntryInternalException {
+        var request = new APIGatewayProxyRequestEvent().withBody(randomString());
+        var response = handler.handleRequest(request,CONTEXT);
+        assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
     private UserDto addSampleUserToDb() throws ConflictException, InvalidInputException {

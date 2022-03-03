@@ -1,20 +1,20 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomInstant;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
@@ -48,22 +48,28 @@ class CustomerDaoTest {
     }
 
     @Test
-    void daoCanBeDeserializedWhenJsonDoesNotIncludeType() throws JsonProcessingException {
+    void daoCanBeDeserializedWhenJsonDoesNotIncludeType() throws IOException {
         CustomerDao someDao = sampleCustomerDao();
-        ObjectNode json = defaultDynamoConfigMapper.convertValue(someDao, ObjectNode.class);
-        json.remove("type");
-        CustomerDao deserialized = defaultDynamoConfigMapper.readValue(json.toString(), CustomerDao.class);
+        Map<String, Object> jsonMap = customerToJsonMap(someDao);
+        jsonMap.remove("type");
+        var jsonStringWithoutType = defaultRestObjectMapper.asString(jsonMap);
+        CustomerDao deserialized = defaultRestObjectMapper.beanFrom(CustomerDao.class, jsonStringWithoutType);
         assertThat(deserialized, is(equalTo(someDao)));
     }
 
     @Test
-    void daoIsSerializedWithType() throws JsonProcessingException {
+    void daoIsSerializedWithType() throws IOException {
         CustomerDao someDao = sampleCustomerDao();
-        ObjectNode json = defaultDynamoConfigMapper.convertValue(someDao, ObjectNode.class);
-        assertThat(json.has("type"), is((true)));
-
-        CustomerDao deserialized = defaultDynamoConfigMapper.readValue(json.toString(), CustomerDao.class);
+        var jsonMap = customerToJsonMap(someDao);
+        assertThat(jsonMap, hasKey("type"));
+        var jsonString = defaultRestObjectMapper.asString(jsonMap);
+        CustomerDao deserialized = defaultRestObjectMapper.beanFrom(CustomerDao.class, jsonString);
         assertThat(deserialized, is(equalTo(someDao)));
+    }
+
+    private Map<String, Object> customerToJsonMap(CustomerDao someDao) throws IOException {
+        var jsonString = defaultRestObjectMapper.asString(someDao);
+        return defaultRestObjectMapper.mapFrom(jsonString);
     }
 
     private CustomerDto crateSampleCustomerDto() {

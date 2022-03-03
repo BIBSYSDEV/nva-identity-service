@@ -10,9 +10,7 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
-
 
 public class AddUserHandler extends HandlerWithEventualConsistency<UserDto, UserDto> {
 
@@ -33,17 +31,16 @@ public class AddUserHandler extends HandlerWithEventualConsistency<UserDto, User
     }
 
     @Override
-    protected UserDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context)
-        throws ApiGatewayException {
+    protected UserDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
         var inputObject = parseUser(input);
         databaseService.addUser(inputObject);
         return getEventuallyConsistent(() -> databaseService.getUser(inputObject))
             .orElseThrow(() -> new DataSyncException(SYNC_ERROR_MESSAGE + inputObject.getUsername()));
     }
 
-    private UserDto parseUser(String input) throws BadRequestException {
-        return attempt(()->JSON.std.beanFrom(UserDto.class, input))
-            .orElseThrow(fail->new BadRequestException(fail.getException().getMessage()));
+    private UserDto parseUser(String input) {
+        return attempt(() -> JSON.std.beanFrom(UserDto.class, input))
+            .orElseThrow(fail -> new BadRequestException(fail.getException().getMessage()));
     }
 
     @Override

@@ -1,16 +1,15 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -28,10 +27,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-public class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironment {
+class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironment {
 
     public static final String THE_ROLE = "theRole";
-    public static final String BLANK_STR = " ";
     public static final String TYPE_ATTRIBUTE = "type";
     private IdentityServiceImpl databaseService;
     private GetRoleHandler getRoleHandler;
@@ -43,12 +41,12 @@ public class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironm
     @BeforeEach
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
-        getRoleHandler = new GetRoleHandler( databaseService);
+        getRoleHandler = new GetRoleHandler(databaseService);
         context = mock(Context.class);
     }
 
     @Test
-    public void statusCodeReturnsOkWhenRequestIsSuccessful() {
+    void statusCodeReturnsOkWhenRequestIsSuccessful() {
         Integer successCode = getRoleHandler.getSuccessStatusCode(null, null);
         assertThat(successCode, is(equalTo(HttpStatus.SC_OK)));
     }
@@ -60,7 +58,7 @@ public class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironm
 
         addSampleRoleToDatabase();
 
-        var request = queryWithRoleName(THE_ROLE);
+        var request = queryWithRoleName();
         var response = getRoleHandler.handleRequest(request, context);
 
         var responseBody = JSON.std.mapFrom(response.getBody());
@@ -73,31 +71,31 @@ public class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironm
     void shouldReturnRoleDtoWhenARoleWithTheInputRoleNameExists()
         throws ApiGatewayException, IOException {
         addSampleRoleToDatabase();
-        var requestInfo = queryWithRoleName(THE_ROLE);
-        var response= getRoleHandler.handleRequest(requestInfo, context);
-        var savedRole = JSON.std.beanFrom(RoleDto.class,response.getBody());
+        var requestInfo = queryWithRoleName();
+        var response = getRoleHandler.handleRequest(requestInfo, context);
+        var savedRole = JSON.std.beanFrom(RoleDto.class, response.getBody());
         assertThat(savedRole.getRoleName(), is(equalTo(THE_ROLE)));
     }
 
-
     @Test
     void shouldReturnNotFoundWhenThereIsNoRoleInTheDatabaseWithTheSpecifiedRoleName() {
-        var requestInfo = queryWithRoleName(THE_ROLE);
-        var response= getRoleHandler.handleRequest(requestInfo, context);
+        var requestInfo = queryWithRoleName();
+        var response = getRoleHandler.handleRequest(requestInfo, context);
         assertThat(response.getBody(), containsString(THE_ROLE));
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
-
-    private APIGatewayProxyResponseEvent sendGetRoleRequest() {
-        var request = queryWithRoleName(THE_ROLE);
-        return getRoleHandler.handleRequest(request, context);
-
+    @Test
+    void shouldReturnBadRequestWheRequestBodyIsInValid() throws InvalidEntryInternalException {
+        var request = new APIGatewayProxyRequestEvent().withBody(randomString());
+        var response = getRoleHandler.handleRequest(request,context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
-    private APIGatewayProxyRequestEvent queryWithRoleName(String roleName) {
+
+    private APIGatewayProxyRequestEvent queryWithRoleName() {
         return new APIGatewayProxyRequestEvent()
-            .withPathParameters(Map.of(GetRoleHandler.ROLE_PATH_PARAMETER, roleName));
+            .withPathParameters(Map.of(GetRoleHandler.ROLE_PATH_PARAMETER, GetRoleHandlerTest.THE_ROLE));
     }
 
     private void addSampleRoleToDatabase()

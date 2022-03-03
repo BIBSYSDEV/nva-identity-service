@@ -1,40 +1,30 @@
 package no.unit.nva.customer.get;
 
+import static java.util.Collections.singletonList;
+import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import java.net.HttpURLConnection;
+import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.core.Environment;
-import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.UUID;
-
-import static java.util.Collections.singletonList;
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
-import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-public class GetAllCustomersHandlerTest {
-
-    public static final String WILDCARD = "*";
+class GetAllCustomersHandlerTest {
 
     private CustomerService customerServiceMock;
     private GetAllCustomersHandler handler;
-    private ByteArrayOutputStream outputStream;
+
     private Context context;
 
     /**
@@ -43,16 +33,12 @@ public class GetAllCustomersHandlerTest {
     @BeforeEach
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
-        Environment environmentMock = mock(Environment.class);
-        when(environmentMock.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
-        handler = new GetAllCustomersHandler(customerServiceMock, environmentMock);
-        outputStream = new ByteArrayOutputStream();
+        handler = new GetAllCustomersHandler(customerServiceMock);
         context = Mockito.mock(Context.class);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void requestToHandlerReturnsCustomerList() throws Exception {
+    void requestToHandlerReturnsCustomerList() {
         UUID identifier = UUID.randomUUID();
         CustomerDao customerDb = new CustomerDao.Builder()
                 .withIdentifier(identifier)
@@ -61,16 +47,13 @@ public class GetAllCustomersHandlerTest {
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomers()).thenReturn(singletonList(customerDto));
 
-        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
-                .withHeaders(getRequestHeaders())
-                .build();
+        var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
 
-        handler.handleRequest(inputStream, outputStream, context);
+        var response= handler.handleRequest(input,  context);
 
-        GatewayResponse<CustomerList> actual = GatewayResponse.fromOutputStream(outputStream);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 
-        assertEquals(HttpStatus.SC_OK, actual.getStatusCode());
-        CustomerList actualCustomerList = actual.getBodyObject(CustomerList.class);
+        CustomerList actualCustomerList = CustomerList.fromString(response.getBody());
         assertThat(actualCustomerList.getId(), notNullValue());
         assertThat(actualCustomerList.getContext(), notNullValue());
 

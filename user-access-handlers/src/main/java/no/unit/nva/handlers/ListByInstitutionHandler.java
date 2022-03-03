@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.UserList;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
-import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 
 public class ListByInstitutionHandler extends ApiGatewayHandlerV2<Void, UserList> {
@@ -23,6 +23,7 @@ public class ListByInstitutionHandler extends ApiGatewayHandlerV2<Void, UserList
     private final IdentityService databaseService;
 
     public ListByInstitutionHandler(IdentityService databaseService) {
+        super();
         this.databaseService = databaseService;
     }
 
@@ -38,8 +39,7 @@ public class ListByInstitutionHandler extends ApiGatewayHandlerV2<Void, UserList
     }
 
     @Override
-    protected UserList processInput(String body, APIGatewayProxyRequestEvent input, Context context)
-        throws ApiGatewayException {
+    protected UserList processInput(String body, APIGatewayProxyRequestEvent input, Context context) {
         URI institutionId = extractInstitutionIdFromRequest(input);
         List<UserDto> users = databaseService.listUsers(institutionId);
         return UserList.fromList(users);
@@ -51,6 +51,6 @@ public class ListByInstitutionHandler extends ApiGatewayHandlerV2<Void, UserList
             .map(queryParams -> queryParams.getOrDefault(INSTITUTION_ID_QUERY_PARAMETER, ""))
             .filter(not(String::isBlank))
             .map(URI::create)
-            .orElseThrow(() -> new IllegalStateException(MISSING_QUERY_PARAMETER_ERROR));
+            .orElseThrow(() -> new BadRequestException(MISSING_QUERY_PARAMETER_ERROR));
     }
 }

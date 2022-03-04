@@ -293,8 +293,11 @@ Resources:
               ValidationExpression: Bearer.*
               ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
-      OpenApiVersion: 3.0.3
-
+      DefinitionBody:
+        'Fn::Transform':
+          Name: AWS::Include
+          Parameters:
+            Location: ./docs/users-and-roles-swagger.yaml
 
   AddRoleHandler:
     Type: AWS::Serverless::Function

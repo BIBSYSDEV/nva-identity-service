@@ -35,6 +35,11 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
     }
 
     @Override
+    protected Integer getSuccessStatusCode(String input, Void output) {
+        return HttpURLConnection.HTTP_ACCEPTED;
+    }
+
+    @Override
     protected Void processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
         UserDto inputObject = parseUser(input);
         validateRequest(inputObject, requestInfo);
@@ -46,11 +51,6 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
     private UserDto parseUser(String input) {
         return attempt(() -> JSON.std.beanFrom(UserDto.class, input))
             .orElseThrow(fail -> new BadRequestException(fail.getException().getMessage()));
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(String input, Void output) {
-        return HttpURLConnection.HTTP_ACCEPTED;
     }
 
     private void validateRequest(UserDto input, APIGatewayProxyRequestEvent requestInfo) {
@@ -65,7 +65,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
             .orElseThrow(() -> new RuntimeException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
     }
 
-    private void comparePathAndInputObjectUsername(UserDto input, String userIdFromPathParameter){
+    private void comparePathAndInputObjectUsername(UserDto input, String userIdFromPathParameter) {
         if (!userIdFromPathParameter.equals(input.getUsername())) {
             throw new InvalidInputException(INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR);
         }

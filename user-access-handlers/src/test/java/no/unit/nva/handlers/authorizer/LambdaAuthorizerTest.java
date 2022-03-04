@@ -38,9 +38,8 @@ class LambdaAuthorizerTest implements WithEnvironment {
 
     public static final String DEFAULT_METHOD_ARN = "arn:aws:execute-api:eu-west-1:884807050265:2lcqynkwke/Prod/GET"
                                                     + "/service/users/orestis@unit.no";
-    private SecretsManagerClient secretsManager;
-
     private final Context context;
+    private SecretsManagerClient secretsManager;
 
     public LambdaAuthorizerTest() {
         context = mock(Context.class);
@@ -119,16 +118,14 @@ class LambdaAuthorizerTest implements WithEnvironment {
     private AuthorizerResponse sendRequest(String submittedSecret) {
         var authorizer = new LambdaAuthorizer(secretsManager);
         var request = buildRequest(submittedSecret);
-        return authorizer.handleRequest(request,  context);
-
+        return authorizer.handleRequest(request, context);
     }
 
     private APIGatewayCustomAuthorizerEvent buildRequest(String submittedSecret) {
         return APIGatewayCustomAuthorizerEvent.builder()
-                   .withHeaders(Map.of(HttpHeaders.AUTHORIZATION,submittedSecret))
-                   .withMethodArn(DEFAULT_METHOD_ARN)
-                   .build();
-
+            .withHeaders(Map.of(HttpHeaders.AUTHORIZATION, submittedSecret))
+            .withMethodArn(DEFAULT_METHOD_ARN)
+            .build();
     }
 
     private Answer<GetSecretValueResponse> provideSecret() {
@@ -147,6 +144,6 @@ class LambdaAuthorizerTest implements WithEnvironment {
 
     private String createSecretAsJson(String secretKey, String secreteValue) {
         Map<String, String> secret = Map.of(secretKey, secreteValue);
-        return attempt(()->JSON.std.asString(secret)).orElseThrow();
+        return attempt(() -> JSON.std.asString(secret)).orElseThrow();
     }
 }

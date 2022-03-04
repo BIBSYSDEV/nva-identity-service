@@ -27,11 +27,11 @@ class CustomerListTest {
     }
 
     @Test
-    void customerListCanBeConvertedToJsonAndBack() throws IOException {
+    void customerListCanBeConvertedToJsonAndBack() {
         List<CustomerDto> customerDtos = List.of(new CustomerDto());
         CustomerList customerList = new CustomerList(customerDtos);
-        String customerListJson = defaultRestObjectMapper.asString(customerList);
-        CustomerList mappedCustomerList = defaultRestObjectMapper.beanFrom(CustomerList.class, customerListJson);
+        String customerListJson = customerList.toString();
+        CustomerList mappedCustomerList = CustomerList.fromString(customerListJson);
         assertNotNull(mappedCustomerList);
     }
 }

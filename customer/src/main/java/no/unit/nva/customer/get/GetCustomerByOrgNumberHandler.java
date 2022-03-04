@@ -1,6 +1,7 @@
 package no.unit.nva.customer.get;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static no.unit.nva.customer.RequestUtils.getPathParameter;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
@@ -8,7 +9,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.List;
 import no.unit.nva.customer.Constants;
-import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
@@ -62,11 +62,7 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandlerV2<Void, Cus
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
 
-    private String getOrgNumber(APIGatewayProxyRequestEvent requestInfo) throws InputException {
-        try {
-            return requestInfo.getPathParameters().get(ORG_NUMBER);
-        } catch (IllegalArgumentException e) {
-            throw new InputException(e.getMessage(), e);
-        }
+    private String getOrgNumber(APIGatewayProxyRequestEvent request) {
+        return getPathParameter(request, ORG_NUMBER).orElseThrow();
     }
 }

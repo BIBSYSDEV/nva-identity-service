@@ -2,6 +2,7 @@ package no.unit.nva.customer.create;
 
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -44,7 +45,7 @@ public class CreateCustomerHandlerTest {
 
     @Test
     void requestToHandlerReturnsCustomerCreated() {
-        var expetedBody = new Builder()
+        var expectedBody = new Builder()
             .withName("New Customer")
             .withIdentifier(UUID.randomUUID())
             .withVocabularySettings(Collections.emptySet())
@@ -54,7 +55,7 @@ public class CreateCustomerHandlerTest {
             .thenAnswer(invocation -> invocation.getArgument(0));
 
         var input = new APIGatewayProxyRequestEvent()
-            .withBody(expetedBody.toString())
+            .withBody(expectedBody.toString())
             .withHeaders(getRequestHeaders());
         var response = handler.handleRequest(input, context);
 
@@ -62,6 +63,14 @@ public class CreateCustomerHandlerTest {
         assertThat(response.getHeaders(), is(equalTo(getResponseHeaders())));
 
         var actualBody = CustomerDto.fromJson(response.getBody());
-        assertThat(actualBody, is(equalTo(expetedBody)));
+        assertThat(actualBody, is(equalTo(expectedBody)));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenInputIsNotAValidCustomerDto() {
+        var input = new APIGatewayProxyRequestEvent().withBody(randomString())
+            .withHeaders(getRequestHeaders());
+        var response = handler.handleRequest(input, context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 }

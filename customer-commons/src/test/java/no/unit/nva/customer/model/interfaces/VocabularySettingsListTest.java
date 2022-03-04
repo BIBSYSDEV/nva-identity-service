@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import org.junit.jupiter.api.Test;
 

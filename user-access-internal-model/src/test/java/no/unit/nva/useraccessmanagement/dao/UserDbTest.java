@@ -123,7 +123,7 @@ public class UserDbTest {
     @Test
     void setTypeShouldNotAcceptWrongTypeValues() {
         String illegalType = "NotExpectedType";
-        var exception = assertThrows(IllegalArgumentException.class, () -> userDao.setType(illegalType));
+        var exception = assertThrows(BadRequestException.class, () -> userDao.setType(illegalType));
         assertThat(exception.getMessage(), allOf(containsString(illegalType), containsString(UserDao.TYPE_VALUE)));
     }
 

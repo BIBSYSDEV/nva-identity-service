@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.interfaces.VocabularyList;
+import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import nva.commons.apigatewayv2.MediaTypes;

@@ -15,6 +15,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao;
@@ -46,19 +47,19 @@ class GetCustomerHandlerTest {
     }
 
     @Test
-    public void requestToHandlerWithJsonLdAcceptHeaderReturnsJsonLdMediaType() {
+    void requestToHandlerWithJsonLdAcceptHeaderReturnsJsonLdMediaType() {
         UUID identifier = UUID.randomUUID();
         prepareServiceWithCustomer(identifier);
-
+        var supportedHeaders = new RequestHeaders(MediaTypes.APPLICATION_JSON_LD);
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var input = new APIGatewayProxyRequestEvent()
-            .withHeaders(getRequestHeadersWithMediaType(MediaTypes.APPLICATION_JSON_LD))
+            .withHeaders(supportedHeaders.getRequestHeaders())
+            .withMultiValueHeaders(supportedHeaders.getMultiValueRequestHeaders())
             .withPathParameters(pathParameters);
 
-        var response= handler.handleRequest(input, context);
+        var response = handler.handleRequest(input, context);
 
-
-        assertThat(response.getStatusCode(),is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE),
                    is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
     }
@@ -94,30 +95,18 @@ class GetCustomerHandlerTest {
     void requestToHandlerWithUnsupportedAcceptHeaderReturnsUnsupportedMediaType() {
         UUID identifier = UUID.randomUUID();
         prepareServiceWithCustomer(identifier);
-
+        RequestHeaders unsupportedRequestHeaders = new RequestHeaders(UNSUPPORTED_MEDIA_TYPE);
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var input = new APIGatewayProxyRequestEvent()
-            .withHeaders(getRequestHeadersWithUnsupportedMediaType())
+            .withHeaders(unsupportedRequestHeaders.getRequestHeaders())
+            .withMultiValueHeaders(unsupportedRequestHeaders.getMultiValueRequestHeaders())
             .withPathParameters(pathParameters);
 
         var response = handler.handleRequest(input, context);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_UNSUPPORTED_TYPE )));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_UNSUPPORTED_TYPE)));
     }
 
-    private static Map<String, String> getRequestHeadersWithUnsupportedMediaType() {
-        return Map.of(
-            HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
-            HttpHeaders.ACCEPT, UNSUPPORTED_MEDIA_TYPE.toString()
-        );
-    }
-
-    private static Map<String, String> getRequestHeadersWithMediaType(MediaType mediaType) {
-        return Map.of(
-            HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
-            HttpHeaders.ACCEPT, mediaType.toString()
-        );
-    }
 
     private APIGatewayProxyRequestEvent createGetCustomerRequest(CustomerDto customerDto) {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
@@ -134,5 +123,27 @@ class GetCustomerHandlerTest {
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);
         return customerDto;
+    }
+
+    public static class RequestHeaders {
+
+        private final MediaType mediaType;
+
+        public RequestHeaders(MediaType mediaType) {
+            this.mediaType = mediaType;
+        }
+
+        public Map<String, String> getRequestHeaders() {
+            return Map.of(
+                HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
+                HttpHeaders.ACCEPT, mediaType.toString()
+            );
+        }
+
+        public Map<String, List<String>> getMultiValueRequestHeaders() {
+            return Map.of(
+                HttpHeaders.ACCEPT, List.of(mediaType.toString())
+            );
+        }
     }
 }

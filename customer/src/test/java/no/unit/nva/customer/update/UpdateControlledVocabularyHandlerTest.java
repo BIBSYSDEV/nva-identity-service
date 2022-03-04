@@ -11,12 +11,10 @@ import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Collections;
-import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.VocabularyDto;
-import no.unit.nva.customer.model.interfaces.VocabularyList;
+import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import nva.commons.apigatewayv2.MediaTypes;
@@ -28,7 +26,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Test
     public void handleRequestReturnsAcceptedWhenUpdatingVocabularyForExistingCustomer() throws IOException {
-        var response =sendRequestAcceptingJsonLd(existingIdentifier()).getResponse();
+        var response = sendRequestAcceptingJsonLd(existingIdentifier()).getResponse();
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_ACCEPTED)));
     }
 
@@ -36,14 +34,14 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
     public void handleRequestReturnsUpdatedVocabularyListWhenUpdatingVocabularyForExistingCustomer()
         throws IOException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
-        var actualBody =VocabularyList.fromJson(result.getResponse().getBody());
+        var actualBody = VocabularyList.fromJson(result.getResponse().getBody());
         assertThat(actualBody, is(equalTo(result.getExpectedBody())));
     }
 
     @Test
     public void handleRequestSavesVocabularySettingsToDatabaseWhenUpdatingSettingsForExistingCustomer()
         throws IOException {
-        var  result= sendRequestAcceptingJsonLd(existingIdentifier());
+        var result = sendRequestAcceptingJsonLd(existingIdentifier());
         var savedVocabularySettings = customerService.getCustomer(existingIdentifier()).getVocabularies();
 
         assertThat(savedVocabularySettings, is(equalTo(result.getExpectedBody().getVocabularies())));
@@ -52,7 +50,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
     @Test
     public void handleRequestReturnsNotFoundWhenTryingToSaveSettingsForNonExistingCustomer()
         throws IOException {
-        var response= sendRequestAcceptingJsonLd(UUID.randomUUID()).getResponse();
+        var response = sendRequestAcceptingJsonLd(UUID.randomUUID()).getResponse();
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
@@ -60,20 +58,20 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
     public void handleRequestReturnsBadRequestWhenInputBodyIsNotValid()
         throws IOException {
         CustomerDto invalidBody = CustomerDataGenerator.createSampleCustomerDto();
-        var request = createRequest(existingIdentifier(), invalidBody,MediaTypes.APPLICATION_JSON_LD);
-        var response = handler.handleRequest(request,  CONTEXT);
+        var request = createRequest(existingIdentifier(), invalidBody, MediaTypes.APPLICATION_JSON_LD);
+        var response = handler.handleRequest(request, CONTEXT);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
     @Test
     public void handleRequestReturnsResponseWithContentTypeJsonLdWhenAcceptHeaderIsJsonLd() throws IOException {
-        var response =sendRequestAcceptingJsonLd(existingIdentifier()).getResponse();
+        var response = sendRequestAcceptingJsonLd(existingIdentifier()).getResponse();
         assertThat(responseContentType(response), is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
     }
 
     @Test
     public void handleRequestReturnsResponseWithContentTypeJsonWhenAcceptHeaderIsJson() throws IOException {
-        var response =sendRequest(existingIdentifier(), MediaType.JSON_UTF_8).getResponse();
+        var response = sendRequest(existingIdentifier(), MediaType.JSON_UTF_8).getResponse();
         String content = responseContentType(response);
         assertThat(content, is(equalTo(MediaType.JSON_UTF_8.toString())));
     }
@@ -95,7 +93,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
             .withVocabularies(Collections.emptySet())
             .build();
         customerService.createCustomer(customerWithoutVocabularySettings);
-        var response =sendRequestAcceptingJsonLd(customerWithoutVocabularySettings.getIdentifier()).getResponse();
+        var response = sendRequestAcceptingJsonLd(customerWithoutVocabularySettings.getIdentifier()).getResponse();
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
         String responseBody = response.getBody();

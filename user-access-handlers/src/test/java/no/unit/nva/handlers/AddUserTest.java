@@ -43,8 +43,6 @@ class AddUserTest extends HandlerTest {
         context = mock(Context.class);
     }
 
-
-
     @DisplayName("processInput() adds user to database when input is a user with username and without roles")
     @Test
     void processInputAddsUserToDatabaseWhenInputIsUserWithUsernameWithoutRoles() {
@@ -85,7 +83,7 @@ class AddUserTest extends HandlerTest {
     @Test
     void handleRequestReturnsBadRequestWhenInputUserDoesNotHaveUsername() throws IOException {
         var requestWithUserWithoutUsername = createRequestWithUserWithoutUsername();
-        var response= sendRequestToHandler(requestWithUserWithoutUsername);
+        var response = sendRequestToHandler(requestWithUserWithoutUsername);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
@@ -95,8 +93,8 @@ class AddUserTest extends HandlerTest {
         IdentityService databaseService = databaseServiceReturnsAlwaysEmptyUser();
 
         UserDto sampleUser = createUserWithRolesAndInstitution();
-        AddUserHandler addUserHandler = new AddUserHandler( databaseService);
-        var response = addUserHandler.handleRequest(createRequest(sampleUser),context);
+        AddUserHandler addUserHandler = new AddUserHandler(databaseService);
+        var response = addUserHandler.handleRequest(createRequest(sampleUser), context);
         assertThat(response.getBody(), containsString(SYNC_ERROR_MESSAGE));
     }
 

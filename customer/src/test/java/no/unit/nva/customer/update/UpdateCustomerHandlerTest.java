@@ -50,15 +50,15 @@ public class UpdateCustomerHandlerTest {
     }
 
     @Test
-    void shouldReturnOkForValidRequest()  {
+    void shouldReturnOkForValidRequest() {
         CustomerDto customer = createCustomer(UUID.randomUUID());
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
 
         var request = new APIGatewayProxyRequestEvent()
-            .withPathParameters(Map.of("identifier","b8c3e125-cadb-43d5-823a-2daa7768c3f9"))
+            .withPathParameters(Map.of("identifier", "b8c3e125-cadb-43d5-823a-2daa7768c3f9"))
             .withBody(stringFromResources(Path.of("update_request.json")));
 
-        var response=handler.handleRequest(request, context);
+        var response = handler.handleRequest(request, context);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
@@ -72,10 +72,25 @@ public class UpdateCustomerHandlerTest {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var input = createInput(customer, pathParameters);
 
-        var response =handler.handleRequest(input, context);
+        var response = handler.handleRequest(input, context);
 
-        assertThat(response.getStatusCode(),is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE), is(equalTo(MediaType.JSON_UTF_8.toString())));
+    }
+
+    @Test
+    void requestToHandlerWithMalformedIdentifierReturnsBadRequest() {
+        String malformedIdentifier = "for-testing";
+        CustomerDto customer = createCustomer(UUID.randomUUID());
+
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, malformedIdentifier);
+        var request = createInput(customer, pathParameters);
+
+        var response = handler.handleRequest(request, context);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(response.getBody(),
+                   containsString(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID + malformedIdentifier));
     }
 
     private APIGatewayProxyRequestEvent createInput(CustomerDto customer, Map<String, String> pathParameters) {
@@ -84,21 +99,6 @@ public class UpdateCustomerHandlerTest {
             .withHeaders(getRequestHeaders())
             .withMultiValueHeaders(getMultiValuedHeaders())
             .withPathParameters(pathParameters);
-    }
-
-    @Test
-    void requestToHandlerWithMalformedIdentifierReturnsBadRequest() {
-        String malformedIdentifier = "for-testing";
-        CustomerDto customer = createCustomer(UUID.randomUUID());
-
-
-        Map<String, String> pathParameters = Map.of(IDENTIFIER, malformedIdentifier);
-        var request =createInput(customer,pathParameters);
-
-        var response=handler.handleRequest(request,  context);
-
-        assertThat(response.getStatusCode(),is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
-        assertThat(response.getBody(),containsString(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID+malformedIdentifier));
     }
 
     private CustomerDto createCustomer(UUID uuid) {

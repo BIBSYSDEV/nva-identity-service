@@ -22,6 +22,7 @@ public class CustomerIdentifiers {
         return cristinId;
     }
 
+    @Override
     public String toString() {
         return attempt(() -> RestConfig.defaultRestObjectMapper.asString(this)).orElseThrow();
     }

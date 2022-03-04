@@ -11,7 +11,6 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,7 @@ import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.get.GetControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.interfaces.VocabularyList;
+import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigatewayv2.MediaTypes;
 import org.junit.jupiter.api.BeforeEach;

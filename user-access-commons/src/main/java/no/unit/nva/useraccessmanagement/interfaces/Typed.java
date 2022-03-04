@@ -1,5 +1,7 @@
 package no.unit.nva.useraccessmanagement.interfaces;
 
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
+
 public interface Typed {
 
     String TYPE_FIELD = "type";
@@ -8,7 +10,7 @@ public interface Typed {
 
     default void setType(String type) {
         if (!getType().equals(type)) {
-            throw new IllegalArgumentException(errorMessage(type));
+            throw new BadRequestException(errorMessage(type));
         }
     }
 

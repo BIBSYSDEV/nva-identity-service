@@ -1,6 +1,7 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static nva.commons.core.attempt.Try.attempt;
@@ -13,8 +14,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import no.unit.nva.customer.RestConfig;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 @SuppressWarnings("PMD.ShortMethodName")
@@ -34,8 +33,7 @@ public class CustomerList {
     }
 
     public static CustomerList fromString(String json) {
-        return attempt(() -> RestConfig.defaultRestObjectMapper.beanFrom(CustomerList.class, json))
-            .orElseThrow(fail -> new BadRequestException("Could not read CustomerList"));
+        return attempt(() -> defaultRestObjectMapper.beanFrom(CustomerList.class, json)).orElseThrow();
     }
 
     @JsonProperty(LINKED_DATA_CONTEXT)
@@ -75,6 +73,11 @@ public class CustomerList {
         return Objects.equals(getId(), that.getId())
                && Objects.equals(customers, that.customers)
                && Objects.equals(getContext(), that.getContext());
+    }
+
+    @Override
+    public String toString() {
+        return attempt(() -> defaultRestObjectMapper.asString(this)).orElseThrow();
     }
 
     private List<CustomerDtoWithoutContext> extractCustomers(List<CustomerDto> customers) {

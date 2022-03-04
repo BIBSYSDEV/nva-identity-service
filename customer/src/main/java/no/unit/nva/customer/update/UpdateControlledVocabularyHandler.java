@@ -3,7 +3,7 @@ package no.unit.nva.customer.update;
 import java.net.HttpURLConnection;
 import no.unit.nva.customer.create.CreateControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.interfaces.VocabularyList;
+import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;

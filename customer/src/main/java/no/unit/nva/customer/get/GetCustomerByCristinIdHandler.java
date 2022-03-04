@@ -7,6 +7,7 @@ import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.util.List;
 import no.unit.nva.customer.Constants;
+import no.unit.nva.customer.RequestUtils;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -30,6 +31,7 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandlerV2<Void, Cus
      * @param customerService customerService
      */
     public GetCustomerByCristinIdHandler(CustomerService customerService) {
+        super();
         this.customerService = customerService;
     }
 
@@ -49,9 +51,9 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandlerV2<Void, Cus
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
 
-    private String getCristinId(APIGatewayProxyRequestEvent request) throws InputException {
+    private String getCristinId(APIGatewayProxyRequestEvent request) {
         try {
-            return request.getPathParameters().get(CRISTIN_ID);
+            return RequestUtils.getPathParameter(request, CRISTIN_ID).orElseThrow();
         } catch (IllegalArgumentException e) {
             throw new InputException(e.getMessage(), e);
         }

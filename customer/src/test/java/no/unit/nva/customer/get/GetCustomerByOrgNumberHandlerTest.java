@@ -59,15 +59,6 @@ class GetCustomerByOrgNumberHandlerTest {
         assertThat(response.getBody(), containsString(SAMPLE_CRISTIN_ID));
     }
 
-    @Test
-    void getCustomerByOrgNumberReturnsBadRequestWhenOrgNumberisNull() {
-
-        var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
-        var response = handler.handleRequest(input, context);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
-        assertThat(response.getBody(), containsString(EXPECTED_ERROR_MESSAGE));
-    }
 
     private APIGatewayProxyRequestEvent createRequest(CustomerDto customerDto, Map<String, String> pathParameters) {
         return new APIGatewayProxyRequestEvent()

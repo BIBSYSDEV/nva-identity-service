@@ -69,98 +69,79 @@ public class CustomerDao implements Typed {
             .build();
     }
 
-
     @DynamoDbPartitionKey
     @DynamoDbAttribute(IDENTIFIER)
     public UUID getIdentifier() {
         return identifier;
     }
 
-
     public void setIdentifier(UUID identifier) {
         this.identifier = identifier;
     }
-
 
     public Instant getCreatedDate() {
         return createdDate;
     }
 
-
     public void setCreatedDate(Instant createdDate) {
         this.createdDate = createdDate;
     }
-
 
     public Instant getModifiedDate() {
         return modifiedDate;
     }
 
-
     public void setModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
-
 
     public String getName() {
         return name;
     }
 
-
     public void setName(String name) {
         this.name = name;
     }
-
 
     public String getDisplayName() {
         return displayName;
     }
 
-
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
-
 
     public String getShortName() {
         return shortName;
     }
 
-
     public void setShortName(String shortName) {
         this.shortName = shortName;
     }
-
 
     public String getArchiveName() {
         return archiveName;
     }
 
-
     public void setArchiveName(String archiveName) {
         this.archiveName = archiveName;
     }
-
 
     public String getCname() {
         return cname;
     }
 
-
     public void setCname(String cname) {
         this.cname = cname;
     }
-
 
     public String getInstitutionDns() {
         return institutionDns;
     }
 
-
     public void setInstitutionDns(String institutionDns) {
         this.institutionDns = institutionDns;
     }
-
 
     @DynamoDbSecondaryPartitionKey(indexNames = {BY_ORG_NUMBER_INDEX_NAME})
     @DynamoDbAttribute(ORG_NUMBER)
@@ -168,11 +149,9 @@ public class CustomerDao implements Typed {
         return feideOrganizationId;
     }
 
-
     public void setFeideOrganizationId(String feideOrganizationId) {
         this.feideOrganizationId = feideOrganizationId;
     }
-
 
     @DynamoDbSecondaryPartitionKey(indexNames = {BY_CRISTIN_ID_INDEX_NAME})
     @DynamoDbAttribute(CRISTIN_ID)
@@ -180,22 +159,18 @@ public class CustomerDao implements Typed {
         return cristinId;
     }
 
-
     public void setCristinId(String cristinId) {
         this.cristinId = cristinId;
     }
-
 
     @DynamoDbIgnoreNulls
     public Set<VocabularyDao> getVocabularies() {
         return nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
-
     public void setVocabularies(Set<VocabularyDao> vocabularies) {
         this.vocabularies = nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
-
 
     @JacocoGenerated
     @Override
@@ -204,7 +179,6 @@ public class CustomerDao implements Typed {
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
                             getCristinId(), getVocabularies());
     }
-
 
     @JacocoGenerated
     @Override
@@ -248,7 +222,7 @@ public class CustomerDao implements Typed {
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
 
-
+    @Override
     public String getType() {
         return TYPE;
     }

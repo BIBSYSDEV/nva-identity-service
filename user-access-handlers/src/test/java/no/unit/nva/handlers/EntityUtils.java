@@ -3,7 +3,6 @@ package no.unit.nva.handlers;
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.InputStream;
 import java.net.URI;
@@ -45,7 +44,7 @@ public final class EntityUtils {
      * @return an InputStream containing the ApiGateway request to be handled by a {@link
      *     com.amazonaws.services.lambda.runtime.RequestStreamHandler}.
      */
-    public static APIGatewayProxyRequestEvent createRequestWithUserWithoutUsername(){
+    public static APIGatewayProxyRequestEvent createRequestWithUserWithoutUsername() {
         return createRequestBuilderWithUserWithoutUsername();
     }
 

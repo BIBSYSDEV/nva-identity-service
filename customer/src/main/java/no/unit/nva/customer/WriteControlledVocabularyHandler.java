@@ -5,7 +5,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.interfaces.VocabularyList;
+import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 

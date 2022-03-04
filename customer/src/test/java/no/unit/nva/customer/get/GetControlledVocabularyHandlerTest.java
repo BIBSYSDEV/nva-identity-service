@@ -17,12 +17,11 @@ import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.VocabularyDto;
-import no.unit.nva.customer.model.interfaces.VocabularyList;
+import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
@@ -80,7 +79,7 @@ class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-     void handleRequestReturnsControlledVocabulariesOfSpecifiedCustomerWhenCustomerIdIsValid()
+    void handleRequestReturnsControlledVocabulariesOfSpecifiedCustomerWhenCustomerIdIsValid()
         throws IOException {
         var response = sendGetRequest(getExistingCustomerIdentifier());
         VocabularyList body = VocabularyList.fromJson(response.getBody());
@@ -119,7 +118,8 @@ class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
     private APIGatewayProxyRequestEvent createRequestWithMediaType(UUID identifier, MediaType acceptHeader) {
         return new APIGatewayProxyRequestEvent()
             .withPathParameters(Map.of("identifier", identifier.toString()))
-            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()));
+            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
+            .withMultiValueHeaders(Map.of(HttpHeaders.ACCEPT, List.of(acceptHeader.toString())));
     }
 
     private UUID randomCustomerIdentifier() {

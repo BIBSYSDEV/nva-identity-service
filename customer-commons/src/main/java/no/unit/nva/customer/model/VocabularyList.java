@@ -1,4 +1,4 @@
-package no.unit.nva.customer.model.interfaces;
+package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
@@ -7,15 +7,13 @@ import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.JacksonJrDoesNotSupportSets;
-import no.unit.nva.customer.model.VocabularyDto;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import no.unit.nva.customer.model.interfaces.Context;
+import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
@@ -34,7 +32,7 @@ public class VocabularyList implements Context, Typed {
     }
 
     public VocabularyList(URI id,
-                          Set<VocabularyDto> vocabularies) {
+                          Collection<VocabularyDto> vocabularies) {
         this.vocabularies = new HashSet<>(vocabularies);
         this.id = id;
     }
@@ -47,8 +45,7 @@ public class VocabularyList implements Context, Typed {
     }
 
     public static VocabularyList fromJson(String json) {
-        return attempt(() -> defaultRestObjectMapper.beanFrom(VocabularyList.class, json))
-            .orElseThrow(fail -> new BadRequestException("Could not read input: " + json));
+        return attempt(() -> defaultRestObjectMapper.beanFrom(VocabularyList.class, json)).orElseThrow();
     }
 
     public List<VocabularyDto> getVocabularies() {
@@ -59,11 +56,13 @@ public class VocabularyList implements Context, Typed {
         this.vocabularies = JacksonJrDoesNotSupportSets.toSet(vocabularies);
     }
 
+    @JacocoGenerated
     @JsonProperty(LINKED_DATA_ID)
     public URI getId() {
         return id;
     }
 
+    @JacocoGenerated
     public void setId(URI id) {
         this.id = id;
     }

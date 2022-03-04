@@ -56,7 +56,7 @@ public class CustomerDtoWithoutContext implements Resource, Typed {
     }
 
     public void setCreatedDate(String createdDate) {
-        this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
+        this.createdDate = parseInstant(createdDate);
     }
 
     public String getModifiedDate() {
@@ -64,7 +64,7 @@ public class CustomerDtoWithoutContext implements Resource, Typed {
     }
 
     public void setModifiedDate(String modifiedDate) {
-        this.modifiedDate = nonNull(modifiedDate) ? Instant.parse(modifiedDate) : null;
+        this.modifiedDate = parseInstant(modifiedDate);
     }
 
     public String getName() {
@@ -182,5 +182,9 @@ public class CustomerDtoWithoutContext implements Resource, Typed {
     @Override
     public void setType(String type) {
         Typed.super.setType(type);
+    }
+
+    private Instant parseInstant(String createdDate) {
+        return nonNull(createdDate) ? Instant.parse(createdDate) : null;
     }
 }

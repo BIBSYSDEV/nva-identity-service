@@ -4,6 +4,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
@@ -23,7 +24,8 @@ public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandle
     }
 
     protected static UUID extractIdentifier(APIGatewayProxyRequestEvent requestInfo) {
-        return attempt(() -> requestInfo.getPathParameters().get(IDENTIFIER_PATH_PARAMETER))
+        return attempt(() -> RequestUtils.getPathParameter(requestInfo,IDENTIFIER_PATH_PARAMETER))
+            .map(Optional::orElseThrow)
             .map(UUID::fromString)
             .orElseThrow();
     }

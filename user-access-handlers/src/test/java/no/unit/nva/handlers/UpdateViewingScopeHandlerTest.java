@@ -31,7 +31,6 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
     private static final Context CONTEXT = mock(Context.class);
     private UpdateViewingScopeHandler handler;
 
-
     @BeforeEach
     public void init() {
         createDatabaseServiceUsingLocalStorage();
@@ -91,7 +90,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
     @Test
     void shouldReturnBadRequestWheRequestBodyIsInValid() throws InvalidEntryInternalException {
         var request = new APIGatewayProxyRequestEvent().withBody(randomString());
-        var response = handler.handleRequest(request,CONTEXT);
+        var response = handler.handleRequest(request, CONTEXT);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
@@ -114,7 +113,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
             .map(JSON.std::mapFrom)
             .orElseThrow();
         jsonMap.remove("type");
-        String body = attempt(()->JSON.std.asString(jsonMap)).orElseThrow();
+        String body = attempt(() -> JSON.std.asString(jsonMap)).orElseThrow();
         return new APIGatewayProxyRequestEvent().withBody(body)
             .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, objectThatIsNotViewingScope.getUsername()));
     }

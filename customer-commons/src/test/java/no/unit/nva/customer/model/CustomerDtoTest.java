@@ -11,10 +11,12 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
@@ -38,6 +40,7 @@ class CustomerDtoTest {
         var exception=assertThrows(BadRequestException.class, action);
         assertThat(exception.getMessage(),containsString(invalidJson));
     }
+
 
     private CustomerDto randomCustomer() {
         return CustomerDto.builder()

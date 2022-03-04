@@ -29,7 +29,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
 
     public static CustomerDto fromJson(String json) {
         return attempt(() -> defaultRestObjectMapper.beanFrom(CustomerDto.class, json))
-            .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json));
+            .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json,fail.getException()));
     }
 
     public static Builder builder() {

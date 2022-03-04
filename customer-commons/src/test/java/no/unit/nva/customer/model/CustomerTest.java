@@ -3,15 +3,12 @@ package no.unit.nva.customer.model;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
-import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.HashSet;
@@ -46,7 +43,7 @@ class CustomerTest {
     void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
         String value = "Unknown";
         IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
-                                                       () -> VocabularyStatus.lookup(value));
+                                                       () -> VocabularyStatus.lookUp(value));
 
         String expectedMessage = format(ERROR_MESSAGE_TEMPLATE, value,
                                         stream(VocabularyStatus.values())
@@ -90,7 +87,7 @@ class CustomerTest {
         return new VocabularyDao(
             "Vocabulary A",
             URI.create("http://uri.to.vocabulary.a"),
-            VocabularyStatus.lookup("Default")
+            VocabularyStatus.lookUp("Default")
         );
     }
 }

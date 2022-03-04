@@ -8,8 +8,6 @@ dependencies {
     implementation libs.nva.core
 
     implementation libs.nva.apigatewayv2
-    implementation libs.nva.events
-
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.dynamodbenhanced
     implementation libs.bundles.jackson

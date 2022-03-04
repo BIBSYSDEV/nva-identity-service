@@ -25,7 +25,6 @@ awsLambdaEvents = { strictly = '3.11.0' }
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }
 nva-json = { group = 'com.github.bibsysdev', name = 'json', version.ref = 'nvaCommons' }
-nva-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nvaCommons' }
 nva-apigatewayv2 = { group = 'com.github.bibsysdev', name = 'apigatewayv2', version.ref = 'nvaCommons' }
 nva-lambdaauthorizer = { group = 'com.github.bibsysdev', name = 'lambdaauthorizer', version.ref = 'nvaCommons' }
 nva-secrets = { group = 'com.github.bibsysdev', name = 'secrets', version.ref = 'nvaCommons' }
@@ -45,12 +44,6 @@ aws-sdk2-dynamodbenhanced = { group = 'software.amazon.awssdk', name = 'dynamodb
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
 aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
 aws-java-sdk2-cognitoidp = { group = 'software.amazon.awssdk', name = 'cognitoidentityprovider', version.ref = 'awsSdk2' }
-
-#jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
-#jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }
-#jackson-annotations = { group = 'com.fasterxml.jackson.core', name = 'jackson-annotations', version.ref = 'jackson' }
-#jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jsr310', version.ref = 'jackson' }
-#jackson-datatype-jdk8 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
 
 jackson-jr-objects = { group = 'com.fasterxml.jackson.jr', name = 'jackson-jr-objects', version.ref = 'jackson' }
 jackson-jr-annotations= { group= 'com.fasterxml.jackson.jr', name= 'jackson-jr-annotation-support', version.ref= 'jackson'}

@@ -8,7 +8,6 @@ dependencies {
     implementation libs.nva.apigatewayv2
     implementation libs.bundles.jackson
 
-
     compileOnly project(":user-access-errors")
     testImplementation project(":user-access-errors")
 

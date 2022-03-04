@@ -21,7 +21,6 @@ dependencies {
     implementation libs.nva.events
     implementation libs.nva.core
     implementation libs.bundles.jackson
-    implementation libs.nva.apigateway
     implementation libs.nva.secrets
     implementation libs.guava
     implementation libs.bundles.logging

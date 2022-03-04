@@ -1,13 +1,10 @@
 package no.unit.nva.handlers;
 
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.core.JacocoGenerated;
@@ -38,8 +35,8 @@ public class AddRoleHandler extends HandlerWithEventualConsistency<RoleDto, Role
     @Override
     protected RoleDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
 
-        var inputRole = attempt(() -> JSON.std.beanFrom(RoleDto.class, input))
-            .orElseThrow(fail -> new BadRequestException(fail.getException().getMessage()));
+        var inputRole = RoleDto.fromJson(input);
+
         databaseService.addRole(inputRole);
         return getEventuallyConsistent(() -> getRole(inputRole))
             .orElseThrow(() -> new DataSyncException(ERROR_FETCHING_SAVED_ROLE + inputRole.getRoleName()));

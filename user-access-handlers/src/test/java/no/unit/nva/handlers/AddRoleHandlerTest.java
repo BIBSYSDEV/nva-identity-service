@@ -12,6 +12,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
+import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.RoleService;
@@ -128,19 +129,16 @@ class AddRoleHandlerTest extends HandlerTest {
         assertThat(testingAppender.getMessages(), containsString(AddRoleHandler.ERROR_FETCHING_SAVED_ROLE));
     }
 
-    private RoleDto extractResponseBody(APIGatewayProxyResponseEvent response) throws IOException {
-        var responseBody = response.getBody();
-        return JSON.std.beanFrom(RoleDto.class, responseBody);
+    private RoleDto extractResponseBody(APIGatewayProxyResponseEvent response) {
+        return RoleDto.fromJson(response.getBody());
     }
 
     private APIGatewayProxyRequestEvent createRequest(RoleDto inputRole) {
-        var body = attempt(() -> JSON.std.asString(inputRole)).orElseThrow();
-        return createRequest(body);
+        return createRequest(Optional.ofNullable(inputRole).map(Object::toString).orElse(null));
     }
 
     private APIGatewayProxyRequestEvent createRequest(String body) {
-        return new APIGatewayProxyRequestEvent()
-            .withBody(body);
+        return new APIGatewayProxyRequestEvent().withBody(body);
     }
 
     private RoleDto sampleRole() throws InvalidEntryInternalException {

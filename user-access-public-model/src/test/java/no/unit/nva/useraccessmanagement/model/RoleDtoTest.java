@@ -1,7 +1,6 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
-import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_ROLENAME;
@@ -25,7 +24,7 @@ import java.util.Set;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto.Builder;
-
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import org.hamcrest.core.IsSame;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Disabled;
@@ -121,7 +120,7 @@ class RoleDtoTest extends DtoTest {
         var objectWithoutType = jsonMap.remove(JSON_TYPE_ATTRIBUTE);
         String jsonStringWithoutType = JSON.std.asString(objectWithoutType);
 
-        Executable action = () -> JSON.std.beanFrom(RoleDto.class, jsonStringWithoutType);
+        Executable action = () -> RoleDto.fromJson(jsonStringWithoutType);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
         assertThat(exception.getMessage(), StringContains.containsString(RoleDto.TYPE));
     }
@@ -131,11 +130,11 @@ class RoleDtoTest extends DtoTest {
     void roleDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
         throws InvalidEntryInternalException, IOException {
         var someRole = createRole(SOME_ROLE_NAME);
-        var jsonMap = toMap(someRole);
+        var jsonMap = PublicModelJsonConfig.objectMapper.mapFrom(someRole.toString());
         assertThatSerializedItemContainsType(jsonMap, ROLE_TYPE_LITERAL);
 
         String jsonStringWithType = JSON.std.asString(jsonMap);
-        RoleDto deserializedItem = JSON.std.beanFrom(RoleDto.class, jsonStringWithType);
+        RoleDto deserializedItem = RoleDto.fromJson(jsonStringWithType);
 
         assertThat(deserializedItem, is(equalTo(someRole)));
         assertThat(deserializedItem, is(not(IsSame.sameInstance(someRole))));
@@ -150,15 +149,22 @@ class RoleDtoTest extends DtoTest {
     }
 
     @Test
-    void shouldSerializeAsJson() throws IOException {
-        Set<String> randomAccessRights = Set.of(randomString(),randomString());
+    void shouldSerializeAsJson() {
+        Set<String> randomAccessRights = Set.of(randomString(), randomString());
         var sample = RoleDto.newBuilder()
             .withRoleName(randomString())
             .withAccessRights(randomAccessRights)
             .build();
 
         var json = sample.toString();
-        var deserialized = JSON.std.beanFrom(RoleDto.class,json);
-        assertThat(deserialized,is(equalTo(sample)));
+        var deserialized = RoleDto.fromJson(json);
+        assertThat(deserialized, is(equalTo(sample)));
+    }
+
+    @Test
+    void shouldThrowBadRequestExceptionWhenInputCannotBeParsed() {
+        var invalidInput = randomString();
+        var exception = assertThrows(BadRequestException.class, () -> RoleDto.fromJson(invalidInput));
+        assertThat(exception.getMessage(), containsString(invalidInput));
     }
 }

@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.UserList;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 public class ListByInstitutionHandler extends ApiGatewayHandlerV2<Void, UserList> {

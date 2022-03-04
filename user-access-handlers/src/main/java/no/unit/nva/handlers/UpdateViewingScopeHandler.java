@@ -6,9 +6,9 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.fasterxml.jackson.jr.ob.JSON;
 import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
-import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.nva.useraccessmanagement.model.ViewingScope;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 
 public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope, Void> {
 

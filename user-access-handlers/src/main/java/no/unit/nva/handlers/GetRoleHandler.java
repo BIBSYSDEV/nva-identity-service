@@ -7,9 +7,9 @@ import java.net.HttpURLConnection;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 public class GetRoleHandler extends ApiGatewayHandlerV2<Void, RoleDto> {

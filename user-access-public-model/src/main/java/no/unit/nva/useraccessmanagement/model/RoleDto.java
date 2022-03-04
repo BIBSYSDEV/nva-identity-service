@@ -2,9 +2,10 @@ package no.unit.nva.useraccessmanagement.model;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static no.unit.nva.useraccessmanagement.model.PublicModelJsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,12 +20,15 @@ import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.model.RoleDto.Builder;
 import no.unit.nva.useraccessmanagement.model.interfaces.Validable;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 public class RoleDto implements WithCopy<Builder>, Validable, Typed {
 
     public static final String TYPE = "Role";
     public static final String MISSING_ROLE_NAME_ERROR = "Role should have a name";
+
+    @JsonAlias("name")
     @JsonProperty("rolename")
     private String roleName;
     @JsonProperty("accessRights")
@@ -34,8 +38,22 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         accessRights = Collections.emptySet();
     }
 
+    public static RoleDto fromJson(String json) {
+        RoleDto roleDto = attempt(() -> objectMapper.beanFrom(RoleDto.class, json))
+            .orElseThrow(fail -> new BadRequestException("Could not parse role: " + json));
+        if (roleDto.isInvalid()) {
+            throw roleDto.exceptionWhenInvalid();
+        }
+        return roleDto;
+    }
+
     public static Builder newBuilder() {
         return new RoleDto.Builder();
+    }
+
+    @Override
+    public String toString() {
+        return attempt(() -> objectMapper.asString(this)).orElseThrow();
     }
 
     @Override
@@ -90,11 +108,6 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         RoleDto roleDto = (RoleDto) o;
         return Objects.equals(getRoleName(), roleDto.getRoleName())
                && Objects.equals(accessRightsAsSet(), roleDto.accessRightsAsSet());
-    }
-
-    @Override
-    public String toString() {
-        return attempt(() -> JSON.std.asString(this)).orElseThrow();
     }
 
     @Override

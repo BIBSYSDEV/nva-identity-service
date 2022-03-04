@@ -73,7 +73,7 @@ class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironment {
         addSampleRoleToDatabase();
         var requestInfo = queryWithRoleName();
         var response = getRoleHandler.handleRequest(requestInfo, context);
-        var savedRole = JSON.std.beanFrom(RoleDto.class, response.getBody());
+        var savedRole = RoleDto.fromJson(response.getBody());
         assertThat(savedRole.getRoleName(), is(equalTo(THE_ROLE)));
     }
 

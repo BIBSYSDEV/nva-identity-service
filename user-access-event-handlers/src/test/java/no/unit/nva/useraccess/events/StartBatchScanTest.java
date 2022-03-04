@@ -10,7 +10,9 @@ import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import no.unit.nva.events.models.ScanDatabaseRequest;
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeEventBridgeClient;
 import nva.commons.core.SingletonCollector;
@@ -44,7 +46,7 @@ class StartBatchScanTest {
         throws IOException {
         batchScanner.handleRequest(emptyInput(), outputStream, CONTEXT);
         var emittedEventBody = extractEventBody();
-        var expectedEmittedEventBody = new ScanDatabaseRequest(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
+        var expectedEmittedEventBody = new ScanDatabaseRequestV2(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
                                                                ScanDatabaseRequest.DEFAULT_PAGE_SIZE,
                                                                null);
         assertThat(emittedEventBody, is(equalTo(expectedEmittedEventBody)));
@@ -59,10 +61,10 @@ class StartBatchScanTest {
         assertThat(actualEventBus, is(equalTo(expectedEventBus)));
     }
 
-    private ScanDatabaseRequest extractEventBody() {
+    private ScanDatabaseRequestV2 extractEventBody() {
         return eventClient.getRequestEntries().stream()
             .map(PutEventsRequestEntry::detail)
-            .map(attempt(ScanDatabaseRequest::fromJson))
+            .map(attempt(ScanDatabaseRequestV2::fromJson))
             .map(Try::orElseThrow)
             .collect(SingletonCollector.collect());
     }
@@ -73,7 +75,7 @@ class StartBatchScanTest {
             .collect(SingletonCollector.collect());
     }
 
-    private InputStream emptyInput() {
-        return IoUtils.stringToStream(EventsConfig.objectMapper.createObjectNode().toString());
+    private InputStream emptyInput() throws IOException {
+        return IoUtils.stringToStream(EventsConfig.objectMapper.asString(Collections.emptyMap()).toString());
     }
 }

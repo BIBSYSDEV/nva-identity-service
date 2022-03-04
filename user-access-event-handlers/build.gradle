@@ -19,9 +19,10 @@ dependencies {
     implementation libs.aws.sdk2.dynamodbenhanced
 
     implementation libs.nva.events
+    implementation libs.nva.core
+    implementation libs.bundles.jackson
     implementation libs.nva.apigateway
     implementation libs.nva.secrets
-    implementation libs.nva.json
     implementation libs.guava
     implementation libs.bundles.logging
 

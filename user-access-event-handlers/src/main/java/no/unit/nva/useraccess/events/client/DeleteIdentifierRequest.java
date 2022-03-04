@@ -1,6 +1,6 @@
 package no.unit.nva.useraccess.events.client;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.useraccess.events.EventsConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,6 +27,6 @@ public class DeleteIdentifierRequest {
     }
 
     public String toJson() {
-        return attempt(() -> dtoObjectMapper.writeValueAsString(this)).orElseThrow();
+        return attempt(() -> objectMapper.asString(this)).orElseThrow();
     }
 }

@@ -79,7 +79,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
             .map(Try::orElseThrow)
             .collect(Collectors.toList());
 
-        updatedUsers.forEach(user -> logger.info("UpdatedUser:" + user.toJsonString()));
+        updatedUsers.forEach(user -> logger.info("UpdatedUser:" + user.toString()));
 
         return updatedUsers;
     }

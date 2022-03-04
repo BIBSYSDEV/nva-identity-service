@@ -25,9 +25,9 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
-import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.useraccess.events.EventsConfig;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
 import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
 import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
@@ -109,7 +109,7 @@ class UserMigrationServiceTest {
     }
 
     private String toJson(List<SimpleAuthorityResponse> authorityResponseList) {
-        return Try.attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(authorityResponseList)).orElseThrow();
+        return Try.attempt(() -> EventsConfig.objectMapper.asString(authorityResponseList)).orElseThrow();
     }
 
     @Test

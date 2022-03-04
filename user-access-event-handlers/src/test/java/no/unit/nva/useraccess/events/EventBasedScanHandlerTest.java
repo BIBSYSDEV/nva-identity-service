@@ -26,11 +26,8 @@ import no.unit.nva.testutils.EventBridgeEventBuilder;
 import no.unit.nva.useraccess.events.service.EchoMigrationService;
 import no.unit.nva.useraccess.events.service.UserMigrationService;
 import no.unit.nva.useraccessmanagement.dao.UserDao;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.interfaces.WithType;
+import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,7 +112,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
     }
 
     private boolean isUser(Map<String, AttributeValue> entry) {
-        return entry.get(WithType.TYPE_FIELD).s().equals(UserDao.TYPE_VALUE);
+        return entry.get(Typed.TYPE_FIELD).s().equals(UserDao.TYPE_VALUE);
     }
 
     private void performEventDrivenScanInWholeDatabase(InputStream firstEvent) throws JsonProcessingException {
@@ -182,7 +179,7 @@ class EventBasedScanHandlerTest extends DatabaseAccessor {
         return scanAllUsersInDatabaseDirectly();
     }
 
-    private UserDto randomUser() throws InvalidInputException, NotFoundException, ConflictException {
+    private UserDto randomUser() {
         var user = UserDto.newBuilder().withUsername(randomString()).build();
         identityService.addUser(user);
         return identityService.getUser(user);

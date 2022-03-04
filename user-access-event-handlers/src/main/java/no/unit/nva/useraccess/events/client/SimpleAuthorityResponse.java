@@ -1,16 +1,16 @@
 package no.unit.nva.useraccess.events.client;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import static java.util.Objects.nonNull;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import nva.commons.core.paths.UnixPath;
-
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import no.unit.nva.useraccess.events.EventsConfig;
+import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UnixPath;
 
-import static java.util.Objects.nonNull;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class SimpleAuthorityResponse {
 
     private URI id;
@@ -18,6 +18,10 @@ public class SimpleAuthorityResponse {
     private List<URI> organizationIds;
 
     public SimpleAuthorityResponse() {
+    }
+
+    public static SimpleAuthorityResponse fromJson(String json) {
+        return attempt(() -> EventsConfig.objectMapper.beanFrom(SimpleAuthorityResponse.class, json)).orElseThrow();
     }
 
     public URI getId() {
@@ -38,5 +42,30 @@ public class SimpleAuthorityResponse {
 
     public void setOrganizationIds(List<URI> organizationIds) {
         this.organizationIds = organizationIds;
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getId(), getOrganizationIds());
+    }
+
+    @Override
+    @JacocoGenerated
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SimpleAuthorityResponse)) {
+            return false;
+        }
+        SimpleAuthorityResponse that = (SimpleAuthorityResponse) o;
+        return Objects.equals(getId(), that.getId()) && Objects.equals(getOrganizationIds(),
+                                                                       that.getOrganizationIds());
+    }
+
+    @Override
+    public String toString() {
+        return attempt(() -> EventsConfig.objectMapper.asString(this)).orElseThrow();
     }
 }

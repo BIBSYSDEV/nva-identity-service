@@ -4,16 +4,15 @@ import static no.unit.nva.useraccess.events.EventsConfig.EVENTS_CLIENT;
 import static no.unit.nva.useraccess.events.EventsConfig.EVENT_BUS;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
 import static no.unit.nva.useraccess.events.EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE;
-import static no.unit.nva.useraccess.events.EventsConfig.objectMapper;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
-import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.ioutils.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -41,14 +40,15 @@ public class StartBatchScan implements RequestStreamHandler {
         var requestSentByUser = parseUserInput(input);
         var requestWithTopic = createEventAsExpectedByEventListener(requestSentByUser);
         emitEvent(context, requestWithTopic);
-        logger.info("Emitted request {}", requestWithTopic.toJsonString());
+        logger.info("Emitted request {}", requestWithTopic);
     }
 
-    private ScanDatabaseRequest parseUserInput(InputStream input) throws IOException {
-        return objectMapper.readValue(input, ScanDatabaseRequest.class);
+    private ScanDatabaseRequestV2 parseUserInput(InputStream input) throws IOException {
+        String inputString = IoUtils.streamToString(input);
+        return ScanDatabaseRequestV2.fromJson(inputString);
     }
 
-    private ScanDatabaseRequestV2 createEventAsExpectedByEventListener(ScanDatabaseRequest input) {
+    private ScanDatabaseRequestV2 createEventAsExpectedByEventListener(ScanDatabaseRequestV2 input) {
         return new ScanDatabaseRequestV2(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
                                          input.getPageSize(),
                                          START_FROM_BEGINNING);
@@ -63,8 +63,6 @@ public class StartBatchScan implements RequestStreamHandler {
     }
 
     private PutEventsRequestEntry createNewEventEntry(Context context, ScanDatabaseRequestV2 request) {
-        return request.createNewEventEntry(EVENT_BUS,
-                                           SCAN_REQUEST_EVENTS_DETAIL_TYPE,
-                                           context.getInvokedFunctionArn());
+        return request.createNewEventEntry(EVENT_BUS,SCAN_REQUEST_EVENTS_DETAIL_TYPE,context.getInvokedFunctionArn());
     }
 }

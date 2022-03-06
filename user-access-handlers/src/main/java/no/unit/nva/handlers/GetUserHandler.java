@@ -9,6 +9,7 @@ import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
 import nva.commons.core.JacocoGenerated;
 
+@SuppressWarnings("PMD.UnusedFormalParameter")
 public class GetUserHandler extends ApiGatewayHandlerV2<Void, UserDto> {
 
 //    private final IdentityService databaseService;

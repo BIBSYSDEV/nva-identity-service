@@ -1,13 +1,12 @@
-package no.unit.nva.handlers;
+package no.unit.nva.identityservice.rest;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
-import java.net.URI;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
 import nva.commons.core.JacocoGenerated;
 
-public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
+public class GetUserHandler extends ApiGatewayHandlerV2<Void, String> {
 
 //    private final IdentityService databaseService;
 
@@ -24,23 +23,23 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 //    }
 
     @Override
-    protected UserDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
+    protected String processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
 
 //        String username = extractValidUserNameOrThrowException(requestInfo);
 //        UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
-        UserDto userDto = UserDto.newBuilder()
-                              .withUsername("randomname")
-                              .withFamilyName("Gkorgkas")
-                              .withUsername("og@unit.no")
-                              .withInstitution(URI.create("https://example.com"))
-                              .build();
+//        UserDto userDto = UserDto.newBuilder()
+//                              .withUsername("randomname")
+//                              .withFamilyName("Gkorgkas")
+//                              .withUsername("og@unit.no")
+//                              .withInstitution(URI.create("https://example.com"))
+//                              .build();
 
-        return userDto;
+        return "hello world";
 //        return databaseService.getUser(queryObject);
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, UserDto output) {
+    protected Integer getSuccessStatusCode(String input, String output) {
         return HttpURLConnection.HTTP_OK;
     }
 

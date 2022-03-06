@@ -86,7 +86,7 @@ paths:
             type: string
           required: true
       security:
-        - GetUserAuthorizer: []
+        - CognitoUserPool: []
       responses:
         '200':
           description: Successful fetching of User. Returns the requested User
@@ -212,14 +212,3 @@ components:
         type: cognito_user_pools
         providerARNs:
           - Fn::GetAtt: UserPool.Arn
-    GetUserAuthorizer:
-      type: apiKey
-      name: Authorization
-      in: header
-      x-amazon-apigateway-authtype : "custom"
-      x-amazon-apigateway-authorizer:
-        type: token
-        identitySource : method.request.header.Authorization
-        authorizerUri:
-          Fn::Sub: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${AWS::AccountId}:function:GetUserAuthorizer/invocations"
-        authorizerResultTtlInSeconds: 10

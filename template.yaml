@@ -396,21 +396,7 @@ Resources:
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 
-  GetUserAuthorizer:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.authorizer.GetUserAuthorizer::handleRequest
-      MemorySize: 512
 
-  GetUserAuthorizerPermission:
-    Type: AWS::Lambda::Permission
-    DependsOn:
-      - UsersAndRolesApi
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref GetUserAuthorizer
-      Principal: apigateway.amazonaws.com
 
   ListByInstitutionHandler:
     Type: AWS::Serverless::Function

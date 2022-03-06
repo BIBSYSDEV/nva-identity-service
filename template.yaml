@@ -698,7 +698,7 @@ Resources:
   InternalGetUserHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: user-access-handler
+      CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
       Environment:
         Variables:

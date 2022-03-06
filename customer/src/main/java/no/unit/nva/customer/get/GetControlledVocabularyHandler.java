@@ -23,14 +23,14 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
     }
 
     @Override
-    protected VocabularyList processInput(String  input, APIGatewayProxyRequestEvent requestInfo, Context context){
-        UUID identifier = extractIdentifier(requestInfo);
-        CustomerDto customerDto = customerService.getCustomer(identifier);
-        return VocabularyList.fromCustomerDto(customerDto);
+    protected Integer getSuccessStatusCode(String input, VocabularyList output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, VocabularyList output) {
-        return HttpURLConnection.HTTP_OK;
+    protected VocabularyList processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
+        UUID identifier = extractIdentifier(requestInfo);
+        CustomerDto customerDto = customerService.getCustomer(identifier);
+        return VocabularyList.fromCustomerDto(customerDto);
     }
 }

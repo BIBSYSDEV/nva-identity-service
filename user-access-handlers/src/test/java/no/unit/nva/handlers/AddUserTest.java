@@ -19,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import org.apache.http.HttpStatus;
@@ -38,7 +39,7 @@ class AddUserTest extends HandlerTest {
         databaseService = createDatabaseServiceUsingLocalStorage();
         handler = new AddUserHandler(databaseService);
 
-        context = mock(Context.class);
+        context = new FakeContext();
     }
 
     @DisplayName("processInput() adds user to database when input is a user with username and without roles")

@@ -18,6 +18,7 @@ import java.util.Map;
 import no.unit.commons.apigateway.authentication.AuthorizerResponse;
 import no.unit.commons.apigateway.authentication.StatementElement;
 import no.unit.nva.database.interfaces.WithEnvironment;
+import no.unit.nva.stubs.FakeContext;
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,7 @@ class LambdaAuthorizerTest implements WithEnvironment {
     private SecretsManagerClient secretsManager;
 
     public LambdaAuthorizerTest() {
-        context = mock(Context.class);
+        context = new FakeContext();
     }
 
     @BeforeEach

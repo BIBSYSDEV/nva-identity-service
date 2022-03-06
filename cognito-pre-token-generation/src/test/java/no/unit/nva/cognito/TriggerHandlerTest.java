@@ -85,7 +85,7 @@ public class TriggerHandlerTest {
 
     public static final AdminUpdateUserAttributesResponse UNUSED_RESULT = null;
     public static final Javers JAVERS = JaversBuilder.javers().build();
-    public static final Context CONTEXT = mock(Context.class);
+    public static final Context CONTEXT = new FakeContext();
     public static final URI SAMPLE_CRISTIN_ORG_ID = randomCristinOrgId();
     private final AtomicReference<List<AttributeType>> attributeTypesBuffer = new AtomicReference<>();
     private final Context mockContext;
@@ -97,7 +97,7 @@ public class TriggerHandlerTest {
     private UserService userService;
 
     public TriggerHandlerTest() {
-        mockContext = mock(Context.class);
+        mockContext = new FakeContext();
     }
 
     /**
@@ -115,7 +115,7 @@ public class TriggerHandlerTest {
         prepareMocksWithExistingUser(createUserWithInstitutionAndCreatorRole());
 
         Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, new FakeContext());
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 
@@ -133,7 +133,7 @@ public class TriggerHandlerTest {
         prepareMocksWithExistingUser(existingUser);
 
         Map<String, Object> requestEvent = createRequestEventWithInstitutionAndEduPersonAffiliation();
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, new FakeContext());
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 
@@ -207,7 +207,7 @@ public class TriggerHandlerTest {
         mockCustomerApiWithExistingCustomer();
 
         Map<String, Object> requestEvent = createRequestEventWithEmptyAffiliation();
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, new FakeContext());
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 
@@ -279,7 +279,7 @@ public class TriggerHandlerTest {
         mockCustomerApiWithNoCustomer();
 
         Map<String, Object> requestEvent = createRequestEventWithCompleteBibsysHostedUser();
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, new FakeContext());
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 
@@ -296,7 +296,7 @@ public class TriggerHandlerTest {
         mockCustomerApiWithExistingCustomer();
 
         Map<String, Object> requestEvent = createRequestEventWithCompleteBibsysHostedUser();
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, new FakeContext());
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 
@@ -311,7 +311,7 @@ public class TriggerHandlerTest {
         throws InvalidEntryInternalException {
         mockCustomerApiWithNoCustomer();
         Map<String, Object> requestEvent = createRequestEventWithIncompleteBibsysHostedUser();
-        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, mock(Context.class));
+        final Map<String, Object> responseEvent = handler.handleRequest(requestEvent, new FakeContext());
 
         verifyNumberOfAttributeUpdatesInCognito(1);
 

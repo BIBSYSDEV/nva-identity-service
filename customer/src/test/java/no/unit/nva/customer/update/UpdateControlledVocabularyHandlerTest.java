@@ -17,12 +17,13 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
+import no.unit.nva.stubs.FakeContext;
 import nva.commons.apigatewayv2.MediaTypes;
 import org.junit.jupiter.api.Test;
 
 public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlledVocabularySettingsTests {
 
-    public static final Context CONTEXT = mock(Context.class);
+    public static final Context CONTEXT = new FakeContext();
 
     @Test
     public void handleRequestReturnsAcceptedWhenUpdatingVocabularyForExistingCustomer() throws IOException {

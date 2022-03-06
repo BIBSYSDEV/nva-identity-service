@@ -17,6 +17,7 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
+import no.unit.nva.stubs.FakeContext;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class GetCustomerByCristinIdHandlerTest {
         customerService = mock(CustomerService.class);
         handler = new GetCustomerByCristinIdHandler(customerService);
 
-        context = Mockito.mock(Context.class);
+        context = new FakeContext();
     }
 
     @Test

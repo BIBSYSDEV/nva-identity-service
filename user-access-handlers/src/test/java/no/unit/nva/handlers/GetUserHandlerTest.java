@@ -19,7 +19,7 @@
 //    public void init() {
 //        databaseService = createDatabaseServiceUsingLocalStorage();
 ////        getUserHandler = new GetUserHandler(databaseService);
-//        context = mock(Context.class);
+//        context = new FakeContext();
 //    }
 //
 ////    @DisplayName("handleRequest returns User object with type \"User\"")

@@ -17,6 +17,7 @@ import java.util.Map;
 import no.unit.nva.database.DatabaseAccessor;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.interfaces.WithEnvironment;
+import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
@@ -42,7 +43,7 @@ class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironment {
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
         getRoleHandler = new GetRoleHandler(databaseService);
-        context = mock(Context.class);
+        context = new FakeContext();
     }
 
     @Test

@@ -16,6 +16,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.util.Map;
+import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -28,7 +29,7 @@ import org.junit.jupiter.api.Test;
 
 public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
-    private static final Context CONTEXT = mock(Context.class);
+    private static final Context CONTEXT = new FakeContext();
     private UpdateViewingScopeHandler handler;
 
     @BeforeEach

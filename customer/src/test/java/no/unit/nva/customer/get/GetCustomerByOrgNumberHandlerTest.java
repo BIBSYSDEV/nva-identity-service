@@ -15,6 +15,7 @@ import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.stubs.FakeContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -36,7 +37,7 @@ class GetCustomerByOrgNumberHandlerTest {
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
         handler = new GetCustomerByOrgNumberHandler(customerServiceMock);
-        context = Mockito.mock(Context.class);
+        context = new FakeContext();
     }
 
     @Test

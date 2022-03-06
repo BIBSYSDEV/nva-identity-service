@@ -60,13 +60,13 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
 
     @Test
     void handleRequestReturnsResponseWithContentTypeJsonLdWhenAcceptHeaderIsJsonLd() throws IOException {
-        var result= sendRequestAcceptingJsonLd(existingIdentifier());
+        var result = sendRequestAcceptingJsonLd(existingIdentifier());
         assertThat(responseContentType(result.getResponse()), is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
     }
 
     @Test
     void handleRequestReturnsResponseWithContentTypeJsonWhenAcceptHeaderIsJson() throws IOException {
-        var result=sendRequest(existingIdentifier(), MediaType.JSON_UTF_8);
+        var result = sendRequest(existingIdentifier(), MediaType.JSON_UTF_8);
         String content = responseContentType(result.getResponse());
         assertThat(content, is(equalTo(MediaType.JSON_UTF_8.toString())));
     }
@@ -86,7 +86,7 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
     void handleRequestReturnsConflictWhenCustomerAlreadyHasVocabularySettings() throws IOException {
         assertThatExistingUserHasEmptyVocabularySettings();
         sendRequestAcceptingJsonLd(existingIdentifier());
-        var result= sendRequestAcceptingJsonLd(existingIdentifier());
+        var result = sendRequestAcceptingJsonLd(existingIdentifier());
 
         assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
     }

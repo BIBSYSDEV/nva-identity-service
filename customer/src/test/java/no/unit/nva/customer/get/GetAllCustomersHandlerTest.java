@@ -16,9 +16,9 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.stubs.FakeContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 class GetAllCustomersHandlerTest {
 
@@ -34,22 +34,22 @@ class GetAllCustomersHandlerTest {
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
         handler = new GetAllCustomersHandler(customerServiceMock);
-        context = Mockito.mock(Context.class);
+        context = new FakeContext();
     }
 
     @Test
     void requestToHandlerReturnsCustomerList() {
         UUID identifier = UUID.randomUUID();
         CustomerDao customerDb = new CustomerDao.Builder()
-                .withIdentifier(identifier)
-                .build();
+            .withIdentifier(identifier)
+            .build();
 
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomers()).thenReturn(singletonList(customerDto));
 
         var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
 
-        var response= handler.handleRequest(input,  context);
+        var response = handler.handleRequest(input, context);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 

@@ -48,7 +48,7 @@ class UserMigrationServiceTest {
 
     private static final URI SAMPLE_ORG_ID = URI.create("https://localhost/cristin/organization/123.0.0.0");
     private static final URI SAMPLE_CRISTIN_API_ORG_ID =
-            new UriWrapper("https", CRISTIN_API_HOST).addChild(randomString()).getUri();
+        new UriWrapper("https", CRISTIN_API_HOST).addChild(randomString()).getUri();
     private static final URI UNDEFINED = URI.create("undefined");
 
     private CustomerService customerServiceMock;
@@ -93,7 +93,7 @@ class UserMigrationServiceTest {
     }
 
     private static Stream<URI> provideInvalidOrganizationIds() {
-        return Stream.of(SAMPLE_CRISTIN_API_ORG_ID,UNDEFINED);
+        return Stream.of(SAMPLE_CRISTIN_API_ORG_ID, UNDEFINED);
     }
 
     @Test
@@ -117,7 +117,7 @@ class UserMigrationServiceTest {
         var customer = createSampleCustomer();
         when(customerServiceMock.getCustomer(any())).thenReturn(customer);
         prepareOkResponseThenBadGatewayResponse(
-                toJson(createSampleAuthorityResponseWithInvalidOrganizationId(SAMPLE_CRISTIN_API_ORG_ID)));
+            toJson(createSampleAuthorityResponseWithInvalidOrganizationId(SAMPLE_CRISTIN_API_ORG_ID)));
 
         var user = createSampleUser();
         userMigrationService.migrateUser(user);

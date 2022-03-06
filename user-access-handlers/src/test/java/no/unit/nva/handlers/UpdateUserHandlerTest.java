@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
@@ -58,7 +59,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @BeforeEach
     public void init() {
         databaseService = new IdentityServiceImpl(initializeTestDatabase());
-        context = mock(Context.class);
+        context = new FakeContext();
     }
 
     @DisplayName("handleRequest() returns Location header with the URI to updated user when path contains "

@@ -8,7 +8,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
@@ -21,6 +20,7 @@ import java.util.stream.IntStream;
 import no.unit.nva.database.DatabaseAccessor;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
+import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeEventBridgeClient;
 import no.unit.nva.testutils.EventBridgeEventBuilder;
 import no.unit.nva.useraccess.events.service.EchoMigrationService;
@@ -42,7 +42,13 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
 class EventBasedScanHandlerTest extends DatabaseAccessor {
 
-    public static final Context CONTEXT = mock(Context.class);
+    public static final Context CONTEXT = new FakeContext() {
+        @Override
+        public String getInvokedFunctionArn() {
+            return randomString();
+        }
+    };
+
     public static final Map<String, String> NO_START_MARKER = null;
     private ByteArrayOutputStream outputStream;
     private EventBasedScanHandler handler;

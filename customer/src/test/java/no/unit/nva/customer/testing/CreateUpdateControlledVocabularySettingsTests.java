@@ -20,12 +20,13 @@ import no.unit.nva.customer.get.GetControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
+import no.unit.nva.stubs.FakeContext;
 import nva.commons.apigatewayv2.MediaTypes;
 import org.junit.jupiter.api.BeforeEach;
 
 public abstract class CreateUpdateControlledVocabularySettingsTests extends CustomerDynamoDBLocal {
 
-    public static final Context CONTEXT = mock(Context.class);
+    public static final Context CONTEXT = new FakeContext();
     protected ControlledVocabularyHandler<?, ?> handler;
     protected CustomerDto existingCustomer;
     protected DynamoDBCustomerService customerService;

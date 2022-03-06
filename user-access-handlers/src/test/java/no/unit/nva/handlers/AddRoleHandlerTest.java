@@ -14,6 +14,7 @@ import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.RoleService;
+import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
@@ -37,7 +38,7 @@ class AddRoleHandlerTest extends HandlerTest {
      */
     @BeforeEach
     public void init() throws InvalidEntryInternalException {
-        context = mock(Context.class);
+        context = new FakeContext();
         IdentityService service = new IdentityServiceImpl(initializeTestDatabase());
         addRoleHandler = new AddRoleHandler(service);
         sampleRole = sampleRole();
@@ -70,7 +71,7 @@ class AddRoleHandlerTest extends HandlerTest {
 
     @Test
     void handlerRequestReturnsTheGeneratedObjectWhenInputIsValid()
-        throws InvalidEntryInternalException, IOException {
+        throws InvalidEntryInternalException {
         var actualRole = sampleRole();
         var response = sendRequest(actualRole);
         RoleDto savedRole = extractResponseBody(response);

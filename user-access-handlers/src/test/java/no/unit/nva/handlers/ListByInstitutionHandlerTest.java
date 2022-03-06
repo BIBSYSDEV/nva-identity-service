@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -41,7 +42,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
         listByInstitutionHandler = new ListByInstitutionHandler(databaseService);
-        context = mock(Context.class);
+        context = new FakeContext();
     }
 
     @Test

@@ -31,7 +31,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
     protected DynamoDBCustomerService customerService;
 
     @BeforeEach
-    public void init()  {
+    public void init() {
         super.setupDatabase();
         customerService = new DynamoDBCustomerService(this.dynamoClient);
         existingCustomer = createExistingCustomer();
@@ -41,17 +41,17 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
 
     protected abstract ControlledVocabularyHandler<?, ?> createHandler();
 
-    protected abstract CustomerDto createExistingCustomer() ;
+    protected abstract CustomerDto createExistingCustomer();
 
-    protected ExpectedBodyActualResponseTuple sendRequestAcceptingJsonLd(UUID uuid) throws IOException {
+    protected ExpectedBodyActualResponseTuple sendRequestAcceptingJsonLd(UUID uuid)  {
         return sendRequest(uuid, MediaTypes.APPLICATION_JSON_LD);
     }
 
-    protected ExpectedBodyActualResponseTuple sendRequest(UUID uuid, MediaType acceptedContentType) throws IOException {
+    protected ExpectedBodyActualResponseTuple sendRequest(UUID uuid, MediaType acceptedContentType) {
         VocabularyList expectedBody = createRandomVocabularyList();
         var request = createRequest(uuid, expectedBody, acceptedContentType);
-        var response=handler.handleRequest(request,  CONTEXT);
-        return new ExpectedBodyActualResponseTuple(expectedBody,response);
+        var response = handler.handleRequest(request, CONTEXT);
+        return new ExpectedBodyActualResponseTuple(expectedBody, response);
     }
 
     protected String responseContentType(APIGatewayProxyResponseEvent response) {
@@ -90,12 +90,12 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
     protected void assertThatExistingUserHasEmptyVocabularySettings() throws IOException {
         GetControlledVocabularyHandler getHandler = new GetControlledVocabularyHandler(customerService);
         var getRequest = createGetRequest(existingIdentifier(), MediaType.JSON_UTF_8);
-        var response =getHandler.handleRequest(getRequest, CONTEXT);
-        var  getResponseObject =VocabularyList.fromJson(response.getBody());
+        var response = getHandler.handleRequest(getRequest, CONTEXT);
+        var getResponseObject = VocabularyList.fromJson(response.getBody());
         assertThat(getResponseObject.getVocabularies(), is(empty()));
     }
 
-    public static class ExpectedBodyActualResponseTuple  {
+    public static class ExpectedBodyActualResponseTuple {
 
         private final VocabularyList expectedBody;
         private final APIGatewayProxyResponseEvent response;

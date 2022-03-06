@@ -1,10 +1,10 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomInstant;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.Is.is;
@@ -52,8 +52,8 @@ class CustomerDaoTest {
         CustomerDao someDao = sampleCustomerDao();
         Map<String, Object> jsonMap = customerToJsonMap(someDao);
         jsonMap.remove("type");
-        var jsonStringWithoutType = defaultRestObjectMapper.asString(jsonMap);
-        CustomerDao deserialized = defaultRestObjectMapper.beanFrom(CustomerDao.class, jsonStringWithoutType);
+        var jsonStringWithoutType = objectMapper.asString(jsonMap);
+        CustomerDao deserialized = objectMapper.beanFrom(CustomerDao.class, jsonStringWithoutType);
         assertThat(deserialized, is(equalTo(someDao)));
     }
 
@@ -62,14 +62,14 @@ class CustomerDaoTest {
         CustomerDao someDao = sampleCustomerDao();
         var jsonMap = customerToJsonMap(someDao);
         assertThat(jsonMap, hasKey("type"));
-        var jsonString = defaultRestObjectMapper.asString(jsonMap);
-        CustomerDao deserialized = defaultRestObjectMapper.beanFrom(CustomerDao.class, jsonString);
+        var jsonString = objectMapper.asString(jsonMap);
+        CustomerDao deserialized = objectMapper.beanFrom(CustomerDao.class, jsonString);
         assertThat(deserialized, is(equalTo(someDao)));
     }
 
     private Map<String, Object> customerToJsonMap(CustomerDao someDao) throws IOException {
-        var jsonString = defaultRestObjectMapper.asString(someDao);
-        return defaultRestObjectMapper.mapFrom(jsonString);
+        var jsonString = objectMapper.asString(someDao);
+        return objectMapper.mapFrom(jsonString);
     }
 
     private CustomerDto crateSampleCustomerDto() {

@@ -1,16 +1,15 @@
 package no.unit.nva.useraccessmanagement.model;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
@@ -18,6 +17,7 @@ import no.unit.nva.useraccessmanagement.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 
@@ -27,18 +27,24 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public static final String MISSING_FIELD_ERROR = "Invalid User. Missing obligatory field: ";
     public static final String USERNAME_FIELD = "username";
     public static final String VIEWING_SCOPE_FIELD = "viewingScope";
-    private Set<RoleDto> roles;
+    public static final String INSTITUTION = "institution";
+    public static final String ROLES = "roles";
 
     @JsonProperty(USERNAME_FIELD)
     private String username;
+    @JsonProperty(INSTITUTION)
     private URI institution;
+    @JsonProperty("givenName")
     private String givenName;
+    @JsonProperty("familyName")
     private String familyName;
     @JsonProperty(VIEWING_SCOPE_FIELD)
     private ViewingScope viewingScope;
+    @JsonProperty(ROLES)
+    private List<RoleDto> roles;
 
     public UserDto() {
-        roles = Collections.emptySet();
+        roles = Collections.emptyList();
     }
 
     /**
@@ -48,6 +54,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
      */
     public static Builder newBuilder() {
         return new Builder();
+    }
+
+    public static UserDto fromJson(String input) {
+        return attempt(() -> objectMapper.beanFrom(UserDto.class, input))
+            .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
     }
 
     @JsonProperty("accessRights")
@@ -109,11 +120,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
     }
 
     public List<RoleDto> getRoles() {
-        return JacksonJrDoesNotSupportSets.toList(roles);
+        return roles;
     }
 
     private void setRoles(List<RoleDto> roles) {
-        this.roles = JacksonJrDoesNotSupportSets.toSet(roles);
+        this.roles = roles;
     }
 
     /**
@@ -153,12 +164,12 @@ public class UserDto implements WithCopy<Builder>, Typed {
                && Objects.equals(getFamilyName(), userDto.getFamilyName())
                && Objects.equals(getInstitution(), userDto.getInstitution())
                && Objects.equals(getViewingScope(), userDto.getViewingScope())
-               && Objects.equals(getRoles(), userDto.getRoles());
+               && compareListsAsSets(userDto);
     }
 
     @Override
     public String toString() {
-        return attempt(() -> JSON.std.asString(this)).orElseThrow();
+        return attempt(() -> objectMapper.asString(this)).orElseThrow();
     }
 
     public ViewingScope getViewingScope() {
@@ -167,6 +178,13 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
     public void setViewingScope(ViewingScope viewingScope) {
         this.viewingScope = viewingScope;
+    }
+
+    private boolean compareListsAsSets(UserDto userDto) {
+        return Objects.equals(
+            JacksonJrDoesNotSupportSets.toSet(getRoles()),
+            JacksonJrDoesNotSupportSets.toSet(userDto.getRoles())
+        );
     }
 
     public static final class Builder {

@@ -1,6 +1,7 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.isNull;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
 import no.unit.nva.useraccessmanagement.exceptions.EmptyInputException;
@@ -37,7 +38,7 @@ public class DatabaseSubService {
 
     protected static String convertToStringOrWriteErrorMessage(Object queryObject) {
         return Optional.ofNullable(queryObject)
-            .map(attempt(DatabaseConfig.Json::asString))
+            .map(attempt(objectMapper::asString))
             .map(Try::orElseThrow)
             .orElse(EMPTY_INPUT_ERROR_MESSAGE);
     }

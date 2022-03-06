@@ -7,6 +7,7 @@ import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
 import static no.unit.nva.handlers.UpdateUserHandler.INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR;
 import static no.unit.nva.handlers.UpdateUserHandler.LOCATION_HEADER;
 import static no.unit.nva.handlers.UpdateUserHandler.USERNAME_PATH_PARAMETER;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.useraccessmanagement.model.UserDto.VIEWING_SCOPE_FIELD;
 import static no.unit.nva.useraccessmanagement.model.ViewingScope.INCLUDED_UNITS;
 import static nva.commons.core.attempt.Try.attempt;
@@ -19,7 +20,6 @@ import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -64,7 +64,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @DisplayName("handleRequest() returns Location header with the URI to updated user when path contains "
                  + "an existing user id, and the body contains a valid UserDto and path id is the same as the body id ")
     @Test
-    public void handleRequestReturnsUpdatedUserWhenPathAndBodyContainTheSameUserIdAndTheIdExistsAndBodyIsValid()
+    void handleRequestReturnsUpdatedUserWhenPathAndBodyContainTheSameUserIdAndTheIdExistsAndBodyIsValid()
         throws ApiGatewayException, IOException {
 
         UserDto userUpdate = createUserUpdateOnExistingUser();
@@ -80,7 +80,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     @DisplayName("handleRequest() can process URL encoded usernames")
     @Test
-    public void handleRequestCanProcessUrlEncodedUsernames()
+    void handleRequestCanProcessUrlEncodedUsernames()
         throws ApiGatewayException, IOException {
 
         UserDto userUpdate = createUserUpdateOnExistingUser();
@@ -126,7 +126,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     @DisplayName("handleRequest() returns BadRequest when input object is invalid")
     @Test
-    public void processInputReturnsBadRequestWhenInputObjectIsInvalid()
+    void processInputReturnsBadRequestWhenInputObjectIsInvalid()
         throws ApiGatewayException, IOException {
 
         var existingUser = storeUserInDatabase(sampleUser());
@@ -139,7 +139,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     @DisplayName("handleRequest() returns InternalServerError when handler is called without path parameter")
     @Test
-    public void processInputReturnsInternalServerErrorWhenHandlerIsCalledWithoutPathParameter()
+    void processInputReturnsInternalServerErrorWhenHandlerIsCalledWithoutPathParameter()
         throws ApiGatewayException {
 
         UserDto userUpdate = createUserUpdateOnExistingUser();
@@ -182,8 +182,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private Map<String, Object> injectInvalidUriToViewingScope(String illegalUri, UserDto userDto)
         throws IOException {
-        var jsonString = JSON.std.asString(userDto);
-        var userMap = JSON.std.mapFrom(jsonString);
+        var userMap = objectMapper.mapFrom(userDto.toString());
         HashMap<Object, Object> viewingScope = creteViewingScopeNodeWithIllegalUri(illegalUri);
         userMap.put(VIEWING_SCOPE_FIELD, viewingScope);
 
@@ -226,7 +225,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private <I> APIGatewayProxyResponseEvent sendUpdateRequest(String userId, I userUpdate)
         throws IOException {
         UpdateUserHandler updateUserHandler = new UpdateUserHandler(databaseService);
-        String bodyString = JSON.std.asString(userUpdate);
+        String bodyString = userUpdate.toString();
         var input = new APIGatewayProxyRequestEvent()
             .withBody(bodyString)
             .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
@@ -236,7 +235,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private APIGatewayProxyResponseEvent sendUpdateRequestWithoutPathParameters(UserDto userUpdate) {
         UpdateUserHandler updateUserHandler = new UpdateUserHandler(databaseService);
-        var bodyString = attempt(() -> JSON.std.asString(userUpdate)).orElseThrow();
+        var bodyString = attempt(() -> objectMapper.asString(userUpdate)).orElseThrow();
         var input = new APIGatewayProxyRequestEvent().withBody(bodyString);
 
         return updateUserHandler.handleRequest(input, context);

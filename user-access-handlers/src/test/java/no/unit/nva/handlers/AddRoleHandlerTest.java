@@ -1,7 +1,6 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -10,7 +9,6 @@ import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService;

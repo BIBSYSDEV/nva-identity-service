@@ -6,6 +6,7 @@ apply plugin: 'nva.identity.service.java-common-conventions'
 
 dependencies {
     implementation project(":customer-commons")
+    implementation project(":json")
 
     implementation libs.nva.apigatewayv2
     implementation libs.nva.core
@@ -18,6 +19,6 @@ dependencies {
 
 }
 
-test{
-    environment "CUSTOMERS_TABLE_NAME","nva_customers"
+test {
+    environment "CUSTOMERS_TABLE_NAME", "nva_customers"
 }

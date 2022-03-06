@@ -3,6 +3,7 @@ package no.unit.nva.handlers;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -12,7 +13,6 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.util.Map;
@@ -102,18 +102,18 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     private APIGatewayProxyRequestEvent createUpdateViewingScopeRequest(UserDto sampleUser,
                                                                         ViewingScope expectedViewingScope) {
-        String bodyString = attempt(() -> JSON.std.asString(expectedViewingScope)).orElseThrow();
+        String bodyString = attempt(() -> objectMapper.asString(expectedViewingScope)).orElseThrow();
         return new APIGatewayProxyRequestEvent()
             .withBody(bodyString)
             .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, sampleUser.getUsername()));
     }
 
     private APIGatewayProxyRequestEvent createInvalidUpdateViewingScopeRequest(UserDto objectThatIsNotViewingScope) {
-        var jsonMap = attempt(() -> JSON.std.asString(objectThatIsNotViewingScope))
-            .map(JSON.std::mapFrom)
+        var jsonMap = attempt(() -> objectMapper.asString(objectThatIsNotViewingScope))
+            .map(objectMapper::mapFrom)
             .orElseThrow();
         jsonMap.remove("type");
-        String body = attempt(() -> JSON.std.asString(jsonMap)).orElseThrow();
+        String body = attempt(() -> objectMapper.asString(jsonMap)).orElseThrow();
         return new APIGatewayProxyRequestEvent().withBody(body)
             .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, objectThatIsNotViewingScope.getUsername()));
     }

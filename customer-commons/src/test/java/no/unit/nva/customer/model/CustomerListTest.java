@@ -1,9 +1,8 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;

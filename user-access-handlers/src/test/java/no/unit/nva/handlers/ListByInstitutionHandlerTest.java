@@ -2,7 +2,6 @@ package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -14,7 +13,6 @@ import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -105,8 +103,8 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
-    private UserList parseResponseBody(APIGatewayProxyResponseEvent response) throws IOException {
-        return JSON.std.beanFrom(UserList.class, response.getBody());
+    private UserList parseResponseBody(APIGatewayProxyResponseEvent response) {
+        return UserList.fromJson(response.getBody());
     }
 
     private UserList unexpectedUsers(UserList insertedUsers, UserList expectedUsers) {

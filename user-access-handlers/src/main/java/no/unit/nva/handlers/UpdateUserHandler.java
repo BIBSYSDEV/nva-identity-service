@@ -1,9 +1,7 @@
 package no.unit.nva.handlers;
 
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Map;
@@ -13,7 +11,6 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
@@ -41,17 +38,14 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
     @Override
     protected Void processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
-        UserDto inputObject = parseUser(input);
+        UserDto inputObject = UserDto.fromJson(input);
         validateRequest(inputObject, requestInfo);
         databaseService.updateUser(inputObject);
         addAdditionalSuccessHeaders(addLocationHeaderToResponseSupplier(inputObject));
         return null;
     }
 
-    private UserDto parseUser(String input) {
-        return attempt(() -> JSON.std.beanFrom(UserDto.class, input))
-            .orElseThrow(fail -> new BadRequestException(fail.getException().getMessage()));
-    }
+
 
     private void validateRequest(UserDto input, APIGatewayProxyRequestEvent requestInfo) {
         String userIdFromPath = extractUsernameFromPathParameters(requestInfo);

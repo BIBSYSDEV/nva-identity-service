@@ -10,6 +10,7 @@ dependencies {
     implementation project(':user-access-errors')
     implementation project(':user-access-service')
     implementation project(':user-access-rights')
+    implementation project(':json')
 
     implementation libs.nva.apigatewayv2
     implementation libs.nva.json

@@ -2,7 +2,6 @@ package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
-import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -11,12 +10,10 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
-import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
@@ -32,15 +29,13 @@ class CustomerDtoTest {
         assertThat(deserialized, doesNotHaveEmptyValues());
     }
 
-
     @Test
-    void shouldThrowBadRequestExceptionWhenFailingToDeserialize(){
+    void shouldThrowBadRequestExceptionWhenFailingToDeserialize() {
         String invalidJson = randomString();
         Executable action = () -> CustomerDto.fromJson(invalidJson);
-        var exception=assertThrows(BadRequestException.class, action);
-        assertThat(exception.getMessage(),containsString(invalidJson));
+        var exception = assertThrows(BadRequestException.class, action);
+        assertThat(exception.getMessage(), containsString(invalidJson));
     }
-
 
     private CustomerDto randomCustomer() {
         return CustomerDto.builder()
@@ -64,6 +59,4 @@ class CustomerDtoTest {
     private Collection<VocabularyDto> randomVocabularies() {
         return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
     }
-
-
 }

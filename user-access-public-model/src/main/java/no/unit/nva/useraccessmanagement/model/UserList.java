@@ -1,8 +1,8 @@
 package no.unit.nva.useraccessmanagement.model;
 
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +34,12 @@ public class UserList implements Typed {
         return new UserList(users);
     }
 
+    public static UserList fromJson(String json) {
+        return attempt(() -> objectMapper.beanFrom(UserList.class, json)).orElseThrow();
+    }
+
+
+
     @JacocoGenerated
     public List<UserDto> getUsers() {
         return users;
@@ -59,6 +65,6 @@ public class UserList implements Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> JSON.std.asString(this)).orElseThrow();
+        return attempt(() -> objectMapper.asString(this)).orElseThrow();
     }
 }

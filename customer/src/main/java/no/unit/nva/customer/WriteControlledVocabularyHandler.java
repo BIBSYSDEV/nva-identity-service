@@ -1,5 +1,6 @@
 package no.unit.nva.customer;
 
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
@@ -31,7 +32,7 @@ public abstract class WriteControlledVocabularyHandler
     }
 
     private VocabularyList parseInput(String input) {
-        return attempt(() -> RestConfig.defaultRestObjectMapper.beanFrom(VocabularyList.class, input))
+        return attempt(() -> objectMapper.beanFrom(VocabularyList.class, input))
             .orElseThrow(fail -> new BadRequestException("Invalid input object",fail.getException()));
     }
 }

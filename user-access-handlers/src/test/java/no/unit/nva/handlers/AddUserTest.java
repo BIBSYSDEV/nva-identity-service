@@ -4,7 +4,6 @@ import static no.unit.nva.handlers.AddUserHandler.SYNC_ERROR_MESSAGE;
 import static no.unit.nva.handlers.EntityUtils.createRequestWithUserWithoutUsername;
 import static no.unit.nva.handlers.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.handlers.EntityUtils.createUserWithoutRoles;
-import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.Is.is;
@@ -15,7 +14,6 @@ import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -107,15 +105,13 @@ class AddUserTest extends HandlerTest {
     }
 
     private UserDto sendRequest(UserDto expectedUser) {
-        APIGatewayProxyRequestEvent request = createRequest(
-            expectedUser);
+        APIGatewayProxyRequestEvent request = createRequest(expectedUser);
         var response = handler.handleRequest(request, context);
-        return attempt(() -> JSON.std.beanFrom(UserDto.class, response.getBody())).orElseThrow();
+        return UserDto.fromJson(response.getBody());
     }
 
     private APIGatewayProxyRequestEvent createRequest(UserDto expectedUser) {
-        var bodyString = attempt(() -> JSON.std.asString(expectedUser)).orElseThrow();
-        return new APIGatewayProxyRequestEvent().withBody(bodyString);
+        return new APIGatewayProxyRequestEvent().withBody(expectedUser.toString());
     }
 
     private APIGatewayProxyResponseEvent sendRequestToHandler(APIGatewayProxyRequestEvent requestInputStream) {

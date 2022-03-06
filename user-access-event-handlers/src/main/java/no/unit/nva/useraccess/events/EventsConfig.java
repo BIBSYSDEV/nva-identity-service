@@ -1,7 +1,5 @@
 package no.unit.nva.useraccess.events;
 
-import com.fasterxml.jackson.jr.annotationsupport.JacksonAnnotationExtension;
-import com.fasterxml.jackson.jr.ob.JSON;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -13,8 +11,6 @@ public final class EventsConfig {
 
     public static final String IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC = "IdentityService.IdentityEntry.ScanAndUpdate";
     public static final String SCAN_REQUEST_EVENTS_DETAIL_TYPE = "topicInDetailType";
-    public static JSON objectMapper = JSON.builder().register(JacksonAnnotationExtension.std).build();
-
     public static final Environment ENVIRONMENT = new Environment();
     public static final String EVENT_BUS = ENVIRONMENT.readEnv("EVENT_BUS");
     public static final String AWS_REGION = ENVIRONMENT.readEnv("AWS_REGION");

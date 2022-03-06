@@ -16,7 +16,6 @@ public final class JacksonJrDoesNotSupportSets {
 
     }
 
-
     public static <T> List<T> toList(Collection<T> collection) {
         return nonNull(collection) ? new ArrayList<>(collection) : Collections.emptyList();
     }

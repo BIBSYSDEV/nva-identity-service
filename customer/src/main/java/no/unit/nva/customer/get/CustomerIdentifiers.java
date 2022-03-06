@@ -1,8 +1,8 @@
 package no.unit.nva.customer.get;
 
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
-import no.unit.nva.customer.RestConfig;
 
 public class CustomerIdentifiers {
 
@@ -24,6 +24,6 @@ public class CustomerIdentifiers {
 
     @Override
     public String toString() {
-        return attempt(() -> RestConfig.defaultRestObjectMapper.asString(this)).orElseThrow();
+        return attempt(() -> objectMapper.asString(this)).orElseThrow();
     }
 }

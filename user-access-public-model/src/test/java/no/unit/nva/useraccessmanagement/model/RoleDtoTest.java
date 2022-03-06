@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessmanagement.model;
 
-import static no.unit.nva.hamcrest.DoesNotHaveNullOrEmptyFields.doesNotHaveNullOrEmptyFields;
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_ROLENAME;
@@ -16,7 +17,6 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -85,7 +85,7 @@ class RoleDtoTest extends DtoTest {
             .withAccessRights(SAMPLE_ACCESS_RIGHTS)
             .build();
         RoleDto copy = original.copy().build();
-        assertThat(original, doesNotHaveNullOrEmptyFields());
+        assertThat(original, doesNotHaveEmptyValues());
         assertThat(copy, is(not(sameInstance(original))));
         assertThat(copy, is(equalTo(original)));
     }
@@ -118,7 +118,7 @@ class RoleDtoTest extends DtoTest {
         RoleDto sampleUser = createRole(SOME_ROLE_NAME);
         var jsonMap = toMap(sampleUser);
         var objectWithoutType = jsonMap.remove(JSON_TYPE_ATTRIBUTE);
-        String jsonStringWithoutType = JSON.std.asString(objectWithoutType);
+        String jsonStringWithoutType = objectMapper.asString(objectWithoutType);
 
         Executable action = () -> RoleDto.fromJson(jsonStringWithoutType);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
@@ -130,10 +130,10 @@ class RoleDtoTest extends DtoTest {
     void roleDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
         throws InvalidEntryInternalException, IOException {
         var someRole = createRole(SOME_ROLE_NAME);
-        var jsonMap = PublicModelJsonConfig.objectMapper.mapFrom(someRole.toString());
+        var jsonMap = objectMapper.mapFrom(someRole.toString());
         assertThatSerializedItemContainsType(jsonMap, ROLE_TYPE_LITERAL);
 
-        String jsonStringWithType = JSON.std.asString(jsonMap);
+        String jsonStringWithType = objectMapper.asString(jsonMap);
         RoleDto deserializedItem = RoleDto.fromJson(jsonStringWithType);
 
         assertThat(deserializedItem, is(equalTo(someRole)));

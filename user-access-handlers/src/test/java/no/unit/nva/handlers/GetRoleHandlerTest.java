@@ -1,5 +1,6 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -10,7 +11,6 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Map;
@@ -61,7 +61,7 @@ class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironment {
         var request = queryWithRoleName();
         var response = getRoleHandler.handleRequest(request, context);
 
-        var responseBody = JSON.std.mapFrom(response.getBody());
+        var responseBody = objectMapper.mapFrom(response.getBody());
         assertThat(responseBody.get(TYPE_ATTRIBUTE), is(not(nullValue())));
         String type = responseBody.get(TYPE_ATTRIBUTE).toString();
         assertThat(type, is(equalTo(RoleDto.TYPE)));

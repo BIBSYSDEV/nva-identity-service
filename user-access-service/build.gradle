@@ -10,6 +10,7 @@ dependencies {
     implementation project(":user-access-errors")
     implementation project(":user-access-public-model")
     implementation project(":user-access-rights")
+    implementation project(':json')
 
     implementation libs.nva.core
     implementation libs.nva.apigatewayv2

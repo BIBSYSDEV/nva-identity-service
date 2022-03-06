@@ -1,9 +1,9 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -33,7 +33,7 @@ public class CustomerList {
     }
 
     public static CustomerList fromString(String json) {
-        return attempt(() -> defaultRestObjectMapper.beanFrom(CustomerList.class, json)).orElseThrow();
+        return attempt(() -> objectMapper.beanFrom(CustomerList.class, json)).orElseThrow();
     }
 
     @JsonProperty(LINKED_DATA_CONTEXT)
@@ -77,7 +77,7 @@ public class CustomerList {
 
     @Override
     public String toString() {
-        return attempt(() -> defaultRestObjectMapper.asString(this)).orElseThrow();
+        return attempt(() -> objectMapper.asString(this)).orElseThrow();
     }
 
     private List<CustomerDtoWithoutContext> extractCustomers(List<CustomerDto> customers) {

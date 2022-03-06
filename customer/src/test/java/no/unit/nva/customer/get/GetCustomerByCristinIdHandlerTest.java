@@ -49,12 +49,12 @@ class GetCustomerByCristinIdHandlerTest {
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters);
 
-        var response =handler.handleRequest(input, context);
+        var response = handler.handleRequest(input, context);
 
         var responseBody = CustomerDto.fromJson(response.getBody());
 
         assertNotNull(responseBody);
-        assertThat(response.getStatusCode(),is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
     @Test
@@ -62,11 +62,11 @@ class GetCustomerByCristinIdHandlerTest {
         prepareMocksWithMissingCustomer();
 
         Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, SAMPLE_CRISTIN_ID);
-        var input= new APIGatewayProxyRequestEvent()
+        var input = new APIGatewayProxyRequestEvent()
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters);
 
-        var response=  handler.handleRequest(input, context);
+        var response = handler.handleRequest(input, context);
         assertEquals(HttpURLConnection.HTTP_NOT_FOUND, response.getStatusCode());
     }
 
@@ -74,7 +74,7 @@ class GetCustomerByCristinIdHandlerTest {
         when(customerService.getCustomerByCristinId(SAMPLE_CRISTIN_ID)).thenThrow(NotFoundException.class);
     }
 
-    private void prepareMocksWithExistingCustomer()  {
+    private void prepareMocksWithExistingCustomer() {
         when(customerService.getCustomerByCristinId(SAMPLE_CRISTIN_ID)).thenReturn(createCustomer());
     }
 

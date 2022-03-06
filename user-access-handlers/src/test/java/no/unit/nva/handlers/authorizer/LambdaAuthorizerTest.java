@@ -2,6 +2,7 @@ package no.unit.nva.handlers.authorizer;
 
 import static no.unit.commons.apigateway.authentication.DefaultRequestAuthorizer.API_KEY_SECRET_KEY;
 import static no.unit.commons.apigateway.authentication.DefaultRequestAuthorizer.API_KEY_SECRET_NAME;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -12,7 +13,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayCustomAuthorizerEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.util.List;
 import java.util.Map;
 import no.unit.commons.apigateway.authentication.AuthorizerResponse;
@@ -144,6 +144,6 @@ class LambdaAuthorizerTest implements WithEnvironment {
 
     private String createSecretAsJson(String secretKey, String secreteValue) {
         Map<String, String> secret = Map.of(secretKey, secreteValue);
-        return attempt(() -> JSON.std.asString(secret)).orElseThrow();
+        return attempt(() -> objectMapper.asString(secret)).orElseThrow();
     }
 }

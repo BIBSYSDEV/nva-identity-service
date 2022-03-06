@@ -1,7 +1,9 @@
 package no.unit.nva.useraccessmanagement.constants;
 
 import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 
+@JacocoGenerated
 public final class ServiceConstants {
 
     public static final String CRISTIN_PATH = "/cristin/organization/";

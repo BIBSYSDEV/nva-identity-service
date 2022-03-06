@@ -7,7 +7,6 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.IsSame.sameInstance;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +35,7 @@ class UserListTest {
         var list = Collections.singletonList(user);
         var userList = UserList.fromList(list);
         var json = userList.toString();
-        var deserialized = JSON.std.beanFrom(UserList.class, json);
+        var deserialized = UserList.fromJson(json);
         assertThat(deserialized.getUsers(),is(not(empty())));
         assertThat(deserialized.getUsers(),containsInAnyOrder(userList.getUsers().toArray()));
     }

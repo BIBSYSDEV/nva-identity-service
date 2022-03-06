@@ -2,9 +2,10 @@ package no.unit.nva.useraccessmanagement.model;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static no.unit.nva.useraccessmanagement.model.PublicModelJsonConfig.objectMapper;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,6 +82,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     @Override
+    @JsonIgnore
     public boolean isValid() {
         return !(isNull(this.getRoleName()) || this.getRoleName().isBlank());
     }

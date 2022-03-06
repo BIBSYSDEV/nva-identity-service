@@ -1,10 +1,10 @@
 package no.unit.nva.useraccessmanagement.model;
 
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.util.Map;
 
@@ -21,7 +21,7 @@ public class DtoTest {
     }
 
     protected Map<String, Object> toMap(Object serializable) throws IOException {
-        var json = JSON.std.asString(serializable);
-        return JSON.std.mapFrom(json);
+        var json = serializable.toString();
+        return objectMapper.mapFrom(json);
     }
 }

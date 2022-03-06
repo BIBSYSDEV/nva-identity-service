@@ -3,7 +3,6 @@ package no.unit.nva.handlers;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
@@ -39,7 +38,7 @@ public class AddUserHandler extends HandlerWithEventualConsistency<UserDto, User
     }
 
     private UserDto parseUser(String input) {
-        return attempt(() -> JSON.std.beanFrom(UserDto.class, input))
+        return attempt(() -> UserDto.fromJson(input))
             .orElseThrow(fail -> new BadRequestException(fail.getException().getMessage()));
     }
 

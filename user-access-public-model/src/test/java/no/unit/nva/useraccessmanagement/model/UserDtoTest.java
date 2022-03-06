@@ -2,7 +2,7 @@ package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
-import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.model.EntityUtils.SOME_ROLENAME;
@@ -24,7 +24,6 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -55,7 +54,6 @@ class UserDtoTest extends DtoTest {
     protected static final String USER_TYPE_LITERAL = "User";
     private static final String FIRST_ACCESS_RIGHT = "ApproveDoi";
     private static final String SECOND_ACCESS_RIGHT = "RejectDoi";
-    private static final JSON defaultRestObjectMapper = JSON.std;
 
     @DisplayName("UserDto object contains type with value \"User\"")
     @Test
@@ -74,8 +72,8 @@ class UserDtoTest extends DtoTest {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
         var jsonMap = toMap(sampleUser);
         jsonMap.remove(JSON_TYPE_ATTRIBUTE);
-        String jsonStringWithoutType = JSON.std.asString(jsonMap);
-        Executable action = () -> JSON.std.beanFrom(UserDto.class, jsonStringWithoutType);
+        String jsonStringWithoutType = objectMapper.asString(jsonMap);
+        Executable action = () -> objectMapper.beanFrom(UserDto.class, jsonStringWithoutType);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
         assertThat(exception.getMessage(), containsString(UserDto.TYPE));
     }
@@ -88,8 +86,8 @@ class UserDtoTest extends DtoTest {
         var json = toMap(sampleUser);
         assertThatSerializedItemContainsType(json, USER_TYPE_LITERAL);
 
-        String jsonStringWithType = defaultRestObjectMapper.asString(json);
-        UserDto deserializedItem = defaultRestObjectMapper.beanFrom(UserDto.class, jsonStringWithType);
+        String jsonStringWithType = objectMapper.asString(json);
+        UserDto deserializedItem = objectMapper.beanFrom(UserDto.class, jsonStringWithType);
 
         assertThat(deserializedItem, is(equalTo(sampleUser)));
         assertThat(deserializedItem, is(not(sameInstance(sampleUser))));
@@ -173,23 +171,6 @@ class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void userDtoIsSerialized() throws IOException {
-        UserDto initialUser = createUserWithRolesAndInstitutionAndViewingScope();
-
-        assertThat(initialUser, doesNotHaveEmptyValues());
-
-        String jsonString = JSON.std.asString(initialUser);
-
-        var actualJson = JSON.std.mapFrom(jsonString);
-        var expectedJson = toMap(initialUser);
-        assertThat(actualJson, is(equalTo(expectedJson)));
-
-        var deserializedObject = JSON.std.beanFrom(UserDto.class, jsonString);
-        assertThat(deserializedObject, is(equalTo(initialUser)));
-        assertThat(deserializedObject, is(not(sameInstance(initialUser))));
-    }
-
-    @Test
     void userDtoContainsCristinUnitsToBeIncludedToCuratorsView() throws BadRequestException {
         URI cristinUnitIncludedInDefaultCuratorsView = randomCristinOrgId();
         ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView),
@@ -216,7 +197,7 @@ class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void shouldSerializeAsJson() throws IOException {
+    void shouldSerializeAsJson() {
         var sample = UserDto.newBuilder()
             .withUsername(randomString())
             .withFamilyName(randomString())
@@ -226,8 +207,15 @@ class UserDtoTest extends DtoTest {
             .withViewingScope(randomViewingScope())
             .build();
         var json = sample.toString();
-        var deserialized = JSON.std.beanFrom(UserDto.class,json);
-        assertThat(deserialized,is(equalTo(sample)));
+        var deserialized = UserDto.fromJson(json);
+        assertThat(deserialized, is(equalTo(sample)));
+    }
+
+    @Test
+    void shouldThrowBadRequestExceptionWhenFailingToDeserialize() {
+        var invalidJson = randomString();
+        var exception = assertThrows(BadRequestException.class, () -> UserDto.fromJson(invalidJson));
+        assertThat(exception.getMessage(), containsString(invalidJson));
     }
 
     private static Set<RoleDto> createSampleRoles() {

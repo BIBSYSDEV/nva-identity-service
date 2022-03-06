@@ -1,9 +1,9 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -45,7 +45,7 @@ public class VocabularyList implements Context, Typed {
     }
 
     public static VocabularyList fromJson(String json) {
-        return attempt(() -> defaultRestObjectMapper.beanFrom(VocabularyList.class, json)).orElseThrow();
+        return attempt(() -> objectMapper.beanFrom(VocabularyList.class, json)).orElseThrow();
     }
 
     public List<VocabularyDto> getVocabularies() {
@@ -100,7 +100,7 @@ public class VocabularyList implements Context, Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> defaultRestObjectMapper.asString(this)).orElseThrow();
+        return attempt(() -> objectMapper.asString(this)).orElseThrow();
     }
 
     @Override

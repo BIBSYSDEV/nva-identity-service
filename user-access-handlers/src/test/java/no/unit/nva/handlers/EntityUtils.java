@@ -1,9 +1,9 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
@@ -34,7 +34,7 @@ public final class EntityUtils {
     public static APIGatewayProxyRequestEvent createRequestBuilderWithUserWithoutUsername() {
 
         var userWithoutUsername = createUserWithoutUsername();
-        var jsonString = attempt(() -> JSON.std.asString(userWithoutUsername)).orElseThrow();
+        var jsonString = attempt(() -> objectMapper.asString(userWithoutUsername)).orElseThrow();
         return new APIGatewayProxyRequestEvent().withBody(jsonString);
     }
 
@@ -56,7 +56,7 @@ public final class EntityUtils {
     public static Map<String, Object> createUserWithoutUsername()
         throws InvalidEntryInternalException {
         UserDto userDto = createUserWithRolesAndInstitution();
-        var jsonMap = attempt(() -> JSON.std.asString(userDto)).map(JSON.std::mapFrom).orElseThrow();
+        var jsonMap = attempt(userDto::toString).map(objectMapper::mapFrom).orElseThrow();
         jsonMap.put(UserDto.USERNAME_FIELD, EMPTY_STRING);
         return jsonMap;
     }

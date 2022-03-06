@@ -1,11 +1,11 @@
 package no.unit.useraccessserivce.accessrights;
 
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.function.Executable;
 class AccessRightTest {
 
     public static final String APPROVE_DOI_REQUEST_STRING = "\"APPROVE_DOI_REQUEST\"";
-    public static final JSON objectMapper = JSON.std;
+
 
     @Test
     void fromStringParsesStringCaseInsensitive() {

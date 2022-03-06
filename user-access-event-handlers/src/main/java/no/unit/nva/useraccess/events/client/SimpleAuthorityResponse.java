@@ -1,13 +1,13 @@
 package no.unit.nva.useraccess.events.client;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import no.unit.nva.useraccess.events.EventsConfig;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
 
@@ -21,7 +21,7 @@ public class SimpleAuthorityResponse {
     }
 
     public static SimpleAuthorityResponse fromJson(String json) {
-        return attempt(() -> EventsConfig.objectMapper.beanFrom(SimpleAuthorityResponse.class, json)).orElseThrow();
+        return attempt(() -> objectMapper.beanFrom(SimpleAuthorityResponse.class, json)).orElseThrow();
     }
 
     public URI getId() {
@@ -66,6 +66,6 @@ public class SimpleAuthorityResponse {
 
     @Override
     public String toString() {
-        return attempt(() -> EventsConfig.objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> objectMapper.asString(this)).orElseThrow();
     }
 }

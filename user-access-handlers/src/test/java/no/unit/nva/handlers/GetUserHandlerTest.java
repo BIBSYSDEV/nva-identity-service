@@ -1,5 +1,6 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -9,7 +10,6 @@ import static org.hamcrest.core.IsNull.nullValue;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Map;
@@ -44,7 +44,7 @@ class GetUserHandlerTest extends HandlerTest {
         var request = createRequest(DEFAULT_USERNAME);
         var response = getUserHandler.handleRequest(request, context);
 
-        var bodyObject = JSON.std.mapFrom(response.getBody());
+        var bodyObject = objectMapper.mapFrom(response.getBody());
 
         assertThat(bodyObject.get(TYPE_ATTRIBUTE), is(not(nullValue())));
         String type = bodyObject.get(TYPE_ATTRIBUTE).toString();
@@ -63,20 +63,20 @@ class GetUserHandlerTest extends HandlerTest {
         var request = createRequest(DEFAULT_USERNAME);
         UserDto expected = insertSampleUserToDatabase();
         var response = getUserHandler.handleRequest(request, context);
-        var actual = JSON.std.beanFrom(UserDto.class, response.getBody());
+        var actual = UserDto.fromJson(response.getBody());
 
         assertThat(actual, is(equalTo(expected)));
     }
 
     @Test
     void shouldReturnUserDtoWhenPathParameterContainsTheUsernameOfExistingUserEnc()
-        throws ApiGatewayException, IOException {
+        throws ApiGatewayException{
 
         String encodedUserName = encodeString(DEFAULT_USERNAME);
         var request = createRequest(encodedUserName);
         UserDto expected = insertSampleUserToDatabase();
         var response = getUserHandler.handleRequest(request, context);
-        var actual = JSON.std.beanFrom(UserDto.class, response.getBody());
+        var actual = UserDto.fromJson(response.getBody());
         assertThat(actual, is(equalTo(expected)));
     }
 

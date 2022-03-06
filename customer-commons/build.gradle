@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation project (':json')
     implementation libs.nva.apigatewayv2
     implementation libs.nva.core
     implementation libs.bundles.jackson

@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
 
+    implementation project(":json")
     implementation libs.aws.lambda.java.core
     implementation libs.jackson.jr.objects
     implementation libs.nva.core

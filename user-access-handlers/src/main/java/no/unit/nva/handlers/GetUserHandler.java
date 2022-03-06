@@ -5,7 +5,6 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import no.unit.nva.database.IdentityService;
-import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
 import nva.commons.core.JacocoGenerated;

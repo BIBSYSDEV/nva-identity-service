@@ -13,7 +13,7 @@ dependencies {
     implementation project(':json')
 
     implementation libs.nva.apigatewayv2
-    implementation libs.nva.json
+//    implementation libs.nva.json
     implementation libs.nva.core
     implementation libs.nva.lambdaauthorizer
     implementation libs.nva.secrets

@@ -1,4 +1,4 @@
-package no.unit.nva.identityservice.rest;
+package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;

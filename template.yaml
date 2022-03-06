@@ -378,8 +378,8 @@ Resources:
   GetUserHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: light
-      Handler: no.unit.nva.identityservice.rest.GetUserHandler::handleRequest
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -698,8 +698,8 @@ Resources:
   InternalGetUserHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: light
-      Handler: no.unit.nva.identityservice.rest.GetUserHandler::handleRequest
+      CodeUri: user-access-handler
+      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'

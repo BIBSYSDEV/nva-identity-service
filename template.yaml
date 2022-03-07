@@ -1130,11 +1130,11 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: fooa
+        - Name: feidememberrole
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: foob
+        - Name: feideidnin
           AttributeDataType: String
           Mutable: true
           Required: false
@@ -1147,9 +1147,9 @@ Resources:
     Properties:
       AttributeMapping:
         custom:nin: https://n.feide.no/claims/nin
-        custom:foob: https://n.feide.no/claims/eduPersonPrincipalName
-        custom:fooa: norEduPersonNIN
         custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
@@ -1193,8 +1193,8 @@ Resources:
       ReadAttributes:
         - custom:feideid
         - custom:nin
-        - custom:fooa
-        - custom:foob
+        - custom:feidememberrole
+        - custom:feideidnin
       AccessTokenValidity: 1
       IdTokenValidity: 30
       RefreshTokenValidity: 2
@@ -1208,9 +1208,8 @@ Resources:
       WriteAttributes:
         - custom:feideid
         - custom:nin
-        - custom:fooa
-        - custom:foob
-
+        - custom:feidememberrole
+        - custom:feideidnin
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain

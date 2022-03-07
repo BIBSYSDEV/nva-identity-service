@@ -229,8 +229,6 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         var updatedCustomer=service.getCustomer(savedCustomer.getIdentifier());
         assertThat(updatedCustomer.getVocabularies().get(0).getStatus(),is(equalTo(ALLOWED)));
 
-
-
     }
 
     private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(

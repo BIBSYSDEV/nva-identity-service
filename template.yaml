@@ -1159,7 +1159,7 @@ Resources:
         token_url: 'https://auth.dataporten.no/oauth/token'
         attributes_url: 'https://auth.dataporten.no/openid/userinfo'
         jwks_uri: 'https://auth.dataporten.no/openid/jwks'
-        authorize_scopes: 'openid'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
       ProviderName: Dataporten
       ProviderType: OIDC
       UserPoolId: !Ref UserPool

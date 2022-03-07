@@ -1193,6 +1193,8 @@ Resources:
       ReadAttributes:
         - custom:feideid
         - custom:nin
+        - custom:fooa
+        - custom:foob
       AccessTokenValidity: 1
       IdTokenValidity: 30
       RefreshTokenValidity: 2
@@ -1206,6 +1208,8 @@ Resources:
       WriteAttributes:
         - custom:feideid
         - custom:nin
+        - custom:fooa
+        - custom:foob
 
 
   UserPoolDomain:

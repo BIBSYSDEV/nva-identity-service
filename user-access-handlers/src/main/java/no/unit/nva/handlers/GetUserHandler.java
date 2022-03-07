@@ -11,7 +11,6 @@ import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
-@SuppressWarnings("PMD.UnusedFormalParameter")
 public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
     private final IdentityService databaseService;
@@ -33,10 +32,8 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
     @Override
     protected UserDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
-
         String username = extractValidUserNameOrThrowException(requestInfo);
         UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
-
         return databaseService.getUser(queryObject);
     }
 

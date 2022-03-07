@@ -1138,6 +1138,10 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: organizationFeideIdentifier
+          AttributeDataType: String
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !Sub "IdentityService-UserPool-${AWS::AccountId}"
@@ -1150,6 +1154,7 @@ Resources:
         custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
         custom:feidememberrole: eduPersonAffiliation
         custom:feideidnin: norEduPersonNIN
+        custom:organizationFeideIdentifier: schacHomeOrganization
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
@@ -1195,6 +1200,7 @@ Resources:
         - custom:nin
         - custom:feidememberrole
         - custom:feideidnin
+        - custom:organizationFeideIdentifier
       AccessTokenValidity: 1
       IdTokenValidity: 30
       RefreshTokenValidity: 2
@@ -1210,6 +1216,7 @@ Resources:
         - custom:nin
         - custom:feidememberrole
         - custom:feideidnin
+        - custom:organizationFeideIdentifier
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain

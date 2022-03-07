@@ -11,8 +11,6 @@ import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -217,18 +215,17 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         assertEquals(expectedMessage, exception.getMessage());
     }
 
-
     @Test
-    void shouldReadEntryWhereVocabularyStatusIsNotCamelCase(){
+    void shouldReadEntryWhereVocabularyStatusIsNotCamelCase() {
         var savedCustomer = createCustomerWithSingleVocabularyEntry();
-        var  entry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
+        var entry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
         updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(entry);
-        var  updatedEntry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
-        var updatedVocabularyStatus = extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(updatedEntry);
-        assertThat(updatedVocabularyStatus,is(equalTo(statusWithAlternateCase())));
-        var updatedCustomer=service.getCustomer(savedCustomer.getIdentifier());
-        assertThat(updatedCustomer.getVocabularies().get(0).getStatus(),is(equalTo(ALLOWED)));
-
+        var updatedEntry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
+        var updatedVocabularyStatus = extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
+            updatedEntry);
+        assertThat(updatedVocabularyStatus, is(equalTo(statusWithAlternateCase())));
+        var updatedCustomer = service.getCustomer(savedCustomer.getIdentifier());
+        assertThat(updatedCustomer.getVocabularies().get(0).getStatus(), is(equalTo(ALLOWED)));
     }
 
     private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
@@ -242,9 +239,10 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
         this.dynamoClient.putItem(PutItemRequest.builder().item(newEntry).tableName(CUSTOMERS_TABLE_NAME).build());
     }
 
-    private HashMap<String, AttributeValue> createNewEntryWithVocabularyStatusHavingAlternateCase(Map<String, AttributeValue> entry) {
-        var vocabulary= new HashMap<>(entry.get(CustomerDao.VOCABULARIES_FIELD).l().get(SINGLE_VOCABULARY).m());
-        vocabulary.put(VocabularyDao.STATUS_FIELD,AttributeValue.builder().s(statusWithAlternateCase()).build());
+    private HashMap<String, AttributeValue> createNewEntryWithVocabularyStatusHavingAlternateCase(
+        Map<String, AttributeValue> entry) {
+        var vocabulary = new HashMap<>(entry.get(CustomerDao.VOCABULARIES_FIELD).l().get(SINGLE_VOCABULARY).m());
+        vocabulary.put(VocabularyDao.STATUS_FIELD, AttributeValue.builder().s(statusWithAlternateCase()).build());
         var newEntry = new HashMap<>(entry);
         AttributeValue vocabularyEntry = AttributeValue.builder().m(vocabulary).build();
         var newVocabulariesList = AttributeValue.builder().l(vocabularyEntry).build();
@@ -253,21 +251,20 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     private Map<String, AttributeValue> fetchCustomerDirectlyFromDatabaseAsKeyValueMap() {
-        var allEntries=this.dynamoClient.scan(ScanRequest.builder().tableName(CUSTOMERS_TABLE_NAME).build());
-        var entry=allEntries.items().get(0);
+        var allEntries = this.dynamoClient.scan(ScanRequest.builder().tableName(CUSTOMERS_TABLE_NAME).build());
+        var entry = allEntries.items().get(0);
         return entry;
     }
 
     private CustomerDto createCustomerWithSingleVocabularyEntry() {
         var customer = newCustomerDto();
         customer.setVocabularies(List.of(randomVocabulary()));
-        var savedCustomer=service.createCustomer(customer);
+        var savedCustomer = service.createCustomer(customer);
         return savedCustomer;
     }
 
     private String statusWithAlternateCase() {
         return "AlLoWed";
-
     }
 
     private CustomerDto newCustomerDto() {

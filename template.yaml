@@ -1169,6 +1169,37 @@ Resources:
       ProviderType: OIDC
       UserPoolId: !Ref UserPool
 
+  BackendResourceServerScopes:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      Identifier: https://api.nva.unit.no/scopes
+      Name: Scopes for backend
+      Scopes:
+        - ScopeDescription: Necessary scope for backend authentication to work
+          ScopeName: backend
+      UserPoolId: !Ref UserPool
+
+  BackendApplicationClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      AllowedOAuthFlows: client_credentials
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes: https://api.nva.unit.no/scopes/backend
+      ClientName: BackendApplicationClient
+      CallbackURLs:
+        - https://api.nva.unit.no/scopes # not necessary maybe.
+      DefaultRedirectURI: https://api.nva.unit.no/scopes
+      ExplicitAuthFlows:
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+      GenerateSecret: true
+      IdTokenValidity: 15
+      AccessTokenValidity: 15
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
 
   ApplicationClient:
     Type: AWS::Cognito::UserPoolClient
@@ -1224,7 +1255,6 @@ Resources:
       UserPoolId: !Ref UserPool
       Domain: !Ref AuthenticationDomainPrefix
 
-
   IdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
@@ -1232,7 +1262,6 @@ Resources:
       CognitoIdentityProviders:
         - ClientId: !Ref ApplicationClient
           ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
-
 
   PreAuthenticationHandler:
     Type: AWS::Serverless::Function
@@ -1278,7 +1307,6 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref PostAuthenticationHandler
       Principal: cognito-idp.amazonaws.com
-
 
 
 

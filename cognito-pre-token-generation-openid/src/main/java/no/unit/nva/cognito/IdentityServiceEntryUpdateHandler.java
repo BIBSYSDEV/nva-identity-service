@@ -12,6 +12,7 @@ public class IdentityServiceEntryUpdateHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
+
         String userAttributes =
             attempt(() -> objectMapper.asString(input.getRequest().getUserAttributes().entrySet()))
                 .orElseThrow();

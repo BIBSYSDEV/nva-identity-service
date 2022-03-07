@@ -371,7 +371,7 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /users
+            Path: /users/{username}
             Method: put
             RestApiId: !Ref UsersAndRolesApi
 

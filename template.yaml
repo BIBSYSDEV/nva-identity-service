@@ -1148,8 +1148,8 @@ Resources:
       AttributeMapping:
         custom:nin: https://n.feide.no/claims/nin
         custom:foob: https://n.feide.no/claims/eduPersonPrincipalName
-        custom:fooa: dataporten-userid_sec
-        custom:feideid: name
+        custom:fooa: norEduPersonNIN
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'

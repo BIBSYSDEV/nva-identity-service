@@ -1138,7 +1138,7 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: organizationFeideIdentifier
+        - Name: orgFeideId
           AttributeDataType: String
           Mutable: true
           Required: false
@@ -1154,7 +1154,7 @@ Resources:
         custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
         custom:feidememberrole: eduPersonAffiliation
         custom:feideidnin: norEduPersonNIN
-        custom:organizationFeideIdentifier: schacHomeOrganization
+        custom:orgFeideId: schacHomeOrganization
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
@@ -1200,7 +1200,7 @@ Resources:
         - custom:nin
         - custom:feidememberrole
         - custom:feideidnin
-        - custom:organizationFeideIdentifier
+        - custom:orgFeideId
       AccessTokenValidity: 1
       IdTokenValidity: 30
       RefreshTokenValidity: 2
@@ -1216,7 +1216,7 @@ Resources:
         - custom:nin
         - custom:feidememberrole
         - custom:feideidnin
-        - custom:organizationFeideIdentifier
+        - custom:orgFeideId
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain

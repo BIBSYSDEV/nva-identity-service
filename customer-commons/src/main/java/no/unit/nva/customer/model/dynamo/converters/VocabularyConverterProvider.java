@@ -2,6 +2,7 @@ package no.unit.nva.customer.model.dynamo.converters;
 
 import java.util.Set;
 import no.unit.nva.customer.model.VocabularyDao;
+import no.unit.nva.customer.model.VocabularyStatus;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -13,7 +14,14 @@ public class VocabularyConverterProvider implements AttributeConverterProvider {
         if (isVocabularySet(enhancedType)) {
             return (AttributeConverter<T>) VocabularyDao.SET_CONVERTER;
         }
+        if (isVocabularyStatus(enhancedType)){
+            return (AttributeConverter<T>) VocabularyStatus.VOCABULARY_STATUS_CONVERTER;
+        }
         return null;
+    }
+
+    private <T> boolean isVocabularyStatus(EnhancedType<T> enhancedType) {
+        return VocabularyStatus.class.equals(enhancedType.rawClass());
     }
 
     private <T> boolean isVocabularySet(EnhancedType<T> enhancedType) {

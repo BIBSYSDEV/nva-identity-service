@@ -32,6 +32,7 @@ public class CustomerDao implements Typed {
     public static final String TYPE = "Customer";
     public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
     public static final TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
+    public static final String VOCABULARIES_FIELD = "vocabularies";
     private UUID identifier;
     private Instant createdDate;
     private Instant modifiedDate;
@@ -164,6 +165,7 @@ public class CustomerDao implements Typed {
     }
 
     @DynamoDbIgnoreNulls
+    @DynamoDbAttribute(VOCABULARIES_FIELD)
     public Set<VocabularyDao> getVocabularies() {
         return nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }

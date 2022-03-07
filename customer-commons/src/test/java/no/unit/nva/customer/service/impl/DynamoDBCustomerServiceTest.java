@@ -1,5 +1,7 @@
 package no.unit.nva.customer.service.impl;
 
+import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomElement;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
@@ -9,6 +11,8 @@ import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,11 +22,15 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
@@ -31,9 +39,13 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
 class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
 
+    public static final int SINGLE_VOCABULARY = 0;
     private DynamoDBCustomerService service;
 
     /**
@@ -203,6 +215,61 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
                                      () -> failingService.updateCustomer(customer.getIdentifier(),
                                                                          customer));
         assertEquals(expectedMessage, exception.getMessage());
+    }
+
+
+    @Test
+    void shouldReadEntryWhereVocabularyStatusIsNotCamelCase(){
+        var savedCustomer = createCustomerWithSingleVocabularyEntry();
+        var  entry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
+        updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(entry);
+        var  updatedEntry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
+        var updatedVocabularyStatus = extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(updatedEntry);
+        assertThat(updatedVocabularyStatus,is(equalTo(statusWithAlternateCase())));
+        var updatedCustomer=service.getCustomer(savedCustomer.getIdentifier());
+        assertThat(updatedCustomer.getVocabularies().get(0).getStatus(),is(equalTo(ALLOWED)));
+
+
+
+    }
+
+    private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
+        Map<String, AttributeValue> updatedEntry) {
+        return updatedEntry.get(CustomerDao.VOCABULARIES_FIELD).l().get(SINGLE_VOCABULARY)
+            .m().get(VocabularyDao.STATUS_FIELD).s();
+    }
+
+    private void updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(Map<String, AttributeValue> entry) {
+        var newEntry = createNewEntryWithVocabularyStatusHavingAlternateCase(entry);
+        this.dynamoClient.putItem(PutItemRequest.builder().item(newEntry).tableName(CUSTOMERS_TABLE_NAME).build());
+    }
+
+    private HashMap<String, AttributeValue> createNewEntryWithVocabularyStatusHavingAlternateCase(Map<String, AttributeValue> entry) {
+        var vocabulary= new HashMap<>(entry.get(CustomerDao.VOCABULARIES_FIELD).l().get(SINGLE_VOCABULARY).m());
+        vocabulary.put(VocabularyDao.STATUS_FIELD,AttributeValue.builder().s(statusWithAlternateCase()).build());
+        var newEntry = new HashMap<>(entry);
+        AttributeValue vocabularyEntry = AttributeValue.builder().m(vocabulary).build();
+        var newVocabulariesList = AttributeValue.builder().l(vocabularyEntry).build();
+        newEntry.put(CustomerDao.VOCABULARIES_FIELD, newVocabulariesList);
+        return newEntry;
+    }
+
+    private Map<String, AttributeValue> fetchCustomerDirectlyFromDatabaseAsKeyValueMap() {
+        var allEntries=this.dynamoClient.scan(ScanRequest.builder().tableName(CUSTOMERS_TABLE_NAME).build());
+        var entry=allEntries.items().get(0);
+        return entry;
+    }
+
+    private CustomerDto createCustomerWithSingleVocabularyEntry() {
+        var customer = newCustomerDto();
+        customer.setVocabularies(List.of(randomVocabulary()));
+        var savedCustomer=service.createCustomer(customer);
+        return savedCustomer;
+    }
+
+    private String statusWithAlternateCase() {
+        return "AlLoWed";
+
     }
 
     private CustomerDto newCustomerDto() {

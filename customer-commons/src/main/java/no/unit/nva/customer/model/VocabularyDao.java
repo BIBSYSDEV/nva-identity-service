@@ -3,19 +3,24 @@ package no.unit.nva.customer.model;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Set;
+import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.dynamo.converters.VocabularySetConverter;
 import no.unit.nva.customer.model.interfaces.Vocabulary;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
-@DynamoDbBean
+@DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class VocabularyDao implements Vocabulary {
 
     public static final AttributeConverter<Set<VocabularyDao>> SET_CONVERTER = new VocabularySetConverter();
     public static final TableSchema<VocabularyDao> SCHEMA = TableSchema.fromClass(VocabularyDao.class);
+    public static final String STATUS_FIELD = "status";
     private String name;
     private URI id;
+
     private VocabularyStatus status;
 
     public VocabularyDao() {
@@ -49,6 +54,7 @@ public class VocabularyDao implements Vocabulary {
     }
 
     @Override
+    @DynamoDbAttribute(STATUS_FIELD)
     public VocabularyStatus getStatus() {
         return status;
     }

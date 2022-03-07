@@ -1130,11 +1130,11 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: foo1
+        - Name: fooa
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: foo2
+        - Name: foob
           AttributeDataType: String
           Mutable: true
           Required: false
@@ -1148,8 +1148,8 @@ Resources:
       AttributeMapping:
         custom:nin: https://n.feide.no/claims/nin
         custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
-        custom:foo1: dataporten-userid_sec
-        custom:foo2: picture
+        custom:fooa: dataporten-userid_sec
+        custom:foob: picture
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'

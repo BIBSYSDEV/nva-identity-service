@@ -104,12 +104,14 @@ public class IdentityServiceEntryUpdateHandler
     }
 
     private HttpRequest formatRequestForJwtToken(String userPoolId, String clientId) {
-        return HttpRequest.newBuilder()
+        var request= HttpRequest.newBuilder()
             .uri(cognitoUri)
             .setHeader(AUTHORIZATION_HEADER, authenticationString(userPoolId, clientId))
             .setHeader(CONTENT_TYPE, APPLICATION_X_WWW_FORM_URLENCODED)
             .POST(clientCredentialsAuthType())
             .build();
+        System.out.println(request.toString());
+        return request;
     }
 
     private HttpResponse<String> sendRequest(HttpRequest postRequest) throws IOException, InterruptedException {
@@ -125,9 +127,9 @@ public class IdentityServiceEntryUpdateHandler
         return fetchClientSecret(userPoolId, clientId);
     }
 
-    private String fetchClientSecret(String pool, String clientId) {
+    private String fetchClientSecret(String userPoolId, String clientId) {
         DescribeUserPoolClientRequest describeBackendClientRequest = DescribeUserPoolClientRequest.builder()
-            .userPoolId(pool)
+            .userPoolId(userPoolId)
             .clientId(clientId)
             .build();
         return cognitoClient.describeUserPoolClient(describeBackendClientRequest)

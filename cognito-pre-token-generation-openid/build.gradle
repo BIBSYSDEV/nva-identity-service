@@ -8,6 +8,7 @@ dependencies {
 
     implementation project(":json")
     implementation libs.aws.java.sdk2.cognitoidp
+    implementation libs.aws.sdk2.urlconnection
     implementation libs.aws.lambda.java.core
     implementation libs.bundles.jackson
     implementation libs.nva.core
@@ -18,6 +19,7 @@ dependencies {
 }
 
 test{
-    environment "COGNITO_URI", "example.org"
-    environment "BACKEND_CLIENT_ID", "BACKEND_CLIENT_ID"
+    environment "COGNITO_HOST", "example.org"
+    environment "USERPOOL_NAME", "UserPool"
+    environment "AWS_REGION", "eu-west-1"
 }

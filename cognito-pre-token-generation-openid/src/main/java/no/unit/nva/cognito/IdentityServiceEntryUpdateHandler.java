@@ -2,9 +2,12 @@ package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_X_WWW_FORM_URLENCODED;
 import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
-import static no.unit.nva.cognito.NetworkingUtils.BACKEND_CLIENT_ID;
+import static no.unit.nva.cognito.NetworkingUtils.AWS_REGION;
+import static no.unit.nva.cognito.NetworkingUtils.BACKEND_CLIENT_NAME;
+import static no.unit.nva.cognito.NetworkingUtils.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.GRANT_TYPE_CLIENT_CREDENTIALS;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
+import static no.unit.nva.cognito.NetworkingUtils.USERPOOL_NAME;
 import static no.unit.nva.cognito.NetworkingUtils.formatBasicAuthenticationHeader;
 import static no.unit.nva.cognito.NetworkingUtils.standardOauth2Token;
 import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
@@ -21,9 +24,15 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import nva.commons.core.JacocoGenerated;
+import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolsRequest;
 
 public class IdentityServiceEntryUpdateHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
@@ -31,6 +40,11 @@ public class IdentityServiceEntryUpdateHandler
     private final CognitoIdentityProviderClient cognitoClient;
     private final HttpClient httpClient;
     private final URI cognitoUri;
+
+    @JacocoGenerated
+    public IdentityServiceEntryUpdateHandler() {
+        this(defaultCognitoClient(), HttpClient.newHttpClient(), COGNITO_HOST);
+    }
 
     public IdentityServiceEntryUpdateHandler(CognitoIdentityProviderClient cognitoClient,
                                              HttpClient httpClient,
@@ -52,6 +66,15 @@ public class IdentityServiceEntryUpdateHandler
         String jwtToken = fetchJwtToken();
         context.getLogger().log(jwtToken);
         return input;
+    }
+
+    @JacocoGenerated
+    private static CognitoIdentityProviderClient defaultCognitoClient() {
+        return CognitoIdentityProviderClient.builder()
+            .credentialsProvider(DefaultCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.create())
+            .region(AWS_REGION)
+            .build();
     }
 
     private String fetchJwtToken() {
@@ -88,8 +111,24 @@ public class IdentityServiceEntryUpdateHandler
     }
 
     private String fetchUserPoolClientSecret() {
-        return cognitoClient
-            .describeUserPoolClient(DescribeUserPoolClientRequest.builder().clientId(BACKEND_CLIENT_ID).build())
+        var pool = cognitoClient.listUserPools(ListUserPoolsRequest.builder().build())
+            .userPools().stream().filter(userPool -> userPool.name().equals(USERPOOL_NAME))
+            .collect(SingletonCollector.collect()).id();
+
+        var clientId = cognitoClient.listUserPoolClients(ListUserPoolClientsRequest.builder().userPoolId(pool).build())
+            .userPoolClients().stream()
+            .filter(client -> client.clientName().equals(BACKEND_CLIENT_NAME))
+            .collect(SingletonCollector.collect())
+            .clientId();
+        return fetchClientSecret(pool, clientId);
+    }
+
+    private String fetchClientSecret(String pool, String clientId) {
+        DescribeUserPoolClientRequest describeBackendClientRequest = DescribeUserPoolClientRequest.builder()
+            .userPoolId(pool)
+            .clientId(clientId)
+            .build();
+        return cognitoClient.describeUserPoolClient(describeBackendClientRequest)
             .userPoolClient()
             .clientSecret();
     }

@@ -7,6 +7,7 @@ import java.util.Base64;
 import java.util.Map;
 import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
+import software.amazon.awssdk.regions.Region;
 
 public final class NetworkingUtils {
 
@@ -15,10 +16,11 @@ public final class NetworkingUtils {
     public static final Environment ENVIRONMENT = new Environment();
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String JWT_TOKEN_FIELD = "access_token";
-    public static final String COGNITO_URI = ENVIRONMENT.readEnv("COGNITO_URI");
-    public static final String BACKEND_CLIENT_ID = ENVIRONMENT.readEnv("BACKEND_CLIENT_ID");
+    public static final String USERPOOL_NAME = ENVIRONMENT.readEnv("USERPOOL_NAME");
+    public static final URI COGNITO_HOST = URI.create(ENVIRONMENT.readEnv("COGNITO_HOST"));
+    public static final String BACKEND_CLIENT_NAME = "BackendApplicationClient";
     public static final Map<String, String> GRANT_TYPE_CLIENT_CREDENTIALS = Map.of("grant_type", "client_credentials");
-
+    public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
     private NetworkingUtils() {
 
     }
@@ -28,7 +30,7 @@ public final class NetworkingUtils {
     }
 
     public static String formatBasicAuthenticationHeader(String clientSecret) {
-        return attempt(() -> String.format("%s:%s", BACKEND_CLIENT_ID, clientSecret))
+        return attempt(() -> String.format("%s:%s", BACKEND_CLIENT_NAME, clientSecret))
             .map(str -> Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8)))
             .map(credentials -> "Basic " + credentials)
             .orElseThrow();

@@ -6,7 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_X_WWW_FORM_URLENCODED;
-import static no.unit.nva.cognito.NetworkingUtils.BACKEND_CLIENT_ID;
+import static no.unit.nva.cognito.NetworkingUtils.BACKEND_CLIENT_NAME;
 import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -70,7 +70,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private StubMapping setupCognitoMock() {
         return stubFor(post("/oauth2/token")
-                           .withBasicAuth(BACKEND_CLIENT_ID, clientSecret)
+                           .withBasicAuth(BACKEND_CLIENT_NAME, clientSecret)
                            .withHeader(CONTENT_TYPE, expectedContentType())
                            .withRequestBody(new ContainsPattern("grant_type"))
                            .willReturn(aResponse().withStatus(HTTP_OK).withBody(responseBody())));

@@ -54,6 +54,12 @@ Parameters:
     Default: ''
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
 
+Mappings:
+  Constants:
+    Cognito:
+      UserPoolNamePrefix: IdentityService-UserPool-
+
+
 Conditions:
   WithSuffix: !Not [ !Equals [ !Ref Suffix, '' ] ]
 
@@ -229,7 +235,7 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
-        - PolicyName: AddUserToGroup
+        - PolicyName: CommunicationWithCognito
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -239,25 +245,17 @@ Resources:
                   - cognito-idp:AdminUpdateUserAttributes
                   - cognito-idp:AdminGetUser
                   - cognito-idp:AddCustomAttributes
-                  - cognito-idp:AdminGetUser
                   - cognito-idp:DescribeUserPoolClient
-                Resource: !GetAtt UserPool.Arn
-        - PolicyName: FetchCredentialsForBackendCalls
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
+                  - cognito-idp:DescribeUserPool
+                  - cognito-idp:AdminCreateUser
+                  - cognito-idp:ListUserPoolClients
+                Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
               - Effect: Allow
                 Action:
-                  - cognito-idp:DescribeUserPool
-                  - cognito-idp:DescribeUserPoolClient
-                Resource: !GetAtt UserPool.Arn
-              - Sid: VisualEditor1
-                Effect: Allow
-                Action:
-                  - cognito-idp:GetUser
-                  - cognito-idp:DescribeUserPoolDomain
+                 - cognito-idp:ListUserPools
+                 - cognito-idp:GetUser
+                 - cognito-idp:DescribeUserPoolDomain
                 Resource: "*"
-
         - PolicyName: DatabasePermissions
           PolicyDocument:
             Version: '2012-10-17'
@@ -422,8 +420,6 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Auth:
-              Authorizer: LambdaRequestAuthorizer
             Path: /users/{username}
             Method: get
             RestApiId: !Ref UsersAndRolesApi
@@ -1133,6 +1129,17 @@ Resources:
 
 ### New Cognito ########################################################################################################
 
+  UserPoolName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      DataType: text
+      Description: Userpool's Backend client ID
+      Name: /NVA/UserPoolName
+      Type: String
+      Value: !Sub
+        - "${UserPoolName}-${AWS::AccountId}"
+        - UserPoolName: !FindInMap [ 'Constants', 'Cognito','UserPoolNamePrefix' ]
+
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -1170,7 +1177,7 @@ Resources:
           Required: false
       UsernameConfiguration:
         CaseSensitive: true
-      UserPoolName: !Sub "IdentityService-UserPool-${AWS::AccountId}"
+      UserPoolName: !Ref UserPoolName
 
   ConnectionToDataporten:
     Type: AWS::Cognito::UserPoolIdentityProvider
@@ -1300,7 +1307,8 @@ Resources:
       Role: !GetAtt TriggerExecutionRole.Arn
       Environment:
         Variables:
-          BACKEND_CLIENT_ID: !Ref BackendClientId
+          COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+          USERPOOL_NAME: !Ref UserPoolName
       Timeout: 10
 
   PostAuthenticationHandler:
@@ -1311,7 +1319,8 @@ Resources:
       Role: !GetAtt TriggerExecutionRole.Arn
       Environment:
         Variables:
-          BACKEND_CLIENT_ID: !Ref BackendClientId
+          COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+          USERPOOL_NAME: !Ref UserPoolName
       Timeout: 10
 
   PreTokenGenerationnHandler:
@@ -1322,7 +1331,8 @@ Resources:
       Role: !GetAtt TriggerExecutionRole.Arn
       Environment:
         Variables:
-          BACKEND_CLIENT_ID: !Ref BackendClientId
+          COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+          USERPOOL_NAME: !Ref UserPoolName
       Timeout: 10
 
   PreTokenGenerationnHandlerTriggerPermission:

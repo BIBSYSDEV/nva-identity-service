@@ -9,9 +9,15 @@ dependencies {
     implementation project(":json")
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.lambda.java.core
-    implementation libs.jackson.jr.objects
+    implementation libs.bundles.jackson
     implementation libs.nva.core
     implementation libs.aws.lambda.events
+
+    testImplementation libs.slf4j
     testImplementation project(':user-access-testing')
 }
 
+test{
+    environment "COGNITO_URI", "example.org"
+    environment "BACKEND_CLIENT_ID", "BACKEND_CLIENT_ID"
+}

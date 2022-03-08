@@ -1203,6 +1203,15 @@ Resources:
         AccessToken: minutes
         IdToken: minutes
 
+  BackendClientId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      DataType: text
+      Description: Userpool's Backend client ID
+      Name: /NVA/BackendClientId
+      Type: String
+      Value: !Ref BackendApplicationClient
+
   ApplicationClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
@@ -1257,20 +1266,15 @@ Resources:
       UserPoolId: !Ref UserPool
       Domain: !Ref AuthenticationDomainPrefix
 
-  IdentityPool:
-    Type: AWS::Cognito::IdentityPool
-    Properties:
-      AllowUnauthenticatedIdentities: True
-      CognitoIdentityProviders:
-        - ClientId: !Ref ApplicationClient
-          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
-
   PreAuthenticationHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.IdentityServiceEntryUpdateHandler::handleRequest
       Role: !GetAtt TriggerExecutionRole.Arn
+      Environment:
+        Variables:
+          BACKEND_CLIENT_ID: !Ref BackendClientId
       Timeout: 10
 
   PostAuthenticationHandler:
@@ -1279,6 +1283,9 @@ Resources:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.IdentityServiceEntryUpdateHandler::handleRequest
       Role: !GetAtt TriggerExecutionRole.Arn
+      Environment:
+        Variables:
+          BACKEND_CLIENT_ID: !Ref BackendClientId
       Timeout: 10
 
   PreTokenGenerationnHandler:
@@ -1287,6 +1294,9 @@ Resources:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.IdentityServiceEntryUpdateHandler::handleRequest
       Role: !GetAtt TriggerExecutionRole.Arn
+      Environment:
+        Variables:
+          BACKEND_CLIENT_ID: !Ref BackendClientId
       Timeout: 10
 
   PreTokenGenerationnHandlerTriggerPermission:

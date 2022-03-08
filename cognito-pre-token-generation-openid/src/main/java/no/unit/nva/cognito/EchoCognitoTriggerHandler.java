@@ -10,6 +10,7 @@ import java.util.Optional;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.ioutils.IoUtils;
 
+@JacocoGenerated
 public class EchoCognitoTriggerHandler implements RequestStreamHandler {
 
     @JacocoGenerated

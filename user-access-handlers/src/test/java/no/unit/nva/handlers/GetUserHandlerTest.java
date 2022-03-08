@@ -70,7 +70,7 @@ class GetUserHandlerTest extends HandlerTest {
 
     @Test
     void shouldReturnUserDtoWhenPathParameterContainsTheUsernameOfExistingUserEnc()
-        throws ApiGatewayException{
+        throws ApiGatewayException {
 
         String encodedUserName = encodeString(DEFAULT_USERNAME);
         var request = createRequest(encodedUserName);
@@ -91,7 +91,7 @@ class GetUserHandlerTest extends HandlerTest {
     @Test
     void shouldReturnBadRequestWheRequestBodyIsInValid() throws InvalidEntryInternalException {
         var request = new APIGatewayProxyRequestEvent().withBody(randomString());
-        var response = getUserHandler.handleRequest(request,context);
+        var response = getUserHandler.handleRequest(request, context);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 

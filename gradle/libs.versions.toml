@@ -20,7 +20,7 @@ guava = { strictly = '31.0.1-jre' }
 hamcrestJackson = { strictly = '1.2.0' }
 log4j = { strictly = '2.17.1' }
 awsLambdaEvents = { strictly = '3.11.0' }
-
+wiremock = {strictly = '2.27.2'}
 
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }
@@ -69,12 +69,17 @@ dynamoDbLocal = { group = 'com.amazonaws', name = 'DynamoDBLocal', version.ref =
 nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nvaCommons' }
 hamcrest-jackson = { group = 'com.spotify', name = 'hamcrest-jackson', version.ref = 'hamcrestJackson' }
 
+wiremock= { group= 'com.github.tomakehurst', name= 'wiremock-jre8', version.ref = 'wiremock'}
+
 apiguardian-api = { group = 'org.apiguardian', name = 'apiguardian-api', version.ref = 'apiGuardian' }
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
 [bundles]
 logging = ['log4j-core', 'log4j-api', 'slf4j']
-testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core', 'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils', 'hamcrest-jackson']
+testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core',
+           'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils',
+           'hamcrest-jackson', 'wiremock'
+           ]
 jackson = ['jackson-jr-objects', 'jackson-jr-annotations']
 #aws-xray = ['aws-xray-recorder-sdk-core', 'aws-xray-recorder-sdk-aws-sdk', 'aws-xray-recorder-sdk-aws-sdk-instrumentor']
 aws-lambda = ['aws-lambda-java-core', 'zalando-problem', 'aws-lambda-events']

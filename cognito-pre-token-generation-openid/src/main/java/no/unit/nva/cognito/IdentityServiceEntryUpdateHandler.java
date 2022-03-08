@@ -3,11 +3,9 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_X_WWW_FORM_URLENCODED;
 import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
 import static no.unit.nva.cognito.NetworkingUtils.AWS_REGION;
-import static no.unit.nva.cognito.NetworkingUtils.BACKEND_CLIENT_NAME;
 import static no.unit.nva.cognito.NetworkingUtils.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.GRANT_TYPE_CLIENT_CREDENTIALS;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
-import static no.unit.nva.cognito.NetworkingUtils.USERPOOL_NAME;
 import static no.unit.nva.cognito.NetworkingUtils.formatBasicAuthenticationHeader;
 import static no.unit.nva.cognito.NetworkingUtils.standardOauth2Token;
 import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
@@ -26,14 +24,11 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolsRequest;
 
 public class IdentityServiceEntryUpdateHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
@@ -64,7 +59,10 @@ public class IdentityServiceEntryUpdateHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
-        String jwtToken = fetchJwtToken();
+        context.getLogger().log(input.toString());
+        String clientId = input.getCallerContext().getClientId();
+        String userPoolId = input.getUserPoolId();
+        String jwtToken = fetchJwtToken(userPoolId, clientId);
         context.getLogger().log(jwtToken);
         return input;
     }
@@ -87,8 +85,8 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private String fetchJwtToken() {
-        HttpRequest postRequest = formatRequestForJwtToken();
+    private String fetchJwtToken(String userPoolId, String clientId) {
+        HttpRequest postRequest = formatRequestForJwtToken(userPoolId, clientId);
         return extractJwtTokenFromResponse(postRequest);
     }
 
@@ -101,10 +99,10 @@ public class IdentityServiceEntryUpdateHandler
             .orElseThrow();
     }
 
-    private HttpRequest formatRequestForJwtToken() {
+    private HttpRequest formatRequestForJwtToken(String userPoolId, String clientId) {
         return HttpRequest.newBuilder()
             .uri(cognitoUri)
-            .setHeader(AUTHORIZATION_HEADER, authenticationString())
+            .setHeader(AUTHORIZATION_HEADER, authenticationString(userPoolId, clientId))
             .setHeader(CONTENT_TYPE, APPLICATION_X_WWW_FORM_URLENCODED)
             .POST(clientCredentialsAuthType())
             .build();
@@ -114,22 +112,13 @@ public class IdentityServiceEntryUpdateHandler
         return httpClient.send(postRequest, BodyHandlers.ofString(StandardCharsets.UTF_8));
     }
 
-    private String authenticationString() {
-        var clientSecret = fetchUserPoolClientSecret();
-        return formatBasicAuthenticationHeader(clientSecret);
+    private String authenticationString(String userPoolId, String clientId) {
+        var clientSecret = fetchUserPoolClientSecret(userPoolId, clientId);
+        return formatBasicAuthenticationHeader(clientId, clientSecret);
     }
 
-    private String fetchUserPoolClientSecret() {
-        var pool = cognitoClient.listUserPools(ListUserPoolsRequest.builder().build())
-            .userPools().stream().filter(userPool -> userPool.name().equals(USERPOOL_NAME))
-            .collect(SingletonCollector.collect()).id();
-
-        var clientId = cognitoClient.listUserPoolClients(ListUserPoolClientsRequest.builder().userPoolId(pool).build())
-            .userPoolClients().stream()
-            .filter(client -> client.clientName().equals(BACKEND_CLIENT_NAME))
-            .collect(SingletonCollector.collect())
-            .clientId();
-        return fetchClientSecret(pool, clientId);
+    private String fetchUserPoolClientSecret(String userPoolId, String clientId) {
+        return fetchClientSecret(userPoolId, clientId);
     }
 
     private String fetchClientSecret(String pool, String clientId) {

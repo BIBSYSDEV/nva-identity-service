@@ -13,6 +13,8 @@ dependencies {
     implementation libs.bundles.jackson
     implementation libs.nva.core
     implementation libs.aws.lambda.events
+    implementation libs.nva.secrets
+    implementation libs.aws.sdk2.secrets
 
     testImplementation libs.slf4j
     testImplementation project(':user-access-testing')

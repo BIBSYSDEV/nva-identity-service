@@ -6,7 +6,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_X_WWW_FORM_URLENCODED;
-import static no.unit.nva.cognito.NetworkingUtils.BACKEND_CLIENT_NAME;
 import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -14,6 +13,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.ContainsPattern;
@@ -39,9 +39,10 @@ class IdentityServiceEntryUpdateHandlerTest {
     private URI serverUri;
     private IdentityServiceEntryUpdateHandler handler;
     private String jwtToken;
-    private StubMapping cognitoSetup;
+
     private WireMockServer httpServer;
     private HttpClient httpClient;
+    private String clientId;
 
     @BeforeEach
     public void init() {
@@ -52,7 +53,8 @@ class IdentityServiceEntryUpdateHandlerTest {
 
         handler = new IdentityServiceEntryUpdateHandler(cognitoClient, httpClient, serverUri);
         jwtToken = randomString();
-        cognitoSetup = setupCognitoMock();
+        clientId = randomString();
+        setupCognitoMock();
 
     }
 
@@ -70,7 +72,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private StubMapping setupCognitoMock() {
         return stubFor(post("/oauth2/token")
-                           .withBasicAuth(BACKEND_CLIENT_NAME, clientSecret)
+                           .withBasicAuth(clientId, clientSecret)
                            .withHeader(CONTENT_TYPE, expectedContentType())
                            .withRequestBody(new ContainsPattern("grant_type"))
                            .willReturn(aResponse().withStatus(HTTP_OK).withBody(responseBody())));
@@ -88,6 +90,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     private CognitoUserPoolPreTokenGenerationEvent randomEvent() {
         return CognitoUserPoolPreTokenGenerationEvent.builder()
             .withUserPoolId(randomString())
+            .withCallerContext(CallerContext.builder().withClientId(clientId).build())
             .build();
     }
 }

@@ -1213,6 +1213,7 @@ Resources:
       UserPoolId: !Ref UserPool
 
   BackendApplicationClient:
+    DependsOn: BackendResourceServerScopes
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref UserPool
@@ -1220,7 +1221,7 @@ Resources:
           - client_credentials
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
-         - backend
+         - https://api.nva.unit.no/scopes/backend
       ClientName: BackendApplicationClient
       CallbackURLs:
         - https://api.nva.unit.no/scopes # not necessary maybe.

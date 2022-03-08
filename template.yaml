@@ -1183,7 +1183,8 @@ Resources:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref UserPool
-      AllowedOAuthFlows: client_credentials
+      AllowedOAuthFlows:
+          - client_credentials
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
          - https://api.nva.unit.no/scopes/backend

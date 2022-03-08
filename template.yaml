@@ -1220,7 +1220,7 @@ Resources:
           - client_credentials
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
-         - https://api.nva.unit.no/scopes/backend
+         - backend
       ClientName: BackendApplicationClient
       CallbackURLs:
         - https://api.nva.unit.no/scopes # not necessary maybe.

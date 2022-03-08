@@ -7,7 +7,7 @@ import static no.unit.nva.cognito.NetworkingUtils.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.GRANT_TYPE_CLIENT_CREDENTIALS;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
 import static no.unit.nva.cognito.NetworkingUtils.formatBasicAuthenticationHeader;
-import static no.unit.nva.cognito.NetworkingUtils.standardOauth2Token;
+import static no.unit.nva.cognito.NetworkingUtils.standardOauth2TokenEndpoint;
 import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
@@ -22,6 +22,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Try;
@@ -47,7 +48,7 @@ public class IdentityServiceEntryUpdateHandler
                                              HttpClient httpClient,
                                              URI cognitoHost) {
         this.cognitoClient = cognitoClient;
-        this.cognitoUri = standardOauth2Token(cognitoHost);
+        this.cognitoUri = standardOauth2TokenEndpoint(cognitoHost);
         this.httpClient = httpClient;
     }
 
@@ -61,14 +62,24 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
         context.getLogger().log(input.toString());
-        String clientId = input.getCallerContext().getClientId();
-        String userPoolId = input.getUserPoolId();
+        String userAttributesJson = mapAsString(input.getRequest().getUserAttributes());
+        context.getLogger().log("userAttributes:"+ userAttributesJson);
+        String clientMetadataJson = mapAsString(input.getRequest().getClientMetadata());
+        context.getLogger().log("userAttributes:"+ clientMetadataJson);
+        context.getLogger().log("response:"+input.getResponse().toString());
+        var clientId = input.getCallerContext().getClientId();
         context.getLogger().log("clientId:"+ clientId);
+        var userPoolId = input.getUserPoolId();
         context.getLogger().log("userPoolId:"+ userPoolId);
         String jwtToken = fetchJwtToken(userPoolId, clientId);
         context.getLogger().log("JWT token:" + jwtToken);
         return input;
     }
+
+    private String mapAsString(Map<String, String> map) {
+        return attempt(() -> objectMapper.asString(map)).orElseThrow();
+    }
+
 
     @JacocoGenerated
     private static URI defaultCognitoUri() {

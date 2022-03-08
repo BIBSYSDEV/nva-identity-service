@@ -25,7 +25,7 @@ public final class NetworkingUtils {
 
     }
 
-    public static URI standardOauth2Token(URI cognitoHost) {
+    public static URI standardOauth2TokenEndpoint(URI cognitoHost) {
         return new UriWrapper(cognitoHost).addChild("oauth2").addChild("token").getUri();
     }
 

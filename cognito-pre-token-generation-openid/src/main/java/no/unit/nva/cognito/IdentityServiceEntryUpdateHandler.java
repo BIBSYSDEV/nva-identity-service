@@ -3,6 +3,7 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_X_WWW_FORM_URLENCODED;
 import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
 import static no.unit.nva.cognito.NetworkingUtils.AWS_REGION;
+import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.cognito.NetworkingUtils.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.GRANT_TYPE_CLIENT_CREDENTIALS;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
@@ -13,6 +14,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.Request;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import java.io.IOException;
 import java.net.URI;
@@ -24,17 +26,21 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsRequest;
 
 public class IdentityServiceEntryUpdateHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
+    public static final String EMPTY = "empty";
     private final CognitoIdentityProviderClient cognitoClient;
     private final HttpClient httpClient;
     private final URI cognitoUri;
@@ -62,24 +68,24 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
         context.getLogger().log(input.toString());
-        String userAttributesJson = mapAsString(input.getRequest().getUserAttributes());
-        context.getLogger().log("userAttributes:"+ userAttributesJson);
-        String clientMetadataJson = mapAsString(input.getRequest().getClientMetadata());
-        context.getLogger().log("userAttributes:"+ clientMetadataJson);
-        context.getLogger().log("response:"+input.getResponse().toString());
+        String userAttributesJson = Optional.ofNullable(input.getRequest()).map(Request::getUserAttributes)
+                .map(this::mapAsString).orElse(EMPTY);
+        context.getLogger().log("userAttributes:" + userAttributesJson);
+        String clientMetadataJson = Optional.ofNullable(input.getRequest())
+            .map(CognitoUserPoolPreTokenGenerationEvent.Request::getClientMetadata)
+            .map(this::mapAsString).orElse(EMPTY);
+        context.getLogger().log("userAttributes:" + clientMetadataJson);
+        var responseString = Optional.ofNullable(input.getResponse())
+            .map(Object::toString).orElse(EMPTY);
+        context.getLogger().log("response:" + responseString);
         var clientId = input.getCallerContext().getClientId();
-        context.getLogger().log("clientId:"+ clientId);
+        context.getLogger().log("clientId:" + clientId);
         var userPoolId = input.getUserPoolId();
-        context.getLogger().log("userPoolId:"+ userPoolId);
-        String jwtToken = fetchJwtToken(userPoolId, clientId);
+        context.getLogger().log("userPoolId:" + userPoolId);
+        String jwtToken = fetchJwtToken(userPoolId);
         context.getLogger().log("JWT token:" + jwtToken);
         return input;
     }
-
-    private String mapAsString(Map<String, String> map) {
-        return attempt(() -> objectMapper.asString(map)).orElseThrow();
-    }
-
 
     @JacocoGenerated
     private static URI defaultCognitoUri() {
@@ -99,8 +105,17 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private String fetchJwtToken(String userPoolId, String clientId) {
-        HttpRequest postRequest = formatRequestForJwtToken(userPoolId, clientId);
+    @JacocoGenerated
+    private String mapAsString(Map<String, String> map)  {
+        try {
+            return objectMapper.asString(map);
+        } catch (IOException e) {
+            return "empty";
+        }
+    }
+
+    private String fetchJwtToken(String userPoolId) {
+        HttpRequest postRequest = formatRequestForJwtToken(userPoolId);
         return extractJwtTokenFromResponse(postRequest);
     }
 
@@ -116,10 +131,10 @@ public class IdentityServiceEntryUpdateHandler
             .orElseThrow();
     }
 
-    private HttpRequest formatRequestForJwtToken(String userPoolId, String clientId) {
-        var request= HttpRequest.newBuilder()
+    private HttpRequest formatRequestForJwtToken(String userPoolId) {
+        var request = HttpRequest.newBuilder()
             .uri(cognitoUri)
-            .setHeader(AUTHORIZATION_HEADER, authenticationString(userPoolId, clientId))
+            .setHeader(AUTHORIZATION_HEADER, authenticationString(userPoolId))
             .setHeader(CONTENT_TYPE, APPLICATION_X_WWW_FORM_URLENCODED)
             .POST(clientCredentialsAuthType())
             .build();
@@ -131,22 +146,42 @@ public class IdentityServiceEntryUpdateHandler
         return httpClient.send(postRequest, BodyHandlers.ofString(StandardCharsets.UTF_8));
     }
 
-    private String authenticationString(String userPoolId, String clientId) {
-        var clientSecret = fetchUserPoolClientSecret(userPoolId, clientId);
-        return formatBasicAuthenticationHeader(clientId, clientSecret);
+    private String authenticationString(String userPoolId) {
+        var clientCredentials = fetchUserPoolClientCredentials(userPoolId);
+        return formatBasicAuthenticationHeader(clientCredentials.clientId, clientCredentials.clientSecret);
     }
 
-    private String fetchUserPoolClientSecret(String userPoolId, String clientId) {
-        return fetchClientSecret(userPoolId, clientId);
-    }
+    private ClientCredentials fetchUserPoolClientCredentials(String userPoolId) {
+        var clientId = findBackendClientId(userPoolId);
 
-    private String fetchClientSecret(String userPoolId, String clientId) {
         DescribeUserPoolClientRequest describeBackendClientRequest = DescribeUserPoolClientRequest.builder()
             .userPoolId(userPoolId)
             .clientId(clientId)
             .build();
-        return cognitoClient.describeUserPoolClient(describeBackendClientRequest)
+        var clientSecret= cognitoClient.describeUserPoolClient(describeBackendClientRequest)
             .userPoolClient()
             .clientSecret();
+        return new ClientCredentials(clientId, clientSecret);
+    }
+
+    private String findBackendClientId(String userPoolId) {
+        return cognitoClient
+            .listUserPoolClients(ListUserPoolClientsRequest.builder().userPoolId(userPoolId).build())
+            .userPoolClients().stream()
+            .filter(userPoolClient -> userPoolClient.clientName().equals(BACKEND_USER_POOL_CLIENT_NAME))
+            .collect(SingletonCollector.collect())
+            .clientId();
+    }
+
+    private static class ClientCredentials {
+
+        private final String clientId;
+        private final String clientSecret;
+
+        public ClientCredentials(String clientId, String clientSecret) {
+
+            this.clientId = clientId;
+            this.clientSecret = clientSecret;
+        }
     }
 }

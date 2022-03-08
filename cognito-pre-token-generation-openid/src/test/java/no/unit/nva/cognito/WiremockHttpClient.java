@@ -43,6 +43,22 @@ public final class WiremockHttpClient {
     private static X509ExtendedTrustManager createTrustEverythingManager() {
 
         return new X509ExtendedTrustManager() {
+
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+            }
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket)
                 throws CertificateException {
@@ -65,21 +81,6 @@ public final class WiremockHttpClient {
             public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
                 throws CertificateException {
 
-            }
-
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
             }
         };
     }

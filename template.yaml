@@ -1208,6 +1208,8 @@ Resources:
       Scopes:
         - ScopeDescription: Necessary scope for backend authentication to work
           ScopeName: backend
+        - ScopeDescription: NTNU scope
+          ScopeName: ntnu-scope
       UserPoolId: !Ref UserPool
 
   BackendApplicationClient:
@@ -1246,6 +1248,7 @@ Resources:
       Value: !Ref BackendApplicationClient
 
   ApplicationClient:
+    DependsOn: BackendResourceServerScopes
     Type: AWS::Cognito::UserPoolClient
     Properties:
       AllowedOAuthFlows:
@@ -1258,6 +1261,7 @@ Resources:
         - email
         - phone
         - profile # it seems to be necessary for the custom attributes to appear
+        - https://api.nva.unit.no/scopes/ntnu-scope
       CallbackURLs:
         - 'http://localhost:3000'
         - !Sub 'https://${ApplicationDomain}'

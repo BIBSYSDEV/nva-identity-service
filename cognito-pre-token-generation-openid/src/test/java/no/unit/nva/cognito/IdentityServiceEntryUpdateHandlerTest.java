@@ -34,28 +34,27 @@ import org.junit.jupiter.api.Test;
 class IdentityServiceEntryUpdateHandlerTest {
 
     public static final boolean MATCH_CASE = false;
-    private final FakeCognitoIdentityProviderClient cognitoClient = new FakeCognitoIdentityProviderClient();
     private final Context context = new FakeContext();
-    private final String clientSecret = cognitoClient.getFakeClientSecret();
-    private URI serverUri;
+
+    private String clientSecret;
+    private String clientId;
     private IdentityServiceEntryUpdateHandler handler;
     private String jwtToken;
 
     private WireMockServer httpServer;
-    private HttpClient httpClient;
-    private String clientId;
 
     @BeforeEach
     public void init() {
         httpServer = new WireMockServer(options().dynamicHttpsPort());
         httpServer.start();
-        serverUri = URI.create(httpServer.baseUrl());
-        httpClient = WiremockHttpClient.create();
-
-        handler = new IdentityServiceEntryUpdateHandler(cognitoClient, httpClient, serverUri);
         jwtToken = randomString();
-        clientId = randomString();
+        FakeCognitoIdentityProviderClient cognitoClient = new FakeCognitoIdentityProviderClient();
+        clientSecret = cognitoClient.getFakeClientSecret();
+        clientId = cognitoClient.getFakeClientId();
         setupCognitoMock();
+        URI serverUri = URI.create(httpServer.baseUrl());
+        HttpClient httpClient = WiremockHttpClient.create();
+        handler = new IdentityServiceEntryUpdateHandler(cognitoClient, httpClient, serverUri);
     }
 
     @AfterEach
@@ -65,7 +64,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     @Test
     @Disabled("online test")
-    public void onlineTest() {
+    void onlineTest() {
         var handler = new IdentityServiceEntryUpdateHandler();
         Context fakeContent = new FakeContext();
         CognitoUserPoolPreTokenGenerationEvent event = CognitoUserPoolPreTokenGenerationEvent.builder()

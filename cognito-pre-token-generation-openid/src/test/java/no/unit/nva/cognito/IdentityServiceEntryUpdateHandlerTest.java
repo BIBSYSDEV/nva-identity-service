@@ -55,12 +55,24 @@ class IdentityServiceEntryUpdateHandlerTest {
         jwtToken = randomString();
         clientId = randomString();
         setupCognitoMock();
-
     }
 
     @AfterEach
-    public void close(){
+    public void close() {
         httpServer.stop();
+    }
+
+    @Test
+    public void foo() {
+        var handler = new IdentityServiceEntryUpdateHandler();
+        Context fakeContent = new FakeContext();
+        CognitoUserPoolPreTokenGenerationEvent event = CognitoUserPoolPreTokenGenerationEvent.builder()
+            .withUserPoolId("eu-west-1_fPzloej9T")
+            .withCallerContext(CallerContext.builder()
+                                   .withClientId("71qlmhqe47ovdb2m54l99d0r0t")
+                                   .build())
+            .build();
+        handler.handleRequest(event, fakeContent);
     }
 
     @Test

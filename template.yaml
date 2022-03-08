@@ -1147,8 +1147,6 @@ Resources:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"
       LambdaConfig:
-        PreAuthentication: !GetAtt PreAuthenticationHandler.Arn
-        PostAuthentication: !GetAtt PostAuthenticationHandler.Arn
         PreTokenGeneration: !GetAtt PreTokenGenerationnHandler.Arn
       Schema:
         - Name: nin
@@ -1301,29 +1299,6 @@ Resources:
       UserPoolId: !Ref UserPool
       Domain: !Ref AuthenticationDomainPrefix
 
-  PreAuthenticationHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.IdentityServiceEntryUpdateHandler::handleRequest
-      Role: !GetAtt TriggerExecutionRole.Arn
-      Environment:
-        Variables:
-          COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
-          USERPOOL_NAME: !GetAtt UserPoolName.Value
-      Timeout: 10
-
-  PostAuthenticationHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.IdentityServiceEntryUpdateHandler::handleRequest
-      Role: !GetAtt TriggerExecutionRole.Arn
-      Environment:
-        Variables:
-          COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
-          USERPOOL_NAME: !GetAtt UserPoolName.Value
-      Timeout: 10
 
   PreTokenGenerationnHandler:
     Type: AWS::Serverless::Function
@@ -1342,20 +1317,6 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref PreTokenGenerationnHandler
-      Principal: cognito-idp.amazonaws.com
-
-  PreAuthenticationHandlerTriggerPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref PreAuthenticationHandler
-      Principal: cognito-idp.amazonaws.com
-
-  PostAuthenticationHandlerTriggerPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref PostAuthenticationHandler
       Principal: cognito-idp.amazonaws.com
 
 

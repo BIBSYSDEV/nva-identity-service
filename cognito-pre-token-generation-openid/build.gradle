@@ -21,7 +21,6 @@ dependencies {
 }
 
 test{
-    environment "COGNITO_HOST", "example.org"
-    environment "USERPOOL_NAME", "UserPool"
+    environment "COGNITO_HOST", "nva-sandbox.auth.eu-west-1.amazoncognito.com"
     environment "AWS_REGION", "eu-west-1"
 }

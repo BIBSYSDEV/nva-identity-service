@@ -18,6 +18,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -43,7 +44,7 @@ public class IdentityServiceEntryUpdateHandler
 
     @JacocoGenerated
     public IdentityServiceEntryUpdateHandler() {
-        this(defaultCognitoClient(), HttpClient.newHttpClient(), COGNITO_HOST);
+        this(defaultCognitoClient(), HttpClient.newHttpClient(), defaultCognitoUri());
     }
 
     public IdentityServiceEntryUpdateHandler(CognitoIdentityProviderClient cognitoClient,
@@ -69,6 +70,15 @@ public class IdentityServiceEntryUpdateHandler
     }
 
     @JacocoGenerated
+    private static URI defaultCognitoUri() {
+        try {
+            return new URI("https", COGNITO_HOST, null, null);
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @JacocoGenerated
     private static CognitoIdentityProviderClient defaultCognitoClient() {
         return CognitoIdentityProviderClient.builder()
             .credentialsProvider(DefaultCredentialsProvider.create())
@@ -79,8 +89,7 @@ public class IdentityServiceEntryUpdateHandler
 
     private String fetchJwtToken() {
         HttpRequest postRequest = formatRequestForJwtToken();
-        var jwtToken = extractJwtTokenFromResponse(postRequest);
-        return jwtToken;
+        return extractJwtTokenFromResponse(postRequest);
     }
 
     private String extractJwtTokenFromResponse(HttpRequest postRequest) {

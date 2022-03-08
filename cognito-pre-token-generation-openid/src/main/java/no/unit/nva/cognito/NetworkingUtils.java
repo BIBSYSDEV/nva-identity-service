@@ -17,7 +17,7 @@ public final class NetworkingUtils {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String JWT_TOKEN_FIELD = "access_token";
     public static final String USERPOOL_NAME = ENVIRONMENT.readEnv("USERPOOL_NAME");
-    public static final URI COGNITO_HOST = URI.create(ENVIRONMENT.readEnv("COGNITO_HOST"));
+    public static final String COGNITO_HOST = ENVIRONMENT.readEnv("COGNITO_HOST");
     public static final String BACKEND_CLIENT_NAME = "BackendApplicationClient";
     public static final Map<String, String> GRANT_TYPE_CLIENT_CREDENTIALS = Map.of("grant_type", "client_credentials");
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));

@@ -63,6 +63,8 @@ public class IdentityServiceEntryUpdateHandler
         context.getLogger().log(input.toString());
         String clientId = input.getCallerContext().getClientId();
         String userPoolId = input.getUserPoolId();
+        context.getLogger().log("clientId:"+ clientId);
+        context.getLogger().log("userPoolId:"+ userPoolId);
         String jwtToken = fetchJwtToken(userPoolId, clientId);
         context.getLogger().log("JWT token:" + jwtToken);
         return input;

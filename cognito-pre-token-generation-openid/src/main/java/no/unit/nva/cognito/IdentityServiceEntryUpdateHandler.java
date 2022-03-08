@@ -24,6 +24,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
@@ -63,7 +64,7 @@ public class IdentityServiceEntryUpdateHandler
         String clientId = input.getCallerContext().getClientId();
         String userPoolId = input.getUserPoolId();
         String jwtToken = fetchJwtToken(userPoolId, clientId);
-        context.getLogger().log(jwtToken);
+        context.getLogger().log("JWT token:" + jwtToken);
         return input;
     }
 
@@ -91,8 +92,11 @@ public class IdentityServiceEntryUpdateHandler
     }
 
     private String extractJwtTokenFromResponse(HttpRequest postRequest) {
-        return attempt(() -> sendRequest(postRequest))
+        var body = attempt(() -> sendRequest(postRequest))
             .map(HttpResponse::body)
+            .orElseThrow();
+        System.out.println("Body:" + body);
+        return Try.of(body)
             .map(objectMapper::mapFrom)
             .map(json -> json.get(JWT_TOKEN_FIELD))
             .map(Objects::toString)

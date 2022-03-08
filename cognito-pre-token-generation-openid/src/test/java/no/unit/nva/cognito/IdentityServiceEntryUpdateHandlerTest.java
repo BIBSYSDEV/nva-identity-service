@@ -28,6 +28,7 @@ import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class IdentityServiceEntryUpdateHandlerTest {
@@ -63,7 +64,8 @@ class IdentityServiceEntryUpdateHandlerTest {
     }
 
     @Test
-    public void foo() {
+    @Disabled("online test")
+    public void onlineTest() {
         var handler = new IdentityServiceEntryUpdateHandler();
         Context fakeContent = new FakeContext();
         CognitoUserPoolPreTokenGenerationEvent event = CognitoUserPoolPreTokenGenerationEvent.builder()

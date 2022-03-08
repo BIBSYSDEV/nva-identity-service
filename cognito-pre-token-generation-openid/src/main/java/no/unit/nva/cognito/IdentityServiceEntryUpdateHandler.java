@@ -38,6 +38,9 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoo
 public class IdentityServiceEntryUpdateHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
+    public static final String NIN_FOR_FEIDE_USERS = "custom:feideidnin";
+    public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
+    public static final String FEIDE_ID = "custom:feideid";
     private final CognitoIdentityProviderClient cognitoClient;
     private final HttpClient httpClient;
     private final URI cognitoUri;
@@ -77,13 +80,13 @@ public class IdentityServiceEntryUpdateHandler
     }
 
     private String extractNin(Map<String, String> userAttributes) {
-        return Optional.ofNullable(userAttributes.get("custom:feideidnin"))
-            .or(() -> Optional.ofNullable(userAttributes.get("custom:nin")))
+        return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
+            .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
             .orElseThrow();
     }
 
     private Optional<String> extractFeideId(Map<String, String> userAttributes) {
-        return Optional.ofNullable(userAttributes.get("custom:feideid"));
+        return Optional.ofNullable(userAttributes.get(FEIDE_ID));
     }
 
     @JacocoGenerated

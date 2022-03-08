@@ -1177,7 +1177,7 @@ Resources:
           Required: false
       UsernameConfiguration:
         CaseSensitive: true
-      UserPoolName: !Ref UserPoolName
+      UserPoolName: !GetAtt UserPoolName.Value
 
   ConnectionToDataporten:
     Type: AWS::Cognito::UserPoolIdentityProvider
@@ -1308,7 +1308,7 @@ Resources:
       Environment:
         Variables:
           COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
-          USERPOOL_NAME: !Ref UserPoolName
+          USERPOOL_NAME: !GetAtt UserPoolName.Value
       Timeout: 10
 
   PostAuthenticationHandler:
@@ -1320,7 +1320,7 @@ Resources:
       Environment:
         Variables:
           COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
-          USERPOOL_NAME: !Ref UserPoolName
+          USERPOOL_NAME: !GetAtt UserPoolName.Value
       Timeout: 10
 
   PreTokenGenerationnHandler:
@@ -1332,7 +1332,7 @@ Resources:
       Environment:
         Variables:
           COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
-          USERPOOL_NAME: !Ref UserPoolName
+          USERPOOL_NAME: !GetAtt UserPoolName.Value
       Timeout: 10
 
   PreTokenGenerationnHandlerTriggerPermission:

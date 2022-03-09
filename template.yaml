@@ -87,129 +87,129 @@ Resources:
 
   ### Cognito ##########################################################################################################
 
-  IdentityPool:
-    Type: AWS::Cognito::IdentityPool
-    Properties:
-      AllowUnauthenticatedIdentities: True
-      CognitoIdentityProviders:
-        - ClientId: !Ref ApplicationClient
-          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+#  IdentityPool:
+#    Type: AWS::Cognito::IdentityPool
+#    Properties:
+#      AllowUnauthenticatedIdentities: True
+#      CognitoIdentityProviders:
+#        - ClientId: !Ref ApplicationClient
+#          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
 
   # IAM role used for authenticated users
-  FeideAuthenticatedRole:
-    Type: AWS::IAM::Role
-    Properties:
-      Path: /
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: 'Allow'
-            Principal:
-              Federated: 'cognito-identity.amazonaws.com'
-            Action:
-              - 'sts:AssumeRoleWithWebIdentity'
-            Condition:
-              StringEquals:
-                'cognito-identity.amazonaws.com:aud':
-                  Ref: IdentityPool
-              'ForAnyValue:StringLike':
-                'cognito-identity.amazonaws.com:amr': authenticated
-      Policies:
-        - PolicyName: 'CognitoAuthorizedPolicy'
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - 'mobileanalytics:PutEvents'
-                  - 'cognito-sync:*'
-                  - 'cognito-identity:*'
-                Resource: [ '*' ]
-
-  # IAM role used for unauthenticated users
-  UnauthenticatedRole:
-    Type: AWS::IAM::Role
-    Properties:
-      Path: /
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: 'Allow'
-            Principal:
-              Federated: 'cognito-identity.amazonaws.com'
-            Action:
-              - 'sts:AssumeRoleWithWebIdentity'
-            Condition:
-              StringEquals:
-                'cognito-identity.amazonaws.com:aud':
-                  Ref: IdentityPool
-              'ForAnyValue:StringLike':
-                'cognito-identity.amazonaws.com:amr': unauthenticated
-      Policies:
-        - PolicyName: 'CognitoUnauthenticatedRolePolicy'
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - 'mobileanalytics:PutEvents'
-                  - 'cognito-sync:*'
-                Resource: [ '*' ]
+#  FeideAuthenticatedRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      Path: /
+#      AssumeRolePolicyDocument:
+#        Version: '2012-10-17'
+#        Statement:
+#          - Effect: 'Allow'
+#            Principal:
+#              Federated: 'cognito-identity.amazonaws.com'
+#            Action:
+#              - 'sts:AssumeRoleWithWebIdentity'
+#            Condition:
+#              StringEquals:
+#                'cognito-identity.amazonaws.com:aud':
+#                  Ref: IdentityPool
+#              'ForAnyValue:StringLike':
+#                'cognito-identity.amazonaws.com:amr': authenticated
+#      Policies:
+#        - PolicyName: 'CognitoAuthorizedPolicy'
+#          PolicyDocument:
+#            Version: '2012-10-17'
+#            Statement:
+#              - Effect: 'Allow'
+#                Action:
+#                  - 'mobileanalytics:PutEvents'
+#                  - 'cognito-sync:*'
+#                  - 'cognito-identity:*'
+#                Resource: [ '*' ]
+#
+#  # IAM role used for unauthenticated users
+#  UnauthenticatedRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      Path: /
+#      AssumeRolePolicyDocument:
+#        Version: '2012-10-17'
+#        Statement:
+#          - Effect: 'Allow'
+#            Principal:
+#              Federated: 'cognito-identity.amazonaws.com'
+#            Action:
+#              - 'sts:AssumeRoleWithWebIdentity'
+#            Condition:
+#              StringEquals:
+#                'cognito-identity.amazonaws.com:aud':
+#                  Ref: IdentityPool
+#              'ForAnyValue:StringLike':
+#                'cognito-identity.amazonaws.com:amr': unauthenticated
+#      Policies:
+#        - PolicyName: 'CognitoUnauthenticatedRolePolicy'
+#          PolicyDocument:
+#            Version: '2012-10-17'
+#            Statement:
+#              - Effect: 'Allow'
+#                Action:
+#                  - 'mobileanalytics:PutEvents'
+#                  - 'cognito-sync:*'
+#                Resource: [ '*' ]
 
   # Assigns the roles to the Identity Pool
-  IdentityPoolRoleMapping:
-    Type: AWS::Cognito::IdentityPoolRoleAttachment
-    Properties:
-      IdentityPoolId: !Ref IdentityPool
-      Roles:
-        authenticated: !GetAtt FeideAuthenticatedRole.Arn
-        unauthenticated: !GetAtt UnauthenticatedRole.Arn
+#  IdentityPoolRoleMapping:
+#    Type: AWS::Cognito::IdentityPoolRoleAttachment
+#    Properties:
+#      IdentityPoolId: !Ref IdentityPool
+#      Roles:
+#        authenticated: !GetAtt FeideAuthenticatedRole.Arn
+#        unauthenticated: !GetAtt UnauthenticatedRole.Arn
 
   # IAM role used for users allowed to publish
-  PublisherRole:
-    Type: AWS::IAM::Role
-    Properties:
-      Path: /
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: 'Allow'
-            Principal:
-              Federated: 'cognito-identity.amazonaws.com'
-            Action:
-              - 'sts:AssumeRoleWithWebIdentity'
-            Condition:
-              StringEquals:
-                'cognito-identity.amazonaws.com:aud':
-                  Ref: IdentityPool
-              'ForAnyValue:StringLike':
-                'cognito-identity.amazonaws.com:amr': authenticated
-      Policies:
-        - PolicyName: PublisherPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - 'mobileanalytics:PutEvents'
-                  - 'cognito-sync:*'
-                Resource: [ '*' ]
+#  PublisherRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      Path: /
+#      AssumeRolePolicyDocument:
+#        Version: '2012-10-17'
+#        Statement:
+#          - Effect: 'Allow'
+#            Principal:
+#              Federated: 'cognito-identity.amazonaws.com'
+#            Action:
+#              - 'sts:AssumeRoleWithWebIdentity'
+#            Condition:
+#              StringEquals:
+#                'cognito-identity.amazonaws.com:aud':
+#                  Ref: IdentityPool
+#              'ForAnyValue:StringLike':
+#                'cognito-identity.amazonaws.com:amr': authenticated
+#      Policies:
+#        - PolicyName: PublisherPolicy
+#          PolicyDocument:
+#            Version: '2012-10-17'
+#            Statement:
+#              - Effect: 'Allow'
+#                Action:
+#                  - 'mobileanalytics:PutEvents'
+#                  - 'cognito-sync:*'
+#                Resource: [ '*' ]
 
-  FeideAuthenticatedGroup:
-    Type: AWS::Cognito::UserPoolGroup
-    Properties:
-      GroupName: FeideAuthenticatedGroup
-      Description: Common users authenticated with Feide
-      RoleArn: !GetAtt FeideAuthenticatedRole.Arn
-      UserPoolId: !Ref UserPool
-
-  PublisherGroup:
-    Type: AWS::Cognito::UserPoolGroup
-    Properties:
-      GroupName: PublisherGroup
-      Description: Users allowed to publish
-      RoleArn: !GetAtt PublisherRole.Arn
-      UserPoolId: !Ref UserPool
+#  FeideAuthenticatedGroup:
+#    Type: AWS::Cognito::UserPoolGroup
+#    Properties:
+#      GroupName: FeideAuthenticatedGroup
+#      Description: Common users authenticated with Feide
+#      RoleArn: !GetAtt FeideAuthenticatedRole.Arn
+#      UserPoolId: !Ref UserPool
+#
+#  PublisherGroup:
+#    Type: AWS::Cognito::UserPoolGroup
+#    Properties:
+#      GroupName: PublisherGroup
+#      Description: Users allowed to publish
+#      RoleArn: !GetAtt PublisherRole.Arn
+#      UserPoolId: !Ref UserPool
 
   ### Cognito Trigger ##################################################################################################
 
@@ -1027,13 +1027,13 @@ Resources:
       Type: String
       Value: !GetAtt UserPool.Arn
 
-  CognitoIdentityPoolIdParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoIdentityPoolId'
-      Description: Identifier of the IdentityPool assosiated with the UserPool
-      Type: String
-      Value: !Ref IdentityPool
+#  CognitoIdentityPoolIdParameter:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      Name: !Sub '${ParameterNamePrefix}CognitoIdentityPoolId'
+#      Description: Identifier of the IdentityPool assosiated with the UserPool
+#      Type: String
+#      Value: !Ref IdentityPool
 
   CognitoUserPoolIdParameter:
     Type: AWS::SSM::Parameter
@@ -1306,6 +1306,254 @@ Resources:
         - custom:feideidnin
         - custom:orgFeideId
 
+
+  ApplicationClient2:
+    DependsOn: BackendResourceServerScopes
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - aws.cognito.signin.user.admin
+        - openid
+        - email
+        - phone
+        - profile # it seems to be necessary for the custom attributes to appear
+        - https://api.nva.unit.no/scopes/ntnu-scope
+      CallbackURLs:
+        - 'http://localhost:3000'
+        - !Sub 'https://${ApplicationDomain}'
+      ClientName: NvaApplicationClient2
+      DefaultRedirectURI: 'http://localhost:3000'
+      EnableTokenRevocation: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
+      AccessTokenValidity: 1
+      IdTokenValidity: 30
+      RefreshTokenValidity: 2
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: minutes
+        RefreshToken: hours
+      SupportedIdentityProviders:
+        - !Ref ConnectionToDataporten
+      UserPoolId: !Ref UserPool
+      WriteAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
+
+  ApplicationClient3:
+    DependsOn: BackendResourceServerScopes
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - aws.cognito.signin.user.admin
+        - openid
+        - email
+        - phone
+        - profile # it seems to be necessary for the custom attributes to appear
+        - https://api.nva.unit.no/scopes/ntnu-scope
+      CallbackURLs:
+        - 'http://localhost:3000'
+        - !Sub 'https://${ApplicationDomain}'
+      ClientName: NvaApplicationClient3
+      DefaultRedirectURI: 'http://localhost:3000'
+      EnableTokenRevocation: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
+      AccessTokenValidity: 1
+      IdTokenValidity: 30
+      RefreshTokenValidity: 2
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: minutes
+        RefreshToken: hours
+      SupportedIdentityProviders:
+        - !Ref ConnectionToDataporten
+      UserPoolId: !Ref UserPool
+      WriteAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
+
+  ApplicationClient4:
+    DependsOn: BackendResourceServerScopes
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - aws.cognito.signin.user.admin
+        - openid
+        - email
+        - phone
+        - profile # it seems to be necessary for the custom attributes to appear
+        - https://api.nva.unit.no/scopes/ntnu-scope
+      CallbackURLs:
+        - 'http://localhost:3000'
+        - !Sub 'https://${ApplicationDomain}'
+      ClientName: NvaApplicationClient4
+      DefaultRedirectURI: 'http://localhost:3000'
+      EnableTokenRevocation: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
+      AccessTokenValidity: 1
+      IdTokenValidity: 30
+      RefreshTokenValidity: 2
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: minutes
+        RefreshToken: hours
+      SupportedIdentityProviders:
+        - !Ref ConnectionToDataporten
+      UserPoolId: !Ref UserPool
+      WriteAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
+  ApplicationClient5:
+    DependsOn: BackendResourceServerScopes
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - aws.cognito.signin.user.admin
+        - openid
+        - email
+        - phone
+        - profile # it seems to be necessary for the custom attributes to appear
+        - https://api.nva.unit.no/scopes/ntnu-scope
+      CallbackURLs:
+        - 'http://localhost:3000'
+        - !Sub 'https://${ApplicationDomain}'
+      ClientName: NvaApplicationClient5
+      DefaultRedirectURI: 'http://localhost:3000'
+      EnableTokenRevocation: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
+      AccessTokenValidity: 1
+      IdTokenValidity: 30
+      RefreshTokenValidity: 2
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: minutes
+        RefreshToken: hours
+      SupportedIdentityProviders:
+        - !Ref ConnectionToDataporten
+      UserPoolId: !Ref UserPool
+      WriteAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
+  ApplicationClient6:
+    DependsOn: BackendResourceServerScopes
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - aws.cognito.signin.user.admin
+        - openid
+        - email
+        - phone
+        - profile # it seems to be necessary for the custom attributes to appear
+        - https://api.nva.unit.no/scopes/ntnu-scope
+      CallbackURLs:
+        - 'http://localhost:3000'
+        - !Sub 'https://${ApplicationDomain}'
+      ClientName: NvaApplicationClient6
+      DefaultRedirectURI: 'http://localhost:3000'
+      EnableTokenRevocation: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
+      AccessTokenValidity: 1
+      IdTokenValidity: 30
+      RefreshTokenValidity: 2
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: minutes
+        RefreshToken: hours
+      SupportedIdentityProviders:
+        - !Ref ConnectionToDataporten
+      UserPoolId: !Ref UserPool
+      WriteAttributes:
+        - custom:feideid
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideidnin
+        - custom:orgFeideId
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:

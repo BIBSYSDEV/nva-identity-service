@@ -56,7 +56,7 @@ paths:
     post:
       summary: Adds new user
       security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend"]
+        - CognitoUserPool: []
       requestBody:
         required: true
         content:

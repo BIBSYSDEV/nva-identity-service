@@ -309,6 +309,7 @@ Resources:
     Properties:
       StageName: Prod
       Auth:
+        DefaultAuthorizer: CognitoAuthorizer
         Authorizers:
           CognitoAuthorizer:
             UserPoolArn: !GetAtt UserPool.Arn

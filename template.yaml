@@ -1347,7 +1347,7 @@ Resources:
       ProviderType: OIDC
       UserPoolId: !Ref UserPool
 
-  ConnectionToDataporten8:
+  ConnectionToDataporten9:
     Type: AWS::Cognito::UserPoolIdentityProvider
     Properties:
       AttributeMapping:
@@ -1366,7 +1366,185 @@ Resources:
         attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
         jwks_uri: 'https://auth.dataporten.no/openid/jwks'
         authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
-      ProviderName: Dataporten8
+      ProviderName: Dataporten9
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
+  ConnectionToDataporten10:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten10
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
+  ConnectionToDataporten11:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten11
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+  ConnectionToDataporten12:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten12
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+  ConnectionToDataporten13:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten13
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+  ConnectionToDataporten14:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten14
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+  ConnectionToDataporten15:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten15
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+  ConnectionToDataporten16:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten16
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+  ConnectionToDataporten17:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten17
       ProviderType: OIDC
       UserPoolId: !Ref UserPool
 

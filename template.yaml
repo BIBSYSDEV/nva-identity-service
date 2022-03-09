@@ -1359,7 +1359,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref PreTokenGenerationnHandler
+      FunctionName: !Sub '${PreTokenGenerationnHandler.Arn}:live'
       Principal: cognito-idp.amazonaws.com
 
 

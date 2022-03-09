@@ -56,7 +56,7 @@ paths:
     post:
       summary: Adds new user
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend"]
       requestBody:
         required: true
         content:
@@ -86,7 +86,7 @@ paths:
             type: string
           required: true
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend"]
       responses:
         '200':
           description: Successful fetching of User. Returns the requested User

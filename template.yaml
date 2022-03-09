@@ -1643,7 +1643,15 @@ Resources:
         - !Ref ConnectionToDataporten5
         - !Ref ConnectionToDataporten6
         - !Ref ConnectionToDataporten7
-        - !Ref ConnectionToDataporten8
+        - !Ref ConnectionToDataporten9
+        - !Ref ConnectionToDataporten10
+        - !Ref ConnectionToDataporten11
+        - !Ref ConnectionToDataporten12
+        - !Ref ConnectionToDataporten13
+        - !Ref ConnectionToDataporten14
+        - !Ref ConnectionToDataporten15
+        - !Ref ConnectionToDataporten16
+        - !Ref ConnectionToDataporten17
 
       UserPoolId: !Ref UserPool
       WriteAttributes:

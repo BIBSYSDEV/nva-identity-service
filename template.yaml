@@ -1156,7 +1156,7 @@ Resources:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"
       LambdaConfig:
-        PreTokenGeneration: !Sub '${PreTokenGenerationnHandler.Arn}:live}'
+        PreTokenGeneration: !Sub '${PreTokenGenerationnHandler.Arn}:live'
       Schema:
         - Name: nin
           AttributeDataType: String

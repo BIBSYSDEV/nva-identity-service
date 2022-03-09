@@ -1209,6 +1209,167 @@ Resources:
       ProviderType: OIDC
       UserPoolId: !Ref UserPool
 
+  ConnectionToDataporten2:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten2
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
+  ConnectionToDataporten3:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten3
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
+  ConnectionToDataporten4:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten4
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
+  ConnectionToDataporten5:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten5
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
+  ConnectionToDataporten6:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten6
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
+  ConnectionToDataporten7:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten7
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
+  ConnectionToDataporten8:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideidnin: norEduPersonNIN
+        custom:orgFeideId: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten8
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
   BackendResourceServerScopes:
     Type: AWS::Cognito::UserPoolResourceServer
     Properties:
@@ -1298,6 +1459,14 @@ Resources:
         RefreshToken: hours
       SupportedIdentityProviders:
         - !Ref ConnectionToDataporten
+        - !Ref ConnectionToDataporten2
+        - !Ref ConnectionToDataporten3
+        - !Ref ConnectionToDataporten4
+        - !Ref ConnectionToDataporten5
+        - !Ref ConnectionToDataporten6
+        - !Ref ConnectionToDataporten7
+        - !Ref ConnectionToDataporten8
+
       UserPoolId: !Ref UserPool
       WriteAttributes:
         - custom:feideid
@@ -1307,253 +1476,7 @@ Resources:
         - custom:orgFeideId
 
 
-  ApplicationClient2:
-    DependsOn: BackendResourceServerScopes
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      AllowedOAuthFlows:
-        - code
-        - implicit
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
-        - openid
-        - email
-        - phone
-        - profile # it seems to be necessary for the custom attributes to appear
-        - https://api.nva.unit.no/scopes/ntnu-scope
-      CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
-      ClientName: NvaApplicationClient2
-      DefaultRedirectURI: 'http://localhost:3000'
-      EnableTokenRevocation: false
-      ExplicitAuthFlows:
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      GenerateSecret: false
-      PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
-      AccessTokenValidity: 1
-      IdTokenValidity: 30
-      RefreshTokenValidity: 2
-      TokenValidityUnits:
-        AccessToken: hours
-        IdToken: minutes
-        RefreshToken: hours
-      SupportedIdentityProviders:
-        - !Ref ConnectionToDataporten
-      UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
 
-  ApplicationClient3:
-    DependsOn: BackendResourceServerScopes
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      AllowedOAuthFlows:
-        - code
-        - implicit
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
-        - openid
-        - email
-        - phone
-        - profile # it seems to be necessary for the custom attributes to appear
-        - https://api.nva.unit.no/scopes/ntnu-scope
-      CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
-      ClientName: NvaApplicationClient3
-      DefaultRedirectURI: 'http://localhost:3000'
-      EnableTokenRevocation: false
-      ExplicitAuthFlows:
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      GenerateSecret: false
-      PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
-      AccessTokenValidity: 1
-      IdTokenValidity: 30
-      RefreshTokenValidity: 2
-      TokenValidityUnits:
-        AccessToken: hours
-        IdToken: minutes
-        RefreshToken: hours
-      SupportedIdentityProviders:
-        - !Ref ConnectionToDataporten
-      UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
-
-  ApplicationClient4:
-    DependsOn: BackendResourceServerScopes
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      AllowedOAuthFlows:
-        - code
-        - implicit
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
-        - openid
-        - email
-        - phone
-        - profile # it seems to be necessary for the custom attributes to appear
-        - https://api.nva.unit.no/scopes/ntnu-scope
-      CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
-      ClientName: NvaApplicationClient4
-      DefaultRedirectURI: 'http://localhost:3000'
-      EnableTokenRevocation: false
-      ExplicitAuthFlows:
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      GenerateSecret: false
-      PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
-      AccessTokenValidity: 1
-      IdTokenValidity: 30
-      RefreshTokenValidity: 2
-      TokenValidityUnits:
-        AccessToken: hours
-        IdToken: minutes
-        RefreshToken: hours
-      SupportedIdentityProviders:
-        - !Ref ConnectionToDataporten
-      UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
-  ApplicationClient5:
-    DependsOn: BackendResourceServerScopes
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      AllowedOAuthFlows:
-        - code
-        - implicit
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
-        - openid
-        - email
-        - phone
-        - profile # it seems to be necessary for the custom attributes to appear
-        - https://api.nva.unit.no/scopes/ntnu-scope
-      CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
-      ClientName: NvaApplicationClient5
-      DefaultRedirectURI: 'http://localhost:3000'
-      EnableTokenRevocation: false
-      ExplicitAuthFlows:
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      GenerateSecret: false
-      PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
-      AccessTokenValidity: 1
-      IdTokenValidity: 30
-      RefreshTokenValidity: 2
-      TokenValidityUnits:
-        AccessToken: hours
-        IdToken: minutes
-        RefreshToken: hours
-      SupportedIdentityProviders:
-        - !Ref ConnectionToDataporten
-      UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
-  ApplicationClient6:
-    DependsOn: BackendResourceServerScopes
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      AllowedOAuthFlows:
-        - code
-        - implicit
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
-        - openid
-        - email
-        - phone
-        - profile # it seems to be necessary for the custom attributes to appear
-        - https://api.nva.unit.no/scopes/ntnu-scope
-      CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
-      ClientName: NvaApplicationClient6
-      DefaultRedirectURI: 'http://localhost:3000'
-      EnableTokenRevocation: false
-      ExplicitAuthFlows:
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      GenerateSecret: false
-      PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
-      AccessTokenValidity: 1
-      IdTokenValidity: 30
-      RefreshTokenValidity: 2
-      TokenValidityUnits:
-        AccessToken: hours
-        IdToken: minutes
-        RefreshToken: hours
-      SupportedIdentityProviders:
-        - !Ref ConnectionToDataporten
-      UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideid
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideidnin
-        - custom:orgFeideId
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:

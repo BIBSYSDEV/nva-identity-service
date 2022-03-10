@@ -55,7 +55,7 @@ public class IdentityServiceEntryUpdateHandler
 
         var jwtToken = requestAuthorizer.fetchJwtToken(input.getUserPoolId());
         attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin, logger)).orElseThrow();
-        String[] groups = {"groupA", "groupB"};
+        String[] groups = {"194.63.10.0:Creator"};
         var overrideDetails = ClaimsOverrideDetails.builder().withGroupOverrideDetails(
             GroupConfiguration.builder().withGroupsToOverride(groups).build()).build();
         input.setResponse(Response.builder().withClaimsOverrideDetails(overrideDetails).build());

@@ -16,6 +16,7 @@ import static no.unit.nva.cognito.cristin.CristinClient.REQUEST_TO_CRISTIN_SERVI
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,6 +40,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import no.unit.nva.stubs.FakeContext;
@@ -95,20 +97,15 @@ class IdentityServiceEntryUpdateHandlerTest {
     }
 
 
-    @ParameterizedTest(name = "should send request to Cristin Service to read person by NIN")
+    @ParameterizedTest(name = "should Create Custom Groups For Active Affiliations as described in Cristin Proxy")
     @MethodSource("eventProvider")
-    void shouldSendRequestToCristinServiceToReadPersonByNin(CognitoUserPoolPreTokenGenerationEvent event) {
-        assertDoesNotThrow(() -> handler.handleRequest(event, context));
+    void shouldCreateCustomGroupsForActiveAffiliationsOnly(CognitoUserPoolPreTokenGenerationEvent event) {
+        var response=handler.handleRequest(event, context);
+        var customGroups =
+            List.of(response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
+        assertThat(customGroups,containsInAnyOrder("194.63.10.0:Creator"));
     }
 
-    @ParameterizedTest(name = "should create UserGroup when UserGroup does not exist")
-    @MethodSource("eventProvider")
-    void shouldCreateUserGroupWhenUserGroupDoesNotExist(CognitoUserPoolPreTokenGenerationEvent event) {
-        var newEvent=handler.handleRequest(event,context);
-        var groupsToOverride=
-            newEvent.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
-        assertThat(Arrays.asList(groupsToOverride), contains("groupA", "groupB"));
-    }
 
     private void setupCognitoMock() {
         stubFor(post("/oauth2/token")

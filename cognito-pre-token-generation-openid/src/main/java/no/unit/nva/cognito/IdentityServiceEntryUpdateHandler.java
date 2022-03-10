@@ -1,10 +1,14 @@
 package no.unit.nva.cognito;
 
+import static java.net.HttpURLConnection.HTTP_OK;
+import static no.unit.nva.cognito.EnvironmentVariables.AWS_REGION;
+import static no.unit.nva.cognito.EnvironmentVariables.COGNITO_HOST;
+import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_JSON;
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_X_WWW_FORM_URLENCODED;
 import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
-import static no.unit.nva.cognito.NetworkingUtils.AWS_REGION;
 import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
-import static no.unit.nva.cognito.NetworkingUtils.COGNITO_HOST;
+import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
+import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_PATH_FOR_GETTING_USER_BY_NIN;
 import static no.unit.nva.cognito.NetworkingUtils.GRANT_TYPE_CLIENT_CREDENTIALS;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
 import static no.unit.nva.cognito.NetworkingUtils.formatBasicAuthenticationHeader;
@@ -20,6 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +34,8 @@ import java.util.Optional;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -41,21 +48,30 @@ public class IdentityServiceEntryUpdateHandler
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideidnin";
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideid";
+    public static final String REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE = "{\"type\":\"NationalIdentificationNumber"
+                                                                          + "\",\"value\":\"%s\"}";
     private final CognitoIdentityProviderClient cognitoClient;
     private final HttpClient httpClient;
     private final URI cognitoUri;
+    private final URI cristinGetUserByNinUri;
+    private static final Logger logger = LoggerFactory.getLogger("IdentityServiceEntryUpdateHandler");
 
     @JacocoGenerated
     public IdentityServiceEntryUpdateHandler() {
-        this(defaultCognitoClient(), HttpClient.newHttpClient(), defaultCognitoUri());
+        this(defaultCognitoClient(), HttpClient.newHttpClient(), defaultCognitoUri(), CRISTIN_HOST);
     }
 
     public IdentityServiceEntryUpdateHandler(CognitoIdentityProviderClient cognitoClient,
                                              HttpClient httpClient,
-                                             URI cognitoHost) {
+                                             URI cognitoHost,
+                                             URI cristinHost
+    ) {
         this.cognitoClient = cognitoClient;
         this.cognitoUri = standardOauth2TokenEndpoint(cognitoHost);
         this.httpClient = httpClient;
+        this.cristinGetUserByNinUri = new UriWrapper(cristinHost)
+            .addChild(CRISTIN_PATH_FOR_GETTING_USER_BY_NIN)
+            .getUri();
     }
 
     public static HttpRequest.BodyPublisher clientCredentialsAuthType() {
@@ -68,25 +84,16 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
 
-        var userAttributes= input.getRequest().getUserAttributes();
+        var userAttributes = input.getRequest().getUserAttributes();
         var feideId = extractFeideId(userAttributes);
         var nin = extractNin(userAttributes);
-        context.getLogger().log("feideid:" + feideId);
-        context.getLogger().log("nin:" + nin);
+        logger.info("feideid:" + feideId);
+        logger.info("nin:" + nin);
 
         String jwtToken = fetchJwtToken(input.getUserPoolId());
-        context.getLogger().log("JWT token:" + jwtToken);
+        attempt(() -> sendRequestToCristin(jwtToken, nin)).orElseThrow();
+        logger.info("JWT token:" + jwtToken);
         return input;
-    }
-
-    private String extractNin(Map<String, String> userAttributes) {
-        return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
-            .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
-            .orElseThrow();
-    }
-
-    private Optional<String> extractFeideId(Map<String, String> userAttributes) {
-        return Optional.ofNullable(userAttributes.get(FEIDE_ID));
     }
 
     @JacocoGenerated
@@ -105,6 +112,39 @@ public class IdentityServiceEntryUpdateHandler
             .httpClient(UrlConnectionHttpClient.create())
             .region(AWS_REGION)
             .build();
+    }
+
+    private Void sendRequestToCristin(String jwtToken, String nin) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(cristinGetUserByNinUri)
+            .setHeader(AUTHORIZATION_HEADER, "Bearer " + jwtToken)
+            .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+            .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8))
+            .build();
+        var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
+        assertThatResponseIsSuccessful(response);
+        var body = response.body();
+        logger.info("Cristin response:{}", body);
+        return null;
+    }
+
+    private void assertThatResponseIsSuccessful(HttpResponse<String> response) {
+        if (response.statusCode() != HTTP_OK) {
+            throw new BadGatewayException("Connection to Cristin failed.");
+        }
+    }
+
+    private String cristinRequestBody(String nin) {
+        return String.format(REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, nin);
+    }
+
+    private String extractNin(Map<String, String> userAttributes) {
+        return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
+            .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
+            .orElseThrow();
+    }
+
+    private Optional<String> extractFeideId(Map<String, String> userAttributes) {
+        return Optional.ofNullable(userAttributes.get(FEIDE_ID));
     }
 
     private String fetchJwtToken(String userPoolId) {
@@ -162,6 +202,7 @@ public class IdentityServiceEntryUpdateHandler
     }
 
     private static class ClientCredentials {
+
         private final String clientId;
         private final String clientSecret;
 

@@ -1331,6 +1331,7 @@ Resources:
         Variables:
           COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
           USERPOOL_NAME: !GetAtt UserPoolName.Value
+          API_DOMAIN: !Ref ApiDomain
       Timeout: 10
 
   PreTokenGenerationnHandlerScalableTarget:

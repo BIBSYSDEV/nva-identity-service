@@ -21,4 +21,5 @@ dependencies {
 test{
     environment "COGNITO_HOST", "example.com"
     environment "AWS_REGION", "eu-west-1"
+    environment "API_DOMAIN", "example.com"
 }

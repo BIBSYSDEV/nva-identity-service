@@ -16,6 +16,7 @@ import static no.unit.nva.cognito.NetworkingUtils.standardOauth2TokenEndpoint;
 import static nva.commons.core.attempt.Try.attempt;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import com.fasterxml.jackson.jr.ob.JSON;
@@ -34,8 +35,6 @@ import java.util.Optional;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -54,7 +53,6 @@ public class IdentityServiceEntryUpdateHandler
     private final HttpClient httpClient;
     private final URI cognitoUri;
     private final URI cristinGetUserByNinUri;
-    private static final Logger logger = LoggerFactory.getLogger("IdentityServiceEntryUpdateHandler");
 
     @JacocoGenerated
     public IdentityServiceEntryUpdateHandler() {
@@ -84,15 +82,16 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
 
+        var logger = context.getLogger();
         var userAttributes = input.getRequest().getUserAttributes();
         var feideId = extractFeideId(userAttributes);
         var nin = extractNin(userAttributes);
-        logger.info("feideid:" + feideId);
-        logger.info("nin:" + nin);
+        logger.log("feideid:" + feideId);
+        logger.log("nin:" + nin);
 
         String jwtToken = fetchJwtToken(input.getUserPoolId());
-        attempt(() -> sendRequestToCristin(jwtToken, nin)).orElseThrow();
-        logger.info("JWT token:" + jwtToken);
+        attempt(() -> sendRequestToCristin(jwtToken, nin, logger)).orElseThrow();
+        logger.log("JWT token:" + jwtToken);
         return input;
     }
 
@@ -114,17 +113,27 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private Void sendRequestToCristin(String jwtToken, String nin) throws IOException, InterruptedException {
+    private Void sendRequestToCristin(String jwtToken, String nin, LambdaLogger logger)
+        throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder(cristinGetUserByNinUri)
             .setHeader(AUTHORIZATION_HEADER, "Bearer " + jwtToken)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
             .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8))
             .build();
+        var cristinStartTime = System.currentTimeMillis();
+
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
+        var cristinEndTime = System.currentTimeMillis();
+        logger.log("CristinQueryTime:" + calculateTimeInSeconds(cristinStartTime, cristinEndTime));
         assertThatResponseIsSuccessful(response);
         var body = response.body();
-        logger.info("Cristin response:{}", body);
+        logger.log("Cristin response:" + body);
         return null;
+    }
+
+    private double calculateTimeInSeconds(long cristinStartTime, long cristinEndTime) {
+        var totalTime = (double) cristinEndTime - cristinStartTime;
+        return totalTime / 1000.0;
     }
 
     private void assertThatResponseIsSuccessful(HttpResponse<String> response) {

@@ -12,7 +12,8 @@ dependencies {
     implementation libs.bundles.jackson
     implementation libs.nva.core
     implementation libs.aws.lambda.events
-    implementation libs.bundles.logging
+//    implementation libs.bundles.logging
+    testImplementation libs.slf4j
 
 
     testImplementation project(':user-access-testing')

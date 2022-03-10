@@ -52,6 +52,8 @@ jackson-jr-annotations= { group= 'com.fasterxml.jackson.jr', name= 'jackson-jr-a
 slf4j = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
 log4j-core = { group = 'org.apache.logging.log4j', name = 'log4j-core', version.ref = 'log4j' }
 log4j-api = { group = 'org.apache.logging.log4j', name = 'log4j-api', version.ref = 'log4j' }
+log4j-slf4j18-impl = { group = 'org.apache.logging.log4j', name = 'log4j-slf4j18-impl', version.ref = 'log4j' }
+
 
 apache-httpclient = { group = 'org.apache.httpcomponents', name = 'httpclient', version.ref = 'apacheHttpClient' }
 zalando-problem = { group = 'org.zalando', name = 'problem', version.ref = 'zalandoProblem' }
@@ -75,7 +77,7 @@ apiguardian-api = { group = 'org.apiguardian', name = 'apiguardian-api', version
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
 [bundles]
-logging = ['log4j-core', 'log4j-api', 'slf4j']
+logging = ['log4j-core', 'log4j-api', 'slf4j','log4j-slf4j18-impl']
 testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core',
            'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils',
            'hamcrest-jackson', 'wiremock'

@@ -62,9 +62,8 @@ public class IdentityServiceEntryUpdateHandler
             .map(UriWrapper::new)
             .map(UriWrapper::getFilename);
 
-        var customGroups=orgIdentifiers.map(identifier->identifier+":Creator").toArray(String[]::new);
+        var customGroups= orgIdentifiers.map(identifier->identifier+":Creator").toArray(String[]::new);
         var overrideDetails = ClaimsOverrideDetails.builder()
-            .withClaimsToAddOrOverride(Map.of("accessRights","olariaolara"))
             .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(customGroups).build())
             .build();
         input.setResponse(Response.builder().withClaimsOverrideDetails(overrideDetails).build());

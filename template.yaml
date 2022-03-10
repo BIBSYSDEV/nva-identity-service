@@ -1358,15 +1358,15 @@ Resources:
 #        PredefinedMetricSpecification:
 #          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 #
-#  PreTokenGenerationnHandlerTriggerPermission:
+  PreTokenGenerationnHandlerTriggerPermission:
 #    DependsOn:
 #      - PreTokenGenerationnHandlerScalingPolicy
 #      - PreTokenGenerationnHandlerScalableTarget
-#    Type: AWS::Lambda::Permission
-#    Properties:
-#      Action: lambda:InvokeFunction
-#      FunctionName: !Sub '${PreTokenGenerationnHandler.Arn}:live'
-#      Principal: cognito-idp.amazonaws.com
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub '${PreTokenGenerationnHandler.Arn}'
+      Principal: cognito-idp.amazonaws.com
 
 
 

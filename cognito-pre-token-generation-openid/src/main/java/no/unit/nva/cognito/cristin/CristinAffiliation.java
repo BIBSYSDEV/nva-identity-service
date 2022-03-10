@@ -1,24 +1,31 @@
 package no.unit.nva.cognito.cristin;
 
 import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.net.URI;
 import nva.commons.core.JacocoGenerated;
 
 @JacocoGenerated
 public class CristinAffiliation {
 
-    private URI affiliation;
+
+    private URI organization;
     private boolean active;
     private CristinRole role;
 
     @JacocoGenerated
-    public String getAffiliation() {
-        return affiliation.toString();
+    public String getOrganization() {
+        return organization.toString();
+    }
+
+    @JsonIgnore
+    public URI getOrganizationUri(){
+        return organization;
     }
 
     @JacocoGenerated
-    public void setAffiliation(String affiliation) {
-        this.affiliation = attempt(()->URI.create(affiliation)).orElseThrow();
+    public void setOrganization(String organization) {
+        this.organization = attempt(()->URI.create(organization)).orElseThrow();
     }
 
     @JacocoGenerated

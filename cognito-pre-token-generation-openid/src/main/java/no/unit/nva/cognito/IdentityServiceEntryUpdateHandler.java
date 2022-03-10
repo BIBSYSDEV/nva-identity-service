@@ -15,8 +15,10 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.util.Map;
 import java.util.Optional;
+import no.unit.nva.cognito.cristin.CristinAffiliation;
 import no.unit.nva.cognito.cristin.CristinClient;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -54,10 +56,18 @@ public class IdentityServiceEntryUpdateHandler
         var nin = extractNin(userAttributes);
 
         var jwtToken = requestAuthorizer.fetchJwtToken(input.getUserPoolId());
-        attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin, logger)).orElseThrow();
-        String[] groups = {"194.63.10.0:Creator"};
-        var overrideDetails = ClaimsOverrideDetails.builder().withGroupOverrideDetails(
-            GroupConfiguration.builder().withGroupsToOverride(groups).build()).build();
+        var cristinResponse = attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
+        var orgIdentifiers =
+            cristinResponse.getAffiliations().stream().filter(CristinAffiliation::isActive)
+            .map(CristinAffiliation::getOrganizationUri)
+            .map(UriWrapper::new)
+            .map(UriWrapper::getFilename);
+
+        var customGroups=orgIdentifiers.map(identifier->identifier+":Creator").toArray(String[]::new);
+        var overrideDetails = ClaimsOverrideDetails.builder()
+            .withClaimsToAddOrOverride(Map.of("accessRights","olariaolara"))
+            .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(customGroups).build())
+            .build();
         input.setResponse(Response.builder().withClaimsOverrideDetails(overrideDetails).build());
         return input;
     }

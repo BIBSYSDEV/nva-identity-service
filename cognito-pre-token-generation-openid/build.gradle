@@ -6,13 +6,13 @@ plugins {
 
 dependencies {
 
+    implementation project(":json")
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection
     implementation libs.aws.lambda.java.core
     implementation libs.bundles.jackson
     implementation libs.nva.core
     implementation libs.aws.lambda.events
-//    implementation libs.bundles.logging
     testImplementation libs.slf4j
 
 

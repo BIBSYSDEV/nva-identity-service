@@ -14,6 +14,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import no.unit.nva.cognito.BadGatewayException;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.paths.UriWrapper;
 
 public class CristinClient {
@@ -30,7 +31,7 @@ public class CristinClient {
 
     }
 
-    public Void sendRequestToCristin(String jwtToken, String nin, LambdaLogger logger)
+    public CristinResponse sendRequestToCristin(String jwtToken, String nin)
         throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder(getUserByNinUri)
             .setHeader(AUTHORIZATION_HEADER, "Bearer " + jwtToken)
@@ -39,9 +40,8 @@ public class CristinClient {
             .build();
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThatResponseIsSuccessful(response);
-        var body = response.body();
-        logger.log("Cristin response:" + body);
-        return null;
+        return JsonConfig.objectMapper.beanFrom(CristinResponse.class,response.body());
+
     }
 
     private URI formatUriForGettingUserByNin(URI cristinHost) {

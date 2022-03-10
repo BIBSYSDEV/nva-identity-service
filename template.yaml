@@ -1159,7 +1159,7 @@ Resources:
       MfaConfiguration: "OFF"
       LambdaConfig:
         PreTokenGeneration: !Sub '${PreTokenGenerationnHandler.Arn}'
-        PreAuthentication: !Sub '${PreTokenGenerationnHandler.Arn}'
+#        PreAuthentication: !Sub '${PreTokenGenerationnHandler.Arn}'
       Schema:
         - Name: nin
           AttributeDataType: String

@@ -1161,6 +1161,7 @@ Resources:
       MfaConfiguration: "OFF"
       LambdaConfig:
         PreTokenGeneration: !Sub '${PreTokenGenerationnHandler.Arn}:live'
+        CreateAuthChallenge: !GetAtt CreateAuthChallenge.Arn
       Schema:
         - Name: nin
           AttributeDataType: String
@@ -1330,6 +1331,19 @@ Resources:
         Type: AllAtOnce
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+          USERPOOL_NAME: !GetAtt UserPoolName.Value
+          API_DOMAIN: !Ref ApiDomain
+      Timeout: 10
+
+  CreateAuthChallenge:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.CreateChallengeHandler::handleRequest
+      Role: !GetAtt TriggerExecutionRole.Arn
       Environment:
         Variables:
           COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'

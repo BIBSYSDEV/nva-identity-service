@@ -4,7 +4,6 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_JSON;
 import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;

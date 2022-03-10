@@ -51,7 +51,6 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
 
-        var logger = context.getLogger();
         var userAttributes = input.getRequest().getUserAttributes();
         var nin = extractNin(userAttributes);
 

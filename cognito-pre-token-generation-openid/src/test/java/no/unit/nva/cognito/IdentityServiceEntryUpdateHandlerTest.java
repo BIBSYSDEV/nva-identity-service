@@ -15,9 +15,13 @@ import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
@@ -36,14 +40,15 @@ import java.util.Map;
 import java.util.stream.Stream;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.core.ioutils.IoUtils;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.GetGroupRequest;
 
 class IdentityServiceEntryUpdateHandlerTest {
 
@@ -51,7 +56,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     public static final boolean IGNORE_ARRAY_ORDER = true;
     public static final boolean DO_NOT_IGNORE_OTHER_ELLEMENTS = false;
-    public static final String RANDOM_NIN= randomString() ;
+    public static final String RANDOM_NIN = randomString();
     private final Context context = new FakeContext();
 
     private static final FakeCognitoIdentityProviderClient COGNITO_CLIENT = new FakeCognitoIdentityProviderClient();
@@ -61,9 +66,11 @@ class IdentityServiceEntryUpdateHandlerTest {
     private String jwtToken;
 
     private WireMockServer httpServer;
+    private HttpClient httpClient;
+    private URI serverUri;
 
     public static Stream<CognitoUserPoolPreTokenGenerationEvent> eventProvider() {
-        return Stream.of(randomEventOfFeideUser(),randomEventOfNonFeideUser());
+        return Stream.of(randomEventOfFeideUser(), randomEventOfNonFeideUser());
     }
 
     @BeforeEach
@@ -74,10 +81,9 @@ class IdentityServiceEntryUpdateHandlerTest {
 
         setupCognitoMock();
         setupCristinServiceMock();
-        URI serverUri = URI.create(httpServer.baseUrl());
-        HttpClient httpClient = WiremockHttpClient.create();
-        handler = new IdentityServiceEntryUpdateHandler(COGNITO_CLIENT, httpClient, serverUri,serverUri);
-
+        serverUri = URI.create(httpServer.baseUrl());
+        httpClient = WiremockHttpClient.create();
+        handler = new IdentityServiceEntryUpdateHandler(COGNITO_CLIENT, httpClient, serverUri, serverUri);
     }
 
     @AfterEach
@@ -99,49 +105,50 @@ class IdentityServiceEntryUpdateHandlerTest {
         handler.handleRequest(event, fakeContent);
     }
 
-    @ParameterizedTest(name = "should retrieve Congito backend secret client")
+    @ParameterizedTest(name = "should send request to Cristin Service to read person by NIN")
     @MethodSource("eventProvider")
-    void shouldRetrieveCognitoBackendClientSecret(CognitoUserPoolPreTokenGenerationEvent event) {
-        TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
-        handler.handleRequest(event, context);
-        assertThat(logger.getMessages(), containsString(jwtToken));
+    void shouldSendRequestToCristinServiceToReadPersonByNin(CognitoUserPoolPreTokenGenerationEvent event) {
+        assertDoesNotThrow(() -> handler.handleRequest(event, context));
     }
 
-    @ParameterizedTest(name = "should send request to Crstin Service to read person by NIN")
+    @ParameterizedTest(name = "should create UserGroup when UserGroup does not exist")
     @MethodSource("eventProvider")
-    void shouldSendRequestToCristinServiceToReadPersonByNin(CognitoUserPoolPreTokenGenerationEvent event){
-        assertDoesNotThrow(()->handler.handleRequest(event, context));
-
+    void shouldCreateUserGroupWhenUserGroupDoesNotExist(CognitoUserPoolPreTokenGenerationEvent event) {
+        FakeCognitoIdentityProviderClient clientWithNoGroups = spy(COGNITO_CLIENT);
+        doThrow(RuntimeException.class).when(clientWithNoGroups).getGroup(any(GetGroupRequest.class));
+        doCallRealMethod().when(clientWithNoGroups).createGroup(any(CreateGroupRequest.class));
+        handler = new IdentityServiceEntryUpdateHandler(clientWithNoGroups, httpClient, serverUri, serverUri);
+        handler.handleRequest(event,context);
+        verify(clientWithNoGroups, times(1)).createGroup(any(CreateGroupRequest.class));
     }
 
     private void setupCognitoMock() {
-         stubFor(post("/oauth2/token")
-                           .withBasicAuth(CLIENT_ID, CLIENT_SECRET)
-                           .withHeader(CONTENT_TYPE, wwwFormUrlEndcoded())
-                           .withRequestBody(new ContainsPattern("grant_type"))
-                           .willReturn(aResponse().withStatus(HTTP_OK).withBody(cognitoResponseBody())));
+        stubFor(post("/oauth2/token")
+                    .withBasicAuth(CLIENT_ID, CLIENT_SECRET)
+                    .withHeader(CONTENT_TYPE, wwwFormUrlEndcoded())
+                    .withRequestBody(new ContainsPattern("grant_type"))
+                    .willReturn(aResponse().withStatus(HTTP_OK).withBody(cognitoResponseBody())));
     }
-
 
     private void setupCristinServiceMock() {
         stubFor(post("/person/identityNumber")
-                    .withHeader(AUTHORIZATION_HEADER, new EqualToPattern("Bearer "+jwtToken,MATCH_CASE))
+                    .withHeader(AUTHORIZATION_HEADER, new EqualToPattern("Bearer " + jwtToken, MATCH_CASE))
                     .withHeader(CONTENT_TYPE, applicationJson())
                     .withRequestBody(cristinServiceRequestBody())
                     .willReturn(aResponse().withStatus(HTTP_OK).withBody(cristinResponseBody())));
     }
 
     private String cristinResponseBody() {
-       return IoUtils.stringFromResources(Path.of("cristin_response_example.json"));
+        return IoUtils.stringFromResources(Path.of("cristin_response_example.json"));
     }
 
     private ContentPattern<?> cristinServiceRequestBody() {
-        String jsonBody = String.format(REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE,RANDOM_NIN);
+        String jsonBody = String.format(REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, RANDOM_NIN);
         return new EqualToJsonPattern(jsonBody, IGNORE_ARRAY_ORDER, DO_NOT_IGNORE_OTHER_ELLEMENTS);
     }
 
     private StringValuePattern applicationJson() {
-        return new EqualToPattern("application/json",MATCH_CASE);
+        return new EqualToPattern("application/json", MATCH_CASE);
     }
 
     private String cognitoResponseBody() {
@@ -158,6 +165,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         Map<String, String> userAttributes = Map.of(FEIDE_ID, randomString(), NIN_FOR_FEIDE_USERS, RANDOM_NIN);
         return CognitoUserPoolPreTokenGenerationEvent.builder()
             .withUserPoolId(randomString())
+            .withUserName(randomString())
             .withRequest(Request.builder().withUserAttributes(userAttributes).build())
             .withCallerContext(CallerContext.builder().withClientId(CLIENT_ID).build())
             .build();
@@ -167,6 +175,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         Map<String, String> userAttributes = Map.of(NIN_FON_NON_FEIDE_USERS, RANDOM_NIN);
         return CognitoUserPoolPreTokenGenerationEvent.builder()
             .withUserPoolId(randomString())
+            .withUserName(randomString())
             .withRequest(Request.builder().withUserAttributes(userAttributes).build())
             .withCallerContext(CallerContext.builder().withClientId(CLIENT_ID).build())
             .build();

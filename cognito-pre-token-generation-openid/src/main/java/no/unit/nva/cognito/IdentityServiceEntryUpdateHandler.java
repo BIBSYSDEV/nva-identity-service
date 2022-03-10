@@ -38,7 +38,11 @@ import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.GetGroupRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.GroupType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsRequest;
 
 public class IdentityServiceEntryUpdateHandler
@@ -84,15 +88,39 @@ public class IdentityServiceEntryUpdateHandler
 
         var logger = context.getLogger();
         var userAttributes = input.getRequest().getUserAttributes();
-        var feideId = extractFeideId(userAttributes);
         var nin = extractNin(userAttributes);
-        logger.log("feideid:" + feideId);
-        logger.log("nin:" + nin);
 
         String jwtToken = fetchJwtToken(input.getUserPoolId());
         attempt(() -> sendRequestToCristin(jwtToken, nin, logger)).orElseThrow();
-        logger.log("JWT token:" + jwtToken);
+        var group = getOrCreateGroupForUser(input);
+        AdminAddUserToGroupRequest request = AdminAddUserToGroupRequest.builder()
+            .userPoolId(group.userPoolId())
+            .groupName(group.groupName())
+            .username(input.getUserName())
+            .build();
+        cognitoClient.adminAddUserToGroup(request);
+
         return input;
+    }
+
+    private GroupType getOrCreateGroupForUser(CognitoUserPoolPreTokenGenerationEvent input) {
+        var group = attempt(() -> fetchExistingGroup(input));
+        if (group.isFailure()) {
+            group = attempt(() -> createNewGroup(input));
+        }
+        return group.orElseThrow();
+    }
+
+    private GroupType createNewGroup(CognitoUserPoolPreTokenGenerationEvent input) {
+        return cognitoClient.createGroup(CreateGroupRequest.builder()
+                                             .userPoolId(input.getUserPoolId())
+                                             .groupName("myCoolGroup")
+                                             .build()).group();
+    }
+
+    private GroupType fetchExistingGroup(CognitoUserPoolPreTokenGenerationEvent input) {
+        return cognitoClient.getGroup(GetGroupRequest.builder().userPoolId(input.getUserPoolId())
+                                          .groupName("myCoolGroup").build()).group();
     }
 
     @JacocoGenerated
@@ -150,10 +178,6 @@ public class IdentityServiceEntryUpdateHandler
         return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
             .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
             .orElseThrow();
-    }
-
-    private Optional<String> extractFeideId(Map<String, String> userAttributes) {
-        return Optional.ofNullable(userAttributes.get(FEIDE_ID));
     }
 
     private String fetchJwtToken(String userPoolId) {

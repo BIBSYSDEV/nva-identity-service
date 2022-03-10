@@ -3,8 +3,15 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.GetGroupRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.GetGroupResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.GroupType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientDescription;
@@ -34,6 +41,20 @@ public class FakeCognitoIdentityProviderClient implements CognitoIdentityProvide
     }
 
     @Override
+    public AdminAddUserToGroupResponse adminAddUserToGroup(AdminAddUserToGroupRequest request) {
+        return AdminAddUserToGroupResponse.builder().build();
+    }
+
+    @Override
+    public CreateGroupResponse createGroup(CreateGroupRequest request) {
+        GroupType group = GroupType.builder()
+            .userPoolId(request.userPoolId())
+            .groupName(request.groupName())
+            .build();
+        return CreateGroupResponse.builder().group(group).build();
+    }
+
+    @Override
     public DescribeUserPoolClientResponse describeUserPoolClient(
         DescribeUserPoolClientRequest describeUserPoolClientRequest) {
         var userPoolClient = UserPoolClientType.builder()
@@ -41,6 +62,15 @@ public class FakeCognitoIdentityProviderClient implements CognitoIdentityProvide
             .clientSecret(fakeClientSecret)
             .build();
         return DescribeUserPoolClientResponse.builder().userPoolClient(userPoolClient).build();
+    }
+
+    @Override
+    public GetGroupResponse getGroup(GetGroupRequest request) {
+        GroupType group = GroupType.builder()
+            .userPoolId(request.userPoolId())
+            .groupName(request.groupName())
+            .build();
+        return GetGroupResponse.builder().group(group).build();
     }
 
     @Override

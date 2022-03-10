@@ -1,6 +1,6 @@
 {
   "@context": "https://example.org/person-context.json",
-  "id": "https://api.sandbox.nva.aws.unit.no/cristin/person/12345",
+  "id": "https://api.sandbox.nva.aws.unit.no/cristin/person/33311",
   "type": "Person",
   "identifiers": [
     {
@@ -46,6 +46,6 @@
       }
     }
   ],
-  "NationalIdentificationNumber": "12345678901",
+  "NationalIdentificationNumber": "25048423321",
   "reserved": false
 }

@@ -8,13 +8,15 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.FEIDE_ID;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FOR_FEIDE_USERS;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_X_WWW_FORM_URLENCODED;
 import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
 import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
+import static no.unit.nva.cognito.cristin.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -36,26 +38,27 @@ import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.core.ioutils.IoUtils;
+import org.hamcrest.collection.IsIterableContainingInOrder;
+import org.hamcrest.core.IsIterableContaining;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetGroupRequest;
 
 class IdentityServiceEntryUpdateHandlerTest {
 
     public static final boolean MATCH_CASE = false;
-
     public static final boolean IGNORE_ARRAY_ORDER = true;
-    public static final boolean DO_NOT_IGNORE_OTHER_ELLEMENTS = false;
+    public static final boolean DO_NOT_IGNORE_OTHER_ELEMENTS = false;
     public static final String RANDOM_NIN = randomString();
     private final Context context = new FakeContext();
 
@@ -78,11 +81,11 @@ class IdentityServiceEntryUpdateHandlerTest {
         httpServer = new WireMockServer(options().dynamicHttpsPort());
         httpServer.start();
         jwtToken = randomString();
+        serverUri = URI.create(httpServer.baseUrl());
+        httpClient = WiremockHttpClient.create();
 
         setupCognitoMock();
         setupCristinServiceMock();
-        serverUri = URI.create(httpServer.baseUrl());
-        httpClient = WiremockHttpClient.create();
         handler = new IdentityServiceEntryUpdateHandler(COGNITO_CLIENT, httpClient, serverUri, serverUri);
     }
 
@@ -91,19 +94,6 @@ class IdentityServiceEntryUpdateHandlerTest {
         httpServer.stop();
     }
 
-    @Test
-    @Disabled("online test")
-    void onlineTest() {
-        var handler = new IdentityServiceEntryUpdateHandler();
-        Context fakeContent = new FakeContext();
-        CognitoUserPoolPreTokenGenerationEvent event = CognitoUserPoolPreTokenGenerationEvent.builder()
-            .withUserPoolId("eu-west-1_fPzloej9T")
-            .withCallerContext(CallerContext.builder()
-                                   .withClientId("71qlmhqe47ovdb2m54l99d0r0t")
-                                   .build())
-            .build();
-        handler.handleRequest(event, fakeContent);
-    }
 
     @ParameterizedTest(name = "should send request to Cristin Service to read person by NIN")
     @MethodSource("eventProvider")
@@ -114,12 +104,10 @@ class IdentityServiceEntryUpdateHandlerTest {
     @ParameterizedTest(name = "should create UserGroup when UserGroup does not exist")
     @MethodSource("eventProvider")
     void shouldCreateUserGroupWhenUserGroupDoesNotExist(CognitoUserPoolPreTokenGenerationEvent event) {
-        FakeCognitoIdentityProviderClient clientWithNoGroups = spy(COGNITO_CLIENT);
-        doThrow(RuntimeException.class).when(clientWithNoGroups).getGroup(any(GetGroupRequest.class));
-        doCallRealMethod().when(clientWithNoGroups).createGroup(any(CreateGroupRequest.class));
-        handler = new IdentityServiceEntryUpdateHandler(clientWithNoGroups, httpClient, serverUri, serverUri);
-        handler.handleRequest(event,context);
-        verify(clientWithNoGroups, times(1)).createGroup(any(CreateGroupRequest.class));
+        var newEvent=handler.handleRequest(event,context);
+        var groupsToOverride=
+            newEvent.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
+        assertThat(Arrays.asList(groupsToOverride), contains("groupA", "groupB"));
     }
 
     private void setupCognitoMock() {
@@ -144,7 +132,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private ContentPattern<?> cristinServiceRequestBody() {
         String jsonBody = String.format(REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, RANDOM_NIN);
-        return new EqualToJsonPattern(jsonBody, IGNORE_ARRAY_ORDER, DO_NOT_IGNORE_OTHER_ELLEMENTS);
+        return new EqualToJsonPattern(jsonBody, IGNORE_ARRAY_ORDER, DO_NOT_IGNORE_OTHER_ELEMENTS);
     }
 
     private StringValuePattern applicationJson() {

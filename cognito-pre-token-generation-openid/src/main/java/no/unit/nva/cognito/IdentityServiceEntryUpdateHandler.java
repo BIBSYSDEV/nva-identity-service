@@ -1,49 +1,25 @@
 package no.unit.nva.cognito;
 
-import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.cognito.EnvironmentVariables.AWS_REGION;
 import static no.unit.nva.cognito.EnvironmentVariables.COGNITO_HOST;
-import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_JSON;
-import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_X_WWW_FORM_URLENCODED;
-import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
-import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
-import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_PATH_FOR_GETTING_USER_BY_NIN;
-import static no.unit.nva.cognito.NetworkingUtils.GRANT_TYPE_CLIENT_CREDENTIALS;
-import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
-import static no.unit.nva.cognito.NetworkingUtils.formatBasicAuthenticationHeader;
-import static no.unit.nva.cognito.NetworkingUtils.standardOauth2TokenEndpoint;
 import static nva.commons.core.attempt.Try.attempt;
-import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
-import com.fasterxml.jackson.jr.ob.JSON;
-import java.io.IOException;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.ClaimsOverrideDetails;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.GroupConfiguration;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import no.unit.nva.cognito.cristin.CristinClient;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.SingletonCollector;
-import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.GetGroupRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.GroupType;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsRequest;
 
 public class IdentityServiceEntryUpdateHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
@@ -51,12 +27,9 @@ public class IdentityServiceEntryUpdateHandler
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideidnin";
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideid";
-    public static final String REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE = "{\"type\":\"NationalIdentificationNumber"
-                                                                          + "\",\"value\":\"%s\"}";
-    private final CognitoIdentityProviderClient cognitoClient;
-    private final HttpClient httpClient;
-    private final URI cognitoUri;
-    private final URI cristinGetUserByNinUri;
+
+    private final RequestAuthorizer requestAuthorizer;
+    private final CristinClient cristinClient;
 
     @JacocoGenerated
     public IdentityServiceEntryUpdateHandler() {
@@ -66,20 +39,10 @@ public class IdentityServiceEntryUpdateHandler
     public IdentityServiceEntryUpdateHandler(CognitoIdentityProviderClient cognitoClient,
                                              HttpClient httpClient,
                                              URI cognitoHost,
-                                             URI cristinHost
-    ) {
-        this.cognitoClient = cognitoClient;
-        this.cognitoUri = standardOauth2TokenEndpoint(cognitoHost);
-        this.httpClient = httpClient;
-        this.cristinGetUserByNinUri = new UriWrapper(cristinHost)
-            .addChild(CRISTIN_PATH_FOR_GETTING_USER_BY_NIN)
-            .getUri();
-    }
+                                             URI cristinHost) {
 
-    public static HttpRequest.BodyPublisher clientCredentialsAuthType() {
-        var queryParameters = UriWrapper.fromHost("notimportant")
-            .addQueryParameters(GRANT_TYPE_CLIENT_CREDENTIALS).getUri().getRawQuery();
-        return HttpRequest.BodyPublishers.ofString(queryParameters);
+        this.requestAuthorizer = new RequestAuthorizer(cognitoClient, cognitoHost, httpClient);
+        this.cristinClient = new CristinClient(cristinHost, httpClient);
     }
 
     @Override
@@ -90,37 +53,13 @@ public class IdentityServiceEntryUpdateHandler
         var userAttributes = input.getRequest().getUserAttributes();
         var nin = extractNin(userAttributes);
 
-        String jwtToken = fetchJwtToken(input.getUserPoolId());
-        attempt(() -> sendRequestToCristin(jwtToken, nin, logger)).orElseThrow();
-        var group = getOrCreateGroupForUser(input);
-        AdminAddUserToGroupRequest request = AdminAddUserToGroupRequest.builder()
-            .userPoolId(group.userPoolId())
-            .groupName(group.groupName())
-            .username(input.getUserName())
-            .build();
-        var response=cognitoClient.adminAddUserToGroup(request);
-        logger.log(response.toString());
+        var jwtToken = requestAuthorizer.fetchJwtToken(input.getUserPoolId());
+        attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin, logger)).orElseThrow();
+        String[] groups = {"groupA", "groupB"};
+        var overrideDetails = ClaimsOverrideDetails.builder().withGroupOverrideDetails(
+            GroupConfiguration.builder().withGroupsToOverride(groups).build()).build();
+        input.setResponse(Response.builder().withClaimsOverrideDetails(overrideDetails).build());
         return input;
-    }
-
-    private GroupType getOrCreateGroupForUser(CognitoUserPoolPreTokenGenerationEvent input) {
-        var group = attempt(() -> fetchExistingGroup(input));
-        if (group.isFailure()) {
-            group = attempt(() -> createNewGroup(input));
-        }
-        return group.orElseThrow();
-    }
-
-    private GroupType createNewGroup(CognitoUserPoolPreTokenGenerationEvent input) {
-        return cognitoClient.createGroup(CreateGroupRequest.builder()
-                                             .userPoolId(input.getUserPoolId())
-                                             .groupName("myCoolGroup")
-                                             .build()).group();
-    }
-
-    private GroupType fetchExistingGroup(CognitoUserPoolPreTokenGenerationEvent input) {
-        return cognitoClient.getGroup(GetGroupRequest.builder().userPoolId(input.getUserPoolId())
-                                          .groupName("myCoolGroup").build()).group();
     }
 
     @JacocoGenerated
@@ -141,108 +80,9 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private Void sendRequestToCristin(String jwtToken, String nin, LambdaLogger logger)
-        throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder(cristinGetUserByNinUri)
-            .setHeader(AUTHORIZATION_HEADER, "Bearer " + jwtToken)
-            .setHeader(CONTENT_TYPE, APPLICATION_JSON)
-            .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8))
-            .build();
-        var cristinStartTime = System.currentTimeMillis();
-
-        var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
-        var cristinEndTime = System.currentTimeMillis();
-        logger.log("CristinQueryTime:" + calculateTimeInSeconds(cristinStartTime, cristinEndTime));
-        assertThatResponseIsSuccessful(response);
-        var body = response.body();
-        logger.log("Cristin response:" + body);
-        return null;
-    }
-
-    private double calculateTimeInSeconds(long cristinStartTime, long cristinEndTime) {
-        var totalTime = (double) cristinEndTime - cristinStartTime;
-        return totalTime / 1000.0;
-    }
-
-    private void assertThatResponseIsSuccessful(HttpResponse<String> response) {
-        if (response.statusCode() != HTTP_OK) {
-            throw new BadGatewayException("Connection to Cristin failed.");
-        }
-    }
-
-    private String cristinRequestBody(String nin) {
-        return String.format(REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, nin);
-    }
-
     private String extractNin(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
             .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
             .orElseThrow();
-    }
-
-    private String fetchJwtToken(String userPoolId) {
-        HttpRequest postRequest = formatRequestForJwtToken(userPoolId);
-        return extractJwtTokenFromResponse(postRequest);
-    }
-
-    private String extractJwtTokenFromResponse(HttpRequest postRequest) {
-        return attempt(() -> sendRequest(postRequest))
-            .map(HttpResponse::body)
-            .map(JSON.std::mapFrom)
-            .map(json -> json.get(JWT_TOKEN_FIELD))
-            .map(Objects::toString)
-            .orElseThrow();
-    }
-
-    private HttpRequest formatRequestForJwtToken(String userPoolId) {
-        return HttpRequest.newBuilder()
-            .uri(cognitoUri)
-            .setHeader(AUTHORIZATION_HEADER, authenticationString(userPoolId))
-            .setHeader(CONTENT_TYPE, APPLICATION_X_WWW_FORM_URLENCODED)
-            .POST(clientCredentialsAuthType())
-            .build();
-    }
-
-    private HttpResponse<String> sendRequest(HttpRequest postRequest) throws IOException, InterruptedException {
-        return httpClient.send(postRequest, BodyHandlers.ofString(StandardCharsets.UTF_8));
-    }
-
-    private String authenticationString(String userPoolId) {
-        var clientCredentials = fetchUserPoolClientCredentials(userPoolId);
-        return formatBasicAuthenticationHeader(clientCredentials.clientId, clientCredentials.clientSecret);
-    }
-
-    private ClientCredentials fetchUserPoolClientCredentials(String userPoolId) {
-        var clientId = findBackendClientId(userPoolId);
-
-        DescribeUserPoolClientRequest describeBackendClientRequest = DescribeUserPoolClientRequest.builder()
-            .userPoolId(userPoolId)
-            .clientId(clientId)
-            .build();
-        var clientSecret = cognitoClient.describeUserPoolClient(describeBackendClientRequest)
-            .userPoolClient()
-            .clientSecret();
-        return new ClientCredentials(clientId, clientSecret);
-    }
-
-    private String findBackendClientId(String userPoolId) {
-        return cognitoClient
-            .listUserPoolClients(ListUserPoolClientsRequest.builder().userPoolId(userPoolId).build())
-            .userPoolClients().stream()
-            .filter(userPoolClient -> userPoolClient.clientName().equals(BACKEND_USER_POOL_CLIENT_NAME))
-            .collect(SingletonCollector.collect())
-            .clientId();
-    }
-
-    private static class ClientCredentials {
-
-        private final String clientId;
-        private final String clientSecret;
-
-        public ClientCredentials(String clientId, String clientSecret) {
-
-            this.clientId = clientId;
-            this.clientSecret = clientSecret;
-        }
     }
 }

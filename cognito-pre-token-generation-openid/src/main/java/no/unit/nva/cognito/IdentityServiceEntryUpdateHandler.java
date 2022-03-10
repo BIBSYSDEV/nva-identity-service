@@ -98,8 +98,8 @@ public class IdentityServiceEntryUpdateHandler
             .groupName(group.groupName())
             .username(input.getUserName())
             .build();
-        cognitoClient.adminAddUserToGroup(request);
-
+        var response=cognitoClient.adminAddUserToGroup(request);
+        logger.log(response.toString());
         return input;
     }
 

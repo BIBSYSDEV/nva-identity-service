@@ -31,6 +31,7 @@ public class CristinRole {
     public void setLabels(Map<String, String> labels) {
         this.labels = labels;
     }
+    @Override
     public String toString(){
         return attempt(()-> JsonConfig.objectMapper.asString(this)).orElseThrow();
     }

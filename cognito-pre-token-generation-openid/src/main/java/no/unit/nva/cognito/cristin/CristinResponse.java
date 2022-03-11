@@ -54,7 +54,7 @@ public class CristinResponse {
 
     public static final class Builder {
 
-        private CristinResponse cristinResponse;
+        private final CristinResponse cristinResponse;
 
         private Builder() {
             cristinResponse = new CristinResponse();
@@ -80,6 +80,7 @@ public class CristinResponse {
         }
     }
 
+    @Override
     public String toString(){
         return attempt(()->JsonConfig.objectMapper.asString(this)).orElseThrow();
     }

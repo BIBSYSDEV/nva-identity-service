@@ -19,7 +19,7 @@ import java.util.Optional;
 import no.unit.nva.cognito.cristin.CristinAffiliation;
 import no.unit.nva.cognito.cristin.CristinClient;
 import no.unit.nva.cognito.cristin.CristinResponse;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -63,19 +63,23 @@ public class IdentityServiceEntryUpdateHandler
 
         CristinResponse cristinResponse = fetchPersonInformationFromCristin(input, nin);
 
-        var customGroups = cristinResponse.getAffiliations().stream()
-            .filter(CristinAffiliation::isActive)
-            .map(CristinAffiliation::getOrganizationUri)
-            .map(uri->customerService.getCustomerByCristinId(uri.toString()))
-            .map(CustomerDtoWithoutContext::getId)
-            .map(URI::toString)
-            .toArray(String[]::new);
+        var customGroups = createCustomGroups(cristinResponse);
 
         var overrideDetails = ClaimsOverrideDetails.builder()
             .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(customGroups).build())
             .build();
         input.setResponse(Response.builder().withClaimsOverrideDetails(overrideDetails).build());
         return input;
+    }
+
+    private String[] createCustomGroups(CristinResponse cristinResponse) {
+        return cristinResponse.getAffiliations().stream()
+            .filter(CristinAffiliation::isActive)
+            .map(CristinAffiliation::getOrganizationUri)
+            .map(uri->customerService.getCustomerByCristinId(uri.toString()))
+            .map(CustomerDto::getId)
+            .map(URI::toString)
+            .toArray(String[]::new);
     }
 
     private CristinResponse fetchPersonInformationFromCristin(CognitoUserPoolPreTokenGenerationEvent input, String nin) {

@@ -30,6 +30,7 @@ public class TypedValue {
         this.value = value;
     }
 
+    @Override
     public String toString() {
         return attempt(() -> JsonConfig.objectMapper.asString(this)).orElseThrow();
     }

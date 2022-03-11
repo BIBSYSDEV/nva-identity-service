@@ -18,7 +18,6 @@ import java.util.Optional;
 import no.unit.nva.cognito.cristin.CristinAffiliation;
 import no.unit.nva.cognito.cristin.CristinClient;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -56,13 +55,13 @@ public class IdentityServiceEntryUpdateHandler
 
         var jwtToken = requestAuthorizer.fetchJwtToken(input.getUserPoolId());
         var cristinResponse = attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
-        var orgIdentifiers =
-            cristinResponse.getAffiliations().stream().filter(CristinAffiliation::isActive)
-            .map(CristinAffiliation::getOrganizationUri)
-            .map(UriWrapper::new)
-            .map(UriWrapper::getFilename);
 
-        var customGroups= orgIdentifiers.map(identifier->identifier+":Creator").toArray(String[]::new);
+        var customGroups = cristinResponse.getAffiliations().stream()
+            .filter(CristinAffiliation::isActive)
+            .map(CristinAffiliation::getOrganizationUri)
+            .map(URI::toString)
+            .toArray(String[]::new);
+
         var overrideDetails = ClaimsOverrideDetails.builder()
             .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(customGroups).build())
             .build();

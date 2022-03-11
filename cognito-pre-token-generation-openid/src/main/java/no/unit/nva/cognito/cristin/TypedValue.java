@@ -1,5 +1,7 @@
 package no.unit.nva.cognito.cristin;
 
+import static nva.commons.core.attempt.Try.attempt;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
 
 @JacocoGenerated
@@ -26,5 +28,9 @@ public class TypedValue {
     @JacocoGenerated
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String toString() {
+        return attempt(() -> JsonConfig.objectMapper.asString(this)).orElseThrow();
     }
 }

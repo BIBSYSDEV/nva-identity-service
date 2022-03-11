@@ -3,6 +3,7 @@ package no.unit.nva.cognito.cristin;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Map;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
 
 @JacocoGenerated
@@ -29,5 +30,8 @@ public class CristinRole {
     @JacocoGenerated
     public void setLabels(Map<String, String> labels) {
         this.labels = labels;
+    }
+    public String toString(){
+        return attempt(()-> JsonConfig.objectMapper.asString(this)).orElseThrow();
     }
 }

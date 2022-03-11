@@ -14,23 +14,19 @@ import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
 import static no.unit.nva.cognito.cristin.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
+import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.hamcrest.core.IsNot.not;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Request;
-import com.fasterxml.jackson.jr.ob.JSON;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.matching.ContainsPattern;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
 import com.github.tomakehurst.wiremock.matching.EqualToJsonPattern;
@@ -38,23 +34,20 @@ import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import no.unit.nva.cognito.cristin.CristinAffiliation;
+import no.unit.nva.cognito.cristin.CristinResponse;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
-import nva.commons.core.ioutils.IoUtils;
-import org.hamcrest.collection.IsIterableContainingInOrder;
-import org.hamcrest.core.IsIterableContaining;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.GetGroupRequest;
 
 class IdentityServiceEntryUpdateHandlerTest {
 
@@ -62,17 +55,19 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final boolean IGNORE_ARRAY_ORDER = true;
     public static final boolean DO_NOT_IGNORE_OTHER_ELEMENTS = false;
     public static final String RANDOM_NIN = randomString();
+    public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
+    public static final boolean ACTIVE = true;
+    public static final boolean INACTIVE = false;
     private final Context context = new FakeContext();
 
     private static final FakeCognitoIdentityProviderClient COGNITO_CLIENT = new FakeCognitoIdentityProviderClient();
     private static final String CLIENT_SECRET = COGNITO_CLIENT.getFakeClientSecret();
     private static final String CLIENT_ID = COGNITO_CLIENT.getFakeClientId();
     private IdentityServiceEntryUpdateHandler handler;
-    private String jwtToken;
 
     private WireMockServer httpServer;
-    private HttpClient httpClient;
     private URI serverUri;
+    private String jwtToken;
 
     public static Stream<CognitoUserPoolPreTokenGenerationEvent> eventProvider() {
         return Stream.of(randomEventOfFeideUser(), randomEventOfNonFeideUser());
@@ -80,15 +75,20 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     @BeforeEach
     public void init() {
+        setUpWiremock();
+        this.jwtToken = setupCognitoMockResponse();
+        var cognitoHost = this.serverUri;
+        var cristinHost = this.serverUri;
+        handler = new IdentityServiceEntryUpdateHandler(COGNITO_CLIENT,
+                                                        HTTP_CLIENT,
+                                                        cognitoHost,
+                                                        cristinHost);
+    }
+
+    private void setUpWiremock() {
         httpServer = new WireMockServer(options().dynamicHttpsPort());
         httpServer.start();
-        jwtToken = randomString();
         serverUri = URI.create(httpServer.baseUrl());
-        httpClient = WiremockHttpClient.create();
-
-        setupCognitoMock();
-        setupCristinServiceMock();
-        handler = new IdentityServiceEntryUpdateHandler(COGNITO_CLIENT, httpClient, serverUri, serverUri);
     }
 
     @AfterEach
@@ -96,35 +96,86 @@ class IdentityServiceEntryUpdateHandlerTest {
         httpServer.stop();
     }
 
-
-    @ParameterizedTest(name = "should Create Custom Groups For Active Affiliations as described in Cristin Proxy")
+    @ParameterizedTest(name = "should return custom groups containing customer id and default access right when user "
+                              + "does not exist in NVA's user base (first time login)")
     @MethodSource("eventProvider")
-    void shouldCreateCustomGroupsForActiveAffiliationsOnly(CognitoUserPoolPreTokenGenerationEvent event) {
-        var response=handler.handleRequest(event, context);
-        var customGroups =
-            List.of(response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
-        assertThat(customGroups,containsInAnyOrder("194.63.10.0:Creator"));
+    @Disabled(value = "Not ready to implement this test yet.")
+    void shouldCreateCustomUserEntriesInIdentityServiceForAllActiveCristinAffiliationsWhenPersonRequiresTokens(
+        CognitoUserPoolPreTokenGenerationEvent event) {
+
     }
 
+    @ParameterizedTest
+    @MethodSource("eventProvider")
+    void shouldReturnCustomGroupsContainingCustomerIdForAllActiveCristinAffiliationsWhenPersonRequiresTokens(
+        CognitoUserPoolPreTokenGenerationEvent event
+    ) {
+        var personsActiveAffiliations = List.of(randomUri(), randomUri());
+        var personsInactiveAffiliations = List.of(randomUri(), randomUri());
+        setupCristinServiceMock(personsActiveAffiliations, personsInactiveAffiliations);
+        var response = handler.handleRequest(event, context);
+        var expectedCustomGroups = personsActiveAffiliations.stream()
+            .map(URI::toString)
+            .toArray(String[]::new);
+        var actualCustomGroups = extractActualCustomGroups(response);
+        assertThat(List.of(actualCustomGroups), containsInAnyOrder(expectedCustomGroups));
+        assertThat(personsInactiveAffiliations,everyItem(not(in(actualCustomGroups))));
 
-    private void setupCognitoMock() {
+    }
+
+    private String[] extractActualCustomGroups(CognitoUserPoolPreTokenGenerationEvent response) {
+        return response.getResponse()
+            .getClaimsOverrideDetails()
+            .getGroupOverrideDetails()
+            .getGroupsToOverride();
+    }
+
+    private String setupCognitoMockResponse() {
+        var jwtToken = randomString();
         stubFor(post("/oauth2/token")
                     .withBasicAuth(CLIENT_ID, CLIENT_SECRET)
                     .withHeader(CONTENT_TYPE, wwwFormUrlEndcoded())
                     .withRequestBody(new ContainsPattern("grant_type"))
-                    .willReturn(aResponse().withStatus(HTTP_OK).withBody(cognitoResponseBody())));
+                    .willReturn(createCognitoResponse(jwtToken)));
+        return jwtToken;
     }
 
-    private void setupCristinServiceMock() {
+    private ResponseDefinitionBuilder createCognitoResponse(String jwtToken) {
+        var jsonMap = Map.of(JWT_TOKEN_FIELD, jwtToken);
+        var responseBody = attempt(() -> JsonConfig.objectMapper.asString(jsonMap)).orElseThrow();
+        return aResponse().withStatus(HTTP_OK).withBody(responseBody);
+    }
+
+    private void setupCristinServiceMock(List<URI> personsAffiliations, List<URI> personInActiveAffiliations) {
         stubFor(post("/person/identityNumber")
                     .withHeader(AUTHORIZATION_HEADER, new EqualToPattern("Bearer " + jwtToken, MATCH_CASE))
                     .withHeader(CONTENT_TYPE, applicationJson())
                     .withRequestBody(cristinServiceRequestBody())
-                    .willReturn(aResponse().withStatus(HTTP_OK).withBody(cristinResponseBody())));
+                    .willReturn(aResponse().withStatus(HTTP_OK).withBody(cristinResponseBody(personsAffiliations,
+                                                                                             personInActiveAffiliations))));
     }
 
-    private String cristinResponseBody() {
-        return IoUtils.stringFromResources(Path.of("cristin_response_example.json"));
+    private String cristinResponseBody(List<URI> personsActiveAffiliations, List<URI> personsInactiveAffiliations) {
+        var allAffiliations =
+            Stream.of(createAffiliations(personsActiveAffiliations, ACTIVE),
+                      createAffiliations(personsInactiveAffiliations, INACTIVE))
+                .flatMap(Function.identity())
+                .collect(Collectors.toList());
+        return CristinResponse.builder()
+            .withAffiliations(allAffiliations)
+            .build()
+            .toString();
+    }
+
+    private Stream<CristinAffiliation> createAffiliations(List<URI> personsActiveAffiliations, boolean active) {
+        return personsActiveAffiliations.stream().map(uri -> createAffiliation(uri, active));
+    }
+
+    private CristinAffiliation createAffiliation(URI uri, boolean active) {
+        return CristinAffiliation.builder()
+            .withOrganization(uri)
+            .withActive(active)
+            .build();
     }
 
     private ContentPattern<?> cristinServiceRequestBody() {
@@ -134,11 +185,6 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private StringValuePattern applicationJson() {
         return new EqualToPattern("application/json", MATCH_CASE);
-    }
-
-    private String cognitoResponseBody() {
-        var jsonMap = Map.of(JWT_TOKEN_FIELD, jwtToken);
-        return attempt(() -> JSON.std.asString(jsonMap)).orElseThrow();
     }
 
     private EqualToPattern wwwFormUrlEndcoded() {

@@ -1221,8 +1221,8 @@ Resources:
       Scopes:
         - ScopeDescription: Necessary scope for backend authentication to work
           ScopeName: backend
-        - ScopeDescription: NTNU scope
-          ScopeName: frontned
+        - ScopeDescription: Frontend scope
+          ScopeName: frontend
       UserPoolId: !Ref UserPool
 
   BackendApplicationClient:

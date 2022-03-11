@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.cognito.cristin.CristinAffiliation;
 import no.unit.nva.cognito.cristin.CristinResponse;
+import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
+import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import org.junit.jupiter.api.AfterEach;
@@ -58,16 +60,17 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
     public static final boolean ACTIVE = true;
     public static final boolean INACTIVE = false;
-    private final Context context = new FakeContext();
-
     private static final FakeCognitoIdentityProviderClient COGNITO_CLIENT = new FakeCognitoIdentityProviderClient();
     private static final String CLIENT_SECRET = COGNITO_CLIENT.getFakeClientSecret();
     private static final String CLIENT_ID = COGNITO_CLIENT.getFakeClientId();
+    private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
     private WireMockServer httpServer;
     private URI serverUri;
     private String jwtToken;
+    private CustomerDynamoDBLocal customerDynamoDbLocal;
+    private DynamoDBCustomerService customerService;
 
     public static Stream<CognitoUserPoolPreTokenGenerationEvent> eventProvider() {
         return Stream.of(randomEventOfFeideUser(), randomEventOfNonFeideUser());
@@ -79,21 +82,19 @@ class IdentityServiceEntryUpdateHandlerTest {
         this.jwtToken = setupCognitoMockResponse();
         var cognitoHost = this.serverUri;
         var cristinHost = this.serverUri;
+
+        setupCustomerService();
         handler = new IdentityServiceEntryUpdateHandler(COGNITO_CLIENT,
                                                         HTTP_CLIENT,
                                                         cognitoHost,
                                                         cristinHost);
-    }
 
-    private void setUpWiremock() {
-        httpServer = new WireMockServer(options().dynamicHttpsPort());
-        httpServer.start();
-        serverUri = URI.create(httpServer.baseUrl());
     }
 
     @AfterEach
     public void close() {
         httpServer.stop();
+        customerDynamoDbLocal.deleteDatabase();
     }
 
     @ParameterizedTest(name = "should return custom groups containing customer id and default access right when user "
@@ -107,11 +108,12 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     @ParameterizedTest
     @MethodSource("eventProvider")
-    void shouldReturnCustomGroupsContainingCustomerIdForAllActiveCristinAffiliationsWhenPersonRequiresTokens(
+    void shouldReturnCustomGroupsContainingNvaCustomerIdForAllActiveCristinAffiliationsWhenPersonRequiresTokens(
         CognitoUserPoolPreTokenGenerationEvent event
     ) {
         var personsActiveAffiliations = List.of(randomUri(), randomUri());
         var personsInactiveAffiliations = List.of(randomUri(), randomUri());
+
         setupCristinServiceMock(personsActiveAffiliations, personsInactiveAffiliations);
         var response = handler.handleRequest(event, context);
         var expectedCustomGroups = personsActiveAffiliations.stream()
@@ -119,8 +121,40 @@ class IdentityServiceEntryUpdateHandlerTest {
             .toArray(String[]::new);
         var actualCustomGroups = extractActualCustomGroups(response);
         assertThat(List.of(actualCustomGroups), containsInAnyOrder(expectedCustomGroups));
-        assertThat(personsInactiveAffiliations,everyItem(not(in(actualCustomGroups))));
+        assertThat(personsInactiveAffiliations, everyItem(not(in(actualCustomGroups))));
+    }
 
+    private static CognitoUserPoolPreTokenGenerationEvent randomEventOfFeideUser() {
+
+        Map<String, String> userAttributes = Map.of(FEIDE_ID, randomString(), NIN_FOR_FEIDE_USERS, RANDOM_NIN);
+        return CognitoUserPoolPreTokenGenerationEvent.builder()
+            .withUserPoolId(randomString())
+            .withUserName(randomString())
+            .withRequest(Request.builder().withUserAttributes(userAttributes).build())
+            .withCallerContext(CallerContext.builder().withClientId(CLIENT_ID).build())
+            .build();
+    }
+
+    private static CognitoUserPoolPreTokenGenerationEvent randomEventOfNonFeideUser() {
+        Map<String, String> userAttributes = Map.of(NIN_FON_NON_FEIDE_USERS, RANDOM_NIN);
+        return CognitoUserPoolPreTokenGenerationEvent.builder()
+            .withUserPoolId(randomString())
+            .withUserName(randomString())
+            .withRequest(Request.builder().withUserAttributes(userAttributes).build())
+            .withCallerContext(CallerContext.builder().withClientId(CLIENT_ID).build())
+            .build();
+    }
+
+    private void setupCustomerService() {
+        this.customerDynamoDbLocal = new CustomerDynamoDBLocal();
+        var localCustomerClient = customerDynamoDbLocal.getDynamoClient();
+        this.customerService= new  DynamoDBCustomerService(localCustomerClient);
+    }
+
+    private void setUpWiremock() {
+        httpServer = new WireMockServer(options().dynamicHttpsPort());
+        httpServer.start();
+        serverUri = URI.create(httpServer.baseUrl());
     }
 
     private String[] extractActualCustomGroups(CognitoUserPoolPreTokenGenerationEvent response) {
@@ -189,26 +223,5 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private EqualToPattern wwwFormUrlEndcoded() {
         return new EqualToPattern(APPLICATION_X_WWW_FORM_URLENCODED, MATCH_CASE);
-    }
-
-    private static CognitoUserPoolPreTokenGenerationEvent randomEventOfFeideUser() {
-
-        Map<String, String> userAttributes = Map.of(FEIDE_ID, randomString(), NIN_FOR_FEIDE_USERS, RANDOM_NIN);
-        return CognitoUserPoolPreTokenGenerationEvent.builder()
-            .withUserPoolId(randomString())
-            .withUserName(randomString())
-            .withRequest(Request.builder().withUserAttributes(userAttributes).build())
-            .withCallerContext(CallerContext.builder().withClientId(CLIENT_ID).build())
-            .build();
-    }
-
-    private static CognitoUserPoolPreTokenGenerationEvent randomEventOfNonFeideUser() {
-        Map<String, String> userAttributes = Map.of(NIN_FON_NON_FEIDE_USERS, RANDOM_NIN);
-        return CognitoUserPoolPreTokenGenerationEvent.builder()
-            .withUserPoolId(randomString())
-            .withUserName(randomString())
-            .withRequest(Request.builder().withUserAttributes(userAttributes).build())
-            .withCallerContext(CallerContext.builder().withClientId(CLIENT_ID).build())
-            .build();
     }
 }

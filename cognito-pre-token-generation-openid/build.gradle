@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
 
+
     implementation project(":json")
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection
@@ -15,7 +16,8 @@ dependencies {
     implementation libs.aws.lambda.events
     testImplementation libs.slf4j
 
-
+    testImplementation project (":customer-commons")
+    testImplementation project (":customer-testing")
     testImplementation project(':user-access-testing')
 }
 

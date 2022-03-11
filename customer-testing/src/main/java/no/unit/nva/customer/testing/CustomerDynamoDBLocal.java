@@ -26,6 +26,10 @@ public class CustomerDynamoDBLocal {
     public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
     public static final long NOT_IMPORTANT = 100L;
 
+    public DynamoDbClient getDynamoClient() {
+        return dynamoClient;
+    }
+
     protected DynamoDbClient dynamoClient;
 
     @AfterEach
@@ -36,7 +40,7 @@ public class CustomerDynamoDBLocal {
         }
     }
 
-    protected void setupDatabase() {
+    public void setupDatabase() {
         dynamoClient = DynamoDBEmbedded.create().dynamoDbClient();
         createCustomerTable(dynamoClient);
     }

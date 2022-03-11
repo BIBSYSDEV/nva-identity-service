@@ -1213,7 +1213,7 @@ Resources:
       ProviderType: OIDC
       UserPoolId: !Ref UserPool
 
-  BackendResourceServerScopes:
+  ResourceServerScopes:
     Type: AWS::Cognito::UserPoolResourceServer
     Properties:
       Identifier: https://api.nva.unit.no/scopes
@@ -1222,11 +1222,11 @@ Resources:
         - ScopeDescription: Necessary scope for backend authentication to work
           ScopeName: backend
         - ScopeDescription: NTNU scope
-          ScopeName: ntnu-scope
+          ScopeName: frontned
       UserPoolId: !Ref UserPool
 
   BackendApplicationClient:
-    DependsOn: BackendResourceServerScopes
+    DependsOn: ResourceServerScopes
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref UserPool
@@ -1261,7 +1261,7 @@ Resources:
       Value: !Ref BackendApplicationClient
 
   ApplicationClient:
-    DependsOn: BackendResourceServerScopes
+    DependsOn: ResourceServerScopes
     Type: AWS::Cognito::UserPoolClient
     Properties:
       AllowedOAuthFlows:

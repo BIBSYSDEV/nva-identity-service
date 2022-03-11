@@ -24,9 +24,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBCustomerService implements CustomerService {
 
-
-
-
     public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found: ";
     public static final String IDENTIFIERS_NOT_EQUAL = "Identifier in request parameters '%s' "
@@ -105,7 +102,9 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
-        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
+        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+            .dynamoDbClient(client)
+            .build();
         return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
     }
 

@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomVocabularies;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -10,6 +11,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
 import org.junit.jupiter.api.Test;
 
 class VocabularyListTest {
@@ -38,7 +40,5 @@ class VocabularyListTest {
         return new VocabularyList(randomUri(), randomVocabularies());
     }
 
-    private List<VocabularyDto> randomVocabularies() {
-        return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
-    }
+
 }

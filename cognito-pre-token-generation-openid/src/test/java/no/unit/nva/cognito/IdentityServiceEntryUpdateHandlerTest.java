@@ -13,6 +13,7 @@ import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
 import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
 import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
 import static no.unit.nva.cognito.cristin.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomVocabularies;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
@@ -34,6 +35,7 @@ import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -41,6 +43,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.cognito.cristin.CristinAffiliation;
 import no.unit.nva.cognito.cristin.CristinResponse;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
 import no.unit.nva.identityservice.json.JsonConfig;
@@ -87,8 +91,8 @@ class IdentityServiceEntryUpdateHandlerTest {
         handler = new IdentityServiceEntryUpdateHandler(COGNITO_CLIENT,
                                                         HTTP_CLIENT,
                                                         cognitoHost,
-                                                        cristinHost);
-
+                                                        cristinHost,
+                                                        customerService);
     }
 
     @AfterEach
@@ -113,12 +117,17 @@ class IdentityServiceEntryUpdateHandlerTest {
     ) {
         var personsActiveAffiliations = List.of(randomUri(), randomUri());
         var personsInactiveAffiliations = List.of(randomUri(), randomUri());
+        setupCristinServiceResponse(personsActiveAffiliations, personsInactiveAffiliations);
+        var customers = populateCustomerService(personsActiveAffiliations, personsInactiveAffiliations);
 
-        setupCristinServiceMock(personsActiveAffiliations, personsInactiveAffiliations);
-        var response = handler.handleRequest(event, context);
-        var expectedCustomGroups = personsActiveAffiliations.stream()
+        var expectedCustomGroups = customers.stream()
+            .filter(customer -> personsActiveAffiliations.contains(URI.create(customer.getCristinId())))
+            .map(CustomerDtoWithoutContext::getId)
             .map(URI::toString)
             .toArray(String[]::new);
+
+        var response = handler.handleRequest(event, context);
+
         var actualCustomGroups = extractActualCustomGroups(response);
         assertThat(List.of(actualCustomGroups), containsInAnyOrder(expectedCustomGroups));
         assertThat(personsInactiveAffiliations, everyItem(not(in(actualCustomGroups))));
@@ -145,10 +154,30 @@ class IdentityServiceEntryUpdateHandlerTest {
             .build();
     }
 
+    private List<CustomerDto> populateCustomerService(List<URI> personsActiveAffiliations,
+                                                      List<URI> personsInactiveAffiliations) {
+        return Stream.of(personsActiveAffiliations, personsInactiveAffiliations)
+            .flatMap(Collection::stream)
+            .map(this::createCustomer)
+            .collect(Collectors.toList());
+    }
+
     private void setupCustomerService() {
         this.customerDynamoDbLocal = new CustomerDynamoDBLocal();
+        customerDynamoDbLocal.setupDatabase();
         var localCustomerClient = customerDynamoDbLocal.getDynamoClient();
-        this.customerService= new  DynamoDBCustomerService(localCustomerClient);
+        this.customerService = new DynamoDBCustomerService(localCustomerClient);
+    }
+
+    private CustomerDto createCustomer(URI affiliation) {
+        var dto = CustomerDto.builder()
+            .withCristinId(affiliation.toString())
+            .withVocabularies(randomVocabularies())
+            .withArchiveName(randomString())
+            .withName(randomString())
+            .withDisplayName(randomString())
+            .build();
+        return customerService.createCustomer(dto);
     }
 
     private void setUpWiremock() {
@@ -180,7 +209,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         return aResponse().withStatus(HTTP_OK).withBody(responseBody);
     }
 
-    private void setupCristinServiceMock(List<URI> personsAffiliations, List<URI> personInActiveAffiliations) {
+    private void setupCristinServiceResponse(List<URI> personsAffiliations, List<URI> personInActiveAffiliations) {
         stubFor(post("/person/identityNumber")
                     .withHeader(AUTHORIZATION_HEADER, new EqualToPattern("Bearer " + jwtToken, MATCH_CASE))
                     .withHeader(CONTENT_TYPE, applicationJson())

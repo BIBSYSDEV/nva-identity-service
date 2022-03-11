@@ -3,6 +3,7 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.EnvironmentVariables.AWS_REGION;
 import static no.unit.nva.cognito.EnvironmentVariables.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -17,6 +18,9 @@ import java.util.Map;
 import java.util.Optional;
 import no.unit.nva.cognito.cristin.CristinAffiliation;
 import no.unit.nva.cognito.cristin.CristinClient;
+import no.unit.nva.cognito.cristin.CristinResponse;
+import no.unit.nva.customer.model.CustomerDtoWithoutContext;
+import no.unit.nva.customer.service.CustomerService;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
@@ -31,19 +35,23 @@ public class IdentityServiceEntryUpdateHandler
 
     private final RequestAuthorizer requestAuthorizer;
     private final CristinClient cristinClient;
+    private final CustomerService customerService;
 
     @JacocoGenerated
     public IdentityServiceEntryUpdateHandler() {
-        this(defaultCognitoClient(), HttpClient.newHttpClient(), defaultCognitoUri(), CRISTIN_HOST);
+        this(defaultCognitoClient(), HttpClient.newHttpClient(), defaultCognitoUri(), CRISTIN_HOST,
+             defaultCustomerService());
     }
 
     public IdentityServiceEntryUpdateHandler(CognitoIdentityProviderClient cognitoClient,
                                              HttpClient httpClient,
                                              URI cognitoHost,
-                                             URI cristinHost) {
+                                             URI cristinHost,
+                                             CustomerService customerService) {
 
         this.requestAuthorizer = new RequestAuthorizer(cognitoClient, cognitoHost, httpClient);
         this.cristinClient = new CristinClient(cristinHost, httpClient);
+        this.customerService = customerService;
     }
 
     @Override
@@ -53,12 +61,13 @@ public class IdentityServiceEntryUpdateHandler
         var userAttributes = input.getRequest().getUserAttributes();
         var nin = extractNin(userAttributes);
 
-        var jwtToken = requestAuthorizer.fetchJwtToken(input.getUserPoolId());
-        var cristinResponse = attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
+        CristinResponse cristinResponse = fetchPersonInformationFromCristin(input, nin);
 
         var customGroups = cristinResponse.getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
+            .map(uri->customerService.getCustomerByCristinId(uri.toString()))
+            .map(CustomerDtoWithoutContext::getId)
             .map(URI::toString)
             .toArray(String[]::new);
 
@@ -67,6 +76,11 @@ public class IdentityServiceEntryUpdateHandler
             .build();
         input.setResponse(Response.builder().withClaimsOverrideDetails(overrideDetails).build());
         return input;
+    }
+
+    private CristinResponse fetchPersonInformationFromCristin(CognitoUserPoolPreTokenGenerationEvent input, String nin) {
+        var jwtToken = requestAuthorizer.fetchJwtToken(input.getUserPoolId());
+        return attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
     }
 
     @JacocoGenerated

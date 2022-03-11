@@ -2,8 +2,10 @@ package no.unit.nva.customer.testing;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
 import java.util.List;
+import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import org.junit.jupiter.api.AfterEach;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -20,7 +22,7 @@ public class CustomerDynamoDBLocal {
 
     public static final String ORG_NUMBER = "feideOrganizationId";
     public static final String CRISTIN_ID = "cristinId";
-    public static final String NVA_CUSTOMERS_TABLE_NAME = "nva_customers";
+    public static final String NVA_CUSTOMERS_TABLE_NAME = DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
     public static final String IDENTIFIER = "identifier";
     public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
     public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";

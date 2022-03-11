@@ -8,6 +8,8 @@ dependencies {
 
 
     implementation project(":json")
+    implementation project (":customer-commons")
+    
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection
     implementation libs.aws.lambda.java.core
@@ -16,7 +18,7 @@ dependencies {
     implementation libs.aws.lambda.events
     testImplementation libs.slf4j
 
-    testImplementation project (":customer-commons")
+
     testImplementation project (":customer-testing")
     testImplementation project(':user-access-testing')
 }
@@ -25,4 +27,5 @@ test{
     environment "COGNITO_HOST", "example.com"
     environment "AWS_REGION", "eu-west-1"
     environment "API_DOMAIN", "example.com"
+    environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
 }

@@ -12,6 +12,10 @@ public class CristinRole {
     private URI id;
     private Map<String, String> labels;
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
     @JacocoGenerated
     public String getId() {
         return id.toString();
@@ -31,8 +35,28 @@ public class CristinRole {
     public void setLabels(Map<String, String> labels) {
         this.labels = labels;
     }
+
     @Override
-    public String toString(){
-        return attempt(()-> JsonConfig.objectMapper.asString(this)).orElseThrow();
+    public String toString() {
+        return attempt(() -> JsonConfig.objectMapper.asString(this)).orElseThrow();
+    }
+
+    public static final class Builder {
+
+        private final CristinRole cristinRole;
+
+        private Builder() {
+            cristinRole = new CristinRole();
+        }
+
+        public Builder withId(URI id) {
+            cristinRole.setId(id.toString());
+            return this;
+        }
+
+
+        public CristinRole build() {
+            return cristinRole;
+        }
     }
 }

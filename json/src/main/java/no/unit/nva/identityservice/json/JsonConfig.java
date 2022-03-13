@@ -14,4 +14,5 @@ public final class JsonConfig {
     private JsonConfig() {
 
     }
+
 }

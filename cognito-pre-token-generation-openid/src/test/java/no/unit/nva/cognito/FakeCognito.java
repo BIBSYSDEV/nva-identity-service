@@ -17,7 +17,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoo
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientDescription;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientType;
 
-public class FakeCognitoIdentityProviderClient implements CognitoIdentityProviderClient {
+public class FakeCognito implements CognitoIdentityProviderClient {
 
     private final String fakeClientSecret = randomString();
     private final String fakeClientId = randomString();
@@ -32,7 +32,7 @@ public class FakeCognitoIdentityProviderClient implements CognitoIdentityProvide
 
     @Override
     public String serviceName() {
-        return FakeCognitoIdentityProviderClient.class.getName();
+        return FakeCognito.class.getName();
     }
 
     @Override

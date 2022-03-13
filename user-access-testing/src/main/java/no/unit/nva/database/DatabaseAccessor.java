@@ -32,14 +32,15 @@ import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 
 public abstract class DatabaseAccessor implements WithEnvironment {
 
-
     public static final int SINGLE_TABLE_EXPECTED = 1;
     public static final String STRING = "S";
     private static final Long CAPACITY_DOES_NOT_MATTER = 1000L;
-
-
     protected DynamoDbClient localDynamo;
     protected IdentityService databaseService;
+
+    public DynamoDbClient getDynamoDbClient() {
+        return localDynamo;
+    }
 
     public IdentityServiceImpl createDatabaseServiceUsingLocalStorage() {
         databaseService = new IdentityServiceImpl(initializeTestDatabase());
@@ -164,6 +165,4 @@ public abstract class DatabaseAccessor implements WithEnvironment {
     private DynamoDbClient createLocalDynamoDbMock() {
         return DynamoDBEmbedded.create().dynamoDbClient();
     }
-
-
 }

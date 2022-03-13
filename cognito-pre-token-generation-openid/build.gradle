@@ -9,7 +9,11 @@ dependencies {
 
     implementation project(":json")
     implementation project (":customer-commons")
-    
+    implementation project (":user-access-commons")
+    implementation project (":user-access-service")
+    implementation project (":user-access-errors")
+    implementation project (":user-access-public-model")
+
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection
     implementation libs.aws.lambda.java.core
@@ -28,4 +32,5 @@ test{
     environment "AWS_REGION", "eu-west-1"
     environment "API_DOMAIN", "example.com"
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
+    environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
 }

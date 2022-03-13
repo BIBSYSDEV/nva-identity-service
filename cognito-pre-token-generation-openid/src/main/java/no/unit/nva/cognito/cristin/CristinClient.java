@@ -51,7 +51,7 @@ public class CristinClient {
 
     private void assertThatResponseIsSuccessful(HttpResponse<String> response) {
         if (response.statusCode() != HTTP_OK) {
-            throw new BadGatewayException("Connection to Cristin failed.");
+            throw new BadGatewayException("Connection to Cristin failed."+ response.toString());
         }
     }
 

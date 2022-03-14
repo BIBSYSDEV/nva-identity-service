@@ -1,6 +1,6 @@
 {
   "@context": "https://example.org/person-context.json",
-  "id": "https://api.sandbox.nva.aws.unit.no/cristin/person/12345",
+  "id": "https://api.sandbox.nva.aws.unit.no/cristin/person/12345#af1",
   "type": "Person",
   "identifiers": [
     {
@@ -20,6 +20,7 @@
   ],
   "affiliations": [
     {
+      "id": "af1",
       "type": "Affiliation",
       "organization": "https://api.sandbox.nva.aws.unit.no/cristin/organization/185.39.59.20",
       "active": false,
@@ -35,8 +36,7 @@
     {
       "type": "Affiliation",
       "organization": "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.63.10.0",
-      "topOrgInst": "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.0.0.0",
-      "active": false,
+      "active": true,
       "role": {
         "type": "Role",
         "id": "https://example.org/link/to/ontology#1026",
@@ -49,7 +49,7 @@
 
     {
       "type": "Affiliation",
-      "organization": "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.52.25.0"
+      "organization": "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.52.25.0",
       "active": false,
       "role": {
         "type": "Role",

@@ -9,20 +9,26 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.ClaimsOverrideDetails;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.GroupConfiguration;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinClient;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -67,15 +73,31 @@ public class IdentityServiceEntryUpdateHandler
         var nin = extractNin(userAttributes);
 
         CristinPersonResponse cristinResponse = fetchPersonInformationFromCristin(input, nin);
-        updateUserEntriesForPerson(cristinResponse);
+        var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
+
+        updateUserEntriesForPerson(cristinResponse, activeCustomers);
+
+        var groupsToOverride = activeCustomers.values().stream()
+            .map(CustomerDtoWithoutContext::getIdentifier)
+            .map(UUID::toString)
+            .toArray(String[]::new);
+        input.setResponse(Response.builder().withClaimsOverrideDetails(buildGroupsToOverride(groupsToOverride)).build());
+
         return input;
     }
 
-    private void updateUserEntriesForPerson(CristinPersonResponse cristinResponse) {
-        var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
+    private ClaimsOverrideDetails buildGroupsToOverride(String[] groupsToOverride) {
+        return ClaimsOverrideDetails.builder()
+            .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(groupsToOverride).build())
+            .build();
+    }
+
+    private void updateUserEntriesForPerson(CristinPersonResponse cristinResponse,
+                                            Map<String, CustomerDto> activeCustomers) {
+
         activeCustomers.values().stream()
-           .map(customer -> createNewUserObject(customer, cristinResponse))
-           .forEach(this::getExistingUserOrCreateNew);
+            .map(customer -> createNewUserObject(customer, cristinResponse))
+            .forEach(this::getExistingUserOrCreateNew);
     }
 
     private UserDto getExistingUserOrCreateNew(UserDto user) {
@@ -115,19 +137,25 @@ public class IdentityServiceEntryUpdateHandler
             .withInstitution(customer.getId())
             .withGivenName(cristinResponse.extractFirstName())
             .withFamilyName(cristinResponse.extractLastName())
+            .withCristinId(cristinResponse.getCristinId())
             .build();
     }
 
     private String formatUsername(CustomerDto customer, String cristinIdentifier) {
-        return cristinIdentifier + BELONGS_TO + customer.getIdentifier().toString();
+        return cristinIdentifier + BELONGS_TO + UriWrapper.fromUri(customer.getCristinId()).getLastPathElement();
     }
 
     private Map<String, CustomerDto> fetchCustomersForActiveAffiliations(CristinPersonResponse cristinResponse) {
         return cristinResponse.getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
+            .map(this::fetchTopLevelOrgUri)
             .map(uri -> customerService.getCustomerByCristinId(uri.toString()))
             .collect(Collectors.toConcurrentMap(CustomerDto::getCristinId, customer -> customer));
+    }
+
+    private Object fetchTopLevelOrgUri(URI orgUri) {
+        return attempt(() -> cristinClient.fetchTopLevelOrgUri(orgUri)).orElseThrow();
     }
 
     private CristinPersonResponse fetchPersonInformationFromCristin(CognitoUserPoolPreTokenGenerationEvent input,
@@ -135,7 +163,6 @@ public class IdentityServiceEntryUpdateHandler
         var jwtToken = requestAuthorizer.fetchJwtToken(input.getUserPoolId());
         return attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
     }
-
 
     private String extractNin(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))

@@ -5,33 +5,33 @@ import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.BELONGS_TO;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.FEIDE_ID;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FOR_FEIDE_USERS;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomVocabularies;
+import static no.unit.nva.cognito.RegisteredPeopleInstance.randomPeople;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Request;
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.google.common.collect.Sets;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
+import no.unit.nva.cognito.cristin.person.CristinIdentifier;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
 import no.unit.nva.database.DatabaseAccessor;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import nva.commons.core.paths.UriWrapper;
@@ -39,35 +39,34 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 class IdentityServiceEntryUpdateHandlerTest {
 
-    public static final String RANDOM_NIN = randomString();
     public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
-    public static final List<UserDto> NO_PEOPLE_HAVE_LOGGED_IN_BEFORE_THIS_LOGGIN_INSTANCE = Collections.emptyList();
+    private static final boolean EXCLUDE_INACTIVE = false;
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
     private WireMockServer httpServer;
     private URI serverUri;
-    private String jwtToken;
     private CustomerDynamoDBLocal customerDynamoDbLocal;
     private DynamoDBCustomerService customerService;
     private DatabaseAccessor userAccessDynamoDbLocal;
     private IdentityService identityService;
-    private DataportenMock identityProvider;
+    private DataportenMock dataporten;
 
     @BeforeEach
     public void init() {
         setUpWiremock();
-        this.identityProvider = new DataportenMock(httpServer);
+        this.dataporten = new DataportenMock(httpServer);
         var cognitoHost = this.serverUri;
         var cristinHost = this.serverUri;
 
         setupCustomerService();
         setupIdentityService();
 
-        handler = new IdentityServiceEntryUpdateHandler(identityProvider.getCognitoClient(),
+        handler = new IdentityServiceEntryUpdateHandler(dataporten.getCognitoClient(),
                                                         HTTP_CLIENT,
                                                         cognitoHost,
                                                         cristinHost,
@@ -82,107 +81,117 @@ class IdentityServiceEntryUpdateHandlerTest {
         userAccessDynamoDbLocal.closeDB();
     }
 
-    @ParameterizedTest(name = "should create one user per organization for every organizations the person has an "
-                              + "active affiliation with when person has no users")
+    @ParameterizedTest(name = "should create user for the person's institution (top org) when person has not logged "
+                              + "in before and has one active affiliation")
     @EnumSource(LoginEventType.class)
-    void shouldCreateOneUserPerOrganizationForEveryOrganizationThePersonHasAnActiveAffiliationWithWhenPersonHasNoUsers(
+    void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOneActiveAffiliation(
         LoginEventType loginEventType) {
-        var registeredPeople =
-            new RegisteredPeopleInstance(identityProvider,
-                                         customerService,
-                                         identityService)
-                .generateRandomPeople(3);
-        for (var person : registeredPeople.getPeople()) {
-            personPerformsLogin(loginEventType, registeredPeople, person);
-        }
+        var people = randomPeople(10);
 
-        for (var person : registeredPeople.getPeople()) {
-            assertThatPersonHasUserEntriesForAllActiveAffilationsOrInactiveAffiliationsWithPreexistinUserEntry(
-                registeredPeople, person, NO_PEOPLE_HAVE_LOGGED_IN_BEFORE_THIS_LOGGIN_INSTANCE);
-        }
+        RegisteredPeopleInstance registeredPeopleInstance =
+            new RegisteredPeopleInstance(newCristinProxy(people), customerService);
+
+        var personLoggingIn = registeredPeopleInstance.getPersonWithExactlyOneActiveAffiliation();
+        var event = randomEvent(personLoggingIn, loginEventType);
+        handler.handleRequest(event, context);
+
+        var expectedCustomerIds =
+            constructExpectedCustomersFromMockData(registeredPeopleInstance, personLoggingIn);
+        var expectedUsernames = constructUsernames(registeredPeopleInstance, personLoggingIn, expectedCustomerIds);
+        var actualUsernames = scanAllUsers().stream().map(UserDto::getUsername).collect(Collectors.toList());
+        assertThat(actualUsernames, containsInAnyOrder(expectedUsernames.toArray()));
     }
 
-    @ParameterizedTest(name = "should not update existing user entries when persons affiliations have not changed "
-                              + "since last login ")
-    @EnumSource(LoginEventType.class)
-    void shouldNotUpdateExistingUserEntriesWhenPersonsAffiliationsHaveNotChangedSinceLastLogin(
-        LoginEventType loginEventType) {
-        var registeredPeople =
-            new RegisteredPeopleInstance(identityProvider, customerService, identityService)
-                .generateRandomPeople(10);
-        var userEntriesOfPeopleThatHaveLoggedInBefore =
-            createUserEntriesForFirstHalfOfPeople(registeredPeople);
-
-        for (var person : registeredPeople.getPeople()) {
-            personPerformsLogin(loginEventType, registeredPeople, person);
-        }
-
-        for(var user: userEntriesOfPeopleThatHaveLoggedInBefore) {
-            var savedUser = identityService.getUser(user);
-                assertThat(savedUser, is(equalTo(user)));
-            }
-
-
-        for (var person : registeredPeople.getPeople()) {
-            assertThatPersonHasUserEntriesForAllActiveAffilationsOrInactiveAffiliationsWithPreexistinUserEntry(
-                registeredPeople, person,userEntriesOfPeopleThatHaveLoggedInBefore);
-        }
-    }
-
-
-    private List<UserDto> createUserEntriesForFirstHalfOfPeople(RegisteredPeopleInstance registeredPeople) {
-        var firstHalfOfPeople =
-            registeredPeople.getPeople().subList(0, registeredPeople.getPeople().size() / 2);
-        return firstHalfOfPeople.stream()
-            .map(registeredPeople::createUserEntriesForPerson)
-            .flatMap(Collection::stream)
+    private List<String> constructUsernames(RegisteredPeopleInstance registeredPeopleInstance,
+                                            NationalIdentityNumber personLoggingIn, List<URI> expectedCustomerIds) {
+        return Stream.of(registeredPeopleInstance.getCristinPersonIdentifier(personLoggingIn))
+            .flatMap(cristinIdentifier -> createUsersForPersonAndCustomers(expectedCustomerIds, cristinIdentifier))
             .collect(Collectors.toList());
     }
 
-    private void assertThatPersonHasUserEntriesForAllActiveAffilationsOrInactiveAffiliationsWithPreexistinUserEntry(
-        RegisteredPeopleInstance registeredPeople,
-        NationalIdentityNumber person,
-        Collection<UserDto> userEntriesExistingBeforeTheSpecificInstanceOfRegisteredPeople) {
+    @ParameterizedTest(name = "should not create user for the person's institution (top org) when person has not "
+                              + "logged in before and has only inactive affiliations")
+    @EnumSource(LoginEventType.class)
+    void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOnlyInactiveAffiliations(
+        LoginEventType loginEventType) {
+        var people = randomPeople(10);
 
-        var allCustomersForWhichTheUserHasLoggedInAtLeastOnce=
-            userEntriesExistingBeforeTheSpecificInstanceOfRegisteredPeople.stream()
-                .filter(user->user.getCristinId().equals(registeredPeople.getCristinId(person)))
-                .map(UserDto::getInstitution)
-                .collect(Collectors.toSet());
+        RegisteredPeopleInstance registedPeople = new RegisteredPeopleInstance(
+            newCristinProxy(people),
+            customerService
+        );
 
-        var allCustomersForWhichTheUserHasAnActiveAffiliation =
-            registeredPeople.fetchNvaCustomersForPersonsActiveAffiliations(person).collect(Collectors.toSet());
+        var personLoggingIn = registedPeople.getPersonWithOnlyInactiveAffiliations();
+        var event = randomEvent(personLoggingIn, loginEventType);
+        handler.handleRequest(event, context);
 
-        var allCustomersForWhichTheUserHasInactiveAffiliations =
-            registeredPeople.fetchNvaCustomersForPersonsInactiveAffiliations(person).collect(Collectors.toList());
-
-
-        var expectedCustomers =
-            Sets.union(allCustomersForWhichTheUserHasAnActiveAffiliation,
-                       allCustomersForWhichTheUserHasLoggedInAtLeastOnce);
-
-        var expectedUsers =
-            generateUsersBasedOnRegisteredPeopleInstanceData(registeredPeople, person, expectedCustomers);
-
-        var actualUsers = fetchActualUsersFromIdentityServiceDatabase(allCustomersForWhichTheUserHasAnActiveAffiliation);
-
-        assertThat(actualUsers, containsInAnyOrder(expectedUsers));
-        assertThatNoUserHasBeenCreatedForInactiveAffiliations(allCustomersForWhichTheUserHasInactiveAffiliations);
+        var expectedUsers = Collections.<String>emptyList();
+        var actualUsers = scanAllUsers();
+        assertThat(actualUsers, containsInAnyOrder(expectedUsers.toArray()));
     }
 
-    private void personPerformsLogin(LoginEventType loginEventType, RegisteredPeopleInstance registeredPeople,
-                                     NationalIdentityNumber person) {
-        var event = randomEvent(person, loginEventType);
+
+    @ParameterizedTest(name = "should create user for institutions (top orgs) that the user has active affiliations "
+                              + "with when person has not logged int and has active and inactive affiliations")
+    @EnumSource(LoginEventType.class)
+    void shouldCreateUsersForPersonsTopOrganizationsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
+        LoginEventType loginEventType) {
+        var people = randomPeople(10);
+        RegisteredPeopleInstance registeredPeople = new RegisteredPeopleInstance(
+            newCristinProxy(people),
+            customerService
+        );
+        var personLoggingIn = registeredPeople.getPersonWithActiveAndInactiveAffiliations();
+        var event = randomEvent(personLoggingIn, loginEventType);
 
         handler.handleRequest(event, context);
+
+        var personsCristinIdentifier = registeredPeople.getCristinPersonIdentifier(personLoggingIn).getValue();
+        var expectedCustomers = registeredPeople.getTopLevelOrgsForPerson(personLoggingIn,EXCLUDE_INACTIVE);
+
+        var expectedUsers = expectedCustomers
+            .stream()
+            .map(uri->new UriWrapper(uri).getLastPathElement())
+            .map(cristinIdentifier-> personsCristinIdentifier + BELONGS_TO + cristinIdentifier)
+            .map(username->identityService.getUser(UserDto.newBuilder().withUsername(username).build()));
+        var actualUsers = scanAllUsers();
+        assertThat(actualUsers,containsInAnyOrder(expectedUsers.toArray()));
+
     }
 
-    private void assertThatNoUserHasBeenCreatedForInactiveAffiliations(List<URI> unexpectedCustomers) {
-        for (var customer : unexpectedCustomers) {
-            var users =
-                identityService.listUsers(customer);
-            assertThat(users, is(empty()));
+
+    private CristinProxyMock newCristinProxy(Set<NationalIdentityNumber> people) {
+        return new CristinProxyMock(httpServer, dataporten, people,customerService);
+    }
+
+    private List<UserDto> scanAllUsers() {
+        ScanDatabaseRequestV2 scanRequest = new ScanDatabaseRequestV2();
+        var allUsers = new ArrayList<UserDto>();
+        var scanResult= identityService.fetchOnePageOfUsers(scanRequest);
+        allUsers.addAll(scanResult.getRetrievedUsers());
+        while(scanResult.thereAreMoreEntries()){
+            Map<String, AttributeValue> nextStartMarker = scanResult.getStartMarkerForNextScan();
+            scanResult = identityService.fetchOnePageOfUsers(scanRequest.newScanDatabaseRequest(nextStartMarker));
+            allUsers.addAll(scanResult.getRetrievedUsers());
         }
+        return allUsers;
+    }
+
+    private Stream<String> createUsersForPersonAndCustomers(List<URI> expectedCustomers,
+                                                            CristinIdentifier cristinIdentifier) {
+        return expectedCustomers.stream()
+            .map(customerId -> new UriWrapper(customerId).getLastPathElement())
+            .map(customerIdentifier -> cristinIdentifier.getValue() + BELONGS_TO + customerIdentifier);
+    }
+
+    private List<URI> constructExpectedCustomersFromMockData(RegisteredPeopleInstance registeredPeopleInstance,
+                                                             NationalIdentityNumber personLoggingIn) {
+        return registeredPeopleInstance.getTopLevelOrgsForPerson(personLoggingIn,EXCLUDE_INACTIVE)
+            .stream()
+            .map(cristinId -> customerService.getCustomerByCristinId(cristinId.toString()))
+            .map(CustomerDto::getCristinId)
+            .map(URI::create)
+            .collect(Collectors.toList());
     }
 
     private void setupIdentityService() {
@@ -190,25 +199,6 @@ class IdentityServiceEntryUpdateHandlerTest {
         };
         userAccessDynamoDbLocal.initializeTestDatabase();
         this.identityService = new IdentityServiceImpl(userAccessDynamoDbLocal.getDynamoDbClient());
-    }
-
-    private String[] generateUsersBasedOnRegisteredPeopleInstanceData(RegisteredPeopleInstance registeredPeople,
-                                                                      NationalIdentityNumber person,
-                                                                      Collection<URI> expectedCustomers) {
-        return expectedCustomers.stream()
-            .map(UriWrapper::new)
-            .map(UriWrapper::getFilename)
-            .map(customerIdentifier -> registeredPeople.getCristinIdentifier(person).getValue()
-                                       + BELONGS_TO
-                                       + customerIdentifier)
-            .toArray(String[]::new);
-    }
-
-    private List<String> fetchActualUsersFromIdentityServiceDatabase(Collection<URI> expectedCustomers) {
-        return expectedCustomers.stream().map(uri -> identityService.listUsers(uri))
-            .flatMap(Collection::stream)
-            .map(UserDto::getUsername)
-            .collect(Collectors.toList());
     }
 
     private CognitoUserPoolPreTokenGenerationEvent randomEvent(NationalIdentityNumber nin,
@@ -226,7 +216,7 @@ class IdentityServiceEntryUpdateHandlerTest {
             .withUserPoolId(randomString())
             .withUserName(randomString())
             .withRequest(Request.builder().withUserAttributes(userAttributes).build())
-            .withCallerContext(CallerContext.builder().withClientId(identityProvider.getClientId()).build())
+            .withCallerContext(CallerContext.builder().withClientId(dataporten.getClientId()).build())
             .build();
     }
 
@@ -236,14 +226,8 @@ class IdentityServiceEntryUpdateHandlerTest {
             .withUserPoolId(randomString())
             .withUserName(randomString())
             .withRequest(Request.builder().withUserAttributes(userAttributes).build())
-            .withCallerContext(CallerContext.builder().withClientId(identityProvider.getClientId()).build())
+            .withCallerContext(CallerContext.builder().withClientId(dataporten.getClientId()).build())
             .build();
-    }
-
-    private List<CustomerDto> populateCustomerService(RegisteredPeopleInstance registeredPeopleInstance) {
-        return registeredPeopleInstance.getCristinOrgUris().stream()
-            .map(this::createCustomer)
-            .collect(Collectors.toList());
     }
 
     private void setupCustomerService() {
@@ -251,17 +235,6 @@ class IdentityServiceEntryUpdateHandlerTest {
         customerDynamoDbLocal.setupDatabase();
         var localCustomerClient = customerDynamoDbLocal.getDynamoClient();
         this.customerService = new DynamoDBCustomerService(localCustomerClient);
-    }
-
-    private CustomerDto createCustomer(URI affiliation) {
-        var dto = CustomerDto.builder()
-            .withCristinId(affiliation.toString())
-            .withVocabularies(randomVocabularies())
-            .withArchiveName(randomString())
-            .withName(randomString())
-            .withDisplayName(randomString())
-            .build();
-        return customerService.createCustomer(dto);
     }
 
     private void setUpWiremock() {

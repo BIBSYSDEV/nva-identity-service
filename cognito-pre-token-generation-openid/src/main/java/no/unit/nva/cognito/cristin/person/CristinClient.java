@@ -13,13 +13,14 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import no.unit.nva.cognito.BadGatewayException;
-import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
+import no.unit.nva.cognito.cristin.org.CristinOrgResponse;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.paths.UriWrapper;
 
 public class CristinClient {
 
     public static final String CRISTIN_PATH_FOR_GETTING_USER_BY_NIN = "person/identityNumber";
+    public static final String CRISTIN_PATH_FOR_USER_ID = "person";
     public static final String REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE =
         "{\"type\":\"NationalIdentificationNumber\",\"value\":\"%s\"}";
     private final URI getUserByNinUri;
@@ -28,7 +29,6 @@ public class CristinClient {
     public CristinClient(URI cristinHost, HttpClient httpClient) {
         this.httpClient = httpClient;
         this.getUserByNinUri = formatUriForGettingUserByNin(cristinHost);
-
     }
 
     public CristinPersonResponse sendRequestToCristin(String jwtToken, String nin)
@@ -41,6 +41,18 @@ public class CristinClient {
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThatResponseIsSuccessful(response);
         return JsonConfig.objectMapper.beanFrom(CristinPersonResponse.class, response.body());
+    }
+
+    public URI fetchTopLevelOrgUri(URI orgUri) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(orgUri)
+            .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+            .GET()
+            .build();
+        var response = httpClient.send(request,BodyHandlers.ofString(StandardCharsets.UTF_8));
+        assertThatResponseIsSuccessful(response);
+
+        var responseObject = CristinOrgResponse.fromJson(response.body());
+        return responseObject.extractTopOrgUri();
 
     }
 
@@ -52,7 +64,7 @@ public class CristinClient {
 
     private void assertThatResponseIsSuccessful(HttpResponse<String> response) {
         if (response.statusCode() != HTTP_OK) {
-            throw new BadGatewayException("Connection to Cristin failed."+ response.toString());
+            throw new BadGatewayException("Connection to Cristin failed." + response.toString());
         }
     }
 

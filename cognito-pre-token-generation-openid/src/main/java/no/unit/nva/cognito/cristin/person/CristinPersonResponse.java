@@ -119,12 +119,6 @@ public class CristinPersonResponse {
             cristinResponse.setNin(nonNull(nin) ? nin.getNin() : null);
             return this;
         }
-
-        public Builder withNames(List<NameValue> names) {
-            cristinResponse.setNames(names);
-            return this;
-        }
-
         public Builder withFirstName(String name) {
             var nameValue = nonNull(name) ? NameValue.firstName(name) : null;
             cristinResponse.getNames().add(nameValue);

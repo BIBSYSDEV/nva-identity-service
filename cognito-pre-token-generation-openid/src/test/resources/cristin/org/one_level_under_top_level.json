@@ -1,0 +1,1835 @@
+{
+  "type": "Organization",
+  "@context": "https://api.dev.nva.aws.unit.no/cristin/organization",
+  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.0.0",
+  "name": {
+    "en": "Faculty of Medicine",
+    "nb": "Det medisinske fakultet"
+  },
+  "partOf": [
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.90.0.0",
+      "name": {
+        "en": "University of Oslo",
+        "nb": "Universitetet i Oslo"
+      }
+    }
+  ],
+  "hasPart": [
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.0",
+      "name": {
+        "en": "Management Section",
+        "nb": "Seksjon for ledelse"
+      },
+      "hasPart": [
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.3",
+          "name": {
+            "en": "Research Support",
+            "nb": "Forskningsadministrasjon"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.9",
+          "name": {
+            "en": "Regional Committees for Medical Research Ethics - South East Norway",
+            "nb": "Regionale komiteer for medisinsk og helsefaglig forskningsetikk sør-øst"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.15",
+          "name": {
+            "en": "Finance section - Faculty of Medicine",
+            "nb": "Økonomiseksjonen - Det medisinske fakultet"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.1",
+          "name": {
+            "en": "Administrative Services",
+            "nb": "Administrative fellestjenester"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.14",
+          "name": {
+            "en": "Center for Health Sciences Education",
+            "nb": "Helsevitenskapelig utdanningssenter"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.10",
+          "name": {
+            "en": "Section of Medical Informatics",
+            "nb": "Seksjon for medisinsk informatikk"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.2",
+          "name": {
+            "en": "Section for Student Affairs",
+            "nb": "Studieseksjonen"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.16",
+          "name": {
+            "en": "Regional Comittees for Medical Research Ethics South East Norway",
+            "nb": "Regionale komiteer for medisinsk og helsefaglig forskningsetikk sør-øst"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.0.0",
+      "name": {
+        "en": "Institute of Health and Society",
+        "nb": "Institutt for helse og samfunn"
+      },
+      "hasPart": [
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.1.0",
+          "name": {
+            "en": "Section for Administrative Services Helsam",
+            "nb": "Seksjon for fellestjenester Helsam"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.1.1",
+              "name": {
+                "en": "Local Administration Forskningsveien",
+                "nb": "Administrasjonen Forskningsveien"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.1.4",
+              "name": {
+                "en": "Section for Finance and HR Helsam",
+                "nb": "Seksjon for økonomi og personal Helsam"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.1.2",
+              "name": {
+                "en": "Local Administration Ullevaal",
+                "nb": "Administrasjonen Ullevål"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.1.3",
+              "name": {
+                "en": "Section for Research Administration Helsam",
+                "nb": "Seksjon for forskningsadministrasjon Helsam"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.1.5",
+              "name": {
+                "en": "Section for Student Administration Helsam",
+                "nb": "Seksjon for studieadministrasjon Helsam"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.0.10",
+          "name": {
+            "en": "Helsam Common Scientific Activities",
+            "nb": "Helsam, Felles faglig aktivitet"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.0.11",
+          "name": {
+            "en": "Research Centre for Habilitation and Rehabilitation Models & Services",
+            "nb": "Forskningssenter for habiliterings- og rehabiliteringstjenester"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.11.0",
+          "name": {
+            "en": "Departement of Health Economics and Health Management",
+            "nb": "Avdeling for helseledelse og helseøkonomi"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.12.0",
+          "name": {
+            "en": "Departement of Nursing Science",
+            "nb": "Avdeling for sykepleievitenskap"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.13.0",
+          "name": {
+            "en": "Centre for Medical Ethics",
+            "nb": "Senter for medisinsk etikk"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.10.0",
+          "name": {
+            "en": "Department for Interdisciplinary Health Sciences",
+            "nb": "Avdeling for tverrfaglig helsevitenskap"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.15.0",
+          "name": {
+            "en": "Departement of General Practice",
+            "nb": "Avdeling for allmennmedisin"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.15.11",
+              "name": {
+                "en": "Clinical General Practice and Community Medicine Module 7",
+                "nb": "Praksis i allmenn- og samfunnsmedisin modul 7"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.15.13",
+              "name": {
+                "nb": "Antibiotikasenteret for primærmedisin"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.15.10",
+              "name": {
+                "en": "Clinical General Practice Module 1-3",
+                "nb": "Praksis i allmennmedisin modul 1-3"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.15.12",
+              "name": {
+                "nb": "Allmennmedisinsk forskningsenhet i Oslo"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.52.14.0",
+          "name": {
+            "en": "Department of Community Medicine and Global Health",
+            "nb": "Avdeling for samfunnsmedisin og global helse"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.0.0",
+      "name": {
+        "en": "Institute of Clinical Medicine",
+        "nb": "Institutt for klinisk medisin"
+      },
+      "hasPart": [
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.20.0",
+          "name": {
+            "en": "Oslo Hospital Services",
+            "nb": "Oslo sykehusservice"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.20.10",
+              "name": {
+                "en": "Department of Comparative Medicine - Oslo Hospital Service",
+                "nb": "Avdeling for komparativ medisin Oslo Sykehusservice"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.15.0",
+          "name": {
+            "en": "Clinic for Cardiovascular and Pulmonary Diseases",
+            "nb": "Hjerte-, lunge- og karklinikken"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.15.15",
+              "name": {
+                "en": "Department of Vascular Diseases",
+                "nb": "Karavdelingen"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.15.14",
+              "name": {
+                "en": "Institute for Surgical Research",
+                "nb": "Institutt for kirurgisk forskning"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.15.11",
+              "name": {
+                "en": "Department of Cardiothoracic Surgery",
+                "nb": "Thoraxkirurgisk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.15.12",
+              "name": {
+                "en": "Department of Respiratory Medicine",
+                "nb": "Lungeavdelingen"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.15.70",
+              "name": {
+                "en": "K.G. Jebsen Center for Cardiac Research",
+                "nb": "K.G. Jebsen-senter for hjerteforskning"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.15.10",
+              "name": {
+                "en": "Institute for Experimental Medical Research",
+                "nb": "Institutt for eksperimentell medisinsk forskning"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.15.13",
+              "name": {
+                "en": "Department of Cardiology",
+                "nb": "Kardiologisk avdeling"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.61.0",
+          "name": {
+            "en": "Division of Prehospital Services",
+            "nb": "Prehospital klinikk"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.61.11",
+              "name": {
+                "en": "Norwegian National Advisory Unit on Prehospital Emergency Medicine",
+                "nb": "Nasjonal kompetansetjeneste for prehospital akuttmedisin"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.61.10",
+              "name": {
+                "en": "Department of Prehospital Services",
+                "nb": "Prehospital avdeling"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.44.0",
+          "name": {
+            "en": "Division of Orthopaedic Surgery",
+            "nb": "Ortopedisk klinikk"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.44.11",
+              "name": {
+                "en": "Department of Orthopaedics - Rikshospitalet",
+                "nb": "Ortopedisk avdeling - Rikshospitalet"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.44.10",
+              "name": {
+                "en": "Department of Orthopaedics - Ullevål",
+                "nb": "Ortopedisk avdeling - Ullevål"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.46.0",
+          "name": {
+            "en": "Division of Paediatric and Adolescent Medicine",
+            "nb": "Barne- og ungdomsklinikken"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.46.10",
+              "name": {
+                "en": "Paediatrics",
+                "nb": "Pediatri"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.46.11",
+              "name": {
+                "en": "Paediatric Research Institute",
+                "nb": "Pediatrisk forskningsinstitutt"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.48.0",
+          "name": {
+            "en": "Division of Surgery, Inflammatory Diseases and Transplantation",
+            "nb": "Klinikk for kirurgi, inflammasjonsmedisin og transplantasjon"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.48.12",
+              "name": {
+                "en": "Department of Transplantation",
+                "nb": "Avdeling for transplantasjonsmedisin"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.48.10",
+              "name": {
+                "en": "Department of Gastrointestinal and Children Surgery",
+                "nb": "Avdeling for gastro- og barnekirurgi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.48.14",
+              "name": {
+                "en": "Research Institute for Internal Medicine",
+                "nb": "Institutt for indremedisinsk forskning"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.48.11",
+              "name": {
+                "en": "Department of Urology",
+                "nb": "Avdeling for urologi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.48.13",
+              "name": {
+                "en": "Department of Rheumatology, Dermatology and Infectious Diseases",
+                "nb": "Avdeling for revmatologi, hud- og infeksjonssykdommer"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.2.12",
+          "name": {
+            "en": "Norwegian Centre for Mental Disorders Research - Centre of Excellence",
+            "nb": "Norsk senter for mental helseforskning - Senter for Fremragende Forskning"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.1.4",
+          "name": {
+            "en": "Programme Planning, Management Support and Communication",
+            "nb": "Seksjon for undervisningsplanlegging, ledelsesstøtte og kommunikasjon"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.80.0",
+          "name": {
+            "en": "Administration Campus Ahus",
+            "nb": "Administrasjonen Campus Ahus"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.84.0",
+              "name": {
+                "en": "Division of Health Services Research and psychiatry",
+                "nb": "Klinikk for helsetjenesteforskning og psykiatri"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.83.0",
+              "name": {
+                "en": "Division of Surgery",
+                "nb": "Klinikk for kirurgiske fag"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.81.0",
+              "name": {
+                "en": "Administration Campus Ahus",
+                "nb": "Administrasjonen Campus Ahus"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.82.0",
+              "name": {
+                "en": "Division of Medicine and Laboratory Sciences",
+                "nb": "Klinikk for indremedisin og laboratoriefag"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.82.10",
+              "name": {
+                "en": "Department of Clinical Molecular Biology",
+                "nb": "Avdeling for klinisk molekylærbiologi"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.49.0",
+          "name": {
+            "en": "Division of Cancer Medicine",
+            "nb": "Kreftklinikken"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.49.70",
+              "name": {
+                "en": "K.G. Jebsen Centre for Cancer Immunotherapy",
+                "nb": "K. G. Jebsen senter for immunterapi mot kreft - part UiO"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.49.12",
+              "name": {
+                "en": "Institute for Cancer Research",
+                "nb": "Institutt for kreftforskning"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.49.10",
+              "name": {
+                "en": "Department of Oncology",
+                "nb": "Avdeling for kreftbehandling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.49.14",
+              "name": {
+                "en": "Department of Gynaecological Oncology",
+                "nb": "Avdeling for gynekologisk kreft"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.49.11",
+              "name": {
+                "en": "Department of Haematology",
+                "nb": "Avdeling for blodsykdommer"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.49.13",
+              "name": {
+                "en": "Institute of cancer genetics and informatics",
+                "nb": "Institutt for kreftgenetikk og informatikk"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.0",
+          "name": {
+            "en": "Division of Mental Health and Addiction",
+            "nb": "Klinikk psykisk helse og avhengighet"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.70",
+              "name": {
+                "en": "NORMENT part UiO",
+                "nb": "NORMENT part UiO"
+              },
+              "hasPart": [
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.74",
+                  "name": {
+                    "en": "Genetic &amp; Biostat for SFF",
+                    "nb": "Genetic &amp; Biostat for SFF"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.76",
+                  "name": {
+                    "en": "MR for SFF",
+                    "nb": "MR for SFF"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.75",
+                  "name": {
+                    "en": "Cognition for SFF-NORMENT",
+                    "nb": "Kognisjon for SFF-NORMENT"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.71",
+                  "name": {
+                    "en": "Administration NORMENT",
+                    "nb": "Administrasjon NORMENT"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.73",
+                  "name": {
+                    "en": "Ingrid Agartz CR funds for SFF",
+                    "nb": "Ingrid Agartz CR-midler for SFF"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.79",
+                  "name": {
+                    "en": "SFF Funds NORMENT",
+                    "nb": "Toppforskningsstøtte NORMENT"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.72",
+                  "name": {
+                    "en": "Ole Andreassen CR funds for SFF",
+                    "nb": "Ole Andreassen CR-midler for SFF"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.13",
+              "name": {
+                "en": "Child and Adolescent Psychiatry Unit",
+                "nb": "Enhet barne- og ungdomspsykiatri"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.10",
+              "name": {
+                "en": "National Centre for Suicide Research and Prevention",
+                "nb": "Nasjonalt senter for selvmordsforskning og -forebygging"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.14",
+              "name": {
+                "en": "Adult Psychiatry Unit",
+                "nb": "Enhet voksenpsykiatri"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.12",
+              "name": {
+                "en": "Norwegian Centre for Addiction Research",
+                "nb": "Senter for rus- og avhengighetsforskning"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.10.11",
+              "name": {
+                "en": "Psychosis Research Centre",
+                "nb": "Senter for psykoseforskning"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.0",
+          "name": {
+            "en": "Medicine Clinic",
+            "nb": "Medisinsk klinikk"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.12",
+              "name": {
+                "en": "Department of Nephrology",
+                "nb": "Nyremedisinsk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.16",
+              "name": {
+                "en": "Department of Endocrinology, Morbid Obesity and Preventive Medicine",
+                "nb": "Avdeling for endokrinologi, sykelig overvekt og forebyggende medisin"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.11",
+              "name": {
+                "en": "Department of Pulmonary Medicine",
+                "nb": "Lungemedisinsk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.19",
+              "name": {
+                "en": "Department of Acute Medicine",
+                "nb": "Akuttmedisinsk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.21",
+              "name": {
+                "en": "Department of Clinical Service",
+                "nb": "Avdeling for klinisk service"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.18",
+              "name": {
+                "en": "Department of General Internal Medicine",
+                "nb": "Generell indremedisinsk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.20",
+              "name": {
+                "en": "Centre for Shared Decision making and Collaborative Care Research",
+                "nb": "Senter for pasientmedvirkning og samhandlingsforskning"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.10",
+              "name": {
+                "en": "Department of Cardiology",
+                "nb": "Hjertemedisinsk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.13",
+              "name": {
+                "en": "Department of Gastroenterology and Hepatology",
+                "nb": "Gastromedisinsk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.15",
+              "name": {
+                "en": "Department of Geriatric Medicine",
+                "nb": "Geriatrisk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.11.14",
+              "name": {
+                "en": "Department of Infectious Diseases",
+                "nb": "Infeksjonsmedisinsk avdeling"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.1.0",
+          "name": {
+            "en": "Clinical Medicine Administration",
+            "nb": "Administrasjonen ved institutt for klinisk medisin"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.1.3",
+              "name": {
+                "en": "System Management Group",
+                "nb": "Seksjon for systemdrift"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.1.1",
+              "name": {
+                "en": "Finance Section",
+                "nb": "Økonomiseksjonen"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.1.2",
+              "name": {
+                "en": "Human Resources Section",
+                "nb": "Personalseksjonen"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.0",
+          "name": {
+            "en": "Division of Laboratory Medicine",
+            "nb": "Klinikk for laboratoriemedisin"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.11",
+              "name": {
+                "en": "Department of Microbiology",
+                "nb": "Avdeling for mikrobiologi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.12",
+              "name": {
+                "en": "Department of Immunology",
+                "nb": "Avdeling for immunologi og transfusjonsmedisin"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.13",
+              "name": {
+                "en": "Department of Pathology",
+                "nb": "Avdeling for patologi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.73",
+              "name": {
+                "en": "K.G. Jebsen Coeliac Disease Research Centre",
+                "nb": "K.G. Jebsen senter for cøliakiforskning"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.74",
+              "name": {
+                "en": "World Leading - Human Immunology",
+                "nb": "Verdensledende miljø  Human Immunology"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.75",
+              "name": {
+                "en": "K.G. Jebsen Centre for B-Cell Malignancies",
+                "nb": "K.G. Jebsen senter for B-cellekreft - del UiO"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.71",
+              "name": {
+                "en": "K.G.Jebsen Inflammation Research Centre - part UiO",
+                "nb": "K.G. Jebsen Senter for betennelsesforskning - part UiO"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.14",
+              "name": {
+                "en": "Department of Medical Biochemistry",
+                "nb": "Avdeling for medisinsk biokjemi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.15",
+              "name": {
+                "en": "Department of Pharmacology",
+                "nb": "Avdeling for farmakologi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.72",
+              "name": {
+                "en": "K.G. Jebsen Influenza Vaccine Research Centre-part UiO",
+                "nb": "K.G. Jebsen Senter for influensavaksine-part UiO"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.10",
+              "name": {
+                "en": "Department of Medical Genetics",
+                "nb": "Avdeling for medisinsk genetikk"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.18.18",
+              "name": {
+                "en": "Department of Forensic Medicine",
+                "nb": "Avdeling for rettsmedisinske fag"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.60.0",
+          "name": {
+            "en": "Division of Critical Care",
+            "nb": "Akuttklinikken"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.60.10",
+              "name": {
+                "en": "Department of Anesthesiology",
+                "nb": "Avdeling for anestesiologi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.60.13",
+              "name": {
+                "en": "Department of Traumatology",
+                "nb": "Avdeling for traumatologi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.60.11",
+              "name": {
+                "en": "Interventional Centre",
+                "nb": "Intervensjonssenteret"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.60.12",
+              "name": {
+                "en": "Skills Training Centre",
+                "nb": "Ferdighetssenteret"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.63.0",
+          "name": {
+            "en": "Division of Radiology and Nuclear Medicine",
+            "nb": "Klinikk for radiologi og nukleærmedisin"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.63.10",
+              "name": {
+                "en": "Department of Radiology and Nuclear Medicine",
+                "nb": "Avdeling for radiologi-nukleærmedisin"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.2.10",
+          "name": {
+            "en": "Centre for Cancer Biomedicine",
+            "nb": "Senter for kreftbiomedisin"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.2.15",
+          "name": {
+            "en": "Centre for Cancer Cell Reprogramming",
+            "nb": "Senter for kreftcelle-reprogrammering"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.42.0",
+          "name": {
+            "en": "Division of Clinical Neuroscience",
+            "nb": "Nevroklinikken"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.42.14",
+              "name": {
+                "en": "Department of Neurohabilitation",
+                "nb": "Avdeling for nevrohabilitering"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.42.11",
+              "name": {
+                "en": "Department of Neurosurgery",
+                "nb": "Nevrokirurgisk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.42.10",
+              "name": {
+                "en": "Department of Physical Medicine and Rehabilitation",
+                "nb": "Avdeling for fysikalsk medisin og rehabilitering"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.42.15",
+              "name": {
+                "en": "Department of Refractory Epilepsy",
+                "nb": "Avdeling for kompleks epilepsi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.42.13",
+              "name": {
+                "en": "Department of Neurology",
+                "nb": "Nevrologisk avdeling"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.42.12",
+              "name": {
+                "en": "Department of Psychosomatic Medicine",
+                "nb": "Avdeling for psykosomatisk medisin"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.2.11",
+          "name": {
+            "en": "Centre for Immune Regulation",
+            "nb": "Senter for immunregulering"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.43.0",
+          "name": {
+            "en": "Division of Head, Neck and Reconstructive Surgery",
+            "nb": "Klinikk for hode, hals og rekonstruktiv kirurgi"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.43.11",
+              "name": {
+                "en": "Department of Ophthalmology",
+                "nb": "Øyeavdelingen"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.43.10",
+              "name": {
+                "en": "Department of Plastic and Reconstructive Surgery",
+                "nb": "Avdeling for plastikk og rekonstruktiv kirurgi"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.43.12",
+              "name": {
+                "en": "Department of Otorhinolaryngology & Head and Neck Surgery",
+                "nb": "Øre-, nese-, halsavdelingen"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.45.0",
+          "name": {
+            "en": "Division of Gynaecology and Obstetrics",
+            "nb": "Kvinneklinikken"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.53.45.10",
+              "name": {
+                "en": "Department of Obstetrics and Gynaecology",
+                "nb": "Obstetrikk og gynekologi"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.0.0",
+      "name": {
+        "en": "Institute of Basic Medical Sciences",
+        "nb": "Institutt for medisinske basalfag"
+      },
+      "hasPart": [
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.14.0",
+          "name": {
+            "en": "Department of Behavioural Sciences in Medicine",
+            "nb": "Avdeling for medisinsk atferdsvitenskap"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.0",
+          "name": {
+            "en": "Department of Molecular Medicine",
+            "nb": "Avdeling for molekylærmedisin"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.10",
+              "name": {
+                "en": "Division of Biochemistry",
+                "nb": "Seksjon for Biokjemi"
+              },
+              "hasPart": [
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.16",
+                  "name": {
+                    "en": "iCAM-Autophagy",
+                    "nb": "iCAM-Autophagy"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.15",
+                  "name": {
+                    "en": "Stem Cell Epigenetics",
+                    "nb": "Stamcelleepigenetikk"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.13",
+                  "name": {
+                    "en": "Cell Cycle and Apoptosis Group",
+                    "nb": "Cellesyklus- og apoptosegruppen"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.18",
+                  "name": {
+                    "en": "Chromatin Biology Group",
+                    "nb": "Kromatin Biologi Gruppen"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.14",
+                  "name": {
+                    "en": "Vascular Pathophysiology",
+                    "nb": "Vaskulær patofysiologi"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.17",
+                  "name": {
+                    "en": "Cell signalling",
+                    "nb": "Cellesignalering"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.30",
+              "name": {
+                "en": "Division of Anatomy",
+                "nb": "Seksjon for anatomi"
+              },
+              "hasPart": [
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.31",
+                  "name": {
+                    "en": "Macroscopic Anatomy and Biological Anthropology",
+                    "nb": "Makroskopisk anatomi og biologisk antropologi"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.33",
+                  "name": {
+                    "en": "Molecular Neuroscience",
+                    "nb": "Molekylær nevrovitenskap"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.36",
+                  "name": {
+                    "en": "Bone Marrow Transplantation",
+                    "nb": "Benmargtransplantasjon"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.39",
+                  "name": {
+                    "en": "Neurotransporter Laboratory",
+                    "nb": "Nevrotransportørlaboratoriet"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.35",
+                  "name": {
+                    "en": "Amino Acid Transporters",
+                    "nb": "Aminosyre-Transportører"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.32",
+                  "name": {
+                    "en": "Synaptic Neurochemistry",
+                    "nb": "Synaptisk nevrokjemi"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.34",
+                  "name": {
+                    "en": "Neural Systems",
+                    "nb": "Nevrale systemer"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.38",
+                  "name": {
+                    "en": "Molecular Immunology",
+                    "nb": "Molekylær immunologi"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.37",
+                  "name": {
+                    "en": "Natural Killer Cell group",
+                    "nb": "NK-celle-gruppen"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.50",
+              "name": {
+                "en": "Division of Physiology",
+                "nb": "Seksjon for fysiologi"
+              },
+              "hasPart": [
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.57",
+                  "name": {
+                    "en": "Glial cells",
+                    "nb": "Gliaceller"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.59",
+                  "name": {
+                    "en": "Laboratory of Synaptic Physiology",
+                    "nb": "Laboratorium for synaptisk fysiologi"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.60",
+                  "name": {
+                    "en": "Human Integrative Cardiovascular Control",
+                    "nb": "Human Sirkulasjonskontroll"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.58",
+                  "name": {
+                    "en": "Laboratory for Neural Computation",
+                    "nb": "Gruppe for Neural Computation"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.56",
+                  "name": {
+                    "en": "Cortical Circuits Group",
+                    "nb": "Informasjonsprosessering i hjernen"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.55",
+                  "name": {
+                    "en": "Brain Signalling",
+                    "nb": "Hjernesignaler"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.53",
+                  "name": {
+                    "en": "Systems Physiology",
+                    "nb": "Systemfysiologi"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.54",
+                  "name": {
+                    "en": "Neural Development",
+                    "nb": "Hjerneutvikling"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.12.51",
+                  "name": {
+                    "en": "The Heart Physiology Group",
+                    "nb": "Hjertefysiologigruppen"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.0",
+          "name": {
+            "en": "Administration",
+            "nb": "Administrasjonen"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.10",
+              "name": {
+                "en": "Section of Internal Service",
+                "nb": "Seksjon for intern service"
+              },
+              "hasPart": [
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.3",
+                  "name": {
+                    "en": "Mechanical Workshop",
+                    "nb": "Mekanisk verksted"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.4",
+                  "name": {
+                    "en": "IT Department",
+                    "nb": "IT-avdelingen"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.2",
+                  "name": {
+                    "en": "Electronics Workshop",
+                    "nb": "Elektronikkverkstedet"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.8",
+              "name": {
+                "en": "Section for Education Management and Administrative Services",
+                "nb": "Seksjon for studiestøtte og administrative fellestjenester"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.1",
+              "name": {
+                "en": "Finance Section",
+                "nb": "Økonomiseksjonen"
+              }
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.7",
+              "name": {
+                "en": "Section for Human Resources (HR) and Health, Security and the Environment (HSE)",
+                "nb": "Seksjon for personal og HMS"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.0",
+          "name": {
+            "en": "Department of Nutrition",
+            "nb": "Avdeling for ernæringsvitenskap"
+          },
+          "hasPart": [
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.30",
+              "name": {
+                "en": "Division of Nutritional Epidemiology",
+                "nb": "Seksjon for ernæringsepidemiologi"
+              },
+              "hasPart": [
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.33",
+                  "name": {
+                    "en": "Nutritional Epidemiology",
+                    "nb": "Ernæringsepidemiologi"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.32",
+                  "name": {
+                    "en": "Public Health Nutrition",
+                    "nb": "Samfunnsernæring"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.31",
+                  "name": {
+                    "en": "Dietary Research",
+                    "nb": "Kostholdsforskning"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.40",
+              "name": {
+                "en": "Division of Molecular Nutrition",
+                "nb": "Seksjon for molekylær ernæring"
+              },
+              "hasPart": [
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.42",
+                  "name": {
+                    "en": "Nuclear Receptor Group",
+                    "nb": "Kjernereseptorgruppa"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.46",
+                  "name": {
+                    "en": "Molecular Toxicology",
+                    "nb": "Molekylær toksikologi"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.41",
+                  "name": {
+                    "en": "Nutritional Molecular Biology",
+                    "nb": "Molekylær ernæringsbiologi"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.43",
+                  "name": {
+                    "en": "Molecular Nutrition",
+                    "nb": "Molekylær ernæring"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.44",
+                  "name": {
+                    "en": "Transgenic Animals and Lipid Storage",
+                    "nb": "Transgene dyr og lipidlagring"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.45",
+                  "name": {
+                    "en": "Molecular and Clinical Glycobiology",
+                    "nb": "Molekylær og klinisk glykobiologi"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Organization",
+              "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.20",
+              "name": {
+                "en": "Division of Clinical Nutrition",
+                "nb": "Seksjon for klinisk ernæring"
+              },
+              "hasPart": [
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.21",
+                  "name": {
+                    "en": "Diet and Cancer",
+                    "nb": "Kosthold og kreft"
+                  }
+                },
+                {
+                  "type": "Organization",
+                  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.13.22",
+                  "name": {
+                    "en": "Diet and atherosclerosis",
+                    "nb": "Kosthold og aterosklerose"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.6",
+          "name": {
+            "en": "Education Management Unit",
+            "nb": "Enhet for studiestøtte"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.15.0",
+          "name": {
+            "en": "Department of Biostatistics",
+            "nb": "Avdeling for biostatistikk"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.1.5",
+          "name": {
+            "en": "Department of Comparative Medicine",
+            "nb": "Avdeling for komparativ medisin"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.51.20.10",
+          "name": {
+            "en": "Centre of Excellence - Hybrid Technology Hub",
+            "nb": "SFF - Hybrid Technology Hub"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.56.0.0",
+      "name": {
+        "en": "Biotechnology Centre of Oslo",
+        "nb": "Bioteknologisenteret i Oslo"
+      },
+      "hasPart": [
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.56.12.0",
+          "name": {
+            "en": "BiO Kjetil Taskén Group (Cell Signalling)",
+            "nb": "BiO Kjetil Taskén Group (Cell Signalling)"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.56.13.0",
+          "name": {
+            "en": "BiO Irep Gözen Group (Bionanotechnology and Membrane Systems)",
+            "nb": "BiO Irep Gözen Group (Bionanotechnology and Membrane Systems)"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.56.14.0",
+          "name": {
+            "en": "BiO Sandra Lopez-Aviles Group (Cell Cycle Regulations)",
+            "nb": "BiO Sandra Lopez-Aviles Group (Cell Cycle Regulations)"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.56.11.0",
+          "name": {
+            "en": "BiO Nikolina Sekulic Group (Structural Biology and Chromatin)",
+            "nb": "BiO Nikolina Sekulic Group (Structural Biology and Chromatin)"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.56.15.0",
+          "name": {
+            "en": "BiO Camila Esguerra Group (Chemical Neuroscience)",
+            "nb": "BiO Camila Esguerra Group (Chemical Neuroscience)"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.56.10.0",
+          "name": {
+            "en": "BiO Administration and Core Facilities",
+            "nb": "BiO Administration and Core Facilities"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.56.16.0",
+          "name": {
+            "en": "BiO Michael Leitges Group (PKC Signalling)",
+            "nb": "BiO Michael Leitges Group (PKC Signalling)"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.0.0",
+      "name": {
+        "en": "Centre for Molecular Medicine Norway",
+        "nb": "Norsk Senter for Molekylærmedisin"
+      },
+      "hasPart": [
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.14.0",
+          "name": {
+            "en": "Kjetil Taskén Group -Disease Mechanisms",
+            "nb": "Kjetil Taskén Group - Disease mechanisms"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.16.0",
+          "name": {
+            "en": "Judith Staerk Group - Stem Cells",
+            "nb": "Judith Staerk Group - Stem Cells"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.53.0",
+          "name": {
+            "en": "Sandra Lopez-Aviles Group - Cell Cycle Regulations",
+            "nb": "Sandra Lopez-Aviles Group - Cell Cycle Regulations"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.11.0",
+          "name": {
+            "en": "Mills/Engedal Group - Prostate Cancer",
+            "nb": "Mills/Engedal Group - Prostate Cancer"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.12.0",
+          "name": {
+            "en": "Anthony Mathelier Group - Computational Biology & Gene Regulation",
+            "nb": "Anthony Mathelier Group - Computational Biology & Gene Regulation"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.52.0",
+          "name": {
+            "en": "Irep Gözen Group - Bionanotechnology and Membrane Systems",
+            "nb": "Irep Gözen Group - Bionanotechnology and Membrane Systems"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.19.0",
+          "name": {
+            "en": "Saarela group - Human immune disorders",
+            "nb": "Saarela group - Human immune disorders"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.10.0",
+          "name": {
+            "en": "Centre for Molecular Medicine Norway NCMM - Administration and Core Facilities",
+            "nb": "Norsk Senter for Molekylærmedisin (NCMM) Admin og kjernefasiliteter"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.51.0",
+          "name": {
+            "en": "Nikolina Sekulic Group - Structural Biology and Chromatin",
+            "nb": "Nikolina Sekulic Group - Structural Biology and Chromatin"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.54.0",
+          "name": {
+            "en": "Camila Esguerra  Group - Chemical Neuroscience",
+            "nb": "Camila Esguerra  Group - Chemical Neuroscience"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.55.0",
+          "name": {
+            "en": "Marieke Kuijjer Group - Computational Biology and Systems Medicine",
+            "nb": "Marieke Kuijjer Group - Computational Biology and Systems Medicine"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.15.0",
+          "name": {
+            "en": "Toni Hurtado Group - Hormone-Resistant Breast Cancer",
+            "nb": "Toni Hurtado Group - Hormone-resistant Breast Cancer"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.18.0",
+          "name": {
+            "en": "Emma Haapaniemi Group - precision pediatrics and gene editing",
+            "nb": "Emma Haapaniemi Group - precision pediatrics and gene editing"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.13.0",
+          "name": {
+            "en": "Preben Morth Group -Membrane Transport System",
+            "nb": "Preben Morth Group - Membrane Transport Systems"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.17.0",
+          "name": {
+            "en": "Hartmut Luecke Group - Structural Biology and Drug Discovery",
+            "nb": "Hartmut Luecke Group - Structural Biology and Drug Discovery"
+          }
+        },
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.57.50.0",
+          "name": {
+            "en": "Section for Research Strategy, Communication and International Relations",
+            "nb": "Seksjon for forskningsstrategi, kommunikasjon og internasjonale relasjoner"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.9.0",
+      "name": {
+        "en": "OUS IKT - research services",
+        "nb": "OUS IKT - tjenester for forskning"
+      }
+    }
+  ]
+}

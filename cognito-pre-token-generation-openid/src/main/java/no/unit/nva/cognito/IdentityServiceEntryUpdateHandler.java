@@ -15,9 +15,9 @@ import java.net.http.HttpClient;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import no.unit.nva.cognito.cristin.CristinAffiliation;
-import no.unit.nva.cognito.cristin.CristinClient;
-import no.unit.nva.cognito.cristin.CristinResponse;
+import no.unit.nva.cognito.cristin.person.CristinAffiliation;
+import no.unit.nva.cognito.cristin.person.CristinClient;
+import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -66,12 +66,12 @@ public class IdentityServiceEntryUpdateHandler
         var userAttributes = input.getRequest().getUserAttributes();
         var nin = extractNin(userAttributes);
 
-        CristinResponse cristinResponse = fetchPersonInformationFromCristin(input, nin);
+        CristinPersonResponse cristinResponse = fetchPersonInformationFromCristin(input, nin);
         updateUserEntriesForPerson(cristinResponse);
         return input;
     }
 
-    private void updateUserEntriesForPerson(CristinResponse cristinResponse) {
+    private void updateUserEntriesForPerson(CristinPersonResponse cristinResponse) {
         var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
         activeCustomers.values().stream()
            .map(customer -> createNewUserObject(customer, cristinResponse))
@@ -107,7 +107,7 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private UserDto createNewUserObject(CustomerDto customer, CristinResponse cristinResponse) {
+    private UserDto createNewUserObject(CustomerDto customer, CristinPersonResponse cristinResponse) {
         var cristinIdentifier = cristinResponse.getPersonsCristinIdentifier().getValue();
 
         return UserDto.newBuilder()
@@ -122,7 +122,7 @@ public class IdentityServiceEntryUpdateHandler
         return cristinIdentifier + BELONGS_TO + customer.getIdentifier().toString();
     }
 
-    private Map<String, CustomerDto> fetchCustomersForActiveAffiliations(CristinResponse cristinResponse) {
+    private Map<String, CustomerDto> fetchCustomersForActiveAffiliations(CristinPersonResponse cristinResponse) {
         return cristinResponse.getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
@@ -130,8 +130,8 @@ public class IdentityServiceEntryUpdateHandler
             .collect(Collectors.toConcurrentMap(CustomerDto::getCristinId, customer -> customer));
     }
 
-    private CristinResponse fetchPersonInformationFromCristin(CognitoUserPoolPreTokenGenerationEvent input,
-                                                              String nin) {
+    private CristinPersonResponse fetchPersonInformationFromCristin(CognitoUserPoolPreTokenGenerationEvent input,
+                                                                    String nin) {
         var jwtToken = requestAuthorizer.fetchJwtToken(input.getUserPoolId());
         return attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
     }

@@ -7,9 +7,9 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.unit.nva.cognito.cristin.CristinAffiliation;
-import no.unit.nva.cognito.cristin.CristinResponse;
-import no.unit.nva.cognito.cristin.CristinRole;
+import no.unit.nva.cognito.cristin.person.CristinAffiliation;
+import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
+import no.unit.nva.cognito.cristin.person.CristinRole;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 
 public final class CristinDataGenerator {
@@ -18,10 +18,9 @@ public final class CristinDataGenerator {
 
     }
 
-    public static CristinResponse createCristinResponse(NationalIdentityNumber nationalIdentityNumber) {
-        return CristinResponse.builder()
-            .withNin(nationalIdentityNumber.toString())
-            .withIdentifiers(CristinResponse.createCristinIdentifier(randomString()))
+    public static CristinPersonResponse createCristinResponse(NationalIdentityNumber nationalIdentityNumber) {
+        return CristinPersonResponse.builder()
+            .withNin(nationalIdentityNumber)
             .withAffiliations(createAffiliations())
             .withFirstName(randomString())
             .withLastName(randomString())

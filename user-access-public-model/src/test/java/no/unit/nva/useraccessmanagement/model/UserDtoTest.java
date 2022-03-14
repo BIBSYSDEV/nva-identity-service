@@ -130,11 +130,6 @@ class UserDtoTest extends DtoTest {
         new UserDto();
     }
 
-    @Test
-    void userDtoHasABuilder() {
-        Builder builder = UserDto.newBuilder();
-        assertNotNull(builder);
-    }
 
     @Test
     void builderReturnsUserDtoWhenInstitutionIsEmpty() {

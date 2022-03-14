@@ -2,6 +2,10 @@ package no.unit.nva.useraccessmanagement.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static org.hamcrest.MatcherAssert.assertThat;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
@@ -25,10 +29,13 @@ public final class EntityUtils {
      */
     public static UserDto createUserWithRolesAndInstitutionAndViewingScope()
         throws InvalidEntryInternalException {
-        return createUserWithRoleWithoutInstitution().copy()
+        var user= createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .withViewingScope(randomViewingScope())
+            .withCristinId(randomUri().toString())
             .build();
+        assertThat(user, doesNotHaveEmptyValues());
+        return user;
     }
 
 

@@ -8,7 +8,7 @@ import static java.util.function.Predicate.not;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.BELONGS_TO;
 import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
 import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
-import static no.unit.nva.cognito.cristin.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
+import static no.unit.nva.cognito.cristin.person.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomVocabularies;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import no.unit.nva.cognito.cristin.CristinAffiliation;
-import no.unit.nva.cognito.cristin.CristinIdentifier;
-import no.unit.nva.cognito.cristin.CristinResponse;
+import no.unit.nva.cognito.cristin.person.CristinAffiliation;
+import no.unit.nva.cognito.cristin.person.CristinIdentifier;
+import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDtoWithoutContext;
@@ -32,7 +32,6 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessmanagement.model.RoleDto;
 import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
 
 public class RegisteredPeopleInstance {
@@ -43,7 +42,7 @@ public class RegisteredPeopleInstance {
     private final DataportenMock dataporten;
     private final CustomerService customerService;
     private List<NationalIdentityNumber> people;
-    private Map<NationalIdentityNumber, CristinResponse> cristinRegistry;
+    private Map<NationalIdentityNumber, CristinPersonResponse> cristinRegistry;
     private IdentityService identityService;
 
     public RegisteredPeopleInstance(DataportenMock dataporten,
@@ -78,7 +77,7 @@ public class RegisteredPeopleInstance {
 
     public Collection<URI> getCristinOrgUris() {
         return this.cristinRegistry.values().stream()
-            .map(CristinResponse::getAffiliations)
+            .map(CristinPersonResponse::getAffiliations)
             .flatMap(Collection::stream)
             .map(CristinAffiliation::getOrganizationUri)
             .collect(Collectors.toList());
@@ -105,9 +104,12 @@ public class RegisteredPeopleInstance {
     }
 
     public CristinIdentifier getCristinIdentifier(NationalIdentityNumber person) {
-        return cristinRegistry.get(person).getIdentifiers().stream().collect(SingletonCollector.collect());
+        return cristinRegistry.get(person).getPersonsCristinIdentifier();
     }
 
+    public String getCristinId(NationalIdentityNumber person) {
+        return cristinRegistry.get(person).getCristinId();
+    }
 
     private static List<NationalIdentityNumber> randomPeople(int numberOfPeople) {
         return IntStream.range(0, numberOfPeople).boxed()
@@ -119,7 +121,7 @@ public class RegisteredPeopleInstance {
     private void setupCustomers() {
         this.cristinRegistry.values()
             .stream()
-            .map(CristinResponse::getAffiliations)
+            .map(CristinPersonResponse::getAffiliations)
             .flatMap(Collection::stream)
             .map(CristinAffiliation::getOrganizationUri)
             .forEach(this::createNvaCustomer);
@@ -176,7 +178,7 @@ public class RegisteredPeopleInstance {
     public List<UserDto> createUserEntriesForPerson(NationalIdentityNumber person){
         return createUserEntriesForPerson(cristinRegistry.get(person));
     }
-    private List<UserDto> createUserEntriesForPerson(CristinResponse cristinResponse) {
+    private List<UserDto> createUserEntriesForPerson(CristinPersonResponse cristinResponse) {
         return cristinResponse.getAffiliations()
             .stream()
             .map(CristinAffiliation::getOrganizationUri)
@@ -188,7 +190,7 @@ public class RegisteredPeopleInstance {
 
     }
 
-    private UserDto createUserEntry(URI cristinOrg, CristinResponse cristinRecord) {
+    private UserDto createUserEntry(URI cristinOrg, CristinPersonResponse cristinRecord) {
         var customer = customerService.getCustomerByCristinId(cristinOrg.toString());
         var customerIdentifier = new UriWrapper(customer.getId()).getFilename();
         return UserDto.newBuilder()

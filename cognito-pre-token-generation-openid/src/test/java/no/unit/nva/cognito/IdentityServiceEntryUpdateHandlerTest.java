@@ -17,9 +17,11 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerC
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Request;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.google.common.collect.Sets;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,6 +44,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     public static final String RANDOM_NIN = randomString();
     public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
+    public static final List<UserDto> NO_PEOPLE_HAVE_LOGGED_IN_BEFORE_THIS_LOGGIN_INSTANCE = Collections.emptyList();
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
@@ -94,7 +97,8 @@ class IdentityServiceEntryUpdateHandlerTest {
         }
 
         for (var person : registeredPeople.getPeople()) {
-            assertThatOneUserEntryPerActiveAffiliationPerPersonHasBeenGenerated(registeredPeople, person);
+            assertThatPersonHasUserEntriesForAllActiveAffilationsOrInactiveAffiliationsWithPreexistinUserEntry(
+                registeredPeople, person, NO_PEOPLE_HAVE_LOGGED_IN_BEFORE_THIS_LOGGIN_INSTANCE);
         }
     }
 
@@ -113,11 +117,18 @@ class IdentityServiceEntryUpdateHandlerTest {
             personPerformsLogin(loginEventType, registeredPeople, person);
         }
 
-        for (var user : userEntriesOfPeopleThatHaveLoggedInBefore) {
+        for(var user: userEntriesOfPeopleThatHaveLoggedInBefore) {
             var savedUser = identityService.getUser(user);
-            assertThat(savedUser, is(equalTo(user)));
+                assertThat(savedUser, is(equalTo(user)));
+            }
+
+
+        for (var person : registeredPeople.getPeople()) {
+            assertThatPersonHasUserEntriesForAllActiveAffilationsOrInactiveAffiliationsWithPreexistinUserEntry(
+                registeredPeople, person,userEntriesOfPeopleThatHaveLoggedInBefore);
         }
     }
+
 
     private List<UserDto> createUserEntriesForFirstHalfOfPeople(RegisteredPeopleInstance registeredPeople) {
         var firstHalfOfPeople =
@@ -128,19 +139,35 @@ class IdentityServiceEntryUpdateHandlerTest {
             .collect(Collectors.toList());
     }
 
-    private void assertThatOneUserEntryPerActiveAffiliationPerPersonHasBeenGenerated(
-        RegisteredPeopleInstance registeredPeople, NationalIdentityNumber person) {
-        var expectedCustomers =
-            registeredPeople.fetchNvaCustomersForPersonsActiveAffiliations(person).collect(Collectors.toList());
-        var unexpectedCustomers =
+    private void assertThatPersonHasUserEntriesForAllActiveAffilationsOrInactiveAffiliationsWithPreexistinUserEntry(
+        RegisteredPeopleInstance registeredPeople,
+        NationalIdentityNumber person,
+        Collection<UserDto> userEntriesExistingBeforeTheSpecificInstanceOfRegisteredPeople) {
+
+        var allCustomersForWhichTheUserHasLoggedInAtLeastOnce=
+            userEntriesExistingBeforeTheSpecificInstanceOfRegisteredPeople.stream()
+                .filter(user->user.getCristinId().equals(registeredPeople.getCristinId(person)))
+                .map(UserDto::getInstitution)
+                .collect(Collectors.toSet());
+
+        var allCustomersForWhichTheUserHasAnActiveAffiliation =
+            registeredPeople.fetchNvaCustomersForPersonsActiveAffiliations(person).collect(Collectors.toSet());
+
+        var allCustomersForWhichTheUserHasInactiveAffiliations =
             registeredPeople.fetchNvaCustomersForPersonsInactiveAffiliations(person).collect(Collectors.toList());
+
+
+        var expectedCustomers =
+            Sets.union(allCustomersForWhichTheUserHasAnActiveAffiliation,
+                       allCustomersForWhichTheUserHasLoggedInAtLeastOnce);
+
         var expectedUsers =
             generateUsersBasedOnRegisteredPeopleInstanceData(registeredPeople, person, expectedCustomers);
 
-        var actualUsers = fetchActualUsersFromIdentityServiceDatabase(expectedCustomers);
+        var actualUsers = fetchActualUsersFromIdentityServiceDatabase(allCustomersForWhichTheUserHasAnActiveAffiliation);
 
         assertThat(actualUsers, containsInAnyOrder(expectedUsers));
-        assertThatNoUserHasBeenCreatedForInactiveAffiliations(unexpectedCustomers);
+        assertThatNoUserHasBeenCreatedForInactiveAffiliations(allCustomersForWhichTheUserHasInactiveAffiliations);
     }
 
     private void personPerformsLogin(LoginEventType loginEventType, RegisteredPeopleInstance registeredPeople,
@@ -152,7 +179,8 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private void assertThatNoUserHasBeenCreatedForInactiveAffiliations(List<URI> unexpectedCustomers) {
         for (var customer : unexpectedCustomers) {
-            var users = identityService.listUsers(customer);
+            var users =
+                identityService.listUsers(customer);
             assertThat(users, is(empty()));
         }
     }
@@ -166,7 +194,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private String[] generateUsersBasedOnRegisteredPeopleInstanceData(RegisteredPeopleInstance registeredPeople,
                                                                       NationalIdentityNumber person,
-                                                                      List<URI> expectedCustomers) {
+                                                                      Collection<URI> expectedCustomers) {
         return expectedCustomers.stream()
             .map(UriWrapper::new)
             .map(UriWrapper::getFilename)
@@ -176,7 +204,7 @@ class IdentityServiceEntryUpdateHandlerTest {
             .toArray(String[]::new);
     }
 
-    private List<String> fetchActualUsersFromIdentityServiceDatabase(List<URI> expectedCustomers) {
+    private List<String> fetchActualUsersFromIdentityServiceDatabase(Collection<URI> expectedCustomers) {
         return expectedCustomers.stream().map(uri -> identityService.listUsers(uri))
             .flatMap(Collection::stream)
             .map(UserDto::getUsername)

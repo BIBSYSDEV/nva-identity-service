@@ -21,6 +21,7 @@ dependencies {
     implementation libs.nva.core
     implementation libs.aws.lambda.events
     testImplementation libs.slf4j
+    testImplementation libs.guava
 
 
     testImplementation project (":customer-testing")

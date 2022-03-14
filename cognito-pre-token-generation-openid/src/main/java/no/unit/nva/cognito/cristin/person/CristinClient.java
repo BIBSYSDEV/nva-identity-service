@@ -1,4 +1,4 @@
-package no.unit.nva.cognito.cristin;
+package no.unit.nva.cognito.cristin.person;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_JSON;
@@ -13,6 +13,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import no.unit.nva.cognito.BadGatewayException;
+import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.paths.UriWrapper;
 
@@ -30,7 +31,7 @@ public class CristinClient {
 
     }
 
-    public CristinResponse sendRequestToCristin(String jwtToken, String nin)
+    public CristinPersonResponse sendRequestToCristin(String jwtToken, String nin)
         throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder(getUserByNinUri)
             .setHeader(AUTHORIZATION_HEADER, "Bearer " + jwtToken)
@@ -39,7 +40,7 @@ public class CristinClient {
             .build();
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThatResponseIsSuccessful(response);
-        return JsonConfig.objectMapper.beanFrom(CristinResponse.class,response.body());
+        return JsonConfig.objectMapper.beanFrom(CristinPersonResponse.class, response.body());
 
     }
 

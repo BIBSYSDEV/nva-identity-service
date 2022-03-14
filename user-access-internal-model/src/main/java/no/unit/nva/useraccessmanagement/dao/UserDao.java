@@ -52,15 +52,15 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String ROLES_LIST = "roles";
     public static final String INSTITUTION_FIELD = "institution";
     public static final TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
-
+    public static final String CRISTIN_ID = "cristinId";
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
-
     private String username;
     private URI institution;
     private Set<RoleDb> roles;
     private String givenName;
     private String familyName;
     private ViewingScopeDb viewingScope;
+    private URI cristinId;
 
     public UserDao() {
         super();
@@ -77,7 +77,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withFamilyName(userDto.getFamilyName())
             .withInstitution(userDto.getInstitution())
             .withRoles(createRoleDbSet(userDto))
-            .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()));
+            .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
+            .withCristinId(nonNull(userDto.getCristinId()) ? URI.create(userDto.getCristinId()) : null);
 
         return userDb.build();
     }
@@ -103,7 +104,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withFamilyName(this.getFamilyName())
             .withRoles(extractRoles(this))
             .withInstitution(this.getInstitution())
-            .withViewingScope(convertViewingScope());
+            .withViewingScope(convertViewingScope())
+            .withCristinId(nonNull(getCristinId()) ? getCristinId().toString() : null);
         return userDto.build();
     }
 
@@ -241,6 +243,17 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     }
 
     @JacocoGenerated
+    @DynamoDbAttribute(CRISTIN_ID)
+    public URI getCristinId() {
+        return this.cristinId;
+    }
+
+    @JacocoGenerated
+    public void setCristinId(URI cristinId) {
+        this.cristinId = cristinId;
+    }
+
+    @JacocoGenerated
     @Override
     @DynamoDbAttribute(TYPE_FIELD)
     public String getType() {
@@ -261,13 +274,19 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withFamilyName(this.getFamilyName())
             .withInstitution(this.getInstitution())
             .withViewingScope(this.getViewingScope())
+            .withCristinId(this.cristinId)
             .withRoles(this.getRolesNonNull());
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getUsername(), getInstitution(), getRolesNonNull(), getGivenName(), getFamilyName(),
+        return Objects.hash(getUsername(),
+                            getInstitution(),
+                            getRolesNonNull(),
+                            getGivenName(),
+                            getFamilyName(),
+                            getCristinId(),
                             getViewingScope());
     }
 
@@ -286,7 +305,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                && Objects.equals(getRolesNonNull(), userDao.getRolesNonNull())
                && Objects.equals(getGivenName(), userDao.getGivenName())
                && Objects.equals(getFamilyName(), userDao.getFamilyName())
-               && Objects.equals(getViewingScope(), userDao.getViewingScope());
+               && Objects.equals(getViewingScope(), userDao.getViewingScope())
+               && Objects.equals(getCristinId(), userDao.getCristinId());
     }
 
     private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
@@ -366,6 +386,11 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         public Builder withViewingScope(ViewingScopeDb viewingScope) {
             userDao.setViewingScope(viewingScope);
+            return this;
+        }
+
+        public Builder withCristinId(URI cristinId) {
+            userDao.setCristinId(cristinId);
             return this;
         }
 

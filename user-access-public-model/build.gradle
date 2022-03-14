@@ -15,6 +15,7 @@ dependencies {
     compileOnly project(":user-access-commons")
     testImplementation project(":user-access-commons")
     testImplementation project(":user-access-testing")
+    testImplementation libs.bundles.testing
 }
 
 test{

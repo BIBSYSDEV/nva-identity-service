@@ -5,6 +5,7 @@ import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessmanagement.dao.EntityUtils.createUserWithRolesAndInstitution;
 import static no.unit.nva.useraccessmanagement.dao.UserDao.ERROR_DUE_TO_INVALID_ROLE;
 import static nva.commons.core.attempt.Try.attempt;
@@ -171,7 +172,7 @@ public class UserDbTest {
             .map(UserDao::fromUserDto)
             .orElseThrow();
 
-        assertThat(ROLES_AS_LISTS_WORKAROUND_EXPLANATION, originalUser, is(equalTo(converted)));
+        assertThat(originalUser, is(equalTo(converted)));
         Diff diff = JAVERS.compare(originalUser, converted);
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(converted, doesNotHaveEmptyValues());
@@ -266,6 +267,7 @@ public class UserDbTest {
             .withInstitution(randomCristinOrgId())
             .withRoles(randomRoles())
             .withViewingScope(ViewingScopeDb.fromViewingScope(randomViewingScope()))
+            .withCristinId(randomUri())
             .build();
         assertThat(randomUser, doesNotHaveEmptyValues());
         return randomUser;

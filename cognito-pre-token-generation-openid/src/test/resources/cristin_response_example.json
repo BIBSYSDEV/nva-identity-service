@@ -1,6 +1,6 @@
 {
   "@context": "https://example.org/person-context.json",
-  "id": "https://api.sandbox.nva.aws.unit.no/cristin/person/33311",
+  "id": "https://api.sandbox.nva.aws.unit.no/cristin/person/12345",
   "type": "Person",
   "identifiers": [
     {
@@ -35,7 +35,22 @@
     {
       "type": "Affiliation",
       "organization": "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.63.10.0",
-      "active": true,
+      "topOrgInst": "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.0.0.0",
+      "active": false,
+      "role": {
+        "type": "Role",
+        "id": "https://example.org/link/to/ontology#1026",
+        "labels": {
+          "en": "Associate professor",
+          "nb": "Førsteamanuensis"
+        }
+      }
+    },
+
+    {
+      "type": "Affiliation",
+      "organization": "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.52.25.0"
+      "active": false,
       "role": {
         "type": "Role",
         "id": "https://example.org/link/to/ontology#1026",

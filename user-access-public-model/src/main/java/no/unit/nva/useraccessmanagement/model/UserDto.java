@@ -18,7 +18,6 @@ import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
-import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 
 public class UserDto implements WithCopy<Builder>, Typed {
@@ -42,6 +41,8 @@ public class UserDto implements WithCopy<Builder>, Typed {
     private ViewingScope viewingScope;
     @JsonProperty(ROLES)
     private List<RoleDto> roles;
+    @JsonProperty("cristinId")
+    private URI cristinId;
 
     public UserDto() {
         roles = Collections.emptyList();
@@ -59,6 +60,14 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public static UserDto fromJson(String input) {
         return attempt(() -> objectMapper.beanFrom(UserDto.class, input))
             .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
+    }
+
+    public String getCristinId() {
+        return nonNull(cristinId) ? cristinId.toString() : null;
+    }
+
+    public void setCristinId(String cristinId) {
+        this.cristinId = nonNull(cristinId) ? URI.create(cristinId) : null;
     }
 
     @JsonProperty("accessRights")
@@ -140,31 +149,8 @@ public class UserDto implements WithCopy<Builder>, Typed {
             .withFamilyName(getFamilyName())
             .withInstitution(getInstitution())
             .withRoles(getRoles())
-            .withViewingScope(getViewingScope());
-    }
-
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getUsername(), getInstitution(), getRoles());
-    }
-
-    @Override
-    @JacocoGenerated
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        UserDto userDto = (UserDto) o;
-        return Objects.equals(getUsername(), userDto.getUsername())
-               && Objects.equals(getGivenName(), userDto.getGivenName())
-               && Objects.equals(getFamilyName(), userDto.getFamilyName())
-               && Objects.equals(getInstitution(), userDto.getInstitution())
-               && Objects.equals(getViewingScope(), userDto.getViewingScope())
-               && compareListsAsSets(userDto);
+            .withViewingScope(getViewingScope())
+            .withCristinId(getCristinId());
     }
 
     @Override
@@ -180,11 +166,40 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.viewingScope = viewingScope;
     }
 
-    private boolean compareListsAsSets(UserDto userDto) {
+    private boolean compareRolesAsSets(UserDto userDto) {
         return Objects.equals(
             JacksonJrDoesNotSupportSets.toSet(getRoles()),
             JacksonJrDoesNotSupportSets.toSet(userDto.getRoles())
         );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof UserDto)) {
+            return false;
+        }
+        UserDto userDto = (UserDto) o;
+        return Objects.equals(getUsername(), userDto.getUsername())
+               && Objects.equals(getInstitution(), userDto.getInstitution())
+               && Objects.equals(getGivenName(), userDto.getGivenName())
+               && Objects.equals(getFamilyName(), userDto.getFamilyName())
+               && Objects.equals(getViewingScope(), userDto.getViewingScope())
+               && compareRolesAsSets(userDto)
+               && Objects.equals(getCristinId(), userDto.getCristinId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUsername(),
+                            getInstitution(),
+                            getGivenName(),
+                            getFamilyName(),
+                            getViewingScope(),
+                            JacksonJrDoesNotSupportSets.toSet(getRoles()),
+                            getCristinId());
     }
 
     public static final class Builder {
@@ -222,6 +237,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
                 userDto.setRoles(new ArrayList<>(listRoles));
             }
 
+            return this;
+        }
+
+        public Builder withCristinId(String cristinIdentifier) {
+            userDto.setCristinId(cristinIdentifier);
             return this;
         }
 

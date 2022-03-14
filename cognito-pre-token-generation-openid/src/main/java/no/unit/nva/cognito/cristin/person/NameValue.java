@@ -1,4 +1,4 @@
-package no.unit.nva.cognito.cristin;
+package no.unit.nva.cognito.cristin.person;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Objects;

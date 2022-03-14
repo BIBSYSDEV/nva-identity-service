@@ -1,0 +1,26 @@
+{
+  "type" : "Organization",
+  "@context" : "https://api.dev.nva.aws.unit.no/cristin/organization",
+  "id" : "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.63.10.0",
+  "name" : {
+    "en" : "Department of Computer Science",
+    "nb" : "Institutt for datateknologi og informatikk"
+  },
+  "partOf" : [ {
+    "type" : "Organization",
+    "id" : "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.63.0.0",
+    "name" : {
+      "en" : "Faculty of Information Technology and Electrical Engineering",
+      "nb" : "Fakultet for informasjonsteknologi og elektroteknikk"
+    },
+    "partOf" : [ {
+      "type" : "Organization",
+      "id" : "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.0.0.0",
+      "name" : {
+        "en" : "Norwegian University of Science and Technology",
+        "nb" : "Norges teknisk-naturvitenskapelige universitet",
+        "nn" : "Noregs teknisk-naturvitskaplege universitet"
+      }
+    } ]
+  } ]
+}

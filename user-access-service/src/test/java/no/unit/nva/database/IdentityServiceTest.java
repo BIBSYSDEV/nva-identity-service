@@ -524,6 +524,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
             .withGivenName(SOME_GIVEN_NAME)
             .withFamilyName(SOME_FAMILY_NAME)
             .withViewingScope(randomViewingScope())
+            .withCristinId(randomUri().toString())
             .build();
     }
 

@@ -1,19 +1,22 @@
-package no.unit.nva.cognito.cristin;
+package no.unit.nva.cognito.cristin.person;
 
+import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.SingletonCollector;
 
 @JacocoGenerated
-public class CristinResponse {
+public class CristinPersonResponse {
 
-    @JsonProperty("identifiers")
-    private List<CristinIdentifier> identifiers;
+    @JsonProperty("id")
+    private URI cristinId;
     @JsonProperty("affiliations")
     private List<CristinAffiliation> affiliations;
     @JsonProperty("NationalIdentificationNumber")
@@ -29,6 +32,14 @@ public class CristinResponse {
         return List.of(new CristinIdentifier(identifier));
     }
 
+    public String getCristinId() {
+        return nonNull(cristinId) ? cristinId.toString() : null;
+    }
+
+    public void setCristinId(String cristinId) {
+        this.cristinId = nonNull(cristinId) ? URI.create(cristinId) : null;
+    }
+
     public List<NameValue> getNames() {
         return names;
     }
@@ -37,19 +48,11 @@ public class CristinResponse {
         this.names = names;
     }
 
-    @JacocoGenerated
-    public List<CristinIdentifier> getIdentifiers() {
-        return identifiers;
-    }
-
-    @JacocoGenerated
-    public void setIdentifiers(List<CristinIdentifier> candidates) {
-        this.identifiers = CristinIdentifier.selectFromCandidates(candidates);
-    }
-
     @JsonIgnore
     public CristinIdentifier getPersonsCristinIdentifier() {
-        return identifiers.stream().collect(SingletonCollector.collect());
+        return Optional.of(getCristinId())
+            .map(CristinIdentifier::fromCristinId)
+            .orElseThrow();
     }
 
     @JacocoGenerated
@@ -65,10 +68,6 @@ public class CristinResponse {
     @JacocoGenerated
     public String getNin() {
         return nin.getNin();
-    }
-
-    public void setNin(NationalIdentityNumber nin) {
-        this.nin = nin;
     }
 
     @JacocoGenerated
@@ -93,15 +92,21 @@ public class CristinResponse {
 
     public static final class Builder {
 
-        private final CristinResponse cristinResponse;
+        private CristinPersonResponse cristinResponse;
 
         private Builder() {
-            cristinResponse = new CristinResponse();
+            cristinResponse = new CristinPersonResponse();
             cristinResponse.setNames(new ArrayList<>());
         }
 
-        public Builder withIdentifiers(List<CristinIdentifier> identifiers) {
-            cristinResponse.setIdentifiers(identifiers);
+        public static Builder aCristinResponse() {
+            return new Builder();
+        }
+
+        public Builder withCristinId(URI cristinId) {
+            if (nonNull(cristinId)) {
+                cristinResponse.setCristinId(cristinId.toString());
+            }
             return this;
         }
 
@@ -110,25 +115,29 @@ public class CristinResponse {
             return this;
         }
 
-        public Builder withNin(String nin) {
-            cristinResponse.setNin(nin);
+        public Builder withNin(NationalIdentityNumber nin) {
+            cristinResponse.setNin(nonNull(nin) ? nin.getNin() : null);
             return this;
         }
 
-        public Builder withFirstName(String name){
-            var firstName = NameValue.firstName(name);
-            cristinResponse.getNames().add(firstName);
+        public Builder withNames(List<NameValue> names) {
+            cristinResponse.setNames(names);
             return this;
         }
 
-
-        public Builder withLastName(String name){
-            var firstName = NameValue.lastName(name);
-            cristinResponse.getNames().add(firstName);
+        public Builder withFirstName(String name) {
+            var nameValue = nonNull(name) ? NameValue.firstName(name) : null;
+            cristinResponse.getNames().add(nameValue);
             return this;
         }
 
-        public CristinResponse build() {
+        public Builder withLastName(String name) {
+            var nameValue = nonNull(name) ? NameValue.lastName(name) : null;
+            cristinResponse.getNames().add(nameValue);
+            return this;
+        }
+
+        public CristinPersonResponse build() {
             return cristinResponse;
         }
     }

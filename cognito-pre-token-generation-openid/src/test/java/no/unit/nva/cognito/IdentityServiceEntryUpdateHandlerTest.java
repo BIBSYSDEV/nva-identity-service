@@ -158,10 +158,6 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(actualUsers,containsInAnyOrder(alreadyExistinUsers.toArray(UserDto[]::new)));
     }
 
-    private UserDto fetchUserFromDatabase(String username) {
-        var queryObject=UserDto.newBuilder().withUsername(username).build();
-        return identityService.getUser(queryObject);
-    }
 
     private UserDto createRandomUser(String username) {
         var user= NvaDataGenerator.createRandomUser(username);

@@ -62,10 +62,12 @@ public class UserDto implements WithCopy<Builder>, Typed {
             .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
     }
 
+    @SuppressWarnings("PMD.NullAssignment")
     public String getCristinId() {
         return nonNull(cristinId) ? cristinId.toString() : null;
     }
 
+    @SuppressWarnings("PMD.NullAssignment")
     public void setCristinId(String cristinId) {
         this.cristinId = nonNull(cristinId) ? URI.create(cristinId) : null;
     }

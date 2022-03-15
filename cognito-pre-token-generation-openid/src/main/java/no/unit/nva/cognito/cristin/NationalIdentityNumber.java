@@ -1,14 +1,12 @@
 package no.unit.nva.cognito.cristin;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Objects;
+import nva.commons.core.JacocoGenerated;
 
 public class NationalIdentityNumber {
 
     private final String nin;
 
-    @JsonCreator
     public NationalIdentityNumber(String nin) {
         this.nin = nin;
     }
@@ -17,11 +15,13 @@ public class NationalIdentityNumber {
         return nin;
     }
 
+    @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getNin());
     }
 
+    @JacocoGenerated
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -34,7 +34,7 @@ public class NationalIdentityNumber {
         return Objects.equals(getNin(), that.getNin());
     }
 
-    @JsonValue
+    @JacocoGenerated
     @Override
     public String toString() {
         return getNin();

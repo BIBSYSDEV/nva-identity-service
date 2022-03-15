@@ -92,15 +92,11 @@ public class CristinPersonResponse {
 
     public static final class Builder {
 
-        private CristinPersonResponse cristinResponse;
+        private final CristinPersonResponse cristinResponse;
 
         private Builder() {
             cristinResponse = new CristinPersonResponse();
             cristinResponse.setNames(new ArrayList<>());
-        }
-
-        public static Builder aCristinResponse() {
-            return new Builder();
         }
 
         public Builder withCristinId(URI cristinId) {

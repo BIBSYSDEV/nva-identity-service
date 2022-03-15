@@ -64,11 +64,6 @@ public class CristinAffiliation {
             return this;
         }
 
-        public Builder withRole(CristinRole role) {
-            affiliation.setRole(role);
-            return this;
-        }
-
         public CristinAffiliation build() {
             return this.affiliation;
         }

@@ -107,7 +107,7 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private ClaimsOverrideDetails buildGroupsToOverride(String[] groupsToOverride) {
+    private ClaimsOverrideDetails buildGroupsToOverride(String... groupsToOverride) {
         return ClaimsOverrideDetails.builder()
             .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(groupsToOverride).build())
             .build();

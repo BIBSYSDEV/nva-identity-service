@@ -23,11 +23,7 @@ public class CristinOrgResponse {
     private List<CristinOrgResponse> partOf;
 
     public static CristinOrgResponse fromJson(String body) {
-        return attempt(()->JsonConfig.objectMapper.beanFrom(CristinOrgResponse.class,body)).orElseThrow();
-    }
-
-    public List<CristinOrgResponse> getPartOf() {
-        return nonNull(partOf) ? partOf : Collections.emptyList();
+        return attempt(() -> JsonConfig.objectMapper.beanFrom(CristinOrgResponse.class, body)).orElseThrow();
     }
 
     public static CristinOrgResponse create(URI orgId) {
@@ -40,7 +36,7 @@ public class CristinOrgResponse {
         var result = CristinOrgResponse.create(orgId);
         Queue<CristinOrgResponse> parentsQueue = addAllParentIdsInQueue(parentIds);
         var currentOrg = result;
-        while(!parentsQueue.isEmpty()){
+        while (!parentsQueue.isEmpty()) {
             var oneLevelUp = parentsQueue.poll();
             currentOrg.setPartOf(List.of(oneLevelUp));
             currentOrg = oneLevelUp;
@@ -48,18 +44,12 @@ public class CristinOrgResponse {
         return result;
     }
 
-    private static ArrayDeque<CristinOrgResponse> addAllParentIdsInQueue(URI[] partOfOrgIds) {
-        var parentsQueue = new ArrayDeque<CristinOrgResponse>();
-        if(nonNull(partOfOrgIds) && partOfOrgIds.length>0){
-            var parents = Optional.ofNullable(partOfOrgIds).stream()
-                .flatMap(Arrays::stream)
-                .map(CristinOrgResponse::create)
-                .collect(Collectors.toList());
-            parentsQueue.addAll(parents);
-        }
-        return parentsQueue;
+    @JacocoGenerated
+    public List<CristinOrgResponse> getPartOf() {
+        return nonNull(partOf) ? partOf : Collections.emptyList();
     }
 
+    @JacocoGenerated
     public void setPartOf(List<CristinOrgResponse> partOf) {
         this.partOf = nonNull(partOf) ? partOf : null;
     }
@@ -72,22 +62,36 @@ public class CristinOrgResponse {
         }
     }
 
+    @JacocoGenerated
     public String getOrgId() {
         return nonNull(orgId) ? orgId.toString() : null;
     }
 
+    @JacocoGenerated
     public void setOrgId(URI orgId) {
         this.orgId = orgId;
     }
 
+    @JacocoGenerated
     public void setOrgId(String orgId) {
         this.orgId = nonNull(orgId) ? URI.create(orgId) : null;
     }
 
     @Override
     @JacocoGenerated
-    public String toString(){
-        return attempt(()->JsonConfig.objectMapper.asString(this)).orElseThrow();
+    public String toString() {
+        return attempt(() -> JsonConfig.objectMapper.asString(this)).orElseThrow();
     }
 
+    private static ArrayDeque<CristinOrgResponse> addAllParentIdsInQueue(URI... partOfOrgIds) {
+        var parentsQueue = new ArrayDeque<CristinOrgResponse>();
+        if (nonNull(partOfOrgIds) && partOfOrgIds.length > 0) {
+            var parents = Optional.of(partOfOrgIds).stream()
+                .flatMap(Arrays::stream)
+                .map(CristinOrgResponse::create)
+                .collect(Collectors.toList());
+            parentsQueue.addAll(parents);
+        }
+        return parentsQueue;
+    }
 }

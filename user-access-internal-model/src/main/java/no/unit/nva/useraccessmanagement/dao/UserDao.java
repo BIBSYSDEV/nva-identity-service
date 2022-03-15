@@ -40,6 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
+@SuppressWarnings("PMD.GodClass")
 public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public static final String TYPE_VALUE = "USER";

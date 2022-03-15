@@ -1338,7 +1338,7 @@ Resources:
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-      Timeout: 10
+      Timeout: 20
 
   PreTokenGenerationnHandlerScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget

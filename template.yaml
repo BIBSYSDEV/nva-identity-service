@@ -1335,6 +1335,9 @@ Resources:
           COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
           USERPOOL_NAME: !GetAtt UserPoolName.Value
           API_DOMAIN: !Ref ApiDomain
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Timeout: 10
 
   PreTokenGenerationnHandlerScalableTarget:

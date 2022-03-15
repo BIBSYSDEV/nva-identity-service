@@ -357,6 +357,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
             .withInstitution(SOME_INSTITUTION)
             .withRoles(SAMPLE_ROLES)
             .withViewingScope(ViewingScopeDb.fromViewingScope(randomViewingScope()))
+            .withCristinId(randomUri())
             .build();
 
         usersTable.putItem(insertedUser);

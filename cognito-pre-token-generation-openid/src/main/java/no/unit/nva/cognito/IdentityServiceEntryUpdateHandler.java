@@ -17,6 +17,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
@@ -40,6 +41,7 @@ public class IdentityServiceEntryUpdateHandler
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideid";
     public static final String BELONGS_TO = "@";
+    public static final int ALL_CUSTOMERS_WITH_SAME_CRISTIN_ID_ARE_IDENTICAL = 0;
 
     private final RequestAuthorizer requestAuthorizer;
     private final CristinClient cristinClient;
@@ -77,38 +79,14 @@ public class IdentityServiceEntryUpdateHandler
 
         updateUserEntriesForPerson(cristinResponse, activeCustomers);
 
-        var groupsToOverride = activeCustomers.values().stream()
+        var groupsToOverride = activeCustomers.stream()
             .map(CustomerDtoWithoutContext::getIdentifier)
             .map(UUID::toString)
             .toArray(String[]::new);
-        input.setResponse(Response.builder().withClaimsOverrideDetails(buildGroupsToOverride(groupsToOverride)).build());
+        input.setResponse(
+            Response.builder().withClaimsOverrideDetails(buildGroupsToOverride(groupsToOverride)).build());
 
         return input;
-    }
-
-    private ClaimsOverrideDetails buildGroupsToOverride(String[] groupsToOverride) {
-        return ClaimsOverrideDetails.builder()
-            .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(groupsToOverride).build())
-            .build();
-    }
-
-    private void updateUserEntriesForPerson(CristinPersonResponse cristinResponse,
-                                            Map<String, CustomerDto> activeCustomers) {
-
-        activeCustomers.values().stream()
-            .map(customer -> createNewUserObject(customer, cristinResponse))
-            .forEach(this::getExistingUserOrCreateNew);
-    }
-
-    private UserDto getExistingUserOrCreateNew(UserDto user) {
-        return attempt(() -> identityService.getUser(user))
-            .or(() -> addUser(user))
-            .orElseThrow();
-    }
-
-    private UserDto addUser(UserDto user) {
-        identityService.addUser(user);
-        return user;
     }
 
     @JacocoGenerated
@@ -129,6 +107,31 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
+    private ClaimsOverrideDetails buildGroupsToOverride(String[] groupsToOverride) {
+        return ClaimsOverrideDetails.builder()
+            .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(groupsToOverride).build())
+            .build();
+    }
+
+    private void updateUserEntriesForPerson(CristinPersonResponse cristinResponse,
+                                            Set<CustomerDto> activeCustomers) {
+
+        activeCustomers.stream()
+            .map(customer -> createNewUserObject(customer, cristinResponse))
+            .forEach(this::getExistingUserOrCreateNew);
+    }
+
+    private UserDto getExistingUserOrCreateNew(UserDto user) {
+        return attempt(() -> identityService.getUser(user))
+            .or(() -> addUser(user))
+            .orElseThrow();
+    }
+
+    private UserDto addUser(UserDto user) {
+        identityService.addUser(user);
+        return user;
+    }
+
     private UserDto createNewUserObject(CustomerDto customer, CristinPersonResponse cristinResponse) {
         var cristinIdentifier = cristinResponse.getPersonsCristinIdentifier().getValue();
 
@@ -145,13 +148,14 @@ public class IdentityServiceEntryUpdateHandler
         return cristinIdentifier + BELONGS_TO + UriWrapper.fromUri(customer.getCristinId()).getLastPathElement();
     }
 
-    private Map<String, CustomerDto> fetchCustomersForActiveAffiliations(CristinPersonResponse cristinResponse) {
+    private Set<CustomerDto> fetchCustomersForActiveAffiliations(CristinPersonResponse cristinResponse) {
+
         return cristinResponse.getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
             .map(this::fetchTopLevelOrgUri)
             .map(uri -> customerService.getCustomerByCristinId(uri.toString()))
-            .collect(Collectors.toConcurrentMap(CustomerDto::getCristinId, customer -> customer));
+            .collect(Collectors.toSet());
     }
 
     private Object fetchTopLevelOrgUri(URI orgUri) {

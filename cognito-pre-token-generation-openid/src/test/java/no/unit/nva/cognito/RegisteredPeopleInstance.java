@@ -1,15 +1,18 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
+import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinIdentifier;
-import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 
@@ -17,28 +20,35 @@ public class RegisteredPeopleInstance {
 
     private final CustomerService customerService;
     private final CristinProxyMock cristinProxy;
+    private final Set<NationalIdentityNumber> people;
 
-    public RegisteredPeopleInstance(CristinProxyMock cristinProxy,
+    public RegisteredPeopleInstance(WireMockServer httpServer,
+                                    DataportenMock dataportenMock,
                                     CustomerService customerService) {
         this.customerService = customerService;
-        this.cristinProxy = cristinProxy;
-        populateCustomerService();
-        cristinProxy.setup();
+        this.cristinProxy = new CristinProxyMock(httpServer, dataportenMock);
+        this.people = randomPeople();
+        initialize();
+    }
+
+    public void initialize() {
+        cristinProxy.initialize(people);
         populateCustomersFoundInCristinProxy();
     }
 
-    private void populateCustomerService() {
-        IntStream.range(0,5+randomInteger(10)).boxed()
-            .map(ignored->randomCustomer(cristinProxy.randomOrgUri()))
-            .forEach(customerService::createCustomer);
+    public static Set<NationalIdentityNumber> randomPeople() {
+        return IntStream.range(0, 10).boxed()
+            .map(ignored -> new NationalIdentityNumber(randomString()))
+            .collect(Collectors.toSet());
     }
 
-    public List<URI> getTopLevelOrgsForPerson(NationalIdentityNumber nin, boolean includeInactive) {
-        return cristinProxy.getTopLevelOrgsForPerson(nin)
+    public Set<URI> getTopLevelOrgsForPerson(NationalIdentityNumber nin, boolean includeInactive) {
+        return cristinProxy.getCristinPersonRegistry(nin).getAffiliations()
             .stream()
-            .filter(org->org.isActiveAffiliation() || includeInactive)
-            .map(TopLevelOrg::getTopLevelOrg)
-            .collect(Collectors.toList());
+            .filter(org -> org.isActive() || includeInactive)
+            .map(CristinAffiliation::getOrganizationUri)
+            .map(cristinProxy::getTopLevelOrgForBottomLevelOrg)
+            .collect(Collectors.toSet());
     }
 
     public CristinIdentifier getCristinPersonIdentifier(NationalIdentityNumber nin) {
@@ -53,24 +63,24 @@ public class RegisteredPeopleInstance {
         return cristinProxy.getPersonWithOnlyInactiveAffiliations();
     }
 
-    public CristinPersonResponse getCristinPersonRecord(NationalIdentityNumber personLoggingIn) {
-        return cristinProxy.getCristinPersonRegistry(personLoggingIn);
-    }
-
-    public List<URI> getActiveAffiliations(NationalIdentityNumber personLoggingIn) {
-        return cristinProxy.getTopLevelOrgsForPerson(personLoggingIn)
-            .stream()
-            .filter(TopLevelOrg::isActiveAffiliation)
-            .map(TopLevelOrg::getTopLevelOrg)
-            .collect(Collectors.toList());
-    }
-
     public NationalIdentityNumber getPersonWithActiveAndInactiveAffiliations() {
         return cristinProxy.getPersonWithActiveAndInactiveAffiliations();
     }
 
+    public Set<URI> getTopLevelAffiliationsForUser(NationalIdentityNumber nin, boolean active) {
+        return cristinProxy.getCristinPersonRegistry(nin).getAffiliations()
+            .stream()
+//            .filter(aff -> aff.isActive() == active)
+            .map(aff -> aff.getOrganizationUri())
+            .map(uri -> cristinProxy.getTopLevelOrgForBottomLevelOrg(uri))
+            .collect(Collectors.toSet());
+    }
+
     private void populateCustomersFoundInCristinProxy() {
-        cristinProxy.getTopLevelOrgs().map(TopLevelOrg::getTopLevelOrg).forEach(this::createNvaCustomer);
+        var nvaCustomers = cristinProxy.getTopLevelOrgUris().stream()
+            .map(this::createNvaCustomer)
+            .collect(Collectors.toList());
+        assertThat(nvaCustomers, is(not(empty())));
     }
 
     private CustomerDto createNvaCustomer(URI topLevelOrg) {
@@ -87,11 +97,5 @@ public class RegisteredPeopleInstance {
             .withName(randomString())
             .withShortName(randomString())
             .build();
-    }
-
-    public static Set<NationalIdentityNumber> randomPeople(int numberOfPeople) {
-        return IntStream.range(0, numberOfPeople).boxed()
-            .map(ignored -> new NationalIdentityNumber(randomString()))
-            .collect(Collectors.toSet());
     }
 }

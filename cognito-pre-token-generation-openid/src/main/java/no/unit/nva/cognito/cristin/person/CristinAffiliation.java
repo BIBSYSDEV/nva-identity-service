@@ -11,7 +11,6 @@ public class CristinAffiliation {
 
     private URI organization;
     private boolean active;
-    private CristinRole role;
 
     public static Builder builder() {
         return new Builder();
@@ -22,14 +21,14 @@ public class CristinAffiliation {
         return organization.toString();
     }
 
-    @JsonIgnore
-    public URI getOrganizationUri() {
-        return organization;
-    }
-
     @JacocoGenerated
     public void setOrganization(String organization) {
         this.organization = attempt(() -> URI.create(organization)).orElseThrow();
+    }
+
+    @JsonIgnore
+    public URI getOrganizationUri() {
+        return organization;
     }
 
     @JacocoGenerated
@@ -42,14 +41,9 @@ public class CristinAffiliation {
         this.active = active;
     }
 
-    @JacocoGenerated
-    public CristinRole getRole() {
-        return role;
-    }
-
-    @JacocoGenerated
-    public void setRole(CristinRole role) {
-        this.role = role;
+    @Override
+    public String toString(){
+        return attempt(()-> JsonConfig.objectMapper.asString(this)).orElseThrow();
     }
 
     public static class Builder {
@@ -78,10 +72,5 @@ public class CristinAffiliation {
         public CristinAffiliation build() {
             return this.affiliation;
         }
-    }
-
-    @Override
-    public String toString(){
-        return attempt(()-> JsonConfig.objectMapper.asString(this)).orElseThrow();
     }
 }

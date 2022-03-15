@@ -18,6 +18,7 @@ import no.unit.nva.useraccessmanagement.interfaces.Typed;
 import no.unit.nva.useraccessmanagement.interfaces.WithCopy;
 import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 
 public class UserDto implements WithCopy<Builder>, Typed {
@@ -26,12 +27,12 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public static final String MISSING_FIELD_ERROR = "Invalid User. Missing obligatory field: ";
     public static final String USERNAME_FIELD = "username";
     public static final String VIEWING_SCOPE_FIELD = "viewingScope";
-    public static final String INSTITUTION = "institution";
+    public static final String INSTITUTION_FIELD = "institution";
     public static final String ROLES = "roles";
 
     @JsonProperty(USERNAME_FIELD)
     private String username;
-    @JsonProperty(INSTITUTION)
+    @JsonProperty(INSTITUTION_FIELD)
     private URI institution;
     @JsonProperty("givenName")
     private String givenName;
@@ -62,11 +63,13 @@ public class UserDto implements WithCopy<Builder>, Typed {
             .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
     }
 
+    @JacocoGenerated
     @SuppressWarnings("PMD.NullAssignment")
     public String getCristinId() {
         return nonNull(cristinId) ? cristinId.toString() : null;
     }
 
+    @JacocoGenerated
     @SuppressWarnings("PMD.NullAssignment")
     public void setCristinId(String cristinId) {
         this.cristinId = nonNull(cristinId) ? URI.create(cristinId) : null;
@@ -155,11 +158,6 @@ public class UserDto implements WithCopy<Builder>, Typed {
             .withCristinId(getCristinId());
     }
 
-    @Override
-    public String toString() {
-        return attempt(() -> objectMapper.asString(this)).orElseThrow();
-    }
-
     public ViewingScope getViewingScope() {
         return this.viewingScope;
     }
@@ -168,13 +166,19 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.viewingScope = viewingScope;
     }
 
-    private boolean compareRolesAsSets(UserDto userDto) {
-        return Objects.equals(
-            JacksonJrDoesNotSupportSets.toSet(getRoles()),
-            JacksonJrDoesNotSupportSets.toSet(userDto.getRoles())
-        );
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUsername(),
+                            getInstitution(),
+                            getGivenName(),
+                            getFamilyName(),
+                            getViewingScope(),
+                            JacksonJrDoesNotSupportSets.toSet(getRoles()),
+                            getCristinId());
     }
 
+    @JacocoGenerated
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -194,14 +198,15 @@ public class UserDto implements WithCopy<Builder>, Typed {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(getUsername(),
-                            getInstitution(),
-                            getGivenName(),
-                            getFamilyName(),
-                            getViewingScope(),
-                            JacksonJrDoesNotSupportSets.toSet(getRoles()),
-                            getCristinId());
+    public String toString() {
+        return attempt(() -> objectMapper.asString(this)).orElseThrow();
+    }
+
+    private boolean compareRolesAsSets(UserDto userDto) {
+        return Objects.equals(
+            JacksonJrDoesNotSupportSets.toSet(getRoles()),
+            JacksonJrDoesNotSupportSets.toSet(userDto.getRoles())
+        );
     }
 
     public static final class Builder {

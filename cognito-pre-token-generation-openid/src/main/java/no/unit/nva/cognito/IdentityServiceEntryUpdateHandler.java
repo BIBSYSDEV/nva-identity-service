@@ -5,7 +5,6 @@ import static no.unit.nva.cognito.EnvironmentVariables.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -76,10 +75,6 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
 
-        var json =
-            attempt(() -> objectMapper.asString(input.getRequest().getUserAttributes())).orElseThrow();
-        context.getLogger().log(json);
-        context.getLogger().log(input.toString());
         var nin = extractNin(input.getRequest().getUserAttributes());
         var cristinResponse = fetchPersonInformationFromCristin(input, nin);
         var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
@@ -115,10 +110,10 @@ public class IdentityServiceEntryUpdateHandler
         CognitoUserPoolPreTokenGenerationEvent input,
         CristinPersonResponse cristinResponse,
         String... accessRights) {
-        var cognitoUsername = input.getRequest().getUserAttributes().get(COGNITO_USERNAME);
+
         return AdminUpdateUserAttributesRequest.builder()
             .userPoolId(input.getUserPoolId())
-            .username(cognitoUsername)
+            .username(input.getUserName())
             .userAttributes(updatedPersonAttributes(cristinResponse, accessRights))
             .build();
     }

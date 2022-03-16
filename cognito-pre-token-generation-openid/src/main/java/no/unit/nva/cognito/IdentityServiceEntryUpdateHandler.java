@@ -81,6 +81,10 @@ public class IdentityServiceEntryUpdateHandler
 
         injectAccessRightsToEventResponse(input, accessRights);
         updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(cristinResponse, accessRights);
+        String[] claimsToSuppress = {NIN_FON_NON_FEIDE_USERS, NIN_FOR_FEIDE_USERS};
+        input.getResponse().setClaimsOverrideDetails(ClaimsOverrideDetails.builder()
+                                                         .withClaimsToSuppress(claimsToSuppress)
+                                                         .build());
         return input;
     }
 

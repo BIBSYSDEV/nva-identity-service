@@ -13,7 +13,6 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.GroupConfiguration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Response;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.util.Collection;
 import java.util.List;
@@ -33,6 +32,8 @@ import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
 
 public class IdentityServiceEntryUpdateHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
@@ -41,15 +42,16 @@ public class IdentityServiceEntryUpdateHandler
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideid";
     public static final String BELONGS_TO = "@";
-
-    private final RequestAuthorizer requestAuthorizer;
+    public static final String ACCESS_RIGTHS_DELIMITER = ",";
     private final CristinClient cristinClient;
     private final CustomerService customerService;
     private final IdentityService identityService;
+    private final CognitoIdentityProviderClient cognitoClient;
+    private final BackendJwtTokenRetriever backendJwtTokenRetriever;
 
     @JacocoGenerated
     public IdentityServiceEntryUpdateHandler() {
-        this(defaultCognitoClient(), HttpClient.newHttpClient(), defaultCognitoUri(), CRISTIN_HOST,
+        this(defaultCognitoClient(), HttpClient.newHttpClient(), COGNITO_HOST, CRISTIN_HOST,
              defaultCustomerService(), defaultIdentityService());
     }
 
@@ -59,8 +61,8 @@ public class IdentityServiceEntryUpdateHandler
                                              URI cristinHost,
                                              CustomerService customerService,
                                              IdentityService identityService) {
-
-        this.requestAuthorizer = new RequestAuthorizer(cognitoClient, cognitoHost, httpClient);
+        this.cognitoClient = cognitoClient;
+        this.backendJwtTokenRetriever = new BackendJwtTokenRetriever(cognitoClient, cognitoHost, httpClient);
         this.cristinClient = new CristinClient(cristinHost, httpClient);
         this.customerService = customerService;
         this.identityService = identityService;
@@ -70,25 +72,21 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
 
-        var userAttributes = input.getRequest().getUserAttributes();
-        var nin = extractNin(userAttributes);
-
-        CristinPersonResponse cristinResponse = fetchPersonInformationFromCristin(input, nin);
+        var nin = extractNin(input.getRequest().getUserAttributes());
+        var cristinResponse = fetchPersonInformationFromCristin(input, nin);
         var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
 
-        var personsUsers = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers);
-        var accessRights = accessRightsPerCustomer(personsUsers);
+        var usersForPerson = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers);
+        var accessRights = accessRightsPerCustomer(usersForPerson);
+
         injectAccessRightsToEventResponse(input, accessRights);
+        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(cristinResponse, accessRights);
         return input;
     }
 
-    @JacocoGenerated
-    private static URI defaultCognitoUri() {
-        try {
-            return new URI("https", COGNITO_HOST, null, null);
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
+    private void updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(
+        CristinPersonResponse cristinResponse, String... accessRights) {
+        cognitoClient.updateUserAttributes(createUpdateUserAttributesRequest(cristinResponse, accessRights));
     }
 
     @JacocoGenerated
@@ -98,6 +96,23 @@ public class IdentityServiceEntryUpdateHandler
             .httpClient(UrlConnectionHttpClient.create())
             .region(AWS_REGION)
             .build();
+    }
+
+    private UpdateUserAttributesRequest createUpdateUserAttributesRequest(CristinPersonResponse cristinResponse,
+                                                                          String... accessRights) {
+        return UpdateUserAttributesRequest.builder()
+            .userAttributes(updatedPersonAttributes(cristinResponse, accessRights))
+            .build();
+    }
+
+    private Collection<AttributeType> updatedPersonAttributes(CristinPersonResponse response, String... accessRights) {
+        return List.of(createAttribute("custom:firstName", response.extractFirstName()),
+                       createAttribute("custom:lastName", response.extractLastName()),
+                       createAttribute("custom:accessRights", String.join(ACCESS_RIGTHS_DELIMITER, accessRights)));
+    }
+
+    private AttributeType createAttribute(String s, String s2) {
+        return AttributeType.builder().name(s).value(s2).build();
     }
 
     private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
@@ -173,7 +188,7 @@ public class IdentityServiceEntryUpdateHandler
 
     private CristinPersonResponse fetchPersonInformationFromCristin(CognitoUserPoolPreTokenGenerationEvent input,
                                                                     String nin) {
-        var jwtToken = requestAuthorizer.fetchJwtToken(input.getUserPoolId());
+        var jwtToken = backendJwtTokenRetriever.fetchJwtToken(input.getUserPoolId());
         return attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
     }
 

@@ -45,8 +45,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 class IdentityServiceEntryUpdateHandlerTest {
 
     public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
-    public static final boolean INACTIVE = false;
-    public static final boolean ACTIVE = true;
+
     private static final boolean EXCLUDE_INACTIVE = false;
     public static final boolean INCLUDE_INACTIVE = true;
     public static final String AT = "@";

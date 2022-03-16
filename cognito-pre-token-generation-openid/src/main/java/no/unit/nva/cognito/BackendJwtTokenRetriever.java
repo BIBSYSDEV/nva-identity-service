@@ -23,20 +23,16 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsRequest;
 
-class RequestAuthorizer {
+class BackendJwtTokenRetriever {
 
     private final CognitoIdentityProviderClient cognitoClient;
     private final URI cognitoUri;
     private final HttpClient httpClient;
 
-    protected RequestAuthorizer(CognitoIdentityProviderClient cognitoClient, URI cognitoHost, HttpClient httpClient) {
+    protected BackendJwtTokenRetriever(CognitoIdentityProviderClient cognitoClient, URI cognitoHost, HttpClient httpClient) {
         this.cognitoClient = cognitoClient;
         this.cognitoUri = standardOauth2TokenEndpoint(cognitoHost);
         this.httpClient = httpClient;
-    }
-
-    public static URI standardOauth2TokenEndpoint(URI cognitoHost) {
-        return new UriWrapper(cognitoHost).addChild("oauth2").addChild("token").getUri();
     }
 
     public String fetchJwtToken(String userPoolId) {
@@ -44,7 +40,22 @@ class RequestAuthorizer {
         return sendRequestAndExtractToken(postRequest);
     }
 
+    private static URI standardOauth2TokenEndpoint(URI cognitoHost) {
+        return new UriWrapper(cognitoHost).addChild("oauth2").addChild("token").getUri();
+    }
 
+    private static HttpRequest.BodyPublisher clientCredentialsAuthType() {
+        var queryParameters = UriWrapper.fromHost("notimportant")
+            .addQueryParameters(GRANT_TYPE_CLIENT_CREDENTIALS).getUri().getRawQuery();
+        return HttpRequest.BodyPublishers.ofString(queryParameters);
+    }
+
+    private static String formatBasicAuthenticationHeader(String clientId, String clientSecret) {
+        return attempt(() -> String.format("%s:%s", clientId, clientSecret))
+            .map(str -> Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8)))
+            .map(credentials -> "Basic " + credentials)
+            .orElseThrow();
+    }
 
     private HttpRequest formatRequestForJwtToken(String userPoolId) {
         return HttpRequest.newBuilder()
@@ -54,22 +65,10 @@ class RequestAuthorizer {
             .POST(clientCredentialsAuthType())
             .build();
     }
-    private static HttpRequest.BodyPublisher clientCredentialsAuthType() {
-        var queryParameters = UriWrapper.fromHost("notimportant")
-            .addQueryParameters(GRANT_TYPE_CLIENT_CREDENTIALS).getUri().getRawQuery();
-        return HttpRequest.BodyPublishers.ofString(queryParameters);
-    }
 
     private String authenticationString(String userPoolId) {
         var clientCredentials = fetchUserPoolClientCredentials(userPoolId);
         return formatBasicAuthenticationHeader(clientCredentials.clientId, clientCredentials.clientSecret);
-    }
-
-    private static String formatBasicAuthenticationHeader(String clientId, String clientSecret) {
-        return attempt(() -> String.format("%s:%s", clientId, clientSecret))
-            .map(str -> Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8)))
-            .map(credentials -> "Basic " + credentials)
-            .orElseThrow();
     }
 
     private String sendRequestAndExtractToken(HttpRequest postRequest) {

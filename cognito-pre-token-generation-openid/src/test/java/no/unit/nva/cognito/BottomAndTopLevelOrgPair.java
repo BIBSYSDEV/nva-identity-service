@@ -22,8 +22,13 @@ public class BottomAndTopLevelOrgPair {
         return bottomLevelOrg;
     }
 
-    public CristinOrgResponse toCristinOrgResponse(){
-        return CristinOrgResponse.create(bottomLevelOrg,topLevelOrg);
+    public CristinOrgResponse toCristinOrgResponse() {
+        return CristinOrgResponse.create(bottomLevelOrg, topLevelOrg);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getTopLevelOrg(), getBottomLevelOrg());
     }
 
     @Override
@@ -37,10 +42,5 @@ public class BottomAndTopLevelOrgPair {
         BottomAndTopLevelOrgPair that = (BottomAndTopLevelOrgPair) o;
         return Objects.equals(getTopLevelOrg(), that.getTopLevelOrg()) && Objects.equals(
             getBottomLevelOrg(), that.getBottomLevelOrg());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getTopLevelOrg(), getBottomLevelOrg());
     }
 }

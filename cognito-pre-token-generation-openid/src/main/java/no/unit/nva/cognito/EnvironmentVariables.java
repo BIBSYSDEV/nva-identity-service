@@ -12,6 +12,7 @@ public final class EnvironmentVariables {
     public static final URI COGNITO_HOST = defaultCognitoHost();
     public static final String API_DOMAIN = ENVIRONMENT.readEnv("API_DOMAIN");
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
+
     private EnvironmentVariables() {
     }
 

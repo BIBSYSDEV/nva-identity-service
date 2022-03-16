@@ -45,10 +45,9 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 class IdentityServiceEntryUpdateHandlerTest {
 
     public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
-
-    private static final boolean EXCLUDE_INACTIVE = false;
     public static final boolean INCLUDE_INACTIVE = true;
     public static final String AT = "@";
+    private static final boolean EXCLUDE_INACTIVE = false;
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
@@ -66,15 +65,15 @@ class IdentityServiceEntryUpdateHandlerTest {
     public void init() {
         setUpWiremock();
         this.dataporten = new DataportenMock(httpServer);
-        var cognitoHost = this.serverUri;
-        var cristinHost = this.serverUri;
 
         setupCustomerService();
         setupIdentityService();
 
-        registeredPeople = new RegisteredPeopleInstance(httpServer, dataporten, customerService,identityService);
+        registeredPeople = new RegisteredPeopleInstance(httpServer, dataporten, customerService, identityService);
         nvaDataGenerator = new NvaDataGenerator(registeredPeople, customerService);
 
+        var cognitoHost = this.serverUri;
+        var cristinHost = this.serverUri;
         handler = new IdentityServiceEntryUpdateHandler(dataporten.getCognitoClient(),
                                                         HTTP_CLIENT,
                                                         cognitoHost,
@@ -96,7 +95,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOneActiveAffiliation(
         LoginEventType loginEventType) {
 
-        var personLoggingIn = registeredPeople.aPersonWithExactlyOneActiveAffiliation();
+        var personLoggingIn = registeredPeople.personWithExactlyOneActiveAffiliation();
         var event = randomEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
 
@@ -113,7 +112,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOnlyInactiveAffiliations(
         LoginEventType loginEventType) {
 
-        var personLoggingIn = registeredPeople.aPersonWithOnlyInactiveAffiliations();
+        var personLoggingIn = registeredPeople.personWithOnlyInactiveAffiliations();
         var event = randomEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
 
@@ -128,7 +127,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldCreateUsersForPersonsActiveTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
         LoginEventType loginEventType) {
 
-        var personLoggingIn = registeredPeople.aPersonWithActiveAndInactiveAffiliations();
+        var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
         var event = randomEvent(personLoggingIn, loginEventType);
 
         handler.handleRequest(event, context);
@@ -149,7 +148,7 @@ class IdentityServiceEntryUpdateHandlerTest {
                               + "logged in for both valid and invalid affiliations")
     @EnumSource(LoginEventType.class)
     void shouldMaintainPreexistingUserEntriesForBothValidAndInvalidAffiliations(LoginEventType eventType) {
-        var personLoggingIn = registeredPeople.aPersonWithActiveAndInactiveAffiliations();
+        var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
         var personCristinId = registeredPeople.getCristinPersonId(personLoggingIn);
         var alreadyExistingUsers = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
         handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
@@ -163,7 +162,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerCristinIdentifierForUsersActiveTopOrgs(
         LoginEventType eventType) throws InterruptedException {
-        var personLoggingIn = registeredPeople.aPersonWithActiveAndInactiveAffiliations();
+        var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
         var usersForActiveAndInactiveAffiliations = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
         var expectedUsers = usersForActiveAndInactiveAffiliations.stream()
             .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
@@ -181,13 +180,12 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(expectedAccessRightsWithCristinIdentifiers, everyItem(in(actualAccessRights)));
     }
 
-
     @ParameterizedTest(name = "should return access rights as user groups for user concatenated with customer NVA "
                               + "identifier for user's active top orgs")
     @EnumSource(LoginEventType.class)
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerNvaIdentifierForUsersActiveTopOrgs(
         LoginEventType eventType) throws InterruptedException {
-        var personLoggingIn = registeredPeople.aPersonWithActiveAndInactiveAffiliations();
+        var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
         var usersForActiveAndInactiveAffiliations = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
         var expectedUsers = usersForActiveAndInactiveAffiliations.stream()
             .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
@@ -205,7 +203,6 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(expectedAccessRightsWithNvaIdentifiers, everyItem(in(actualAccessRights)));
     }
 
-
     private List<UserDto> createUsersForActiveAndInactiveAffiliations(NationalIdentityNumber personLoggingIn) {
         return nvaDataGenerator.createUsers(personLoggingIn, INCLUDE_INACTIVE)
             .stream()
@@ -220,7 +217,6 @@ class IdentityServiceEntryUpdateHandlerTest {
             .map(accessRight -> accessRight + AT + customerIdentifier)
             .collect(Collectors.toList());
     }
-
 
     private List<String> createAccessRightsCristinIdVersion(UserDto user) {
         var customerCristinId = customerService.getCustomer(user.getInstitution()).getCristinId();

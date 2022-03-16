@@ -29,7 +29,9 @@ class BackendJwtTokenRetriever {
     private final URI cognitoUri;
     private final HttpClient httpClient;
 
-    protected BackendJwtTokenRetriever(CognitoIdentityProviderClient cognitoClient, URI cognitoHost, HttpClient httpClient) {
+    protected BackendJwtTokenRetriever(CognitoIdentityProviderClient cognitoClient,
+                                       URI cognitoHost,
+                                       HttpClient httpClient) {
         this.cognitoClient = cognitoClient;
         this.cognitoUri = standardOauth2TokenEndpoint(cognitoHost);
         this.httpClient = httpClient;

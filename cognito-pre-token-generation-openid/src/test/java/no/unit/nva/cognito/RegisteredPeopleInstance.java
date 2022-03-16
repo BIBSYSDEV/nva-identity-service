@@ -81,15 +81,15 @@ public class RegisteredPeopleInstance {
         return CristinIdentifier.fromCristinId(getCristinPersonId(nin));
     }
 
-    public NationalIdentityNumber aPersonWithExactlyOneActiveAffiliation() {
+    public NationalIdentityNumber personWithExactlyOneActiveAffiliation() {
         return cristinProxy.getPersonWithOneActiveAffiliationAndNoInactiveAffiliations();
     }
 
-    public NationalIdentityNumber aPersonWithOnlyInactiveAffiliations() {
+    public NationalIdentityNumber personWithOnlyInactiveAffiliations() {
         return cristinProxy.getPersonWithOnlyInactiveAffiliations();
     }
 
-    public NationalIdentityNumber aPersonWithActiveAndInactiveAffiliations() {
+    public NationalIdentityNumber personWithActiveAndInactiveAffiliations() {
         return cristinProxy.getPersonWithActiveAndInactiveAffiliations();
     }
 

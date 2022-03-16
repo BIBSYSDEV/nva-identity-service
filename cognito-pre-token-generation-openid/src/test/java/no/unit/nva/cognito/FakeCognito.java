@@ -16,8 +16,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.GetGroupRes
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GroupType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolClientsResponse;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientDescription;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientType;
 
@@ -47,6 +45,11 @@ public class FakeCognito implements CognitoIdentityProviderClient {
     @Override
     public AdminAddUserToGroupResponse adminAddUserToGroup(AdminAddUserToGroupRequest request) {
         return AdminAddUserToGroupResponse.builder().build();
+    }
+
+    @Override
+    public AdminUpdateUserAttributesResponse adminUpdateUserAttributes(AdminUpdateUserAttributesRequest request) {
+        return AdminUpdateUserAttributesResponse.builder().build();
     }
 
     @Override
@@ -85,10 +88,5 @@ public class FakeCognito implements CognitoIdentityProviderClient {
             .clientName(BACKEND_USER_POOL_CLIENT_NAME)
             .build();
         return ListUserPoolClientsResponse.builder().userPoolClients(userPoolClient).build();
-    }
-
-    @Override
-    public AdminUpdateUserAttributesResponse adminUpdateUserAttributes(AdminUpdateUserAttributesRequest request){
-        return AdminUpdateUserAttributesResponse.builder().build();
     }
 }

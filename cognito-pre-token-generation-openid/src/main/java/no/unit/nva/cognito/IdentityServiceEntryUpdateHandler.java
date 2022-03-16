@@ -77,7 +77,7 @@ public class IdentityServiceEntryUpdateHandler
                                                                 Context context) {
 
         var json =
-            attempt(()-> objectMapper.asString(input.getRequest().getUserAttributes())).orElseThrow();
+            attempt(() -> objectMapper.asString(input.getRequest().getUserAttributes())).orElseThrow();
         context.getLogger().log(json);
         context.getLogger().log(input.toString());
         var nin = extractNin(input.getRequest().getUserAttributes());
@@ -88,7 +88,7 @@ public class IdentityServiceEntryUpdateHandler
         var accessRights = accessRightsPerCustomer(usersForPerson);
 
         injectAccessRightsToEventResponse(input, accessRights);
-        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input,cristinResponse, accessRights);
+        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input, cristinResponse, accessRights);
 
         return input;
     }

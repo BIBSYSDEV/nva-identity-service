@@ -77,17 +77,8 @@ public class IdentityServiceEntryUpdateHandler
         var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
 
         var personsUsers = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers);
-
-        var groupsToOverride = personsUsers.stream()
-            .map(user -> CustomerAccessRight.fromUser(user, customerService))
-            .flatMap(Collection::stream)
-            .map(CustomerAccessRight::asStrings)
-            .flatMap(Collection::stream)
-            .toArray(String[]::new);
-
-        input.setResponse(
-            Response.builder().withClaimsOverrideDetails(buildGroupsToOverride(groupsToOverride)).build());
-
+        var accessRights = accessRightsPerCustomer(personsUsers);
+        injectAccessRightsToEventResponse(input, accessRights);
         return input;
     }
 
@@ -107,6 +98,21 @@ public class IdentityServiceEntryUpdateHandler
             .httpClient(UrlConnectionHttpClient.create())
             .region(AWS_REGION)
             .build();
+    }
+
+    private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
+                                                   String... groupsToOverride) {
+        input.setResponse(
+            Response.builder().withClaimsOverrideDetails(buildGroupsToOverride(groupsToOverride)).build());
+    }
+
+    private String[] accessRightsPerCustomer(List<UserDto> personsUsers) {
+        return personsUsers.stream()
+            .map(user -> CustomerAccessRight.fromUser(user, customerService))
+            .flatMap(Collection::stream)
+            .map(CustomerAccessRight::asStrings)
+            .flatMap(Collection::stream)
+            .toArray(String[]::new);
     }
 
     private ClaimsOverrideDetails buildGroupsToOverride(String... groupsToOverride) {

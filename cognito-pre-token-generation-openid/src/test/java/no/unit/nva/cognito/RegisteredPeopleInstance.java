@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinIdentifier;
-import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -28,7 +27,7 @@ public class RegisteredPeopleInstance {
     private final CristinProxyMock cristinProxy;
     private final Set<NationalIdentityNumber> people;
     private List<RoleDto> availableNvaRoles;
-    private IdentityService identityService;
+    private final IdentityService identityService;
 
     public RegisteredPeopleInstance(WireMockServer httpServer,
                                     DataportenMock dataportenMock,
@@ -38,7 +37,7 @@ public class RegisteredPeopleInstance {
         this.cristinProxy = new CristinProxyMock(httpServer, dataportenMock);
         this.people = randomPeople();
         this.identityService = identityService;
-        initialize();
+        initializeInstance();
     }
 
     public static Set<NationalIdentityNumber> randomPeople() {
@@ -51,14 +50,18 @@ public class RegisteredPeopleInstance {
         return availableNvaRoles;
     }
 
-    public CristinProxyMock getCristinProxy() {
-        return cristinProxy;
+    public void initializeInstance() {
+        cristinHasSomeOrganizationsAndPeopleWorkingInOrganizations();
+        nvaHasRegisteredSomeOfCristinsOrganizationsAsCustomers();
+        nvaHasDefinedRolesForTheNvaUsers();
     }
 
-    public void initialize() {
+    private void nvaHasDefinedRolesForTheNvaUsers() {
+        availableNvaRoles = insertSomeRolesInNva();
+    }
+
+    private void cristinHasSomeOrganizationsAndPeopleWorkingInOrganizations() {
         cristinProxy.initialize(people);
-        populateCustomersFoundInCristinProxy();
-        availableNvaRoles = createNvaRoles();
     }
 
     public Set<URI> getTopLevelOrgsForPerson(NationalIdentityNumber nin, boolean includeInactive) {
@@ -70,9 +73,6 @@ public class RegisteredPeopleInstance {
             .collect(Collectors.toSet());
     }
 
-    public CristinPersonResponse getCristinPersonRecord(NationalIdentityNumber nin) {
-        return cristinProxy.getCristinPersonRecord(nin);
-    }
     public URI getCristinPersonId(NationalIdentityNumber nin) {
         return cristinProxy.getCristinPersonRecord(nin).getCristinId();
     }
@@ -81,15 +81,15 @@ public class RegisteredPeopleInstance {
         return CristinIdentifier.fromCristinId(getCristinPersonId(nin));
     }
 
-    public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() {
+    public NationalIdentityNumber aPersonWithExactlyOneActiveAffiliation() {
         return cristinProxy.getPersonWithOneActiveAffiliationAndNoInactiveAffiliations();
     }
 
-    public NationalIdentityNumber getPersonWithOnlyInactiveAffiliations() {
+    public NationalIdentityNumber aPersonWithOnlyInactiveAffiliations() {
         return cristinProxy.getPersonWithOnlyInactiveAffiliations();
     }
 
-    public NationalIdentityNumber getPersonWithActiveAndInactiveAffiliations() {
+    public NationalIdentityNumber aPersonWithActiveAndInactiveAffiliations() {
         return cristinProxy.getPersonWithActiveAndInactiveAffiliations();
     }
 
@@ -102,31 +102,21 @@ public class RegisteredPeopleInstance {
             .collect(Collectors.toSet());
     }
 
-    public Set<URI> getAllTopLevelAffiliationsForUser(NationalIdentityNumber nin) {
-        return cristinProxy.getCristinPersonRecord(nin).getAffiliations()
-            .stream()
-            .map(CristinAffiliation::getOrganizationUri)
-            .map(cristinProxy::getTopLevelOrgForBottomLevelOrg)
-            .collect(Collectors.toSet());
-    }
-
     public Stream<CustomerDto> getCustomersWithActiveAffiliations(NationalIdentityNumber personsNin) {
         return getTopLevelAffiliationsForUser(personsNin, ACTIVE)
             .stream()
             .map(uri -> customerService.getCustomerByCristinId(uri.toString()));
     }
 
-
-
-    private List<RoleDto> createNvaRoles() {
+    private List<RoleDto> insertSomeRolesInNva() {
         return IntStream.range(0, 10).boxed()
             .map(ignored -> NvaDataGenerator.createRole())
-            .peek(role -> identityService.addRole(role))
-            .map(role -> identityService.getRole(role))
+            .peek(identityService::addRole)
+            .map(identityService::getRole)
             .collect(Collectors.toList());
     }
 
-    private void populateCustomersFoundInCristinProxy() {
+    private void nvaHasRegisteredSomeOfCristinsOrganizationsAsCustomers() {
         var nvaCustomers = cristinProxy.getTopLevelOrgUris().stream()
             .map(this::createNvaCustomer)
             .collect(Collectors.toList());

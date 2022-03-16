@@ -97,7 +97,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOneActiveAffiliation(
         LoginEventType loginEventType) {
 
-        var personLoggingIn = registeredPeople.getPersonWithExactlyOneActiveAffiliation();
+        var personLoggingIn = registeredPeople.aPersonWithExactlyOneActiveAffiliation();
         var event = randomEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
 
@@ -114,7 +114,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOnlyInactiveAffiliations(
         LoginEventType loginEventType) {
 
-        var personLoggingIn = registeredPeople.getPersonWithOnlyInactiveAffiliations();
+        var personLoggingIn = registeredPeople.aPersonWithOnlyInactiveAffiliations();
         var event = randomEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
 
@@ -129,7 +129,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldCreateUsersForPersonsActiveTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
         LoginEventType loginEventType) {
 
-        var personLoggingIn = registeredPeople.getPersonWithActiveAndInactiveAffiliations();
+        var personLoggingIn = registeredPeople.aPersonWithActiveAndInactiveAffiliations();
         var event = randomEvent(personLoggingIn, loginEventType);
 
         handler.handleRequest(event, context);
@@ -150,7 +150,7 @@ class IdentityServiceEntryUpdateHandlerTest {
                               + "logged in for both valid and invalid affiliations")
     @EnumSource(LoginEventType.class)
     void shouldMaintainPreexistingUserEntriesForBothValidAndInvalidAffiliations(LoginEventType eventType) {
-        var personLoggingIn = registeredPeople.getPersonWithActiveAndInactiveAffiliations();
+        var personLoggingIn = registeredPeople.aPersonWithActiveAndInactiveAffiliations();
         var personCristinId = registeredPeople.getCristinPersonId(personLoggingIn);
         var alreadyExistingUsers = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
         handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
@@ -164,7 +164,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerCristinIdentifierForUsersActiveTopOrgs(
         LoginEventType eventType) throws InterruptedException {
-        var personLoggingIn = registeredPeople.getPersonWithActiveAndInactiveAffiliations();
+        var personLoggingIn = registeredPeople.aPersonWithActiveAndInactiveAffiliations();
         var usersForActiveAndInactiveAffiliations = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
         var expectedUsers = usersForActiveAndInactiveAffiliations.stream()
             .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
@@ -188,7 +188,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerNvaIdentifierForUsersActiveTopOrgs(
         LoginEventType eventType) throws InterruptedException {
-        var personLoggingIn = registeredPeople.getPersonWithActiveAndInactiveAffiliations();
+        var personLoggingIn = registeredPeople.aPersonWithActiveAndInactiveAffiliations();
         var usersForActiveAndInactiveAffiliations = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
         var expectedUsers = usersForActiveAndInactiveAffiliations.stream()
             .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))

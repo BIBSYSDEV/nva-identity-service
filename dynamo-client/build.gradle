@@ -5,20 +5,14 @@ plugins {
 
 dependencies {
 
-    implementation project(':dynamo-client')
-    implementation project (':json')
-    implementation libs.nva.apigatewayv2
     implementation libs.nva.core
-    implementation libs.bundles.jackson
-    implementation libs.guava
     implementation libs.aws.sdk2.dynamodbenhanced
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.urlconnection
 
-    testImplementation project (":customer-testing")
 }
 
-
 test{
-    environment "CUSTOMERS_TABLE_NAME","nva_customers"
+    environment "API_HOST", "api.dev.aws.nva.unit.no"
+    environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
 }

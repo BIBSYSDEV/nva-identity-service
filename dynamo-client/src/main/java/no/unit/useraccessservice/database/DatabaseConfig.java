@@ -1,4 +1,4 @@
-package no.unit.nva.database;
+package no.unit.useraccessservice.database;
 
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -7,20 +7,12 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-@JacocoGenerated
-public final class Constants {
+public final class DatabaseConfig {
 
     @JacocoGenerated
-    private static final Environment ENVIRONMENT = new Environment();
-    @JacocoGenerated
-    public static final String AWS_REGION = ENVIRONMENT.readEnv("AWS_REGION");
-
+    public static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
     @JacocoGenerated
     public static final DynamoDbClient DEFAULT_DYNAMO_CLIENT = defaultDynamoDbClient();
-
-    private Constants() {
-
-    }
 
     @JacocoGenerated
     private static DynamoDbClient defaultDynamoDbClient() {
@@ -30,4 +22,9 @@ public final class Constants {
             .region(Region.of(AWS_REGION))
             .build();
     }
+
+    private DatabaseConfig(){
+
+    }
+
 }

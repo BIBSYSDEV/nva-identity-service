@@ -1,6 +1,7 @@
 enableFeaturePreview('VERSION_CATALOGS')
 rootProject.name = 'nva-identity-service'
 include 'json'
+include  'dynamo-client'
 include 'user-access-commons'
 include 'user-access-public-model'
 include 'user-access-internal-model'
@@ -11,6 +12,5 @@ include 'user-access-event-handlers'
 include 'customer-commons'
 include 'customer-testing'
 include 'customer'
-//include 'cognito-pre-token-generation'
 include 'cognito-pre-token-generation-openid'
 

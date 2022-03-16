@@ -16,15 +16,16 @@ public class TestHeaders {
 
     /**
      * Request headers for testing.
+     *
      * @return headers
      */
-    public static Map<String,String> getRequestHeaders() {
+    public static Map<String, String> getRequestHeaders() {
         return Map.of(
             CONTENT_TYPE, JSON_UTF_8.toString(),
             ACCEPT, JSON_UTF_8.toString());
     }
 
-    public static Map<String, List<String>> getMultiValuedHeaders(){
+    public static Map<String, List<String>> getMultiValuedHeaders() {
         return Map.of(
             CONTENT_TYPE, List.of(JSON_UTF_8.toString()),
             ACCEPT, List.of(JSON_UTF_8.toString()));
@@ -32,24 +33,25 @@ public class TestHeaders {
 
     /**
      * Successful response headers for testing.
+     *
      * @return headers
      */
-    public static  Map<String,String> getResponseHeaders() {
+    public static Map<String, String> getResponseHeaders() {
         return Map.of(
-                CONTENT_TYPE,  JSON_UTF_8.toString(),
-                ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD
+            CONTENT_TYPE, JSON_UTF_8.toString(),
+            ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD
         );
     }
 
     /**
      * Failing response headers for testing.
+     *
      * @return headers
      */
-    public static  Map<String,String> getErrorResponseHeaders() {
+    public static Map<String, String> getErrorResponseHeaders() {
         return Map.of(
-                CONTENT_TYPE, APPLICATION_PROBLEM_JSON,
-                ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD
+            CONTENT_TYPE, APPLICATION_PROBLEM_JSON,
+            ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD
         );
     }
-
 }

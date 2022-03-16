@@ -1,6 +1,6 @@
 package no.unit.nva.database;
 
-import static no.unit.nva.database.Constants.DEFAULT_DYNAMO_CLIENT;
+import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;

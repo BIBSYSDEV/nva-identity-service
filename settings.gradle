@@ -1,10 +1,8 @@
 enableFeaturePreview('VERSION_CATALOGS')
 rootProject.name = 'nva-identity-service'
 include 'json'
-include 'user-access-errors'
 include 'user-access-commons'
 include 'user-access-public-model'
-include 'user-access-rights'
 include 'user-access-internal-model'
 include 'user-access-testing'
 include 'user-access-service'

@@ -4,7 +4,8 @@ plugins {
 }
 
 dependencies {
-    implementation project(":user-access-errors")
+
+    implementation project (":json")
     implementation libs.nva.core
 
     implementation libs.nva.apigatewayv2

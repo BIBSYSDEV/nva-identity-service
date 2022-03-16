@@ -7,9 +7,7 @@ dependencies {
 
     implementation project(":user-access-internal-model")
     implementation project(":user-access-commons")
-    implementation project(":user-access-errors")
     implementation project(":user-access-public-model")
-    implementation project(":user-access-rights")
     implementation project(':json')
 
     implementation libs.nva.core

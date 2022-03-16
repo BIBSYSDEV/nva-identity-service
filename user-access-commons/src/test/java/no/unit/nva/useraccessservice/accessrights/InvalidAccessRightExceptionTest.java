@@ -1,4 +1,4 @@
-package no.unit.useraccessserivce.accessrights;
+package no.unit.nva.useraccessservice.accessrights;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;

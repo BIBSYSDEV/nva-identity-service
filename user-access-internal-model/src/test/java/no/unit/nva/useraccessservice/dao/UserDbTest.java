@@ -32,7 +32,7 @@ import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.useraccessserivce.accessrights.AccessRight;
+import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
 import nva.commons.logutils.LogUtils;

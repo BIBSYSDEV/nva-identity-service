@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessservice.dao;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.useraccessserivce.accessrights.AccessRight.APPROVE_DOI_REQUEST;
+import static no.unit.nva.useraccessservice.accessrights.AccessRight.APPROVE_DOI_REQUEST;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.useraccessserivce.accessrights.AccessRight;
+import no.unit.nva.useraccessservice.accessrights.AccessRight;
 
 public final class EntityUtils {
 

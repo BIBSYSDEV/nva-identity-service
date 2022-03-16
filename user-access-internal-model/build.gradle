@@ -12,8 +12,6 @@ dependencies {
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.dynamodbenhanced
 
-    compileOnly project(":user-access-rights")
-    testImplementation project(":user-access-rights")
 
     compileOnly project(":user-access-public-model")
     testImplementation project(":user-access-public-model")
@@ -21,8 +19,6 @@ dependencies {
     compileOnly project(":user-access-commons")
     testImplementation project(":user-access-commons")
 
-    compileOnly project(":user-access-errors")
-    testImplementation project(":user-access-errors")
     testImplementation project(":user-access-testing")
 
 }

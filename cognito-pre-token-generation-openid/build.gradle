@@ -11,9 +11,7 @@ dependencies {
     implementation project (":customer-commons")
     implementation project (":user-access-commons")
     implementation project (":user-access-service")
-    implementation project (":user-access-errors")
     implementation project (":user-access-public-model")
-    implementation project (":user-access-rights")
 
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection

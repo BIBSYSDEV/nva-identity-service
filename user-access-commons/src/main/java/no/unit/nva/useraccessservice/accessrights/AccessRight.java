@@ -1,4 +1,4 @@
-package no.unit.useraccessserivce.accessrights;
+package no.unit.nva.useraccessservice.accessrights;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -19,10 +19,10 @@ public enum AccessRight {
     private static final Map<String, AccessRight> index = createIndex();
 
     /**
-     * Creates an no.unit.useraccessserivce.accessrights.AccessRight instance from a string (case insensitive).
+     * Creates an no.unit.nva.useraccessservice.accessrigths.AccessRight instance from a string (case insensitive).
      *
      * @param accessRight string representation of access right
-     * @return an no.unit.useraccessserivce.accessrights.AccessRight instance.
+     * @return an no.unit.nva.useraccessservice.accessrigths.AccessRight instance.
      */
     @JsonCreator
     public static AccessRight fromString(String accessRight) {

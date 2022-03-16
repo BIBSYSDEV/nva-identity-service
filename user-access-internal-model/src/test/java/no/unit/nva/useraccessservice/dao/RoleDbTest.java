@@ -18,7 +18,7 @@ import java.beans.Introspector;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.useraccessserivce.accessrights.AccessRight;
+import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;

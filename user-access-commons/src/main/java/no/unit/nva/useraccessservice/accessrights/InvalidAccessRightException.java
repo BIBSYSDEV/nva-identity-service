@@ -1,4 +1,4 @@
-package no.unit.useraccessserivce.accessrights;
+package no.unit.nva.useraccessservice.accessrights;
 
 public class InvalidAccessRightException extends RuntimeException {
 

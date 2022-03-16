@@ -7,7 +7,6 @@ plugins {
 dependencies {
     implementation project(':user-access-public-model')
     implementation project(':user-access-commons')
-    implementation project(':user-access-errors')
     implementation project(':user-access-service')
     implementation project(':customer-commons')
 

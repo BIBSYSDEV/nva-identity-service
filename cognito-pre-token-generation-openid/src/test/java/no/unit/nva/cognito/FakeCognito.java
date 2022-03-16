@@ -5,6 +5,8 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
@@ -86,7 +88,7 @@ public class FakeCognito implements CognitoIdentityProviderClient {
     }
 
     @Override
-    public UpdateUserAttributesResponse updateUserAttributes(UpdateUserAttributesRequest request){
-        return UpdateUserAttributesResponse.builder().build();
+    public AdminUpdateUserAttributesResponse adminUpdateUserAttributes(AdminUpdateUserAttributesRequest request){
+        return AdminUpdateUserAttributesResponse.builder().build();
     }
 }

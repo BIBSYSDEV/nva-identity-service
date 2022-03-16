@@ -32,6 +32,7 @@ import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
 
@@ -89,7 +90,7 @@ public class IdentityServiceEntryUpdateHandler
 
     private void updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(
         CristinPersonResponse cristinResponse, String... accessRights) {
-        cognitoClient.updateUserAttributes(createUpdateUserAttributesRequest(cristinResponse, accessRights));
+        cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(cristinResponse, accessRights));
     }
 
     @JacocoGenerated
@@ -101,9 +102,9 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private UpdateUserAttributesRequest createUpdateUserAttributesRequest(CristinPersonResponse cristinResponse,
-                                                                          String... accessRights) {
-        return UpdateUserAttributesRequest.builder()
+    private AdminUpdateUserAttributesRequest createUpdateUserAttributesRequest(CristinPersonResponse cristinResponse,
+                                                                               String... accessRights) {
+        return AdminUpdateUserAttributesRequest.builder()
             .userAttributes(updatedPersonAttributes(cristinResponse, accessRights))
             .build();
     }

@@ -20,7 +20,6 @@ import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
-import nva.commons.core.paths.UriWrapper;
 
 public class UserDto implements WithCopy<Builder>, Typed {
 
@@ -118,11 +117,6 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public URI getInstitution() {
         return institution;
     }
-
-    public String extractCristinIdentifier(){
-        return new UriWrapper(cristinId).getLastPathElement();
-    }
-
 
     private void setInstitution(URI institution) {
         this.institution = institution;

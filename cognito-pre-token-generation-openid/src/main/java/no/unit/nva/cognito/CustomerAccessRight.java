@@ -1,11 +1,13 @@
 package no.unit.nva.cognito;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessmanagement.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
 public class CustomerAccessRight {
@@ -35,8 +37,28 @@ public class CustomerAccessRight {
     }
 
     @Override
+    @JacocoGenerated
     public String toString() {
         return asStrings().stream().collect(Collectors.joining(ACCESS_RIGHT_SEPARATOR));
+    }
+
+    @Override
+    @JacocoGenerated
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof CustomerAccessRight)) {
+            return false;
+        }
+        CustomerAccessRight that = (CustomerAccessRight) o;
+        return accessRight == that.accessRight && Objects.equals(customer, that.customer);
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(accessRight, customer);
     }
 
     private String accessRightWithCustomerCristinId() {

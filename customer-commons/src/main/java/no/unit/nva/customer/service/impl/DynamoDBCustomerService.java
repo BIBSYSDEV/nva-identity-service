@@ -55,6 +55,7 @@ public class DynamoDBCustomerService implements CustomerService {
         warmupDynamoDbConnection(table);
     }
 
+    @Override
     public CustomerDto getCustomer(URI customerId){
         var customerIdentifier = new UriWrapper(customerId).getLastPathElement();
         return getCustomer(UUID.fromString(customerIdentifier));

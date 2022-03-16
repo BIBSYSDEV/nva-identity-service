@@ -151,7 +151,8 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldMaintainPreexistingUserEntriesForBothValidAndInvalidAffiliations(LoginEventType eventType) {
         var personLoggingIn = registeredPeople.getPersonWithActiveAndInactiveAffiliations();
-        var alreadyExistingUsers = nvaDataGenerator.createUsers(personLoggingIn, INCLUDE_INACTIVE);
+        var personCristinId = registeredPeople.getCristinPersonId(personLoggingIn);
+        var alreadyExistingUsers = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
         handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
 
         var actualUsers = scanAllUsers();
@@ -169,7 +170,7 @@ class IdentityServiceEntryUpdateHandlerTest {
             .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
             .collect(Collectors.toSet());
 
-        var expectedAccessRights = expectedUsers.stream()
+        var expectedAccessRightsWithCristinIdentifiers = expectedUsers.stream()
             .map(this::createAccessRightsCristinIdVersion)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
@@ -178,8 +179,33 @@ class IdentityServiceEntryUpdateHandlerTest {
 
         var actualAccessRights =
             response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
-        assertThat(expectedAccessRights, everyItem(in(actualAccessRights)));
+        assertThat(expectedAccessRightsWithCristinIdentifiers, everyItem(in(actualAccessRights)));
     }
+
+
+    @ParameterizedTest(name = "should return access rights as user groups for user concatenated with customer NVA "
+                              + "identifier for user's active top orgs")
+    @EnumSource(LoginEventType.class)
+    void shouldReturnAccessRightsForUserConcatenatedWithCustomerNvaIdentifierForUsersActiveTopOrgs(
+        LoginEventType eventType) throws InterruptedException {
+        var personLoggingIn = registeredPeople.getPersonWithActiveAndInactiveAffiliations();
+        var usersForActiveAndInactiveAffiliations = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
+        var expectedUsers = usersForActiveAndInactiveAffiliations.stream()
+            .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
+            .collect(Collectors.toSet());
+
+        var expectedAccessRightsWithNvaIdentifiers = expectedUsers.stream()
+            .map(this::createAccessRightsNvaVersion)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+        var response = handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
+
+        var actualAccessRights =
+            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
+        assertThat(expectedAccessRightsWithNvaIdentifiers, everyItem(in(actualAccessRights)));
+    }
+
 
     private List<UserDto> createUsersForActiveAndInactiveAffiliations(NationalIdentityNumber personLoggingIn) {
         return nvaDataGenerator.createUsers(personLoggingIn, INCLUDE_INACTIVE)
@@ -188,6 +214,14 @@ class IdentityServiceEntryUpdateHandlerTest {
             .map(user -> identityService.getUser(user))
             .collect(Collectors.toList());
     }
+
+    private List<String> createAccessRightsNvaVersion(UserDto user) {
+        var customerIdentifier = customerService.getCustomer(user.getInstitution()).getIdentifier().toString();
+        return user.getAccessRights().stream()
+            .map(accessRight -> accessRight + AT + customerIdentifier)
+            .collect(Collectors.toList());
+    }
+
 
     private List<String> createAccessRightsCristinIdVersion(UserDto user) {
         var customerCristinId = customerService.getCustomer(user.getInstitution()).getCristinId();

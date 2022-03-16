@@ -72,6 +72,6 @@ public class NvaDataGenerator {
     private String createUserName(NationalIdentityNumber nin, CustomerDto customerDto) {
         var cristinPersonIdentifier = registeredPeopleInstance.getCristinPersonIdentifier(nin);
         var cristinOrgIdentifier = UriWrapper.fromUri(customerDto.getCristinId()).getLastPathElement();
-        return cristinPersonIdentifier + BELONGS_TO + cristinOrgIdentifier;
+        return cristinPersonIdentifier.getValue() + BELONGS_TO + cristinOrgIdentifier;
     }
 }

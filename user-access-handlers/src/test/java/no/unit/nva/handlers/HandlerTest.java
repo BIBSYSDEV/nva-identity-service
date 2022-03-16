@@ -9,10 +9,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import no.unit.nva.database.DatabaseAccessor;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 
 public class HandlerTest extends DatabaseAccessor {

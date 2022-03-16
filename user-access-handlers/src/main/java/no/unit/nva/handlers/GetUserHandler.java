@@ -7,7 +7,7 @@ import java.net.HttpURLConnection;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 

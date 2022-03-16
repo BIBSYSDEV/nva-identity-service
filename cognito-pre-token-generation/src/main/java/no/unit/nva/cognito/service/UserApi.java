@@ -1,7 +1,7 @@
 package no.unit.nva.cognito.service;
 
 import java.util.Optional;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 
 public interface UserApi {
 

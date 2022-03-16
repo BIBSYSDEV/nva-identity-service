@@ -18,7 +18,7 @@ import no.unit.nva.cognito.cristin.person.CristinIdentifier;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleDto;
 
 public class RegisteredPeopleInstance {
 

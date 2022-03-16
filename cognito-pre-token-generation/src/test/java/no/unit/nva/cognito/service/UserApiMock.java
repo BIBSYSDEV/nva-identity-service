@@ -9,8 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import no.unit.nva.cognito.exception.UserServiceException;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 
 public class UserApiMock implements UserApi {
 

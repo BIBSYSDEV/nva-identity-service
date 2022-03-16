@@ -2,7 +2,7 @@ package no.unit.nva.cognito.service;
 
 import no.unit.nva.cognito.exception.UserServiceException;
 import no.unit.nva.database.IdentityService;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

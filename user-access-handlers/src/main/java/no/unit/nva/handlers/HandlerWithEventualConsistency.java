@@ -3,7 +3,7 @@ package no.unit.nva.handlers;
 import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;

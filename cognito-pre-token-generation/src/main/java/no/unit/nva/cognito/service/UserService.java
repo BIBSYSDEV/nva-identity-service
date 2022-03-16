@@ -1,9 +1,9 @@
 package no.unit.nva.cognito.service;
 
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.model.UserDto.Builder;
+import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.core.attempt.Try;
 
 import java.net.URI;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
+import static no.unit.nva.useraccessservice.model.ViewingScope.defaultViewingScope;
 import static nva.commons.core.attempt.Try.attempt;
 
 public class UserService {

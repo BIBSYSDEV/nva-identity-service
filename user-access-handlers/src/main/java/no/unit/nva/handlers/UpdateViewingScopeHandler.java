@@ -4,8 +4,8 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
+import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.model.ViewingScope;
 
 public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope, Void> {
 

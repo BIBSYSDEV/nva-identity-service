@@ -27,7 +27,7 @@ import no.unit.nva.cognito.service.UserDetails;
 import no.unit.nva.cognito.service.UserPoolEntryUpdater;
 import no.unit.nva.cognito.service.UserService;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;

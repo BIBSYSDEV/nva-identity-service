@@ -9,8 +9,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 
 public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {

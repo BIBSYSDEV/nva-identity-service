@@ -4,9 +4,9 @@ import static no.unit.nva.database.Constants.DEFAULT_DYNAMO_CLIENT;
 import java.net.URI;
 import java.util.List;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
-import no.unit.nva.useraccessmanagement.internals.UserScanResult;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.internals.UserScanResult;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 

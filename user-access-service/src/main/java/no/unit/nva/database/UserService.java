@@ -1,7 +1,7 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.useraccessmanagement.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Collection;
@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import no.unit.nva.useraccessmanagement.dao.RoleDb;
-import no.unit.nva.useraccessmanagement.dao.UserDao;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.dao.RoleDb;
+import no.unit.nva.useraccessservice.dao.UserDao;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import org.slf4j.Logger;

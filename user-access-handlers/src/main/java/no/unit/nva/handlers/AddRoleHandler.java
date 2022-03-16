@@ -5,8 +5,8 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
+import no.unit.nva.useraccessservice.exceptions.DataSyncException;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.core.JacocoGenerated;
 
 public class AddRoleHandler extends HandlerWithEventualConsistency<RoleDto, RoleDto> {

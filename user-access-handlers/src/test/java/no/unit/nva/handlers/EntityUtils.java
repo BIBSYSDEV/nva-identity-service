@@ -9,9 +9,9 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 
 public final class EntityUtils {
 

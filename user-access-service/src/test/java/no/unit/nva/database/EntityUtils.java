@@ -3,10 +3,10 @@ package no.unit.nva.database;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.useraccessserivce.accessrights.AccessRight;
 
 public final class EntityUtils {

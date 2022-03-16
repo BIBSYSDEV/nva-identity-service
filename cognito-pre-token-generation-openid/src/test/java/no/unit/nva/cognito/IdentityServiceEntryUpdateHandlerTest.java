@@ -34,7 +34,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
-import no.unit.nva.useraccessmanagement.model.UserDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

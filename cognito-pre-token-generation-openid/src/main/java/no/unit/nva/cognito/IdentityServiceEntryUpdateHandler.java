@@ -83,7 +83,7 @@ public class IdentityServiceEntryUpdateHandler
         var accessRights = accessRightsPerCustomer(usersForPerson);
 
         injectAccessRightsToEventResponse(input, accessRights);
-//        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input, cristinResponse, accessRights);
+        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input, cristinResponse, accessRights);
 
         return input;
     }

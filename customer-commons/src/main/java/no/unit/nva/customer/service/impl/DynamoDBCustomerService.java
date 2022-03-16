@@ -1,5 +1,6 @@
 package no.unit.nva.customer.service.impl;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -52,6 +54,12 @@ public class DynamoDBCustomerService implements CustomerService {
         this.table = table;
         warmupDynamoDbConnection(table);
     }
+
+    public CustomerDto getCustomer(URI customerId){
+        var customerIdentifier = new UriWrapper(customerId).getLastPathElement();
+        return getCustomer(UUID.fromString(customerIdentifier));
+    }
+
 
     @Override
     public CustomerDto getCustomer(UUID identifier)  {

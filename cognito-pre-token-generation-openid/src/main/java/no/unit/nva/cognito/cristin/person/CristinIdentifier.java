@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 
 @JacocoGenerated
@@ -30,10 +31,10 @@ public class CristinIdentifier {
         this.value = value;
     }
 
-    public static CristinIdentifier fromCristinId(String id) {
-        return attempt(() -> URI.create(id))
+    public static CristinIdentifier fromCristinId(URI id) {
+        return Try.of(id)
             .map(UriWrapper::new)
-            .map(UriWrapper::getFilename)
+            .map(UriWrapper::getLastPathElement)
             .map(CristinIdentifier::new)
             .orElseThrow();
     }

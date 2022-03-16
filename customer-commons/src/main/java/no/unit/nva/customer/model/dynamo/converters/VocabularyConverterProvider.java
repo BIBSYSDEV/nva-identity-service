@@ -14,7 +14,7 @@ public class VocabularyConverterProvider implements AttributeConverterProvider {
         if (isVocabularySet(enhancedType)) {
             return (AttributeConverter<T>) VocabularyDao.SET_CONVERTER;
         }
-        if (isVocabularyStatus(enhancedType)){
+        if (isVocabularyStatus(enhancedType)) {
             return (AttributeConverter<T>) VocabularyStatus.VOCABULARY_STATUS_CONVERTER;
         }
         return null;

@@ -237,8 +237,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
     }
 
     @Test
-    public void addUserDoesNotAddNonExistingRolesInCreatedUser()
-        throws Exception {
+    void addUserDoesNotAddNonExistingRolesInCreatedUser() {
         UserDto userWithNonExistingRole = createUserWithRole(SOME_USERNAME, SOME_INSTITUTION,
                                                              createRole(SOME_ROLENAME));
         identityService.addUser(userWithNonExistingRole);
@@ -251,8 +250,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
 
     @DisplayName("updateUser() updates existing user with input user when input user is valid")
     @Test
-    public void updateUserUpdatesAssignsCorrectVersionOfRoleInUser()
-        throws Exception {
+    void updateUserUpdatesAssignsCorrectVersionOfRoleInUser() {
         RoleDto existingRole = createRole(SOME_ROLENAME);
         identityService.addRole(existingRole);
         UserDto existingUser = createUserWithRole(SOME_USERNAME, SOME_INSTITUTION, existingRole);
@@ -525,7 +523,7 @@ public class IdentityServiceTest extends DatabaseAccessor {
             .withGivenName(SOME_GIVEN_NAME)
             .withFamilyName(SOME_FAMILY_NAME)
             .withViewingScope(randomViewingScope())
-            .withCristinId(randomUri().toString())
+            .withCristinId(randomUri())
             .build();
     }
 

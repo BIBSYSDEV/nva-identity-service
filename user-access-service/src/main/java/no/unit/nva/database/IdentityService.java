@@ -23,7 +23,7 @@ public interface IdentityService {
 
     List<UserDto> listUsers(URI institutionId);
 
-    void addUser(UserDto user);
+    UserDto addUser(UserDto user);
 
     void addRole(RoleDto roleDto);
 

@@ -32,12 +32,12 @@ public class CristinPersonResponse {
         return List.of(new CristinIdentifier(identifier));
     }
 
-    public String getCristinId() {
-        return nonNull(cristinId) ? cristinId.toString() : null;
+    public URI getCristinId() {
+        return cristinId;
     }
 
-    public void setCristinId(String cristinId) {
-        this.cristinId = nonNull(cristinId) ? URI.create(cristinId) : null;
+    public void setCristinId(URI cristinId) {
+        this.cristinId = cristinId;
     }
 
     public List<NameValue> getNames() {
@@ -101,7 +101,7 @@ public class CristinPersonResponse {
 
         public Builder withCristinId(URI cristinId) {
             if (nonNull(cristinId)) {
-                cristinResponse.setCristinId(cristinId.toString());
+                cristinResponse.setCristinId(cristinId);
             }
             return this;
         }
@@ -115,6 +115,7 @@ public class CristinPersonResponse {
             cristinResponse.setNin(nonNull(nin) ? nin.getNin() : null);
             return this;
         }
+
         public Builder withFirstName(String name) {
             var nameValue = nonNull(name) ? NameValue.firstName(name) : null;
             cristinResponse.getNames().add(nameValue);

@@ -13,6 +13,7 @@ dependencies {
     implementation project (":user-access-service")
     implementation project (":user-access-errors")
     implementation project (":user-access-public-model")
+    implementation project (":user-access-rights")
 
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection
@@ -24,7 +25,8 @@ dependencies {
     testImplementation libs.guava
     testImplementation libs.nva.events
 
-    implementation project (":user-access-internal-model")
+
+    testImplementation project (":user-access-internal-model")
     testImplementation project (":customer-testing")
     testImplementation project(':user-access-testing')
 }

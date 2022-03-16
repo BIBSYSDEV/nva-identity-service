@@ -6,9 +6,10 @@ import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.FEIDE_ID;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static org.hamcrest.core.Every.everyItem;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
@@ -17,6 +18,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +45,11 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 class IdentityServiceEntryUpdateHandlerTest {
 
     public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
-    private static final boolean EXCLUDE_INACTIVE = false;
     public static final boolean INACTIVE = false;
     public static final boolean ACTIVE = true;
+    private static final boolean EXCLUDE_INACTIVE = false;
+    public static final boolean INCLUDE_INACTIVE = true;
+    public static final String AT = "@";
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
@@ -57,6 +61,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     private IdentityService identityService;
     private DataportenMock dataporten;
     private RegisteredPeopleInstance registeredPeople;
+    private NvaDataGenerator nvaDataGenerator;
 
     @BeforeEach
     public void init() {
@@ -68,7 +73,8 @@ class IdentityServiceEntryUpdateHandlerTest {
         setupCustomerService();
         setupIdentityService();
 
-        registeredPeople = new RegisteredPeopleInstance(httpServer, dataporten, customerService);
+        registeredPeople = new RegisteredPeopleInstance(httpServer, dataporten, customerService,identityService);
+        nvaDataGenerator = new NvaDataGenerator(registeredPeople, customerService);
 
         handler = new IdentityServiceEntryUpdateHandler(dataporten.getCognitoClient(),
                                                         HTTP_CLIENT,
@@ -145,24 +151,57 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldMaintainPreexistingUserEntriesForBothValidAndInvalidAffiliations(LoginEventType eventType) {
         var personLoggingIn = registeredPeople.getPersonWithActiveAndInactiveAffiliations();
-        var personsCristinIdentifier = registeredPeople.getCristinPersonIdentifier(personLoggingIn);
-        var alreadyExistinUsers =
-            registeredPeople.getTopLevelAffiliationsForUser(personLoggingIn, INACTIVE).stream()
-                .map(customerCristinIdentifier -> formatUsername(personsCristinIdentifier, customerCristinIdentifier))
-                .map(this::createRandomUser)
-                .collect(Collectors.toSet());
-
-        handler.handleRequest(randomEvent(personLoggingIn,eventType),context);
+        var alreadyExistingUsers = nvaDataGenerator.createUsers(personLoggingIn, INCLUDE_INACTIVE);
+        handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
 
         var actualUsers = scanAllUsers();
-        assertThat(actualUsers,containsInAnyOrder(alreadyExistinUsers.toArray(UserDto[]::new)));
+        assertThat(actualUsers, containsInAnyOrder(alreadyExistingUsers.toArray(UserDto[]::new)));
     }
 
+    @ParameterizedTest(name = "should return access rights as user groups for user concatenated with customer cristin "
+                              + "identifier for user's active top orgs")
+    @EnumSource(LoginEventType.class)
+    void shouldReturnAccessRightsForUserConcatenatedWithCustomerCristinIdentifierForUsersActiveTopOrgs(
+        LoginEventType eventType) throws InterruptedException {
+        var personLoggingIn = registeredPeople.getPersonWithActiveAndInactiveAffiliations();
+        var usersForActiveAndInactiveAffiliations = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
+        var expectedUsers = usersForActiveAndInactiveAffiliations.stream()
+            .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
+            .collect(Collectors.toSet());
 
-    private UserDto createRandomUser(String username) {
-        var user= NvaDataGenerator.createRandomUser(username);
-        identityService.addUser(user);
-        return identityService.getUser(user);
+        var expectedAccessRights = expectedUsers.stream()
+            .map(this::createAccessRightsCristinIdVersion)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+        var response = handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
+
+        var actualAccessRights =
+            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
+        assertThat(expectedAccessRights, everyItem(in(actualAccessRights)));
+    }
+
+    private List<UserDto> createUsersForActiveAndInactiveAffiliations(NationalIdentityNumber personLoggingIn) {
+        return nvaDataGenerator.createUsers(personLoggingIn, INCLUDE_INACTIVE)
+            .stream()
+            .map(user -> identityService.addUser(user))
+            .map(user -> identityService.getUser(user))
+            .collect(Collectors.toList());
+    }
+
+    private List<String> createAccessRightsCristinIdVersion(UserDto user) {
+        var customerCristinId = customerService.getCustomer(user.getInstitution()).getCristinId();
+        var customerCristinIdentifier = UriWrapper.fromUri(customerCristinId).getLastPathElement();
+        return user.getAccessRights().stream()
+            .map(accessRight -> accessRight + AT + customerCristinIdentifier)
+            .collect(Collectors.toList());
+    }
+
+    private boolean userHasActiveAffiliationWithCustomer(UserDto user, NationalIdentityNumber personsNin) {
+        var customersForActiveAffiliations = registeredPeople
+            .getCustomersWithActiveAffiliations(personsNin)
+            .map(CustomerDto::getId).collect(Collectors.toSet());
+        return customersForActiveAffiliations.contains(user.getInstitution());
     }
 
     private String formatUsername(CristinIdentifier personsCristinIdentifier, URI customerCristinId) {
@@ -181,6 +220,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         ScanDatabaseRequestV2 scanRequest = new ScanDatabaseRequestV2();
         var allUsers = new ArrayList<UserDto>();
         var scanResult = identityService.fetchOnePageOfUsers(scanRequest);
+
         allUsers.addAll(scanResult.getRetrievedUsers());
         while (scanResult.thereAreMoreEntries()) {
             Map<String, AttributeValue> nextStartMarker = scanResult.getStartMarkerForNextScan();

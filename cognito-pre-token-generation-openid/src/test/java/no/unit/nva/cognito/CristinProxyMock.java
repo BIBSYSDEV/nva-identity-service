@@ -89,7 +89,7 @@ public class CristinProxyMock {
         return personWithNoActiveAffiliations;
     }
 
-    public CristinPersonResponse getCristinPersonRegistry(NationalIdentityNumber personLoggingIn) {
+    public CristinPersonResponse getCristinPersonRecord(NationalIdentityNumber personLoggingIn) {
         return this.cristinPersonRegistry.get(personLoggingIn);
     }
 

@@ -15,16 +15,16 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinClient;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessmanagement.model.UserDto;
@@ -41,7 +41,6 @@ public class IdentityServiceEntryUpdateHandler
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideid";
     public static final String BELONGS_TO = "@";
-    public static final int ALL_CUSTOMERS_WITH_SAME_CRISTIN_ID_ARE_IDENTICAL = 0;
 
     private final RequestAuthorizer requestAuthorizer;
     private final CristinClient cristinClient;
@@ -77,12 +76,15 @@ public class IdentityServiceEntryUpdateHandler
         CristinPersonResponse cristinResponse = fetchPersonInformationFromCristin(input, nin);
         var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
 
-        updateUserEntriesForPerson(cristinResponse, activeCustomers);
+        var personsUsers = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers);
 
-        var groupsToOverride = activeCustomers.stream()
-            .map(CustomerDtoWithoutContext::getIdentifier)
-            .map(UUID::toString)
+        var groupsToOverride = personsUsers.stream()
+            .map(user -> CustomerAccessRight.fromUser(user, customerService))
+            .flatMap(Collection::stream)
+            .map(CustomerAccessRight::asStrings)
+            .flatMap(Collection::stream)
             .toArray(String[]::new);
+
         input.setResponse(
             Response.builder().withClaimsOverrideDetails(buildGroupsToOverride(groupsToOverride)).build());
 
@@ -113,12 +115,13 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private void updateUserEntriesForPerson(CristinPersonResponse cristinResponse,
-                                            Set<CustomerDto> activeCustomers) {
+    private List<UserDto> createOrFetchUserEntriesForPerson(CristinPersonResponse cristinResponse,
+                                                            Set<CustomerDto> activeCustomers) {
 
-        activeCustomers.stream()
+        return activeCustomers.stream()
             .map(customer -> createNewUserObject(customer, cristinResponse))
-            .forEach(this::getExistingUserOrCreateNew);
+            .map(this::getExistingUserOrCreateNew)
+            .collect(Collectors.toList());
     }
 
     private UserDto getExistingUserOrCreateNew(UserDto user) {

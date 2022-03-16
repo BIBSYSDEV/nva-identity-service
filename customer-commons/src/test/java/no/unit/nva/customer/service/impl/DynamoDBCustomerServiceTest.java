@@ -116,6 +116,14 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
+    void shouldReturnCustomerById() {
+        var customer = newCustomerDto();
+        var createdCustomer = service.createCustomer(customer);
+        var retrievedCustomer = service.getCustomer(createdCustomer.getId());
+        assertThat(createdCustomer, is(equalTo(retrievedCustomer)));
+    }
+
+    @Test
     void getCustomerByOrgNumberReturnsTheCustomer() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);

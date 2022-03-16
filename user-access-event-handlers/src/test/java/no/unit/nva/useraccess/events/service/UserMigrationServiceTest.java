@@ -69,7 +69,8 @@ class UserMigrationServiceTest {
     @Test
     void shouldReturnUserWithDefaultViewingScope() throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(URI.class))).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponse()));
 
         var user = createSampleUser();
@@ -83,7 +84,7 @@ class UserMigrationServiceTest {
     @MethodSource("provideInvalidOrganizationIds")
     void shouldUpdateBareOnceOnInvalidOrganizationId(URI uri) throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponseWithInvalidOrganizationId(uri)));
 
         var user = createSampleUser();
@@ -92,14 +93,10 @@ class UserMigrationServiceTest {
         verify(httpClientMock, times(2)).send(any(), any());
     }
 
-    private static Stream<URI> provideInvalidOrganizationIds() {
-        return Stream.of(SAMPLE_CRISTIN_API_ORG_ID, UNDEFINED);
-    }
-
     @Test
     void shouldNotUpdateBareOnValidOrganizationId() throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponse()));
 
         var user = createSampleUser();
@@ -108,14 +105,10 @@ class UserMigrationServiceTest {
         verify(httpClientMock, times(1)).send(any(), any());
     }
 
-    private String toJson(List<SimpleAuthorityResponse> authorityResponseList) {
-        return Try.attempt(() -> objectMapper.asString(authorityResponseList)).orElseThrow();
-    }
-
     @Test
     void shouldFinishEvenWhenBareUpdateReturnsBadGateway() throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareOkResponseThenBadGatewayResponse(
             toJson(createSampleAuthorityResponseWithInvalidOrganizationId(SAMPLE_CRISTIN_API_ORG_ID)));
 
@@ -128,7 +121,7 @@ class UserMigrationServiceTest {
     @Test
     void shouldNotUpdateBareOnUserNotFound() throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareNotFoundResponse();
 
         var user = createSampleUser();
@@ -157,6 +150,14 @@ class UserMigrationServiceTest {
         assertDoesNotThrow(() -> userMigrationService.migrateUser(user));
         assertThat(appender.getMessages(), containsString(customerIdExpectedInLogMessage));
         assertThat(appender.getMessages(), containsString(usernameExpectedInLogMessage));
+    }
+
+    private static Stream<URI> provideInvalidOrganizationIds() {
+        return Stream.of(SAMPLE_CRISTIN_API_ORG_ID, UNDEFINED);
+    }
+
+    private String toJson(List<SimpleAuthorityResponse> authorityResponseList) {
+        return Try.attempt(() -> objectMapper.asString(authorityResponseList)).orElseThrow();
     }
 
     private UserDto createSampleUserWithInvalidCustomerId() {

@@ -20,6 +20,7 @@ import no.unit.nva.useraccessmanagement.model.UserDto.Builder;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
+import nva.commons.core.paths.UriWrapper;
 
 public class UserDto implements WithCopy<Builder>, Typed {
 
@@ -65,14 +66,14 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
     @JacocoGenerated
     @SuppressWarnings("PMD.NullAssignment")
-    public String getCristinId() {
-        return nonNull(cristinId) ? cristinId.toString() : null;
+    public URI getCristinId() {
+        return cristinId;
     }
 
     @JacocoGenerated
     @SuppressWarnings("PMD.NullAssignment")
-    public void setCristinId(String cristinId) {
-        this.cristinId = nonNull(cristinId) ? URI.create(cristinId) : null;
+    public void setCristinId(URI cristinId) {
+        this.cristinId =cristinId;
     }
 
     @JsonProperty("accessRights")
@@ -117,6 +118,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public URI getInstitution() {
         return institution;
     }
+
+    public String extractCristinIdentifier(){
+        return new UriWrapper(cristinId).getLastPathElement();
+    }
+
 
     private void setInstitution(URI institution) {
         this.institution = institution;
@@ -247,7 +253,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
             return this;
         }
 
-        public Builder withCristinId(String cristinIdentifier) {
+        public Builder withCristinId(URI cristinIdentifier) {
             userDto.setCristinId(cristinIdentifier);
             return this;
         }

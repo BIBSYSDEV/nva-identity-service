@@ -80,12 +80,14 @@ public class UserService extends DatabaseSubService {
      *
      * @param user the user to be added.
      * @throws ConflictException when the entry exists.
+     * @return the user to be created
      */
-    public void addUser(UserDto user) {
+    public UserDto addUser(UserDto user) {
         logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
         checkUserDoesNotAlreadyExist(user);
         UserDao databaseEntryWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(user));
         table.putItem(databaseEntryWithSyncedRoles);
+        return databaseEntryWithSyncedRoles.toUserDto();
     }
 
     /**

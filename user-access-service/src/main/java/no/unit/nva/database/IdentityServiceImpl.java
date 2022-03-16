@@ -47,8 +47,8 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public void addUser(UserDto user) {
-        this.userService.addUser(user);
+    public UserDto addUser(UserDto user) {
+        return this.userService.addUser(user);
     }
 
     @Override

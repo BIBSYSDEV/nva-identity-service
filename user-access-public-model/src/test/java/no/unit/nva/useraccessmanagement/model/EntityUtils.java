@@ -32,7 +32,7 @@ public final class EntityUtils {
         var user= createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .withViewingScope(randomViewingScope())
-            .withCristinId(randomUri().toString())
+            .withCristinId(randomUri())
             .build();
         assertThat(user, doesNotHaveEmptyValues());
         return user;

@@ -79,7 +79,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withInstitution(userDto.getInstitution())
             .withRoles(createRoleDbSet(userDto))
             .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
-            .withCristinId(nonNull(userDto.getCristinId()) ? URI.create(userDto.getCristinId()) : null);
+            .withCristinId(userDto.getCristinId());
 
         return userDb.build();
     }
@@ -106,7 +106,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withRoles(extractRoles(this))
             .withInstitution(this.getInstitution())
             .withViewingScope(convertViewingScope())
-            .withCristinId(nonNull(getCristinId()) ? getCristinId().toString() : null);
+            .withCristinId(getCristinId());
         return userDto.build();
     }
 

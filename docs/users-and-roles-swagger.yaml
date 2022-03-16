@@ -8,7 +8,7 @@ paths:
     post:
       summary: Adds new Role
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend"]
       requestBody:
         required: true
         content:
@@ -38,7 +38,7 @@ paths:
             type: string
           required: true
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       responses:
         '200':
           description: Successful fetching of role. Returns the requested role
@@ -56,7 +56,7 @@ paths:
     post:
       summary: Adds new user
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend"]
       requestBody:
         required: true
         content:
@@ -86,7 +86,7 @@ paths:
             type: string
           required: true
       security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend"]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       responses:
         '200':
           description: Successful fetching of User. Returns the requested User
@@ -115,7 +115,7 @@ paths:
             schema:
               $ref: '#/components/schemas/User'
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       responses:
         '202':
           description: Successful request for updating the user. User will be eventually updated
@@ -149,7 +149,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListByInstitutionHandler.Arn}/invocations

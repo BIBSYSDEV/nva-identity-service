@@ -1186,6 +1186,22 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: firstName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: lastName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: accessRights
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: selectedInstitution
+          AttributeDataType: String
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value

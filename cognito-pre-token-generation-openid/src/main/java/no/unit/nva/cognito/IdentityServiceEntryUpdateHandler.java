@@ -40,6 +40,7 @@ public class IdentityServiceEntryUpdateHandler
 
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideidnin";
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
+    public static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC= {NIN_FON_NON_FEIDE_USERS, NIN_FOR_FEIDE_USERS};
     public static final String FEIDE_ID = "custom:feideid";
     public static final String BELONGS_TO = "@";
     public static final String ACCESS_RIGTHS_DELIMITER = ",";
@@ -81,10 +82,8 @@ public class IdentityServiceEntryUpdateHandler
 
         injectAccessRightsToEventResponse(input, accessRights);
         updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(cristinResponse, accessRights);
-        String[] claimsToSuppress = {NIN_FON_NON_FEIDE_USERS, NIN_FOR_FEIDE_USERS};
-        input.getResponse().setClaimsOverrideDetails(ClaimsOverrideDetails.builder()
-                                                         .withClaimsToSuppress(claimsToSuppress)
-                                                         .build());
+
+
         return input;
     }
 
@@ -120,9 +119,10 @@ public class IdentityServiceEntryUpdateHandler
     }
 
     private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
-                                                   String... groupsToOverride) {
-        input.setResponse(
-            Response.builder().withClaimsOverrideDetails(buildGroupsToOverride(groupsToOverride)).build());
+                                                   String... accessRights) {
+        input.setResponse(Response.builder()
+                .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
+                .build());
     }
 
     private String[] accessRightsPerCustomer(List<UserDto> personsUsers) {
@@ -134,9 +134,10 @@ public class IdentityServiceEntryUpdateHandler
             .toArray(String[]::new);
     }
 
-    private ClaimsOverrideDetails buildGroupsToOverride(String... groupsToOverride) {
+    private ClaimsOverrideDetails buildOverrideClaims(String... groupsToOverride) {
         return ClaimsOverrideDetails.builder()
             .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(groupsToOverride).build())
+            .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
             .build();
     }
 

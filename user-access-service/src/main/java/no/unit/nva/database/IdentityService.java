@@ -1,6 +1,5 @@
 package no.unit.nva.database;
 
-
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import java.net.URI;
 import java.util.List;
@@ -10,6 +9,7 @@ import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public interface IdentityService {
 
@@ -17,7 +17,12 @@ public interface IdentityService {
 
     @JacocoGenerated
     static IdentityService defaultIdentityService() {
-        return new IdentityServiceImpl(DEFAULT_DYNAMO_CLIENT);
+        return defaultIdentityService(DEFAULT_DYNAMO_CLIENT);
+    }
+
+    @JacocoGenerated
+    static IdentityService defaultIdentityService(DynamoDbClient dynamoDbClient) {
+        return new IdentityServiceImpl(dynamoDbClient);
     }
 
     UserDto getUser(UserDto queryObject);

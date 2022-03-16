@@ -47,7 +47,6 @@ public class DynamoDBCustomerService implements CustomerService {
 
     public DynamoDBCustomerService(DynamoDbClient client) {
         this(createTable(client));
-
     }
 
     public DynamoDBCustomerService(DynamoDbTable<CustomerDao> table) {
@@ -56,14 +55,13 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomer(URI customerId){
+    public CustomerDto getCustomer(URI customerId) {
         var customerIdentifier = new UriWrapper(customerId).getLastPathElement();
         return getCustomer(UUID.fromString(customerIdentifier));
     }
 
-
     @Override
-    public CustomerDto getCustomer(UUID identifier)  {
+    public CustomerDto getCustomer(UUID identifier) {
         return Optional.of(CustomerDao.builder().withIdentifier(identifier).build())
             .map(table::getItem)
             .map(CustomerDao::toCustomerDto)
@@ -71,7 +69,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomerByOrgNumber(String orgNumber)  {
+    public CustomerDto getCustomerByOrgNumber(String orgNumber) {
         CustomerDao query = createQueryForOrgNumber(orgNumber);
         return sendQueryToIndex(orgNumber, query, BY_ORG_NUMBER_INDEX_NAME, CustomerDao::getFeideOrganizationId);
     }
@@ -86,7 +84,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto createCustomer(CustomerDto customer)  {
+    public CustomerDto createCustomer(CustomerDto customer) {
         UUID identifier = UUID.randomUUID();
         Instant now = Instant.now();
         customer.setIdentifier(identifier);
@@ -97,7 +95,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto updateCustomer(UUID identifier, CustomerDto customer)  {
+    public CustomerDto updateCustomer(UUID identifier, CustomerDto customer) {
         validateIdentifier(identifier, customer);
         customer.setModifiedDate(Instant.now().toString());
         table.putItem(CustomerDao.fromCustomerDto(customer));
@@ -155,7 +153,7 @@ public class DynamoDBCustomerService implements CustomerService {
         }
     }
 
-    private void validateIdentifier(UUID identifier, CustomerDto customer)  {
+    private void validateIdentifier(UUID identifier, CustomerDto customer) {
         if (!identifier.equals(customer.getIdentifier())) {
             throw new InputException(String.format(IDENTIFIERS_NOT_EQUAL, identifier, customer.getIdentifier()), null);
         }

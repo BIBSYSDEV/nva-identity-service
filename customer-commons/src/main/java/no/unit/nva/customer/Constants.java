@@ -1,10 +1,10 @@
 package no.unit.nva.customer;
 
+import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import com.google.common.net.MediaType;
 import java.util.List;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import no.unit.useraccessservice.database.DatabaseConfig;
 import nva.commons.apigatewayv2.MediaTypes;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -22,7 +22,7 @@ public final class Constants {
 
     @JacocoGenerated
     public static CustomerService defaultCustomerService() {
-        return defaultCustomerService(DatabaseConfig.DEFAULT_DYNAMO_CLIENT);
+        return defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
     }
 
     @JacocoGenerated

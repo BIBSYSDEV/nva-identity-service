@@ -5,6 +5,7 @@ import static no.unit.nva.cognito.EnvironmentVariables.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
+import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -40,10 +41,11 @@ public class IdentityServiceEntryUpdateHandler
 
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideidnin";
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
-    public static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC= {NIN_FON_NON_FEIDE_USERS, NIN_FOR_FEIDE_USERS};
+    public static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS, NIN_FOR_FEIDE_USERS};
     public static final String FEIDE_ID = "custom:feideid";
     public static final String BELONGS_TO = "@";
     public static final String ACCESS_RIGTHS_DELIMITER = ",";
+    public static final String COGNITO_USERNAME = "username";
     private final CristinClient cristinClient;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -53,7 +55,7 @@ public class IdentityServiceEntryUpdateHandler
     @JacocoGenerated
     public IdentityServiceEntryUpdateHandler() {
         this(defaultCognitoClient(), HttpClient.newHttpClient(), COGNITO_HOST, CRISTIN_HOST,
-             defaultCustomerService(), defaultIdentityService());
+             defaultCustomerService(DEFAULT_DYNAMO_CLIENT), defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
     }
 
     public IdentityServiceEntryUpdateHandler(CognitoIdentityProviderClient cognitoClient,
@@ -81,15 +83,9 @@ public class IdentityServiceEntryUpdateHandler
         var accessRights = accessRightsPerCustomer(usersForPerson);
 
         injectAccessRightsToEventResponse(input, accessRights);
-        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(cristinResponse, accessRights);
-
+        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input,cristinResponse, accessRights);
 
         return input;
-    }
-
-    private void updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(
-        CristinPersonResponse cristinResponse, String... accessRights) {
-        cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(cristinResponse, accessRights));
     }
 
     @JacocoGenerated
@@ -101,9 +97,23 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private AdminUpdateUserAttributesRequest createUpdateUserAttributesRequest(CristinPersonResponse cristinResponse,
-                                                                               String... accessRights) {
+    private void updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(
+        CognitoUserPoolPreTokenGenerationEvent input,
+        CristinPersonResponse cristinResponse,
+        String... accessRights) {
+        cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(input,
+                                                                                  cristinResponse,
+                                                                                  accessRights));
+    }
+
+    private AdminUpdateUserAttributesRequest createUpdateUserAttributesRequest(
+        CognitoUserPoolPreTokenGenerationEvent input,
+        CristinPersonResponse cristinResponse,
+        String... accessRights) {
+        var cognitoUsername = input.getRequest().getUserAttributes().get(COGNITO_USERNAME);
         return AdminUpdateUserAttributesRequest.builder()
+            .userPoolId(input.getUserPoolId())
+            .username(cognitoUsername)
             .userAttributes(updatedPersonAttributes(cristinResponse, accessRights))
             .build();
     }
@@ -121,8 +131,8 @@ public class IdentityServiceEntryUpdateHandler
     private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
                                                    String... accessRights) {
         input.setResponse(Response.builder()
-                .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
-                .build());
+                              .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
+                              .build());
     }
 
     private String[] accessRightsPerCustomer(List<UserDto> personsUsers) {

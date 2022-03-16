@@ -10,14 +10,12 @@ import org.junit.jupiter.api.Test;
 class SimpleAuthorityResponseTest {
 
     @Test
-    void shouldSerializeToJson(){
-        var sample  = new SimpleAuthorityResponse();
+    void shouldSerializeToJson() {
+        var sample = new SimpleAuthorityResponse();
         sample.setId(randomUri());
         sample.setOrganizationIds(List.of(randomUri()));
         var json = sample.toString();
         var deserialized = SimpleAuthorityResponse.fromJson(json);
-        assertThat(deserialized,is(equalTo(sample)));
+        assertThat(deserialized, is(equalTo(sample)));
     }
-
-
 }

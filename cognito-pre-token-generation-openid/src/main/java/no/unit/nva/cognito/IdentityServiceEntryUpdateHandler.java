@@ -5,6 +5,7 @@ import static no.unit.nva.cognito.EnvironmentVariables.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
+import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -27,6 +28,7 @@ import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
@@ -75,6 +77,10 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
 
+        var json =
+            attempt(()-> objectMapper.asString(input.getRequest().getUserAttributes())).orElseThrow();
+        context.getLogger().log(json);
+        context.getLogger().log(input.toString());
         var nin = extractNin(input.getRequest().getUserAttributes());
         var cristinResponse = fetchPersonInformationFromCristin(input, nin);
         var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);

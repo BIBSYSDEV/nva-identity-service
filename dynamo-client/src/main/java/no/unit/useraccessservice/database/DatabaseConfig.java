@@ -2,7 +2,7 @@ package no.unit.useraccessservice.database;
 
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -18,7 +18,7 @@ public final class DatabaseConfig {
     private static DynamoDbClient defaultDynamoDbClient() {
         return DynamoDbClient.builder()
             .httpClient(UrlConnectionHttpClient.create())
-            .credentialsProvider(DefaultCredentialsProvider.create())
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
             .region(Region.of(AWS_REGION))
             .build();
     }

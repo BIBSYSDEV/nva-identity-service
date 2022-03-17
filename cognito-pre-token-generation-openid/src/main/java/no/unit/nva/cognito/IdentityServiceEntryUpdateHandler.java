@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinClient;
@@ -35,6 +34,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -54,6 +54,7 @@ public class IdentityServiceEntryUpdateHandler
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:currentCustomer";
     protected static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS,
         NIN_FOR_FEIDE_USERS};
+    public static final String AT = "@";
     private final CristinClient cristinClient;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -84,18 +85,18 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
 
-        this.logger =context.getLogger();
+        this.logger = context.getLogger();
         var nin = extractNin(input.getRequest().getUserAttributes());
         var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
 
         var cristinResponse = fetchPersonInformationFromCristin(input, nin);
         var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
-        activeCustomers.forEach(customer->logger.log(customer.toString()));
+        activeCustomers.forEach(customer -> logger.log(customer.toString()));
         var currentCustomer = activeCustomers.stream()
-            .filter(customer->keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(customer,orgFeideDomain))
+            .filter(customer -> keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(customer, orgFeideDomain))
             .collect(SingletonCollector.tryCollect())
-            .orElse(fail->null);
+            .orElse(fail -> null);
         var usersForPerson = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers, feideIdentifier);
         var accessRights = accessRightsPerCustomer(usersForPerson);
 
@@ -122,7 +123,6 @@ public class IdentityServiceEntryUpdateHandler
         CristinPersonResponse cristinResponse,
         CustomerDto customer,
         List<String> accessRights) {
-
 
         cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(input,
                                                                                   cristinResponse,
@@ -231,7 +231,7 @@ public class IdentityServiceEntryUpdateHandler
                                         String feideIdentifier) {
 
         var user = UserDto.newBuilder()
-            .withUsername(UUID.randomUUID().toString())
+            .withUsername(formatUsername(cristinResponse, customer))
             .withFeideIdentifier(feideIdentifier)
             .withInstitution(customer.getId())
             .withGivenName(cristinResponse.extractFirstName())
@@ -241,6 +241,12 @@ public class IdentityServiceEntryUpdateHandler
             .withInstitutionCristinId(customer.getCristinId());
 
         return user.build();
+    }
+
+    private String formatUsername(CristinPersonResponse cristinResponse, CustomerDto customer) {
+        var personIdentifier = cristinResponse.getPersonsCristinIdentifier().getValue();
+        var customerIdentifier = UriWrapper.fromUri(customer.getCristinId()).getLastPathElement();
+        return personIdentifier + AT + customerIdentifier;
     }
 
     private Set<CustomerDto> fetchCustomersForActiveAffiliations(CristinPersonResponse cristinResponse) {

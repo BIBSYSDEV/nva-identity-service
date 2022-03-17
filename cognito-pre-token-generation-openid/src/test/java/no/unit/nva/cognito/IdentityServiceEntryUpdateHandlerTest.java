@@ -118,7 +118,6 @@ class IdentityServiceEntryUpdateHandlerTest {
         var event = randomEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
         List<UserDto> allUsers = scanAllUsers();
-        assertThatNewUsernamesAreUuids(allUsers);
         assertThatUserIsSearchableByCristinCredentials(personLoggingIn, allUsers);
     }
 
@@ -330,12 +329,6 @@ class IdentityServiceEntryUpdateHandlerTest {
         return identityService.getUserByCristinIdAndCristinOrgId(cristinPersonId, customerCristinId);
     }
 
-    private void assertThatNewUsernamesAreUuids(List<UserDto> allUsers) {
-        var actualUsernames = allUsers.stream().map(UserDto::getUsername)
-            .map(UUID::fromString)
-            .collect(Collectors.toList());
-        assertThat(actualUsernames, everyItem(is(instanceOf(UUID.class))));
-    }
 
     private void assertThatUserIsSearchableByCristinCredentials(NationalIdentityNumber personLoggingIn,
                                                                 List<UserDto> allUsers) {

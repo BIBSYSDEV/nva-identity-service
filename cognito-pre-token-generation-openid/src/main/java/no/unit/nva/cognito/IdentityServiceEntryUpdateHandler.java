@@ -97,6 +97,8 @@ public class IdentityServiceEntryUpdateHandler
             .filter(customer -> keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(customer, orgFeideDomain))
             .collect(SingletonCollector.tryCollect())
             .orElse(fail -> null);
+        logger.log("CUUUUUUUUURRRRRRRRREEEEEEENTTTTTTTTTTTTTTT");
+        logger.log(Optional.ofNullable(currentCustomer).map(c->c.toString()).orElse("Current customer empty"));
         var usersForPerson = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers, feideIdentifier);
         var accessRights = accessRightsPerCustomer(usersForPerson);
 

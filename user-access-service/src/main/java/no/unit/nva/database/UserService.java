@@ -1,6 +1,7 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
@@ -15,6 +16,7 @@ import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
+import nva.commons.core.SingletonCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
@@ -33,15 +35,17 @@ public class UserService extends DatabaseSubService {
     public static final String USER_ALREADY_EXISTS_ERROR_MESSAGE = "User already exists: ";
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-    private final DynamoDbIndex<UserDao> institutionsIndex;
     private final RoleService roleService;
     private final DynamoDbTable<UserDao> table;
+    private final DynamoDbIndex<UserDao> cristinCredentialsIndex;
+    private final DynamoDbIndex<UserDao> institutionsIndex;
 
     public UserService(DynamoDbClient client, RoleService roleService) {
         super(client);
         this.roleService = roleService;
         this.table = this.client.table(IdentityService.USERS_AND_ROLES_TABLE, UserDao.TABLE_SCHEMA);
         this.institutionsIndex = this.table.index(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME);
+        this.cristinCredentialsIndex = this.table.index(SEARCH_USERS_BY_CRISTIN_IDENTIFIERS);
     }
 
     /**
@@ -79,8 +83,8 @@ public class UserService extends DatabaseSubService {
      * Adds a user.
      *
      * @param user the user to be added.
-     * @throws ConflictException when the entry exists.
      * @return the user to be created
+     * @throws ConflictException when the entry exists.
      */
     public UserDto addUser(UserDto user) {
         logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
@@ -104,6 +108,28 @@ public class UserService extends DatabaseSubService {
         if (userHasChanged(existingUser, updatedObjectWithSyncedRoles)) {
             updateTable(updatedObjectWithSyncedRoles);
         }
+    }
+
+    public UserDto getUserByByCristinIds(URI cristinPersonId, URI cristinOrgId) {
+        var queryObject = UserDao.newBuilder()
+            .withCristinId(cristinPersonId)
+            .withInstitutionCristinId(cristinOrgId).build();
+        var request = createQueryForSearchingInCristinCredentialsIndex(queryObject);
+        var result = cristinCredentialsIndex.query(request);
+        var retrievedUser = result.stream()
+            .map(Page::items)
+            .flatMap(Collection::stream)
+            .collect(SingletonCollector.collect());
+        return retrievedUser.toUserDto();
+    }
+
+    private QueryEnhancedRequest createQueryForSearchingInCristinCredentialsIndex(UserDao queryObject) {
+        Key key = Key.builder().partitionValue(queryObject.getSearchByCristinIdentifiersHashKey())
+            .sortValue(queryObject.getSearchByCristinIdentifiersRangeKey())
+            .build();
+        return QueryEnhancedRequest.builder()
+            .queryConditional(QueryConditional.keyEqualTo(key))
+            .build();
     }
 
     private UserDao syncRoleDetails(UserDao updateObject) {

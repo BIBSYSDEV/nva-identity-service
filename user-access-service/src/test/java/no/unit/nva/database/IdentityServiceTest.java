@@ -46,6 +46,7 @@ import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.hamcrest.core.StringContains;
@@ -177,7 +178,6 @@ public class IdentityServiceTest extends DatabaseAccessor {
         UserDto insertedUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
         assertThat(insertedUser, doesNotHaveEmptyValues());
         UserDto savedUser = identityService.getUser(insertedUser);
-
 
         assertThat(savedUser, is(equalTo(insertedUser)));
     }
@@ -397,6 +397,41 @@ public class IdentityServiceTest extends DatabaseAccessor {
         var expectedFirstPageOfUsers = scanDatabaseDirectlyAndGetAllUsersInExpectedOrderIgnoringRoleEntries(pageSize);
         assertEquals(expectedFirstPageOfUsers, firstPageOfUsers.getRetrievedUsers());
         assertThat(firstPageOfUsers.getRetrievedUsers(), is(equalTo(expectedFirstPageOfUsers)));
+    }
+
+    @Test
+    void shouldFetchUserBasedOnCristinPersonIdentifierAndCristinOrgIdentifier() {
+        var cirstinPersonId = randomUri();
+        var cristinIdentifier = UriWrapper.fromUri(cirstinPersonId).getLastPathElement();
+        var cristinOrgId = randomCristinOrgId();
+        var cristinOrgIdentifier = UriWrapper.fromUri(cristinOrgId).getLastPathElement();
+        var user = createUserAndAddUserToDb(cirstinPersonId, cristinOrgId, randomString());
+        var retrievedUser = identityService.getUserByCristinIds(cirstinPersonId,cristinOrgId);
+        assertThat(retrievedUser,is(equalTo(user)));
+
+    }
+
+    private UserDto createUserAndAddUserToDb(URI cristinId, URI cristinOrgId, String feideIdentifier) {
+        var roles = createSampleRoles().stream()
+            .map(RoleDb::toRoleDto)
+            .peek(role -> identityService.addRole(role))
+            .collect(Collectors.toList());
+        var user = UserDto.newBuilder().withCristinId(cristinId)
+            .withFeideIdentifier(feideIdentifier)
+            .withCristinId(cristinId)
+            .withFamilyName(randomString())
+            .withGivenName(randomString())
+            .withInstitution(randomUri())
+            .withInstitutionCristinId(cristinOrgId)
+            .withUsername(randomString())
+            .withRoles(roles)
+            .withViewingScope(randomViewingScope())
+            .build();
+        identityService.addUser(user);
+        var savedUser = identityService.getUser(user);
+        assertThat(user, doesNotHaveEmptyValues());
+        assertThat(savedUser, doesNotHaveEmptyValues());
+        return user;
     }
 
     private static List<RoleDb> createSampleRoles() {

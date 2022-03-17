@@ -3,9 +3,12 @@ package no.unit.nva.useraccessservice.dao;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
 import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
@@ -26,6 +29,7 @@ import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
+import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
@@ -56,6 +60,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String CRISTIN_ID = "cristinId";
     public static final String FEIDE_IDENTIFIER = "feideIdentifier";
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+    public static final String AT = "@";
     private String username;
     private URI institution;
     private Set<RoleDb> roles;
@@ -123,7 +128,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @DynamoDbPartitionKey
     @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
     public String getPrimaryKeyHashKey() {
-        return formatPrimaryHashKey();
+        return primaryHashKeyIsTypeAndUsername();
     }
 
     @Override
@@ -166,6 +171,37 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     @JacocoGenerated
     public void setSearchByInstitutionRangeKey(String searchByInstitutionRangeKey) {
+        //DO NOTHING
+    }
+
+    @JacocoGenerated
+    @DynamoDbSecondaryPartitionKey(indexNames = {SEARCH_USERS_BY_CRISTIN_IDENTIFIERS})
+    @DynamoDbAttribute(SECONDARY_INDEX_2_HASH_KEY)
+    public String getSearchByCristinIdentifiersHashKey() {
+        return createIdentifierForIdentifyingUserBasedOnCristinIdentifiers();
+    }
+
+    private String createIdentifierForIdentifyingUserBasedOnCristinIdentifiers() {
+        var institutionIdentifier = UriWrapper.fromUri(getInstitutionCristinId()).getLastPathElement();
+        var personIdentifier = UriWrapper.fromUri(getCristinId()).getLastPathElement();
+        var userIdentifier =  personIdentifier + AT + institutionIdentifier;
+        return TYPE_VALUE + FIELD_DELIMITER + userIdentifier;
+    }
+
+    @JacocoGenerated
+    public void setSearchByCristinIdentifiersHashKey(String searchByInstitutionHashKey) {
+        //DO NOTHING
+    }
+
+    @JacocoGenerated
+    @DynamoDbSecondarySortKey(indexNames = {SEARCH_USERS_BY_CRISTIN_IDENTIFIERS})
+    @DynamoDbAttribute(SECONDARY_INDEX_2_RANGE_KEY)
+    public String getSearchByCristinIdentifiersRangeKey() {
+        return createIdentifierForIdentifyingUserBasedOnCristinIdentifiers();
+    }
+
+    @JacocoGenerated
+    public void setSearchByCristinIdentifiersRangeKey(String searchByInstitutionRangeKey) {
         //DO NOTHING
     }
 
@@ -370,10 +406,10 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     /*For now the primary range key does not need to be different from the primary hash key*/
     private String formatPrimaryRangeKey() {
-        return formatPrimaryHashKey();
+        return primaryHashKeyIsTypeAndUsername();
     }
 
-    private String formatPrimaryHashKey() {
+    private String primaryHashKeyIsTypeAndUsername() {
         checkUsername(username);
         return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE_VALUE, username);
     }

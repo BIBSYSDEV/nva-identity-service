@@ -5,8 +5,6 @@ import no.unit.nva.useraccessservice.interfaces.Typed;
 public interface DynamoEntryWithRangeKey extends Typed {
     String FIELD_DELIMITER = "#";
 
-    //    @DynamoDbPartitionKey
-    //    @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
     String getPrimaryKeyHashKey();
 
     /**
@@ -17,8 +15,6 @@ public interface DynamoEntryWithRangeKey extends Typed {
      */
     void setPrimaryKeyHashKey(String primaryRangeKey);
 
-    //    @DynamoDbSortKey
-    //    @DynamoDbAttribute(DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY)
     String getPrimaryKeyRangeKey();
 
     /**
@@ -28,5 +24,6 @@ public interface DynamoEntryWithRangeKey extends Typed {
      * @param primaryRangeKey the primary range key.
      */
     void setPrimaryKeyRangeKey(String primaryRangeKey);
+
 
 }

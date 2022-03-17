@@ -78,6 +78,12 @@ public class IdentityServiceImpl implements IdentityService {
         return new UserScanResult(retrievedUsers, startMarkerForNextScan, thereAreMoreEntries);
     }
 
+    @Override
+    public UserDto getUserByCristinIds(URI cristinPersonId, URI cristinOrgId) {
+        return userService.getUserByByCristinIds(cristinPersonId,cristinOrgId);
+
+    }
+
     private boolean thereAreMoreEntries(ScanResponse result) {
         return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty();
     }

@@ -292,6 +292,10 @@ Resources:
           AttributeType: S
         - AttributeName: SecondaryIndex1RangeKey
           AttributeType: S
+        - AttributeName: SecondaryIndex2HashKey
+            AttributeType: S
+        - AttributeName: SecondaryIndex2RangeKey
+          AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
         - AttributeName: PrimaryKeyHashKey
@@ -300,6 +304,14 @@ Resources:
           KeyType: RANGE
       GlobalSecondaryIndexes:
         - IndexName: SearchUsersByInstitution
+          KeySchema:
+            - AttributeName: SecondaryIndex1HashKey
+              KeyType: HASH
+            - AttributeName: SecondaryIndex1RangeKey
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: SearchUsersByCristinIdentifiers
           KeySchema:
             - AttributeName: SecondaryIndex1HashKey
               KeyType: HASH

@@ -4,9 +4,12 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -94,21 +97,32 @@ public abstract class DatabaseAccessor implements WithEnvironment {
                 .attributeDefinitions(attributeDefinitions)
                 .keySchema(keySchema)
                 .provisionedThroughput(provisionedthroughput)
-                .globalSecondaryIndexes(searchByInstitutionSecondaryIndex())
+                .globalSecondaryIndexes(
+
+                    newGsi(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME,
+                           SECONDARY_INDEX_1_HASH_KEY,
+                           SECONDARY_INDEX_1_RANGE_KEY),
+
+                    newGsi(SEARCH_USERS_BY_CRISTIN_IDENTIFIERS,
+                           SECONDARY_INDEX_2_HASH_KEY,
+                           SECONDARY_INDEX_2_RANGE_KEY)
+                )
                 .build();
 
         return client.createTable(request);
     }
 
-    private static GlobalSecondaryIndex searchByInstitutionSecondaryIndex() {
+    private static GlobalSecondaryIndex newGsi(String searchUsersByInstitutionIndexName,
+                                               String secondaryIndex1HashKey,
+                                               String secondaryIndex1RangeKey) {
         ProvisionedThroughput provisionedthroughput = provisionedThroughputForLocalDatabase();
 
         return GlobalSecondaryIndex
             .builder()
-            .indexName(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME)
+            .indexName(searchUsersByInstitutionIndexName)
             .keySchema(
-                KeySchemaElement.builder().attributeName(SECONDARY_INDEX_1_HASH_KEY).keyType(KeyType.HASH).build(),
-                KeySchemaElement.builder().attributeName(SECONDARY_INDEX_1_RANGE_KEY).keyType(KeyType.RANGE).build()
+                KeySchemaElement.builder().attributeName(secondaryIndex1HashKey).keyType(KeyType.HASH).build(),
+                KeySchemaElement.builder().attributeName(secondaryIndex1RangeKey).keyType(KeyType.RANGE).build()
             )
             .projection(Projection.builder().projectionType(ProjectionType.ALL).build())
             .provisionedThroughput(provisionedthroughput)
@@ -126,27 +140,19 @@ public abstract class DatabaseAccessor implements WithEnvironment {
 
     private static List<AttributeDefinition> defineKeyAttributes() {
         List<AttributeDefinition> attributeDefinitions = new ArrayList<>();
-        attributeDefinitions.add(AttributeDefinition.builder()
-                                     .attributeName(PRIMARY_KEY_HASH_KEY)
-                                     .attributeType(STRING).build()
-        );
-        attributeDefinitions.add(AttributeDefinition.builder()
-                                     .attributeName(PRIMARY_KEY_RANGE_KEY)
-                                     .attributeType(ScalarAttributeType.S)
-                                     .build());
-
-        attributeDefinitions.add(AttributeDefinition.builder()
-                                     .attributeName(SECONDARY_INDEX_1_HASH_KEY)
-                                     .attributeType(ScalarAttributeType.S)
-                                     .build()
-        );
-        attributeDefinitions.add(AttributeDefinition.builder()
-                                     .attributeName(SECONDARY_INDEX_1_RANGE_KEY)
-                                     .attributeType(ScalarAttributeType.S)
-                                     .build()
-        );
-
+        attributeDefinitions.add(createAttributeDefinition(PRIMARY_KEY_HASH_KEY));
+        attributeDefinitions.add(createAttributeDefinition(PRIMARY_KEY_RANGE_KEY));
+        attributeDefinitions.add(createAttributeDefinition(SECONDARY_INDEX_1_HASH_KEY));
+        attributeDefinitions.add(createAttributeDefinition(SECONDARY_INDEX_1_RANGE_KEY));
+        attributeDefinitions.add(createAttributeDefinition(SECONDARY_INDEX_2_HASH_KEY));
+        attributeDefinitions.add(createAttributeDefinition(SECONDARY_INDEX_2_RANGE_KEY));
         return attributeDefinitions;
+    }
+
+    private static AttributeDefinition createAttributeDefinition(String attributeName) {
+        return AttributeDefinition.builder()
+            .attributeName(attributeName)
+            .attributeType(ScalarAttributeType.S).build();
     }
 
     private static ProvisionedThroughput provisionedThroughputForLocalDatabase() {

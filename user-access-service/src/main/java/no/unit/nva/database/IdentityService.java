@@ -38,4 +38,6 @@ public interface IdentityService {
     RoleDto getRole(RoleDto input);
 
     UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest);
+
+    UserDto getUserByCristinIds(URI cirstinPersonId, URI cristinOrgId);
 }

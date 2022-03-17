@@ -46,7 +46,6 @@ import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.hamcrest.core.StringContains;
@@ -400,15 +399,22 @@ public class IdentityServiceTest extends DatabaseAccessor {
     }
 
     @Test
-    void shouldFetchUserBasedOnCristinPersonIdentifierAndCristinOrgIdentifier() {
-        var cirstinPersonId = randomUri();
-        var cristinIdentifier = UriWrapper.fromUri(cirstinPersonId).getLastPathElement();
-        var cristinOrgId = randomCristinOrgId();
-        var cristinOrgIdentifier = UriWrapper.fromUri(cristinOrgId).getLastPathElement();
-        var user = createUserAndAddUserToDb(cirstinPersonId, cristinOrgId, randomString());
-        var retrievedUser = identityService.getUserByCristinIds(cirstinPersonId,cristinOrgId);
-        assertThat(retrievedUser,is(equalTo(user)));
+    void shouldFetchAllUsersOfPersonBasedOnCristinPersonIdentifier() {
+        var cristinPersonId = randomUri();
+        var user1 = createUserAndAddUserToDb(cristinPersonId, randomCristinOrgId(), randomString());
+        var user2 = createUserAndAddUserToDb(cristinPersonId, randomCristinOrgId(), randomString());
+        var retrievedUsers = identityService.getUsersByCristinId(cristinPersonId);
+        assertThat(retrievedUsers,containsInAnyOrder(user1, user2));
+    }
 
+
+    @Test
+    void shouldFetchUsersOfPersonBasedOnCristinPersonIdAndCristinOrgId() {
+        var cirstinPersonId = randomUri();
+        var cristinOrgId = randomCristinOrgId();
+        var expectedUser = createUserAndAddUserToDb(cirstinPersonId, cristinOrgId, randomString());
+        var retrievedUser = identityService.getUserByCristinIdAndCristinOrgId(cirstinPersonId,cristinOrgId);
+        assertThat(retrievedUser,is(equalTo(expectedUser)));
     }
 
     private UserDto createUserAndAddUserToDb(URI cristinId, URI cristinOrgId, String feideIdentifier) {

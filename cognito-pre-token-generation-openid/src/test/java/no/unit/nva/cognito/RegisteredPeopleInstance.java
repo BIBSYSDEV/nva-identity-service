@@ -1,5 +1,6 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -16,6 +17,7 @@ import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinIdentifier;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -56,6 +58,18 @@ public class RegisteredPeopleInstance {
         nvaHasDefinedRolesForTheNvaUsers();
     }
 
+    public String getFeideIdentifierForPerson() {
+        return  randomString();
+    }
+
+    public String getSomeFeideOrgIdentifierForPerson(NationalIdentityNumber nin) {
+        var domains=getTopLevelAffiliationsForUser(nin,ACTIVE).stream()
+            .map(customerService::getCustomerByCristinId)
+            .map(CustomerDtoWithoutContext::getFeideOrganizationDomain)
+                        .collect(Collectors.toList());
+        return randomElement(domains.toArray(String[]::new));
+    }
+
     private void nvaHasDefinedRolesForTheNvaUsers() {
         availableNvaRoles = insertSomeRolesInNva();
     }
@@ -92,6 +106,9 @@ public class RegisteredPeopleInstance {
     public NationalIdentityNumber personWithActiveAndInactiveAffiliations() {
         return cristinProxy.getPersonWithActiveAndInactiveAffiliations();
     }
+    public NationalIdentityNumber personWithManyActiveAffiliations() {
+        return cristinProxy.getPersonWithManyActiveAffiliations();
+    }
 
     public Set<URI> getTopLevelAffiliationsForUser(NationalIdentityNumber nin, boolean active) {
         return cristinProxy.getCristinPersonRecord(nin).getAffiliations()
@@ -105,7 +122,7 @@ public class RegisteredPeopleInstance {
     public Stream<CustomerDto> getCustomersWithActiveAffiliations(NationalIdentityNumber personsNin) {
         return getTopLevelAffiliationsForUser(personsNin, ACTIVE)
             .stream()
-            .map(uri -> customerService.getCustomerByCristinId(uri.toString()));
+            .map(customerService::getCustomerByCristinId);
     }
 
     private List<RoleDto> insertSomeRolesInNva() {
@@ -132,10 +149,11 @@ public class RegisteredPeopleInstance {
     private CustomerDto randomCustomer(URI topLevelOrg) {
         return CustomerDto.builder()
             .withCname(randomString())
-            .withCristinId(topLevelOrg.toString())
+            .withCristinId(topLevelOrg)
             .withArchiveName(randomString())
             .withName(randomString())
             .withShortName(randomString())
+            .withFeideOrganizationId(randomString())
             .build();
     }
 }

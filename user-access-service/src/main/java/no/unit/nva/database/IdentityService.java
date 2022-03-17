@@ -39,5 +39,7 @@ public interface IdentityService {
 
     UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest);
 
-    UserDto getUserByCristinIds(URI cirstinPersonId, URI cristinOrgId);
+    List<UserDto> getUsersByCristinId(URI cirstinPersonId);
+
+    UserDto getUserByCristinIdAndCristinOrgId(URI cirstinPersonId, URI cristinOrgId);
 }

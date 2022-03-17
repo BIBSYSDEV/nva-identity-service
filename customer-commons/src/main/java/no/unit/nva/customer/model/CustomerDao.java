@@ -4,6 +4,7 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_NUMBER_INDEX_NAME;
+import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Objects;
@@ -42,8 +43,8 @@ public class CustomerDao implements Typed {
     private String archiveName;
     private String cname;
     private String institutionDns;
-    private String feideOrganizationId;
-    private String cristinId;
+    private String feideOrganizationDomain;
+    private URI cristinId;
     private Set<VocabularyDao> vocabularies;
 
     public CustomerDao() {
@@ -63,7 +64,7 @@ public class CustomerDao implements Typed {
             .withIdentifier(dto.getIdentifier())
             .withInstitutionDns(dto.getInstitutionDns())
             .withShortName(dto.getShortName())
-            .withFeideOrganizationId(dto.getFeideOrganizationId())
+            .withFeideOrganizationId(dto.getFeideOrganizationDomain())
             .withModifiedDate(Instant.parse(dto.getModifiedDate()))
             .withVocabularySettings(extractVocabularySettings(dto))
             .withName(dto.getName())
@@ -146,21 +147,21 @@ public class CustomerDao implements Typed {
 
     @DynamoDbSecondaryPartitionKey(indexNames = {BY_ORG_NUMBER_INDEX_NAME})
     @DynamoDbAttribute(ORG_NUMBER)
-    public String getFeideOrganizationId() {
-        return feideOrganizationId;
+    public String getFeideOrganizationDomain() {
+        return feideOrganizationDomain;
     }
 
-    public void setFeideOrganizationId(String feideOrganizationId) {
-        this.feideOrganizationId = feideOrganizationId;
+    public void setFeideOrganizationDomain(String feideOrganizationDomain) {
+        this.feideOrganizationDomain = feideOrganizationDomain;
     }
 
     @DynamoDbSecondaryPartitionKey(indexNames = {BY_CRISTIN_ID_INDEX_NAME})
     @DynamoDbAttribute(CRISTIN_ID)
-    public String getCristinId() {
+    public URI getCristinId() {
         return cristinId;
     }
 
-    public void setCristinId(String cristinId) {
+    public void setCristinId(URI cristinId) {
         this.cristinId = cristinId;
     }
 
@@ -178,7 +179,7 @@ public class CustomerDao implements Typed {
     @Override
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationDomain(),
                             getCristinId(), getVocabularies());
     }
 
@@ -201,7 +202,7 @@ public class CustomerDao implements Typed {
                && Objects.equals(getArchiveName(), that.getArchiveName())
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies());
     }
@@ -218,7 +219,7 @@ public class CustomerDao implements Typed {
             .withShortName(this.getShortName())
             .withVocabularies(extractVocabularySettings())
             .withModifiedDate(Optional.ofNullable(getModifiedDate()).map(Objects::toString).orElse(null))
-            .withFeideOrganizationId(getFeideOrganizationId())
+            .withFeideOrganizationId(getFeideOrganizationDomain())
             .withCristinId(getCristinId())
             .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
@@ -307,11 +308,11 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withFeideOrganizationId(String feideOrganizationId) {
-            customerDb.setFeideOrganizationId(feideOrganizationId);
+            customerDb.setFeideOrganizationDomain(feideOrganizationId);
             return this;
         }
 
-        public Builder withCristinId(String cristinId) {
+        public Builder withCristinId(URI cristinId) {
             customerDb.setCristinId(cristinId);
             return this;
         }

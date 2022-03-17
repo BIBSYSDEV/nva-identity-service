@@ -19,6 +19,8 @@ import com.github.tomakehurst.wiremock.matching.EqualToJsonPattern;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,15 +41,16 @@ public class CristinProxyMock {
     public static final boolean INACTIVE = false;
     private static final Boolean MATCH_CASE = false;
     private static final boolean ACTIVE = true;
-    private Set<NationalIdentityNumber> people;
+    public static final int LARGE_NUBMER_TO_AVOID_TEST_SUCESS_BY_LACK = 100;
     private final Set<NationalIdentityNumber> peopleMatchedToSomeScenario;
     private final DataportenMock dataporten;
     private final URI cristinPersonHost;
     private final Map<NationalIdentityNumber, CristinPersonResponse> cristinPersonRegistry;
-
+    private Set<NationalIdentityNumber> people;
     private NationalIdentityNumber personWithOneActiveAffiliationAndNoInactiveAffiliations;
     private NationalIdentityNumber personWithNoActiveAffiliations;
     private NationalIdentityNumber personWithActiveAndInactiveAffiliations;
+    private NationalIdentityNumber personWithManyActiveAffiliations;
     private List<URI> topLevelOrgUris;
     private Set<BottomAndTopLevelOrgPair> bottomLevelOrgs;
     private Set<URI> bottomLevelOrgUris;
@@ -71,6 +74,7 @@ public class CristinProxyMock {
         createPersonWithOneActiveAffiliation();
         createPersonWithNoActiveAffiliations();
         createPersonWithActiveAndInactiveAffiliations();
+        createPersonWithManyActiveAffiliations();
     }
 
     public NationalIdentityNumber getPersonWithOneActiveAffiliationAndNoInactiveAffiliations() {
@@ -98,15 +102,19 @@ public class CristinProxyMock {
     }
 
     public URI randomPersonUri() {
-        return new UriWrapper(cristinPersonHost).addChild("person").addChild(randomString()).getUri();
+        return UriWrapper.fromUri(cristinPersonHost).addChild("person").addChild(randomString()).getUri();
     }
 
     public URI getTopLevelOrgForBottomLevelOrg(URI uri) {
         return bottomTopLevelOrgMap.get(uri);
     }
 
+    public NationalIdentityNumber getPersonWithManyActiveAffiliations() {
+        return personWithManyActiveAffiliations;
+    }
+
     private URI createRandomOrgUriForTheImaginarySetup() {
-        return new UriWrapper(cristinPersonHost).addChild("organization").addChild(randomString()).getUri();
+        return UriWrapper.fromUri(cristinPersonHost).addChild("organization").addChild(randomString()).getUri();
     }
 
     private void createImaginaryOrganizationStructure() {
@@ -133,26 +141,6 @@ public class CristinProxyMock {
             .collect(Collectors.toList());
     }
 
-    private void createPersonWithActiveAndInactiveAffiliations() {
-        var person = nextPerson();
-        personWithActiveAndInactiveAffiliations = person;
-        createCristinRecordForPersonWithActiveAndInactiveAffiliations(person);
-        createStubResponseForPerson(person);
-    }
-
-    private CristinPersonResponse createCristinRecordForPersonWithActiveAndInactiveAffiliations(
-        NationalIdentityNumber person) {
-        var cristinPersonResponse = CristinPersonResponse.builder()
-            .withCristinId(randomPersonUri())
-            .withNin(person)
-            .withAffiliations(activeAndInactiveAffiliations())
-            .withFirstName(randomString())
-            .withLastName(randomString())
-            .build();
-        cristinPersonRegistry.put(person, cristinPersonResponse);
-        return cristinPersonResponse;
-    }
-
     private List<CristinAffiliation> activeAndInactiveAffiliations() {
         return IntStream.range(0, smallNumber()).boxed()
             .map(ignores -> randomAffiliation(randomBoolean()))
@@ -163,31 +151,53 @@ public class CristinProxyMock {
         return 2 + randomInteger(10);
     }
 
-    private CristinPersonResponse createCristinResponseForUserWithNoActiveAffiliations(
-        NationalIdentityNumber person) {
-        CristinPersonResponse response = CristinPersonResponse.builder()
-            .withNin(person)
-            .withCristinId(randomPersonUri())
-            .withAffiliations(List.of(randomAffiliation(INACTIVE), randomAffiliation(INACTIVE)))
-            .withLastName(randomString())
-            .withFirstName(randomString())
-            .build();
-        cristinPersonRegistry.put(person, response);
-        return response;
-    }
-
     private void createPersonWithOneActiveAffiliation() {
         var person = nextPerson();
-        createCristinPersonResponseForPersonHavingOneActiveAffiliationAndNoInactiveOnes(person);
+        List<CristinAffiliation> affiliations = List.of(randomAffiliation(ACTIVE));
+        createCristinRecord(person, affiliations);
         personWithOneActiveAffiliationAndNoInactiveAffiliations = person;
+        createStubResponseForPerson(person);
+    }
+
+    private void createPersonWithActiveAndInactiveAffiliations() {
+        var person = nextPerson();
+        personWithActiveAndInactiveAffiliations = person;
+        var affiliations = activeAndInactiveAffiliations();
+        createCristinRecord(person, affiliations);
         createStubResponseForPerson(person);
     }
 
     private void createPersonWithNoActiveAffiliations() {
         var person = nextPerson();
         personWithNoActiveAffiliations = person;
-        createCristinResponseForUserWithNoActiveAffiliations(person);
+        var affiliations = List.of(randomAffiliation(INACTIVE), randomAffiliation(INACTIVE));
+        createCristinRecord(person, affiliations);
         createStubResponseForPerson(person);
+    }
+
+    private void createPersonWithManyActiveAffiliations() {
+        var person = nextPerson();
+        personWithManyActiveAffiliations = person;
+        var affiliations = IntStream.range(0, LARGE_NUBMER_TO_AVOID_TEST_SUCESS_BY_LACK)
+            .boxed()
+            .map(ignored -> randomAffiliation(ACTIVE))
+            .collect(Collectors.toList());
+
+        createCristinRecord(person, affiliations);
+        createStubResponseForPerson(person);
+    }
+
+    private CristinPersonResponse createCristinRecord(NationalIdentityNumber person,
+                                                      Collection<CristinAffiliation> affiliations) {
+        CristinPersonResponse response = CristinPersonResponse.builder()
+            .withNin(person)
+            .withCristinId(randomPersonUri())
+            .withAffiliations(new ArrayList<>(affiliations))
+            .withLastName(randomString())
+            .withFirstName(randomString())
+            .build();
+        cristinPersonRegistry.put(person, response);
+        return response;
     }
 
     private void attachCristinOrgResponseToStub(BottomAndTopLevelOrgPair bottomOrganization) {
@@ -204,20 +214,6 @@ public class CristinProxyMock {
                     .withHeader(CONTENT_TYPE, applicationJson())
                     .withRequestBody(cristinServiceRequestBody(person))
                     .willReturn(aResponse().withStatus(HTTP_OK).withBody(cristinResponseBody(person))));
-    }
-
-    private CristinPersonResponse createCristinPersonResponseForPersonHavingOneActiveAffiliationAndNoInactiveOnes(
-        NationalIdentityNumber nin) {
-        var response = CristinPersonResponse.builder()
-            .withCristinId(randomPersonUri())
-            .withFirstName(randomString())
-            .withLastName(randomString())
-            .withNin(nin)
-            .withAffiliations(List.of(randomAffiliation(ACTIVE)))
-            .build();
-        this.cristinPersonRegistry.put(nin, response);
-
-        return response;
     }
 
     private ContentPattern<?> cristinServiceRequestBody(NationalIdentityNumber nin) {

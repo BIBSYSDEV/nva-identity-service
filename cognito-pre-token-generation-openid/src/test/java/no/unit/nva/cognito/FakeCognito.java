@@ -23,6 +23,11 @@ public class FakeCognito implements CognitoIdentityProviderClient {
 
     private final String fakeClientSecret = randomString();
     private final String fakeClientId = randomString();
+    private AdminUpdateUserAttributesRequest updateUserRequest;
+
+    public AdminUpdateUserAttributesRequest getUpdateUserRequest() {
+        return updateUserRequest;
+    }
 
     public String getFakeClientId() {
         return fakeClientId;
@@ -49,6 +54,7 @@ public class FakeCognito implements CognitoIdentityProviderClient {
 
     @Override
     public AdminUpdateUserAttributesResponse adminUpdateUserAttributes(AdminUpdateUserAttributesRequest request) {
+        this.updateUserRequest = request;
         return AdminUpdateUserAttributesResponse.builder().build();
     }
 

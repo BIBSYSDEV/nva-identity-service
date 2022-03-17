@@ -56,7 +56,7 @@ public class DynamoDBCustomerService implements CustomerService {
 
     @Override
     public CustomerDto getCustomer(URI customerId) {
-        var customerIdentifier = new UriWrapper(customerId).getLastPathElement();
+        var customerIdentifier = UriWrapper.fromUri(customerId).getLastPathElement();
         return getCustomer(UUID.fromString(customerIdentifier));
     }
 
@@ -71,7 +71,7 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public CustomerDto getCustomerByOrgNumber(String orgNumber) {
         CustomerDao query = createQueryForOrgNumber(orgNumber);
-        return sendQueryToIndex(orgNumber, query, BY_ORG_NUMBER_INDEX_NAME, CustomerDao::getFeideOrganizationId);
+        return sendQueryToIndex(query, BY_ORG_NUMBER_INDEX_NAME, CustomerDao::getFeideOrganizationDomain);
     }
 
     @Override
@@ -103,9 +103,10 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomerByCristinId(String cristinId) {
+    public CustomerDto getCustomerByCristinId(URI cristinId) {
         CustomerDao queryObject = createQueryForCristinNumber(cristinId);
-        return sendQueryToIndex(cristinId, queryObject, BY_CRISTIN_ID_INDEX_NAME, CustomerDao::getCristinId);
+        return sendQueryToIndex(queryObject, BY_CRISTIN_ID_INDEX_NAME,
+                                customer -> customer.getCristinId().toString());
     }
 
     private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
@@ -115,7 +116,8 @@ public class DynamoDBCustomerService implements CustomerService {
         return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
     }
 
-    private CustomerDto sendQueryToIndex(String queryValue, CustomerDao queryObject, String indexName,
+    private CustomerDto sendQueryToIndex(CustomerDao queryObject,
+                                         String indexName,
                                          Function<CustomerDao, String> indexPartitionValue) {
         QueryEnhancedRequest query = createQuery(queryObject, indexPartitionValue);
         var results = table.index(indexName).query(query);
@@ -124,14 +126,14 @@ public class DynamoDBCustomerService implements CustomerService {
             .flatMap(page -> page.items().stream())
             .map(CustomerDao::toCustomerDto)
             .collect(SingletonCollector.tryCollect())
-            .orElseThrow(fail -> notFoundException(queryValue));
+            .orElseThrow(fail -> notFoundException(queryObject.toString()));
     }
 
     private CustomerDao createQueryForOrgNumber(String orgNumber) {
         return CustomerDao.builder().withFeideOrganizationId(orgNumber).build();
     }
 
-    private CustomerDao createQueryForCristinNumber(String cristinId) {
+    private CustomerDao createQueryForCristinNumber(URI cristinId) {
         return CustomerDao.builder().withCristinId(cristinId).build();
     }
 

@@ -25,9 +25,10 @@ public class CustomerDtoWithoutContext implements Resource, Typed {
     private String archiveName;
     private String cname;
     private String institutionDns;
-    private String feideOrganizationId;
-    private String cristinId;
+    private String feideOrganizationDomain;
+    private URI cristinId;
     private List<VocabularyDto> vocabularySettings;
+
 
     public CustomerDtoWithoutContext() {
 
@@ -115,19 +116,19 @@ public class CustomerDtoWithoutContext implements Resource, Typed {
         this.institutionDns = institutionDns;
     }
 
-    public String getFeideOrganizationId() {
-        return feideOrganizationId;
+    public String getFeideOrganizationDomain() {
+        return feideOrganizationDomain;
     }
 
-    public void setFeideOrganizationId(String feideOrganizationId) {
-        this.feideOrganizationId = feideOrganizationId;
+    public void setFeideOrganizationDomain(String feideOrganizationDomain) {
+        this.feideOrganizationDomain = feideOrganizationDomain;
     }
 
-    public String getCristinId() {
+    public URI getCristinId() {
         return cristinId;
     }
 
-    public void setCristinId(String cristinId) {
+    public void setCristinId(URI cristinId) {
         this.cristinId = cristinId;
     }
 
@@ -145,7 +146,7 @@ public class CustomerDtoWithoutContext implements Resource, Typed {
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationDomain(),
                             getCristinId(), getVocabularies());
     }
 
@@ -169,7 +170,7 @@ public class CustomerDtoWithoutContext implements Resource, Typed {
                && Objects.equals(getArchiveName(), that.getArchiveName())
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies());
     }

@@ -19,5 +19,5 @@ public interface CustomerService {
 
     CustomerDto updateCustomer(UUID identifier, CustomerDto customer);
 
-    CustomerDto getCustomerByCristinId(String cristinId);
+    CustomerDto getCustomerByCristinId(URI cristinId);
 }

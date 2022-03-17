@@ -32,7 +32,7 @@ public class CustomerDataGenerator {
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
             .withName(randomString())
-            .withCristinId(randomString())
+            .withCristinId(randomUri())
             .withFeideOrganizationId(randomString())
             .withModifiedDate(randomInstant().toString())
             .withIdentifier(identifier)
@@ -66,7 +66,7 @@ public class CustomerDataGenerator {
             .withName(randomString())
             .withModifiedDate(randomInstant())
             .withShortName(randomString())
-            .withCristinId(randomString())
+            .withCristinId(randomUri())
             .withVocabularySettings(Set.of(vocabulary))
             .withInstitutionDns(randomString())
             .withFeideOrganizationId(randomString())

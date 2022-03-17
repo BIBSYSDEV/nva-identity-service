@@ -2,14 +2,20 @@ package no.unit.nva.cognito;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.BELONGS_TO;
+import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.FEIDE_ID;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FOR_FEIDE_USERS;
+import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.Every.everyItem;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.hamcrest.core.IsNull.nullValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
@@ -22,11 +28,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.cognito.cristin.person.CristinIdentifier;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
 import no.unit.nva.database.DatabaseAccessor;
@@ -35,11 +43,15 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.EnumSource.Mode;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 class IdentityServiceEntryUpdateHandlerTest {
@@ -48,6 +60,9 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final boolean INCLUDE_INACTIVE = true;
     public static final String AT = "@";
     private static final boolean EXCLUDE_INACTIVE = false;
+    public static final boolean INCLUDE_ONLY_ACTIVE = false;
+    public static final String NOT_EXISTIN_VALUE_IN_LEGACY_ENTRIES = null;
+    private static final URI NOT_EXISTIN_URI_IN_LEGACY_ENTRIES = null;
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
@@ -60,11 +75,13 @@ class IdentityServiceEntryUpdateHandlerTest {
     private DataportenMock dataporten;
     private RegisteredPeopleInstance registeredPeople;
     private NvaDataGenerator nvaDataGenerator;
+    private FakeCognito congitoClient;
 
     @BeforeEach
     public void init() {
         setUpWiremock();
-        this.dataporten = new DataportenMock(httpServer);
+        this.congitoClient = new FakeCognito();
+        this.dataporten = new DataportenMock(httpServer, congitoClient);
 
         setupCustomerService();
         setupIdentityService();
@@ -74,7 +91,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
         var cognitoHost = this.serverUri;
         var cristinHost = this.serverUri;
-        handler = new IdentityServiceEntryUpdateHandler(dataporten.getCognitoClient(),
+        handler = new IdentityServiceEntryUpdateHandler(congitoClient,
                                                         HTTP_CLIENT,
                                                         cognitoHost,
                                                         cristinHost,
@@ -98,12 +115,9 @@ class IdentityServiceEntryUpdateHandlerTest {
         var personLoggingIn = registeredPeople.personWithExactlyOneActiveAffiliation();
         var event = randomEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
-
-        var expectedCustomerIds =
-            constructExpectedCustomersFromMockData(registeredPeople, personLoggingIn);
-        var expectedUsernames = constructUsernames(registeredPeople, personLoggingIn, expectedCustomerIds);
-        var actualUsernames = scanAllUsers().stream().map(UserDto::getUsername).collect(Collectors.toList());
-        assertThat(actualUsernames, containsInAnyOrder(expectedUsernames.toArray()));
+        List<UserDto> allUsers = scanAllUsers();
+        assertThatNewUsernamesAreUuids(allUsers);
+        assertThatUserIsSearchableByCristinCredentials(personLoggingIn, allUsers);
     }
 
     @ParameterizedTest(name = "should not create user for the person's institution (top org) when person has not "
@@ -132,15 +146,15 @@ class IdentityServiceEntryUpdateHandlerTest {
 
         handler.handleRequest(event, context);
 
-        var personsCristinIdentifier = registeredPeople.getCristinPersonIdentifier(personLoggingIn);
+        var cristinPersonId = registeredPeople.getCristinPersonId(personLoggingIn);
         var expectedCustomers = registeredPeople.getTopLevelOrgsForPerson(personLoggingIn, EXCLUDE_INACTIVE);
-
         var expectedUsers = expectedCustomers
             .stream()
-            .map(customerCristinId -> formatUsername(personsCristinIdentifier, customerCristinId))
-            .map(username -> identityService.getUser(UserDto.newBuilder().withUsername(username).build()))
+            .map(customerCristinId -> fetchUserFromDatabase(cristinPersonId, customerCristinId))
             .toArray(UserDto[]::new);
         var actualUsers = scanAllUsers();
+
+        assertThat(expectedUsers.length, is(equalTo(expectedCustomers.size())));
         assertThat(actualUsers, containsInAnyOrder(expectedUsers));
     }
 
@@ -149,10 +163,8 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldMaintainPreexistingUserEntriesForBothValidAndInvalidAffiliations(LoginEventType eventType) {
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
-        var personCristinId = registeredPeople.getCristinPersonId(personLoggingIn);
         var alreadyExistingUsers = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
         handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
-
         var actualUsers = scanAllUsers();
         assertThat(actualUsers, containsInAnyOrder(alreadyExistingUsers.toArray(UserDto[]::new)));
     }
@@ -161,7 +173,7 @@ class IdentityServiceEntryUpdateHandlerTest {
                               + "identifier for user's active top orgs")
     @EnumSource(LoginEventType.class)
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerCristinIdentifierForUsersActiveTopOrgs(
-        LoginEventType eventType) throws InterruptedException {
+        LoginEventType eventType) {
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
         var usersForActiveAndInactiveAffiliations = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
         var expectedUsers = usersForActiveAndInactiveAffiliations.stream()
@@ -184,10 +196,10 @@ class IdentityServiceEntryUpdateHandlerTest {
                               + "identifier for user's active top orgs")
     @EnumSource(LoginEventType.class)
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerNvaIdentifierForUsersActiveTopOrgs(
-        LoginEventType eventType) throws InterruptedException {
+        LoginEventType eventType) {
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
-        var usersForActiveAndInactiveAffiliations = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
-        var expectedUsers = usersForActiveAndInactiveAffiliations.stream()
+        var preExistingUsers = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
+        var expectedUsers = preExistingUsers.stream()
             .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
             .collect(Collectors.toSet());
 
@@ -197,10 +209,153 @@ class IdentityServiceEntryUpdateHandlerTest {
             .collect(Collectors.toList());
 
         var response = handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
-
         var actualAccessRights =
             response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
         assertThat(expectedAccessRightsWithNvaIdentifiers, everyItem(in(actualAccessRights)));
+    }
+
+    @Test
+    void shouldMaintainFeideIdAsUsernameForLegacyEntriesAndUpdateAllExternalIdentifierFields() {
+        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
+        final String orgFeideDomain = feideDomainOfUsersInstitution(person);
+        var personsFeideIdentifier = randomString() + AT + orgFeideDomain;
+        var preExistingUser = legacyUserWithFeideIdentifierAsUsername(person, personsFeideIdentifier);
+
+        CognitoUserPoolPreTokenGenerationEvent loginEvent =
+            randomEventOfFeideUser(person, personsFeideIdentifier, orgFeideDomain);
+        handler.handleRequest(loginEvent, context);
+
+        var updatedUser = identityService.getUser(preExistingUser);
+
+        assertThatNewFieldsAreUpdatedForLegacyUserEntries(person, personsFeideIdentifier, updatedUser);
+    }
+
+    @ParameterizedTest(name = "should add customer id as current-customer-id when user logs in and has only one "
+                              + "active affiliation:{}")
+    @EnumSource(LoginEventType.class)
+    void shouldAddCustomerIdAsChosenCustomerIdWhenUserLogsInAndHasOnlyOneActiveAffiliation(
+        LoginEventType loginEventType) {
+        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
+        var expectedCustomerCristinId = registeredPeople.getTopLevelOrgsForPerson(person, INCLUDE_ONLY_ACTIVE)
+            .stream().collect(SingletonCollector.collect());
+
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var expectedCurrentCustomerId = customerService.getCustomerByCristinId(expectedCustomerCristinId).getId();
+
+        var actualCustomerId = fetchCurrentCustomClaimForCongitoUserUpdate();
+        assertThat(actualCustomerId, is(equalTo(expectedCurrentCustomerId.toString())));
+    }
+
+    @ParameterizedTest(name = " should add Feide specified customer id as current customer id when user logs in with "
+                              + "feide")
+    @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
+    void shouldAddFeideSpecifiedCustomerIdAsCurrentCustomerIdWhenUserLogsInWithFeide(
+        LoginEventType loginEventType) {
+        var person = registeredPeople.personWithManyActiveAffiliations();
+
+        var event = randomEvent(person, loginEventType);
+        var customersFeideDomain = event.getRequest().getUserAttributes().get(ORG_FEIDE_DOMAIN);
+        var expectedCustomerId = fetchCustomerBasedOnFeideDomain(customersFeideDomain);
+        handler.handleRequest(event, context);
+
+        var actualCustomerId = fetchCurrentCustomClaimForCongitoUserUpdate();
+        assertThat(actualCustomerId, is(equalTo(expectedCustomerId.toString())));
+    }
+
+    @ParameterizedTest(name = "should not update customerId when user has many affiliations and logs in with personal"
+                              + " number")
+    @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"}, mode = Mode.INCLUDE)
+    void shouldNotUpdateCurrentCustomerIdWenUserHasManyAffilationsaAdLogsInWithPersonalNumber(
+        LoginEventType loginEventType) {
+        var person = registeredPeople.personWithManyActiveAffiliations();
+
+        var event = randomEvent(person, loginEventType);
+
+        handler.handleRequest(event, context);
+
+        var actualCustomerId = fetchCurrentCustomClaimForCongitoUserUpdate();
+        assertThat(actualCustomerId, is(nullValue()));
+    }
+
+    private URI fetchCustomerBasedOnFeideDomain(String customersFeideDomain) {
+        return customerService.getCustomers().stream()
+            .filter(customer -> customersFeideDomain.equals(customer.getFeideOrganizationDomain()))
+            .map(CustomerDtoWithoutContext::getId)
+            .collect(SingletonCollector.collectOrElse(null));
+    }
+
+    private String fetchCurrentCustomClaimForCongitoUserUpdate() {
+        var request = congitoClient.getUpdateUserRequest();
+        return request.userAttributes()
+            .stream()
+            .filter(a -> a.name().equals(CURRENT_CUSTOMER_CLAIM))
+            .map(AttributeType::value)
+            .collect(SingletonCollector.collectOrElse(null));
+    }
+
+    private void assertThatNewFieldsAreUpdatedForLegacyUserEntries(NationalIdentityNumber person,
+                                                                   String personsFeideIdentifier,
+                                                                   UserDto updatedUser) {
+        assertThat(updatedUser.getCristinId(), is(equalTo(registeredPeople.getCristinPersonId(person))));
+        assertThat(updatedUser.getFeideIdentifier(), is(equalTo(personsFeideIdentifier)));
+        var expectedTopLevelOrgId = registeredPeople.getTopLevelOrgsForPerson(person, INCLUDE_ONLY_ACTIVE)
+            .stream().collect(SingletonCollector.collect());
+        assertThat(updatedUser.getInstitutionCristinId(), is(equalTo(expectedTopLevelOrgId)));
+    }
+
+    private UserDto legacyUserWithFeideIdentifierAsUsername(NationalIdentityNumber person,
+                                                            String personsFeideIdentifier) {
+        var preExistingUser = nvaDataGenerator.createUsers(person, INCLUDE_ONLY_ACTIVE)
+            .stream().collect(SingletonCollector.collect());
+        preExistingUser.setUsername(personsFeideIdentifier);
+        preExistingUser.setFeideIdentifier(NOT_EXISTIN_VALUE_IN_LEGACY_ENTRIES);
+        preExistingUser.setInstitutionCristinId(NOT_EXISTIN_URI_IN_LEGACY_ENTRIES);
+        preExistingUser.setCristinId(NOT_EXISTIN_URI_IN_LEGACY_ENTRIES);
+        identityService.addUser(preExistingUser);
+        return preExistingUser;
+    }
+
+    private String feideDomainOfUsersInstitution(NationalIdentityNumber person) {
+        var topLeveOrg = registeredPeople.getTopLevelOrgsForPerson(person, INCLUDE_ONLY_ACTIVE)
+            .stream()
+            .collect(SingletonCollector.collect());
+        return customerService.getCustomerByCristinId(topLeveOrg).getFeideOrganizationDomain();
+    }
+
+    private UserDto fetchUserFromDatabase(URI cristinPersonId, URI customerCristinId) {
+        return identityService.getUserByCristinIdAndCristinOrgId(cristinPersonId, customerCristinId);
+    }
+
+    private void assertThatNewUsernamesAreUuids(List<UserDto> allUsers) {
+        var actualUsernames = allUsers.stream().map(UserDto::getUsername)
+            .map(UUID::fromString)
+            .collect(Collectors.toList());
+        assertThat(actualUsernames, everyItem(is(instanceOf(UUID.class))));
+    }
+
+    private void assertThatUserIsSearchableByCristinCredentials(NationalIdentityNumber personLoggingIn,
+                                                                List<UserDto> allUsers) {
+        assertThatUsersCristinIsPersonsCristinId(personLoggingIn, allUsers);
+        assertThatUsersInstitutionCristinIdIsCustomersCristinId(personLoggingIn, allUsers);
+    }
+
+    private void assertThatUsersInstitutionCristinIdIsCustomersCristinId(NationalIdentityNumber personLoggingIn,
+                                                                         List<UserDto> allUsers) {
+        var expectedCustomerCristinIds =
+            constructExpectedCustomersFromMockData(registeredPeople, personLoggingIn);
+        var actualCustomerCristinIds = allUsers.stream()
+            .map(UserDto::getInstitutionCristinId)
+            .collect(Collectors.toList());
+        assertThat(actualCustomerCristinIds, containsInAnyOrder(expectedCustomerCristinIds.toArray(URI[]::new)));
+    }
+
+    private void assertThatUsersCristinIsPersonsCristinId(NationalIdentityNumber personLoggingIn,
+                                                          List<UserDto> allUsers) {
+        var cristinPersonId = registeredPeople.getCristinPersonId(personLoggingIn);
+        for (var user : allUsers) {
+            assertThat(user.getCristinId(), is(equalTo(cristinPersonId)));
+        }
     }
 
     private List<UserDto> createUsersForActiveAndInactiveAffiliations(NationalIdentityNumber personLoggingIn) {
@@ -233,24 +388,11 @@ class IdentityServiceEntryUpdateHandlerTest {
         return customersForActiveAffiliations.contains(user.getInstitution());
     }
 
-    private String formatUsername(CristinIdentifier personsCristinIdentifier, URI customerCristinId) {
-        var customerIdentifier = new UriWrapper(customerCristinId).getLastPathElement();
-        return personsCristinIdentifier.getValue() + BELONGS_TO + customerIdentifier;
-    }
-
-    private List<String> constructUsernames(RegisteredPeopleInstance registeredPeopleInstance,
-                                            NationalIdentityNumber personLoggingIn, List<URI> expectedCustomerIds) {
-        return Stream.of(registeredPeopleInstance.getCristinPersonIdentifier(personLoggingIn))
-            .flatMap(cristinIdentifier -> createUsersForPersonAndCustomers(expectedCustomerIds, cristinIdentifier))
-            .collect(Collectors.toList());
-    }
-
     private List<UserDto> scanAllUsers() {
         ScanDatabaseRequestV2 scanRequest = new ScanDatabaseRequestV2();
-        var allUsers = new ArrayList<UserDto>();
         var scanResult = identityService.fetchOnePageOfUsers(scanRequest);
 
-        allUsers.addAll(scanResult.getRetrievedUsers());
+        var allUsers = new ArrayList<>(scanResult.getRetrievedUsers());
         while (scanResult.thereAreMoreEntries()) {
             Map<String, AttributeValue> nextStartMarker = scanResult.getStartMarkerForNextScan();
             scanResult = identityService.fetchOnePageOfUsers(scanRequest.newScanDatabaseRequest(nextStartMarker));
@@ -262,7 +404,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     private Stream<String> createUsersForPersonAndCustomers(List<URI> expectedCustomers,
                                                             CristinIdentifier cristinIdentifier) {
         return expectedCustomers.stream()
-            .map(customerId -> new UriWrapper(customerId).getLastPathElement())
+            .map(customerId -> UriWrapper.fromUri(customerId).getLastPathElement())
             .map(customerIdentifier -> cristinIdentifier.getValue() + BELONGS_TO + customerIdentifier);
     }
 
@@ -270,23 +412,28 @@ class IdentityServiceEntryUpdateHandlerTest {
                                                              NationalIdentityNumber personLoggingIn) {
         return registeredPeopleInstance.getTopLevelOrgsForPerson(personLoggingIn, EXCLUDE_INACTIVE)
             .stream()
-            .map(cristinId -> customerService.getCustomerByCristinId(cristinId.toString()))
+            .map(cristinId -> customerService.getCustomerByCristinId(cristinId))
             .map(CustomerDto::getCristinId)
-            .map(URI::create)
             .collect(Collectors.toList());
     }
 
     private CognitoUserPoolPreTokenGenerationEvent randomEvent(NationalIdentityNumber nin,
                                                                LoginEventType loginEventType) {
         if (LoginEventType.FEIDE == loginEventType) {
-            return randomEventOfFeideUser(nin);
+            String feideId = registeredPeople.getFeideIdentifierForPerson();
+            String orgFeideDomain = registeredPeople.getSomeFeideOrgIdentifierForPerson(nin);
+            return randomEventOfFeideUser(nin, feideId, orgFeideDomain);
         }
         return randomEventOfNonFeideUser(nin);
     }
 
-    private CognitoUserPoolPreTokenGenerationEvent randomEventOfFeideUser(NationalIdentityNumber nin) {
+    private CognitoUserPoolPreTokenGenerationEvent randomEventOfFeideUser(NationalIdentityNumber nin,
+                                                                          String feideId,
+                                                                          String orgFeideDomain) {
 
-        Map<String, String> userAttributes = Map.of(FEIDE_ID, randomString(), NIN_FOR_FEIDE_USERS, nin.getNin());
+        Map<String, String> userAttributes = Map.of(FEIDE_ID, feideId,
+                                                    NIN_FOR_FEIDE_USERS, nin.getNin(),
+                                                    ORG_FEIDE_DOMAIN, orgFeideDomain);
         return CognitoUserPoolPreTokenGenerationEvent.builder()
             .withUserPoolId(randomString())
             .withUserName(randomString())

@@ -25,9 +25,9 @@ public class DataportenMock {
     private final WireMockServer wiremockServer;
     private String jwtToken;
 
-    public DataportenMock(WireMockServer wireMockServer) {
+    public DataportenMock(WireMockServer wireMockServer, FakeCognito cognitoClient) {
         this.wiremockServer = wireMockServer;
-        cognitoClient = new FakeCognito();
+        this.cognitoClient = cognitoClient;
         clientSecret = cognitoClient.getFakeClientSecret();
         clientId = cognitoClient.getFakeClientId();
         setupCognitoMockResponse();

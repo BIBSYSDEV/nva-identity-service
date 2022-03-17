@@ -1,5 +1,7 @@
 package no.unit.nva.cognito;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.EnvironmentVariables.AWS_REGION;
 import static no.unit.nva.cognito.EnvironmentVariables.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
@@ -15,11 +17,13 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Response;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinClient;
@@ -29,7 +33,7 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.paths.UriWrapper;
+import nva.commons.core.SingletonCollector;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -41,11 +45,13 @@ public class IdentityServiceEntryUpdateHandler
 
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideidnin";
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
-    public static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS, NIN_FOR_FEIDE_USERS};
     public static final String FEIDE_ID = "custom:feideid";
+    public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideId";
     public static final String BELONGS_TO = "@";
     public static final String ACCESS_RIGTHS_DELIMITER = ",";
-    public static final String COGNITO_USERNAME = "username";
+    public static final String CURRENT_CUSTOMER_CLAIM = "custom:currentCustomer";
+    protected static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS,
+        NIN_FOR_FEIDE_USERS};
     private final CristinClient cristinClient;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -76,14 +82,20 @@ public class IdentityServiceEntryUpdateHandler
                                                                 Context context) {
 
         var nin = extractNin(input.getRequest().getUserAttributes());
-        var cristinResponse = fetchPersonInformationFromCristin(input, nin);
-        var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
+        var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
+        var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
 
-        var usersForPerson = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers);
+        var cristinResponse = fetchPersonInformationFromCristin(input, nin);
+        var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse, orgFeideDomain);
+
+        var usersForPerson = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers, feideIdentifier);
         var accessRights = accessRightsPerCustomer(usersForPerson);
 
         injectAccessRightsToEventResponse(input, accessRights);
-        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input, cristinResponse, accessRights);
+        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input,
+                                                                                cristinResponse,
+                                                                                activeCustomers,
+                                                                                accessRights);
 
         return input;
     }
@@ -100,28 +112,43 @@ public class IdentityServiceEntryUpdateHandler
     private void updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(
         CognitoUserPoolPreTokenGenerationEvent input,
         CristinPersonResponse cristinResponse,
-        String... accessRights) {
+        Collection<CustomerDto> customers,
+        List<String> accessRights) {
+
+        var customer = customers.stream().collect(SingletonCollector.tryCollect())
+            .orElse(fail -> null);
         cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(input,
                                                                                   cristinResponse,
+                                                                                  customer,
                                                                                   accessRights));
     }
 
     private AdminUpdateUserAttributesRequest createUpdateUserAttributesRequest(
         CognitoUserPoolPreTokenGenerationEvent input,
         CristinPersonResponse cristinResponse,
-        String... accessRights) {
+        CustomerDto customer,
+        List<String> accessRights) {
 
         return AdminUpdateUserAttributesRequest.builder()
             .userPoolId(input.getUserPoolId())
             .username(input.getUserName())
-            .userAttributes(updatedPersonAttributes(cristinResponse, accessRights))
+            .userAttributes(updatedPersonAttributes(cristinResponse, customer, accessRights))
             .build();
     }
 
-    private Collection<AttributeType> updatedPersonAttributes(CristinPersonResponse response, String... accessRights) {
-        return List.of(createAttribute("custom:firstName", response.extractFirstName()),
-                       createAttribute("custom:lastName", response.extractLastName()),
-                       createAttribute("custom:accessRights", String.join(ACCESS_RIGTHS_DELIMITER, accessRights)));
+    private Collection<AttributeType> updatedPersonAttributes(CristinPersonResponse response,
+                                                              CustomerDto customerDto,
+                                                              List<String> accessRights) {
+
+        var claims = new ArrayList<AttributeType>();
+        claims.add(createAttribute("custom:firstName", response.extractFirstName()));
+        claims.add(createAttribute("custom:lastName", response.extractLastName()));
+        claims.add(createAttribute("custom:accessRights", String.join(ACCESS_RIGTHS_DELIMITER, accessRights)));
+        if (nonNull(customerDto)) {
+            claims.add(createAttribute(CURRENT_CUSTOMER_CLAIM, customerDto.getId().toString()));
+        }
+
+        return claims;
     }
 
     private AttributeType createAttribute(String s, String s2) {
@@ -129,41 +156,62 @@ public class IdentityServiceEntryUpdateHandler
     }
 
     private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
-                                                   String... accessRights) {
+                                                   List<String> accessRights) {
         input.setResponse(Response.builder()
                               .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
                               .build());
     }
 
-    private String[] accessRightsPerCustomer(List<UserDto> personsUsers) {
+    private List<String> accessRightsPerCustomer(List<UserDto> personsUsers) {
         return personsUsers.stream()
             .map(user -> CustomerAccessRight.fromUser(user, customerService))
             .flatMap(Collection::stream)
             .map(CustomerAccessRight::asStrings)
             .flatMap(Collection::stream)
-            .toArray(String[]::new);
+            .collect(Collectors.toList());
     }
 
-    private ClaimsOverrideDetails buildOverrideClaims(String... groupsToOverride) {
+    private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride) {
+        var groups = GroupConfiguration.builder()
+            .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
+            .build();
         return ClaimsOverrideDetails.builder()
-            .withGroupOverrideDetails(GroupConfiguration.builder().withGroupsToOverride(groupsToOverride).build())
+            .withGroupOverrideDetails(groups)
             .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
             .build();
     }
 
     private List<UserDto> createOrFetchUserEntriesForPerson(CristinPersonResponse cristinResponse,
-                                                            Set<CustomerDto> activeCustomers) {
+                                                            Set<CustomerDto> activeCustomers,
+                                                            String feideIdentifier) {
 
         return activeCustomers.stream()
-            .map(customer -> createNewUserObject(customer, cristinResponse))
-            .map(this::getExistingUserOrCreateNew)
+            .map(customer -> createNewUserObject(customer, cristinResponse, feideIdentifier))
+            .map(user -> getExistingUserOrCreateNew(user, feideIdentifier))
             .collect(Collectors.toList());
     }
 
-    private UserDto getExistingUserOrCreateNew(UserDto user) {
-        return attempt(() -> identityService.getUser(user))
+    private UserDto getExistingUserOrCreateNew(UserDto user, String feideIdentifier) {
+        return attempt(() -> fetchUserBasedOnCristinIdentifiers(user))
+            .or(() -> fetchLegacyUserWithFeideIdentrifer(user, feideIdentifier))
             .or(() -> addUser(user))
             .orElseThrow();
+    }
+
+    private UserDto fetchLegacyUserWithFeideIdentrifer(UserDto userWithUpdatedInformation, String feideIdentifier) {
+        var queryObject = UserDto.newBuilder().withUsername(feideIdentifier).build();
+        var savedUser = identityService.getUser(queryObject);
+        var updatedUser = savedUser.copy()
+            .withFeideIdentifier(feideIdentifier)
+            .withCristinId(userWithUpdatedInformation.getCristinId())
+            .withInstitutionCristinId(userWithUpdatedInformation.getInstitutionCristinId())
+            .build();
+        identityService.updateUser(updatedUser);
+        return updatedUser;
+    }
+
+    private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user) {
+        return identityService.getUserByCristinIdAndCristinOrgId(user.getCristinId(), user.getInstitutionCristinId());
     }
 
     private UserDto addUser(UserDto user) {
@@ -171,33 +219,45 @@ public class IdentityServiceEntryUpdateHandler
         return user;
     }
 
-    private UserDto createNewUserObject(CustomerDto customer, CristinPersonResponse cristinResponse) {
-        var cristinIdentifier = cristinResponse.getPersonsCristinIdentifier().getValue();
+    private UserDto createNewUserObject(CustomerDto customer,
+                                        CristinPersonResponse cristinResponse,
+                                        String feideIdentifier) {
 
-        return UserDto.newBuilder()
-            .withUsername(formatUsername(customer, cristinIdentifier))
+        var user = UserDto.newBuilder()
+            .withUsername(UUID.randomUUID().toString())
+            .withFeideIdentifier(feideIdentifier)
             .withInstitution(customer.getId())
             .withGivenName(cristinResponse.extractFirstName())
             .withFamilyName(cristinResponse.extractLastName())
             .withCristinId(cristinResponse.getCristinId())
-            .build();
+            .withCristinId(cristinResponse.getCristinId())
+            .withInstitutionCristinId(customer.getCristinId());
+
+        return user.build();
     }
 
-    private String formatUsername(CustomerDto customer, String cristinIdentifier) {
-        return cristinIdentifier + BELONGS_TO + UriWrapper.fromUri(customer.getCristinId()).getLastPathElement();
-    }
-
-    private Set<CustomerDto> fetchCustomersForActiveAffiliations(CristinPersonResponse cristinResponse) {
+    private Set<CustomerDto> fetchCustomersForActiveAffiliations(CristinPersonResponse cristinResponse,
+                                                                 String orgFeideDomain) {
 
         return cristinResponse.getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
             .map(this::fetchTopLevelOrgUri)
-            .map(uri -> customerService.getCustomerByCristinId(uri.toString()))
+            .map(customerService::getCustomerByCristinId)
+            .filter(customer -> keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(customer, orgFeideDomain))
             .collect(Collectors.toSet());
     }
 
-    private Object fetchTopLevelOrgUri(URI orgUri) {
+    private boolean keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(CustomerDto customer,
+                                                                           String orgFeideDomain) {
+        return userLoggedInWithNin(orgFeideDomain) || orgFeideDomain.equals(customer.getFeideOrganizationDomain());
+    }
+
+    private boolean userLoggedInWithNin(String orgFeideDomain) {
+        return isNull(orgFeideDomain);
+    }
+
+    private URI fetchTopLevelOrgUri(URI orgUri) {
         return attempt(() -> cristinClient.fetchTopLevelOrgUri(orgUri)).orElseThrow();
     }
 
@@ -211,5 +271,13 @@ public class IdentityServiceEntryUpdateHandler
         return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
             .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
             .orElseThrow();
+    }
+
+    private String extractOrgFeideDomain(Map<String, String> userAttributes) {
+        return Optional.ofNullable(userAttributes.get(ORG_FEIDE_DOMAIN)).orElse(null);
+    }
+
+    private String extractFeideIdentifier(Map<String, String> userAttributes) {
+        return Optional.ofNullable(userAttributes.get(FEIDE_ID)).orElse(null);
     }
 }

@@ -65,7 +65,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
             .withCname(getCname())
             .withId(getId())
             .withCristinId(getCristinId())
-            .withFeideOrganizationId(getFeideOrganizationId())
+            .withFeideOrganizationId(getFeideOrganizationDomain())
             .withName(getName())
             .withModifiedDate(getModifiedDate());
     }
@@ -74,7 +74,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
     @Override
     public int hashCode() {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationDomain(),
                             getCristinId(), getVocabularies(), getContext());
     }
 
@@ -98,7 +98,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
                && Objects.equals(getArchiveName(), that.getArchiveName())
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getContext(), that.getContext());
@@ -180,11 +180,11 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
         }
 
         public Builder withFeideOrganizationId(String feideOrganizationId) {
-            customerDto.setFeideOrganizationId(feideOrganizationId);
+            customerDto.setFeideOrganizationDomain(feideOrganizationId);
             return this;
         }
 
-        public Builder withCristinId(String cristinId) {
+        public Builder withCristinId(URI cristinId) {
             customerDto.setCristinId(cristinId);
             return this;
         }

@@ -3,6 +3,7 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.BELONGS_TO;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomElement;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,13 +35,18 @@ public class NvaDataGenerator {
     }
 
     public List<UserDto> createUsers(NationalIdentityNumber nin, boolean includeInactive) {
+        HashSet<URI> topLevelAffiliations = calculateTopLevelAffilationsToCreateUsersFor(nin, includeInactive);
+        var customers = topLevelAffiliations.stream()
+            .map(customerService::getCustomerByCristinId);
+        return customers.map(customer -> createUser(nin, customer)).collect(Collectors.toList());
+    }
+
+    private HashSet<URI> calculateTopLevelAffilationsToCreateUsersFor(NationalIdentityNumber nin, boolean includeInactive) {
         var topLevelAffiliations = new HashSet<>(registeredPeopleInstance.getTopLevelAffiliationsForUser(nin, ACTIVE));
         if (includeInactive) {
             topLevelAffiliations.addAll(registeredPeopleInstance.getTopLevelAffiliationsForUser(nin, INACTIVE));
         }
-        var customers = topLevelAffiliations.stream()
-            .map(affiliation -> customerService.getCustomerByCristinId(affiliation.toString()));
-        return customers.map(customer -> createUser(nin, customer)).collect(Collectors.toList());
+        return topLevelAffiliations;
     }
 
     public UserDto createUser(NationalIdentityNumber nin, CustomerDto customerDto) {
@@ -53,6 +59,7 @@ public class NvaDataGenerator {
             .withGivenName(randomString())
             .withFamilyName(randomString())
             .withInstitution(customerDto.getId())
+            .withInstitutionCristinId(customerDto.getCristinId())
             .build();
     }
 

@@ -29,7 +29,6 @@ import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
-import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
@@ -59,8 +58,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
     public static final String CRISTIN_ID = "cristinId";
     public static final String FEIDE_IDENTIFIER = "feideIdentifier";
-    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
     public static final String AT = "@";
+    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
     private String username;
     private URI institution;
     private Set<RoleDb> roles;
@@ -178,14 +177,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @DynamoDbSecondaryPartitionKey(indexNames = {SEARCH_USERS_BY_CRISTIN_IDENTIFIERS})
     @DynamoDbAttribute(SECONDARY_INDEX_2_HASH_KEY)
     public String getSearchByCristinIdentifiersHashKey() {
-        return createIdentifierForIdentifyingUserBasedOnCristinIdentifiers();
-    }
-
-    private String createIdentifierForIdentifyingUserBasedOnCristinIdentifiers() {
-        var institutionIdentifier = UriWrapper.fromUri(getInstitutionCristinId()).getLastPathElement();
-        var personIdentifier = UriWrapper.fromUri(getCristinId()).getLastPathElement();
-        var userIdentifier =  personIdentifier + AT + institutionIdentifier;
-        return TYPE_VALUE + FIELD_DELIMITER + userIdentifier;
+        return Optional.ofNullable(getCristinId()).map(URI::toString).orElse(null);
     }
 
     @JacocoGenerated
@@ -197,7 +189,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @DynamoDbSecondarySortKey(indexNames = {SEARCH_USERS_BY_CRISTIN_IDENTIFIERS})
     @DynamoDbAttribute(SECONDARY_INDEX_2_RANGE_KEY)
     public String getSearchByCristinIdentifiersRangeKey() {
-        return createIdentifierForIdentifyingUserBasedOnCristinIdentifiers();
+        return Optional.ofNullable(getInstitutionCristinId()).map(URI::toString).orElse(null);
     }
 
     @JacocoGenerated

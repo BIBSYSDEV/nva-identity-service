@@ -127,7 +127,7 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     void getCustomerByOrgNumberReturnsTheCustomer() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
-        var getCustomer = service.getCustomerByOrgNumber(createdCustomer.getFeideOrganizationId());
+        var getCustomer = service.getCustomerByOrgNumber(createdCustomer.getFeideOrganizationDomain());
         assertEquals(createdCustomer, getCustomer);
     }
 
@@ -144,7 +144,7 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     void shouldThrowNotFoundExceptionWhenQueryResultIsEmpty() {
         var customer = newCustomerDto();
         service.createCustomer(customer);
-        assertThrows(NotFoundException.class, () -> service.getCustomerByCristinId(randomUri().toString()));
+        assertThrows(NotFoundException.class, () -> service.getCustomerByCristinId(randomUri()));
     }
 
     @Test
@@ -287,7 +287,7 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
             .withCname(randomString())
             .withInstitutionDns(randomString())
             .withFeideOrganizationId(randomString())
-            .withCristinId(randomCristinOrgId().toString())
+            .withCristinId(randomCristinOrgId())
             .withVocabularies(randomVocabularySet())
             .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context")));

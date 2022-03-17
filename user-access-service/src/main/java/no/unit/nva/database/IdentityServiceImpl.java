@@ -79,9 +79,14 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public UserDto getUserByCristinIds(URI cristinPersonId, URI cristinOrgId) {
-        return userService.getUserByByCristinIds(cristinPersonId,cristinOrgId);
+    public List<UserDto> getUsersByCristinId(URI cristinPersonId) {
+        return userService.getUsersByByCristinId(cristinPersonId);
 
+    }
+
+    @Override
+    public UserDto getUserByCristinIdAndCristinOrgId(URI cirstinPersonId, URI cristinOrgId) {
+        return userService.getUsersByByCristinIdAndCristinOrgId(cirstinPersonId,cristinOrgId);
     }
 
     private boolean thereAreMoreEntries(ScanResponse result) {

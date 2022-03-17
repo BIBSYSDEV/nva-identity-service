@@ -35,6 +35,7 @@ public class UserService extends DatabaseSubService {
     public static final String USER_ALREADY_EXISTS_ERROR_MESSAGE = "User already exists: ";
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    public static final URI EMPTY_CRISTIN_ORG_ID = null;
     private final RoleService roleService;
     private final DynamoDbTable<UserDao> table;
     private final DynamoDbIndex<UserDao> cristinCredentialsIndex;
@@ -110,22 +111,29 @@ public class UserService extends DatabaseSubService {
         }
     }
 
-    public UserDto getUserByByCristinIds(URI cristinPersonId, URI cristinOrgId) {
-        var queryObject = UserDao.newBuilder()
-            .withCristinId(cristinPersonId)
-            .withInstitutionCristinId(cristinOrgId).build();
-        var request = createQueryForSearchingInCristinCredentialsIndex(queryObject);
+    public List<UserDto> getUsersByByCristinId(URI cristinPersonId) {
+        var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId, EMPTY_CRISTIN_ORG_ID);
         var result = cristinCredentialsIndex.query(request);
-        var retrievedUser = result.stream()
+        return result.stream()
             .map(Page::items)
             .flatMap(Collection::stream)
-            .collect(SingletonCollector.collect());
-        return retrievedUser.toUserDto();
+            .map(UserDao::toUserDto).collect(Collectors.toList());
     }
 
-    private QueryEnhancedRequest createQueryForSearchingInCristinCredentialsIndex(UserDao queryObject) {
-        Key key = Key.builder().partitionValue(queryObject.getSearchByCristinIdentifiersHashKey())
-            .sortValue(queryObject.getSearchByCristinIdentifiersRangeKey())
+    public UserDto getUsersByByCristinIdAndCristinOrgId(URI cristinPersonId, URI cristinOrgId) {
+        var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId,cristinOrgId);
+        var result = cristinCredentialsIndex.query(request);
+        return result.stream()
+            .map(Page::items)
+            .flatMap(Collection::stream)
+            .map(UserDao::toUserDto).collect(SingletonCollector.collect());
+    }
+
+    private QueryEnhancedRequest createQueryForSearchingInCristinCredentialsIndex(URI cristinPersonId,
+                                                                                  URI cristinOrgId) {
+        var key=Optional.ofNullable(cristinOrgId)
+            .map(orgId->Key.builder().partitionValue(cristinPersonId.toString()).sortValue(orgId.toString()))
+            .orElseGet(()->Key.builder().partitionValue(cristinPersonId.toString()))
             .build();
         return QueryEnhancedRequest.builder()
             .queryConditional(QueryConditional.keyEqualTo(key))

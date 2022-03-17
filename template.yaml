@@ -313,9 +313,9 @@ Resources:
             ProjectionType: ALL
         - IndexName: SearchUsersByCristinIdentifiers
           KeySchema:
-            - AttributeName: SecondaryIndex1HashKey
+            - AttributeName: SecondaryIndex2HashKey
               KeyType: HASH
-            - AttributeName: SecondaryIndex1RangeKey
+            - AttributeName: SecondaryIndex2RangeKey
               KeyType: RANGE
           Projection:
             ProjectionType: ALL

@@ -1,6 +1,7 @@
 package no.unit.nva.customer.get;
 
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao;
@@ -23,8 +25,7 @@ import org.mockito.Mockito;
 class GetCustomerByOrgNumberHandlerTest {
 
     public static final String SAMPLE_ORG_NUMBER = "123";
-    public static final String EXPECTED_ERROR_MESSAGE = "Missing from pathParameters: orgNumber";
-    public static final String SAMPLE_CRISTIN_ID = "https://cristin.id";
+    public static final URI SAMPLE_CRISTIN_ID = randomUri();
 
     private CustomerService customerServiceMock;
     private GetCustomerByOrgNumberHandler handler;
@@ -57,7 +58,7 @@ class GetCustomerByOrgNumberHandlerTest {
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(response.getBody(), containsString(customerDto.getId().toString()));
-        assertThat(response.getBody(), containsString(SAMPLE_CRISTIN_ID));
+        assertThat(response.getBody(), containsString(SAMPLE_CRISTIN_ID.toString()));
     }
 
 

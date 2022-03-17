@@ -86,15 +86,18 @@ public class IdentityServiceEntryUpdateHandler
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
 
         var cristinResponse = fetchPersonInformationFromCristin(input, nin);
-        var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse, orgFeideDomain);
-
+        var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
+        var currentCustomer = activeCustomers.stream()
+            .filter(customer->keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(customer,orgFeideDomain))
+            .collect(SingletonCollector.tryCollect())
+            .orElse(fail->null);
         var usersForPerson = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers, feideIdentifier);
         var accessRights = accessRightsPerCustomer(usersForPerson);
 
         injectAccessRightsToEventResponse(input, accessRights);
         updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input,
                                                                                 cristinResponse,
-                                                                                activeCustomers,
+                                                                                currentCustomer,
                                                                                 accessRights);
 
         return input;
@@ -112,11 +115,10 @@ public class IdentityServiceEntryUpdateHandler
     private void updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(
         CognitoUserPoolPreTokenGenerationEvent input,
         CristinPersonResponse cristinResponse,
-        Collection<CustomerDto> customers,
+        CustomerDto customer,
         List<String> accessRights) {
 
-        var customer = customers.stream().collect(SingletonCollector.tryCollect())
-            .orElse(fail -> null);
+
         cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(input,
                                                                                   cristinResponse,
                                                                                   customer,
@@ -236,15 +238,13 @@ public class IdentityServiceEntryUpdateHandler
         return user.build();
     }
 
-    private Set<CustomerDto> fetchCustomersForActiveAffiliations(CristinPersonResponse cristinResponse,
-                                                                 String orgFeideDomain) {
+    private Set<CustomerDto> fetchCustomersForActiveAffiliations(CristinPersonResponse cristinResponse) {
 
         return cristinResponse.getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
             .map(this::fetchTopLevelOrgUri)
             .map(customerService::getCustomerByCristinId)
-            .filter(customer -> keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(customer, orgFeideDomain))
             .collect(Collectors.toSet());
     }
 

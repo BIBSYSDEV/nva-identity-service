@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao;
@@ -21,11 +22,10 @@ import no.unit.nva.stubs.FakeContext;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 class GetCustomerByCristinIdHandlerTest {
 
-    public static final String SAMPLE_CRISTIN_ID = CustomerDataGenerator.randomCristinOrgId().toString();
+    public static final URI SAMPLE_CRISTIN_ID = CustomerDataGenerator.randomCristinOrgId();
     private GetCustomerByCristinIdHandler handler;
     private CustomerService customerService;
     private Context context;
@@ -42,10 +42,11 @@ class GetCustomerByCristinIdHandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsExistingCustomerOnValidCristinId() throws Exception {
+    void handleRequestReturnsExistingCustomerOnValidCristinId() {
         prepareMocksWithExistingCustomer();
 
-        Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, SAMPLE_CRISTIN_ID);
+        Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID,
+                                                    SAMPLE_CRISTIN_ID.toString());
         var input = new APIGatewayProxyRequestEvent()
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters);
@@ -59,10 +60,11 @@ class GetCustomerByCristinIdHandlerTest {
     }
 
     @Test
-    public void handleRequestReturnsNotFoundOnInvalidCristinId() throws Exception {
+    void handleRequestReturnsNotFoundOnInvalidCristinId() {
         prepareMocksWithMissingCustomer();
 
-        Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, SAMPLE_CRISTIN_ID);
+        Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID,
+                                                    SAMPLE_CRISTIN_ID.toString());
         var input = new APIGatewayProxyRequestEvent()
             .withHeaders(getRequestHeaders())
             .withPathParameters(pathParameters);

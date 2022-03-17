@@ -51,7 +51,7 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandlerV2<Void, Cus
         String orgNumber = getOrgNumber(requestInfo);
         CustomerDto customerDto = customerService.getCustomerByOrgNumber(orgNumber);
         URI customerId = customerDto.getId();
-        URI cristinId = URI.create(customerDto.getCristinId());
+        URI cristinId = customerDto.getCristinId();
         long stop = System.currentTimeMillis();
         logger.info("processInput took {} ms", stop - start);
         return new CustomerIdentifiers(customerId, cristinId);

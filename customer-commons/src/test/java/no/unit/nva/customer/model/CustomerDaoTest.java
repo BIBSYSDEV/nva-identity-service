@@ -3,6 +3,7 @@ package no.unit.nva.customer.model;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomInstant;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomUri;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
@@ -77,7 +78,7 @@ class CustomerDaoTest {
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
             .withName(randomString())
-            .withCristinId(randomString())
+            .withCristinId(randomUri())
             .withFeideOrganizationId(randomString())
             .withModifiedDate(randomInstant().toString())
             .withIdentifier(identifier)

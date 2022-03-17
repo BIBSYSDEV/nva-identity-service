@@ -64,7 +64,7 @@ public class CustomerDao implements Typed {
             .withIdentifier(dto.getIdentifier())
             .withInstitutionDns(dto.getInstitutionDns())
             .withShortName(dto.getShortName())
-            .withFeideOrganizationId(dto.getFeideOrganizationDomain())
+            .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
             .withModifiedDate(Instant.parse(dto.getModifiedDate()))
             .withVocabularySettings(extractVocabularySettings(dto))
             .withName(dto.getName())
@@ -219,7 +219,7 @@ public class CustomerDao implements Typed {
             .withShortName(this.getShortName())
             .withVocabularies(extractVocabularySettings())
             .withModifiedDate(Optional.ofNullable(getModifiedDate()).map(Objects::toString).orElse(null))
-            .withFeideOrganizationId(getFeideOrganizationDomain())
+            .withFeideOrganizationDomain(getFeideOrganizationDomain())
             .withCristinId(getCristinId())
             .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
@@ -307,7 +307,7 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withFeideOrganizationId(String feideOrganizationId) {
+        public Builder withFeideOrganizationDomain(String feideOrganizationId) {
             customerDb.setFeideOrganizationDomain(feideOrganizationId);
             return this;
         }

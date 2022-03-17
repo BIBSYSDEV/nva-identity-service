@@ -130,7 +130,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     private CustomerDao createQueryForOrgNumber(String orgNumber) {
-        return CustomerDao.builder().withFeideOrganizationId(orgNumber).build();
+        return CustomerDao.builder().withFeideOrganizationDomain(orgNumber).build();
     }
 
     private CustomerDao createQueryForCristinNumber(URI cristinId) {

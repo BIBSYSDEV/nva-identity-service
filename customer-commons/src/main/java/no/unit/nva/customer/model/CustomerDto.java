@@ -65,7 +65,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
             .withCname(getCname())
             .withId(getId())
             .withCristinId(getCristinId())
-            .withFeideOrganizationId(getFeideOrganizationDomain())
+            .withFeideOrganizationDomain(getFeideOrganizationDomain())
             .withName(getName())
             .withModifiedDate(getModifiedDate());
     }
@@ -179,8 +179,8 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
             return this;
         }
 
-        public Builder withFeideOrganizationId(String feideOrganizationId) {
-            customerDto.setFeideOrganizationDomain(feideOrganizationId);
+        public Builder withFeideOrganizationDomain(String feideOrganizationDomain) {
+            customerDto.setFeideOrganizationDomain(feideOrganizationDomain);
             return this;
         }
 

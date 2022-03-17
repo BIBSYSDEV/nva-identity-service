@@ -77,7 +77,7 @@ class CustomerTest {
             .withArchiveName("Archive Name")
             .withCname("CNAME")
             .withInstitutionDns("institution.dns")
-            .withFeideOrganizationId("123456789")
+            .withFeideOrganizationDomain("123456789")
             .withCristinId(randomCristinOrgId())
             .withVocabularySettings(vocabularySettings)
             .build();

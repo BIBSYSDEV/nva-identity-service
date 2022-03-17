@@ -69,7 +69,7 @@ public class CustomerDataGenerator {
             .withCristinId(randomUri())
             .withVocabularySettings(Set.of(vocabulary))
             .withInstitutionDns(randomString())
-            .withFeideOrganizationId(randomString())
+            .withFeideOrganizationDomain(randomString())
             .withDisplayName(randomString())
             .withCreatedDate(randomInstant())
             .withCname(randomString())

@@ -20,7 +20,6 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.stubs.FakeContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 class GetCustomerByOrgNumberHandlerTest {
 
@@ -46,7 +45,7 @@ class GetCustomerByOrgNumberHandlerTest {
         UUID identifier = UUID.randomUUID();
         CustomerDao customerDb = new CustomerDao.Builder()
             .withIdentifier(identifier)
-            .withFeideOrganizationId(SAMPLE_ORG_NUMBER)
+            .withFeideOrganizationDomain(SAMPLE_ORG_NUMBER)
             .withCristinId(SAMPLE_CRISTIN_ID)
             .build();
         CustomerDto customerDto = customerDb.toCustomerDto();

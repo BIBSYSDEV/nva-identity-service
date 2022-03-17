@@ -28,11 +28,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
 import nva.commons.logutils.LogUtils;
@@ -48,7 +48,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-public class UserDbTest {
+class UserDaoTest {
 
     public static final String SOME_USERNAME = "someUser";
     public static final String SOME_ROLENAME = "someRole";
@@ -57,9 +57,6 @@ public class UserDbTest {
 
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
-    public static final String ROLES_AS_LISTS_WORKAROUND_EXPLANATION =
-        "BeanTableSchema does not support well Sets and roles are implemented as Lists. Edit equals to "
-        + "compare the roles as Sets";
     private static final Javers JAVERS = JaversBuilder.javers().build();
 
     private UserDao userDao;
@@ -72,14 +69,14 @@ public class UserDbTest {
     }
 
     @Test
-    public void builderShouldSetTheHashKeyBasedOnUsername() throws InvalidEntryInternalException {
+    void builderShouldSetTheHashKeyBasedOnUsername() throws InvalidEntryInternalException {
         sampleUser.setPrimaryKeyHashKey("SomeOtherHashKey");
         String expectedHashKey = String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE_VALUE, SOME_USERNAME);
         assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
     }
 
     @Test
-    public void extractRolesDoesNotThrowExceptionWhenRolesAreValid()
+    void extractRolesDoesNotThrowExceptionWhenRolesAreValid()
         throws InvalidEntryInternalException, InvalidInputException {
         UserDao userWithValidRole = UserDao.fromUserDto(createUserWithRolesAndInstitution());
         Executable action = userWithValidRole::toUserDto;
@@ -87,7 +84,7 @@ public class UserDbTest {
     }
 
     @Test
-    public void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() throws BadRequestException {
+    void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() throws BadRequestException {
 
         var includedCristinUnit = randomCristinOrgId();
         var excludedCristinUnit = randomCristinOrgId();
@@ -153,7 +150,6 @@ public class UserDbTest {
         UserDao userDao = new UserDao();
         assertThrows(InvalidEntryInternalException.class, () -> userDao.setUsername(invalidUsername));
     }
-
 
     @Test
     void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException {
@@ -248,9 +244,28 @@ public class UserDbTest {
                    containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
     }
 
+    @Test
+    void shouldContainInformationThatAllowsLocatingUserBasedOnFeideAndCristinInformationOfAssociatedPerson() {
+        var feideIdentifier = randomString();
+        var personCristinId = randomUri();
+        var orgCristinId = randomUri();
+        var dao = UserDao.newBuilder().withUsername(randomString())
+            .withCristinId(personCristinId)
+            .withFamilyName(randomString())
+            .withGivenName(randomString())
+            .withInstitution(randomUri())
+            .withFeideIdentifier(feideIdentifier)
+            .withInstitutionCristinId(orgCristinId)
+            .build();
+
+        assertThat(dao.getCristinId(), is(equalTo(personCristinId)));
+        assertThat(dao.getFeideIdentifier(), is(equalTo(feideIdentifier)));
+        assertThat(dao.getInstitutionCristinId(), is(equalTo(orgCristinId)));
+    }
+
     private static List<RoleDb> createSampleRoles() {
         return Stream.of("Role1", "Role2")
-            .map(attempt(UserDbTest::newRole))
+            .map(attempt(UserDaoTest::newRole))
             .map(Try::get)
             .collect(Collectors.toList());
     }

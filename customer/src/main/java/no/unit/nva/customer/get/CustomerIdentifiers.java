@@ -1,8 +1,9 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
+
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
+import no.unit.nva.identityservice.json.JsonConfig;
 
 public class CustomerIdentifiers {
 
@@ -24,6 +25,6 @@ public class CustomerIdentifiers {
 
     @Override
     public String toString() {
-        return attempt(() -> objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 }

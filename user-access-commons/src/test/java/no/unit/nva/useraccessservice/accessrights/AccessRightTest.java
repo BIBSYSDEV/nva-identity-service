@@ -1,12 +1,12 @@
 package no.unit.nva.useraccessservice.accessrights;
 
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
+import no.unit.nva.identityservice.json.JsonConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
@@ -32,13 +32,13 @@ class AccessRightTest {
 
     @Test
     void accessRightIsSerializedUpperCase() throws IOException {
-        String value = objectMapper.asString(AccessRight.APPROVE_DOI_REQUEST);
+        String value = JsonConfig.asString(AccessRight.APPROVE_DOI_REQUEST);
         assertThat(value, is(equalTo(APPROVE_DOI_REQUEST_STRING)));
     }
 
     @Test
     void accessRightIsDeserializedFromString() throws IOException {
-        AccessRight accessRight = objectMapper.beanFrom(AccessRight.class,APPROVE_DOI_REQUEST_STRING);
+        AccessRight accessRight = JsonConfig.beanFrom(AccessRight.class,APPROVE_DOI_REQUEST_STRING);
         assertThat(accessRight, is(equalTo(AccessRight.APPROVE_DOI_REQUEST)));
     }
 }

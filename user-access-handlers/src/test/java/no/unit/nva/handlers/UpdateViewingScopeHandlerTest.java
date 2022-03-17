@@ -3,19 +3,18 @@ package no.unit.nva.handlers;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.util.Map;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -103,18 +102,18 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     private APIGatewayProxyRequestEvent createUpdateViewingScopeRequest(UserDto sampleUser,
                                                                         ViewingScope expectedViewingScope) {
-        String bodyString = attempt(() -> objectMapper.asString(expectedViewingScope)).orElseThrow();
+        String bodyString = attempt(() -> JsonConfig.asString(expectedViewingScope)).orElseThrow();
         return new APIGatewayProxyRequestEvent()
             .withBody(bodyString)
             .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, sampleUser.getUsername()));
     }
 
     private APIGatewayProxyRequestEvent createInvalidUpdateViewingScopeRequest(UserDto objectThatIsNotViewingScope) {
-        var jsonMap = attempt(() -> objectMapper.asString(objectThatIsNotViewingScope))
-            .map(objectMapper::mapFrom)
+        var jsonMap = attempt(() -> JsonConfig.asString(objectThatIsNotViewingScope))
+            .map(JsonConfig::mapFrom)
             .orElseThrow();
         jsonMap.remove("type");
-        String body = attempt(() -> objectMapper.asString(jsonMap)).orElseThrow();
+        String body = attempt(() -> JsonConfig.asString(jsonMap)).orElseThrow();
         return new APIGatewayProxyRequestEvent().withBody(body)
             .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, objectThatIsNotViewingScope.getUsername()));
     }

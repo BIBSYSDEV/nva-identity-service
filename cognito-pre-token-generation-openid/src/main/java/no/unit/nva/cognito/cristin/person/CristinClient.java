@@ -40,7 +40,7 @@ public class CristinClient {
             .build();
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThatResponseIsSuccessful(response);
-        return JsonConfig.objectMapper.beanFrom(CristinPersonResponse.class, response.body());
+        return JsonConfig.beanFrom(CristinPersonResponse.class, response.body());
     }
 
     public URI fetchTopLevelOrgUri(URI orgUri) throws IOException, InterruptedException {

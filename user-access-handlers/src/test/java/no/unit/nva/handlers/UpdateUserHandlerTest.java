@@ -7,7 +7,7 @@ import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
 import static no.unit.nva.handlers.UpdateUserHandler.INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR;
 import static no.unit.nva.handlers.UpdateUserHandler.LOCATION_HEADER;
 import static no.unit.nva.handlers.UpdateUserHandler.USERNAME_PATH_PARAMETER;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
+import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.useraccessservice.model.UserDto.VIEWING_SCOPE_FIELD;
 import static no.unit.nva.useraccessservice.model.ViewingScope.INCLUDED_UNITS;
 import static nva.commons.core.attempt.Try.attempt;
@@ -183,7 +183,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private Map<String, Object> injectInvalidUriToViewingScope(String illegalUri, UserDto userDto)
         throws IOException {
-        var userMap = objectMapper.mapFrom(userDto.toString());
+        var userMap = JsonConfig.mapFrom(userDto.toString());
         HashMap<Object, Object> viewingScope = creteViewingScopeNodeWithIllegalUri(illegalUri);
         userMap.put(VIEWING_SCOPE_FIELD, viewingScope);
 
@@ -236,7 +236,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private APIGatewayProxyResponseEvent sendUpdateRequestWithoutPathParameters(UserDto userUpdate) {
         UpdateUserHandler updateUserHandler = new UpdateUserHandler(databaseService);
-        var bodyString = attempt(() -> objectMapper.asString(userUpdate)).orElseThrow();
+        var bodyString = attempt(() -> JsonConfig.asString(userUpdate)).orElseThrow();
         var input = new APIGatewayProxyRequestEvent().withBody(bodyString);
 
         return updateUserHandler.handleRequest(input, context);

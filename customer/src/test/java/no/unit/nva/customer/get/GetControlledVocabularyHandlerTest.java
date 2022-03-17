@@ -3,12 +3,10 @@ package no.unit.nva.customer.get;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
@@ -25,6 +23,7 @@ import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.apigatewayv2.MediaTypes;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +61,7 @@ class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
     @Test
     void handleRequestReturnsOutputWithLinkedDataContextWhenRequestIsSubmitted() throws IOException {
         var response = sendGetRequest(getExistingCustomerIdentifier());
-        var body = objectMapper.mapFrom(response.getBody());
+        var body = JsonConfig.mapFrom(response.getBody());
         String contextValue = body.get(LINKED_DATA_CONTEXT).toString();
         assertThat(contextValue, is(equalTo(LINKED_DATA_CONTEXT_VALUE.toString())));
     }
@@ -73,7 +72,7 @@ class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
             createRequestWithMediaType(existingCustomer.getIdentifier(), MediaTypes.APPLICATION_JSON_LD);
         var response = handler.handleRequest(request, CONTEXT);
 
-        var body = objectMapper.mapFrom(response.getBody());
+        var body = JsonConfig.mapFrom(response.getBody());
         String idValue = body.get(LINKED_DATA_ID).toString();
         URI expectedId = URI.create(existingCustomer.getId().toString() + "/vocabularies");
         assertThat(idValue, is(equalTo(expectedId.toString())));

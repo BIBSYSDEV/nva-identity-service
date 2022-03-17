@@ -1,7 +1,6 @@
 package no.unit.nva.useraccessservice.model;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -11,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
 import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessservice.interfaces.Typed;
@@ -67,7 +67,7 @@ public class ViewingScope implements Typed {
     }
 
     public static ViewingScope fromJson(String input) {
-        return attempt(() -> objectMapper.beanFrom(ViewingScope.class, input))
+        return attempt(() -> JsonConfig.beanFrom(ViewingScope.class, input))
             .orElseThrow(fail -> new BadRequestException("Could not read viewing scope:" + input));
     }
 
@@ -126,7 +126,7 @@ public class ViewingScope implements Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
     private static boolean pathIsNotExpectedPath(URI uri) {

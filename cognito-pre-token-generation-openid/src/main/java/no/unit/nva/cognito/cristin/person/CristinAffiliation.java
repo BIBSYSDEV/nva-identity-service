@@ -43,7 +43,7 @@ public class CristinAffiliation {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
     public static class Builder {

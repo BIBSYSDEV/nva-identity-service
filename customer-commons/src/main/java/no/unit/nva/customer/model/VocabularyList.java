@@ -3,7 +3,6 @@ package no.unit.nva.customer.model;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -14,6 +13,7 @@ import java.util.Objects;
 import java.util.Set;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.Typed;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
@@ -45,7 +45,7 @@ public class VocabularyList implements Context, Typed {
     }
 
     public static VocabularyList fromJson(String json) {
-        return attempt(() -> objectMapper.beanFrom(VocabularyList.class, json)).orElseThrow();
+        return attempt(() -> JsonConfig.beanFrom(VocabularyList.class, json)).orElseThrow();
     }
 
     public List<VocabularyDto> getVocabularies() {
@@ -100,7 +100,7 @@ public class VocabularyList implements Context, Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
     @Override

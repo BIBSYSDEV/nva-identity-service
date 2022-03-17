@@ -2,7 +2,6 @@ package no.unit.nva.useraccessservice.model;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
@@ -40,7 +40,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     public static RoleDto fromJson(String json) {
-        RoleDto roleDto = attempt(() -> objectMapper.beanFrom(RoleDto.class, json))
+        RoleDto roleDto = attempt(() -> JsonConfig.beanFrom(RoleDto.class, json))
             .orElseThrow(fail -> new BadRequestException("Could not parse role: " + json));
         if (roleDto.isInvalid()) {
             throw roleDto.exceptionWhenInvalid();
@@ -54,7 +54,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
     @Override

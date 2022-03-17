@@ -1,6 +1,6 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
+import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -62,7 +62,7 @@ class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironment {
         var request = queryWithRoleName();
         var response = getRoleHandler.handleRequest(request, context);
 
-        var responseBody = objectMapper.mapFrom(response.getBody());
+        var responseBody = JsonConfig.mapFrom(response.getBody());
         assertThat(responseBody.get(TYPE_ATTRIBUTE), is(not(nullValue())));
         String type = responseBody.get(TYPE_ATTRIBUTE).toString();
         assertThat(type, is(equalTo(RoleDto.TYPE)));

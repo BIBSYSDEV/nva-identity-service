@@ -1,7 +1,7 @@
 package no.unit.nva.useraccess.events.client;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
+import no.unit.nva.identityservice.json.JsonConfig;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -21,7 +21,7 @@ public class SimpleAuthorityResponse {
     }
 
     public static SimpleAuthorityResponse fromJson(String json) {
-        return attempt(() -> objectMapper.beanFrom(SimpleAuthorityResponse.class, json)).orElseThrow();
+        return attempt(() -> JsonConfig.beanFrom(SimpleAuthorityResponse.class, json)).orElseThrow();
     }
 
     public URI getId() {
@@ -66,6 +66,6 @@ public class SimpleAuthorityResponse {
 
     @Override
     public String toString() {
-        return attempt(() -> objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 }

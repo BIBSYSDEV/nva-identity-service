@@ -2,7 +2,6 @@ package no.unit.nva.useraccessservice.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.model.EntityUtils.SOME_ROLENAME;
@@ -21,7 +20,6 @@ import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.IsSame.sameInstance;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import java.io.IOException;
@@ -32,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
@@ -71,8 +70,8 @@ class UserDtoTest extends DtoTest {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
         var jsonMap = toMap(sampleUser);
         jsonMap.remove(JSON_TYPE_ATTRIBUTE);
-        String jsonStringWithoutType = objectMapper.asString(jsonMap);
-        Executable action = () -> objectMapper.beanFrom(UserDto.class, jsonStringWithoutType);
+        String jsonStringWithoutType = JsonConfig.asString(jsonMap);
+        Executable action = () -> JsonConfig.beanFrom(UserDto.class, jsonStringWithoutType);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
         assertThat(exception.getMessage(), containsString(UserDto.TYPE));
     }
@@ -85,8 +84,8 @@ class UserDtoTest extends DtoTest {
         var json = toMap(sampleUser);
         assertThatSerializedItemContainsType(json, USER_TYPE_LITERAL);
 
-        String jsonStringWithType = objectMapper.asString(json);
-        UserDto deserializedItem = objectMapper.beanFrom(UserDto.class, jsonStringWithType);
+        String jsonStringWithType = JsonConfig.asString(json);
+        UserDto deserializedItem = JsonConfig.beanFrom(UserDto.class, jsonStringWithType);
 
         assertThat(deserializedItem, is(equalTo(sampleUser)));
         assertThat(deserializedItem, is(not(sameInstance(sampleUser))));
@@ -128,7 +127,6 @@ class UserDtoTest extends DtoTest {
     void userDtoHasAConstructorWithoutArgs() {
         new UserDto();
     }
-
 
     @Test
     void builderReturnsUserDtoWhenInstitutionIsEmpty() {

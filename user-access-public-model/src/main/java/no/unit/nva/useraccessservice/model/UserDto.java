@@ -1,7 +1,6 @@
 package no.unit.nva.useraccessservice.model;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -11,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
@@ -59,7 +59,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     }
 
     public static UserDto fromJson(String input) {
-        return attempt(() -> objectMapper.beanFrom(UserDto.class, input))
+        return attempt(() -> JsonConfig.beanFrom(UserDto.class, input))
             .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
     }
 
@@ -199,7 +199,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
     private boolean compareRolesAsSets(UserDto userDto) {

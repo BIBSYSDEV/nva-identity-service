@@ -6,7 +6,7 @@ import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.customer.RestConfig.defaultRestJsonConfig;
 
 public class EventTest {
 
@@ -17,7 +17,7 @@ public class EventTest {
 
         String eventJson = IoUtils.stringFromResources(Path.of(SAMPLE_EVENT_JSON));
 
-        Event event = defaultRestObjectMapper.readValue(eventJson, Event.class);
+        Event event = defaultRestJsonConfig.readValue(eventJson, Event.class);
 
         Assertions.assertNotNull(event.getRequest().getUserAttributes().getOrgNumber());
     }

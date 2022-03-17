@@ -3,10 +3,13 @@ package no.unit.nva.identityservice.json;
 import com.fasterxml.jackson.jr.annotationsupport.JacksonAnnotationExtension;
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.fasterxml.jackson.jr.ob.JSON.Feature;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public final class JsonConfig {
 
-    public static final JSON objectMapper = JSON.builder()
+    private static final JSON objectMapper = JSON.builder()
         .register(JacksonAnnotationExtension.std)
         .disable(Feature.PRESERVE_FIELD_ORDERING)
         .build();
@@ -15,4 +18,19 @@ public final class JsonConfig {
 
     }
 
+    public static <T> T beanFrom(Class<T> type,String source) throws IOException {
+        return objectMapper.beanFrom(type, source);
+    }
+
+    public static <T> String asString(T object) throws IOException {
+        return objectMapper.asString(object);
+    }
+
+    public static Map<String, Object> mapFrom(String source) throws IOException {
+        return objectMapper.mapFrom(source);
+    }
+
+    public static <T> List<T> listOfFrom(Class<T> type, String source) throws IOException {
+        return objectMapper.listOfFrom(type,source);
+    }
 }

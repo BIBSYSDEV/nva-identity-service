@@ -1,6 +1,6 @@
 package no.unit.nva.useraccess.events;
 
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
+import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
 import static nva.commons.core.attempt.Try.attempt;
@@ -77,6 +77,6 @@ class StartBatchScanTest {
     }
 
     private InputStream emptyInput() throws IOException {
-        return IoUtils.stringToStream(objectMapper.asString(Collections.emptyMap()));
+        return IoUtils.stringToStream(JsonConfig.asString(Collections.emptyMap()));
     }
 }

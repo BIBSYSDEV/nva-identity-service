@@ -23,7 +23,7 @@ public class CristinOrgResponse {
     private List<CristinOrgResponse> partOf;
 
     public static CristinOrgResponse fromJson(String body) {
-        return attempt(() -> JsonConfig.objectMapper.beanFrom(CristinOrgResponse.class, body)).orElseThrow();
+        return attempt(() -> JsonConfig.beanFrom(CristinOrgResponse.class, body)).orElseThrow();
     }
 
     public static CristinOrgResponse create(URI orgId) {
@@ -80,7 +80,7 @@ public class CristinOrgResponse {
     @Override
     @JacocoGenerated
     public String toString() {
-        return attempt(() -> JsonConfig.objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
     private static ArrayDeque<CristinOrgResponse> addAllParentIdsInQueue(URI... partOfOrgIds) {

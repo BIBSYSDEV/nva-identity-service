@@ -64,7 +64,7 @@ public class DataportenMock {
 
     private ResponseDefinitionBuilder createCognitoResponse(String jwtToken) {
         var jsonMap = Map.of(JWT_TOKEN_FIELD, jwtToken);
-        var responseBody = attempt(() -> JsonConfig.objectMapper.asString(jsonMap)).orElseThrow();
+        var responseBody = attempt(() -> JsonConfig.asString(jsonMap)).orElseThrow();
         return aResponse().withStatus(HTTP_OK).withBody(responseBody);
     }
 

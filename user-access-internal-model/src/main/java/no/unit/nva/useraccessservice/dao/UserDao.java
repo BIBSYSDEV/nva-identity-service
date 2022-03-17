@@ -55,6 +55,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
     public static final String CRISTIN_ID = "cristinId";
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+    public static final String FEIDE_IDENTIFIER = "feideIdentifier";
     private String username;
     private URI institution;
     private Set<RoleDb> roles;
@@ -62,6 +63,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     private String familyName;
     private ViewingScopeDb viewingScope;
     private URI cristinId;
+    private String feideIdentifier;
+    private URI institutionCristinId;
 
     public UserDao() {
         super();
@@ -310,6 +313,16 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                && Objects.equals(getCristinId(), userDao.getCristinId());
     }
 
+    @DynamoDbAttribute(FEIDE_IDENTIFIER)
+    public String getFeideIdentifier() {
+        return this.feideIdentifier;
+    }
+
+    @DynamoDbAttribute("institutionCristinId")
+    public URI getInstitutionCristinId() {
+        return this.institutionCristinId;
+    }
+
     private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
         return userDto.getRoles().stream()
             .map(attempt(RoleDb::fromRoleDto))
@@ -350,6 +363,14 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     private String formatPrimaryHashKey() {
         checkUsername(username);
         return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE_VALUE, username);
+    }
+
+    private void setInstitutionCristinId(URI institutionCristinId) {
+        this.institutionCristinId = institutionCristinId;
+    }
+
+    private void setFeideIdentifier(String feideIdentifer) {
+        this.feideIdentifier = feideIdentifer;
     }
 
     public static final class Builder {
@@ -397,6 +418,16 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         public UserDao build() {
             return userDao;
+        }
+
+        public Builder withFeideIdentifier(String feideIdentifer) {
+            userDao.setFeideIdentifier(feideIdentifer);
+            return this;
+        }
+
+        public Builder withInstitutionCristinId(URI insititutionCristinId) {
+            userDao.setInstitutionCristinId(insititutionCristinId);
+            return this;
         }
     }
 }

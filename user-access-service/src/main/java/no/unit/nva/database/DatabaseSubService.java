@@ -1,9 +1,9 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.isNull;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.EmptyInputException;
 import no.unit.nva.useraccessservice.model.interfaces.Validable;
 import nva.commons.core.attempt.Failure;
@@ -38,7 +38,7 @@ public class DatabaseSubService {
 
     protected static String convertToStringOrWriteErrorMessage(Object queryObject) {
         return Optional.ofNullable(queryObject)
-            .map(attempt(objectMapper::asString))
+            .map(attempt(JsonConfig::asString))
             .map(Try::orElseThrow)
             .orElse(EMPTY_INPUT_ERROR_MESSAGE);
     }

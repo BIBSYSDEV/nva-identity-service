@@ -1,6 +1,5 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -12,6 +11,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Map;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -44,7 +44,7 @@ class GetUserHandlerTest extends HandlerTest {
         var request = createRequest(DEFAULT_USERNAME);
         var response = getUserHandler.handleRequest(request, context);
 
-        var bodyObject = objectMapper.mapFrom(response.getBody());
+        var bodyObject = JsonConfig.mapFrom(response.getBody());
 
         assertThat(bodyObject.get(TYPE_ATTRIBUTE), is(not(nullValue())));
         String type = bodyObject.get(TYPE_ATTRIBUTE).toString();

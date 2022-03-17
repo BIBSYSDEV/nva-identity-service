@@ -3,7 +3,7 @@ package no.unit.nva.useraccess.events.client;
 import static com.google.common.net.HttpHeaders.AUTHORIZATION;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
+import no.unit.nva.identityservice.json.JsonConfig;
 import static nva.commons.core.attempt.Try.attempt;
 import static software.amazon.awssdk.services.eventbridge.model.ApiDestinationHttpMethod.DELETE;
 import com.google.common.net.HttpHeaders;
@@ -74,7 +74,7 @@ public class BareProxyClientImpl implements BareProxyClient {
     }
 
     private List<SimpleAuthorityResponse> fromJson(HttpResponse<String> response) throws IOException {
-        return objectMapper.listOfFrom(SimpleAuthorityResponse.class, response.body());
+        return JsonConfig.listOfFrom(SimpleAuthorityResponse.class, response.body());
     }
 
     @Override

@@ -1,6 +1,6 @@
 package no.unit.nva.useraccess.events.service;
 
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
+import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccess.events.client.BareProxyClientImpl.ERROR_READING_SECRETS_ERROR;
@@ -157,7 +157,7 @@ class UserMigrationServiceTest {
     }
 
     private String toJson(List<SimpleAuthorityResponse> authorityResponseList) {
-        return Try.attempt(() -> objectMapper.asString(authorityResponseList)).orElseThrow();
+        return Try.attempt(() -> JsonConfig.asString(authorityResponseList)).orElseThrow();
     }
 
     private UserDto createSampleUserWithInvalidCustomerId() {

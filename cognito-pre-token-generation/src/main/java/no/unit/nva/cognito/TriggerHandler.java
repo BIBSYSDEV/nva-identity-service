@@ -4,7 +4,7 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.Constants.DYNAMODB_CLIENT;
 import static no.unit.nva.cognito.util.OrgNumberCleaner.removeCountryPrefix;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.customer.RestConfig.defaultRestJsonConfig;
 import static nva.commons.core.StringUtils.isNotBlank;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -113,14 +113,14 @@ public class TriggerHandler implements RequestHandler<Map<String, Object>, Map<S
     }
 
     /**
-     * Using ObjectMapper to convert input to Event because we are interested in only some input properties but have no
+     * Using JsonConfig to convert input to Event because we are interested in only some input properties but have no
      * way of telling Lambda's JSON parser to ignore the rest.
      *
      * @param input event json as map
      * @return event
      */
     private Event parseEventFromInput(Map<String, Object> input) {
-        return defaultRestObjectMapper.convertValue(input, Event.class);
+        return defaultRestJsonConfig.convertValue(input, Event.class);
     }
 
     private void updateUserDetailsInUserPool(UserDetails userDetails, UserDto user) {

@@ -5,7 +5,7 @@ import static no.unit.nva.cognito.service.UserApiMock.FIRST_ACCESS_RIGHT;
 import static no.unit.nva.cognito.service.UserApiMock.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.cognito.service.UserApiMock.SECOND_ACCESS_RIGHT;
 import static no.unit.nva.cognito.service.UserPoolEntryUpdater.CUSTOM_APPLICATION_ACCESS_RIGHTS;
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.customer.RestConfig.defaultRestJsonConfig;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.model.ViewingScope.defaultViewingScope;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -466,7 +466,7 @@ public class TriggerHandlerTest {
         event.setUserName(SAMPLE_USER_NAME);
         event.setRequest(request);
 
-        return defaultRestObjectMapper.convertValue(event, Map.class);
+        return defaultRestJsonConfig.convertValue(event, Map.class);
     }
 
     private Map<String, Object> createRequestEventWithEmptyAffiliation() {
@@ -485,7 +485,7 @@ public class TriggerHandlerTest {
         event.setUserName(SAMPLE_USER_NAME);
         event.setRequest(request);
 
-        return defaultRestObjectMapper.convertValue(event, Map.class);
+        return defaultRestJsonConfig.convertValue(event, Map.class);
     }
 
     private Map<String, Object> createRequestEventWithCompleteBibsysHostedUser() {
@@ -504,7 +504,7 @@ public class TriggerHandlerTest {
         event.setUserName(SAMPLE_USER_NAME);
         event.setRequest(request);
 
-        return defaultRestObjectMapper.convertValue(event, Map.class);
+        return defaultRestJsonConfig.convertValue(event, Map.class);
     }
 
     private UserDto hostedUserWithUserRole() throws InvalidEntryInternalException {
@@ -548,6 +548,6 @@ public class TriggerHandlerTest {
         event.setUserName(SAMPLE_USER_NAME);
         event.setRequest(request);
 
-        return defaultRestObjectMapper.convertValue(event, Map.class);
+        return defaultRestJsonConfig.convertValue(event, Map.class);
     }
 }

@@ -4,7 +4,6 @@ import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONT
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomInstant;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.Is.is;
@@ -16,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
+import no.unit.nva.identityservice.json.JsonConfig;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
@@ -52,8 +52,8 @@ class CustomerDaoTest {
         CustomerDao someDao = sampleCustomerDao();
         Map<String, Object> jsonMap = customerToJsonMap(someDao);
         jsonMap.remove("type");
-        var jsonStringWithoutType = objectMapper.asString(jsonMap);
-        CustomerDao deserialized = objectMapper.beanFrom(CustomerDao.class, jsonStringWithoutType);
+        var jsonStringWithoutType = JsonConfig.asString(jsonMap);
+        CustomerDao deserialized = JsonConfig.beanFrom(CustomerDao.class, jsonStringWithoutType);
         assertThat(deserialized, is(equalTo(someDao)));
     }
 
@@ -62,14 +62,14 @@ class CustomerDaoTest {
         CustomerDao someDao = sampleCustomerDao();
         var jsonMap = customerToJsonMap(someDao);
         assertThat(jsonMap, hasKey("type"));
-        var jsonString = objectMapper.asString(jsonMap);
-        CustomerDao deserialized = objectMapper.beanFrom(CustomerDao.class, jsonString);
+        var jsonString = JsonConfig.asString(jsonMap);
+        CustomerDao deserialized = JsonConfig.beanFrom(CustomerDao.class, jsonString);
         assertThat(deserialized, is(equalTo(someDao)));
     }
 
     private Map<String, Object> customerToJsonMap(CustomerDao someDao) throws IOException {
-        var jsonString = objectMapper.asString(someDao);
-        return objectMapper.mapFrom(jsonString);
+        var jsonString = JsonConfig.asString(someDao);
+        return JsonConfig.mapFrom(jsonString);
     }
 
     private CustomerDto crateSampleCustomerDto() {

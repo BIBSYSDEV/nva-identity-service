@@ -1,6 +1,6 @@
 package no.unit.nva.useraccessservice.model;
 
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
+import no.unit.nva.identityservice.json.JsonConfig;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -22,6 +22,6 @@ public class DtoTest {
 
     protected Map<String, Object> toMap(Object serializable) throws IOException {
         var json = serializable.toString();
-        return objectMapper.mapFrom(json);
+        return JsonConfig.mapFrom(json);
     }
 }

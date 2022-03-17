@@ -1,6 +1,5 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -11,6 +10,7 @@ import java.util.Objects;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.Typed;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
@@ -28,7 +28,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
     }
 
     public static CustomerDto fromJson(String json) {
-        return attempt(() -> objectMapper.beanFrom(CustomerDto.class, json))
+        return attempt(() -> JsonConfig.beanFrom(CustomerDto.class, json))
             .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json,fail.getException()));
     }
 
@@ -37,8 +37,8 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
     }
 
     public CustomerDtoWithoutContext withoutContext() {
-        return attempt(() -> objectMapper.asString(this))
-            .map(json -> objectMapper.beanFrom(CustomerDtoWithoutContext.class, json))
+        return attempt(() -> JsonConfig.asString(this))
+            .map(json -> JsonConfig.beanFrom(CustomerDtoWithoutContext.class, json))
             .orElseThrow();
     }
 
@@ -118,7 +118,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
     @Override
     @JacocoGenerated
     public String toString() {
-        return attempt(() -> objectMapper.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
     public static final class Builder {

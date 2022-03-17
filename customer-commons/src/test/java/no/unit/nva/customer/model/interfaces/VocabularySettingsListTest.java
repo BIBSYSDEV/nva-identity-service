@@ -3,7 +3,6 @@ package no.unit.nva.customer.model.interfaces;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -15,6 +14,7 @@ import java.util.Map;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
+import no.unit.nva.identityservice.json.JsonConfig;
 import org.junit.jupiter.api.Test;
 
 class VocabularySettingsListTest {
@@ -42,7 +42,7 @@ class VocabularySettingsListTest {
     }
 
     private Map<String, Object> toJsonMap(VocabularyList list) throws IOException {
-        String jsonString = objectMapper.asString(list);
-        return  objectMapper.mapFrom(jsonString);
+        String jsonString = JsonConfig.asString(list);
+        return  JsonConfig.mapFrom(jsonString);
     }
 }

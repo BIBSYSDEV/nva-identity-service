@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessservice.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.nva.identityservice.json.JsonConfig.objectMapper;
+import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.model.ViewingScope.defaultViewingScope;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,7 +21,7 @@ public class ViewingScopeTest {
     void viewingScopeIsSerializedWithType() throws BadRequestException, IOException {
         ViewingScope viewingScope = randomViewingScope();
         var jsonString = viewingScope.toString();
-        var jsonMap = objectMapper.mapFrom(jsonString);
+        var jsonMap = JsonConfig.mapFrom(jsonString);
         assertThat(jsonMap, hasEntry("type", "ViewingScope"));
     }
 

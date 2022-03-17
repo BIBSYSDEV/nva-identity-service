@@ -7,11 +7,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import no.unit.nva.identityservice.json.JsonConfig;
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessservice.interfaces.Typed;
@@ -44,6 +44,10 @@ public class UserDto implements WithCopy<Builder>, Typed {
     private List<RoleDto> roles;
     @JsonProperty("cristinId")
     private URI cristinId;
+    @JsonProperty("feideIdentifier")
+    private String feideIdentifier;
+    @JsonProperty("insitutionCristinId")
+    private URI institutionCristinId;
 
     public UserDto() {
         roles = Collections.emptyList();
@@ -63,6 +67,22 @@ public class UserDto implements WithCopy<Builder>, Typed {
             .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
     }
 
+    public String getFeideIdentifier() {
+        return feideIdentifier;
+    }
+
+    public void setFeideIdentifier(String feideIdentifier) {
+        this.feideIdentifier = feideIdentifier;
+    }
+
+    public URI getInstitutionCristinId() {
+        return institutionCristinId;
+    }
+
+    public void setInstitutionCristinId(URI institutionCristinId) {
+        this.institutionCristinId = institutionCristinId;
+    }
+
     @JacocoGenerated
     @SuppressWarnings("PMD.NullAssignment")
     public URI getCristinId() {
@@ -72,7 +92,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     @JacocoGenerated
     @SuppressWarnings("PMD.NullAssignment")
     public void setCristinId(URI cristinId) {
-        this.cristinId =cristinId;
+        this.cristinId = cristinId;
     }
 
     @JsonProperty("accessRights")
@@ -118,7 +138,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
         return institution;
     }
 
-    private void setInstitution(URI institution) {
+    public void setInstitution(URI institution) {
         this.institution = institution;
     }
 
@@ -137,15 +157,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
         return roles;
     }
 
-    private void setRoles(List<RoleDto> roles) {
+    public void setRoles(List<RoleDto> roles) {
         this.roles = roles;
     }
 
-    /**
-     * Creates a copy of the object.
-     *
-     * @return a Builder containing the field values of the original object.
-     */
+
     @Override
     public UserDto.Builder copy() {
         return new Builder()
@@ -153,9 +169,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
             .withGivenName(getGivenName())
             .withFamilyName(getFamilyName())
             .withInstitution(getInstitution())
-            .withRoles(getRoles())
+            .withRoles(new HashSet<>(getRoles()))
             .withViewingScope(getViewingScope())
-            .withCristinId(getCristinId());
+            .withCristinId(getCristinId())
+            .withInstitutionCristinId(getInstitutionCristinId())
+            .withFeideIdentifier(getFeideIdentifier());
     }
 
     public ViewingScope getViewingScope() {
@@ -166,16 +184,9 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.viewingScope = viewingScope;
     }
 
-    @JacocoGenerated
     @Override
-    public int hashCode() {
-        return Objects.hash(getUsername(),
-                            getInstitution(),
-                            getGivenName(),
-                            getFamilyName(),
-                            getViewingScope(),
-                            JacksonJrDoesNotSupportSets.toSet(getRoles()),
-                            getCristinId());
+    public String toString() {
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
     @JacocoGenerated
@@ -194,12 +205,17 @@ public class UserDto implements WithCopy<Builder>, Typed {
                && Objects.equals(getFamilyName(), userDto.getFamilyName())
                && Objects.equals(getViewingScope(), userDto.getViewingScope())
                && compareRolesAsSets(userDto)
-               && Objects.equals(getCristinId(), userDto.getCristinId());
+               && Objects.equals(getCristinId(), userDto.getCristinId())
+               && Objects.equals(getFeideIdentifier(), userDto.getFeideIdentifier())
+               && Objects.equals(getInstitutionCristinId(), userDto.getInstitutionCristinId());
     }
 
+    @JacocoGenerated
     @Override
-    public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+    public int hashCode() {
+        return Objects.hash(getUsername(), getInstitution(), getGivenName(), getFamilyName(), getViewingScope(),
+                            getRoles(),
+                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId());
     }
 
     private boolean compareRolesAsSets(UserDto userDto) {
@@ -217,6 +233,16 @@ public class UserDto implements WithCopy<Builder>, Typed {
             userDto = new UserDto();
         }
 
+        public Builder withUsername(String username) {
+            userDto.setUsername(username);
+            return this;
+        }
+
+        public Builder withInstitution(URI institution) {
+            userDto.setInstitution(institution);
+            return this;
+        }
+
         public Builder withGivenName(String givenName) {
             userDto.setGivenName(givenName);
             return this;
@@ -227,38 +253,36 @@ public class UserDto implements WithCopy<Builder>, Typed {
             return this;
         }
 
-        public Builder withUsername(String username) {
-            return attempt(() -> {
-                userDto.setUsername(username);
-                return this;
-            }).orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));
-        }
-
-        public Builder withInstitution(URI institution) {
-            userDto.setInstitution(institution);
+        public Builder withViewingScope(ViewingScope viewingScope) {
+            userDto.setViewingScope(viewingScope);
             return this;
         }
 
-        public Builder withRoles(Collection<RoleDto> listRoles) {
-            if (nonNull(listRoles)) {
-                userDto.setRoles(new ArrayList<>(listRoles));
+        public Builder withRoles(Collection<RoleDto> roles) {
+            if(nonNull(roles)){
+                userDto.setRoles(new ArrayList<>(roles));
             }
 
             return this;
         }
 
-        public Builder withCristinId(URI cristinIdentifier) {
-            userDto.setCristinId(cristinIdentifier);
+        public Builder withCristinId(URI cristinId) {
+            userDto.setCristinId(cristinId);
+            return this;
+        }
+
+        public Builder withFeideIdentifier(String feideIdentifier) {
+            userDto.setFeideIdentifier(feideIdentifier);
+            return this;
+        }
+
+        public Builder withInstitutionCristinId(URI institutionCristinId) {
+            userDto.setInstitutionCristinId(institutionCristinId);
             return this;
         }
 
         public UserDto build() {
             return userDto;
-        }
-
-        public Builder withViewingScope(ViewingScope viewingScope) {
-            userDto.setViewingScope(viewingScope);
-            return this;
         }
     }
 }

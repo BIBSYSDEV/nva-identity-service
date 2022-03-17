@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
+import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import no.unit.nva.useraccessservice.constants.DatabaseIndexDetails;
 import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.dao.UserDao;
@@ -41,7 +42,6 @@ import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
@@ -170,23 +170,23 @@ public class IdentityServiceTest extends DatabaseAccessor {
         assertThat(exception.getMessage(), containsString(USER_NOT_FOUND_MESSAGE));
     }
 
-    @DisplayName("addUser() inserts valid user with institution and roles in database")
     @Test
-    public void addUserInsertsValidItemInDatabase()
+    void addUserInsertsValidItemInDatabase()
         throws InvalidEntryInternalException, ConflictException, InvalidInputException, NotFoundException,
                BadRequestException {
         UserDto insertedUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, SOME_ROLENAME);
+        assertThat(insertedUser, doesNotHaveEmptyValues());
         UserDto savedUser = identityService.getUser(insertedUser);
 
-        assertThat(insertedUser, doesNotHaveEmptyValues());
+
         assertThat(savedUser, is(equalTo(insertedUser)));
     }
 
     @DisplayName("addUser() saves user with roles and without institution")
     @Test
-    public void addUserSavesAUserWithoutInstitution() throws InvalidEntryInternalException, ConflictException,
-                                                             InvalidInputException, NotFoundException,
-                                                             BadRequestException {
+    void addUserSavesAUserWithoutInstitution() throws InvalidEntryInternalException, ConflictException,
+                                                      InvalidInputException, NotFoundException,
+                                                      BadRequestException {
         UserDto expectedUser = createSampleUserAndAddUserToDb(SOME_USERNAME, null, SOME_ROLENAME);
         UserDto actualUser = identityService.getUser(expectedUser);
 
@@ -356,6 +356,8 @@ public class IdentityServiceTest extends DatabaseAccessor {
             .withRoles(SAMPLE_ROLES)
             .withViewingScope(ViewingScopeDb.fromViewingScope(randomViewingScope()))
             .withCristinId(randomUri())
+            .withFeideIdentifier(randomString())
+            .withInstitutionCristinId(randomCristinOrgId())
             .build();
 
         usersTable.putItem(insertedUser);
@@ -524,6 +526,8 @@ public class IdentityServiceTest extends DatabaseAccessor {
             .withFamilyName(SOME_FAMILY_NAME)
             .withViewingScope(randomViewingScope())
             .withCristinId(randomUri())
+            .withFeideIdentifier(randomString())
+            .withInstitutionCristinId(randomUri())
             .build();
     }
 

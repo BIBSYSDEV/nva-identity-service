@@ -124,11 +124,6 @@ class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void userDtoHasAConstructorWithoutArgs() {
-        new UserDto();
-    }
-
-    @Test
     void builderReturnsUserDtoWhenInstitutionIsEmpty() {
         UserDto user = createUserWithRoleWithoutInstitution();
         assertThat(user.getUsername(), is(equalTo(SOME_USERNAME)));
@@ -154,7 +149,7 @@ class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void copyShouldCopyUserDto() {
+    void shouldCopyWithoutInformationLoss() {
         UserDto initialUser = createUserWithRolesAndInstitutionAndViewingScope();
         UserDto copiedUser = initialUser.copy().build();
 

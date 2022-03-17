@@ -263,6 +263,15 @@ class UserDaoTest {
         assertThat(dao.getInstitutionCristinId(), is(equalTo(orgCristinId)));
     }
 
+    @Test
+    void shouldCopyWithoutInformationLoss(){
+        var source = randomUserDb();
+        assertThat(source,doesNotHaveEmptyValues());
+        var copy = source.copy().build();
+        assertThat(copy,doesNotHaveEmptyValues());
+        assertThat(copy,is(equalTo(source)));
+    }
+
     private static List<RoleDb> createSampleRoles() {
         return Stream.of("Role1", "Role2")
             .map(attempt(UserDaoTest::newRole))
@@ -283,6 +292,8 @@ class UserDaoTest {
             .withRoles(randomRoles())
             .withViewingScope(ViewingScopeDb.fromViewingScope(randomViewingScope()))
             .withCristinId(randomUri())
+            .withInstitutionCristinId(randomCristinOrgId())
+            .withFeideIdentifier(randomString())
             .build();
         assertThat(randomUser, doesNotHaveEmptyValues());
         return randomUser;

@@ -39,8 +39,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
+@SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount"})
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
-@SuppressWarnings("PMD.GodClass")
 public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public static final String TYPE_VALUE = "USER";
@@ -54,8 +54,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String INSTITUTION_FIELD = "institution";
     public static final TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
     public static final String CRISTIN_ID = "cristinId";
-    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
     public static final String FEIDE_IDENTIFIER = "feideIdentifier";
+    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
     private String username;
     private URI institution;
     private Set<RoleDb> roles;
@@ -82,7 +82,9 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withInstitution(userDto.getInstitution())
             .withRoles(createRoleDbSet(userDto))
             .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
-            .withCristinId(userDto.getCristinId());
+            .withCristinId(userDto.getCristinId())
+            .withFeideIdentifier(userDto.getFeideIdentifier())
+            .withInstitutionCristinId(userDto.getInstitutionCristinId());
 
         return userDb.build();
     }
@@ -109,7 +111,10 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withRoles(extractRoles(this))
             .withInstitution(this.getInstitution())
             .withViewingScope(convertViewingScope())
-            .withCristinId(getCristinId());
+            .withCristinId(getCristinId())
+            .withFeideIdentifier(getFeideIdentifier())
+            .withInstitutionCristinId(getInstitutionCristinId());
+
         return userDto.build();
     }
 
@@ -279,23 +284,30 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withInstitution(this.getInstitution())
             .withViewingScope(this.getViewingScope())
             .withCristinId(this.cristinId)
-            .withRoles(this.getRolesNonNull());
+            .withRoles(this.getRolesNonNull())
+            .withFeideIdentifier(this.getFeideIdentifier())
+            .withInstitutionCristinId(this.getInstitutionCristinId());
     }
 
-    @JacocoGenerated
+    @DynamoDbAttribute(FEIDE_IDENTIFIER)
+    public String getFeideIdentifier() {
+        return this.feideIdentifier;
+    }
+
+    public void setFeideIdentifier(String feideIdentifer) {
+        this.feideIdentifier = feideIdentifer;
+    }
+
     @Override
+    @JacocoGenerated
     public int hashCode() {
-        return Objects.hash(getUsername(),
-                            getInstitution(),
-                            getRolesNonNull(),
-                            getGivenName(),
-                            getFamilyName(),
-                            getCristinId(),
-                            getViewingScope());
+        return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
+                            getViewingScope(),
+                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId());
     }
 
-    @JacocoGenerated
     @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -306,21 +318,22 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         UserDao userDao = (UserDao) o;
         return Objects.equals(getUsername(), userDao.getUsername())
                && Objects.equals(getInstitution(), userDao.getInstitution())
-               && Objects.equals(getRolesNonNull(), userDao.getRolesNonNull())
+               && Objects.equals(getRoles(), userDao.getRoles())
                && Objects.equals(getGivenName(), userDao.getGivenName())
                && Objects.equals(getFamilyName(), userDao.getFamilyName())
                && Objects.equals(getViewingScope(), userDao.getViewingScope())
-               && Objects.equals(getCristinId(), userDao.getCristinId());
-    }
-
-    @DynamoDbAttribute(FEIDE_IDENTIFIER)
-    public String getFeideIdentifier() {
-        return this.feideIdentifier;
+               && Objects.equals(getCristinId(), userDao.getCristinId())
+               && Objects.equals(getFeideIdentifier(), userDao.getFeideIdentifier())
+               && Objects.equals(getInstitutionCristinId(), userDao.getInstitutionCristinId());
     }
 
     @DynamoDbAttribute("institutionCristinId")
     public URI getInstitutionCristinId() {
         return this.institutionCristinId;
+    }
+
+    public void setInstitutionCristinId(URI institutionCristinId) {
+        this.institutionCristinId = institutionCristinId;
     }
 
     private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
@@ -363,14 +376,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     private String formatPrimaryHashKey() {
         checkUsername(username);
         return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE_VALUE, username);
-    }
-
-    private void setInstitutionCristinId(URI institutionCristinId) {
-        this.institutionCristinId = institutionCristinId;
-    }
-
-    private void setFeideIdentifier(String feideIdentifer) {
-        this.feideIdentifier = feideIdentifer;
     }
 
     public static final class Builder {

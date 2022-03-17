@@ -3,6 +3,7 @@ package no.unit.nva.useraccessservice.model;
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import java.net.URI;
@@ -20,7 +21,6 @@ public final class EntityUtils {
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
 
-
     /**
      * Intention is to create a user with all fields filled.
      *
@@ -28,15 +28,16 @@ public final class EntityUtils {
      */
     public static UserDto createUserWithRolesAndInstitutionAndViewingScope()
         throws InvalidEntryInternalException {
-        var user= createUserWithRoleWithoutInstitution().copy()
+        var user = createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .withViewingScope(randomViewingScope())
             .withCristinId(randomUri())
+            .withFeideIdentifier(randomString())
+            .withInstitutionCristinId(randomCristinOrgId())
             .build();
         assertThat(user, doesNotHaveEmptyValues());
         return user;
     }
-
 
     /**
      * Creates a a user with username and a role but without institution.

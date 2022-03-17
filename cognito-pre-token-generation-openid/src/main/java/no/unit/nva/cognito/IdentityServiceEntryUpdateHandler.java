@@ -10,6 +10,7 @@ import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.ClaimsOverrideDetails;
@@ -47,6 +48,7 @@ public class IdentityServiceEntryUpdateHandler
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideid";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideId";
+    public static final String NVA_USERNAME = "custom:nvaUsername";
     public static final String BELONGS_TO = "@";
     public static final String ACCESS_RIGTHS_DELIMITER = ",";
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:currentCustomer";
@@ -57,6 +59,7 @@ public class IdentityServiceEntryUpdateHandler
     private final IdentityService identityService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final BackendJwtTokenRetriever backendJwtTokenRetriever;
+    private LambdaLogger logger;
 
     @JacocoGenerated
     public IdentityServiceEntryUpdateHandler() {
@@ -81,12 +84,14 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
 
+        this.logger =context.getLogger();
         var nin = extractNin(input.getRequest().getUserAttributes());
         var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
 
         var cristinResponse = fetchPersonInformationFromCristin(input, nin);
         var activeCustomers = fetchCustomersForActiveAffiliations(cristinResponse);
+        activeCustomers.forEach(customer->logger.log(customer.toString()));
         var currentCustomer = activeCustomers.stream()
             .filter(customer->keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(customer,orgFeideDomain))
             .collect(SingletonCollector.tryCollect())

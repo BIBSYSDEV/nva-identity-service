@@ -154,6 +154,9 @@ public class IdentityServiceEntryUpdateHandler
         if (nonNull(customerDto)) {
             claims.add(createAttribute(CURRENT_CUSTOMER_CLAIM, customerDto.getId().toString()));
         }
+        else{
+            logger.log("Current customerDto is null");
+        }
 
         return claims;
     }

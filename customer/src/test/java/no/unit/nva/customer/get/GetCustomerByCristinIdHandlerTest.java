@@ -30,9 +30,7 @@ class GetCustomerByCristinIdHandlerTest {
     private CustomerService customerService;
     private Context context;
 
-    /**
-     * Set up environment.
-     */
+
     @BeforeEach
     public void init() {
         customerService = mock(CustomerService.class);

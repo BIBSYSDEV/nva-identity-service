@@ -293,7 +293,7 @@ Resources:
         - AttributeName: SecondaryIndex1RangeKey
           AttributeType: S
         - AttributeName: SecondaryIndex2HashKey
-            AttributeType: S
+          AttributeType: S
         - AttributeName: SecondaryIndex2RangeKey
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
@@ -1210,7 +1210,7 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: selectedInstitution
+        - Name: currentCustomer
           AttributeDataType: String
           Mutable: true
           Required: false
@@ -1324,7 +1324,7 @@ Resources:
         - custom:firstName
         - custom:lastName
         - custom:accessRights
-        - custom:selectedInstitution
+        - custom:currentCustomer
       AccessTokenValidity: 1
       IdTokenValidity: 30
       RefreshTokenValidity: 2
@@ -1344,7 +1344,7 @@ Resources:
         - custom:firstName
         - custom:lastName
         - custom:accessRights
-        - custom:selectedInstitution
+        - custom:currentCustomer
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain

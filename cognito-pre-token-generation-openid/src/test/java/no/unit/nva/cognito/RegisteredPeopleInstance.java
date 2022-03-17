@@ -153,7 +153,7 @@ public class RegisteredPeopleInstance {
             .withArchiveName(randomString())
             .withName(randomString())
             .withShortName(randomString())
-            .withFeideOrganizationId(randomString())
+            .withFeideOrganizationDomain(randomString())
             .build();
     }
 }

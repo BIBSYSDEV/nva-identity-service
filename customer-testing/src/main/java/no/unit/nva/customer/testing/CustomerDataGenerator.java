@@ -33,7 +33,7 @@ public class CustomerDataGenerator {
         CustomerDto customer = CustomerDto.builder()
             .withName(randomString())
             .withCristinId(randomUri())
-            .withFeideOrganizationId(randomString())
+            .withFeideOrganizationDomain(randomString())
             .withModifiedDate(randomInstant().toString())
             .withIdentifier(identifier)
             .withId(id)

@@ -286,7 +286,7 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
             .withArchiveName(randomString())
             .withCname(randomString())
             .withInstitutionDns(randomString())
-            .withFeideOrganizationId(randomString())
+            .withFeideOrganizationDomain(randomString())
             .withCristinId(randomCristinOrgId())
             .withVocabularies(randomVocabularySet())
             .build();

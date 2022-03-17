@@ -48,7 +48,7 @@ class CustomerDtoTest {
             .withShortName(randomString())
             .withArchiveName(randomString())
             .withName(randomString())
-            .withFeideOrganizationId(randomString())
+            .withFeideOrganizationDomain(randomString())
             .withCristinId(randomUri())
             .withCreatedDate(randomInstant().toString())
             .withModifiedDate(randomInstant().toString())

@@ -214,7 +214,7 @@ class UserMigrationServiceTest {
 
     private CustomerDto createSampleCustomer() {
         return CustomerDto.builder()
-            .withCristinId(SAMPLE_ORG_ID.toString())
+            .withCristinId(SAMPLE_ORG_ID)
             .build();
     }
 

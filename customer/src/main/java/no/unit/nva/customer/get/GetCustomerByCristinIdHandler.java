@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.RequestUtils;
@@ -42,7 +43,7 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandlerV2<Void, Cus
 
     @Override
     protected CustomerDto processInput(String input, APIGatewayProxyRequestEvent request, Context context) {
-        String cristinId = getCristinId(request);
+        var cristinId = URI.create(getCristinId(request));
         return customerService.getCustomerByCristinId(cristinId);
     }
 

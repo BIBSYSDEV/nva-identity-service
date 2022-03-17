@@ -49,7 +49,7 @@ class CustomerDtoTest {
             .withArchiveName(randomString())
             .withName(randomString())
             .withFeideOrganizationId(randomString())
-            .withCristinId(randomString())
+            .withCristinId(randomUri())
             .withCreatedDate(randomInstant().toString())
             .withModifiedDate(randomInstant().toString())
             .withVocabularies(randomVocabularies())

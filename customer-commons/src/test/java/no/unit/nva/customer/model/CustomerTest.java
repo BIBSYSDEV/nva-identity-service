@@ -78,7 +78,7 @@ class CustomerTest {
             .withCname("CNAME")
             .withInstitutionDns("institution.dns")
             .withFeideOrganizationId("123456789")
-            .withCristinId(randomCristinOrgId().toString())
+            .withCristinId(randomCristinOrgId())
             .withVocabularySettings(vocabularySettings)
             .build();
     }

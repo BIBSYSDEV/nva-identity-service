@@ -104,6 +104,8 @@ class IdentityServiceEntryUpdateHandlerTest {
         httpServer.stop();
         customerDynamoDbLocal.deleteDatabase();
         userAccessDynamoDbLocal.closeDB();
+        userAccessDynamoDbLocal.closeDB();
+        congitoClient=null;
     }
 
     @ParameterizedTest(name = "should create user for the person's institution (top org) when person has not logged "
@@ -122,7 +124,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     @ParameterizedTest(name = "should not create user for the person's institution (top org) when person has not "
                               + "logged in before and has only inactive affiliations")
-    @EnumSource(LoginEventType.class)
+    @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"})
     void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOnlyInactiveAffiliations(
         LoginEventType loginEventType) {
 
@@ -135,10 +137,11 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(actualUsers, containsInAnyOrder(expectedUsers.toArray()));
     }
 
-    @ParameterizedTest(name = "should create user for institutions (top orgs) that the user has active affiliations "
+    @ParameterizedTest(name = "should not create user for institutions (top orgs) that the user has active "
+                              + "affiliations "
                               + "with when person has not logged int and has active and inactive affiliations")
     @EnumSource(LoginEventType.class)
-    void shouldCreateUsersForPersonsActiveTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
+    void shouldNotCreateUsersForPersonsActiveTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
         LoginEventType loginEventType) {
 
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
@@ -231,7 +234,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     }
 
     @ParameterizedTest(name = "should add customer id as current-customer-id when user logs in and has only one "
-                              + "active affiliation:{}")
+                              + "active affiliation")
     @EnumSource(LoginEventType.class)
     void shouldAddCustomerIdAsChosenCustomerIdWhenUserLogsInAndHasOnlyOneActiveAffiliation(
         LoginEventType loginEventType) {

@@ -7,6 +7,7 @@ import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FON_NON_
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.*;
 import static org.hamcrest.collection.IsIn.in;
@@ -14,7 +15,9 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.hamcrest.core.Every.everyItem;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
+import static org.hamcrest.core.StringContains.containsString;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
@@ -61,6 +64,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final boolean INCLUDE_ONLY_ACTIVE = false;
     public static final String NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES = null;
     private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
+    public static final String NOT_IMPORTANT = ",";
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
@@ -287,7 +291,22 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(allUsers,is(empty()));
         var accessRights= extractAccessRights(response);
         assertThat(accessRights,is(empty()));
+    }
 
+    @ParameterizedTest(name="should not create access rights for customer Ids that are invalid")
+    @EnumSource(LoginEventType.class)
+    void shouldNotCreateAccessRightsForCustomerIdsThatAreInvalid(LoginEventType loginEventType){
+        var person = registeredPeople.personWithActiveAndInactiveAffiliations();
+        var existingUsers = createUsersForActiveAndInactiveAffiliations(person);
+        var userWithInvalidCustomerId = existingUsers.get(0);
+        var invalidCustomerUri = randomUri();
+        userWithInvalidCustomerId.setInstitution(invalidCustomerUri);
+        identityService.updateUser(userWithInvalidCustomerId);
+        var event = randomEvent(person,loginEventType);
+        var response = handler.handleRequest(event,context);
+        var accessRights = String.join(NOT_IMPORTANT, extractAccessRights(response));
+        var unExpectedCustomerIdentifier = UriWrapper.fromUri(invalidCustomerUri).getLastPathElement();
+        assertThat(accessRights,not(containsString(unExpectedCustomerIdentifier)));
 
     }
 

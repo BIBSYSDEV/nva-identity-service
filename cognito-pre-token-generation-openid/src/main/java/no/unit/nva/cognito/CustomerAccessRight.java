@@ -1,12 +1,14 @@
 package no.unit.nva.cognito;
 
+import static nva.commons.core.attempt.Try.attempt;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.accessrights.AccessRight;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
@@ -24,12 +26,12 @@ public class CustomerAccessRight {
     }
 
     public static List<CustomerAccessRight> fromUser(UserDto user, CustomerService customerService) {
-        var customer = customerService.getCustomer(user.getInstitution());
-        return user.getAccessRights()
-            .stream()
-            .map(AccessRight::fromString)
-            .map(accessRight -> new CustomerAccessRight(customer, accessRight))
-            .collect(Collectors.toList());
+        var customer =
+            attempt(() -> customerService.getCustomer(user.getInstitution())).toOptional();
+
+        return customer.isPresent()
+                   ? createAccessRightsForExistingCustomer(user, customer.orElseThrow())
+                   : customerDoesNotExist();
     }
 
     public List<String> asStrings() {
@@ -38,8 +40,8 @@ public class CustomerAccessRight {
 
     @Override
     @JacocoGenerated
-    public String toString() {
-        return asStrings().stream().collect(Collectors.joining(ACCESS_RIGHT_SEPARATOR));
+    public int hashCode() {
+        return Objects.hash(accessRight, customer);
     }
 
     @Override
@@ -57,8 +59,20 @@ public class CustomerAccessRight {
 
     @Override
     @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(accessRight, customer);
+    public String toString() {
+        return asStrings().stream().collect(Collectors.joining(ACCESS_RIGHT_SEPARATOR));
+    }
+
+    private static List<CustomerAccessRight> customerDoesNotExist() {
+        return Collections.emptyList();
+    }
+
+    private static List<CustomerAccessRight> createAccessRightsForExistingCustomer(UserDto user, CustomerDto customer) {
+        return user.getAccessRights()
+            .stream()
+            .map(AccessRight::fromString)
+            .map(accessRight -> new CustomerAccessRight(customer, accessRight))
+            .collect(Collectors.toList());
     }
 
     private String accessRightWithCustomerCristinId() {

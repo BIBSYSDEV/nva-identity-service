@@ -179,7 +179,7 @@ public class CristinProxyMock {
     }
 
     private int smallNumber() {
-        return 2 + randomInteger(10);
+        return 5 + randomInteger(10);
     }
 
     private void createPersonWithOneActiveAffiliation() {

@@ -98,7 +98,6 @@ public class IdentityServiceEntryUpdateHandler
             .filter(customer -> keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(customer, orgFeideDomain))
             .collect(SingletonCollector.tryCollect())
             .orElse(fail -> null);
-        logger.log(Optional.ofNullable(currentCustomer).map(CustomerDto::toString).orElse("Current customer empty"));
         var usersForPerson = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers, feideIdentifier);
         var accessRights = accessRightsPerCustomer(usersForPerson);
 
@@ -155,9 +154,6 @@ public class IdentityServiceEntryUpdateHandler
         claims.add(createAttribute("custom:accessRights", String.join(ACCESS_RIGTHS_DELIMITER, accessRights)));
         if (nonNull(customerDto)) {
             claims.add(createAttribute(CURRENT_CUSTOMER_CLAIM, customerDto.getId().toString()));
-        }
-        else{
-            logger.log("Current customerDto is null");
         }
 
         return claims;

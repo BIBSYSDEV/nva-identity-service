@@ -517,7 +517,7 @@ Resources:
       Role: !GetAtt UpdateCongitoUserAttributesRole.Arn
       Environment:
         Variables:
-          ALLOWED_ORGIN: '*'
+          ALLOWED_ORIGIN: '*'
       Events:
         ApiEvent:
           Type: Api

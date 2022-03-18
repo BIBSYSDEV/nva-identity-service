@@ -515,6 +515,9 @@ Resources:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UserSelectionHandler::handleRequest
       Role: !GetAtt UpdateCongitoUserAttributesRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORGIN: '*'
       Events:
         ApiEvent:
           Type: Api

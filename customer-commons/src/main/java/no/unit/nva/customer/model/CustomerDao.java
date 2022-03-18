@@ -3,7 +3,7 @@ package no.unit.nva.customer.model;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_NUMBER_INDEX_NAME;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 public class CustomerDao implements Typed {
 
     public static final String IDENTIFIER = "identifier";
-    public static final String ORG_NUMBER = "feideOrganizationId";
+    public static final String ORG_DOMAIN = "feideOrganizationDomain";
     public static final String CRISTIN_ID = "cristinId";
     public static final String TYPE = "Customer";
     public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
@@ -145,8 +145,8 @@ public class CustomerDao implements Typed {
         this.institutionDns = institutionDns;
     }
 
-    @DynamoDbSecondaryPartitionKey(indexNames = {BY_ORG_NUMBER_INDEX_NAME})
-    @DynamoDbAttribute(ORG_NUMBER)
+    @DynamoDbSecondaryPartitionKey(indexNames = {BY_ORG_DOMAIN_INDEX_NAME})
+    @DynamoDbAttribute(ORG_DOMAIN)
     public String getFeideOrganizationDomain() {
         return feideOrganizationDomain;
     }
@@ -307,8 +307,8 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withFeideOrganizationDomain(String feideOrganizationId) {
-            customerDb.setFeideOrganizationDomain(feideOrganizationId);
+        public Builder withFeideOrganizationDomain(String feideOrganizationDomain) {
+            customerDb.setFeideOrganizationDomain(feideOrganizationDomain);
             return this;
         }
 

@@ -21,13 +21,13 @@ import no.unit.nva.stubs.FakeContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class GetCustomerByOrgNumberHandlerTest {
+class GetCustomerByOrgDomainHandlerTest {
 
-    public static final String SAMPLE_ORG_NUMBER = "123";
+    public static final String SAMPLE_ORG_DOMAIN = "123";
     public static final URI SAMPLE_CRISTIN_ID = randomUri();
 
     private CustomerService customerServiceMock;
-    private GetCustomerByOrgNumberHandler handler;
+    private GetCustomerByOrgDomainHandler handler;
     private Context context;
 
     /**
@@ -36,22 +36,22 @@ class GetCustomerByOrgNumberHandlerTest {
     @BeforeEach
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
-        handler = new GetCustomerByOrgNumberHandler(customerServiceMock);
+        handler = new GetCustomerByOrgDomainHandler(customerServiceMock);
         context = new FakeContext();
     }
 
     @Test
-    void getCustomerByOrgNumberReturnsCustomerWhenInputIsExistingCustomerOrgNumber() {
+    void getCustomerByOrgDomainReturnsCustomerWhenInputIsExistingCustomerOrgDomain() {
         UUID identifier = UUID.randomUUID();
         CustomerDao customerDb = new CustomerDao.Builder()
             .withIdentifier(identifier)
-            .withFeideOrganizationDomain(SAMPLE_ORG_NUMBER)
+            .withFeideOrganizationDomain(SAMPLE_ORG_DOMAIN)
             .withCristinId(SAMPLE_CRISTIN_ID)
             .build();
         CustomerDto customerDto = customerDb.toCustomerDto();
-        when(customerServiceMock.getCustomerByOrgNumber(SAMPLE_ORG_NUMBER)).thenReturn(customerDto);
+        when(customerServiceMock.getCustomerByOrgDomain(SAMPLE_ORG_DOMAIN)).thenReturn(customerDto);
 
-        var pathParameters = Map.of(GetCustomerByOrgNumberHandler.ORG_NUMBER, SAMPLE_ORG_NUMBER);
+        var pathParameters = Map.of(GetCustomerByOrgDomainHandler.ORG_DOMAIN, SAMPLE_ORG_DOMAIN);
         var inputStream = createRequest(customerDto, pathParameters);
         var response = handler.handleRequest(inputStream, context);
 

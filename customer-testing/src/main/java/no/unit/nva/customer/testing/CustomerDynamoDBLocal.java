@@ -2,6 +2,9 @@ package no.unit.nva.customer.testing;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static no.unit.nva.customer.model.CustomerDao.CRISTIN_ID;
+import static no.unit.nva.customer.model.CustomerDao.IDENTIFIER;
+import static no.unit.nva.customer.model.CustomerDao.ORG_DOMAIN;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
 import java.util.List;
@@ -19,11 +22,8 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 public class CustomerDynamoDBLocal {
 
-    public static final String ORG_NUMBER = "feideOrganizationId";
-    public static final String CRISTIN_ID = "cristinId";
     public static final String NVA_CUSTOMERS_TABLE_NAME = CUSTOMERS_TABLE_NAME;
-    public static final String IDENTIFIER = "identifier";
-    public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
+    public static final String BY_ORG_DOMAIN_INDEX_NAME = "byOrgDomain";
     public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
     public static final long NOT_IMPORTANT = 100L;
     protected DynamoDbClient dynamoClient;
@@ -48,7 +48,7 @@ public class CustomerDynamoDBLocal {
     private void createCustomerTable(DynamoDbClient ddb) {
         List<AttributeDefinition> attributeDefinitions = asList(
             AttributeDefinition.builder().attributeName(IDENTIFIER).attributeType(ScalarAttributeType.S).build(),
-            AttributeDefinition.builder().attributeName(ORG_NUMBER).attributeType(ScalarAttributeType.S).build(),
+            AttributeDefinition.builder().attributeName(ORG_DOMAIN).attributeType(ScalarAttributeType.S).build(),
             AttributeDefinition.builder().attributeName(CRISTIN_ID).attributeType(ScalarAttributeType.S).build()
         );
 
@@ -56,8 +56,8 @@ public class CustomerDynamoDBLocal {
             KeySchemaElement.builder().attributeName(IDENTIFIER).keyType(KeyType.HASH).build()
         );
 
-        List<KeySchemaElement> byOrgNumberKeyScheme = singletonList(
-            KeySchemaElement.builder().attributeName(ORG_NUMBER).keyType(KeyType.HASH).build()
+        List<KeySchemaElement> byOrgDomain = singletonList(
+            KeySchemaElement.builder().attributeName(ORG_DOMAIN).keyType(KeyType.HASH).build()
         );
 
         List<KeySchemaElement> byCristinIdKeyScheme = singletonList(
@@ -69,7 +69,7 @@ public class CustomerDynamoDBLocal {
             .build();
 
         List<GlobalSecondaryIndex> globalSecondaryIndexes = asList(
-            createGsi(byOrgNumberKeyScheme, allProjection, BY_ORG_NUMBER_INDEX_NAME),
+            createGsi(byOrgDomain, allProjection, BY_ORG_DOMAIN_INDEX_NAME),
             createGsi(byCristinIdKeyScheme, allProjection, BY_CRISTIN_ID_INDEX_NAME)
         );
 

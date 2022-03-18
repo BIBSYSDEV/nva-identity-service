@@ -11,7 +11,7 @@ public interface CustomerService {
 
     CustomerDto getCustomer(UUID identifier);
 
-    CustomerDto getCustomerByOrgNumber(String orgNumber);
+    CustomerDto getCustomerByOrgDomain(String orgDomain);
 
     List<CustomerDto> getCustomers();
 

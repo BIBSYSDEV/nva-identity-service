@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBCustomerService implements CustomerService {
 
-    public static final String BY_ORG_NUMBER_INDEX_NAME = "byOrgNumber";
+    public static final String BY_ORG_DOMAIN_INDEX_NAME = "byOrgDomain";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found: ";
     public static final String IDENTIFIERS_NOT_EQUAL = "Identifier in request parameters '%s' "
                                                        + "is not equal to identifier in customer object '%s'";
@@ -69,9 +69,9 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomerByOrgNumber(String orgNumber) {
-        CustomerDao query = createQueryForOrgNumber(orgNumber);
-        return sendQueryToIndex(query, BY_ORG_NUMBER_INDEX_NAME, CustomerDao::getFeideOrganizationDomain);
+    public CustomerDto getCustomerByOrgDomain(String orgDomain) {
+        CustomerDao query = createQueryForOrgDomain(orgDomain);
+        return sendQueryToIndex(query, BY_ORG_DOMAIN_INDEX_NAME, CustomerDao::getFeideOrganizationDomain);
     }
 
     @Override
@@ -129,8 +129,8 @@ public class DynamoDBCustomerService implements CustomerService {
             .orElseThrow(fail -> notFoundException(queryObject.toString()));
     }
 
-    private CustomerDao createQueryForOrgNumber(String orgNumber) {
-        return CustomerDao.builder().withFeideOrganizationDomain(orgNumber).build();
+    private CustomerDao createQueryForOrgDomain(String feideDomain) {
+        return CustomerDao.builder().withFeideOrganizationDomain(feideDomain).build();
     }
 
     private CustomerDao createQueryForCristinNumber(URI cristinId) {

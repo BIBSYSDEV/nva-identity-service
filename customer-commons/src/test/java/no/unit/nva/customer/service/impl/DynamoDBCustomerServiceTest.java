@@ -124,10 +124,10 @@ class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
     }
 
     @Test
-    void getCustomerByOrgNumberReturnsTheCustomer() {
+    void getCustomerByOrgDomainReturnsTheCustomer() {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
-        var getCustomer = service.getCustomerByOrgNumber(createdCustomer.getFeideOrganizationDomain());
+        var getCustomer = service.getCustomerByOrgDomain(createdCustomer.getFeideOrganizationDomain());
         assertEquals(createdCustomer, getCustomer);
     }
 

@@ -428,19 +428,19 @@ paths:
               examples:
                 BadGatewatExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
-  /orgNumber/{orgNumber}:
+  /orgDomain/{orgDomain}:
     get:
-      summary: Get CustomerIdentifiers by orgNumber
+      summary: Get CustomerIdentifiers by orgDomain
       parameters:
-        - name: orgNumber
-          description: OrgNumber of the CustomerIdentifiers to get
+        - name: orgDomain
+          description: the Feide org domain of the CustomerIdentifiers to get
           required: true
           in: path
           schema:
             type: string
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgNumberFunction.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgDomainFunction.Arn}/invocations
         responses: {}
         httpMethod: POST
         type: AWS_PROXY

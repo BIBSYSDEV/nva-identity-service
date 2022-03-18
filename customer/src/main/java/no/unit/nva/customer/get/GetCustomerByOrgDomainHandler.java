@@ -16,26 +16,18 @@ import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GetCustomerByOrgNumberHandler extends ApiGatewayHandlerV2<Void, CustomerIdentifiers> {
+public class GetCustomerByOrgDomainHandler extends ApiGatewayHandlerV2<Void, CustomerIdentifiers> {
 
-    public static final String ORG_NUMBER = "orgNumber";
-    private static final Logger logger = LoggerFactory.getLogger(GetCustomerByOrgNumberHandler.class);
+    public static final String ORG_DOMAIN = "orgDomain";
+    private static final Logger logger = LoggerFactory.getLogger(GetCustomerByOrgDomainHandler.class);
     private final CustomerService customerService;
 
-    /**
-     * Default Constructor for GetCustomerByOrgNumberHandler.
-     */
     @JacocoGenerated
-    public GetCustomerByOrgNumberHandler() {
+    public GetCustomerByOrgDomainHandler() {
         this(defaultCustomerService());
     }
 
-    /**
-     * Constructor for CreateCustomerbyOrgNumberHandler.
-     *
-     * @param customerService customerService
-     */
-    public GetCustomerByOrgNumberHandler(CustomerService customerService) {
+    public GetCustomerByOrgDomainHandler(CustomerService customerService) {
         super();
         this.customerService = customerService;
     }
@@ -48,8 +40,8 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandlerV2<Void, Cus
     @Override
     protected CustomerIdentifiers processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
         long start = System.currentTimeMillis();
-        String orgNumber = getOrgNumber(requestInfo);
-        CustomerDto customerDto = customerService.getCustomerByOrgNumber(orgNumber);
+        String orgDomain = getOrgIdentifier(requestInfo);
+        CustomerDto customerDto = customerService.getCustomerByOrgDomain(orgDomain);
         URI customerId = customerDto.getId();
         URI cristinId = customerDto.getCristinId();
         long stop = System.currentTimeMillis();
@@ -62,7 +54,7 @@ public class GetCustomerByOrgNumberHandler extends ApiGatewayHandlerV2<Void, Cus
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
 
-    private String getOrgNumber(APIGatewayProxyRequestEvent request) {
-        return getPathParameter(request, ORG_NUMBER).orElseThrow();
+    private String getOrgIdentifier(APIGatewayProxyRequestEvent request) {
+        return getPathParameter(request, ORG_DOMAIN).orElseThrow();
     }
 }

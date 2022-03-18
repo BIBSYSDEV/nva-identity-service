@@ -43,7 +43,7 @@ class BackendJwtTokenRetriever {
     }
 
     private static URI standardOauth2TokenEndpoint(URI cognitoHost) {
-        return new UriWrapper(cognitoHost).addChild("oauth2").addChild("token").getUri();
+        return UriWrapper.fromUri(cognitoHost).addChild("oauth2").addChild("token").getUri();
     }
 
     private static HttpRequest.BodyPublisher clientCredentialsAuthType() {

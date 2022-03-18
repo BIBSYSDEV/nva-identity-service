@@ -14,6 +14,7 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.matching.ContainsPattern;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import java.util.Map;
+import no.unit.nva.FakeCognito;
 import no.unit.nva.identityservice.json.JsonConfig;
 
 public class DataportenMock {

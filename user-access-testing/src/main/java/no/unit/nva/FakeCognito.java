@@ -1,6 +1,5 @@
-package no.unit.nva.cognito;
+package no.unit.nva;
 
-import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
@@ -23,7 +22,12 @@ public class FakeCognito implements CognitoIdentityProviderClient {
 
     private final String fakeClientSecret = randomString();
     private final String fakeClientId = randomString();
+    private final String clientName;
     private AdminUpdateUserAttributesRequest updateUserRequest;
+
+    public FakeCognito(String clientName){
+        this.clientName = clientName;
+    }
 
     public AdminUpdateUserAttributesRequest getUpdateUserRequest() {
         return updateUserRequest;
@@ -91,7 +95,7 @@ public class FakeCognito implements CognitoIdentityProviderClient {
 
         UserPoolClientDescription userPoolClient = UserPoolClientDescription.builder()
             .clientId(fakeClientId)
-            .clientName(BACKEND_USER_POOL_CLIENT_NAME)
+            .clientName(clientName)
             .build();
         return ListUserPoolClientsResponse.builder().userPoolClients(userPoolClient).build();
     }

@@ -36,4 +36,5 @@ test{
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "API_KEY_SECRET_NAME", "ApiKeySecretName"
     environment "API_KEY_SECRET_KEY", "ApiKeySecretKey"
+    environment "AWS_REGION", "eu-west-1"
 }

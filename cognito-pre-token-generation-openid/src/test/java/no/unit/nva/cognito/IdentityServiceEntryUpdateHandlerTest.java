@@ -1,15 +1,17 @@
 package no.unit.nva.cognito;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static no.unit.nva.cognito.AuthenticationInformation.FEIDE_ID;
+import static no.unit.nva.cognito.AuthenticationInformation.NIN_FON_NON_FEIDE_USERS;
+import static no.unit.nva.cognito.AuthenticationInformation.NIN_FOR_FEIDE_USERS;
+import static no.unit.nva.cognito.AuthenticationInformation.ORG_FEIDE_DOMAIN;
+import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.ALLOWED_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.FEIDE_ID;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FON_NON_FEIDE_USERS;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FOR_FEIDE_USERS;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.ORG_FEIDE_DOMAIN;
+import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsEmptyCollection.*;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.Every.everyItem;
@@ -32,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import no.unit.nva.FakeCognito;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDtoWithoutContext;
@@ -45,7 +48,6 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
-import org.hamcrest.collection.IsEmptyCollection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,8 +62,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
     public static final boolean INCLUDE_INACTIVE = true;
     public static final String AT = "@";
-    private static final boolean EXCLUDE_INACTIVE = false;
-    public static final boolean INCLUDE_ONLY_ACTIVE = false;
+    public static final boolean ONLY_ACTIVE = false;
     public static final String NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES = null;
     private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
     public static final String NOT_IMPORTANT = ",";
@@ -82,7 +83,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     @BeforeEach
     public void init() {
         setUpWiremock();
-        this.congitoClient = new FakeCognito();
+        this.congitoClient = new FakeCognito(BACKEND_USER_POOL_CLIENT_NAME);
         this.dataporten = new DataportenMock(httpServer, congitoClient);
 
         setupCustomerService();
@@ -151,7 +152,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         handler.handleRequest(event, context);
 
         var cristinPersonId = registeredPeople.getCristinPersonId(personLoggingIn);
-        var expectedCustomers = registeredPeople.getTopLevelOrgsForPerson(personLoggingIn, EXCLUDE_INACTIVE);
+        var expectedCustomers = registeredPeople.getTopLevelOrgsForPerson(personLoggingIn, ONLY_ACTIVE);
         var expectedUsers = expectedCustomers
             .stream()
             .map(customerCristinId -> fetchUserFromDatabase(cristinPersonId, customerCristinId))
@@ -238,7 +239,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldAddCustomerIdAsChosenCustomerIdWhenUserLogsInAndHasOnlyOneActiveAffiliation(
         LoginEventType loginEventType) {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-        var expectedCustomerCristinId = registeredPeople.getTopLevelOrgsForPerson(person, INCLUDE_ONLY_ACTIVE)
+        var expectedCustomerCristinId = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
             .stream().collect(SingletonCollector.collect());
 
         var event = randomEvent(person, loginEventType);
@@ -307,7 +308,26 @@ class IdentityServiceEntryUpdateHandlerTest {
         var accessRights = String.join(NOT_IMPORTANT, extractAccessRights(response));
         var unExpectedCustomerIdentifier = UriWrapper.fromUri(invalidCustomerUri).getLastPathElement();
         assertThat(accessRights,not(containsString(unExpectedCustomerIdentifier)));
+    }
 
+    @ParameterizedTest(name = "should store all allowed customer IDs in the cognito user attributes")
+    @EnumSource(LoginEventType.class)
+    void shouldIncludeAllAllowedCustomerIdsInTheCognitoUserCustomer(LoginEventType loginEventType){
+        var person = registeredPeople.personWithActiveAndInactiveAffiliations();
+        var expectedCustomerIds = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
+                                      .stream()
+                                      .map(cristinId->customerService.getCustomerByCristinId(cristinId))
+                                      .map(CustomerDtoWithoutContext::getId)
+                                      .collect(Collectors.toList());
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event,context);
+        var actualAllowedCustomers=congitoClient.getUpdateUserRequest().userAttributes().stream()
+            .filter(a->a.name().equals(ALLOWED_CUSTOMER_CLAIM))
+            .map(AttributeType::value)
+            .collect(SingletonCollector.collect());
+        for(var expectedCustomerId:expectedCustomerIds){
+            assertThat(actualAllowedCustomers,containsString(expectedCustomerId.toString()));
+        }
     }
 
     private List<String> extractAccessRights(CognitoUserPoolPreTokenGenerationEvent response) {
@@ -335,14 +355,14 @@ class IdentityServiceEntryUpdateHandlerTest {
                                                                    UserDto updatedUser) {
         assertThat(updatedUser.getCristinId(), is(equalTo(registeredPeople.getCristinPersonId(person))));
         assertThat(updatedUser.getFeideIdentifier(), is(equalTo(personsFeideIdentifier)));
-        var expectedTopLevelOrgId = registeredPeople.getTopLevelOrgsForPerson(person, INCLUDE_ONLY_ACTIVE)
+        var expectedTopLevelOrgId = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
             .stream().collect(SingletonCollector.collect());
         assertThat(updatedUser.getInstitutionCristinId(), is(equalTo(expectedTopLevelOrgId)));
     }
 
     private UserDto legacyUserWithFeideIdentifierAsUsername(NationalIdentityNumber person,
                                                             String personsFeideIdentifier) {
-        var preExistingUser = nvaDataGenerator.createUsers(person, INCLUDE_ONLY_ACTIVE)
+        var preExistingUser = nvaDataGenerator.createUsers(person, ONLY_ACTIVE)
             .stream().collect(SingletonCollector.collect());
         preExistingUser.setUsername(personsFeideIdentifier);
         preExistingUser.setFeideIdentifier(NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES);
@@ -353,7 +373,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     }
 
     private String feideDomainOfUsersInstitution(NationalIdentityNumber person) {
-        var topLeveOrg = registeredPeople.getTopLevelOrgsForPerson(person, INCLUDE_ONLY_ACTIVE)
+        var topLeveOrg = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
             .stream()
             .collect(SingletonCollector.collect());
         return customerService.getCustomerByCristinId(topLeveOrg).getFeideOrganizationDomain();
@@ -432,7 +452,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private List<URI> constructExpectedCustomersFromMockData(RegisteredPeopleInstance registeredPeopleInstance,
                                                              NationalIdentityNumber personLoggingIn) {
-        return registeredPeopleInstance.getTopLevelOrgsForPerson(personLoggingIn, EXCLUDE_INACTIVE)
+        return registeredPeopleInstance.getTopLevelOrgsForPerson(personLoggingIn, ONLY_ACTIVE)
             .stream()
             .map(cristinId -> customerService.getCustomerByCristinId(cristinId))
             .map(CustomerDto::getCristinId)

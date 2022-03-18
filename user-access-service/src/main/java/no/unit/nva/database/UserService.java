@@ -33,9 +33,8 @@ public class UserService extends DatabaseSubService {
     public static final String GET_USER_DEBUG_MESSAGE = "Getting user: ";
     public static final String ADD_USER_DEBUG_MESSAGE = "Adding user: ";
     public static final String USER_ALREADY_EXISTS_ERROR_MESSAGE = "User already exists: ";
-
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     public static final URI EMPTY_CRISTIN_ORG_ID = null;
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final RoleService roleService;
     private final DynamoDbTable<UserDao> table;
     private final DynamoDbIndex<UserDao> cristinCredentialsIndex;
@@ -121,7 +120,7 @@ public class UserService extends DatabaseSubService {
     }
 
     public UserDto getUsersByByCristinIdAndCristinOrgId(URI cristinPersonId, URI cristinOrgId) {
-        var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId,cristinOrgId);
+        var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId, cristinOrgId);
         var result = cristinCredentialsIndex.query(request);
         return result.stream()
             .map(Page::items)
@@ -131,9 +130,9 @@ public class UserService extends DatabaseSubService {
 
     private QueryEnhancedRequest createQueryForSearchingInCristinCredentialsIndex(URI cristinPersonId,
                                                                                   URI cristinOrgId) {
-        var key=Optional.ofNullable(cristinOrgId)
-            .map(orgId->Key.builder().partitionValue(cristinPersonId.toString()).sortValue(orgId.toString()))
-            .orElseGet(()->Key.builder().partitionValue(cristinPersonId.toString()))
+        var key = Optional.ofNullable(cristinOrgId)
+            .map(orgId -> Key.builder().partitionValue(cristinPersonId.toString()).sortValue(orgId.toString()))
+            .orElseGet(() -> Key.builder().partitionValue(cristinPersonId.toString()))
             .build();
         return QueryEnhancedRequest.builder()
             .queryConditional(QueryConditional.keyEqualTo(key))

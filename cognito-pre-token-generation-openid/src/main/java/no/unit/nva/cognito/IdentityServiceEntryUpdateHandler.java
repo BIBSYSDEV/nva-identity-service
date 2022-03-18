@@ -34,6 +34,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
@@ -97,8 +98,7 @@ public class IdentityServiceEntryUpdateHandler
             .filter(customer -> keepCustomerSpecifiedByFeideIfUserLoggedInThroughFeide(customer, orgFeideDomain))
             .collect(SingletonCollector.tryCollect())
             .orElse(fail -> null);
-        logger.log("CUUUUUUUUURRRRRRRRREEEEEEENTTTTTTTTTTTTTTT");
-        logger.log(Optional.ofNullable(currentCustomer).map(c->c.toString()).orElse("Current customer empty"));
+        logger.log(Optional.ofNullable(currentCustomer).map(CustomerDto::toString).orElse("Current customer empty"));
         var usersForPerson = createOrFetchUserEntriesForPerson(cristinResponse, activeCustomers, feideIdentifier);
         var accessRights = accessRightsPerCustomer(usersForPerson);
 
@@ -260,7 +260,8 @@ public class IdentityServiceEntryUpdateHandler
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
             .map(this::fetchTopLevelOrgUri)
-            .map(customerService::getCustomerByCristinId)
+            .map(attempt(customerService::getCustomerByCristinId))
+            .flatMap(Try::stream)
             .collect(Collectors.toSet());
     }
 

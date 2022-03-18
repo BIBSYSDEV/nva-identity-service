@@ -1,7 +1,6 @@
 package no.unit.nva.cognito;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.BELONGS_TO;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.FEIDE_ID;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FON_NON_FEIDE_USERS;
@@ -9,12 +8,12 @@ import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.NIN_FOR_FEID
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsEmptyCollection.*;
 import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.Every.everyItem;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNull.nullValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
@@ -24,15 +23,13 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
-import no.unit.nva.cognito.cristin.person.CristinIdentifier;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -45,6 +42,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
+import org.hamcrest.collection.IsEmptyCollection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,8 +59,8 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final String AT = "@";
     private static final boolean EXCLUDE_INACTIVE = false;
     public static final boolean INCLUDE_ONLY_ACTIVE = false;
-    public static final String NOT_EXISTIN_VALUE_IN_LEGACY_ENTRIES = null;
-    private static final URI NOT_EXISTIN_URI_IN_LEGACY_ENTRIES = null;
+    public static final String NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES = null;
+    private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
@@ -105,7 +103,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         customerDynamoDbLocal.deleteDatabase();
         userAccessDynamoDbLocal.closeDB();
         userAccessDynamoDbLocal.closeDB();
-        congitoClient=null;
+        congitoClient = null;
     }
 
     @ParameterizedTest(name = "should create user for the person's institution (top org) when person has not logged "
@@ -189,8 +187,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
         var response = handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
 
-        var actualAccessRights =
-            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
+        var actualAccessRights = extractAccessRights(response);
         assertThat(expectedAccessRightsWithCristinIdentifiers, everyItem(in(actualAccessRights)));
     }
 
@@ -211,8 +208,7 @@ class IdentityServiceEntryUpdateHandlerTest {
             .collect(Collectors.toList());
 
         var response = handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
-        var actualAccessRights =
-            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
+        var actualAccessRights = extractAccessRights(response);
         assertThat(expectedAccessRightsWithNvaIdentifiers, everyItem(in(actualAccessRights)));
     }
 
@@ -271,13 +267,32 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldNotUpdateCurrentCustomerIdWenUserHasManyAffilationsaAdLogsInWithPersonalNumber(
         LoginEventType loginEventType) {
         var person = registeredPeople.personWithManyActiveAffiliations();
-
         var event = randomEvent(person, loginEventType);
 
         handler.handleRequest(event, context);
 
         var actualCustomerId = fetchCurrentCustomClaimForCongitoUserUpdate();
         assertThat(actualCustomerId, is(nullValue()));
+    }
+
+    @ParameterizedTest(name = "should not assign access rights for active affiliation when customer is not "
+                              + "a registered customer in NVA")
+    @EnumSource(LoginEventType.class)
+    void shouldNotUAssignAccessRightsForActiveAffiliationsWhenTopLevelOrgIsNotARegisteredCustomerInNva(
+        LoginEventType loginEventType){
+        var person = registeredPeople.personWithActiveAffiliationThatIsNotCustomer();
+        var event  = randomEvent(person,loginEventType);
+        var response = handler.handleRequest(event,context);
+        var allUsers = scanAllUsers();
+        assertThat(allUsers,is(empty()));
+        var accessRights= extractAccessRights(response);
+        assertThat(accessRights,is(empty()));
+
+
+    }
+
+    private List<String> extractAccessRights(CognitoUserPoolPreTokenGenerationEvent response) {
+        return Arrays.asList(response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
     }
 
     private URI fetchCustomerBasedOnFeideDomain(String customersFeideDomain) {
@@ -311,9 +326,9 @@ class IdentityServiceEntryUpdateHandlerTest {
         var preExistingUser = nvaDataGenerator.createUsers(person, INCLUDE_ONLY_ACTIVE)
             .stream().collect(SingletonCollector.collect());
         preExistingUser.setUsername(personsFeideIdentifier);
-        preExistingUser.setFeideIdentifier(NOT_EXISTIN_VALUE_IN_LEGACY_ENTRIES);
-        preExistingUser.setInstitutionCristinId(NOT_EXISTIN_URI_IN_LEGACY_ENTRIES);
-        preExistingUser.setCristinId(NOT_EXISTIN_URI_IN_LEGACY_ENTRIES);
+        preExistingUser.setFeideIdentifier(NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES);
+        preExistingUser.setInstitutionCristinId(NOT_EXISTING_URI_IN_LEGACY_ENTRIES);
+        preExistingUser.setCristinId(NOT_EXISTING_URI_IN_LEGACY_ENTRIES);
         identityService.addUser(preExistingUser);
         return preExistingUser;
     }
@@ -328,7 +343,6 @@ class IdentityServiceEntryUpdateHandlerTest {
     private UserDto fetchUserFromDatabase(URI cristinPersonId, URI customerCristinId) {
         return identityService.getUserByCristinIdAndCristinOrgId(cristinPersonId, customerCristinId);
     }
-
 
     private void assertThatUserIsSearchableByCristinCredentials(NationalIdentityNumber personLoggingIn,
                                                                 List<UserDto> allUsers) {
@@ -395,13 +409,6 @@ class IdentityServiceEntryUpdateHandlerTest {
             allUsers.addAll(scanResult.getRetrievedUsers());
         }
         return allUsers;
-    }
-
-    private Stream<String> createUsersForPersonAndCustomers(List<URI> expectedCustomers,
-                                                            CristinIdentifier cristinIdentifier) {
-        return expectedCustomers.stream()
-            .map(customerId -> UriWrapper.fromUri(customerId).getLastPathElement())
-            .map(customerIdentifier -> cristinIdentifier.getValue() + BELONGS_TO + customerIdentifier);
     }
 
     private List<URI> constructExpectedCustomersFromMockData(RegisteredPeopleInstance registeredPeopleInstance,

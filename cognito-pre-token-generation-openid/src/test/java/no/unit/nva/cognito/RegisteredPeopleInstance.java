@@ -2,6 +2,7 @@ package no.unit.nva.cognito;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.Is.is;
@@ -21,6 +22,7 @@ import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import nva.commons.core.attempt.Try;
 
 public class RegisteredPeopleInstance {
 
@@ -28,8 +30,8 @@ public class RegisteredPeopleInstance {
     private final CustomerService customerService;
     private final CristinProxyMock cristinProxy;
     private final Set<NationalIdentityNumber> people;
-    private List<RoleDto> availableNvaRoles;
     private final IdentityService identityService;
+    private List<RoleDto> availableNvaRoles;
 
     public RegisteredPeopleInstance(WireMockServer httpServer,
                                     DataportenMock dataportenMock,
@@ -59,23 +61,22 @@ public class RegisteredPeopleInstance {
     }
 
     public String getFeideIdentifierForPerson() {
-        return  randomString();
+        return randomString();
     }
 
     public String getSomeFeideOrgIdentifierForPerson(NationalIdentityNumber nin) {
-        var domains=getTopLevelAffiliationsForUser(nin,ACTIVE).stream()
-            .map(customerService::getCustomerByCristinId)
+        var domains = getTopLevelAffiliationsForUser(nin, ACTIVE).stream()
+            .map(attempt(customerService::getCustomerByCristinId))
+            .flatMap(Try::stream)
             .map(CustomerDtoWithoutContext::getFeideOrganizationDomain)
-                        .collect(Collectors.toList());
-        return randomElement(domains.toArray(String[]::new));
+            .collect(Collectors.toList());
+        return domains.isEmpty()
+                   ? randomString()
+                   : randomElement(domains.toArray(String[]::new));
     }
 
-    private void nvaHasDefinedRolesForTheNvaUsers() {
-        availableNvaRoles = insertSomeRolesInNva();
-    }
-
-    private void cristinHasSomeOrganizationsAndPeopleWorkingInOrganizations() {
-        cristinProxy.initialize(people);
+    public NationalIdentityNumber personWithActiveAffiliationThatIsNotCustomer() {
+        return cristinProxy.getPersonWithActiveAffiliationThatIsNotCustomer();
     }
 
     public Set<URI> getTopLevelOrgsForPerson(NationalIdentityNumber nin, boolean includeInactive) {
@@ -106,6 +107,7 @@ public class RegisteredPeopleInstance {
     public NationalIdentityNumber personWithActiveAndInactiveAffiliations() {
         return cristinProxy.getPersonWithActiveAndInactiveAffiliations();
     }
+
     public NationalIdentityNumber personWithManyActiveAffiliations() {
         return cristinProxy.getPersonWithManyActiveAffiliations();
     }
@@ -125,6 +127,14 @@ public class RegisteredPeopleInstance {
             .map(customerService::getCustomerByCristinId);
     }
 
+    private void nvaHasDefinedRolesForTheNvaUsers() {
+        availableNvaRoles = insertSomeRolesInNva();
+    }
+
+    private void cristinHasSomeOrganizationsAndPeopleWorkingInOrganizations() {
+        cristinProxy.initialize(people);
+    }
+
     private List<RoleDto> insertSomeRolesInNva() {
         return IntStream.range(0, 10).boxed()
             .map(ignored -> NvaDataGenerator.createRole())
@@ -134,7 +144,7 @@ public class RegisteredPeopleInstance {
     }
 
     private void nvaHasRegisteredSomeOfCristinsOrganizationsAsCustomers() {
-        var nvaCustomers = cristinProxy.getTopLevelOrgUris().stream()
+        var nvaCustomers = cristinProxy.getTopLevelOrgUrisAndNvaCustomers().stream()
             .map(this::createNvaCustomer)
             .collect(Collectors.toList());
         assertThat(nvaCustomers, is(not(empty())));

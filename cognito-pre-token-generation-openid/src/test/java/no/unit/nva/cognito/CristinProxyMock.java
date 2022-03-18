@@ -21,6 +21,7 @@ import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
-import no.unit.nva.cognito.cristin.person.CristinIdentifier;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import nva.commons.core.paths.UriWrapper;
 
@@ -39,9 +39,9 @@ public class CristinProxyMock {
     public static final boolean IGNORE_ARRAY_ORDER = true;
     public static final boolean DO_NOT_IGNORE_OTHER_ELEMENTS = false;
     public static final boolean INACTIVE = false;
+    public static final int LARGE_NUBMER_TO_AVOID_TEST_SUCESS_BY_LACK = 100;
     private static final Boolean MATCH_CASE = false;
     private static final boolean ACTIVE = true;
-    public static final int LARGE_NUBMER_TO_AVOID_TEST_SUCESS_BY_LACK = 100;
     private final Set<NationalIdentityNumber> peopleMatchedToSomeScenario;
     private final DataportenMock dataporten;
     private final URI cristinPersonHost;
@@ -51,10 +51,12 @@ public class CristinProxyMock {
     private NationalIdentityNumber personWithNoActiveAffiliations;
     private NationalIdentityNumber personWithActiveAndInactiveAffiliations;
     private NationalIdentityNumber personWithManyActiveAffiliations;
-    private List<URI> topLevelOrgUris;
+    private NationalIdentityNumber personWithActiveAffiliationThatIsNotCustomer;
+    private List<URI> topLevelOrgUrisAndNvaCustomers;
     private Set<BottomAndTopLevelOrgPair> bottomLevelOrgs;
     private Set<URI> bottomLevelOrgUris;
     private Map<URI, URI> bottomTopLevelOrgMap;
+    private URI topLevelOrgUriNotNvaCustomer;
 
     public CristinProxyMock(WireMockServer httpServer,
                             DataportenMock dataportenMock) {
@@ -64,9 +66,7 @@ public class CristinProxyMock {
         cristinPersonHost = URI.create(httpServer.baseUrl());
     }
 
-    public NationalIdentityNumber getPersonWithActiveAndInactiveAffiliations() {
-        return personWithActiveAndInactiveAffiliations;
-    }
+
 
     public void initialize(Set<NationalIdentityNumber> people) {
         this.people = people;
@@ -74,6 +74,7 @@ public class CristinProxyMock {
         createPersonWithOneActiveAffiliation();
         createPersonWithNoActiveAffiliations();
         createPersonWithActiveAndInactiveAffiliations();
+        createPersonWithActiveAffiliationThatIsNotCustomer();
         createPersonWithManyActiveAffiliations();
     }
 
@@ -81,12 +82,8 @@ public class CristinProxyMock {
         return personWithOneActiveAffiliationAndNoInactiveAffiliations;
     }
 
-    public List<URI> getTopLevelOrgUris() {
-        return this.topLevelOrgUris;
-    }
-
-    public CristinIdentifier getCristinPersonIdentifier(NationalIdentityNumber personLoggingIn) {
-        return cristinPersonRegistry.get(personLoggingIn).getPersonsCristinIdentifier();
+    public List<URI> getTopLevelOrgUrisAndNvaCustomers() {
+        return this.topLevelOrgUrisAndNvaCustomers;
     }
 
     public NationalIdentityNumber getPersonWithOnlyInactiveAffiliations() {
@@ -113,25 +110,59 @@ public class CristinProxyMock {
         return personWithManyActiveAffiliations;
     }
 
+    public NationalIdentityNumber getPersonWithActiveAndInactiveAffiliations() {
+        return personWithActiveAndInactiveAffiliations;
+    }
+
+    public NationalIdentityNumber getPersonWithActiveAffiliationThatIsNotCustomer() {
+        return personWithActiveAffiliationThatIsNotCustomer;
+    }
+
+    private URI getTopLevelOrgUriNotNvaCustomer() {
+        return topLevelOrgUriNotNvaCustomer;
+    }
+
+    private void createPersonWithActiveAffiliationThatIsNotCustomer() {
+        personWithActiveAffiliationThatIsNotCustomer = nextPerson();
+        var affiliationThatIsNotCustomer = CristinAffiliation.builder()
+            .withActive(ACTIVE)
+            .withOrganization(getTopLevelOrgUriNotNvaCustomer())
+            .build();
+        createCristinRecord(personWithActiveAffiliationThatIsNotCustomer, List.of(affiliationThatIsNotCustomer));
+        createStubResponseForPerson(personWithActiveAffiliationThatIsNotCustomer);
+    }
+
     private URI createRandomOrgUriForTheImaginarySetup() {
         return UriWrapper.fromUri(cristinPersonHost).addChild("organization").addChild(randomString()).getUri();
     }
 
     private void createImaginaryOrganizationStructure() {
-        topLevelOrgUris = smallSetOfTopLevelOrgUris();
+        createTopLevelOrgsThatAreGoingToBeNvaCustomers();
+        createTopLeveOrgThatIsNotACustomer();
+    }
+
+    private void createTopLevelOrgsThatAreGoingToBeNvaCustomers() {
+        topLevelOrgUrisAndNvaCustomers = smallSetOfTopLevelOrgUris();
         bottomLevelOrgs = setOfBottomLevelOrgsSignificantlyBiggerThanTopLevelOrgSet();
         bottomLevelOrgs.forEach(this::attachCristinOrgResponseToStub);
         bottomLevelOrgUris = bottomLevelOrgs.stream().map(BottomAndTopLevelOrgPair::getBottomLevelOrg).collect(
             Collectors.toSet());
-        bottomTopLevelOrgMap = bottomLevelOrgs.stream().collect(Collectors.toMap(
-            BottomAndTopLevelOrgPair::getBottomLevelOrg, BottomAndTopLevelOrgPair::getTopLevelOrg));
+        bottomTopLevelOrgMap = new HashMap<>();
+        bottomLevelOrgs.forEach(entry->bottomTopLevelOrgMap.put(entry.getBottomLevelOrg(), entry.getTopLevelOrg()));
+    }
+
+    private void createTopLeveOrgThatIsNotACustomer() {
+        topLevelOrgUriNotNvaCustomer = createRandomOrgUriForTheImaginarySetup();
+        bottomTopLevelOrgMap.put(topLevelOrgUriNotNvaCustomer,topLevelOrgUriNotNvaCustomer);
+        attachCristinOrgResponseToStub(new BottomAndTopLevelOrgPair(topLevelOrgUriNotNvaCustomer,topLevelOrgUriNotNvaCustomer));
     }
 
     private Set<BottomAndTopLevelOrgPair> setOfBottomLevelOrgsSignificantlyBiggerThanTopLevelOrgSet() {
         return IntStream.range(0, 20)
             .boxed()
             .map(ignored -> createRandomOrgUriForTheImaginarySetup())
-            .map(bottomLevelOrgUri -> new BottomAndTopLevelOrgPair(bottomLevelOrgUri, randomElement(topLevelOrgUris)))
+            .map(bottomLevelOrgUri -> new BottomAndTopLevelOrgPair(bottomLevelOrgUri, randomElement(
+                topLevelOrgUrisAndNvaCustomers)))
             .collect(Collectors.toSet());
     }
 

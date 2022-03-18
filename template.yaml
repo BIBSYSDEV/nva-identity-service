@@ -509,7 +509,7 @@ Resources:
 #        TargetValue: 0.90
 #        PredefinedMetricSpecification:
 #          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
-  UserSerlectionHandler:
+  UserSelectionHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers

@@ -36,7 +36,7 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
@@ -113,7 +113,7 @@ public class IdentityServiceEntryUpdateHandler
     @JacocoGenerated
     private static CognitoIdentityProviderClient defaultCognitoClient() {
         return CognitoIdentityProviderClient.builder()
-            .credentialsProvider(DefaultCredentialsProvider.create())
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
             .httpClient(UrlConnectionHttpClient.create())
             .region(AWS_REGION)
             .build();

@@ -4,6 +4,20 @@ info:
   description: Api for updating users and roles
   version: 1.0.0
 paths:
+  /login:
+    get:
+      summary: Selects User
+      security:
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/frontend"]
+      responses:
+        '200':
+          description: Successful login
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserSelectionHanlder.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: aws_proxy
   /roles:
     post:
       summary: Adds new Role

@@ -1277,6 +1277,10 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: allowedCustomers
+          AttributeDataType: String
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value
@@ -1388,6 +1392,7 @@ Resources:
         - custom:lastName
         - custom:accessRights
         - custom:currentCustomer
+        - custom:allowedCustomers
       AccessTokenValidity: 1
       IdTokenValidity: 30
       RefreshTokenValidity: 2
@@ -1408,6 +1413,7 @@ Resources:
         - custom:lastName
         - custom:accessRights
         - custom:currentCustomer
+        - custom:allowedCustomers
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain

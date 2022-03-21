@@ -64,8 +64,8 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final String AT = "@";
     public static final boolean ONLY_ACTIVE = false;
     public static final String NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES = null;
-    private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
     public static final String NOT_IMPORTANT = ",";
+    private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
@@ -284,54 +284,55 @@ class IdentityServiceEntryUpdateHandlerTest {
                               + "a registered customer in NVA")
     @EnumSource(LoginEventType.class)
     void shouldNotUAssignAccessRightsForActiveAffiliationsWhenTopLevelOrgIsNotARegisteredCustomerInNva(
-        LoginEventType loginEventType){
+        LoginEventType loginEventType) {
         var person = registeredPeople.personWithActiveAffiliationThatIsNotCustomer();
-        var event  = randomEvent(person,loginEventType);
-        var response = handler.handleRequest(event,context);
+        var event = randomEvent(person, loginEventType);
+        var response = handler.handleRequest(event, context);
         var allUsers = scanAllUsers();
-        assertThat(allUsers,is(empty()));
-        var accessRights= extractAccessRights(response);
-        assertThat(accessRights,is(empty()));
+        assertThat(allUsers, is(empty()));
+        var accessRights = extractAccessRights(response);
+        assertThat(accessRights, is(empty()));
     }
 
-    @ParameterizedTest(name="should not create access rights for customer Ids that are invalid")
+    @ParameterizedTest(name = "should not create access rights for customer Ids that are invalid")
     @EnumSource(LoginEventType.class)
-    void shouldNotCreateAccessRightsForCustomerIdsThatAreInvalid(LoginEventType loginEventType){
+    void shouldNotCreateAccessRightsForCustomerIdsThatAreInvalid(LoginEventType loginEventType) {
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var existingUsers = createUsersForActiveAndInactiveAffiliations(person);
         var userWithInvalidCustomerId = existingUsers.get(0);
         var invalidCustomerUri = randomUri();
         userWithInvalidCustomerId.setInstitution(invalidCustomerUri);
         identityService.updateUser(userWithInvalidCustomerId);
-        var event = randomEvent(person,loginEventType);
-        var response = handler.handleRequest(event,context);
+        var event = randomEvent(person, loginEventType);
+        var response = handler.handleRequest(event, context);
         var accessRights = String.join(NOT_IMPORTANT, extractAccessRights(response));
         var unExpectedCustomerIdentifier = UriWrapper.fromUri(invalidCustomerUri).getLastPathElement();
-        assertThat(accessRights,not(containsString(unExpectedCustomerIdentifier)));
+        assertThat(accessRights, not(containsString(unExpectedCustomerIdentifier)));
     }
 
     @ParameterizedTest(name = "should store all allowed customer IDs in the cognito user attributes")
     @EnumSource(LoginEventType.class)
-    void shouldIncludeAllAllowedCustomerIdsInTheCognitoUserCustomer(LoginEventType loginEventType){
+    void shouldIncludeAllAllowedCustomerIdsInTheCognitoUserCustomer(LoginEventType loginEventType) {
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var expectedCustomerIds = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
-                                      .stream()
-                                      .map(cristinId->customerService.getCustomerByCristinId(cristinId))
-                                      .map(CustomerDtoWithoutContext::getId)
-                                      .collect(Collectors.toList());
+            .stream()
+            .map(cristinId -> customerService.getCustomerByCristinId(cristinId))
+            .map(CustomerDtoWithoutContext::getId)
+            .collect(Collectors.toList());
         var event = randomEvent(person, loginEventType);
-        handler.handleRequest(event,context);
-        var actualAllowedCustomers=congitoClient.getUpdateUserRequest().userAttributes().stream()
-            .filter(a->a.name().equals(ALLOWED_CUSTOMER_CLAIM))
+        handler.handleRequest(event, context);
+        var actualAllowedCustomers = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
+            .filter(a -> a.name().equals(ALLOWED_CUSTOMER_CLAIM))
             .map(AttributeType::value)
             .collect(SingletonCollector.collect());
-        for(var expectedCustomerId:expectedCustomerIds){
-            assertThat(actualAllowedCustomers,containsString(expectedCustomerId.toString()));
+        for (var expectedCustomerId : expectedCustomerIds) {
+            assertThat(actualAllowedCustomers, containsString(expectedCustomerId.toString()));
         }
     }
 
     private List<String> extractAccessRights(CognitoUserPoolPreTokenGenerationEvent response) {
-        return Arrays.asList(response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
+        return Arrays.asList(
+            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
     }
 
     private URI fetchCustomerBasedOnFeideDomain(String customersFeideDomain) {
@@ -342,7 +343,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     }
 
     private String fetchCurrentCustomClaimForCongitoUserUpdate() {
-        var request = congitoClient.getUpdateUserRequest();
+        var request = congitoClient.getAdminUpdateUserRequest();
         return request.userAttributes()
             .stream()
             .filter(a -> a.name().equals(CURRENT_CUSTOMER_CLAIM))

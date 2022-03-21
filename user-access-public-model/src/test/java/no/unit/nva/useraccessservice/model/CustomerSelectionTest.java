@@ -4,8 +4,6 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import java.io.IOException;
-import no.unit.nva.identityservice.json.JsonConfig;
 import org.junit.jupiter.api.Test;
 
 class CustomerSelectionTest {
@@ -18,10 +16,10 @@ class CustomerSelectionTest {
     }
 
     @Test
-    void toStringReturnsJson() throws IOException {
+    void toStringReturnsJson() {
         var customerSelection = CustomerSelection.fromCustomerId(randomUri());
         var json = customerSelection.toString();
-        var deserialized = JsonConfig.beanFrom(CustomerSelection.class, json);
+        var deserialized = CustomerSelection.fromJson(json);
         assertThat(deserialized.getCustomerId(), is(equalTo(customerSelection.getCustomerId())));
     }
 }

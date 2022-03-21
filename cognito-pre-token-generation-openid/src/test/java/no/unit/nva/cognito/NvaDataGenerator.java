@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import nva.commons.core.paths.UriWrapper;
 
 public class NvaDataGenerator {
@@ -41,14 +41,6 @@ public class NvaDataGenerator {
         return customers.map(customer -> createUser(nin, customer)).collect(Collectors.toList());
     }
 
-    private HashSet<URI> calculateTopLevelAffilationsToCreateUsersFor(NationalIdentityNumber nin, boolean includeInactive) {
-        var topLevelAffiliations = new HashSet<>(registeredPeopleInstance.getTopLevelAffiliationsForUser(nin, ACTIVE));
-        if (includeInactive) {
-            topLevelAffiliations.addAll(registeredPeopleInstance.getTopLevelAffiliationsForUser(nin, INACTIVE));
-        }
-        return topLevelAffiliations;
-    }
-
     public UserDto createUser(NationalIdentityNumber nin, CustomerDto customerDto) {
         String username = createUserName(nin, customerDto);
 
@@ -63,17 +55,26 @@ public class NvaDataGenerator {
             .build();
     }
 
-    private List<RoleDto> selectSomeRolesAlreadySavedInIdentityService() {
-        var roles = registeredPeopleInstance.getAvailableNvaRoles().toArray(RoleDto[]::new);
-        return List.of(randomElement(roles),randomElement(roles),randomElement(roles));
-    }
-
     private static Set<String> randomAccessRights() {
         return new HashSet<>(List.of(randomAccessRight(), randomAccessRight(), randomAccessRight()));
     }
 
     private static String randomAccessRight() {
         return randomElement(AccessRight.values()).toString();
+    }
+
+    private HashSet<URI> calculateTopLevelAffilationsToCreateUsersFor(NationalIdentityNumber nin,
+                                                                      boolean includeInactive) {
+        var topLevelAffiliations = new HashSet<>(registeredPeopleInstance.getTopLevelAffiliationsForUser(nin, ACTIVE));
+        if (includeInactive) {
+            topLevelAffiliations.addAll(registeredPeopleInstance.getTopLevelAffiliationsForUser(nin, INACTIVE));
+        }
+        return topLevelAffiliations;
+    }
+
+    private List<RoleDto> selectSomeRolesAlreadySavedInIdentityService() {
+        var roles = registeredPeopleInstance.getAvailableNvaRoles().toArray(RoleDto[]::new);
+        return List.of(randomElement(roles), randomElement(roles), randomElement(roles));
     }
 
     private String createUserName(NationalIdentityNumber nin, CustomerDto customerDto) {

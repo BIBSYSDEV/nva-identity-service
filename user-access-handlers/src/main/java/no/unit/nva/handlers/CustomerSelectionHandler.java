@@ -21,20 +21,20 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequ
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
 
 @JacocoGenerated
-public class UserSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
+public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:currentCustomer";
-    public static final String ALLOWED_CUSTOMES_CLAIM = "custom::allowedCustomers";
+    public static final String ALLOWED_CUSTOMERS_CLAIM = "custom::allowedCustomers";
     public static final String EMPTY_STRING = "";
     private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
     private final CognitoIdentityProviderClient cognito;
 
-    public UserSelectionHandler() {
+    public CustomerSelectionHandler() {
         this(defaultCognitoClient());
     }
 
-    public UserSelectionHandler(CognitoIdentityProviderClient cognito) {
+    public CustomerSelectionHandler(CognitoIdentityProviderClient cognito) {
         super();
         this.cognito = cognito;
     }
@@ -67,7 +67,6 @@ public class UserSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
     private void updateCognitoUserEntryAttribute(CustomerSelection input, String accessToken) {
         var userAttribute =
             AttributeType.builder().name(CURRENT_CUSTOMER_CLAIM).value(input.getCustomerId().toString()).build();
-
         UpdateUserAttributesRequest request = UpdateUserAttributesRequest.builder()
             .accessToken(accessToken)
             .userAttributes(userAttribute).build();
@@ -76,19 +75,19 @@ public class UserSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
 
     private void validateInput(String allowedCustomers, URI customerId) {
         var desiredCustomerIdString = customerId.toString().toLowerCase(Locale.getDefault());
-        if (!desiredCustomerIsNotAllowed(allowedCustomers, desiredCustomerIdString)) {
+        if (desiredCustomerIsNotAllowed(allowedCustomers, desiredCustomerIdString)) {
             throw new ForbiddenException();
         }
     }
 
     private boolean desiredCustomerIsNotAllowed(String allowedCustomers, String desiredCustomerIdString) {
-        return allowedCustomers.toLowerCase(Locale.getDefault()).contains(desiredCustomerIdString);
+        return !allowedCustomers.toLowerCase(Locale.getDefault()).contains(desiredCustomerIdString);
     }
 
     private String extractAllowedCustomers(String accessToken) {
         var user = cognito.getUser(GetUserRequest.builder().accessToken(accessToken).build());
         return user.userAttributes().stream()
-            .filter(attribute -> ALLOWED_CUSTOMES_CLAIM.equals(attribute.name()))
+            .filter(attribute -> ALLOWED_CUSTOMERS_CLAIM.equals(attribute.name()))
             .collect(SingletonCollector.tryCollect())
             .map(AttributeType::value)
             .orElse(fail -> EMPTY_STRING);

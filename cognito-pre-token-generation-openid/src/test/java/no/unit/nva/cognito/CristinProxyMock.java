@@ -66,8 +66,6 @@ public class CristinProxyMock {
         cristinPersonHost = URI.create(httpServer.baseUrl());
     }
 
-
-
     public void initialize(Set<NationalIdentityNumber> people) {
         this.people = people;
         createImaginaryOrganizationStructure();
@@ -148,13 +146,14 @@ public class CristinProxyMock {
         bottomLevelOrgUris = bottomLevelOrgs.stream().map(BottomAndTopLevelOrgPair::getBottomLevelOrg).collect(
             Collectors.toSet());
         bottomTopLevelOrgMap = new HashMap<>();
-        bottomLevelOrgs.forEach(entry->bottomTopLevelOrgMap.put(entry.getBottomLevelOrg(), entry.getTopLevelOrg()));
+        bottomLevelOrgs.forEach(entry -> bottomTopLevelOrgMap.put(entry.getBottomLevelOrg(), entry.getTopLevelOrg()));
     }
 
     private void createTopLeveOrgThatIsNotACustomer() {
         topLevelOrgUriNotNvaCustomer = createRandomOrgUriForTheImaginarySetup();
-        bottomTopLevelOrgMap.put(topLevelOrgUriNotNvaCustomer,topLevelOrgUriNotNvaCustomer);
-        attachCristinOrgResponseToStub(new BottomAndTopLevelOrgPair(topLevelOrgUriNotNvaCustomer,topLevelOrgUriNotNvaCustomer));
+        bottomTopLevelOrgMap.put(topLevelOrgUriNotNvaCustomer, topLevelOrgUriNotNvaCustomer);
+        attachCristinOrgResponseToStub(
+            new BottomAndTopLevelOrgPair(topLevelOrgUriNotNvaCustomer, topLevelOrgUriNotNvaCustomer));
     }
 
     private Set<BottomAndTopLevelOrgPair> setOfBottomLevelOrgsSignificantlyBiggerThanTopLevelOrgSet() {

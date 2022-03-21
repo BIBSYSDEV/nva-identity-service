@@ -9,6 +9,7 @@ import static no.unit.nva.useraccessservice.model.EntityUtils.SOME_USERNAME;
 import static no.unit.nva.useraccessservice.model.EntityUtils.createRole;
 import static no.unit.nva.useraccessservice.model.EntityUtils.createUserWithRoleWithoutInstitution;
 import static no.unit.nva.useraccessservice.model.EntityUtils.createUserWithRolesAndInstitutionAndViewingScope;
+import static no.unit.nva.useraccessservice.model.UserDto.AT;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -48,7 +49,7 @@ class UserDtoTest extends DtoTest {
 
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final String SOME_OTHER_ROLENAME = randomString();
-
+    public static final int ROLE_PART = 0;
     protected static final String USER_TYPE_LITERAL = "User";
     private static final String FIRST_ACCESS_RIGHT = "ApproveDoi";
     private static final String SECOND_ACCESS_RIGHT = "RejectDoi";
@@ -205,11 +206,35 @@ class UserDtoTest extends DtoTest {
         assertThat(exception.getMessage(), containsString(invalidJson));
     }
 
+    @Test
+    void shouldGenerateRoleClaimStringsForCognito() {
+        var user = createUserWithRolesAndInstitutionAndViewingScope();
+        var roleClaims = user.generateRoleClaims().collect(Collectors.toSet());
+        var expectedRolenames = user.getRoles().stream()
+            .map(RoleDto::getRoleName)
+            .collect(Collectors.toSet());
+        assertThatAllClaimContainTheInstitutionId(user, roleClaims);
+        assertThatThereIsARoleClaimForEachRole(user, expectedRolenames);
+    }
+
     private static Set<RoleDto> createSampleRoles() {
         try {
             return Collections.singleton(createRole(SOME_ROLENAME));
         } catch (InvalidEntryInternalException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void assertThatThereIsARoleClaimForEachRole(UserDto user, Set<String> expectedRolenames) {
+        var actualRolenamesInClaims = user.generateRoleClaims()
+            .map(claim -> claim.split(AT)[ROLE_PART])
+            .collect(Collectors.toSet());
+        assertThat(actualRolenamesInClaims, is(equalTo(expectedRolenames)));
+    }
+
+    private void assertThatAllClaimContainTheInstitutionId(UserDto user, Set<String> roleClaims) {
+        for (var roleClaim : roleClaims) {
+            assertThat(roleClaim, containsString(user.getInstitution().toString()));
         }
     }
 

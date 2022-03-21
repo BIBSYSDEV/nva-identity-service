@@ -52,6 +52,8 @@ public class IdentityServiceEntryUpdateHandler
     public static final String AT = "@";
     public static final String EMPTY_ALLOWED_CUSTOMERS = "null";
     public static final String ALLOWED_CUSTOMER_CLAIM = "custom:allowedCustomers";
+    public static final String ROLES_CLAIM = "custom:roles";
+    public static final String ACCESS_RIGHTS_CLAIM = "custom:accessRights";
     private final CristinClient cristinClient;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -84,13 +86,22 @@ public class IdentityServiceEntryUpdateHandler
         var authenticationInfo = collectInformationForPerson(input);
         var usersForPerson = createOrFetchUserEntriesForPerson(authenticationInfo);
         var accessRights = accessRightsPerCustomer(usersForPerson);
-
+        var roles= rolesPerCustomer(usersForPerson);
         injectAccessRightsToEventResponse(input, accessRights);
+
         updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input,
                                                                                 authenticationInfo,
-                                                                                accessRights);
+                                                                                accessRights,
+                                                                                roles);
 
         return input;
+    }
+
+    private Collection<String> rolesPerCustomer(List<UserDto> usersForPerson) {
+        return usersForPerson.stream()
+            .flatMap(UserDto::generateRoleClaims)
+            .collect(Collectors.toSet());
+
     }
 
     private AuthenticationInformation collectInformationForPerson(CognitoUserPoolPreTokenGenerationEvent input) {
@@ -128,33 +139,38 @@ public class IdentityServiceEntryUpdateHandler
     private void updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(
         CognitoUserPoolPreTokenGenerationEvent input,
         AuthenticationInformation authenticationInfo,
-        List<String> accessRights) {
+        Collection<String> accessRights,
+        Collection<String> roles) {
 
         cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(input,
                                                                                   authenticationInfo,
-                                                                                  accessRights));
+                                                                                  accessRights,
+                                                                                  roles));
     }
 
     private AdminUpdateUserAttributesRequest createUpdateUserAttributesRequest(
         CognitoUserPoolPreTokenGenerationEvent input,
         AuthenticationInformation authenticationInfo,
-        List<String> accessRights) {
+        Collection<String> accessRights,
+        Collection<String> roles) {
 
         return AdminUpdateUserAttributesRequest.builder()
             .userPoolId(input.getUserPoolId())
             .username(input.getUserName())
-            .userAttributes(updatedPersonAttributes(authenticationInfo, accessRights))
+            .userAttributes(updatedPersonAttributes(authenticationInfo, accessRights,roles))
             .build();
     }
 
     private Collection<AttributeType> updatedPersonAttributes(AuthenticationInformation authenticationInfo,
-                                                              List<String> accessRights) {
+                                                              Collection<String> accessRights,
+                                                              Collection<String> roles) {
 
         var allowedCustomersString = createAllowedCustomersString(authenticationInfo.getActiveCustomers());
         var claims = new ArrayList<AttributeType>();
         claims.add(createAttribute("custom:firstName", authenticationInfo.extractFirstName()));
         claims.add(createAttribute("custom:lastName", authenticationInfo.extractLastName()));
-        claims.add(createAttribute("custom:accessRights", String.join(ELEMENTS_DELIMITER, accessRights)));
+        claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, accessRights)));
+        claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
         claims.add(createAttribute(ALLOWED_CUSTOMER_CLAIM, allowedCustomersString));
 
         authenticationInfo.getCurrentCustomerId()

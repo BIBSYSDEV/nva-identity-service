@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
@@ -29,6 +30,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public static final String VIEWING_SCOPE_FIELD = "viewingScope";
     public static final String INSTITUTION_FIELD = "institution";
     public static final String ROLES = "roles";
+    public static final String AT ="@";
 
     @JsonProperty(USERNAME_FIELD)
     private String username;
@@ -161,6 +163,12 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.roles = roles;
     }
 
+    public Stream<String> generateRoleClaims() {
+        return roles.stream()
+            .map(RoleDto::getRoleName)
+            .map(rolename -> rolename + AT + institution.toString());
+
+    }
 
     @Override
     public UserDto.Builder copy() {
@@ -184,9 +192,12 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.viewingScope = viewingScope;
     }
 
+    @JacocoGenerated
     @Override
-    public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+    public int hashCode() {
+        return Objects.hash(getUsername(), getInstitution(), getGivenName(), getFamilyName(), getViewingScope(),
+                            getRoles(),
+                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId());
     }
 
     @JacocoGenerated
@@ -210,12 +221,9 @@ public class UserDto implements WithCopy<Builder>, Typed {
                && Objects.equals(getInstitutionCristinId(), userDto.getInstitutionCristinId());
     }
 
-    @JacocoGenerated
     @Override
-    public int hashCode() {
-        return Objects.hash(getUsername(), getInstitution(), getGivenName(), getFamilyName(), getViewingScope(),
-                            getRoles(),
-                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId());
+    public String toString() {
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
     private boolean compareRolesAsSets(UserDto userDto) {
@@ -259,7 +267,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
         }
 
         public Builder withRoles(Collection<RoleDto> roles) {
-            if(nonNull(roles)){
+            if (nonNull(roles)) {
                 userDto.setRoles(new ArrayList<>(roles));
             }
 

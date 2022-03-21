@@ -10,7 +10,6 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.paths.UriWrapper;
 
 public class CustomerAccessRight {
 
@@ -76,11 +75,11 @@ public class CustomerAccessRight {
     }
 
     private String accessRightWithCustomerCristinId() {
-        var cristinIdentifier = UriWrapper.fromUri(customer.getCristinId()).getLastPathElement();
-        return accessRight.toString() + AT + cristinIdentifier;
+
+        return accessRight.toString() + AT + customer.getCristinId();
     }
 
     private String accessRightWithCustomerId() {
-        return accessRight.toString() + AT + customer.getIdentifier();
+        return accessRight.toString() + AT + customer.getId();
     }
 }

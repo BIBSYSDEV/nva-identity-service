@@ -45,6 +45,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
@@ -168,7 +169,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldMaintainPreexistingUserEntriesForBothValidAndInvalidAffiliations(LoginEventType eventType) {
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
-        var alreadyExistingUsers = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
+        var alreadyExistingUsers = createUsersForAffiliations(personLoggingIn,INCLUDE_INACTIVE);
         handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
         var actualUsers = scanAllUsers();
         assertThat(actualUsers, containsInAnyOrder(alreadyExistingUsers.toArray(UserDto[]::new)));
@@ -180,8 +181,8 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerCristinIdentifierForUsersActiveTopOrgs(
         LoginEventType eventType) {
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
-        var usersForActiveAndInactiveAffiliations = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
-        var expectedUsers = usersForActiveAndInactiveAffiliations.stream()
+        var users = createUsersForAffiliations(personLoggingIn,INCLUDE_INACTIVE);
+        var expectedUsers = users.stream()
             .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
             .collect(Collectors.toSet());
 
@@ -202,7 +203,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerNvaIdentifierForUsersActiveTopOrgs(
         LoginEventType eventType) {
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
-        var preExistingUsers = createUsersForActiveAndInactiveAffiliations(personLoggingIn);
+        var preExistingUsers = createUsersForAffiliations(personLoggingIn,INCLUDE_INACTIVE);
         var expectedUsers = preExistingUsers.stream()
             .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
             .collect(Collectors.toSet());
@@ -298,7 +299,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldNotCreateAccessRightsForCustomerIdsThatAreInvalid(LoginEventType loginEventType) {
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
-        var existingUsers = createUsersForActiveAndInactiveAffiliations(person);
+        var existingUsers = createUsersForAffiliations(person,INCLUDE_INACTIVE);
         var userWithInvalidCustomerId = existingUsers.get(0);
         var invalidCustomerUri = randomUri();
         userWithInvalidCustomerId.setInstitution(invalidCustomerUri);
@@ -328,6 +329,35 @@ class IdentityServiceEntryUpdateHandlerTest {
         for (var expectedCustomerId : expectedCustomerIds) {
             assertThat(actualAllowedCustomers, containsString(expectedCustomerId.toString()));
         }
+    }
+
+    @ParameterizedTest(name = "should store all user's roles for each active top level affiliation in cognito user "
+                              + "attributes")
+    @EnumSource(LoginEventType.class)
+    void shouldStoreAllUserRolesForEachActiveTopLevelAffiliationInCognitoUserAttributes(LoginEventType loginEventType) {
+        var person = registeredPeople.personWithActiveAndInactiveAffiliations();
+        var usersForPerson = createUsersForAffiliations(person,ONLY_ACTIVE);
+        var expectedRoleStrings = usersForPerson.stream()
+            .map(this::createRoleStrings)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var actualRoles = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
+            .filter(a -> a.name().equals(IdentityServiceEntryUpdateHandler.ROLES_CLAIM))
+            .map(AttributeType::value)
+            .collect(SingletonCollector.collect());
+        for (var expectedCustomerId : expectedRoleStrings) {
+            assertThat(actualRoles, containsString(expectedCustomerId.toString()));
+        }
+    }
+
+    private List<String> createRoleStrings(UserDto user) {
+        return user.getRoles().stream()
+            .map(RoleDto::getRoleName)
+            .map(rolename -> rolename + AT + user.getInstitution().toString())
+            .collect(Collectors.toList());
     }
 
     private List<String> extractAccessRights(CognitoUserPoolPreTokenGenerationEvent response) {
@@ -392,8 +422,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private void assertThatUsersInstitutionCristinIdIsCustomersCristinId(NationalIdentityNumber personLoggingIn,
                                                                          List<UserDto> allUsers) {
-        var expectedCustomerCristinIds =
-            constructExpectedCustomersFromMockData(registeredPeople, personLoggingIn);
+        var expectedCustomerCristinIds = constructExpectedCustomersFromMockData(personLoggingIn);
         var actualCustomerCristinIds = allUsers.stream()
             .map(UserDto::getInstitutionCristinId)
             .collect(Collectors.toList());
@@ -408,8 +437,8 @@ class IdentityServiceEntryUpdateHandlerTest {
         }
     }
 
-    private List<UserDto> createUsersForActiveAndInactiveAffiliations(NationalIdentityNumber personLoggingIn) {
-        return nvaDataGenerator.createUsers(personLoggingIn, INCLUDE_INACTIVE)
+    private List<UserDto> createUsersForAffiliations(NationalIdentityNumber personLoggingIn,boolean includeInactive) {
+        return nvaDataGenerator.createUsers(personLoggingIn, includeInactive)
             .stream()
             .map(user -> identityService.addUser(user))
             .map(user -> identityService.getUser(user))
@@ -417,7 +446,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     }
 
     private List<String> createAccessRightsNvaVersion(UserDto user) {
-        var customerIdentifier = customerService.getCustomer(user.getInstitution()).getIdentifier().toString();
+        var customerIdentifier = customerService.getCustomer(user.getInstitution()).getId().toString();
         return user.getAccessRights().stream()
             .map(accessRight -> accessRight + AT + customerIdentifier)
             .collect(Collectors.toList());
@@ -425,9 +454,8 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private List<String> createAccessRightsCristinIdVersion(UserDto user) {
         var customerCristinId = customerService.getCustomer(user.getInstitution()).getCristinId();
-        var customerCristinIdentifier = UriWrapper.fromUri(customerCristinId).getLastPathElement();
         return user.getAccessRights().stream()
-            .map(accessRight -> accessRight + AT + customerCristinIdentifier)
+            .map(accessRight -> accessRight + AT + customerCristinId)
             .collect(Collectors.toList());
     }
 
@@ -451,9 +479,8 @@ class IdentityServiceEntryUpdateHandlerTest {
         return allUsers;
     }
 
-    private List<URI> constructExpectedCustomersFromMockData(RegisteredPeopleInstance registeredPeopleInstance,
-                                                             NationalIdentityNumber personLoggingIn) {
-        return registeredPeopleInstance.getTopLevelOrgsForPerson(personLoggingIn, ONLY_ACTIVE)
+    private List<URI> constructExpectedCustomersFromMockData(NationalIdentityNumber personLoggingIn) {
+        return registeredPeople.getTopLevelOrgsForPerson(personLoggingIn, ONLY_ACTIVE)
             .stream()
             .map(cristinId -> customerService.getCustomerByCristinId(cristinId))
             .map(CustomerDto::getCristinId)

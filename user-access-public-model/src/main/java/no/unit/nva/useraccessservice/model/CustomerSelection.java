@@ -11,14 +11,14 @@ public class CustomerSelection {
 
     private URI customerId;
 
-    public static CustomerSelection fromCustomerId(URI customerId){
+    public static CustomerSelection fromCustomerId(URI customerId) {
         var customerSelection = new CustomerSelection();
         customerSelection.setCustomerId(customerId);
         return customerSelection;
     }
 
     public static CustomerSelection fromJson(String body) {
-        return attempt(()->JsonConfig.beanFrom(CustomerSelection.class,body)).orElseThrow();
+        return attempt(() -> JsonConfig.beanFrom(CustomerSelection.class, body)).orElseThrow();
     }
 
     @JacocoGenerated
@@ -41,11 +41,9 @@ public class CustomerSelection {
         // DO nothing
     }
 
-
     @JacocoGenerated
     @Override
-    public String toString(){
-        return attempt(()->JsonConfig.asString(this)).orElseThrow();
+    public String toString() {
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
-
 }

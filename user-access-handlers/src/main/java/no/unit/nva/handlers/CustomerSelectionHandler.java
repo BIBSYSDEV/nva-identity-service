@@ -12,6 +12,8 @@ import nva.commons.apigatewayv2.exceptions.ForbiddenException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -28,6 +30,7 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
     public static final String ALLOWED_CUSTOMERS_CLAIM = "custom::allowedCustomers";
     public static final String EMPTY_STRING = "";
     private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
+    private static final Logger logger = LoggerFactory.getLogger(CustomerSelectionHandler.class);
     private final CognitoIdentityProviderClient cognito;
 
     public CustomerSelectionHandler() {
@@ -49,8 +52,8 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
         var input = CustomerSelection.fromJson(body);
         var accessToken = extractAccessToken(event);
         var allowedCustomers = extractAllowedCustomers(accessToken);
-        context.getLogger().log("AllowedCustomers:"+ allowedCustomers);
-        context.getLogger().log("SelectedCustomer:"+input.getCustomerId().toString());
+        logger.info("AllowedCustomers:{}", allowedCustomers);
+        logger.info("SelectedCustomer:{}", input.getCustomerId().toString());
         validateInput(allowedCustomers, input.getCustomerId());
         updateCognitoUserEntryAttribute(input, accessToken);
         return null;

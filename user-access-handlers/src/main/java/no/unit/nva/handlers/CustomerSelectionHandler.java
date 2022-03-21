@@ -27,7 +27,7 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:currentCustomer";
-    public static final String ALLOWED_CUSTOMERS_CLAIM = "custom::allowedCustomers";
+    public static final String ALLOWED_CUSTOMERS_CLAIM = "custom:allowedCustomers";
     public static final String EMPTY_STRING = "";
     private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
     private static final Logger logger = LoggerFactory.getLogger(CustomerSelectionHandler.class);

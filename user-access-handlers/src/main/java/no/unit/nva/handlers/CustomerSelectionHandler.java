@@ -49,7 +49,8 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
         var input = CustomerSelection.fromJson(body);
         var accessToken = extractAccessToken(event);
         var allowedCustomers = extractAllowedCustomers(accessToken);
-
+        context.getLogger().log("AllowedCustomers:"+ allowedCustomers);
+        context.getLogger().log("SelectedCustomer:"+input.getCustomerId().toString());
         validateInput(allowedCustomers, input.getCustomerId());
         updateCognitoUserEntryAttribute(input, accessToken);
         return null;

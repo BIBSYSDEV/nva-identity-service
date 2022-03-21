@@ -509,11 +509,11 @@ Resources:
 #        TargetValue: 0.90
 #        PredefinedMetricSpecification:
 #          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
-  UserSelectionHandler:
+  CustomerSelectionHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.UserSelectionHandler::handleRequest
+      Handler: no.unit.nva.handlers.CustomerSelectionHandler::handleRequest
       Role: !GetAtt UpdateCongitoUserAttributesRole.Arn
       Environment:
         Variables:
@@ -523,7 +523,7 @@ Resources:
           Type: Api
           Properties:
             Path: /login
-            Method: get
+            Method: post
             RestApiId: !Ref UsersAndRolesApi
 
   ListByInstitutionHandler:

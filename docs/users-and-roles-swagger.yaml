@@ -5,8 +5,14 @@ info:
   version: 1.0.0
 paths:
   /login:
-    get:
-      summary: Selects User
+    post:
+      summary: Selects Customer for User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerSelection'
       security:
         - CognitoUserPool: ["https://api.nva.unit.no/scopes/frontend"]
       responses:
@@ -14,7 +20,7 @@ paths:
           description: Successful login
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserSelectionHandler.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomerSelectionHandler.Arn}/invocations
         responses: { }
         httpMethod: POST
         type: aws_proxy
@@ -216,6 +222,14 @@ components:
             items:
               type: string
               format: uri
+    CustomerSelection:
+      properties:
+        customerId:
+          type: string
+          format: uri
+        type:
+          type: string
+          default: CustomerSelection
   securitySchemes:
     CognitoUserPool:
       type: http

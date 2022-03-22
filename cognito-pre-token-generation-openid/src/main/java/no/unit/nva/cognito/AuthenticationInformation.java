@@ -88,6 +88,10 @@ public class AuthenticationInformation {
         return Optional.ofNullable(getCurrentCustomer()).map(CustomerDto::getId).map(URI::toString);
     }
 
+    public URI getCristinPersonId() {
+        return getCristinPersonResponse().getCristinId();
+    }
+
     private static String extractNin(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
             .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))

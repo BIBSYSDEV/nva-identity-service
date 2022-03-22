@@ -1285,6 +1285,10 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: nvaUsername
+          AttributeDataType: String
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value
@@ -1398,6 +1402,7 @@ Resources:
         - custom:currentCustomer
         - custom:allowedCustomers
         - custom:roles
+        - custom:nvaUsername
       AccessTokenValidity: 1
       IdTokenValidity: 30
       RefreshTokenValidity: 2
@@ -1420,6 +1425,7 @@ Resources:
         - custom:currentCustomer
         - custom:allowedCustomers
         - custom:roles
+        - custom:nvaUsername
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:

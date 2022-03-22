@@ -47,6 +47,7 @@ public class IdentityServiceEntryUpdateHandler
     public static final String BELONGS_TO = "@";
     public static final String ELEMENTS_DELIMITER = ",";
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:currentCustomer";
+    public static final String PERSON_IDENTIFIER_CLAIM = "custom:cristinIdentifier";
     protected static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS,
         NIN_FOR_FEIDE_USERS};
     public static final String AT = "@";
@@ -89,10 +90,7 @@ public class IdentityServiceEntryUpdateHandler
         var roles= rolesPerCustomer(usersForPerson);
         injectAccessRightsToEventResponse(input, accessRights);
 
-        updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(input,
-                                                                                authenticationInfo,
-                                                                                accessRights,
-                                                                                roles);
+        updateCognitoUserAttributes(input,authenticationInfo,accessRights,roles);
 
         return input;
     }
@@ -136,7 +134,7 @@ public class IdentityServiceEntryUpdateHandler
             .build();
     }
 
-    private void updateUserAttributesWithInformationThatAreInterestingInUserInfoEndpoint(
+    private void updateCognitoUserAttributes(
         CognitoUserPoolPreTokenGenerationEvent input,
         AuthenticationInformation authenticationInfo,
         Collection<String> accessRights,
@@ -172,6 +170,7 @@ public class IdentityServiceEntryUpdateHandler
         claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, accessRights)));
         claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
         claims.add(createAttribute(ALLOWED_CUSTOMER_CLAIM, allowedCustomersString));
+        claims.add(createAttribute(PERSON_IDENTIFIER_CLAIM,authenticationInfo.getCristinPersonId().toString()));
 
         authenticationInfo.getCurrentCustomerId()
             .ifPresent(customerId -> claims.add(createAttribute(CURRENT_CUSTOMER_CLAIM, customerId)));

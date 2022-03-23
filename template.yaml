@@ -213,7 +213,7 @@ Resources:
 
   ### Cognito Trigger ##################################################################################################
 
-  UpdateCongitoUserAttributesRole:
+  UpdateCognintoUserAttributesRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -225,7 +225,22 @@ Resources:
             Action: [ 'sts:AssumeRole' ]
       Path: /
       Policies:
-
+        - PolicyName: accessToCustomers
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:BatchGetItem
+                  - dynamodb:ConditionCheckItem
+                  - dynamodb:DescribeTable
+                  - dynamodb:GetItem
+                  - dynamodb:Scan
+                  - dynamodb:Query
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
         - PolicyName: writeLog
           PolicyDocument:
             Version: '2012-10-17'
@@ -514,7 +529,7 @@ Resources:
     Properties:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.CustomerSelectionHandler::handleRequest
-      Role: !GetAtt UpdateCongitoUserAttributesRole.Arn
+      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'

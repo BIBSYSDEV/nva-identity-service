@@ -1289,6 +1289,9 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: cristinId
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value
@@ -1403,12 +1406,13 @@ Resources:
         - custom:allowedCustomers
         - custom:roles
         - custom:nvaUsername
+        - custom:cristinId
       AccessTokenValidity: 1
-      IdTokenValidity: 30
+      IdTokenValidity: 1
       RefreshTokenValidity: 2
       TokenValidityUnits:
         AccessToken: hours
-        IdToken: minutes
+        IdToken: hours
         RefreshToken: hours
       SupportedIdentityProviders:
         - !Ref ConnectionToDataporten
@@ -1426,6 +1430,7 @@ Resources:
         - custom:allowedCustomers
         - custom:roles
         - custom:nvaUsername
+        - custom:cristinId
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:

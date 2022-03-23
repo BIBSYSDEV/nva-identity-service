@@ -1273,7 +1273,7 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: currentCustomer
+        - Name: customerId
           AttributeDataType: String
           Mutable: true
           Required: false

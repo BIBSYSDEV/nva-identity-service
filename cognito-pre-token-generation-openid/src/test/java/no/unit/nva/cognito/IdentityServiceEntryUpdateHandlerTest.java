@@ -349,13 +349,13 @@ class IdentityServiceEntryUpdateHandlerTest {
             .map(AttributeType::value)
             .collect(SingletonCollector.collect());
         for (var expectedCustomerId : expectedRoleStrings) {
-            assertThat(actualRoles, containsString(expectedCustomerId.toString()));
+            assertThat(actualRoles, containsString(expectedCustomerId));
         }
     }
 
-    @ParameterizedTest(name = "should store user's cristin identifier in cognito user attributes")
+    @ParameterizedTest(name = "should store user's cristin Id in cognito user attributes")
     @EnumSource(LoginEventType.class)
-    void shouldStoreUserNvaUsernameInCognitoUserAttributes(LoginEventType loginEventType) {
+    void shouldStorePersonsCristinIdInCognitoUserAttributes(LoginEventType loginEventType) {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
         var user = createUsersForAffiliations(person, ONLY_ACTIVE)
             .stream()
@@ -370,6 +370,9 @@ class IdentityServiceEntryUpdateHandlerTest {
 
         assertThat(URI.create(actualCristinPersonId), is(equalTo(user.getCristinId())));
     }
+
+
+
 
     private List<String> createRoleStrings(UserDto user) {
         return user.getRoles().stream()

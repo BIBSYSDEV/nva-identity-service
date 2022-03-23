@@ -512,12 +512,13 @@ Resources:
   CustomerSelectionHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.CustomerSelectionHandler::handleRequest
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.CustomerSelectionHandler::handleRequest
       Role: !GetAtt UpdateCongitoUserAttributesRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
       Events:
         ApiEvent:
           Type: Api

@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import no.unit.nva.cognito.cristin.BottomOrgTopOrgPair;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinClient;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
@@ -47,6 +48,7 @@ public class IdentityServiceEntryUpdateHandler
     public static final String BELONGS_TO = "@";
     public static final String ELEMENTS_DELIMITER = ",";
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:customerId";
+    public static final String BOTTOM_ORG_CRISTIN_ID = "custom:orgCristinId";
     public static final String PERSON_IDENTIFIER_CLAIM = "custom:cristinId";
     protected static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS,
         NIN_FOR_FEIDE_USERS};
@@ -87,10 +89,10 @@ public class IdentityServiceEntryUpdateHandler
         var authenticationInfo = collectInformationForPerson(input);
         var usersForPerson = createOrFetchUserEntriesForPerson(authenticationInfo);
         var accessRights = accessRightsPerCustomer(usersForPerson);
-        var roles= rolesPerCustomer(usersForPerson);
+        var roles = rolesPerCustomer(usersForPerson);
         injectAccessRightsToEventResponse(input, accessRights);
 
-        updateCognitoUserAttributes(input,authenticationInfo,accessRights,roles);
+        updateCognitoUserAttributes(input, authenticationInfo, accessRights, roles);
 
         return input;
     }
@@ -99,7 +101,6 @@ public class IdentityServiceEntryUpdateHandler
         return usersForPerson.stream()
             .flatMap(UserDto::generateRoleClaims)
             .collect(Collectors.toSet());
-
     }
 
     private AuthenticationInformation collectInformationForPerson(CognitoUserPoolPreTokenGenerationEvent input) {
@@ -107,6 +108,9 @@ public class IdentityServiceEntryUpdateHandler
         CristinPersonResponse cristinResponse =
             fetchPersonInformationFromCristin(input, authenticationInfo.getNationalIdentityNumber());
         authenticationInfo.setCristinResponse(cristinResponse);
+
+        var bottomOrgTopOrgPairs = fetchTopLevelOrgsForBottomLevelOrgs(authenticationInfo);
+        authenticationInfo.setBottomOrgTopOrgPairs(bottomOrgTopOrgPairs);
 
         var activeCustomers = fetchCustomersForActiveAffiliations(authenticationInfo);
         authenticationInfo.setActiveCustomers(activeCustomers);
@@ -155,7 +159,7 @@ public class IdentityServiceEntryUpdateHandler
         return AdminUpdateUserAttributesRequest.builder()
             .userPoolId(input.getUserPoolId())
             .username(input.getUserName())
-            .userAttributes(updatedPersonAttributes(authenticationInfo, accessRights,roles))
+            .userAttributes(updatedPersonAttributes(authenticationInfo, accessRights, roles))
             .build();
     }
 
@@ -170,10 +174,14 @@ public class IdentityServiceEntryUpdateHandler
         claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, accessRights)));
         claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
         claims.add(createAttribute(ALLOWED_CUSTOMER_CLAIM, allowedCustomersString));
-        claims.add(createAttribute(PERSON_IDENTIFIER_CLAIM,authenticationInfo.getCristinPersonId().toString()));
+        claims.add(createAttribute(PERSON_IDENTIFIER_CLAIM, authenticationInfo.getCristinPersonId().toString()));
 
         authenticationInfo.getCurrentCustomerId()
-            .ifPresent(customerId -> claims.add(createAttribute(CURRENT_CUSTOMER_CLAIM, customerId)));
+            .ifPresent(customerId -> {
+                claims.add(createAttribute(CURRENT_CUSTOMER_CLAIM, customerId));
+                claims.add(
+                    createAttribute(BOTTOM_ORG_CRISTIN_ID, authenticationInfo.getCurrentBottomLevelOrg().toString()));
+            });
 
         return claims;
     }
@@ -189,8 +197,8 @@ public class IdentityServiceEntryUpdateHandler
                    : EMPTY_ALLOWED_CUSTOMERS;
     }
 
-    private AttributeType createAttribute(String s, String s2) {
-        return AttributeType.builder().name(s).value(s2).build();
+    private AttributeType createAttribute(String name, String value) {
+        return AttributeType.builder().name(name).value(value).build();
     }
 
     private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
@@ -281,13 +289,21 @@ public class IdentityServiceEntryUpdateHandler
 
     private Set<CustomerDto> fetchCustomersForActiveAffiliations(AuthenticationInformation authenticationInformation) {
 
+        return authenticationInformation.geBottomOrgTopOrgPairs()
+            .stream()
+            .map(BottomOrgTopOrgPair::getTopOrg)
+            .map(attempt(customerService::getCustomerByCristinId))
+            .flatMap(Try::stream)
+            .collect(Collectors.toSet());
+    }
+
+    private List<BottomOrgTopOrgPair> fetchTopLevelOrgsForBottomLevelOrgs(
+        AuthenticationInformation authenticationInformation) {
         return authenticationInformation.getCristinPersonResponse().getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
             .map(this::fetchTopLevelOrgUri)
-            .map(attempt(customerService::getCustomerByCristinId))
-            .flatMap(Try::stream)
-            .collect(Collectors.toSet());
+            .collect(Collectors.toList());
     }
 
     private boolean selectFeideOrgIfApplicable(CustomerDto customer, String orgFeideDomain) {
@@ -299,12 +315,14 @@ public class IdentityServiceEntryUpdateHandler
         return isNull(orgFeideDomain);
     }
 
-    private URI fetchTopLevelOrgUri(URI orgUri) {
-        return attempt(() -> cristinClient.fetchTopLevelOrgUri(orgUri)).orElseThrow();
+    private BottomOrgTopOrgPair fetchTopLevelOrgUri(URI bottomeLevelOrg) {
+        return attempt(() -> cristinClient.fetchTopLevelOrgUri(bottomeLevelOrg))
+            .map(topLevelOrg -> new BottomOrgTopOrgPair(bottomeLevelOrg, topLevelOrg))
+            .orElseThrow();
     }
 
     private CristinPersonResponse fetchPersonInformationFromCristin(
-        CognitoUserPoolPreTokenGenerationEvent input,String nin) {
+        CognitoUserPoolPreTokenGenerationEvent input, String nin) {
         var jwtToken = backendJwtTokenRetriever.fetchJwtToken(input.getUserPoolId());
         return attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
     }

@@ -1321,6 +1321,7 @@ Resources:
       Name: /NVA/CognitoUri
       Type: String
       Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+
   ConnectionToDataporten:
     Type: AWS::Cognito::UserPoolIdentityProvider
     Properties:

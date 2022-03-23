@@ -2,9 +2,11 @@ package no.unit.nva.cognito;
 
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import no.unit.nva.cognito.cristin.BottomOrgTopOrgPair;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
 
@@ -21,6 +23,8 @@ public class AuthenticationInformation {
     private CristinPersonResponse cristinResponse;
     private Set<CustomerDto> activeCustomers;
     private CustomerDto crrentCustomer;
+    private URI currentBottomLevelOrg;
+    private List<BottomOrgTopOrgPair> bottomOrgTopOrgPairs;
 
     public AuthenticationInformation(String nin, String feideIdentifier, String orgFeideDomain) {
 
@@ -90,6 +94,22 @@ public class AuthenticationInformation {
 
     public URI getCristinPersonId() {
         return getCristinPersonResponse().getCristinId();
+    }
+
+    public URI getCurrentBottomLevelOrg() {
+        var currentTopLevelOrgUri = getCurrentCustomer().getCristinId();
+        return bottomOrgTopOrgPairs.stream()
+                   .filter(pair->currentTopLevelOrgUri.equals(pair.getTopOrg()))
+                   .map(BottomOrgTopOrgPair::getBottomOrg)
+                    .findFirst()
+                   .orElse(null);
+    }
+    public void setBottomOrgTopOrgPairs(List<BottomOrgTopOrgPair> bottomOrgTopOrgPairs) {
+        this.bottomOrgTopOrgPairs = bottomOrgTopOrgPairs;
+    }
+
+    public List<BottomOrgTopOrgPair> geBottomOrgTopOrgPairs() {
+        return this.bottomOrgTopOrgPairs;
     }
 
     private static String extractNin(Map<String, String> userAttributes) {

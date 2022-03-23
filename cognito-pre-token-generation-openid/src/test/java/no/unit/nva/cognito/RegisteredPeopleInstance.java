@@ -127,6 +127,13 @@ public class RegisteredPeopleInstance {
             .map(customerService::getCustomerByCristinId);
     }
 
+    public List<URI> getBottomLevelAffiliations(NationalIdentityNumber person) {
+        return cristinProxy.getCristinPersonRecord(person).getAffiliations()
+            .stream()
+            .map(CristinAffiliation::getOrganizationUri)
+            .collect(Collectors.toList());
+    }
+
     private void nvaHasDefinedRolesForTheNvaUsers() {
         availableNvaRoles = insertSomeRolesInNva();
     }

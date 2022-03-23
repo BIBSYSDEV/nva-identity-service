@@ -6,7 +6,9 @@ import static no.unit.nva.cognito.AuthenticationInformation.NIN_FON_NON_FEIDE_US
 import static no.unit.nva.cognito.AuthenticationInformation.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.AuthenticationInformation.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.ALLOWED_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.BOTTOM_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.PERSON_IDENTIFIER_CLAIM;
 import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -364,12 +366,31 @@ class IdentityServiceEntryUpdateHandlerTest {
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var actualCristinPersonId = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-            .filter(a -> a.name().equals(IdentityServiceEntryUpdateHandler.PERSON_IDENTIFIER_CLAIM))
+            .filter(a -> a.name().equals(PERSON_IDENTIFIER_CLAIM))
             .map(AttributeType::value)
             .collect(SingletonCollector.collect());
 
         assertThat(URI.create(actualCristinPersonId), is(equalTo(user.getCristinId())));
     }
+
+    @ParameterizedTest(name = "should store user's bottom level affiliation in cognito user attributes when user has "
+                              + "only one active affiliation")
+    @EnumSource(LoginEventType.class)
+    void shouldStoreUsersBottomLevelAffiliationWhenUserHasOnlyOneActiveAffiliation(LoginEventType loginEventType) {
+        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
+        var bottomLevelAffiliation=registeredPeople.getBottomLevelAffiliations(person)
+            .stream().collect(SingletonCollector.collect());
+
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var actualBottomOrgCristinId = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
+            .filter(attribute -> BOTTOM_ORG_CRISTIN_ID.equals(attribute.name()))
+            .map(AttributeType::value)
+            .collect(SingletonCollector.collect());
+
+        assertThat(URI.create(actualBottomOrgCristinId), is(equalTo(bottomLevelAffiliation)));
+    }
+
 
 
 

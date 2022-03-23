@@ -1403,7 +1403,7 @@ Resources:
         - custom:firstName
         - custom:lastName
         - custom:accessRights
-        - custom:currentCustomer
+        - custom:customerId
         - custom:allowedCustomers
         - custom:roles
         - custom:nvaUsername
@@ -1427,7 +1427,7 @@ Resources:
         - custom:firstName
         - custom:lastName
         - custom:accessRights
-        - custom:currentCustomer
+        - custom:customerId
         - custom:allowedCustomers
         - custom:roles
         - custom:nvaUsername

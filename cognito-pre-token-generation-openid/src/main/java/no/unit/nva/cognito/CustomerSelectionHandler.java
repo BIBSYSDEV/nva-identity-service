@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserA
 public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String CURRENT_CUSTOMER_CLAIM = "custom:currentCustomer";
+    public static final String CURRENT_CUSTOMER_CLAIM = "custom:customerId";
     public static final String ALLOWED_CUSTOMERS_CLAIM = "custom:allowedCustomers";
     public static final String PERSON_ID_CLAIM = "custom:cristinId";
     public static final String NVA_USERNAME_CLAIM = "custom:nvaUsername";

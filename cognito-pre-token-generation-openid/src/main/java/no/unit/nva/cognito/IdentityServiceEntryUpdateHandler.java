@@ -46,7 +46,7 @@ public class IdentityServiceEntryUpdateHandler
 
     public static final String BELONGS_TO = "@";
     public static final String ELEMENTS_DELIMITER = ",";
-    public static final String CURRENT_CUSTOMER_CLAIM = "custom:currentCustomer";
+    public static final String CURRENT_CUSTOMER_CLAIM = "custom:customerId";
     public static final String PERSON_IDENTIFIER_CLAIM = "custom:cristinId";
     protected static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS,
         NIN_FOR_FEIDE_USERS};

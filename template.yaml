@@ -1290,6 +1290,7 @@ Resources:
           Mutable: true
           Required: false
         - Name: cristinId
+          AttributeDataType: String
           Mutable: true
           Required: false
       UsernameConfiguration:

@@ -534,6 +534,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Events:
         ApiEvent:
           Type: Api

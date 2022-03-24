@@ -1310,6 +1310,10 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: topOrgCristinId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value
@@ -1434,6 +1438,7 @@ Resources:
         - custom:roles
         - custom:nvaUsername
         - custom:cristinId
+        - custom:topOrgCristinId
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -1458,6 +1463,7 @@ Resources:
         - custom:roles
         - custom:nvaUsername
         - custom:cristinId
+        - custom:topOrgCristinId
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:

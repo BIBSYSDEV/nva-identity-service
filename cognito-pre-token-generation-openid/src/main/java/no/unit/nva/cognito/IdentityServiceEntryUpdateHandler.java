@@ -1,6 +1,5 @@
 package no.unit.nva.cognito;
 
-import static java.util.Objects.isNull;
 import static no.unit.nva.cognito.AuthenticationInformation.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.AuthenticationInformation.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.EnvironmentVariables.AWS_REGION;
@@ -32,7 +31,6 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.SingletonCollector;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
@@ -48,15 +46,16 @@ public class IdentityServiceEntryUpdateHandler
     public static final String BELONGS_TO = "@";
     public static final String ELEMENTS_DELIMITER = ",";
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:customerId";
-    public static final String BOTTOM_ORG_CRISTIN_ID = "custom:orgCristinId";
-    public static final String PERSON_IDENTIFIER_CLAIM = "custom:cristinId";
-    protected static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS,
-        NIN_FOR_FEIDE_USERS};
+    public static final String BOTTOM_ORG_CRISTIN_ID = "custom:bottomOrgCristinId";
+    public static final String TOP_ORG_CRISTIN_ID = "custom:topOrgCristinId";
+    public static final String PERSON_CRISTIN_ID_CLAIM = "custom:cristinId";
     public static final String AT = "@";
     public static final String EMPTY_ALLOWED_CUSTOMERS = "null";
     public static final String ALLOWED_CUSTOMER_CLAIM = "custom:allowedCustomers";
     public static final String ROLES_CLAIM = "custom:roles";
     public static final String ACCESS_RIGHTS_CLAIM = "custom:accessRights";
+    protected static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS,
+        NIN_FOR_FEIDE_USERS};
     private final CristinClient cristinClient;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -97,6 +96,15 @@ public class IdentityServiceEntryUpdateHandler
         return input;
     }
 
+    @JacocoGenerated
+    private static CognitoIdentityProviderClient defaultCognitoClient() {
+        return CognitoIdentityProviderClient.builder()
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.create())
+            .region(AWS_REGION)
+            .build();
+    }
+
     private Collection<String> rolesPerCustomer(List<UserDto> usersForPerson) {
         return usersForPerson.stream()
             .flatMap(UserDto::generateRoleClaims)
@@ -105,6 +113,7 @@ public class IdentityServiceEntryUpdateHandler
 
     private AuthenticationInformation collectInformationForPerson(CognitoUserPoolPreTokenGenerationEvent input) {
         var authenticationInfo = AuthenticationInformation.create(input);
+
         CristinPersonResponse cristinResponse =
             fetchPersonInformationFromCristin(input, authenticationInfo.getNationalIdentityNumber());
         authenticationInfo.setCristinResponse(cristinResponse);
@@ -115,27 +124,9 @@ public class IdentityServiceEntryUpdateHandler
         var activeCustomers = fetchCustomersForActiveAffiliations(authenticationInfo);
         authenticationInfo.setActiveCustomers(activeCustomers);
 
-        var currentCustomer = extractCurrentCustomer(authenticationInfo, activeCustomers);
-        authenticationInfo.setCurrentCustomer(currentCustomer);
+        authenticationInfo.updateCurrentCustomer();
 
         return authenticationInfo;
-    }
-
-    private CustomerDto extractCurrentCustomer(AuthenticationInformation authenticationInfo,
-                                               Set<CustomerDto> activeCustomers) {
-        return activeCustomers.stream()
-            .filter(customer -> selectFeideOrgIfApplicable(customer, authenticationInfo.getOrgFeideDomain()))
-            .collect(SingletonCollector.tryCollect())
-            .orElse(fail -> null);
-    }
-
-    @JacocoGenerated
-    private static CognitoIdentityProviderClient defaultCognitoClient() {
-        return CognitoIdentityProviderClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .httpClient(UrlConnectionHttpClient.create())
-            .region(AWS_REGION)
-            .build();
     }
 
     private void updateCognitoUserAttributes(
@@ -174,16 +165,30 @@ public class IdentityServiceEntryUpdateHandler
         claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, accessRights)));
         claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
         claims.add(createAttribute(ALLOWED_CUSTOMER_CLAIM, allowedCustomersString));
-        claims.add(createAttribute(PERSON_IDENTIFIER_CLAIM, authenticationInfo.getCristinPersonId().toString()));
+        claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, authenticationInfo.getCristinPersonId().toString()));
 
-        authenticationInfo.getCurrentCustomerId()
-            .ifPresent(customerId -> {
-                claims.add(createAttribute(CURRENT_CUSTOMER_CLAIM, customerId));
-                claims.add(
-                    createAttribute(BOTTOM_ORG_CRISTIN_ID, authenticationInfo.getCurrentBottomLevelOrg().toString()));
-            });
+        addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(authenticationInfo, claims);
 
         return claims;
+    }
+
+    private void addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(
+        AuthenticationInformation authenticationInfo,
+        List<AttributeType> claims) {
+
+        authenticationInfo.getCurrentCustomerId()
+            .ifPresent(customerId -> claims.addAll(customerSelectionClaims(authenticationInfo, customerId)));
+    }
+
+    private List<AttributeType> customerSelectionClaims(AuthenticationInformation authenticationInfo,
+                                                        String customerId) {
+
+        var currentCustomerClaim = createAttribute(CURRENT_CUSTOMER_CLAIM, customerId);
+        var currentBottomLevelOrg = authenticationInfo.pickCurrentBottomLevelOrg().toString();
+        var currentBottomLevelOrgClaim = createAttribute(BOTTOM_ORG_CRISTIN_ID, currentBottomLevelOrg);
+        var currentTopLevelOrgClaim =
+            createAttribute(TOP_ORG_CRISTIN_ID, authenticationInfo.getCurrentCustomer().getCristinId().toString());
+        return List.of(currentCustomerClaim, currentBottomLevelOrgClaim, currentTopLevelOrgClaim);
     }
 
     private String createAllowedCustomersString(Collection<CustomerDto> allowedCustomers) {
@@ -304,15 +309,6 @@ public class IdentityServiceEntryUpdateHandler
             .map(CristinAffiliation::getOrganizationUri)
             .map(this::fetchTopLevelOrgUri)
             .collect(Collectors.toList());
-    }
-
-    private boolean selectFeideOrgIfApplicable(CustomerDto customer, String orgFeideDomain) {
-        return userLoggedInWithNin(orgFeideDomain) ||
-               orgFeideDomain.equals(customer.getFeideOrganizationDomain());
-    }
-
-    private boolean userLoggedInWithNin(String orgFeideDomain) {
-        return isNull(orgFeideDomain);
     }
 
     private BottomOrgTopOrgPair fetchTopLevelOrgUri(URI bottomeLevelOrg) {

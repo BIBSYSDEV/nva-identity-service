@@ -134,6 +134,10 @@ public class RegisteredPeopleInstance {
             .collect(Collectors.toList());
     }
 
+    public CristinProxyMock getCristinProxy() {
+        return this.cristinProxy;
+    }
+
     private void nvaHasDefinedRolesForTheNvaUsers() {
         availableNvaRoles = insertSomeRolesInNva();
     }

@@ -116,6 +116,13 @@ public class CristinProxyMock {
         return personWithActiveAffiliationThatIsNotCustomer;
     }
 
+    public Set<URI> getBottomLevelOrgsForTopLevelOrg(URI topLevelOrgUri) {
+        return bottomLevelOrgs.stream()
+            .filter(pair->topLevelOrgUri.equals(pair.getTopLevelOrg()))
+            .map(BottomAndTopLevelOrgPair::getBottomLevelOrg)
+            .collect(Collectors.toSet());
+    }
+
     private URI getTopLevelOrgUriNotNvaCustomer() {
         return topLevelOrgUriNotNvaCustomer;
     }

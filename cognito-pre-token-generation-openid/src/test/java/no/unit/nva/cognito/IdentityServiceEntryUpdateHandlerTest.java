@@ -8,7 +8,7 @@ import static no.unit.nva.cognito.AuthenticationInformation.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.ALLOWED_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.BOTTOM_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.PERSON_IDENTIFIER_CLAIM;
+import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -253,16 +253,15 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(actualCustomerId, is(equalTo(expectedCurrentCustomerId.toString())));
     }
 
-    @ParameterizedTest(name = " should add Feide specified customer id as current customer id when user logs in with "
+    @ParameterizedTest(name = "should add Feide specified customer id as current customer id when user logs in with "
                               + "feide")
     @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
     void shouldAddFeideSpecifiedCustomerIdAsCurrentCustomerIdWhenUserLogsInWithFeide(
         LoginEventType loginEventType) {
         var person = registeredPeople.personWithManyActiveAffiliations();
-
         var event = randomEvent(person, loginEventType);
         var customersFeideDomain = event.getRequest().getUserAttributes().get(ORG_FEIDE_DOMAIN);
-        var expectedCustomerId = fetchCustomerBasedOnFeideDomain(customersFeideDomain);
+        var expectedCustomerId = fetchCustomerBasedOnFeideDomain(customersFeideDomain).getId();
         handler.handleRequest(event, context);
 
         var actualCustomerId = fetchCurrentCustomClaimForCongitoUserUpdate();
@@ -366,7 +365,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var actualCristinPersonId = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-            .filter(a -> a.name().equals(PERSON_IDENTIFIER_CLAIM))
+            .filter(a -> a.name().equals(PERSON_CRISTIN_ID_CLAIM))
             .map(AttributeType::value)
             .collect(SingletonCollector.collect());
 
@@ -378,7 +377,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldStoreUsersBottomLevelAffiliationWhenUserHasOnlyOneActiveAffiliation(LoginEventType loginEventType) {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-        var bottomLevelAffiliation=registeredPeople.getBottomLevelAffiliations(person)
+        var bottomLevelAffiliation = registeredPeople.getBottomLevelAffiliations(person)
             .stream().collect(SingletonCollector.collect());
 
         var event = randomEvent(person, loginEventType);
@@ -391,9 +390,31 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(URI.create(actualBottomOrgCristinId), is(equalTo(bottomLevelAffiliation)));
     }
 
+    @ParameterizedTest(name = "should store user's bottom level affiliation in cognito user attributes when user has "
+                              + "only many active affiliation but logged in with Feide")
+    @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
+    void shouldStoreUsersBottomLevelAffiliationWhenUserHasmanyActiveAffiliationsAndLoggedInWithFeide(
+        LoginEventType loginEventType) {
+        var person = registeredPeople.personWithManyActiveAffiliations();
+        var event = randomEvent(person, loginEventType);
+        var orgFeideDomain = event
+            .getRequest()
+            .getUserAttributes()
+            .get(ORG_FEIDE_DOMAIN);
+        var customerOfUser = fetchCustomerBasedOnFeideDomain(orgFeideDomain);
 
+        var possibleBottomLevelOrgsForTopLevelOrg = registeredPeople
+            .getCristinProxy()
+            .getBottomLevelOrgsForTopLevelOrg(customerOfUser.getCristinId());
 
+        handler.handleRequest(event, context);
+        var actualBottomOrgCristinId = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
+            .filter(attribute -> BOTTOM_ORG_CRISTIN_ID.equals(attribute.name()))
+            .map(AttributeType::value)
+            .collect(SingletonCollector.collect());
 
+        assertThat(URI.create(actualBottomOrgCristinId), is(in(possibleBottomLevelOrgsForTopLevelOrg)));
+    }
 
     private List<String> createRoleStrings(UserDto user) {
         return user.getRoles().stream()
@@ -407,10 +428,9 @@ class IdentityServiceEntryUpdateHandlerTest {
             response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
     }
 
-    private URI fetchCustomerBasedOnFeideDomain(String customersFeideDomain) {
+    private CustomerDto fetchCustomerBasedOnFeideDomain(String customersFeideDomain) {
         return customerService.getCustomers().stream()
             .filter(customer -> customersFeideDomain.equals(customer.getFeideOrganizationDomain()))
-            .map(CustomerDtoWithoutContext::getId)
             .collect(SingletonCollector.collectOrElse(null));
     }
 

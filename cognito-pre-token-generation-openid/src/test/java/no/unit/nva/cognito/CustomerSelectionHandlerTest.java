@@ -69,7 +69,7 @@ class CustomerSelectionHandlerTest extends CustomerDynamoDBLocal {
         return IntStream.range(1, 10).boxed().map(ignored -> createRandomCustomer())
             .map(customer -> customerService.createCustomer(customer))
             .map(customer -> customerService.getCustomer(customer.getIdentifier()))
-            .map(CustomerDtoWithoutContext::getId)
+            .map(CustomerDto::getId)
             .collect(Collectors.toSet());
     }
 

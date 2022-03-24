@@ -1,5 +1,6 @@
 package no.unit.nva.cognito;
 
+import static java.util.Objects.isNull;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import java.net.URI;
 import java.util.List;
@@ -9,21 +10,21 @@ import java.util.Set;
 import no.unit.nva.cognito.cristin.BottomOrgTopOrgPair;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
+import nva.commons.core.SingletonCollector;
 
 public class AuthenticationInformation {
 
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideidnin";
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideid";
-    public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideId";
+    public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
 
     private final String nationalIdentityNumber;
     private final String feideIdentifier;
     private final String orgFeideDomain;
     private CristinPersonResponse cristinResponse;
     private Set<CustomerDto> activeCustomers;
-    private CustomerDto crrentCustomer;
-    private URI currentBottomLevelOrg;
+    private CustomerDto currentCustomer;
     private List<BottomOrgTopOrgPair> bottomOrgTopOrgPairs;
 
     public AuthenticationInformation(String nin, String feideIdentifier, String orgFeideDomain) {
@@ -38,6 +39,19 @@ public class AuthenticationInformation {
         var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
         return new AuthenticationInformation(nin, feideIdentifier, orgFeideDomain);
+    }
+
+    public URI pickCurrentBottomLevelOrg() {
+        var topLevelOrgId = getCurrentCustomer().getCristinId();
+        return bottomOrgTopOrgPairs.stream()
+            .filter(pair -> topLevelOrgId.equals(pair.getTopOrg()))
+            .map(BottomOrgTopOrgPair::getBottomOrg)
+            .findFirst()
+            .orElse(null);
+    }
+
+    public boolean userLoggedInWithNin() {
+        return isNull(orgFeideDomain);
     }
 
     public Set<CustomerDto> getActiveCustomers() {
@@ -73,11 +87,7 @@ public class AuthenticationInformation {
     }
 
     public CustomerDto getCurrentCustomer() {
-        return crrentCustomer;
-    }
-
-    public void setCurrentCustomer(CustomerDto currentCustomer) {
-        this.crrentCustomer = currentCustomer;
+        return currentCustomer;
     }
 
     public String extractFirstName() {
@@ -96,14 +106,23 @@ public class AuthenticationInformation {
         return getCristinPersonResponse().getCristinId();
     }
 
-    public URI getCurrentBottomLevelOrg() {
-        var currentTopLevelOrgUri = getCurrentCustomer().getCristinId();
-        return bottomOrgTopOrgPairs.stream()
-                   .filter(pair->currentTopLevelOrgUri.equals(pair.getTopOrg()))
-                   .map(BottomOrgTopOrgPair::getBottomOrg)
-                    .findFirst()
-                   .orElse(null);
+    public CustomerDto updateCurrentCustomer() {
+        this.currentCustomer = returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer();
+        return currentCustomer;
     }
+
+    private CustomerDto returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer() {
+        return activeCustomers.stream()
+            .filter(this::selectFeideOrgIfApplicable)
+            .collect(SingletonCollector.tryCollect())
+            .orElse(fail -> null);
+    }
+
+    private boolean selectFeideOrgIfApplicable(CustomerDto customer) {
+        return userLoggedInWithNin() ||
+               getOrgFeideDomain().equals(customer.getFeideOrganizationDomain());
+    }
+
     public void setBottomOrgTopOrgPairs(List<BottomOrgTopOrgPair> bottomOrgTopOrgPairs) {
         this.bottomOrgTopOrgPairs = bottomOrgTopOrgPairs;
     }

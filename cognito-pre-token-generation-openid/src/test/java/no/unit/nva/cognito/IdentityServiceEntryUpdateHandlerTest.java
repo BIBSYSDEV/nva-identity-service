@@ -379,18 +379,22 @@ class IdentityServiceEntryUpdateHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldStoreUsersTopLevelAffiliationWhenUserHasOnlyOneActiveAffiliation(LoginEventType loginEventType) {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-        var topLevelAffiliation = registeredPeople.getTopLevelAffiliationsForUser(person,ACTIVE)
+        var topLevelAffiliation = registeredPeople.getTopLevelAffiliationsForUser(person, ACTIVE)
             .stream()
             .collect(SingletonCollector.collect());
 
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
-        var actualTopOrgCristinId = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-            .filter(attribute -> TOP_ORG_CRISTIN_ID.equals(attribute.name()))
-            .map(AttributeType::value)
-            .collect(SingletonCollector.collect());
+        var actualTopOrgCristinId = getUpdatedClaimFromCognito(TOP_ORG_CRISTIN_ID);
 
         assertThat(URI.create(actualTopOrgCristinId), is(equalTo(topLevelAffiliation)));
+    }
+
+    private String getUpdatedClaimFromCognito(String attributeName) {
+        return congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
+            .filter(attribute -> attributeName.equals(attribute.name()))
+            .map(AttributeType::value)
+            .collect(SingletonCollector.collect());
     }
 
     @ParameterizedTest(name = "should store user's top-level-org affiliation in cognito user attributes when user has "
@@ -404,10 +408,12 @@ class IdentityServiceEntryUpdateHandlerTest {
             .getRequest()
             .getUserAttributes()
             .get(ORG_FEIDE_DOMAIN);
-        fetchCustomerBasedOnFeideDomain(orgFeideDomain);
+        var currentCustomer = fetchCustomerBasedOnFeideDomain(orgFeideDomain);
+        var expectedTopLevelOrgUri = currentCustomer.getCristinId();
 
         handler.handleRequest(event, context);
-
+        var actualTopOrgCristinId = getUpdatedClaimFromCognito(TOP_ORG_CRISTIN_ID);
+        assertThat(actualTopOrgCristinId,is(equalTo(expectedTopLevelOrgUri.toString())));
     }
 
     private List<String> createRoleStrings(UserDto user) {

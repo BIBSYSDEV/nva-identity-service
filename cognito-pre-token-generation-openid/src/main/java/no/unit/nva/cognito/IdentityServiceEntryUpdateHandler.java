@@ -10,6 +10,7 @@ import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.ClaimsOverrideDetails;
@@ -59,6 +60,7 @@ public class IdentityServiceEntryUpdateHandler
     private final IdentityService identityService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final BackendJwtTokenRetriever backendJwtTokenRetriever;
+    private LambdaLogger logger;
 
     @JacocoGenerated
     public IdentityServiceEntryUpdateHandler() {
@@ -82,7 +84,7 @@ public class IdentityServiceEntryUpdateHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
-
+        this.logger = context.getLogger();
         var authenticationInfo = collectInformationForPerson(input);
         var usersForPerson = createOrFetchUserEntriesForPerson(authenticationInfo);
         var accessRights = accessRightsPerCustomer(usersForPerson);
@@ -157,6 +159,7 @@ public class IdentityServiceEntryUpdateHandler
                                                               Collection<String> roles) {
 
         var allowedCustomersString = createAllowedCustomersString(authenticationInfo.getActiveCustomers());
+        logger.log("AllowedCustomers: "+allowedCustomersString);
         var claims = new ArrayList<AttributeType>();
         claims.add(createAttribute("custom:firstName", authenticationInfo.extractFirstName()));
         claims.add(createAttribute("custom:lastName", authenticationInfo.extractLastName()));
@@ -182,8 +185,10 @@ public class IdentityServiceEntryUpdateHandler
                                                         String customerId) {
 
         var currentCustomerClaim = createAttribute(CURRENT_CUSTOMER_CLAIM, customerId);
+        logger.log("Current customer claim:" +currentCustomerClaim.value());
         var currentTopLevelOrgClaim =
             createAttribute(TOP_ORG_CRISTIN_ID, authenticationInfo.getCurrentCustomer().getCristinId().toString());
+        logger.log("Current topOrg claim:" + currentTopLevelOrgClaim.value());
         return List.of(currentCustomerClaim, currentTopLevelOrgClaim);
     }
 

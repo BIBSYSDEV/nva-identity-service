@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.cognito.cristin.BottomOrgTopOrgPair;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinClient;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
@@ -46,7 +45,6 @@ public class IdentityServiceEntryUpdateHandler
     public static final String BELONGS_TO = "@";
     public static final String ELEMENTS_DELIMITER = ",";
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:customerId";
-    public static final String BOTTOM_ORG_CRISTIN_ID = "custom:bottomOrgCristinId";
     public static final String TOP_ORG_CRISTIN_ID = "custom:topOrgCristinId";
     public static final String PERSON_CRISTIN_ID_CLAIM = "custom:cristinId";
     public static final String AT = "@";
@@ -118,8 +116,8 @@ public class IdentityServiceEntryUpdateHandler
             fetchPersonInformationFromCristin(input, authenticationInfo.getNationalIdentityNumber());
         authenticationInfo.setCristinResponse(cristinResponse);
 
-        var bottomOrgTopOrgPairs = fetchTopLevelOrgsForBottomLevelOrgs(authenticationInfo);
-        authenticationInfo.setBottomOrgTopOrgPairs(bottomOrgTopOrgPairs);
+        var topLevelOrganizations = fetchTopLevelOrgsForBottomLevelOrgs(authenticationInfo);
+        authenticationInfo.setTopLevelOrganizations(topLevelOrganizations);
 
         var activeCustomers = fetchCustomersForActiveAffiliations(authenticationInfo);
         authenticationInfo.setActiveCustomers(activeCustomers);
@@ -184,11 +182,9 @@ public class IdentityServiceEntryUpdateHandler
                                                         String customerId) {
 
         var currentCustomerClaim = createAttribute(CURRENT_CUSTOMER_CLAIM, customerId);
-        var currentBottomLevelOrg = authenticationInfo.pickCurrentBottomLevelOrg().toString();
-        var currentBottomLevelOrgClaim = createAttribute(BOTTOM_ORG_CRISTIN_ID, currentBottomLevelOrg);
         var currentTopLevelOrgClaim =
             createAttribute(TOP_ORG_CRISTIN_ID, authenticationInfo.getCurrentCustomer().getCristinId().toString());
-        return List.of(currentCustomerClaim, currentBottomLevelOrgClaim, currentTopLevelOrgClaim);
+        return List.of(currentCustomerClaim, currentTopLevelOrgClaim);
     }
 
     private String createAllowedCustomersString(Collection<CustomerDto> allowedCustomers) {
@@ -294,15 +290,14 @@ public class IdentityServiceEntryUpdateHandler
 
     private Set<CustomerDto> fetchCustomersForActiveAffiliations(AuthenticationInformation authenticationInformation) {
 
-        return authenticationInformation.geBottomOrgTopOrgPairs()
+        return authenticationInformation.getTopLevelOrganizations()
             .stream()
-            .map(BottomOrgTopOrgPair::getTopOrg)
             .map(attempt(customerService::getCustomerByCristinId))
             .flatMap(Try::stream)
             .collect(Collectors.toSet());
     }
 
-    private List<BottomOrgTopOrgPair> fetchTopLevelOrgsForBottomLevelOrgs(
+    private List<URI> fetchTopLevelOrgsForBottomLevelOrgs(
         AuthenticationInformation authenticationInformation) {
         return authenticationInformation.getCristinPersonResponse().getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
@@ -311,9 +306,8 @@ public class IdentityServiceEntryUpdateHandler
             .collect(Collectors.toList());
     }
 
-    private BottomOrgTopOrgPair fetchTopLevelOrgUri(URI bottomeLevelOrg) {
+    private URI fetchTopLevelOrgUri(URI bottomeLevelOrg) {
         return attempt(() -> cristinClient.fetchTopLevelOrgUri(bottomeLevelOrg))
-            .map(topLevelOrg -> new BottomOrgTopOrgPair(bottomeLevelOrg, topLevelOrg))
             .orElseThrow();
     }
 

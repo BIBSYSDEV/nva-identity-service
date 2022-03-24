@@ -6,9 +6,9 @@ import static no.unit.nva.cognito.AuthenticationInformation.NIN_FON_NON_FEIDE_US
 import static no.unit.nva.cognito.AuthenticationInformation.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.AuthenticationInformation.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.ALLOWED_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.BOTTOM_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.PERSON_CRISTIN_ID_CLAIM;
+import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -66,9 +66,11 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final boolean INCLUDE_INACTIVE = true;
     public static final String AT = "@";
     public static final boolean ONLY_ACTIVE = false;
+    private static final boolean ACTIVE = true;
     public static final String NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES = null;
     public static final String NOT_IMPORTANT = ",";
     private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
+
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
 
@@ -372,28 +374,29 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(URI.create(actualCristinPersonId), is(equalTo(user.getCristinId())));
     }
 
-    @ParameterizedTest(name = "should store user's bottom level affiliation in cognito user attributes when user has "
-                              + "only one active affiliation")
+    @ParameterizedTest(name = "should store user's top-level-org affiliation in cognito user attributes when "
+                              + "user has only one active affiliation")
     @EnumSource(LoginEventType.class)
-    void shouldStoreUsersBottomLevelAffiliationWhenUserHasOnlyOneActiveAffiliation(LoginEventType loginEventType) {
+    void shouldStoreUsersTopLevelAffiliationWhenUserHasOnlyOneActiveAffiliation(LoginEventType loginEventType) {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-        var bottomLevelAffiliation = registeredPeople.getBottomLevelAffiliations(person)
-            .stream().collect(SingletonCollector.collect());
+        var topLevelAffiliation = registeredPeople.getTopLevelAffiliationsForUser(person,ACTIVE)
+            .stream()
+            .collect(SingletonCollector.collect());
 
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
-        var actualBottomOrgCristinId = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-            .filter(attribute -> BOTTOM_ORG_CRISTIN_ID.equals(attribute.name()))
+        var actualTopOrgCristinId = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
+            .filter(attribute -> TOP_ORG_CRISTIN_ID.equals(attribute.name()))
             .map(AttributeType::value)
             .collect(SingletonCollector.collect());
 
-        assertThat(URI.create(actualBottomOrgCristinId), is(equalTo(bottomLevelAffiliation)));
+        assertThat(URI.create(actualTopOrgCristinId), is(equalTo(topLevelAffiliation)));
     }
 
-    @ParameterizedTest(name = "should store user's bottom level affiliation in cognito user attributes when user has "
-                              + "only many active affiliation but logged in with Feide")
+    @ParameterizedTest(name = "should store user's top-level-org affiliation in cognito user attributes when user has "
+                              + "many active affiliations but logged in with Feide")
     @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
-    void shouldStoreUsersBottomLevelAffiliationWhenUserHasmanyActiveAffiliationsAndLoggedInWithFeide(
+    void shouldStoreUsersBottomLevelAffiliationWhenUserHasManyActiveAffiliationsAndLoggedInWithFeide(
         LoginEventType loginEventType) {
         var person = registeredPeople.personWithManyActiveAffiliations();
         var event = randomEvent(person, loginEventType);
@@ -401,19 +404,10 @@ class IdentityServiceEntryUpdateHandlerTest {
             .getRequest()
             .getUserAttributes()
             .get(ORG_FEIDE_DOMAIN);
-        var customerOfUser = fetchCustomerBasedOnFeideDomain(orgFeideDomain);
-
-        var possibleBottomLevelOrgsForTopLevelOrg = registeredPeople
-            .getCristinProxy()
-            .getBottomLevelOrgsForTopLevelOrg(customerOfUser.getCristinId());
+        fetchCustomerBasedOnFeideDomain(orgFeideDomain);
 
         handler.handleRequest(event, context);
-        var actualBottomOrgCristinId = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-            .filter(attribute -> BOTTOM_ORG_CRISTIN_ID.equals(attribute.name()))
-            .map(AttributeType::value)
-            .collect(SingletonCollector.collect());
 
-        assertThat(URI.create(actualBottomOrgCristinId), is(in(possibleBottomLevelOrgsForTopLevelOrg)));
     }
 
     private List<String> createRoleStrings(UserDto user) {

@@ -33,7 +33,7 @@ public class CristinIdentifier {
 
     public static CristinIdentifier fromCristinId(URI id) {
         return Try.of(id)
-            .map(UriWrapper::new)
+            .map(UriWrapper::fromUri)
             .map(UriWrapper::getLastPathElement)
             .map(CristinIdentifier::new)
             .orElseThrow();

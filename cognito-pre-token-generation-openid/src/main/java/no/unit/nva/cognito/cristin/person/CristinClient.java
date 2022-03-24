@@ -57,7 +57,7 @@ public class CristinClient {
     }
 
     private URI formatUriForGettingUserByNin(URI cristinHost) {
-        return new UriWrapper(cristinHost)
+        return UriWrapper.fromUri(cristinHost)
             .addChild(CRISTIN_PATH_FOR_GETTING_USER_BY_NIN)
             .getUri();
     }

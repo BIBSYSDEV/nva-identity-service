@@ -39,7 +39,7 @@ public class VocabularyList implements Context, Typed {
 
     public static VocabularyList fromCustomerDto(CustomerDto customerDto) {
 
-        URI id = new UriWrapper(customerDto.getId()).addChild(VOCABULARY_SETTINGS).getUri();
+        URI id = UriWrapper.fromUri(customerDto.getId()).addChild(VOCABULARY_SETTINGS).getUri();
         Set<VocabularyDto> vocabularies = new HashSet<>(customerDto.getVocabularies());
         return new VocabularyList(id, vocabularies);
     }

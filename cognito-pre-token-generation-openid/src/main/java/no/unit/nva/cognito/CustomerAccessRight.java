@@ -1,5 +1,7 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CognitoClaims.AT;
+import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static nva.commons.core.attempt.Try.attempt;
 import java.util.Collections;
 import java.util.List;
@@ -13,8 +15,6 @@ import nva.commons.core.JacocoGenerated;
 
 public class CustomerAccessRight {
 
-    public static final String AT = "@";
-    public static final String ACCESS_RIGHT_SEPARATOR = ",";
     private final AccessRight accessRight;
     private final CustomerDto customer;
 
@@ -59,7 +59,7 @@ public class CustomerAccessRight {
     @Override
     @JacocoGenerated
     public String toString() {
-        return asStrings().stream().collect(Collectors.joining(ACCESS_RIGHT_SEPARATOR));
+        return asStrings().stream().collect(Collectors.joining(ELEMENTS_DELIMITER));
     }
 
     private static List<CustomerAccessRight> customerDoesNotExist() {

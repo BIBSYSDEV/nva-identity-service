@@ -5,10 +5,14 @@ import static no.unit.nva.cognito.AuthenticationInformation.FEIDE_ID;
 import static no.unit.nva.cognito.AuthenticationInformation.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.AuthenticationInformation.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.AuthenticationInformation.ORG_FEIDE_DOMAIN;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.ALLOWED_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.PERSON_CRISTIN_ID_CLAIM;
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.TOP_ORG_CRISTIN_ID;
+import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.AT;
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
+import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -64,11 +68,9 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
     public static final boolean INCLUDE_INACTIVE = true;
-    public static final String AT = "@";
     public static final boolean ONLY_ACTIVE = false;
-    private static final boolean ACTIVE = true;
     public static final String NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES = null;
-    public static final String NOT_IMPORTANT = ",";
+    private static final boolean ACTIVE = true;
     private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
 
     private final Context context = new FakeContext();
@@ -309,7 +311,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         identityService.updateUser(userWithInvalidCustomerId);
         var event = randomEvent(person, loginEventType);
         var response = handler.handleRequest(event, context);
-        var accessRights = String.join(NOT_IMPORTANT, extractAccessRights(response));
+        var accessRights = String.join(ELEMENTS_DELIMITER, extractAccessRights(response));
         var unExpectedCustomerIdentifier = UriWrapper.fromUri(invalidCustomerUri).getLastPathElement();
         assertThat(accessRights, not(containsString(unExpectedCustomerIdentifier)));
     }
@@ -348,7 +350,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var actualRoles = congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-            .filter(a -> a.name().equals(IdentityServiceEntryUpdateHandler.ROLES_CLAIM))
+            .filter(a -> a.name().equals(ROLES_CLAIM))
             .map(AttributeType::value)
             .collect(SingletonCollector.collect());
         for (var expectedCustomerId : expectedRoleStrings) {
@@ -390,17 +392,10 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(URI.create(actualTopOrgCristinId), is(equalTo(topLevelAffiliation)));
     }
 
-    private String getUpdatedClaimFromCognito(String attributeName) {
-        return congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-            .filter(attribute -> attributeName.equals(attribute.name()))
-            .map(AttributeType::value)
-            .collect(SingletonCollector.collect());
-    }
-
     @ParameterizedTest(name = "should store user's top-level-org affiliation in cognito user attributes when user has "
                               + "many active affiliations but logged in with Feide")
     @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
-    void shouldStoreUsersBottomLevelAffiliationWhenUserHasManyActiveAffiliationsAndLoggedInWithFeide(
+    void shouldStoreUsersTopLevelAffiliationWhenUserHasManyActiveAffiliationsAndLoggedInWithFeide(
         LoginEventType loginEventType) {
         var person = registeredPeople.personWithManyActiveAffiliations();
         var event = randomEvent(person, loginEventType);
@@ -413,7 +408,53 @@ class IdentityServiceEntryUpdateHandlerTest {
 
         handler.handleRequest(event, context);
         var actualTopOrgCristinId = getUpdatedClaimFromCognito(TOP_ORG_CRISTIN_ID);
-        assertThat(actualTopOrgCristinId,is(equalTo(expectedTopLevelOrgUri.toString())));
+        assertThat(actualTopOrgCristinId, is(equalTo(expectedTopLevelOrgUri.toString())));
+    }
+
+    @ParameterizedTest(name = "should store user's username in cognito user attributes when user has "
+                              + "many active affiliations but logged in with Feide")
+    @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
+    void shouldStoreUsersUsernameWhenUserHasManyActiveAffiliationsAndLoggedInWithFeide(
+        LoginEventType loginEventType) {
+        var person = registeredPeople.personWithManyActiveAffiliations();
+        var event = randomEvent(person, loginEventType);
+        var orgFeideDomain = event
+            .getRequest()
+            .getUserAttributes()
+            .get(ORG_FEIDE_DOMAIN);
+        var currentCustomer = fetchCustomerBasedOnFeideDomain(orgFeideDomain);
+        var personCristinIdentifier = UriWrapper.fromUri(registeredPeople.getCristinPersonId(person))
+            .getLastPathElement();
+        var customerCristinIdentifier = UriWrapper.fromUri(currentCustomer.getCristinId())
+            .getLastPathElement();
+        var expectedUsername = personCristinIdentifier + AT + customerCristinIdentifier;
+        handler.handleRequest(event, context);
+        var actualUsername = getUpdatedClaimFromCognito(NVA_USERNAME_CLAIM);
+        assertThat(actualUsername, is(equalTo(expectedUsername)));
+    }
+
+    @ParameterizedTest(name = "should store user's username in cognito user attributes when "
+                              + "user has only one active affiliation")
+    @EnumSource(LoginEventType.class)
+    void shouldStoreUsersUsernameWhenUserHasOnlyOneActiveAffiliation(LoginEventType loginEventType) {
+        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
+
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+
+        var expectedUsername = scanAllUsers().stream()
+            .collect(SingletonCollector.collect())
+            .getUsername();
+        var actualUsername = getUpdatedClaimFromCognito(NVA_USERNAME_CLAIM);
+
+        assertThat(actualUsername, is(equalTo(expectedUsername)));
+    }
+
+    private String getUpdatedClaimFromCognito(String attributeName) {
+        return congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
+            .filter(attribute -> attributeName.equals(attribute.name()))
+            .map(AttributeType::value)
+            .collect(SingletonCollector.collect());
     }
 
     private List<String> createRoleStrings(UserDto user) {

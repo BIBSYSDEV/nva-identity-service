@@ -1,6 +1,6 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.cognito.IdentityServiceEntryUpdateHandler.BELONGS_TO;
+import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomElement;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
 import java.net.URI;
@@ -80,6 +80,6 @@ public class NvaDataGenerator {
     private String createUserName(NationalIdentityNumber nin, CustomerDto customerDto) {
         var cristinPersonIdentifier = registeredPeopleInstance.getCristinPersonIdentifier(nin);
         var cristinOrgIdentifier = UriWrapper.fromUri(customerDto.getCristinId()).getLastPathElement();
-        return cristinPersonIdentifier.getValue() + BELONGS_TO + cristinOrgIdentifier;
+        return cristinPersonIdentifier.getValue() + AT + cristinOrgIdentifier;
     }
 }

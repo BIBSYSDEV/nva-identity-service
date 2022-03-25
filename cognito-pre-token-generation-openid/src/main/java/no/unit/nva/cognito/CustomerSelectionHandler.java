@@ -1,5 +1,10 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.AT;
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -31,14 +36,10 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserA
 public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String CURRENT_CUSTOMER_CLAIM = "custom:customerId";
-    public static final String ALLOWED_CUSTOMERS_CLAIM = "custom:allowedCustomers";
-    public static final String PERSON_ID_CLAIM = "custom:cristinId";
-    public static final String NVA_USERNAME_CLAIM = "custom:nvaUsername";
+
 
     public static final String EMPTY_STRING = "";
     private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
-    public static final String AT = "@";
     private final CognitoIdentityProviderClient cognito;
     private final CustomerService customerService;
 

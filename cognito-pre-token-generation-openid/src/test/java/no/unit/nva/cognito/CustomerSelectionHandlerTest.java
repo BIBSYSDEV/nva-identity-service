@@ -1,11 +1,11 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.cognito.CustomerSelectionHandler.ALLOWED_CUSTOMERS_CLAIM;
-import static no.unit.nva.cognito.CustomerSelectionHandler.AT;
+import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.AT;
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
 import static no.unit.nva.cognito.CustomerSelectionHandler.AUTHORIZATION_HEADER;
-import static no.unit.nva.cognito.CustomerSelectionHandler.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.CustomerSelectionHandler.NVA_USERNAME_CLAIM;
-import static no.unit.nva.cognito.CustomerSelectionHandler.PERSON_ID_CLAIM;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.unit.nva.FakeCognito;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
@@ -49,7 +48,6 @@ class CustomerSelectionHandlerTest extends CustomerDynamoDBLocal {
     private Set<URI> allowedCustomers;
     private CustomerService customerService;
     private CustomerSelectionHandler handler;
-    private String personIdentifier;
 
     @BeforeEach
     public void init() {
@@ -57,7 +55,7 @@ class CustomerSelectionHandlerTest extends CustomerDynamoDBLocal {
         cognito = new FakeCognito(randomString());
         this.customerService = new DynamoDBCustomerService(dynamoClient);
         allowedCustomers = addCustomersToDatabase();
-        personIdentifier = randomString();
+        var personIdentifier = randomString();
         accessToken = randomString();
         var user = createUser(allowedCustomers, personIdentifier);
         cognito.addUser(accessToken, user);

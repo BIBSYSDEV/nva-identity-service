@@ -1,14 +1,17 @@
 package no.unit.nva.cognito;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.SingletonCollector;
 
 public class AuthenticationInformation {
@@ -25,6 +28,7 @@ public class AuthenticationInformation {
     private Set<CustomerDto> activeCustomers;
     private CustomerDto currentCustomer;
     private List<URI> topLevelOrganizations;
+    private UserDto currentUser;
 
     public AuthenticationInformation(String nin, String feideIdentifier, String orgFeideDomain) {
 
@@ -101,12 +105,25 @@ public class AuthenticationInformation {
         return currentCustomer;
     }
 
+    public List<URI> getTopLevelOrganizations() {
+        return this.topLevelOrganizations;
+    }
+
     public void setTopLevelOrganizations(List<URI> topLevelOrganizations) {
         this.topLevelOrganizations = topLevelOrganizations;
     }
 
-    public List<URI> getTopLevelOrganizations() {
-        return this.topLevelOrganizations;
+    public UserDto getCurrentUser() {
+        return currentUser;
+    }
+
+    public void updateCurrentUser(Collection<UserDto> users) {
+        if (nonNull(currentCustomer)) {
+            var currentCustomerId = currentCustomer.getId();
+            this.currentUser = users.stream()
+                .filter(user -> user.getInstitution().equals(currentCustomerId))
+                .collect(SingletonCollector.collect());
+        }
     }
 
     private static String extractNin(Map<String, String> userAttributes) {

@@ -1,7 +1,16 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.cognito.AuthenticationInformation.NIN_FON_NON_FEIDE_USERS;
-import static no.unit.nva.cognito.AuthenticationInformation.NIN_FOR_FEIDE_USERS;
+import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.AT;
+import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
+import static no.unit.nva.cognito.CognitoClaims.EMPTY_ALLOWED_CUSTOMERS;
+import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.EnvironmentVariables.AWS_REGION;
 import static no.unit.nva.cognito.EnvironmentVariables.COGNITO_HOST;
 import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
@@ -43,18 +52,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 public class IdentityServiceEntryUpdateHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
-    public static final String BELONGS_TO = "@";
-    public static final String ELEMENTS_DELIMITER = ",";
-    public static final String CURRENT_CUSTOMER_CLAIM = "custom:customerId";
-    public static final String TOP_ORG_CRISTIN_ID = "custom:topOrgCristinId";
-    public static final String PERSON_CRISTIN_ID_CLAIM = "custom:cristinId";
-    public static final String AT = "@";
-    public static final String EMPTY_ALLOWED_CUSTOMERS = "null";
-    public static final String ALLOWED_CUSTOMER_CLAIM = "custom:allowedCustomers";
-    public static final String ROLES_CLAIM = "custom:roles";
-    public static final String ACCESS_RIGHTS_CLAIM = "custom:accessRights";
-    protected static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FON_NON_FEIDE_USERS,
-        NIN_FOR_FEIDE_USERS};
     private final CristinClient cristinClient;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -89,6 +86,10 @@ public class IdentityServiceEntryUpdateHandler
         var usersForPerson = createOrFetchUserEntriesForPerson(authenticationInfo);
         var accessRights = accessRightsPerCustomer(usersForPerson);
         var roles = rolesPerCustomer(usersForPerson);
+
+        authenticationInfo.updateCurrentCustomer();
+        authenticationInfo.updateCurrentUser(usersForPerson);
+
         injectAccessRightsToEventResponse(input, accessRights);
 
         updateCognitoUserAttributes(input, authenticationInfo, accessRights, roles);
@@ -124,8 +125,6 @@ public class IdentityServiceEntryUpdateHandler
         var activeCustomers = fetchCustomersForActiveAffiliations(authenticationInfo);
         authenticationInfo.setActiveCustomers(activeCustomers);
 
-        authenticationInfo.updateCurrentCustomer();
-
         return authenticationInfo;
     }
 
@@ -159,7 +158,7 @@ public class IdentityServiceEntryUpdateHandler
                                                               Collection<String> roles) {
 
         var allowedCustomersString = createAllowedCustomersString(authenticationInfo.getActiveCustomers());
-        logger.log("AllowedCustomers: "+allowedCustomersString);
+        logger.log("AllowedCustomers: " + allowedCustomersString);
         var claims = new ArrayList<AttributeType>();
         claims.add(createAttribute("custom:firstName", authenticationInfo.extractFirstName()));
         claims.add(createAttribute("custom:lastName", authenticationInfo.extractLastName()));
@@ -185,11 +184,10 @@ public class IdentityServiceEntryUpdateHandler
                                                         String customerId) {
 
         var currentCustomerClaim = createAttribute(CURRENT_CUSTOMER_CLAIM, customerId);
-        logger.log("Current customer claim:" +currentCustomerClaim.value());
         var currentTopLevelOrgClaim =
             createAttribute(TOP_ORG_CRISTIN_ID, authenticationInfo.getCurrentCustomer().getCristinId().toString());
-        logger.log("Current topOrg claim:" + currentTopLevelOrgClaim.value());
-        return List.of(currentCustomerClaim, currentTopLevelOrgClaim);
+        var usernameClaim = createAttribute(NVA_USERNAME_CLAIM, authenticationInfo.getCurrentUser().getUsername());
+        return List.of(currentCustomerClaim, currentTopLevelOrgClaim, usernameClaim);
     }
 
     private String createAllowedCustomersString(Collection<CustomerDto> allowedCustomers) {

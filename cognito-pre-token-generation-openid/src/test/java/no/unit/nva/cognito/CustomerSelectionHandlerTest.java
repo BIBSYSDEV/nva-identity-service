@@ -63,21 +63,6 @@ class CustomerSelectionHandlerTest extends CustomerDynamoDBLocal {
         this.handler = new CustomerSelectionHandler(cognito, customerService);
     }
 
-    private Set<URI> addCustomersToDatabase() {
-        return IntStream.range(1, 10).boxed().map(ignored -> createRandomCustomer())
-            .map(customer -> customerService.createCustomer(customer))
-            .map(customer -> customerService.getCustomer(customer.getIdentifier()))
-            .map(CustomerDto::getId)
-            .collect(Collectors.toSet());
-    }
-
-    private CustomerDto createRandomCustomer() {
-        return CustomerDto.builder()
-            .withIdentifier(UUID.randomUUID())
-            .withCristinId(randomUri())
-            .build();
-    }
-
     @Test
     void shouldSendAnUpdateCustomerRequestToCognitoWhenInputContainsAnAccessTokenAndSelectionIsAmongTheValidOptions() {
         var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
@@ -98,6 +83,39 @@ class CustomerSelectionHandlerTest extends CustomerDynamoDBLocal {
         var expectedUsername = constructExpectedUserName(selectedCustomer);
         assertThat(userForSelectedCustomer, is(equalTo(expectedUsername)));
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    }
+
+    @Test
+    void shouldNotSendAnUpdateCustomerRequestToCognitoWhenInputContainsAnAccessTokenAndSelectionIsAmongTheValidOptions() {
+
+        var input = createRequest(randomUri());
+        var response = handler.handleRequest(input, context);
+        assertThatUpdateRequestHasNotBeenSent();
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    @Test
+    void shouldNotUserAdminRightsButOnlyAccessTokenBasedAccessToCognito() {
+        var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
+        var input = createRequest(selectedCustomer);
+        handler.handleRequest(input, context);
+        assertThat(cognito.getAdminUpdateUserRequest(), is(nullValue()));
+        assertThat(cognito.getUpdateUserAttributesRequest(), is(not(nullValue())));
+    }
+
+    private Set<URI> addCustomersToDatabase() {
+        return IntStream.range(1, 10).boxed().map(ignored -> createRandomCustomer())
+            .map(customer -> customerService.createCustomer(customer))
+            .map(customer -> customerService.getCustomer(customer.getIdentifier()))
+            .map(CustomerDto::getId)
+            .collect(Collectors.toSet());
+    }
+
+    private CustomerDto createRandomCustomer() {
+        return CustomerDto.builder()
+            .withIdentifier(UUID.randomUUID())
+            .withCristinId(randomUri())
+            .build();
     }
 
     private String constructExpectedUserName(URI selectedCustomer) {
@@ -130,24 +148,6 @@ class CustomerSelectionHandlerTest extends CustomerDynamoDBLocal {
             .filter(attribute -> attributeName.equals(attribute.name()))
             .map(AttributeType::value)
             .collect(SingletonCollector.collect());
-    }
-
-    @Test
-    void shouldNotSendAnUpdateCustomerRequestToCognitoWhenInputContainsAnAccessTokenAndSelectionIsAmongTheValidOptions() {
-
-        var input = createRequest(randomUri());
-        var response = handler.handleRequest(input, context);
-        assertThatUpdateRequestHasNotBeenSent();
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
-    }
-
-    @Test
-    void shouldNotUserAdminRightsButOnlyAccessTokenBasedAccessToCognito() {
-        var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
-        var input = createRequest(selectedCustomer);
-        handler.handleRequest(input, context);
-        assertThat(cognito.getAdminUpdateUserRequest(), is(nullValue()));
-        assertThat(cognito.getUpdateUserAttributesRequest(), is(not(nullValue())));
     }
 
     private GetUserResponse createUser(Set<URI> allowedCustomers, String personIdentifier) {

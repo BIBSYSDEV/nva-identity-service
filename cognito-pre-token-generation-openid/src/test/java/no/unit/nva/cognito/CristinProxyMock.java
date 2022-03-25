@@ -11,7 +11,6 @@ import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
 import static no.unit.nva.cognito.cristin.person.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
-import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
@@ -114,13 +113,6 @@ public class CristinProxyMock {
 
     public NationalIdentityNumber getPersonWithActiveAffiliationThatIsNotCustomer() {
         return personWithActiveAffiliationThatIsNotCustomer;
-    }
-
-    public Set<URI> getBottomLevelOrgsForTopLevelOrg(URI topLevelOrgUri) {
-        return bottomLevelOrgs.stream()
-            .filter(pair->topLevelOrgUri.equals(pair.getTopLevelOrg()))
-            .map(BottomAndTopLevelOrgPair::getBottomLevelOrg)
-            .collect(Collectors.toSet());
     }
 
     private URI getTopLevelOrgUriNotNvaCustomer() {

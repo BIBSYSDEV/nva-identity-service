@@ -87,13 +87,13 @@ Resources:
 
   ### Cognito ##########################################################################################################
 
-#  IdentityPool:
-#    Type: AWS::Cognito::IdentityPool
-#    Properties:
-#      AllowUnauthenticatedIdentities: True
-#      CognitoIdentityProviders:
-#        - ClientId: !Ref ApplicationClient
-#          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: True
+      CognitoIdentityProviders:
+        - ClientId: !Ref ApplicationClient
+          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
 
   # IAM role used for authenticated users
 #  FeideAuthenticatedRole:
@@ -1123,13 +1123,13 @@ Resources:
       Type: String
       Value: !GetAtt UserPool.Arn
 
-#  CognitoIdentityPoolIdParameter:
-#    Type: AWS::SSM::Parameter
-#    Properties:
-#      Name: !Sub '${ParameterNamePrefix}CognitoIdentityPoolId'
-#      Description: Identifier of the IdentityPool assosiated with the UserPool
-#      Type: String
-#      Value: !Ref IdentityPool
+  CognitoIdentityPoolIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '${ParameterNamePrefix}CognitoIdentityPoolId'
+      Description: Identifier of the IdentityPool assosiated with the UserPool
+      Type: String
+      Value: !Ref IdentityPool
 
   CognitoUserPoolIdParameter:
     Type: AWS::SSM::Parameter

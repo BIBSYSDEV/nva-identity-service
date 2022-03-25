@@ -30,7 +30,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public static final String VIEWING_SCOPE_FIELD = "viewingScope";
     public static final String INSTITUTION_FIELD = "institution";
     public static final String ROLES = "roles";
-    public static final String AT ="@";
+    public static final String AT = "@";
 
     @JsonProperty(USERNAME_FIELD)
     private String username;
@@ -167,7 +167,6 @@ public class UserDto implements WithCopy<Builder>, Typed {
         return roles.stream()
             .map(RoleDto::getRoleName)
             .map(rolename -> rolename + AT + institution.toString());
-
     }
 
     @Override

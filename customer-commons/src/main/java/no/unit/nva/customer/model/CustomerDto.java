@@ -1,6 +1,7 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.nonNull;
+import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
+import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -22,7 +23,6 @@ import nva.commons.core.JacocoGenerated;
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
-    public static final Instant EMPTY_VALUE = null;
     @JsonProperty("@context")
     private URI context;
     private URI id;
@@ -233,14 +233,6 @@ public class CustomerDto implements Context {
 
     public void setType(String type) {
         // do nothing;
-    }
-
-    private static String instantToString(Instant createdDate) {
-        return nonNull(createdDate) ? createdDate.toString() : null;
-    }
-
-    private static Instant stringToInstant(String createdDate) {
-        return nonNull(createdDate) ? Instant.parse(createdDate) : EMPTY_VALUE;
     }
 
     public static final class Builder {

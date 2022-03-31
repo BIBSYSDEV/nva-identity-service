@@ -1,9 +1,11 @@
 package no.unit.nva.identityservice.json;
 
+import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.jr.annotationsupport.JacksonAnnotationExtension;
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.fasterxml.jackson.jr.ob.JSON.Feature;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -33,4 +35,13 @@ public final class JsonConfig {
     public static <T> List<T> listOfFrom(Class<T> type, String source) throws IOException {
         return objectMapper.listOfFrom(type,source);
     }
+
+    public static String instantToString(Instant createdDate) {
+        return nonNull(createdDate) ? createdDate.toString() : null;
+    }
+
+    public static Instant stringToInstant(String createdDate) {
+        return nonNull(createdDate) ? Instant.parse(createdDate) : null;
+    }
+
 }

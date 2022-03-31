@@ -1,12 +1,16 @@
 package no.unit.nva.customer.get;
 
 import static java.util.Collections.singletonList;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomUri;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
@@ -34,7 +38,6 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     @BeforeEach
     public void setUp() {
         this.setupDatabase();
-
         customerService = new DynamoDBCustomerService(this.dynamoClient);
         handler = new GetAllCustomersHandler(customerService);
         context = new FakeContext();
@@ -43,14 +46,9 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void requestToHandlerReturnsCustomerList() {
 
-        var customer =  CustomerDto.builder().withCristinId(randomUri()).build();
-        customerService.createCustomer(customer);
-        var savedCustomer = customerService.getCustomerByCristinId(customer.getCristinId());
-
+        var savedCustomer = insertRandomCustomer();
         var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
-
         var response = handler.handleRequest(input, context);
-
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 
         CustomerList actualCustomerList = CustomerList.fromString(response.getBody());
@@ -61,8 +59,31 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(actualCustomerList, equalTo(customerList));
     }
 
+    private CustomerDto insertRandomCustomer() {
+        var customer =  CustomerDto.builder()
+            .withDisplayName(randomString())
+            .withCristinId(randomUri())
+            .build();
+        customerService.createCustomer(customer);
+        return customerService.getCustomerByCristinId(customer.getCristinId());
+    }
+
     @Test
     void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate() {
+        var existingCustomer = insertRandomCustomer();
+        var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
+        var response = handler.handleRequest(input, context);
+        var customerList = CustomerList.fromString(response.getBody());
+        assertThat(customerList.getId(), notNullValue());
+        assertThat(customerList.getContext(), notNullValue());
+
+        for(var customer: customerList.getCustomers()){
+            assertThat(customer.getDisplayName(),is(equalTo(existingCustomer.getDisplayName())));
+            assertThat(customer.getId(),is(equalTo(existingCustomer.getId())));
+            assertThat(customer.getCreatedDate(),is(equalTo(existingCustomer.getCreatedDate())));
+            assertThat(customer, is(not(instanceOf(CustomerDto.class))));
+        }
+
 
     }
 }

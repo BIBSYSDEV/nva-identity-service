@@ -14,7 +14,7 @@ class CustomerListTest {
         CustomerDto customer = new CustomerDto();
         CustomerList customerList = new CustomerList(List.of(customer));
         assertEquals(1, customerList.getCustomers().size());
-        assertEquals(customer, customerList.getCustomers().get(0));
+        assertEquals(CustomerReference.fromCustomerDto(customer), customerList.getCustomers().get(0));
     }
 
     @Test

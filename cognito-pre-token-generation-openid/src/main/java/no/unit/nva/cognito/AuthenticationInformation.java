@@ -148,7 +148,7 @@ public class AuthenticationInformation {
     }
 
     private boolean selectFeideOrgIfApplicable(CustomerDto customer) {
-        return userLoggedInWithNin() ||
-               getOrgFeideDomain().equals(customer.getFeideOrganizationDomain());
+        return userLoggedInWithNin()
+               || getOrgFeideDomain().equals(customer.getFeideOrganizationDomain());
     }
 }

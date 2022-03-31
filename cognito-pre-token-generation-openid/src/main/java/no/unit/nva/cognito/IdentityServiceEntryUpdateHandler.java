@@ -82,11 +82,10 @@ public class IdentityServiceEntryUpdateHandler
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
         this.logger = context.getLogger();
-        var authenticationInfo = collectInformationForPerson(input);
-        var usersForPerson = createOrFetchUserEntriesForPerson(authenticationInfo);
-        var accessRights = accessRightsPerCustomer(usersForPerson);
-        var roles = rolesPerCustomer(usersForPerson);
-
+        final var authenticationInfo = collectInformationForPerson(input);
+        final var usersForPerson = createOrFetchUserEntriesForPerson(authenticationInfo);
+        final var accessRights = accessRightsPerCustomer(usersForPerson);
+        final var roles = rolesPerCustomer(usersForPerson);
         authenticationInfo.updateCurrentCustomer();
         authenticationInfo.updateCurrentUser(usersForPerson);
 

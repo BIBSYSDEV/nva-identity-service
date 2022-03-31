@@ -22,7 +22,7 @@ public class CustomerList {
 
     public static final String CUSTOMERS = "customers";
     @JsonProperty(CUSTOMERS)
-    private List<CustomerDtoWithoutContext> customers;
+    private List<CustomerDto> customers;
 
     public CustomerList() {
 
@@ -46,11 +46,11 @@ public class CustomerList {
         return ID_NAMESPACE;
     }
 
-    public List<CustomerDtoWithoutContext> getCustomers() {
+    public List<CustomerDto> getCustomers() {
         return nonNull(customers) ? customers : Collections.emptyList();
     }
 
-    public void setCustomers(List<CustomerDtoWithoutContext> customers) {
+    public void setCustomers(List<CustomerDto> customers) {
         this.customers = customers;
     }
 
@@ -80,13 +80,12 @@ public class CustomerList {
         return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 
-    private List<CustomerDtoWithoutContext> extractCustomers(List<CustomerDto> customers) {
+    private List<CustomerDto> extractCustomers(List<CustomerDto> customers) {
         return Optional.ofNullable(customers)
             .stream()
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .filter(Objects::nonNull)
-            .map(CustomerDto::withoutContext)
             .collect(Collectors.toList());
     }
 }

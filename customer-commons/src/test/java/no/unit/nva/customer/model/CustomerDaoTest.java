@@ -80,7 +80,7 @@ class CustomerDaoTest {
             .withName(randomString())
             .withCristinId(randomUri())
             .withFeideOrganizationDomain(randomString())
-            .withModifiedDate(randomInstant().toString())
+            .withModifiedDate(randomInstant())
             .withIdentifier(identifier)
             .withId(id)
             .withCname(randomString())
@@ -89,7 +89,7 @@ class CustomerDaoTest {
             .withShortName(randomString())
             .withInstitutionDns(randomString())
             .withDisplayName(randomString())
-            .withCreatedDate(randomInstant().toString())
+            .withCreatedDate(randomInstant())
             .withVocabularies(randomVocabularyDtoSettings())
             .build();
 

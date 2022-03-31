@@ -34,7 +34,7 @@ public class CustomerDataGenerator {
             .withName(randomString())
             .withCristinId(randomUri())
             .withFeideOrganizationDomain(randomString())
-            .withModifiedDate(randomInstant().toString())
+            .withModifiedDate(randomInstant())
             .withIdentifier(identifier)
             .withId(id)
             .withCname(randomString())
@@ -43,7 +43,7 @@ public class CustomerDataGenerator {
             .withShortName(randomString())
             .withInstitutionDns(randomString())
             .withDisplayName(randomString())
-            .withCreatedDate(randomInstant().toString())
+            .withCreatedDate(randomInstant())
             .withVocabularies(randomVocabularyDtoSettings())
             .build();
 
@@ -117,7 +117,7 @@ public class CustomerDataGenerator {
                                  randomElement(VocabularyStatus.values()));
     }
 
-   public static List<VocabularyDto> randomVocabularies() {
+    public static List<VocabularyDto> randomVocabularies() {
         return List.of(randomVocabularyDto(), randomVocabularyDto(), randomVocabularyDto());
     }
 }

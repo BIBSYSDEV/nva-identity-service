@@ -1,11 +1,14 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Context;
@@ -16,30 +19,142 @@ import nva.commons.core.JacocoGenerated;
 
 //Overriding setters and getters is necessary for Jackson-Jr
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod"})
-public class CustomerDto extends CustomerDtoWithoutContext implements Context {
+public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
+    public static final Instant EMPTY_VALUE = null;
     @JsonProperty("@context")
     private URI context;
+    private URI id;
+    private UUID identifier;
+    private Instant createdDate;
+    private Instant modifiedDate;
+    private String name;
+    private String displayName;
+    private String shortName;
+    private String archiveName;
+    private String cname;
+    private String institutionDns;
+    private String feideOrganizationDomain;
+    private URI cristinId;
+    private List<VocabularyDto> vocabularies;
 
     public CustomerDto() {
         super();
-        setVocabularies(Collections.emptyList());
+        this.vocabularies = Collections.emptyList();
     }
 
     public static CustomerDto fromJson(String json) {
         return attempt(() -> JsonConfig.beanFrom(CustomerDto.class, json))
-            .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json,fail.getException()));
+            .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public CustomerDtoWithoutContext withoutContext() {
-        return attempt(() -> JsonConfig.asString(this))
-            .map(json -> JsonConfig.beanFrom(CustomerDtoWithoutContext.class, json))
-            .orElseThrow();
+    public URI getId() {
+        return id;
+    }
+
+    public void setId(URI id) {
+        this.id = id;
+    }
+
+    public UUID getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(UUID identifier) {
+        this.identifier = identifier;
+    }
+
+    public String getCreatedDate() {
+        return instantToString(createdDate);
+    }
+
+    public void setCreatedDate(String createdDate) {
+        this.createdDate = stringToInstant(createdDate);
+    }
+
+    public String getModifiedDate() {
+        return instantToString(modifiedDate);
+    }
+
+    public void setModifiedDate(String modifiedDate) {
+        this.modifiedDate = stringToInstant(modifiedDate);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
+    public String getArchiveName() {
+        return archiveName;
+    }
+
+    public void setArchiveName(String archiveName) {
+        this.archiveName = archiveName;
+    }
+
+    public String getCname() {
+        return cname;
+    }
+
+    public void setCname(String cname) {
+        this.cname = cname;
+    }
+
+    public String getInstitutionDns() {
+        return institutionDns;
+    }
+
+    public void setInstitutionDns(String institutionDns) {
+        this.institutionDns = institutionDns;
+    }
+
+    public String getFeideOrganizationDomain() {
+        return feideOrganizationDomain;
+    }
+
+    public void setFeideOrganizationDomain(String feideOrganizationDomain) {
+        this.feideOrganizationDomain = feideOrganizationDomain;
+    }
+
+    public URI getCristinId() {
+        return cristinId;
+    }
+
+    public void setCristinId(URI cristinId) {
+        this.cristinId = cristinId;
+    }
+
+    public List<VocabularyDto> getVocabularies() {
+        return vocabularies;
+    }
+
+    public void setVocabularies(List<VocabularyDto> vocabularies) {
+        this.vocabularies = vocabularies;
     }
 
     @Override
@@ -58,7 +173,7 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
             .withShortName(getShortName())
             .withInstitutionDns(getInstitutionDns())
             .withDisplayName(getDisplayName())
-            .withCreatedDate(getCreatedDate())
+            .withCreatedDate(stringToInstant(getCreatedDate()))
             .withArchiveName(getArchiveName())
             .withIdentifier(getIdentifier())
             .withContext(getContext())
@@ -67,14 +182,15 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
             .withCristinId(getCristinId())
             .withFeideOrganizationDomain(getFeideOrganizationDomain())
             .withName(getName())
-            .withModifiedDate(getModifiedDate());
+            .withModifiedDate(stringToInstant(getModifiedDate()));
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationDomain(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(),
                             getCristinId(), getVocabularies(), getContext());
     }
 
@@ -105,20 +221,26 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
     }
 
     @Override
+    @JacocoGenerated
+    public String toString() {
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+    }
+
     @JsonProperty(Typed.TYPE_FIELD)
     public String getType() {
         return TYPE;
     }
 
-    @Override
     public void setType(String type) {
-        super.setType(type);
+        // do nothing;
     }
 
-    @Override
-    @JacocoGenerated
-    public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+    private static String instantToString(Instant createdDate) {
+        return nonNull(createdDate) ? createdDate.toString() : null;
+    }
+
+    private static Instant stringToInstant(String createdDate) {
+        return nonNull(createdDate) ? Instant.parse(createdDate) : EMPTY_VALUE;
     }
 
     public static final class Builder {
@@ -139,13 +261,13 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
             return this;
         }
 
-        public Builder withCreatedDate(String createdDate) {
-            customerDto.setCreatedDate(createdDate);
+        public Builder withCreatedDate(Instant createdDate) {
+            customerDto.setCreatedDate(instantToString(createdDate));
             return this;
         }
 
-        public Builder withModifiedDate(String modifiedDate) {
-            customerDto.setModifiedDate(modifiedDate);
+        public Builder withModifiedDate(Instant modifiedDate) {
+            customerDto.setModifiedDate(instantToString(modifiedDate));
             return this;
         }
 

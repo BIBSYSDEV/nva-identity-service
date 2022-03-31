@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 import no.unit.nva.FakeCognito;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
 import no.unit.nva.database.DatabaseAccessor;
@@ -323,7 +322,7 @@ class IdentityServiceEntryUpdateHandlerTest {
         var expectedCustomerIds = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
             .stream()
             .map(cristinId -> customerService.getCustomerByCristinId(cristinId))
-            .map(CustomerDtoWithoutContext::getId)
+            .map(CustomerDto::getId)
             .collect(Collectors.toList());
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);

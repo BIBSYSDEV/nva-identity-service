@@ -50,8 +50,8 @@ class CustomerDtoTest {
             .withName(randomString())
             .withFeideOrganizationDomain(randomString())
             .withCristinId(randomUri())
-            .withCreatedDate(randomInstant().toString())
-            .withModifiedDate(randomInstant().toString())
+            .withCreatedDate(randomInstant())
+            .withModifiedDate(randomInstant())
             .withVocabularies(randomVocabularies())
             .build();
     }

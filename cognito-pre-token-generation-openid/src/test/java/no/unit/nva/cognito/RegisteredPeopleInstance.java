@@ -18,7 +18,6 @@ import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinIdentifier;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDtoWithoutContext;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -68,7 +67,7 @@ public class RegisteredPeopleInstance {
         var domains = getTopLevelAffiliationsForUser(nin, ACTIVE).stream()
             .map(attempt(customerService::getCustomerByCristinId))
             .flatMap(Try::stream)
-            .map(CustomerDtoWithoutContext::getFeideOrganizationDomain)
+            .map(CustomerDto::getFeideOrganizationDomain)
             .collect(Collectors.toList());
         return domains.isEmpty()
                    ? randomString()

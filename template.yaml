@@ -1258,7 +1258,7 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: feideid
+        - Name: feideId
           AttributeDataType: String
           Mutable: true
           Required: false
@@ -1270,7 +1270,7 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: feideidnin
+        - Name: feideIdNin
           AttributeDataType: String
           Mutable: true
           Required: false
@@ -1332,9 +1332,9 @@ Resources:
     Properties:
       AttributeMapping:
         custom:nin: https://n.feide.no/claims/nin
-        custom:feideid: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
         custom:feidememberrole: eduPersonAffiliation
-        custom:feideidnin: norEduPersonNIN
+        custom:feideIdNin: norEduPersonNIN
         custom:orgFeideDomain: schacHomeOrganization
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
@@ -1425,10 +1425,10 @@ Resources:
       GenerateSecret: false
       PreventUserExistenceErrors: LEGACY
       ReadAttributes:
-        - custom:feideid
-        - custom:nin
+#        - custom:feideid
+#        - custom:nin
+#        - custom:feideidnin
         - custom:feidememberrole
-        - custom:feideidnin
         - custom:orgFeideDomain
         - custom:firstName
         - custom:lastName
@@ -1450,10 +1450,10 @@ Resources:
         - !Ref ConnectionToDataporten
       UserPoolId: !Ref UserPool
       WriteAttributes:
-        - custom:feideid
+        - custom:feideId
         - custom:nin
         - custom:feidememberrole
-        - custom:feideidnin
+        - custom:feideIdNin
         - custom:orgFeideDomain
         - custom:firstName
         - custom:lastName

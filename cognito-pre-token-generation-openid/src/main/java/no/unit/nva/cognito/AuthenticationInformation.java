@@ -16,9 +16,9 @@ import nva.commons.core.SingletonCollector;
 
 public class AuthenticationInformation {
 
-    public static final String NIN_FOR_FEIDE_USERS = "custom:feideidnin";
+    public static final String NIN_FOR_FEIDE_USERS = "custom:feideIdNin";
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
-    public static final String FEIDE_ID = "custom:feideid";
+    public static final String FEIDE_ID = "custom:feideId";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
 
     private final String nationalIdentityNumber;

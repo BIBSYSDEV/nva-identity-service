@@ -1425,9 +1425,9 @@ Resources:
       GenerateSecret: false
       PreventUserExistenceErrors: LEGACY
       ReadAttributes:
-        - custom:feideid
+        - custom:feideId
         - custom:nin
-        - custom:feideidnin
+        - custom:feideIdNin
         - custom:feidememberrole
         - custom:orgFeideDomain
         - custom:firstName

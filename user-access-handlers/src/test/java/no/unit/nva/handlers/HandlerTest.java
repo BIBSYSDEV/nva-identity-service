@@ -8,14 +8,14 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import no.unit.nva.database.DatabaseAccessor;
+import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 
-public class HandlerTest extends DatabaseAccessor {
+public class HandlerTest extends LocalIdentityService {
 
     public static final String DEFAULT_USERNAME = "someUsername@inst";
     public static final URI DEFAULT_INSTITUTION = randomCristinOrgId();

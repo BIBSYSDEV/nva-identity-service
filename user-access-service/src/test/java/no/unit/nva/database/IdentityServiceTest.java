@@ -61,7 +61,7 @@ import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
-public class IdentityServiceTest extends DatabaseAccessor {
+public class IdentityServiceTest extends LocalIdentityService {
 
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
     private static final String SOME_USERNAME = "someusername";

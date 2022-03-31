@@ -1,13 +1,12 @@
 package no.unit.nva.customer.get;
 
 import static java.util.Collections.singletonList;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomUri;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
@@ -16,13 +15,15 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
+import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class GetAllCustomersHandlerTest {
+class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
-    private CustomerService customerServiceMock;
+    private CustomerService customerService;
     private GetAllCustomersHandler handler;
 
     private Context context;
@@ -32,20 +33,19 @@ class GetAllCustomersHandlerTest {
      */
     @BeforeEach
     public void setUp() {
-        customerServiceMock = mock(CustomerService.class);
-        handler = new GetAllCustomersHandler(customerServiceMock);
+        this.setupDatabase();
+
+        customerService = new DynamoDBCustomerService(this.dynamoClient);
+        handler = new GetAllCustomersHandler(customerService);
         context = new FakeContext();
     }
 
     @Test
     void requestToHandlerReturnsCustomerList() {
-        UUID identifier = UUID.randomUUID();
-        CustomerDao customerDb = new CustomerDao.Builder()
-            .withIdentifier(identifier)
-            .build();
 
-        CustomerDto customerDto = customerDb.toCustomerDto();
-        when(customerServiceMock.getCustomers()).thenReturn(singletonList(customerDto));
+        var customer =  CustomerDto.builder().withCristinId(randomUri()).build();
+        customerService.createCustomer(customer);
+        var savedCustomer = customerService.getCustomerByCristinId(customer.getCristinId());
 
         var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
 
@@ -57,7 +57,12 @@ class GetAllCustomersHandlerTest {
         assertThat(actualCustomerList.getId(), notNullValue());
         assertThat(actualCustomerList.getContext(), notNullValue());
 
-        CustomerList customerList = new CustomerList(singletonList(customerDto));
+        CustomerList customerList = new CustomerList(singletonList(savedCustomer));
         assertThat(actualCustomerList, equalTo(customerList));
+    }
+
+    @Test
+    void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate() {
+
     }
 }

@@ -14,7 +14,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Map;
-import no.unit.nva.database.DatabaseAccessor;
+import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.interfaces.WithEnvironment;
 import no.unit.nva.stubs.FakeContext;
@@ -28,7 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class GetRoleHandlerTest extends DatabaseAccessor implements WithEnvironment {
+class GetRoleHandlerTest extends LocalIdentityService implements WithEnvironment {
 
     public static final String THE_ROLE = "theRole";
     public static final String TYPE_ATTRIBUTE = "type";

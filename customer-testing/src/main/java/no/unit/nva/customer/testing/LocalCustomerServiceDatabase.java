@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
-public class CustomerDynamoDBLocal {
+public class LocalCustomerServiceDatabase {
 
     public static final String NVA_CUSTOMERS_TABLE_NAME = CUSTOMERS_TABLE_NAME;
     public static final String BY_ORG_DOMAIN_INDEX_NAME = "byOrgDomain";

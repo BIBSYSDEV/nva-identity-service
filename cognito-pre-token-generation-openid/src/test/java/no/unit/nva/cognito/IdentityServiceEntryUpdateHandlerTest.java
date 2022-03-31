@@ -44,8 +44,8 @@ import no.unit.nva.FakeCognito;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
-import no.unit.nva.database.DatabaseAccessor;
+import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
+import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
@@ -77,9 +77,9 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private WireMockServer httpServer;
     private URI serverUri;
-    private CustomerDynamoDBLocal customerDynamoDbLocal;
+    private LocalCustomerServiceDatabase customerDynamoDbLocal;
     private DynamoDBCustomerService customerService;
-    private DatabaseAccessor userAccessDynamoDbLocal;
+    private LocalIdentityService userAccessDynamoDbLocal;
     private IdentityService identityService;
     private DataportenMock dataporten;
     private RegisteredPeopleInstance registeredPeople;
@@ -625,14 +625,14 @@ class IdentityServiceEntryUpdateHandlerTest {
     }
 
     private void setupIdentityService() {
-        this.userAccessDynamoDbLocal = new DatabaseAccessor() {
+        this.userAccessDynamoDbLocal = new LocalIdentityService() {
         };
         userAccessDynamoDbLocal.initializeTestDatabase();
         this.identityService = new IdentityServiceImpl(userAccessDynamoDbLocal.getDynamoDbClient());
     }
 
     private void setupCustomerService() {
-        this.customerDynamoDbLocal = new CustomerDynamoDBLocal();
+        this.customerDynamoDbLocal = new LocalCustomerServiceDatabase();
         customerDynamoDbLocal.setupDatabase();
         var localCustomerClient = customerDynamoDbLocal.getDynamoClient();
         this.customerService = new DynamoDBCustomerService(localCustomerClient);

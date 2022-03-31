@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.unit.nva.database.DatabaseAccessor;
+import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
-class EventBasedScanHandlerTest extends DatabaseAccessor {
+class EventBasedScanHandlerTest extends LocalIdentityService {
 
     public static final Context CONTEXT = new FakeContext() {
         @Override

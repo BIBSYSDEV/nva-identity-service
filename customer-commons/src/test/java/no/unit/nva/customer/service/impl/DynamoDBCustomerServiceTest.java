@@ -31,7 +31,7 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
-import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
+import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import nva.commons.apigatewayv2.exceptions.NotFoundException;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
-class DynamoDBCustomerServiceTest extends CustomerDynamoDBLocal {
+class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     public static final int SINGLE_VOCABULARY = 0;
     private DynamoDBCustomerService service;

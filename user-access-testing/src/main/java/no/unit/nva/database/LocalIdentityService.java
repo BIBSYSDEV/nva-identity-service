@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 
-public abstract class DatabaseAccessor implements WithEnvironment {
+public abstract class LocalIdentityService implements WithEnvironment {
 
     public static final int SINGLE_TABLE_EXPECTED = 1;
     public static final String STRING = "S";

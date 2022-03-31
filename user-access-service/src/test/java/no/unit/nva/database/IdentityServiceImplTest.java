@@ -19,7 +19,7 @@ import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 
-public class IdentityServiceImplTest extends DatabaseAccessor {
+public class IdentityServiceImplTest extends LocalIdentityService {
 
     public static final String EXPECTED_EXCEPTION_MESSAGE = "ExpectedExceptionMessage";
 

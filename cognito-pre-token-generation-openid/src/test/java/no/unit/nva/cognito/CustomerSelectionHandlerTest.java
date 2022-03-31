@@ -28,7 +28,7 @@ import no.unit.nva.FakeCognito;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
+import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
 import nva.commons.core.SingletonCollector;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResponse;
 
-class CustomerSelectionHandlerTest extends CustomerDynamoDBLocal {
+class CustomerSelectionHandlerTest extends LocalCustomerServiceDatabase {
 
     public static final String MULTI_VALUE_CLAIMS_DELIMITER = ",";
     private final FakeContext context = new FakeContext();

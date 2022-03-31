@@ -22,14 +22,14 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
-import no.unit.nva.customer.testing.CustomerDynamoDBLocal;
+import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.apigatewayv2.MediaTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class GetControlledVocabularyHandlerTest extends CustomerDynamoDBLocal {
+class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
 
     public static final Context CONTEXT = new FakeContext();
     private GetControlledVocabularyHandler handler;

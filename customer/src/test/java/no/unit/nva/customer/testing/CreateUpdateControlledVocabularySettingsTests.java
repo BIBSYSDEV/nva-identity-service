@@ -24,7 +24,7 @@ import no.unit.nva.stubs.FakeContext;
 import nva.commons.apigatewayv2.MediaTypes;
 import org.junit.jupiter.api.BeforeEach;
 
-public abstract class CreateUpdateControlledVocabularySettingsTests extends CustomerDynamoDBLocal {
+public abstract class CreateUpdateControlledVocabularySettingsTests extends LocalCustomerServiceDatabase {
 
     public static final Context CONTEXT = new FakeContext();
     protected ControlledVocabularyHandler<?, ?> handler;

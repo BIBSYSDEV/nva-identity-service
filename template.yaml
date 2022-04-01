@@ -1299,6 +1299,9 @@ Resources:
       CallbackURLs:
         - 'http://localhost:3000'
         - !Sub 'https://${ApplicationDomain}'
+      LogoutURLs:
+        - 'http://localhost:3000'
+        - !Sub 'https://${ApplicationDomain}'
       ClientName: NvaApplicationClient
       DefaultRedirectURI: 'http://localhost:3000'
       EnableTokenRevocation: false

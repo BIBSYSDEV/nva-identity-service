@@ -72,6 +72,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final String NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES = null;
     private static final boolean ACTIVE = true;
     private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
+    public static final RoleDto USER_ROLE = RoleDto.newBuilder().withRoleName("User").build();
 
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
@@ -456,9 +457,20 @@ class IdentityServiceEntryUpdateHandlerTest {
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
-        var expectedRole = RoleDto.newBuilder().withRoleName("User").build();
-        var actualRole = identityService.getRole(expectedRole);
-        assertThat(actualRole.getRoleName(), is(equalTo(expectedRole.getRoleName())));
+
+        var actualRole = identityService.getRole(USER_ROLE);
+        assertThat(actualRole.getRoleName(), is(equalTo(USER_ROLE.getRoleName())));
+    }
+
+    @ParameterizedTest(name = "should not fail when role \"User\" already exits")
+    @EnumSource(LoginEventType.class)
+    void shouldNotFailWhenUserRoleAlreadyExists(LoginEventType loginEventType) {
+        identityService.addRole(USER_ROLE);
+        var person = registeredPeople.personWithActiveAndInactiveAffiliations();
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var actualRole = identityService.getRole(USER_ROLE);
+        assertThat(actualRole.getRoleName(), is(equalTo(USER_ROLE.getRoleName())));
     }
 
     @ParameterizedTest(name = "should add role \"User\" to new user entries")

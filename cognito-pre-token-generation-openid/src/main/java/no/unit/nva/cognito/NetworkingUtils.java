@@ -12,7 +12,7 @@ public final class NetworkingUtils {
     public static final String APPLICATION_JSON = "application/json";
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String JWT_TOKEN_FIELD = "access_token";
-    public static final URI CRISTIN_HOST = UriWrapper.fromHost(API_DOMAIN).addChild("cristin-internal").getUri();
+    public static final URI CRISTIN_HOST = UriWrapper.fromHost(API_DOMAIN).addChild("cristin").getUri();
 
 
     // This should be equal to the "ClientName" field of in the UserPoolClient entry for the Backend client n the

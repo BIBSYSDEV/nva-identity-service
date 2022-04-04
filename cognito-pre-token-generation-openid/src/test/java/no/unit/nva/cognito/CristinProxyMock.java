@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
@@ -38,7 +39,7 @@ public class CristinProxyMock {
     public static final boolean IGNORE_ARRAY_ORDER = true;
     public static final boolean DO_NOT_IGNORE_OTHER_ELEMENTS = false;
     public static final boolean INACTIVE = false;
-    public static final int LARGE_NUBMER_TO_AVOID_TEST_SUCESS_BY_LACK = 100;
+    public static final int LARGE_NUMBER_TO_AVOID_TEST_SUCCESS_BY_LACK = 100;
     private static final Boolean MATCH_CASE = false;
     private static final boolean ACTIVE = true;
     private final Set<NationalIdentityNumber> peopleMatchedToSomeScenario;
@@ -52,7 +53,6 @@ public class CristinProxyMock {
     private NationalIdentityNumber personWithManyActiveAffiliations;
     private NationalIdentityNumber personWithActiveAffiliationThatIsNotCustomer;
     private List<URI> topLevelOrgUrisAndNvaCustomers;
-    private Set<BottomAndTopLevelOrgPair> bottomLevelOrgs;
     private Set<URI> bottomLevelOrgUris;
     private Map<URI, URI> bottomTopLevelOrgMap;
     private URI topLevelOrgUriNotNvaCustomer;
@@ -135,17 +135,26 @@ public class CristinProxyMock {
 
     private void createImaginaryOrganizationStructure() {
         createTopLevelOrgsThatAreGoingToBeNvaCustomers();
+        setUpBottomLevelOrgs();
         createTopLeveOrgThatIsNotACustomer();
+    }
+
+    private void setUpBottomLevelOrgs() {
+        Set<BottomAndTopLevelOrgPair> bottomLevelOrgs = createBottomLevelOrgsAttachedToSomeTopLevelOrg();
+        bottomTopLevelOrgMap = new HashMap<>();
+        bottomLevelOrgs.forEach(entry -> bottomTopLevelOrgMap.put(entry.getBottomLevelOrg(), entry.getTopLevelOrg()));
     }
 
     private void createTopLevelOrgsThatAreGoingToBeNvaCustomers() {
         topLevelOrgUrisAndNvaCustomers = smallSetOfTopLevelOrgUris();
-        bottomLevelOrgs = setOfBottomLevelOrgsSignificantlyBiggerThanTopLevelOrgSet();
+    }
+
+    private Set<BottomAndTopLevelOrgPair> createBottomLevelOrgsAttachedToSomeTopLevelOrg() {
+        var bottomLevelOrgs = setOfBottomLevelOrgsSignificantlyBiggerThanTopLevelOrgSet();
         bottomLevelOrgs.forEach(this::attachCristinOrgResponseToStub);
-        bottomLevelOrgUris = bottomLevelOrgs.stream().map(BottomAndTopLevelOrgPair::getBottomLevelOrg).collect(
-            Collectors.toSet());
-        bottomTopLevelOrgMap = new HashMap<>();
-        bottomLevelOrgs.forEach(entry -> bottomTopLevelOrgMap.put(entry.getBottomLevelOrg(), entry.getTopLevelOrg()));
+        bottomLevelOrgUris =
+            bottomLevelOrgs.stream().map(BottomAndTopLevelOrgPair::getBottomLevelOrg).collect(Collectors.toSet());
+        return bottomLevelOrgs;
     }
 
     private void createTopLeveOrgThatIsNotACustomer() {
@@ -156,8 +165,7 @@ public class CristinProxyMock {
     }
 
     private Set<BottomAndTopLevelOrgPair> setOfBottomLevelOrgsSignificantlyBiggerThanTopLevelOrgSet() {
-        return IntStream.range(0, 20)
-            .boxed()
+        return intStream(20)
             .map(ignored -> createRandomOrgUriForTheImaginarySetup())
             .map(bottomLevelOrgUri -> new BottomAndTopLevelOrgPair(bottomLevelOrgUri, randomElement(
                 topLevelOrgUrisAndNvaCustomers)))
@@ -165,14 +173,14 @@ public class CristinProxyMock {
     }
 
     private List<URI> smallSetOfTopLevelOrgUris() {
-        return IntStream.range(0, 5).boxed()
+        return intStream(10)
             .map(ignored -> createRandomOrgUriForTheImaginarySetup())
             .collect(Collectors.toList());
     }
 
     private List<CristinAffiliation> activeAndInactiveAffiliations() {
-        return IntStream.range(0, smallNumber()).boxed()
-            .map(ignores -> randomAffiliation(randomBoolean()))
+        return intStream(smallNumber())
+            .map(ignored -> randomAffiliation(randomBoolean()))
             .collect(Collectors.toList());
     }
 
@@ -207,8 +215,7 @@ public class CristinProxyMock {
     private void createPersonWithManyActiveAffiliations() {
         var person = nextPerson();
         personWithManyActiveAffiliations = person;
-        var affiliations = IntStream.range(0, LARGE_NUBMER_TO_AVOID_TEST_SUCESS_BY_LACK)
-            .boxed()
+        var affiliations = intStream(LARGE_NUMBER_TO_AVOID_TEST_SUCCESS_BY_LACK)
             .map(ignored -> randomAffiliation(ACTIVE))
             .collect(Collectors.toList());
 
@@ -216,9 +223,13 @@ public class CristinProxyMock {
         createStubResponseForPerson(person);
     }
 
+    private Stream<Integer> intStream(int range) {
+        return IntStream.range(0, range).boxed();
+    }
+
     private CristinPersonResponse createCristinRecord(NationalIdentityNumber person,
                                                       Collection<CristinAffiliation> affiliations) {
-        CristinPersonResponse response = CristinPersonResponse.builder()
+        var response = CristinPersonResponse.builder()
             .withNin(person)
             .withCristinId(randomPersonUri())
             .withAffiliations(new ArrayList<>(affiliations))

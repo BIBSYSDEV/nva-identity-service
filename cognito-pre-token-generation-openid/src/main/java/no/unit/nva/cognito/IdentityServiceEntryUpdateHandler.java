@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
@@ -52,6 +54,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 public class IdentityServiceEntryUpdateHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
+    private static final RoleDto MOST_BASIC_ROLE_FOR_A_USER = RoleDto.newBuilder().withRoleName("User").build();
     private final CristinClient cristinClient;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -83,6 +86,7 @@ public class IdentityServiceEntryUpdateHandler
                                                                 Context context) {
         this.logger = context.getLogger();
         final var authenticationInfo = collectInformationForPerson(input);
+        createUserRole();
         final var usersForPerson = createOrFetchUserEntriesForPerson(authenticationInfo);
         final var accessRights = accessRightsPerCustomer(usersForPerson);
         final var roles = rolesPerCustomer(usersForPerson);
@@ -103,6 +107,14 @@ public class IdentityServiceEntryUpdateHandler
             .httpClient(UrlConnectionHttpClient.create())
             .region(AWS_REGION)
             .build();
+    }
+
+    private void createUserRole() {
+        try {
+            identityService.addRole(MOST_BASIC_ROLE_FOR_A_USER);
+        } catch (Exception ignored) {
+            //Do nothing if role exists.
+        }
     }
 
     private Collection<String> rolesPerCustomer(List<UserDto> usersForPerson) {
@@ -273,6 +285,7 @@ public class IdentityServiceEntryUpdateHandler
         var feideIdentifier = authenticationInformation.getFeideIdentifier();
         var user = UserDto.newBuilder()
             .withUsername(formatUsername(cristinResponse, customer))
+            .withRoles(Collections.singletonList(MOST_BASIC_ROLE_FOR_A_USER))
             .withFeideIdentifier(feideIdentifier)
             .withInstitution(customer.getId())
             .withGivenName(cristinResponse.extractFirstName())

@@ -449,6 +449,17 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(actualUsername, is(equalTo(expectedUsername)));
     }
 
+    @ParameterizedTest(name = "should create role \"User\" when the role does not exist")
+    @EnumSource(LoginEventType.class)
+    void shouldCreateRoleUserWhenRoleDoesNotExist(LoginEventType loginEventType){
+        var person  = registeredPeople.personWithActiveAndInactiveAffiliations();
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event,context);
+        var expectedRole = RoleDto.newBuilder().withRoleName("User").build();
+        var actualRole =identityService.getRole(expectedRole);
+        assertThat(actualRole.getRoleName(),is(equalTo(expectedRole.getRoleName())));
+    }
+
     private String getUpdatedClaimFromCognito(String attributeName) {
         return congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
             .filter(attribute -> attributeName.equals(attribute.name()))

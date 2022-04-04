@@ -23,6 +23,7 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.hamcrest.core.Every.everyItem;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsIterableContaining.hasItem;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
@@ -45,9 +46,9 @@ import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
-import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -451,13 +452,30 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     @ParameterizedTest(name = "should create role \"User\" when the role does not exist")
     @EnumSource(LoginEventType.class)
-    void shouldCreateRoleUserWhenRoleDoesNotExist(LoginEventType loginEventType){
-        var person  = registeredPeople.personWithActiveAndInactiveAffiliations();
+    void shouldCreateRoleUserWhenRoleDoesNotExist(LoginEventType loginEventType) {
+        var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var event = randomEvent(person, loginEventType);
-        handler.handleRequest(event,context);
+        handler.handleRequest(event, context);
         var expectedRole = RoleDto.newBuilder().withRoleName("User").build();
-        var actualRole =identityService.getRole(expectedRole);
-        assertThat(actualRole.getRoleName(),is(equalTo(expectedRole.getRoleName())));
+        var actualRole = identityService.getRole(expectedRole);
+        assertThat(actualRole.getRoleName(), is(equalTo(expectedRole.getRoleName())));
+    }
+
+    @ParameterizedTest(name = "should add role \"User\" to new user entries")
+    @EnumSource(LoginEventType.class)
+    void shouldAddRoleUserToNewUserEntries(LoginEventType loginEventType) {
+        var person = registeredPeople.personWithActiveAndInactiveAffiliations();
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var users = scanAllUsers();
+        for (var user : users) {
+            assertThatUserHasUserRoleAttached(user);
+        }
+    }
+
+    private void assertThatUserHasUserRoleAttached(UserDto user) {
+        var userRoles = user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toList());
+        assertThat(userRoles, hasItem("User"));
     }
 
     private String getUpdatedClaimFromCognito(String attributeName) {

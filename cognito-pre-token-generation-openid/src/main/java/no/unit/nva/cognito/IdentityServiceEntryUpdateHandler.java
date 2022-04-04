@@ -54,7 +54,8 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 public class IdentityServiceEntryUpdateHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
-    private static final RoleDto MOST_BASIC_ROLE_FOR_A_USER = RoleDto.newBuilder().withRoleName("User").build();
+    private static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
+        RoleDto.newBuilder().withRoleName("Creator").build();
     private final CristinClient cristinClient;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -111,7 +112,7 @@ public class IdentityServiceEntryUpdateHandler
 
     private void createUserRole() {
         try {
-            identityService.addRole(MOST_BASIC_ROLE_FOR_A_USER);
+            identityService.addRole(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION);
         } catch (Exception ignored) {
             //Do nothing if role exists.
         }
@@ -285,7 +286,7 @@ public class IdentityServiceEntryUpdateHandler
         var feideIdentifier = authenticationInformation.getFeideIdentifier();
         var user = UserDto.newBuilder()
             .withUsername(formatUsername(cristinResponse, customer))
-            .withRoles(Collections.singletonList(MOST_BASIC_ROLE_FOR_A_USER))
+            .withRoles(Collections.singletonList(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
             .withFeideIdentifier(feideIdentifier)
             .withInstitution(customer.getId())
             .withGivenName(cristinResponse.extractFirstName())

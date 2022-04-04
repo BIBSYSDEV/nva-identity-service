@@ -72,7 +72,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final String NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES = null;
     private static final boolean ACTIVE = true;
     private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
-    public static final RoleDto USER_ROLE = RoleDto.newBuilder().withRoleName("User").build();
+    public static final RoleDto ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION = RoleDto.newBuilder().withRoleName("Creator").build();
 
     private final Context context = new FakeContext();
     private IdentityServiceEntryUpdateHandler handler;
@@ -451,29 +451,29 @@ class IdentityServiceEntryUpdateHandlerTest {
         assertThat(actualUsername, is(equalTo(expectedUsername)));
     }
 
-    @ParameterizedTest(name = "should create role \"User\" when the role does not exist")
+    @ParameterizedTest(name = "should create role \"Creator\" when the role does not exist")
     @EnumSource(LoginEventType.class)
     void shouldCreateRoleUserWhenRoleDoesNotExist(LoginEventType loginEventType) {
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
 
-        var actualRole = identityService.getRole(USER_ROLE);
-        assertThat(actualRole.getRoleName(), is(equalTo(USER_ROLE.getRoleName())));
+        var actualRole = identityService.getRole(ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION);
+        assertThat(actualRole.getRoleName(), is(equalTo(ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION.getRoleName())));
     }
 
-    @ParameterizedTest(name = "should not fail when role \"User\" already exits")
+    @ParameterizedTest(name = "should not fail when role \"Creator\" already exits")
     @EnumSource(LoginEventType.class)
     void shouldNotFailWhenUserRoleAlreadyExists(LoginEventType loginEventType) {
-        identityService.addRole(USER_ROLE);
+        identityService.addRole(ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION);
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
-        var actualRole = identityService.getRole(USER_ROLE);
-        assertThat(actualRole.getRoleName(), is(equalTo(USER_ROLE.getRoleName())));
+        var actualRole = identityService.getRole(ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION);
+        assertThat(actualRole.getRoleName(), is(equalTo(ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION.getRoleName())));
     }
 
-    @ParameterizedTest(name = "should add role \"User\" to new user entries")
+    @ParameterizedTest(name = "should add role \"Creator\" to new user entries")
     @EnumSource(LoginEventType.class)
     void shouldAddRoleUserToNewUserEntries(LoginEventType loginEventType) {
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
@@ -487,7 +487,7 @@ class IdentityServiceEntryUpdateHandlerTest {
 
     private void assertThatUserHasUserRoleAttached(UserDto user) {
         var userRoles = user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toList());
-        assertThat(userRoles, hasItem("User"));
+        assertThat(userRoles, hasItem("Creator"));
     }
 
     private String getUpdatedClaimFromCognito(String attributeName) {

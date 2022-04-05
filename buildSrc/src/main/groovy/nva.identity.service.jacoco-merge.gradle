@@ -57,10 +57,10 @@ task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
     }
 
     reports {
-        xml.required true
+        xml.required = true
     }
 }
 
-build{
+build {
     finalizedBy jacocoRootReport
 }

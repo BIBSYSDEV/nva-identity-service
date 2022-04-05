@@ -42,6 +42,7 @@ public class CristinProxyMock {
     public static final int LARGE_NUMBER_TO_AVOID_TEST_SUCCESS_BY_LACK = 100;
     private static final Boolean MATCH_CASE = false;
     private static final boolean ACTIVE = true;
+    public static final int LARGE_NUMBER_TO_ENSURE_THE_EXISTENCE_OF_BOTH_ACTIVE_AND_INACTIVE_AFFILIATIONS = 50;
     private final Set<NationalIdentityNumber> peopleMatchedToSomeScenario;
     private final DataportenMock dataporten;
     private final URI cristinPersonHost;
@@ -165,7 +166,7 @@ public class CristinProxyMock {
     }
 
     private Set<BottomAndTopLevelOrgPair> setOfBottomLevelOrgsSignificantlyBiggerThanTopLevelOrgSet() {
-        return intStream(20)
+        return intStream(LARGE_NUMBER_TO_ENSURE_THE_EXISTENCE_OF_BOTH_ACTIVE_AND_INACTIVE_AFFILIATIONS)
             .map(ignored -> createRandomOrgUriForTheImaginarySetup())
             .map(bottomLevelOrgUri -> new BottomAndTopLevelOrgPair(bottomLevelOrgUri, randomElement(
                 topLevelOrgUrisAndNvaCustomers)))

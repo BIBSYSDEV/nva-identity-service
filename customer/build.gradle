@@ -3,19 +3,22 @@ plugins {
     id 'nva.identity.service.dynamodblocal'
 }
 apply plugin: 'nva.identity.service.java-common-conventions'
+
 dependencies {
     implementation project(":customer-commons")
+    implementation project(":json")
 
-    implementation libs.nva.apigateway
-
+    implementation libs.nva.apigatewayv2
+    implementation libs.nva.core
     implementation libs.bundles.aws.lambda
-    implementation libs.aws.dynamodb
+    implementation libs.aws.sdk2.dynamodb
     implementation libs.guava
+    implementation libs.bundles.jackson
     testImplementation project(":customer-testing")
     testImplementation project(":user-access-testing")
 
 }
 
-test{
-    environment "CUSTOMERS_TABLE_NAME","nva_customers"
+test {
+    environment "CUSTOMERS_TABLE_NAME", "nva_customers"
 }

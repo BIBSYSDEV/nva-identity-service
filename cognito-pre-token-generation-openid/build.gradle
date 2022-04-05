@@ -1,0 +1,45 @@
+plugins {
+    id 'nva.identity.service.java-application-conventions'
+    id 'nva.identity.service.dynamodblocal'
+
+}
+
+dependencies {
+
+
+    implementation project(":json")
+    implementation project(":dynamo-client")
+    implementation project (":customer-commons")
+    implementation project (":user-access-commons")
+    implementation project (":user-access-service")
+    implementation project (":user-access-public-model")
+
+    implementation libs.nva.apigatewayv2
+    implementation libs.aws.java.sdk2.cognitoidp
+    implementation libs.aws.sdk2.urlconnection
+    implementation libs.aws.lambda.java.core
+    implementation libs.bundles.jackson
+    implementation libs.nva.core
+    implementation libs.aws.lambda.events
+
+    implementation libs.nva.core
+    implementation libs.aws.sdk2.dynamodbenhanced
+    implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.urlconnection
+
+
+    testImplementation libs.slf4j
+    testImplementation libs.guava
+    testImplementation libs.nva.events
+    testImplementation project (":user-access-internal-model")
+    testImplementation project (":customer-testing")
+    testImplementation project(':user-access-testing')
+}
+
+test{
+    environment "COGNITO_HOST", "example.com"
+    environment "AWS_REGION", "eu-west-1"
+    environment "API_DOMAIN", "example.com"
+    environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
+    environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
+}

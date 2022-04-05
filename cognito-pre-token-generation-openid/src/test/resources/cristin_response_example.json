@@ -1,0 +1,66 @@
+{
+  "@context": "https://example.org/person-context.json",
+  "id": "https://api.sandbox.nva.aws.unit.no/cristin/person/12345#af1",
+  "type": "Person",
+  "identifiers": [
+    {
+      "type": "CristinIdentifier",
+      "value": "12345"
+    }
+  ],
+  "names": [
+    {
+      "type": "LastName",
+      "value": "Gkorgkas"
+    },
+    {
+      "type": "FirstName",
+      "value": "Orestis"
+    }
+  ],
+  "affiliations": [
+    {
+      "id": "af1",
+      "type": "Affiliation",
+      "organization": "https://api.sandbox.nva.aws.unit.no/cristin/organization/185.39.59.20",
+      "active": false,
+      "role": {
+        "type": "Role",
+        "id": "https://example.org/link/to/ontology#1026",
+        "labels": {
+          "en": "Guest",
+          "nb": "Gjest"
+        }
+      }
+    },
+    {
+      "type": "Affiliation",
+      "organization": "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.63.10.0",
+      "active": true,
+      "role": {
+        "type": "Role",
+        "id": "https://example.org/link/to/ontology#1026",
+        "labels": {
+          "en": "Associate professor",
+          "nb": "Førsteamanuensis"
+        }
+      }
+    },
+
+    {
+      "type": "Affiliation",
+      "organization": "https://api.sandbox.nva.aws.unit.no/cristin/organization/194.52.25.0",
+      "active": false,
+      "role": {
+        "type": "Role",
+        "id": "https://example.org/link/to/ontology#1026",
+        "labels": {
+          "en": "Associate professor",
+          "nb": "Førsteamanuensis"
+        }
+      }
+    }
+  ],
+  "NationalIdentificationNumber": "123456789",
+  "reserved": false
+}

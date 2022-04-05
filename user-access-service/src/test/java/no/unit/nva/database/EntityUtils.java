@@ -1,15 +1,13 @@
 package no.unit.nva.database;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.useraccessserivce.accessrights.AccessRight;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.accessrights.AccessRight;
 
 public final class EntityUtils {
 
@@ -55,7 +53,7 @@ public final class EntityUtils {
             .collect(Collectors.toSet());
         return
             RoleDto.newBuilder()
-                .withName(someRole)
+                .withRoleName(someRole)
                 .withAccessRights(sampleAccessRights)
                 .build();
     }

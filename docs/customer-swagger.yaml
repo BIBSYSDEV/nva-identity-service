@@ -25,7 +25,7 @@ paths:
     post:
       summary: Create Customer
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend"]
       requestBody:
         required: true
         content:
@@ -135,7 +135,7 @@ paths:
     get:
       summary: Get Customer
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to get.
@@ -195,7 +195,7 @@ paths:
     put:
       summary: Update Customer
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
@@ -261,7 +261,7 @@ paths:
   /{identifier}/vocabularies:
     get:
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer
@@ -294,7 +294,7 @@ paths:
     post:
       summary: Create vocabulary definition for customer
       security:
-        - EditorUsers: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
@@ -426,19 +426,19 @@ paths:
               examples:
                 BadGatewatExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
-  /orgNumber/{orgNumber}:
+  /orgDomain/{orgDomain}:
     get:
-      summary: Get CustomerIdentifiers by orgNumber
+      summary: Get CustomerIdentifiers by orgDomain
       parameters:
-        - name: orgNumber
-          description: OrgNumber of the CustomerIdentifiers to get
+        - name: orgDomain
+          description: the Feide org domain of the CustomerIdentifiers to get
           required: true
           in: path
           schema:
             type: string
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgNumberFunction.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByOrgDomainFunction.Arn}/invocations
         responses: {}
         httpMethod: POST
         type: AWS_PROXY
@@ -483,7 +483,7 @@ paths:
     get:
       summary: Get Customer by cristinId
       security:
-        - CognitoUserPool: []
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - name: cristinId
           description: CristinId of the Customer to get
@@ -553,16 +553,6 @@ components:
         providerARNs:
           - Fn::GetAtt: UserPool.Arn
       description: Allows authenticated users to read data from customers table
-    EditorUsers:
-      type: apiKey
-      name: Authorization
-      in: header
-      x-amazon-apigateway-authtype: cognito_user_pools
-      x-amazon-apigateway-authorizer:
-        type: cognito_user_pools
-        providerARNs:
-          - Fn::GetAtt: UserPool.Arn
-      description: Allows authenticated Editors to read data from customers table
   schemas:
     CustomerIdentifier:
       type: string

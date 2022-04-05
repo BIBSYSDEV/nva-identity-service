@@ -6,9 +6,7 @@ plugins {
 dependencies {
     implementation project (":customer-commons")
     implementation libs.dynamoDbLocal
-    implementation libs.aws.dynamodb
-    implementation libs.bundles.jackson
+    implementation libs.nva.core
+    implementation libs.aws.sdk2.dynamodb
     implementation libs.bundles.testing
-    implementation libs.bundles.problem
-
 }

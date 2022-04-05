@@ -1,13 +1,11 @@
 package no.unit.nva.useraccess.events.client;
 
+import no.unit.nva.identityservice.json.JsonConfig;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import nva.commons.core.JacocoGenerated;
-
 import java.net.URI;
-
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
-import static nva.commons.core.attempt.Try.attempt;
+import nva.commons.core.JacocoGenerated;
 
 public class DeleteIdentifierRequest {
 
@@ -29,6 +27,6 @@ public class DeleteIdentifierRequest {
     }
 
     public String toJson() {
-        return attempt(() -> dtoObjectMapper.writeValueAsString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
     }
 }

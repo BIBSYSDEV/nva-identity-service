@@ -1,8 +1,7 @@
 package no.unit.nva.customer.exception;
 
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-
-import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import java.net.HttpURLConnection;
+import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
 
 public class InputException extends ApiGatewayException {
 
@@ -12,6 +11,6 @@ public class InputException extends ApiGatewayException {
 
     @Override
     protected Integer statusCode() {
-        return SC_BAD_REQUEST;
+        return HttpURLConnection.HTTP_BAD_REQUEST;
     }
 }

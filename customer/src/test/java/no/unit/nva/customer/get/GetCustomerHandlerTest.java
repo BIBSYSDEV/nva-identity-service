@@ -1,60 +1,39 @@
 package no.unit.nva.customer.get;
 
+import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
+import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID;
+import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import no.unit.nva.customer.RestConfig;
+import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.MediaTypes;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
-import org.apache.http.HttpStatus;
+import no.unit.nva.stubs.FakeContext;
+import nva.commons.apigatewayv2.MediaTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.zalando.problem.Problem;
-import org.zalando.problem.ThrowableProblem;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Map;
-import java.util.UUID;
+class GetCustomerHandlerTest {
 
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
-import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
-import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID;
-import static no.unit.nva.customer.testing.TestHeaders.getErrorResponseHeaders;
-import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.zalando.problem.Status.BAD_REQUEST;
-
-public class GetCustomerHandlerTest {
-
-    public static final String WILDCARD = "*";
-
-    public static final String REQUEST_ID = "requestId";
     public static final String MALFORMED_IDENTIFIER = "for-testing";
     public static final MediaType UNSUPPORTED_MEDIA_TYPE = MediaType.BZIP2;
 
-
     private CustomerService customerServiceMock;
-    private Environment environmentMock;
     private GetCustomerHandler handler;
-    private ByteArrayOutputStream outputStream;
     private Context context;
 
     /**
@@ -63,125 +42,109 @@ public class GetCustomerHandlerTest {
     @BeforeEach
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
-        environmentMock = mock(Environment.class);
-        when(environmentMock.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
-        handler = new GetCustomerHandler(customerServiceMock, environmentMock);
-        outputStream = new ByteArrayOutputStream();
-        context = Mockito.mock(Context.class);
+        handler = new GetCustomerHandler(customerServiceMock);
+
+        context = new FakeContext();
     }
 
     @Test
-    public void requestToHandlerReturnsCustomer() throws Exception {
+    void requestToHandlerWithJsonLdAcceptHeaderReturnsJsonLdMediaType() {
         UUID identifier = UUID.randomUUID();
-        CustomerDto customerDto = prepareServiceWithCustomer(identifier);
+        prepareServiceWithCustomer(identifier);
+        var supportedHeaders = new RequestHeaders(MediaTypes.APPLICATION_JSON_LD);
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
+        var input = new APIGatewayProxyRequestEvent()
+            .withHeaders(supportedHeaders.getRequestHeaders())
+            .withMultiValueHeaders(supportedHeaders.getMultiValueRequestHeaders())
+            .withPathParameters(pathParameters);
 
-        InputStream inputStream = createGetCustomerRequest(customerDto);
-        handler.handleRequest(inputStream, outputStream, context);
+        var response = handler.handleRequest(input, context);
 
-        GatewayResponse<CustomerDto> actual = GatewayResponse.fromOutputStream(outputStream);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE),
+                   is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
+    }
 
-        assertEquals(HttpStatus.SC_OK, actual.getStatusCode());
-        CustomerDto actualCustomerDto = actual.getBodyObject(CustomerDto.class);
+    @Test
+    void requestToHandlerReturnsCustomer() {
+        var identifier = UUID.randomUUID();
+        var customerDto = prepareServiceWithCustomer(identifier);
+        var inputStream = createGetCustomerRequest(customerDto);
+
+        var response = handler.handleRequest(inputStream, context);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        CustomerDto actualCustomerDto = CustomerDto.fromJson(response.getBody());
         assertThat(actualCustomerDto.getId(), notNullValue());
         assertThat(actualCustomerDto.getContext(), notNullValue());
         assertThat(actualCustomerDto, equalTo(customerDto));
     }
 
     @Test
-    public void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws Exception {
+    void requestToHandlerWithMalformedIdentifierReturnsBadRequest() {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(defaultRestObjectMapper)
+        var input = new APIGatewayProxyRequestEvent()
             .withHeaders(getRequestHeaders())
-            .withPathParameters(pathParameters)
-            .build();
+            .withPathParameters(pathParameters);
 
-        handler.handleRequest(inputStream, outputStream, context);
-
-        GatewayResponse actual = GatewayResponse.fromOutputStream(outputStream);
-
-        ThrowableProblem problem = Problem.builder()
-                .withStatus(BAD_REQUEST)
-                .withTitle(BAD_REQUEST.getReasonPhrase())
-                .withDetail(IDENTIFIER_IS_NOT_A_VALID_UUID + MALFORMED_IDENTIFIER)
-                .with(REQUEST_ID, null)
-                .build();
-
-
-        GatewayResponse<Problem> expected = new GatewayResponse<>(
-            defaultRestObjectMapper.writeValueAsString(problem),
-            getErrorResponseHeaders(),
-            SC_BAD_REQUEST
-        );
-
-        assertEquals(expected, actual);
+        var response = handler.handleRequest(input, context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(response.getBody(), containsString(IDENTIFIER_IS_NOT_A_VALID_UUID + MALFORMED_IDENTIFIER));
     }
 
     @Test
-    public void requestToHandlerWithUnsupportedAcceptHeaderReturnsUnsupportedMediaType() throws Exception {
+    void requestToHandlerWithUnsupportedAcceptHeaderReturnsUnsupportedMediaType() {
         UUID identifier = UUID.randomUUID();
         prepareServiceWithCustomer(identifier);
-
+        RequestHeaders unsupportedRequestHeaders = new RequestHeaders(UNSUPPORTED_MEDIA_TYPE);
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(defaultRestObjectMapper)
-            .withHeaders(getRequestHeadersWithUnsupportedMediaType())
-            .withPathParameters(pathParameters)
-            .build();
+        var input = new APIGatewayProxyRequestEvent()
+            .withHeaders(unsupportedRequestHeaders.getRequestHeaders())
+            .withMultiValueHeaders(unsupportedRequestHeaders.getMultiValueRequestHeaders())
+            .withPathParameters(pathParameters);
 
-        handler.handleRequest(inputStream, outputStream, context);
+        var response = handler.handleRequest(input, context);
 
-        GatewayResponse actual = GatewayResponse.fromOutputStream(outputStream);
-
-        assertEquals(HttpURLConnection.HTTP_UNSUPPORTED_TYPE, actual.getStatusCode());
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_UNSUPPORTED_TYPE)));
     }
 
-    @Test
-    public void requestToHandlerWithJsonLdAcceptHeaderReturnsJsonLdMediaType() throws Exception {
-        UUID identifier = UUID.randomUUID();
-        prepareServiceWithCustomer(identifier);
 
-        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        InputStream inputStream = new HandlerRequestBuilder<CustomerDao>(defaultRestObjectMapper)
-            .withHeaders(getRequestHeadersWithMediaType(MediaTypes.APPLICATION_JSON_LD))
-            .withPathParameters(pathParameters)
-            .build();
-
-        handler.handleRequest(inputStream, outputStream, context);
-
-        GatewayResponse<CustomerDto> actual = GatewayResponse.fromOutputStream(outputStream);
-
-        assertEquals(HttpURLConnection.HTTP_OK, actual.getStatusCode());
-        assertEquals(MediaTypes.APPLICATION_JSON_LD.toString(), actual.getHeaders().get(HttpHeaders.CONTENT_TYPE));
-    }
-
-    private static Map<String, String> getRequestHeadersWithUnsupportedMediaType() {
-        return Map.of(
-            HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
-            HttpHeaders.ACCEPT, UNSUPPORTED_MEDIA_TYPE.toString()
-        );
-    }
-
-    private static Map<String, String> getRequestHeadersWithMediaType(MediaType mediaType) {
-        return Map.of(
-            HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
-            HttpHeaders.ACCEPT, mediaType.toString()
-        );
-    }
-
-    private InputStream createGetCustomerRequest(CustomerDto customerDto) throws JsonProcessingException {
+    private APIGatewayProxyRequestEvent createGetCustomerRequest(CustomerDto customerDto) {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
-        return new HandlerRequestBuilder<CustomerDto>(defaultRestObjectMapper)
-            .withBody(customerDto)
+        return new APIGatewayProxyRequestEvent()
+            .withBody(customerDto.toString())
             .withHeaders(getRequestHeaders())
-            .withPathParameters(pathParameters)
-            .build();
+            .withPathParameters(pathParameters);
     }
 
-    private CustomerDto prepareServiceWithCustomer(UUID identifier) throws ApiGatewayException {
+    private CustomerDto prepareServiceWithCustomer(UUID identifier) {
         CustomerDao customerDb = new CustomerDao.Builder()
             .withIdentifier(identifier)
             .build();
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);
         return customerDto;
+    }
+
+    public static class RequestHeaders {
+
+        private final MediaType mediaType;
+
+        public RequestHeaders(MediaType mediaType) {
+            this.mediaType = mediaType;
+        }
+
+        public Map<String, String> getRequestHeaders() {
+            return Map.of(
+                HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
+                HttpHeaders.ACCEPT, mediaType.toString()
+            );
+        }
+
+        public Map<String, List<String>> getMultiValueRequestHeaders() {
+            return Map.of(
+                HttpHeaders.ACCEPT, List.of(mediaType.toString())
+            );
+        }
     }
 }

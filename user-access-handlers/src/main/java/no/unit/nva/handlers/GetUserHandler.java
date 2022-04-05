@@ -2,15 +2,13 @@ package no.unit.nva.handlers;
 
 import static java.util.function.Predicate.not;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
+import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
@@ -19,34 +17,32 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
     @JacocoGenerated
     public GetUserHandler() {
-        this(new Environment(), new IdentityServiceImpl());
+        this(new IdentityServiceImpl());
     }
 
-    public GetUserHandler(Environment environment, IdentityService databaseService) {
-        super(Void.class, environment);
+    public GetUserHandler(IdentityService databaseService) {
+        super();
         this.databaseService = databaseService;
     }
 
     @Override
-    protected UserDto processInput(Void input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
+    protected Integer getSuccessStatusCode(String input, UserDto output) {
+        return HttpURLConnection.HTTP_OK;
+    }
 
+    @Override
+    protected UserDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
         String username = extractValidUserNameOrThrowException(requestInfo);
         UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
         return databaseService.getUser(queryObject);
     }
 
-    @Override
-    protected Integer getSuccessStatusCode(Void input, UserDto output) {
-        return HttpURLConnection.HTTP_OK;
-    }
-
-    private String extractValidUserNameOrThrowException(RequestInfo requestInfo) throws BadRequestException {
+    private String extractValidUserNameOrThrowException(APIGatewayProxyRequestEvent requestInfo) {
         return Optional.of(requestInfo)
-                   .map(RequestInfo::getPathParameters)
-                   .map(map -> map.get(USERNAME_PATH_PARAMETER))
-                   .map(this::decodeUrlPart)
-                   .filter(not(String::isBlank))
-                   .orElseThrow(() -> new BadRequestException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
+            .map(APIGatewayProxyRequestEvent::getPathParameters)
+            .map(map -> map.get(USERNAME_PATH_PARAMETER))
+            .map(this::decodeUrlPart)
+            .filter(not(String::isBlank))
+            .orElseThrow(() -> new BadRequestException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
     }
 }

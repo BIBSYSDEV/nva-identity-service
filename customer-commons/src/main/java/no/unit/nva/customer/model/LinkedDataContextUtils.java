@@ -29,7 +29,7 @@ public final class LinkedDataContextUtils {
     }
 
     public static URI toId(UUID identifier) {
-        return new UriWrapper(ID_NAMESPACE).addChild(identifier.toString()).getUri();
+        return UriWrapper.fromUri(ID_NAMESPACE).addChild(identifier.toString()).getUri();
     }
 
     private static String getIdNamespace() {

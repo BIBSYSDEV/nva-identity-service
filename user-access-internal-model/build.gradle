@@ -6,13 +6,12 @@ plugins {
 dependencies {
 
     implementation libs.bundles.logging
+    implementation libs.nva.core
+    implementation libs.nva.apigatewayv2
     implementation libs.bundles.jackson
-    implementation libs.nva.apigateway
-    implementation libs.aws.dynamodb
+    implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.dynamodbenhanced
 
-
-    compileOnly project(":user-access-rights")
-    testImplementation project(":user-access-rights")
 
     compileOnly project(":user-access-public-model")
     testImplementation project(":user-access-public-model")
@@ -20,12 +19,10 @@ dependencies {
     compileOnly project(":user-access-commons")
     testImplementation project(":user-access-commons")
 
-    compileOnly project(":user-access-errors")
-    testImplementation project(":user-access-errors")
     testImplementation project(":user-access-testing")
 
 }
 
-test{
+test {
     environment "API_HOST", "api.dev.aws.nva.unit.no"
 }

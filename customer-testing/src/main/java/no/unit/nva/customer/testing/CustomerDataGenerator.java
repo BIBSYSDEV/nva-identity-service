@@ -7,6 +7,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.time.Period;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -31,8 +32,8 @@ public class CustomerDataGenerator {
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
             .withName(randomString())
-            .withCristinId(randomString())
-            .withFeideOrganizationId(randomString())
+            .withCristinId(randomUri())
+            .withFeideOrganizationDomain(randomString())
             .withModifiedDate(randomInstant())
             .withIdentifier(identifier)
             .withId(id)
@@ -51,7 +52,7 @@ public class CustomerDataGenerator {
     }
 
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
-        VocabularyDao vocabulary = randomVocabulary();
+        VocabularyDao vocabulary = randomVocabularyDao();
         return Set.of(vocabulary)
             .stream()
             .map(VocabularyDao::toVocabularySettingsDto)
@@ -59,16 +60,16 @@ public class CustomerDataGenerator {
     }
 
     public static CustomerDao createSampleCustomerDao() {
-        VocabularyDao vocabulary = randomVocabulary();
+        VocabularyDao vocabulary = randomVocabularyDao();
         CustomerDao customer = CustomerDao.builder()
             .withIdentifier(randomIdentifier())
             .withName(randomString())
             .withModifiedDate(randomInstant())
             .withShortName(randomString())
-            .withCristinId(randomString())
+            .withCristinId(randomUri())
             .withVocabularySettings(Set.of(vocabulary))
             .withInstitutionDns(randomString())
-            .withFeideOrganizationId(randomString())
+            .withFeideOrganizationDomain(randomString())
             .withDisplayName(randomString())
             .withCreatedDate(randomInstant())
             .withCname(randomString())
@@ -106,9 +107,18 @@ public class CustomerDataGenerator {
             .getUri();
     }
 
-    private static VocabularyDao randomVocabulary() {
+    public static VocabularyDao randomVocabularyDao() {
         return new VocabularyDao(randomString(), randomUri(),
                                  randomElement(VocabularyStatus.values()));
+    }
+
+    public static VocabularyDto randomVocabularyDto() {
+        return new VocabularyDto(randomString(), randomUri(),
+                                 randomElement(VocabularyStatus.values()));
+    }
+
+    public static List<VocabularyDto> randomVocabularies() {
+        return List.of(randomVocabularyDto(), randomVocabularyDto(), randomVocabularyDto());
     }
 }
 

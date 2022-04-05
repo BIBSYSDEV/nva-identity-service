@@ -1,14 +1,5 @@
 package no.unit.nva.customer.model.interfaces;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.testing.CustomerDataGenerator;
-import org.junit.jupiter.api.Test;
-
-import java.net.URI;
-
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
@@ -17,34 +8,41 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.VocabularyList;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
+import no.unit.nva.identityservice.json.JsonConfig;
+import org.junit.jupiter.api.Test;
 
 class VocabularySettingsListTest {
 
     @Test
-    void serializationReturnsObjectWithContextEqualToCustomersContext() throws JsonProcessingException {
+    void serializationReturnsObjectWithContextEqualToCustomersContext() throws IOException {
         VocabularyList list = randomVocabularyList();
-        ObjectNode json = toJson(list);
-        assertThat(json.get(LINKED_DATA_CONTEXT).textValue(), is(equalTo(LINKED_DATA_CONTEXT_VALUE.toString())));
+        var json = toJsonMap(list);
+        assertThat(json.get(LINKED_DATA_CONTEXT).toString(), is(equalTo(LINKED_DATA_CONTEXT_VALUE.toString())));
     }
 
     @Test
-    void serializationReturnsObjectWithIdEqualToTheGetPathForRetrievingTheVocabularyList()
-        throws JsonProcessingException {
+    void serializationReturnsObjectWithIdEqualToTheGetPathForRetrievingTheVocabularyList() throws IOException {
         CustomerDto customer = CustomerDataGenerator.createSampleCustomerDto();
         VocabularyList list = VocabularyList.fromCustomerDto(customer);
         URI expectedListId = URI.create(customer.getId() + "/vocabularies");
-        ObjectNode json = toJson(list);
+        var json = toJsonMap(list);
 
         assertThat(customer.getId(), is(not(nullValue())));
-        assertThat(json.get(LINKED_DATA_ID).textValue(), is(equalTo(expectedListId.toString())));
+        assertThat(json.get(LINKED_DATA_ID).toString(), is(equalTo(expectedListId.toString())));
     }
 
     private VocabularyList randomVocabularyList() {
         return VocabularyList.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
     }
 
-    private ObjectNode toJson(VocabularyList list) throws JsonProcessingException {
-        String jsonString = defaultRestObjectMapper.writeValueAsString(list);
-        return (ObjectNode) defaultRestObjectMapper.readTree(jsonString);
+    private Map<String, Object> toJsonMap(VocabularyList list) throws IOException {
+        String jsonString = JsonConfig.asString(list);
+        return  JsonConfig.mapFrom(jsonString);
     }
 }

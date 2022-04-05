@@ -3,15 +3,12 @@ package no.unit.nva.customer.model;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
-import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
 import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
-import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.HashSet;
@@ -20,20 +17,10 @@ import java.util.UUID;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-public class CustomerTest {
+class CustomerTest {
 
     @Test
-    public void customerMappedToJsonAndBack() throws JsonProcessingException {
-        CustomerDao customer = createCustomerDb();
-        CustomerDao mappedCustomer = defaultDynamoConfigMapper.readValue(
-                defaultDynamoConfigMapper.writeValueAsString(customer), CustomerDao.class);
-
-        assertEquals(customer, mappedCustomer);
-        assertThat(customer, doesNotHaveEmptyValues());
-    }
-
-    @Test
-    public void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() {
+    void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() {
         CustomerDao customerDb = createCustomerDb();
         CustomerDto customerDto = customerDb.toCustomerDto();
 
@@ -45,7 +32,7 @@ public class CustomerTest {
     }
 
     @Test
-    public void customerMapperCanMapCustomerDbToCustomerDto() {
+    void customerMapperCanMapCustomerDbToCustomerDto() {
         CustomerDao customerDb = createCustomerDb();
         CustomerDto customerDto = customerDb.toCustomerDto();
         assertNotNull(customerDto);
@@ -53,10 +40,10 @@ public class CustomerTest {
     }
 
     @Test
-    public void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
+    void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
         String value = "Unknown";
         IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
-                                                       () -> VocabularyStatus.lookup(value));
+                                                       () -> VocabularyStatus.lookUp(value));
 
         String expectedMessage = format(ERROR_MESSAGE_TEMPLATE, value,
                                         stream(VocabularyStatus.values())
@@ -67,7 +54,7 @@ public class CustomerTest {
     }
 
     @Test
-    public void vocacularySettingsDoesNotContainDuplicates() {
+    void vocacularySettingsDoesNotContainDuplicates() {
         CustomerDao customerDb = createCustomerDb();
         customerDb.getVocabularies().add(vocabularySetting());
 
@@ -90,8 +77,8 @@ public class CustomerTest {
             .withArchiveName("Archive Name")
             .withCname("CNAME")
             .withInstitutionDns("institution.dns")
-            .withFeideOrganizationId("123456789")
-            .withCristinId(randomCristinOrgId().toString())
+            .withFeideOrganizationDomain("123456789")
+            .withCristinId(randomCristinOrgId())
             .withVocabularySettings(vocabularySettings)
             .build();
     }
@@ -100,7 +87,7 @@ public class CustomerTest {
         return new VocabularyDao(
             "Vocabulary A",
             URI.create("http://uri.to.vocabulary.a"),
-            VocabularyStatus.lookup("Default")
+            VocabularyStatus.lookUp("Default")
         );
     }
 }

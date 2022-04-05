@@ -1,40 +1,32 @@
 package no.unit.nva.customer.get;
 
+import static java.util.Collections.singletonList;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomUri;
+import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
 import com.amazonaws.services.lambda.runtime.Context;
-import no.unit.nva.customer.model.CustomerDao;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import java.net.HttpURLConnection;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.core.Environment;
-import org.apache.http.HttpStatus;
+import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
+import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
+import no.unit.nva.stubs.FakeContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.UUID;
+class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
-import static java.util.Collections.singletonList;
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
-import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-public class GetAllCustomersHandlerTest {
-
-    public static final String WILDCARD = "*";
-
-    private CustomerService customerServiceMock;
+    private CustomerService customerService;
     private GetAllCustomersHandler handler;
-    private ByteArrayOutputStream outputStream;
+
     private Context context;
 
     /**
@@ -42,39 +34,51 @@ public class GetAllCustomersHandlerTest {
      */
     @BeforeEach
     public void setUp() {
-        customerServiceMock = mock(CustomerService.class);
-        Environment environmentMock = mock(Environment.class);
-        when(environmentMock.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
-        handler = new GetAllCustomersHandler(customerServiceMock, environmentMock);
-        outputStream = new ByteArrayOutputStream();
-        context = Mockito.mock(Context.class);
+        this.setupDatabase();
+        customerService = new DynamoDBCustomerService(this.dynamoClient);
+        handler = new GetAllCustomersHandler(customerService);
+        context = new FakeContext();
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void requestToHandlerReturnsCustomerList() throws Exception {
-        UUID identifier = UUID.randomUUID();
-        CustomerDao customerDb = new CustomerDao.Builder()
-                .withIdentifier(identifier)
-                .build();
+    void requestToHandlerReturnsCustomerList() {
 
-        CustomerDto customerDto = customerDb.toCustomerDto();
-        when(customerServiceMock.getCustomers()).thenReturn(singletonList(customerDto));
+        var savedCustomer = insertRandomCustomer();
+        var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
+        var response = handler.handleRequest(input, context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 
-        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
-                .withHeaders(getRequestHeaders())
-                .build();
-
-        handler.handleRequest(inputStream, outputStream, context);
-
-        GatewayResponse<CustomerList> actual = GatewayResponse.fromOutputStream(outputStream);
-
-        assertEquals(HttpStatus.SC_OK, actual.getStatusCode());
-        CustomerList actualCustomerList = actual.getBodyObject(CustomerList.class);
+        CustomerList actualCustomerList = CustomerList.fromString(response.getBody());
         assertThat(actualCustomerList.getId(), notNullValue());
         assertThat(actualCustomerList.getContext(), notNullValue());
 
-        CustomerList customerList = new CustomerList(singletonList(customerDto));
+        CustomerList customerList = new CustomerList(singletonList(savedCustomer));
         assertThat(actualCustomerList, equalTo(customerList));
+    }
+
+    @Test
+    void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate() {
+        var existingCustomer = insertRandomCustomer();
+        var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
+        var response = handler.handleRequest(input, context);
+        var customerList = CustomerList.fromString(response.getBody());
+        assertThat(customerList.getId(), notNullValue());
+        assertThat(customerList.getContext(), notNullValue());
+
+        for (var customer : customerList.getCustomers()) {
+            assertThat(customer.getDisplayName(), is(equalTo(existingCustomer.getDisplayName())));
+            assertThat(customer.getId(), is(equalTo(existingCustomer.getId())));
+            assertThat(customer.getCreatedDate(), is(equalTo(existingCustomer.getCreatedDate())));
+            assertThat(customer, is(not(instanceOf(CustomerDto.class))));
+        }
+    }
+
+    private CustomerDto insertRandomCustomer() {
+        var customer = CustomerDto.builder()
+            .withDisplayName(randomString())
+            .withCristinId(randomUri())
+            .build();
+        customerService.createCustomer(customer);
+        return customerService.getCustomerByCristinId(customer.getCristinId());
     }
 }

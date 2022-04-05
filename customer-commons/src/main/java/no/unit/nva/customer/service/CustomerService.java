@@ -1,21 +1,23 @@
 package no.unit.nva.customer.service;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
 
 public interface CustomerService {
 
-    CustomerDto getCustomer(UUID identifier) throws ApiGatewayException;
+    CustomerDto getCustomer(URI id);
 
-    CustomerDto getCustomerByOrgNumber(String orgNumber) throws ApiGatewayException;
+    CustomerDto getCustomer(UUID identifier);
 
-    List<CustomerDto> getCustomers() throws ApiGatewayException;
+    CustomerDto getCustomerByOrgDomain(String orgDomain);
 
-    CustomerDto createCustomer(CustomerDto customer) throws ApiGatewayException;
+    List<CustomerDto> getCustomers();
 
-    CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws ApiGatewayException;
+    CustomerDto createCustomer(CustomerDto customer);
 
-    CustomerDto getCustomerByCristinId(String cristinId) throws ApiGatewayException;
+    CustomerDto updateCustomer(UUID identifier, CustomerDto customer);
+
+    CustomerDto getCustomerByCristinId(URI cristinId);
 }

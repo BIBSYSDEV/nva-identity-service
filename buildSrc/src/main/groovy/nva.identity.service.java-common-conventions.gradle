@@ -19,8 +19,8 @@ repositories {
 }
 
 dependencies {
-    implementation libs.nva.core
-    implementation libs.bundles.aws.xray
+//    implementation libs.nva.core
+//    implementation libs.bundles.aws.xray
     testImplementation(libs.bundles.testing) {
         exclude group: 'org.hamcrest', module : 'hamcrest-core'
     }
@@ -30,7 +30,7 @@ tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 
-    failFast = true
+    failFast = false
     testLogging {
         events('skipped', 'passed', 'failed')
     }

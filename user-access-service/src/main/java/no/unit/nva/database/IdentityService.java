@@ -1,31 +1,45 @@
 package no.unit.nva.database;
 
+import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import java.net.URI;
 import java.util.List;
-import no.unit.nva.events.models.ScanDatabaseRequest;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.internals.UserScanResult;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
+import no.unit.nva.useraccessservice.internals.UserScanResult;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public interface IdentityService {
 
     String USERS_AND_ROLES_TABLE = new Environment().readEnv("USERS_AND_ROLES_TABLE");
 
-    UserDto getUser(UserDto queryObject) throws  NotFoundException, InvalidInputException;
+    @JacocoGenerated
+    static IdentityService defaultIdentityService() {
+        return defaultIdentityService(DEFAULT_DYNAMO_CLIENT);
+    }
+
+    @JacocoGenerated
+    static IdentityService defaultIdentityService(DynamoDbClient dynamoDbClient) {
+        return new IdentityServiceImpl(dynamoDbClient);
+    }
+
+    UserDto getUser(UserDto queryObject);
 
     List<UserDto> listUsers(URI institutionId);
 
-    void addUser(UserDto user) throws ConflictException, InvalidInputException;
+    UserDto addUser(UserDto user);
 
-    void addRole(RoleDto roleDto)throws ConflictException, InvalidInputException;
+    void addRole(RoleDto roleDto);
 
-    void updateUser(UserDto user)throws NotFoundException, InvalidInputException;
+    void updateUser(UserDto user);
 
-    RoleDto getRole(RoleDto input) throws  NotFoundException;
+    RoleDto getRole(RoleDto input);
 
-    UserScanResult fetchOnePageOfUsers(ScanDatabaseRequest scanRequest);
+    UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest);
+
+    List<UserDto> getUsersByCristinId(URI cirstinPersonId);
+
+    UserDto getUserByCristinIdAndCristinOrgId(URI cirstinPersonId, URI cristinOrgId);
 }

@@ -1,64 +1,53 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.useraccessmanagement.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.ByteArrayOutputStream;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.useraccessmanagement.exceptions.BadRequestException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.Environment;
+import java.net.HttpURLConnection;
+import java.util.Map;
+import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
+import nva.commons.apigatewayv2.exceptions.ConflictException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 
 class GetUserHandlerTest extends HandlerTest {
 
-    private static final String BLANK_STRING = " ";
-    private static final Environment ENVIRONMENT = new Environment();
-    private RequestInfo requestInfo;
     private Context context;
     private GetUserHandler getUserHandler;
 
     @BeforeEach
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
-        getUserHandler = new GetUserHandler(ENVIRONMENT, databaseService);
-        context = mock(Context.class);
+        getUserHandler = new GetUserHandler(databaseService);
+        context = new FakeContext();
     }
 
     @DisplayName("handleRequest returns User object with type \"User\"")
     @Test
-    public void handleRequestReturnsUserObjectWithTypeRole()
+    void handleRequestReturnsUserObjectWithTypeRole()
         throws ConflictException, InvalidEntryInternalException, InvalidInputException, IOException {
         insertSampleUserToDatabase();
 
-        ByteArrayOutputStream outputStream = sendGetUserRequestToHandler();
+        var request = createRequest(DEFAULT_USERNAME);
+        var response = getUserHandler.handleRequest(request, context);
 
-        GatewayResponse<ObjectNode> response = GatewayResponse.fromOutputStream(outputStream);
-        ObjectNode bodyObject = response.getBodyObject(ObjectNode.class);
+        var bodyObject = JsonConfig.mapFrom(response.getBody());
 
         assertThat(bodyObject.get(TYPE_ATTRIBUTE), is(not(nullValue())));
-        String type = bodyObject.get(TYPE_ATTRIBUTE).asText();
+        String type = bodyObject.get(TYPE_ATTRIBUTE).toString();
         assertThat(type, is(equalTo(UserDto.TYPE)));
     }
 
@@ -68,65 +57,46 @@ class GetUserHandlerTest extends HandlerTest {
         assertThat(actual, is(equalTo(HttpStatus.SC_OK)));
     }
 
-    @DisplayName("processInput() returns UserDto when path parameter contains the username of an existing user")
     @Test
-    void processInputReturnsUserDtoWhenPathParameterContainsTheUsernameOfExistingUser() throws ApiGatewayException {
-        requestInfo = createRequestInfoForGetUser(DEFAULT_USERNAME);
+    void shouldReturnUserDtoWhenPathParameterContainsTheUsernameOfExistingUser()
+        throws ApiGatewayException {
+        var request = createRequest(DEFAULT_USERNAME);
         UserDto expected = insertSampleUserToDatabase();
-        UserDto actual = getUserHandler.processInput(null, requestInfo, context);
+        var response = getUserHandler.handleRequest(request, context);
+        var actual = UserDto.fromJson(response.getBody());
+
         assertThat(actual, is(equalTo(expected)));
     }
 
-    @DisplayName("processInput() handles encoded path parameters")
     @Test
-    void processInputReturnsUserDtoWhenPathParameterContainsTheUsernameOfExistingUserEnc() throws ApiGatewayException {
+    void shouldReturnUserDtoWhenPathParameterContainsTheUsernameOfExistingUserEnc()
+        throws ApiGatewayException {
 
         String encodedUserName = encodeString(DEFAULT_USERNAME);
-        requestInfo = createRequestInfoForGetUser(encodedUserName);
+        var request = createRequest(encodedUserName);
         UserDto expected = insertSampleUserToDatabase();
-        UserDto actual = getUserHandler.processInput(null, requestInfo, context);
+        var response = getUserHandler.handleRequest(request, context);
+        var actual = UserDto.fromJson(response.getBody());
         assertThat(actual, is(equalTo(expected)));
     }
 
-    @DisplayName("processInput() throws NotFoundException when path parameter is a string that is not an existing "
-                 + "username")
     @Test
-    void processInputThrowsNotFoundExceptionWhenPathParameterIsNonExistingUsername() {
+    void shouldReturnNotFoundExceptionWhenPathParameterIsNonExistingUsername() {
 
-        requestInfo = createRequestInfoForGetUser(DEFAULT_USERNAME);
-        Executable action = () -> getUserHandler.processInput(null, requestInfo, context);
-        assertThrows(NotFoundException.class, action);
+        var request = createRequest(DEFAULT_USERNAME);
+        var response = getUserHandler.handleRequest(request, context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
-    @DisplayName("processInput() throws BadRequestException when path parameter is a blank string")
     @Test
-    void processInputThrowBadRequestExceptionWhenPathParameterIsBlank() {
-        requestInfo = createRequestInfoForGetUser(BLANK_STRING);
-        Executable action = () -> getUserHandler.processInput(null, requestInfo, context);
-        assertThrows(BadRequestException.class, action);
+    void shouldReturnBadRequestWheRequestBodyIsInValid() throws InvalidEntryInternalException {
+        var request = new APIGatewayProxyRequestEvent().withBody(randomString());
+        var response = getUserHandler.handleRequest(request, context);
+        assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
-    @DisplayName("processInput() throws BadRequestException when path parameter is null")
-    @Test
-    void processInputThrowBadRequestExceptionWhenPathParameterIsNull() {
-        requestInfo = createRequestInfoForGetUser(null);
-        Executable action = () -> getUserHandler.processInput(null, requestInfo, context);
-        assertThrows(BadRequestException.class, action);
-    }
-
-    private ByteArrayOutputStream sendGetUserRequestToHandler() throws IOException {
-        requestInfo = createRequestInfoForGetUser(DEFAULT_USERNAME);
-        InputStream inputStream = new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
-            .withPathParameters(requestInfo.getPathParameters())
-            .build();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        getUserHandler.handleRequest(inputStream, outputStream, context);
-        return outputStream;
-    }
-
-    private RequestInfo createRequestInfoForGetUser(String username) {
-        RequestInfo reqInfo = new RequestInfo();
-        reqInfo.setPathParameters(Collections.singletonMap(GetUserHandler.USERNAME_PATH_PARAMETER, username));
-        return reqInfo;
+    private APIGatewayProxyRequestEvent createRequest(String username) {
+        return new APIGatewayProxyRequestEvent()
+            .withPathParameters(Map.of(GetUserHandler.USERNAME_PATH_PARAMETER, username));
     }
 }

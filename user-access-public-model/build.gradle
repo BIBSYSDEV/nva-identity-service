@@ -4,15 +4,15 @@ plugins {
 }
 
 dependencies {
-    implementation libs.nva.apigateway
+    implementation project (':json')
+    implementation libs.nva.core
+    implementation libs.nva.apigatewayv2
     implementation libs.bundles.jackson
-
-    compileOnly project(":user-access-errors")
-    testImplementation project(":user-access-errors")
 
     compileOnly project(":user-access-commons")
     testImplementation project(":user-access-commons")
     testImplementation project(":user-access-testing")
+    testImplementation libs.bundles.testing
 }
 
 test{

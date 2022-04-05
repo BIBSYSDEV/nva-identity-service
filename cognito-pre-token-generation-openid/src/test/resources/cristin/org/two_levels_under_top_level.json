@@ -1,0 +1,95 @@
+{
+  "type": "Organization",
+  "@context": "https://api.dev.nva.aws.unit.no/cristin/organization",
+  "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.0",
+  "name": {
+    "en": "Management Section",
+    "nb": "Seksjon for ledelse"
+  },
+  "partOf": [
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.0.0",
+      "name": {
+        "en": "Faculty of Medicine",
+        "nb": "Det medisinske fakultet"
+      },
+      "partOf": [
+        {
+          "type": "Organization",
+          "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.90.0.0",
+          "name": {
+            "en": "University of Oslo",
+            "nb": "Universitetet i Oslo"
+          }
+        }
+      ]
+    }
+  ],
+  "hasPart": [
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.3",
+      "name": {
+        "en": "Research Support",
+        "nb": "Forskningsadministrasjon"
+      }
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.9",
+      "name": {
+        "en": "Regional Committees for Medical Research Ethics - South East Norway",
+        "nb": "Regionale komiteer for medisinsk og helsefaglig forskningsetikk sør-øst"
+      }
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.15",
+      "name": {
+        "en": "Finance section - Faculty of Medicine",
+        "nb": "Økonomiseksjonen - Det medisinske fakultet"
+      }
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.1",
+      "name": {
+        "en": "Administrative Services",
+        "nb": "Administrative fellestjenester"
+      }
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.14",
+      "name": {
+        "en": "Center for Health Sciences Education",
+        "nb": "Helsevitenskapelig utdanningssenter"
+      }
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.10",
+      "name": {
+        "en": "Section of Medical Informatics",
+        "nb": "Seksjon for medisinsk informatikk"
+      }
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.2",
+      "name": {
+        "en": "Section for Student Affairs",
+        "nb": "Studieseksjonen"
+      }
+    },
+    {
+      "type": "Organization",
+      "id": "https://api.dev.nva.aws.unit.no/cristin/organization/185.50.1.16",
+      "name": {
+        "en": "Regional Comittees for Medical Research Ethics South East Norway",
+        "nb": "Regionale komiteer for medisinsk og helsefaglig forskningsetikk sør-øst"
+      }
+    }
+  ]
+}

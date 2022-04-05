@@ -1,10 +1,11 @@
 package no.unit.nva.useraccess.events.service;
 
+import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccess.events.client.BareProxyClientImpl.ERROR_READING_SECRETS_ERROR;
 import static no.unit.nva.useraccess.events.service.UserMigrationServiceImpl.CRISTIN_API_HOST;
-import static no.unit.nva.useraccessmanagement.model.ViewingScope.defaultViewingScope;
+import static no.unit.nva.useraccessservice.model.ViewingScope.defaultViewingScope;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -25,14 +26,12 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
-
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
 import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
 import no.unit.nva.useraccess.events.client.SimpleAuthorityResponse;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.core.JsonUtils;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
@@ -49,7 +48,7 @@ class UserMigrationServiceTest {
 
     private static final URI SAMPLE_ORG_ID = URI.create("https://localhost/cristin/organization/123.0.0.0");
     private static final URI SAMPLE_CRISTIN_API_ORG_ID =
-            new UriWrapper("https", CRISTIN_API_HOST).addChild(randomString()).getUri();
+        new UriWrapper("https", CRISTIN_API_HOST).addChild(randomString()).getUri();
     private static final URI UNDEFINED = URI.create("undefined");
 
     private CustomerService customerServiceMock;
@@ -70,7 +69,8 @@ class UserMigrationServiceTest {
     @Test
     void shouldReturnUserWithDefaultViewingScope() throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(URI.class))).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponse()));
 
         var user = createSampleUser();
@@ -84,7 +84,7 @@ class UserMigrationServiceTest {
     @MethodSource("provideInvalidOrganizationIds")
     void shouldUpdateBareOnceOnInvalidOrganizationId(URI uri) throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponseWithInvalidOrganizationId(uri)));
 
         var user = createSampleUser();
@@ -93,17 +93,10 @@ class UserMigrationServiceTest {
         verify(httpClientMock, times(2)).send(any(), any());
     }
 
-    private static Stream<URI> provideInvalidOrganizationIds() {
-        return Stream.of(
-                SAMPLE_CRISTIN_API_ORG_ID,
-                UNDEFINED
-        );
-    }
-
     @Test
     void shouldNotUpdateBareOnValidOrganizationId() throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareOkAndThenOkResponse(toJson(createSampleAuthorityResponse()));
 
         var user = createSampleUser();
@@ -112,16 +105,12 @@ class UserMigrationServiceTest {
         verify(httpClientMock, times(1)).send(any(), any());
     }
 
-    private String toJson(List<SimpleAuthorityResponse> authorityResponseList) {
-        return Try.attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(authorityResponseList)).orElseThrow();
-    }
-
     @Test
     void shouldFinishEvenWhenBareUpdateReturnsBadGateway() throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareOkResponseThenBadGatewayResponse(
-                toJson(createSampleAuthorityResponseWithInvalidOrganizationId(SAMPLE_CRISTIN_API_ORG_ID)));
+            toJson(createSampleAuthorityResponseWithInvalidOrganizationId(SAMPLE_CRISTIN_API_ORG_ID)));
 
         var user = createSampleUser();
         userMigrationService.migrateUser(user);
@@ -132,7 +121,7 @@ class UserMigrationServiceTest {
     @Test
     void shouldNotUpdateBareOnUserNotFound() throws Exception {
         var customer = createSampleCustomer();
-        when(customerServiceMock.getCustomer(any())).thenReturn(customer);
+        when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
         prepareNotFoundResponse();
 
         var user = createSampleUser();
@@ -161,6 +150,14 @@ class UserMigrationServiceTest {
         assertDoesNotThrow(() -> userMigrationService.migrateUser(user));
         assertThat(appender.getMessages(), containsString(customerIdExpectedInLogMessage));
         assertThat(appender.getMessages(), containsString(usernameExpectedInLogMessage));
+    }
+
+    private static Stream<URI> provideInvalidOrganizationIds() {
+        return Stream.of(SAMPLE_CRISTIN_API_ORG_ID, UNDEFINED);
+    }
+
+    private String toJson(List<SimpleAuthorityResponse> authorityResponseList) {
+        return Try.attempt(() -> JsonConfig.asString(authorityResponseList)).orElseThrow();
     }
 
     private UserDto createSampleUserWithInvalidCustomerId() {
@@ -217,7 +214,7 @@ class UserMigrationServiceTest {
 
     private CustomerDto createSampleCustomer() {
         return CustomerDto.builder()
-            .withCristinId(SAMPLE_ORG_ID.toString())
+            .withCristinId(SAMPLE_ORG_ID)
             .build();
     }
 

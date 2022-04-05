@@ -1,0 +1,20 @@
+package no.unit.nva.customer.model.interfaces;
+
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
+
+public interface Typed {
+
+    String TYPE_FIELD = "type";
+
+    String getType();
+
+    default void setType(String type) {
+        if (!getType().equals(type)) {
+            throw new BadRequestException(errorMessage(type, getType()));
+        }
+    }
+
+    private static String errorMessage(String unexpectedType, String expectedType) {
+        return String.format("Unexpected type:%s. Expected type is:%s", unexpectedType, expectedType);
+    }
+}

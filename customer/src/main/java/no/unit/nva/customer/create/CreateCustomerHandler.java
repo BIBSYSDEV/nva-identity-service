@@ -1,22 +1,18 @@
 package no.unit.nva.customer.create;
 
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
+import java.net.HttpURLConnection;
+import java.util.List;
 import no.unit.nva.customer.Constants;
+import no.unit.nva.customer.CustomerHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigateway.ApiGatewayHandler;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import org.apache.http.HttpStatus;
 
-import java.util.List;
-
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-
-public class CreateCustomerHandler extends ApiGatewayHandler<CustomerDto, CustomerDto> {
+public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest> {
 
     private final CustomerService customerService;
 
@@ -25,34 +21,32 @@ public class CreateCustomerHandler extends ApiGatewayHandler<CustomerDto, Custom
      */
     @JacocoGenerated
     public CreateCustomerHandler() {
-        this(defaultCustomerService(), new Environment());
+        this(defaultCustomerService());
     }
 
     /**
      * Constructor for CreateCustomerHandler.
      *
      * @param customerService customerService
-     * @param environment     environment
      */
-    public CreateCustomerHandler(CustomerService customerService, Environment environment) {
-        super(CustomerDto.class, environment);
+    public CreateCustomerHandler(CustomerService customerService) {
+        super();
         this.customerService = customerService;
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(String input, CustomerDto output) {
+        return HttpURLConnection.HTTP_CREATED;
+    }
+
+    @Override
+    protected CustomerDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
+        var request = CreateCustomerRequest.fromJson(input);
+        return customerService.createCustomer(request.toCustomerDto());
     }
 
     @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
-    }
-
-    @Override
-    protected CustomerDto processInput(CustomerDto input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-        CustomerDto customer = customerService.createCustomer(input);
-        return customer;
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(CustomerDto input, CustomerDto output) {
-        return HttpStatus.SC_CREATED;
     }
 }

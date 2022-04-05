@@ -1,34 +1,39 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
+import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import no.unit.nva.customer.model.interfaces.Customer;
+import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
+import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
-@JsonTypeInfo(
-    use = Id.NAME,
-    include = As.PROPERTY,
-    property = "type",
-    defaultImpl = CustomerDao.class
-)
-@JsonTypeName("Customer")
-public class CustomerDao implements Customer<VocabularyDao> {
+@DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
+@SuppressWarnings("PMD.ExcessivePublicCount")
+public class CustomerDao implements Typed {
 
     public static final String IDENTIFIER = "identifier";
-    public static final String ORG_NUMBER = "feideOrganizationId";
+    public static final String ORG_DOMAIN = "feideOrganizationDomain";
     public static final String CRISTIN_ID = "cristinId";
-
+    public static final String TYPE = "Customer";
+    public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
+    public static final TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
+    public static final String VOCABULARIES_FIELD = "vocabularies";
     private UUID identifier;
     private Instant createdDate;
     private Instant modifiedDate;
@@ -38,12 +43,12 @@ public class CustomerDao implements Customer<VocabularyDao> {
     private String archiveName;
     private String cname;
     private String institutionDns;
-    private String feideOrganizationId;
-    private String cristinId;
+    private String feideOrganizationDomain;
+    private URI cristinId;
     private Set<VocabularyDao> vocabularies;
 
     public CustomerDao() {
-        vocabularies = Collections.emptySet();
+        vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     public static Builder builder() {
@@ -53,149 +58,133 @@ public class CustomerDao implements Customer<VocabularyDao> {
     public static CustomerDao fromCustomerDto(CustomerDto dto) {
         return builder().withArchiveName(dto.getArchiveName())
             .withCname(dto.getCname())
-            .withCreatedDate(dto.getCreatedDate())
+            .withCreatedDate(Instant.parse(dto.getCreatedDate()))
             .withCristinId(dto.getCristinId())
             .withDisplayName(dto.getDisplayName())
             .withIdentifier(dto.getIdentifier())
             .withInstitutionDns(dto.getInstitutionDns())
             .withShortName(dto.getShortName())
-            .withFeideOrganizationId(dto.getFeideOrganizationId())
-            .withModifiedDate(dto.getModifiedDate())
+            .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
+            .withModifiedDate(Instant.parse(dto.getModifiedDate()))
             .withVocabularySettings(extractVocabularySettings(dto))
             .withName(dto.getName())
             .build();
     }
 
-    @Override
+    @DynamoDbPartitionKey
+    @DynamoDbAttribute(IDENTIFIER)
     public UUID getIdentifier() {
         return identifier;
     }
 
-    @Override
     public void setIdentifier(UUID identifier) {
         this.identifier = identifier;
     }
 
-    @Override
     public Instant getCreatedDate() {
         return createdDate;
     }
 
-    @Override
     public void setCreatedDate(Instant createdDate) {
         this.createdDate = createdDate;
     }
 
-    @Override
     public Instant getModifiedDate() {
         return modifiedDate;
     }
 
-    @Override
     public void setModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public void setName(String name) {
         this.name = name;
     }
 
-    @Override
     public String getDisplayName() {
         return displayName;
     }
 
-    @Override
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
-    @Override
     public String getShortName() {
         return shortName;
     }
 
-    @Override
     public void setShortName(String shortName) {
         this.shortName = shortName;
     }
 
-    @Override
     public String getArchiveName() {
         return archiveName;
     }
 
-    @Override
     public void setArchiveName(String archiveName) {
         this.archiveName = archiveName;
     }
 
-    @Override
     public String getCname() {
         return cname;
     }
 
-    @Override
     public void setCname(String cname) {
         this.cname = cname;
     }
 
-    @Override
     public String getInstitutionDns() {
         return institutionDns;
     }
 
-    @Override
     public void setInstitutionDns(String institutionDns) {
         this.institutionDns = institutionDns;
     }
 
-    @Override
-    public String getFeideOrganizationId() {
-        return feideOrganizationId;
+    @DynamoDbSecondaryPartitionKey(indexNames = {BY_ORG_DOMAIN_INDEX_NAME})
+    @DynamoDbAttribute(ORG_DOMAIN)
+    public String getFeideOrganizationDomain() {
+        return feideOrganizationDomain;
     }
 
-    @Override
-    public void setFeideOrganizationId(String feideOrganizationId) {
-        this.feideOrganizationId = feideOrganizationId;
+    public void setFeideOrganizationDomain(String feideOrganizationDomain) {
+        this.feideOrganizationDomain = feideOrganizationDomain;
     }
 
-    @Override
-    public String getCristinId() {
+    @DynamoDbSecondaryPartitionKey(indexNames = {BY_CRISTIN_ID_INDEX_NAME})
+    @DynamoDbAttribute(CRISTIN_ID)
+    public URI getCristinId() {
         return cristinId;
     }
 
-    @Override
-    public void setCristinId(String cristinId) {
+    public void setCristinId(URI cristinId) {
         this.cristinId = cristinId;
     }
 
-    @Override
+    @DynamoDbIgnoreNulls
+    @DynamoDbAttribute(VOCABULARIES_FIELD)
     public Set<VocabularyDao> getVocabularies() {
-        return nonNull(vocabularies) ? vocabularies : Collections.emptySet();
+        return nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
-    @Override
     public void setVocabularies(Set<VocabularyDao> vocabularies) {
-        this.vocabularies = nonNull(vocabularies) ? vocabularies : Collections.emptySet();
+        this.vocabularies = nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
-    @Override
     @JacocoGenerated
+    @Override
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationDomain(),
                             getCristinId(), getVocabularies());
     }
 
-    @Override
     @JacocoGenerated
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -213,7 +202,7 @@ public class CustomerDao implements Customer<VocabularyDao> {
                && Objects.equals(getArchiveName(), that.getArchiveName())
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies());
     }
@@ -224,16 +213,29 @@ public class CustomerDao implements Customer<VocabularyDao> {
             .withName(getName())
             .withIdentifier(this.getIdentifier())
             .withArchiveName(this.getArchiveName())
-            .withCreatedDate(this.getCreatedDate())
+            .withCreatedDate(Optional.ofNullable(this.getCreatedDate()).orElse(null))
             .withDisplayName(this.getDisplayName())
             .withInstitutionDns(this.getInstitutionDns())
             .withShortName(this.getShortName())
             .withVocabularies(extractVocabularySettings())
-            .withModifiedDate(getModifiedDate())
-            .withFeideOrganizationId(getFeideOrganizationId())
+            .withModifiedDate(Optional.ofNullable(getModifiedDate()).orElse(null))
+            .withFeideOrganizationDomain(getFeideOrganizationDomain())
             .withCristinId(getCristinId())
             .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
+    }
+
+    @Override
+    public String getType() {
+        return TYPE;
+    }
+
+    @JacocoGenerated
+    @Override
+    public void setType(String type) {
+        if (nonNull(type) && !TYPE.equals(type)) {
+            throw new IllegalStateException("Wrong type for Customer:" + type);
+        }
     }
 
     private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {
@@ -305,12 +307,12 @@ public class CustomerDao implements Customer<VocabularyDao> {
             return this;
         }
 
-        public Builder withFeideOrganizationId(String feideOrganizationId) {
-            customerDb.setFeideOrganizationId(feideOrganizationId);
+        public Builder withFeideOrganizationDomain(String feideOrganizationDomain) {
+            customerDb.setFeideOrganizationDomain(feideOrganizationDomain);
             return this;
         }
 
-        public Builder withCristinId(String cristinId) {
+        public Builder withCristinId(URI cristinId) {
             customerDb.setCristinId(cristinId);
             return this;
         }

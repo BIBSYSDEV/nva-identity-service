@@ -1,15 +1,12 @@
 package no.unit.nva.useraccess.events.client;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import static com.google.common.net.HttpHeaders.AUTHORIZATION;
+import static com.google.common.net.MediaType.JSON_UTF_8;
+import static java.net.HttpURLConnection.HTTP_OK;
+import no.unit.nva.identityservice.json.JsonConfig;
+import static nva.commons.core.attempt.Try.attempt;
+import static software.amazon.awssdk.services.eventbridge.model.ApiDestinationHttpMethod.DELETE;
 import com.google.common.net.HttpHeaders;
-import nva.commons.core.Environment;
-import nva.commons.core.JacocoGenerated;
-import nva.commons.core.JsonUtils;
-import nva.commons.core.paths.UriWrapper;
-import nva.commons.secrets.SecretsReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,12 +14,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Optional;
-
-import static com.amazonaws.http.HttpMethodName.DELETE;
-import static com.google.common.net.HttpHeaders.AUTHORIZATION;
-import static com.google.common.net.MediaType.JSON_UTF_8;
-import static java.net.HttpURLConnection.HTTP_OK;
-import static nva.commons.core.attempt.Try.attempt;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
+import nva.commons.secrets.SecretsReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BareProxyClientImpl implements BareProxyClient {
 
@@ -77,10 +74,7 @@ public class BareProxyClientImpl implements BareProxyClient {
     }
 
     private List<SimpleAuthorityResponse> fromJson(HttpResponse<String> response) throws IOException {
-        return JsonUtils.dtoObjectMapper.readValue(
-                response.body(),
-                new TypeReference<List<SimpleAuthorityResponse>>(){}
-        );
+        return JsonConfig.listOfFrom(SimpleAuthorityResponse.class, response.body());
     }
 
     @Override

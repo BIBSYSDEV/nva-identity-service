@@ -1,58 +1,43 @@
 package no.unit.nva.database;
 
-import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
-import static no.unit.nva.database.Constants.AWS_REGION;
-import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemUtils;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import no.unit.nva.events.models.ScanDatabaseRequest;
-import no.unit.nva.useraccessmanagement.dao.UserDb;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.interfaces.WithType;
-import no.unit.nva.useraccessmanagement.internals.UserScanResult;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
+import no.unit.nva.useraccessservice.dao.UserDao;
+import no.unit.nva.useraccessservice.interfaces.Typed;
+import no.unit.nva.useraccessservice.internals.UserScanResult;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.attempt.Failure;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
 public class IdentityServiceImpl implements IdentityService {
 
-    public static final String DYNAMO_DB_CLIENT_NOT_SET_ERROR = "DynamoDb client has not been set";
-    private static final Logger logger = LoggerFactory.getLogger(IdentityServiceImpl.class);
-
     private final UserService userService;
     private final RoleService roleService;
-    private final AmazonDynamoDB dynamoDbClient;
+    private final DynamoDbClient dynamoDbClient;
 
     @JacocoGenerated
     public IdentityServiceImpl() {
-        this(defaultDynamoClient());
+        this(DEFAULT_DYNAMO_CLIENT);
     }
 
-    public IdentityServiceImpl(AmazonDynamoDB dynamoDbClient) {
+    public IdentityServiceImpl(DynamoDbClient dynamoDbClient) {
+        super();
+        this.roleService = new RoleService(dynamoDbClient);
+        this.userService = new UserService(dynamoDbClient, roleService);
         this.dynamoDbClient = dynamoDbClient;
-        var table = createTable(dynamoDbClient);
-        this.roleService = new RoleService(table);
-        this.userService = new UserService(table, roleService);
     }
 
     @Override
-    public UserDto getUser(UserDto queryObject)
-        throws NotFoundException, InvalidInputException {
+    public UserDto getUser(UserDto queryObject) {
         return userService.getUser(queryObject);
     }
 
@@ -62,24 +47,22 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public void addUser(UserDto user) throws ConflictException, InvalidInputException {
-        this.userService.addUser(user);
+    public UserDto addUser(UserDto user) {
+        return this.userService.addUser(user);
     }
 
     @Override
-    public void addRole(RoleDto roleDto)
-        throws InvalidInputException, ConflictException {
+    public void addRole(RoleDto roleDto) {
         this.roleService.addRole(roleDto);
     }
 
     @Override
-    public void updateUser(UserDto user)
-        throws InvalidInputException, NotFoundException {
+    public void updateUser(UserDto user) {
         this.userService.updateUser(user);
     }
 
     @Override
-    public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
+    public RoleDto getRole(RoleDto queryObject) {
         return this.roleService.getRole(queryObject);
     }
 
@@ -87,64 +70,55 @@ public class IdentityServiceImpl implements IdentityService {
     // it requires quite a big refactoring to put it there. It will be easier to do it after the
     // transition to sdk2 where we will be using the client and DynamoBeans.
     @Override
-    public UserScanResult fetchOnePageOfUsers(ScanDatabaseRequest scanRequest) {
+    public UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest) {
         var result = scanDynamoDb(scanRequest);
-        var startMarkerForNextScan = result.getLastEvaluatedKey();
+        var startMarkerForNextScan = result.lastEvaluatedKey();
         var retrievedUsers = parseUsersFromScanResult(result);
         var thereAreMoreEntries = thereAreMoreEntries(result);
         return new UserScanResult(retrievedUsers, startMarkerForNextScan, thereAreMoreEntries);
     }
 
-    protected static Table createTable(AmazonDynamoDB dynamoDbClient) {
-        assertDynamoClientIsNotNull(dynamoDbClient);
-        return new Table(dynamoDbClient, USERS_AND_ROLES_TABLE);
+    @Override
+    public List<UserDto> getUsersByCristinId(URI cristinPersonId) {
+        return userService.getUsersByByCristinId(cristinPersonId);
+
     }
 
-    @JacocoGenerated
-    private static AmazonDynamoDB defaultDynamoClient() {
-        return AmazonDynamoDBClientBuilder.standard()
-            .withRegion(AWS_REGION)
-            .withCredentials(new DefaultAWSCredentialsProviderChain())
-            .build();
+    @Override
+    public UserDto getUserByCristinIdAndCristinOrgId(URI cirstinPersonId, URI cristinOrgId) {
+        return userService.getUsersByByCristinIdAndCristinOrgId(cirstinPersonId,cristinOrgId);
     }
 
-    private static void assertDynamoClientIsNotNull(AmazonDynamoDB dynamoDbClient) {
-        attempt(() -> requireNonNull(dynamoDbClient))
-            .orElseThrow(IdentityServiceImpl::logErrorWithDynamoClientAndThrowException);
+    private boolean thereAreMoreEntries(ScanResponse result) {
+        return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty();
     }
 
-    private static RuntimeException logErrorWithDynamoClientAndThrowException(Failure<AmazonDynamoDB> failure) {
-        logger.error(DYNAMO_DB_CLIENT_NOT_SET_ERROR);
-        return new RuntimeException(failure.getException());
-    }
-
-    private boolean thereAreMoreEntries(ScanResult result) {
-        return nonNull(result.getLastEvaluatedKey());
-    }
-
-    private ScanResult scanDynamoDb(ScanDatabaseRequest scanRequest) {
+    private ScanResponse scanDynamoDb(ScanDatabaseRequestV2 scanRequest) {
         var dynamoScanRequest = createScanDynamoRequest(scanRequest);
         return dynamoDbClient.scan(dynamoScanRequest);
     }
 
-    private boolean databaseEntryIsUser(Item item) {
-        return item.getString(WithType.TYPE_FIELD).equals(UserDb.TYPE);
+    private boolean databaseEntryIsUser(Map<String, AttributeValue> databaseEntry) {
+        return Optional.ofNullable(databaseEntry)
+            .map(item -> item.get(Typed.TYPE_FIELD))
+            .map(fields -> UserDao.TYPE_VALUE.equals(fields.s()))
+            .orElse(false);
     }
 
-    private List<UserDto> parseUsersFromScanResult(ScanResult result) {
-        return result.getItems().stream()
-            .map(ItemUtils::toItem)
+    private List<UserDto> parseUsersFromScanResult(ScanResponse result) {
+        return result.items()
+            .stream()
             .filter(this::databaseEntryIsUser)
-            .map(Item::toJSON)
-            .map(UserDb::fromJson)
-            .map(UserDb::toUserDto)
+            .map(UserDao.TABLE_SCHEMA::mapToItem)
+            .map(UserDao::toUserDto)
             .collect(Collectors.toList());
     }
 
-    private ScanRequest createScanDynamoRequest(ScanDatabaseRequest input) {
-        return new ScanRequest()
-            .withTableName(USERS_AND_ROLES_TABLE)
-            .withLimit(input.getPageSize())
-            .withExclusiveStartKey(input.getStartMarker());
+    private ScanRequest createScanDynamoRequest(ScanDatabaseRequestV2 input) {
+        return ScanRequest.builder()
+            .tableName(USERS_AND_ROLES_TABLE)
+            .limit(input.getPageSize())
+            .exclusiveStartKey(input.toDynamoScanMarker())
+            .build();
     }
 }

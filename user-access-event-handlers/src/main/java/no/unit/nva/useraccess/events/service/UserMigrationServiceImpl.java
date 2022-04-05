@@ -4,12 +4,11 @@ import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
-
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccess.events.client.BareProxyClient;
-import no.unit.nva.useraccessmanagement.model.UserDto;
-import no.unit.nva.useraccessmanagement.model.ViewingScope;
+import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.core.exceptions.ExceptionUtils;
 import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
@@ -19,10 +18,9 @@ public class UserMigrationServiceImpl implements UserMigrationService {
 
     public static final String CRISTIN_API_HOST = "api.cristin.no";
     public static final String UNDEFINED = "undefined";
-
+    private static final Logger logger = LoggerFactory.getLogger(UserMigrationServiceImpl.class);
     private final CustomerService customerService;
     private final BareProxyClient bareProxyClient;
-    private static final Logger logger = LoggerFactory.getLogger(UserMigrationServiceImpl.class);
 
     public UserMigrationServiceImpl(CustomerService customerService, BareProxyClient bareProxyClient) {
         this.customerService = customerService;
@@ -61,8 +59,8 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     }
 
     private boolean isUnwantedUri(URI organizationId) {
-        return CRISTIN_API_HOST.equals(organizationId.getHost()) ||
-                UNDEFINED.equals(organizationId.toString());
+        return CRISTIN_API_HOST.equals(organizationId.getHost())
+               || UNDEFINED.equals(organizationId.toString());
     }
 
     private void deleteFromAuthority(String systemControlNumber, URI organizationId) {
@@ -71,7 +69,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
 
     private Optional<UUID> getCustomerIdentifier(UserDto user) {
         return attempt(user::getInstitution)
-            .map(UriWrapper::new)
+            .map(UriWrapper::fromUri)
             .map(UriWrapper::getFilename)
             .map(UUID::fromString)
             .toOptional(f -> logInvalidInstitutionUriAndReturnEmpty(f.getException(), user));
@@ -84,8 +82,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
 
     private Optional<URI> getOrganizationId(UUID customerIdentifier) {
         return attempt(() -> customerService.getCustomer(customerIdentifier))
-                .map(CustomerDto::getCristinId)
-                .map(URI::create)
-                .toOptional();
+            .map(CustomerDto::getCristinId)
+            .toOptional();
     }
 }

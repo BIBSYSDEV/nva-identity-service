@@ -4,18 +4,17 @@ plugins {
 }
 
 dependencies {
-    implementation libs.nva.apigateway
+
+    implementation project(':dynamo-client')
+    implementation project (':json')
+    implementation libs.nva.apigatewayv2
+    implementation libs.nva.core
     implementation libs.bundles.jackson
-    implementation libs.bundles.aws.lambda
-    implementation( libs.aws.dynamodb) {
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
-        exclude group: 'com.fasterxml.jackson.datatype', module: 'jackson-datatype-jdk8'
-        exclude group: 'com.fasterxml.jackson.datatype', module: 'jackson-datatype-jsr310'
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
-        exclude group: 'com.fasterxml.jackson.module', module: 'jackson-module-parameter-names'
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
-    }
     implementation libs.guava
+    implementation libs.aws.sdk2.dynamodbenhanced
+    implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.urlconnection
+
     testImplementation project (":customer-testing")
 }
 

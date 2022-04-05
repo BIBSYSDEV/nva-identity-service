@@ -13,6 +13,7 @@
     <exclude name="DataflowAnomalyAnalysis"/>
     <exclude name="MissingSerialVersionUID"/>
     <exclude name="BeanMembersShouldSerialize"/>
+    <exclude name="NullAssignment"/>
   </rule>
 
   <rule ref="category/java/multithreading.xml"/>

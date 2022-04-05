@@ -1,0 +1,18 @@
+plugins {
+    id 'nva.identity.service.java-library-conventions'
+    id 'nva.identity.service.dynamodblocal'
+}
+
+dependencies {
+
+    implementation libs.nva.core
+    implementation libs.aws.sdk2.dynamodbenhanced
+    implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.urlconnection
+
+}
+
+test{
+    environment "API_HOST", "api.dev.aws.nva.unit.no"
+    environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
+}

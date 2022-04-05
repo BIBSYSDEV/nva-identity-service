@@ -8,18 +8,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 
-public class IdentityServiceImplTest extends DatabaseAccessor {
+public class IdentityServiceImplTest extends LocalIdentityService {
 
     public static final String EXPECTED_EXCEPTION_MESSAGE = "ExpectedExceptionMessage";
 
@@ -52,12 +52,12 @@ public class IdentityServiceImplTest extends DatabaseAccessor {
     }
 
     private IdentityService mockServiceThrowsExceptionWhenLoadingRole() {
-        AmazonDynamoDB failingClient = mockMapperThrowingException();
+        DynamoDbClient failingClient = mockMapperThrowingException();
         return new IdentityServiceImpl(failingClient);
     }
 
-    private AmazonDynamoDB mockMapperThrowingException() {
-        AmazonDynamoDB failingClient = mock(AmazonDynamoDB.class);
+    private DynamoDbClient mockMapperThrowingException() {
+        DynamoDbClient failingClient = mock(DynamoDbClient.class);
         when(failingClient.getItem(any(GetItemRequest.class)))
             .thenAnswer(ignored -> {
                 throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);

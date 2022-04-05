@@ -1,16 +1,12 @@
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.useraccessmanagement.exceptions.DataSyncException;
-import no.unit.nva.useraccessmanagement.exceptions.InvalidInputException;
-import no.unit.nva.useraccessmanagement.model.RoleDto;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.Environment;
+import no.unit.nva.useraccessservice.exceptions.DataSyncException;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.core.JacocoGenerated;
 
 public class AddRoleHandler extends HandlerWithEventualConsistency<RoleDto, RoleDto> {
@@ -23,32 +19,30 @@ public class AddRoleHandler extends HandlerWithEventualConsistency<RoleDto, Role
      */
     @JacocoGenerated
     public AddRoleHandler() {
-        this(new Environment(), new IdentityServiceImpl()
-        );
+        this(new IdentityServiceImpl());
     }
 
-    public AddRoleHandler(
-        Environment environment,
-        IdentityService databaseService
-    ) {
-        super(RoleDto.class, environment);
+    public AddRoleHandler(IdentityService databaseService) {
+        super();
         this.databaseService = databaseService;
     }
 
     @Override
-    protected RoleDto processInput(RoleDto input, RequestInfo requestInfo, Context context)
-        throws DataSyncException, ConflictException, InvalidInputException {
-        databaseService.addRole(input);
-        return getEventuallyConsistent(() -> getRole(input))
-            .orElseThrow(() -> new DataSyncException(ERROR_FETCHING_SAVED_ROLE + input.getRoleName()));
-    }
-
-    private RoleDto getRole(RoleDto input) throws NotFoundException {
-        return databaseService.getRole(input);
+    protected Integer getSuccessStatusCode(String input, RoleDto output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(RoleDto input, RoleDto output) {
-        return HttpURLConnection.HTTP_OK;
+    protected RoleDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
+
+        var inputRole = RoleDto.fromJson(input);
+
+        databaseService.addRole(inputRole);
+        return getEventuallyConsistent(() -> getRole(inputRole))
+            .orElseThrow(() -> new DataSyncException(ERROR_FETCHING_SAVED_ROLE + inputRole.getRoleName()));
+    }
+
+    private RoleDto getRole(RoleDto input) {
+        return databaseService.getRole(input);
     }
 }

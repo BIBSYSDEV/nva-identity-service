@@ -1,11 +1,11 @@
 [versions]
-nvaCommons = { strictly = '1.18.8' }
+nvaCommons = { strictly = '1.21.0-alpha3' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
-awsSdk = { require = "1.11.1000" }
-awsSdk2 = { strictly = '2.17.105' }
-jackson = { strictly = "2.13.0" }
+#awsSdk = { require = "1.11.1000" }
+awsSdk2 = { strictly = '2.17.152' }
+jackson = { strictly = "2.13.1" }
 xraySdk = { strictly = '2.9.1' }
-dynamoDbLocal = { strictly = '1.15.0' }
+dynamoDbLocal = { strictly = '1.17.2' }
 zalandoProblem = { strictly = '0.26.0' }
 awsLambdaCore = { strictly = '1.2.1' }
 jupiter = { strictly = "5.8.1" }
@@ -19,41 +19,41 @@ apiGuardian = { strictly = '1.1.2' }
 guava = { strictly = '31.0.1-jre' }
 hamcrestJackson = { strictly = '1.2.0' }
 log4j = { strictly = '2.17.1' }
-
+awsLambdaEvents = { strictly = '3.11.0' }
+wiremock = {strictly = '2.27.2'}
 
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }
-nva-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nvaCommons' }
+nva-json = { group = 'com.github.bibsysdev', name = 'json', version.ref = 'nvaCommons' }
+nva-apigatewayv2 = { group = 'com.github.bibsysdev', name = 'apigatewayv2', version.ref = 'nvaCommons' }
 nva-lambdaauthorizer = { group = 'com.github.bibsysdev', name = 'lambdaauthorizer', version.ref = 'nvaCommons' }
 nva-secrets = { group = 'com.github.bibsysdev', name = 'secrets', version.ref = 'nvaCommons' }
 nva-events = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nvaCommons' }
 nva-testutils = { group = 'com.github.bibsysdev', name = 'nvatestutils', version.ref = 'nvaCommons' }
 
-aws-xray-recorder-sdk-core = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-core', version.ref = 'xraySdk' }
-aws-xray-recorder-sdk-aws-sdk = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-aws-sdk', version.ref = 'xraySdk' }
-aws-xray-recorder-sdk-aws-sdk-instrumentor = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version.ref = 'xraySdk' }
+#aws-xray-recorder-sdk-core = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-core', version.ref = 'xraySdk' }
+#aws-xray-recorder-sdk-aws-sdk = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-aws-sdk', version.ref = 'xraySdk' }
+#aws-xray-recorder-sdk-aws-sdk-instrumentor = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-aws-sdk-instrumentor', version.ref = 'xraySdk' }
 
-aws-sdk-core = { group = 'com.amazonaws', name = 'aws-java-sdk-core', version.ref = 'awsSdk' }
 aws-lambda-java-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'awsLambdaCore' }
-aws-java-sdk-lambda = { group = 'com.amazonaws', name = 'aws-java-sdk-lambda', version.ref = 'awsSdk' }
-aws-dynamodb = { group = 'com.amazonaws', name = 'aws-java-sdk-dynamodb', version.ref = 'awsSdk' }
-aws-java-sdk-cognitoidp = { group = 'com.amazonaws', name = 'aws-java-sdk-cognitoidp', version.ref = 'awsSdk' }
 
+aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsLambdaEvents' }
 aws-sdk2-secrets = { group = 'software.amazon.awssdk', name = 'secretsmanager', version.ref = 'awsSdk2' }
 aws-sdk2-dynamodb = { group = 'software.amazon.awssdk', name = 'dynamodb', version.ref = 'awsSdk2' }
-aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
+aws-sdk2-dynamodbenhanced = { group = 'software.amazon.awssdk', name = 'dynamodb-enhanced', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
+aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
+aws-java-sdk2-cognitoidp = { group = 'software.amazon.awssdk', name = 'cognitoidentityprovider', version.ref = 'awsSdk2' }
 
+jackson-jr-objects = { group = 'com.fasterxml.jackson.jr', name = 'jackson-jr-objects', version.ref = 'jackson' }
+jackson-jr-annotations= { group= 'com.fasterxml.jackson.jr', name= 'jackson-jr-annotation-support', version.ref= 'jackson'}
 
-jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', version.ref = 'jackson' }
-jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }
-jackson-annotations = { group = 'com.fasterxml.jackson.core', name = 'jackson-annotations', version.ref = 'jackson' }
-jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jsr310', version.ref = 'jackson' }
-jackson-datatype-jdk8 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
 
 slf4j = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
 log4j-core = { group = 'org.apache.logging.log4j', name = 'log4j-core', version.ref = 'log4j' }
 log4j-api = { group = 'org.apache.logging.log4j', name = 'log4j-api', version.ref = 'log4j' }
+log4j-slf4j18-impl = { group = 'org.apache.logging.log4j', name = 'log4j-slf4j18-impl', version.ref = 'log4j' }
+
 
 apache-httpclient = { group = 'org.apache.httpcomponents', name = 'httpclient', version.ref = 'apacheHttpClient' }
 zalando-problem = { group = 'org.zalando', name = 'problem', version.ref = 'zalandoProblem' }
@@ -71,13 +71,17 @@ dynamoDbLocal = { group = 'com.amazonaws', name = 'DynamoDBLocal', version.ref =
 nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nvaCommons' }
 hamcrest-jackson = { group = 'com.spotify', name = 'hamcrest-jackson', version.ref = 'hamcrestJackson' }
 
+wiremock= { group= 'com.github.tomakehurst', name= 'wiremock-jre8', version.ref = 'wiremock'}
+
 apiguardian-api = { group = 'org.apiguardian', name = 'apiguardian-api', version.ref = 'apiGuardian' }
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
 [bundles]
-logging = ['log4j-core', 'log4j-api', 'slf4j']
-testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core', 'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils', 'hamcrest-jackson']
-problem = ['zalando-problem', 'jackson-datatype-problem']
-jackson = ['jackson-core', 'jackson-databind', 'jackson-annotations', 'jackson-datatype-jsr310']
-aws-xray = ['aws-xray-recorder-sdk-core', 'aws-xray-recorder-sdk-aws-sdk', 'aws-xray-recorder-sdk-aws-sdk-instrumentor']
-aws-lambda = ['aws-lambda-java-core', 'aws-java-sdk-lambda', 'aws-sdk-core', 'zalando-problem', 'jackson-datatype-problem', 'slf4j']
+logging = ['log4j-core', 'log4j-api', 'slf4j','log4j-slf4j18-impl']
+testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core',
+           'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils',
+           'hamcrest-jackson', 'wiremock'
+           ]
+jackson = ['jackson-jr-objects', 'jackson-jr-annotations']
+#aws-xray = ['aws-xray-recorder-sdk-core', 'aws-xray-recorder-sdk-aws-sdk', 'aws-xray-recorder-sdk-aws-sdk-instrumentor']
+aws-lambda = ['aws-lambda-java-core', 'zalando-problem', 'aws-lambda-events']

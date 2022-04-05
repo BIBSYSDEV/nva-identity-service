@@ -1,69 +1,61 @@
 package no.unit.nva.customer.testing;
 
 import static no.unit.nva.customer.ControlledVocabularyHandler.IDENTIFIER_PATH_PARAMETER;
-import static no.unit.nva.customer.JsonConfig.defaultDynamoConfigMapper;
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.get.GetControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.interfaces.VocabularyList;
+import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.MediaTypes;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.core.Environment;
+import no.unit.nva.stubs.FakeContext;
+import nva.commons.apigatewayv2.MediaTypes;
 import org.junit.jupiter.api.BeforeEach;
 
-public abstract class CreateUpdateControlledVocabularySettingsTests extends CustomerDynamoDBLocal {
+public abstract class CreateUpdateControlledVocabularySettingsTests extends LocalCustomerServiceDatabase {
 
-    public static final Context CONTEXT = mock(Context.class);
+    public static final Context CONTEXT = new FakeContext();
     protected ControlledVocabularyHandler<?, ?> handler;
     protected CustomerDto existingCustomer;
-    protected ByteArrayOutputStream outputStream;
     protected DynamoDBCustomerService customerService;
 
     @BeforeEach
-    public void init() throws ApiGatewayException {
+    public void init() {
         super.setupDatabase();
-        customerService = new DynamoDBCustomerService(this.ddb,
-                                                      defaultDynamoConfigMapper,
-                                                      new Environment());
+        customerService = new DynamoDBCustomerService(this.dynamoClient);
         existingCustomer = createExistingCustomer();
         customerService.createCustomer(existingCustomer);
-        outputStream = new ByteArrayOutputStream();
         handler = createHandler();
     }
 
     protected abstract ControlledVocabularyHandler<?, ?> createHandler();
 
-    protected abstract CustomerDto createExistingCustomer() throws ApiGatewayException;
+    protected abstract CustomerDto createExistingCustomer();
 
-    protected VocabularyList sendRequestAcceptingJsonLd(UUID uuid) throws IOException {
+    protected ExpectedBodyActualResponseTuple sendRequestAcceptingJsonLd(UUID uuid)  {
         return sendRequest(uuid, MediaTypes.APPLICATION_JSON_LD);
     }
 
-    protected VocabularyList sendRequest(UUID uuid, MediaType acceptedContentType) throws IOException {
+    protected ExpectedBodyActualResponseTuple sendRequest(UUID uuid, MediaType acceptedContentType) {
         VocabularyList expectedBody = createRandomVocabularyList();
-        InputStream request = addVocabularyForCustomer(uuid, expectedBody, acceptedContentType);
-        handler.handleRequest(request, outputStream, CONTEXT);
-        return expectedBody;
+        var request = createRequest(uuid, expectedBody, acceptedContentType);
+        var response = handler.handleRequest(request, CONTEXT);
+        return new ExpectedBodyActualResponseTuple(expectedBody, response);
     }
 
-    protected String responseContentType(GatewayResponse<VocabularyList> response) {
+    protected String responseContentType(APIGatewayProxyResponseEvent response) {
         return response.getHeaders().get(HttpHeaders.CONTENT_TYPE);
     }
 
@@ -72,38 +64,56 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Cust
     }
 
     protected VocabularyList createRandomVocabularyList() {
-        return  VocabularyList.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
+        return VocabularyList.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
     }
 
-    protected <T> InputStream addVocabularyForCustomer(UUID customerIdentifer, T expectedBody,
-                                                       MediaType acceptedMediaType)
-        throws JsonProcessingException {
-        return new HandlerRequestBuilder<T>(defaultRestObjectMapper)
-            .withPathParameters(identifierToPathParameter(customerIdentifer))
-            .withBody(expectedBody)
+    protected <T> APIGatewayProxyRequestEvent createRequest(UUID customerIdentifier,
+                                                            T expectedBody,
+                                                            MediaType acceptedMediaType) {
+        return new APIGatewayProxyRequestEvent()
+            .withPathParameters(identifierToPathParameter(customerIdentifier))
+            .withBody(expectedBody.toString())
             .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()))
-            .build();
+            .withMultiValueHeaders(Map.of(HttpHeaders.ACCEPT, List.of(acceptedMediaType.toString())));
     }
 
     protected Map<String, String> identifierToPathParameter(UUID identifier) {
         return Map.of(IDENTIFIER_PATH_PARAMETER, identifier.toString());
     }
 
-    protected InputStream createGetRequest(UUID identifier, MediaType acceptHeader)
+    protected APIGatewayProxyRequestEvent createGetRequest(UUID identifier, MediaType acceptHeader)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(defaultRestObjectMapper)
+        return new APIGatewayProxyRequestEvent()
             .withPathParameters(Map.of("identifier", identifier.toString()))
-            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
-            .build();
+            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()));
     }
 
     protected void assertThatExistingUserHasEmptyVocabularySettings() throws IOException {
         GetControlledVocabularyHandler getHandler = new GetControlledVocabularyHandler(customerService);
-        InputStream getRequest = createGetRequest(existingIdentifier(), MediaType.JSON_UTF_8);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        getHandler.handleRequest(getRequest, outputStream, CONTEXT);
-        GatewayResponse<VocabularyList> getResponse = GatewayResponse.fromOutputStream(outputStream);
-        VocabularyList getResponseObject = getResponse.getBodyObject(VocabularyList.class);
+        var getRequest = createGetRequest(existingIdentifier(), MediaType.JSON_UTF_8);
+        var response = getHandler.handleRequest(getRequest, CONTEXT);
+        var getResponseObject = VocabularyList.fromJson(response.getBody());
         assertThat(getResponseObject.getVocabularies(), is(empty()));
+    }
+
+    public static class ExpectedBodyActualResponseTuple {
+
+        private final VocabularyList expectedBody;
+        private final APIGatewayProxyResponseEvent response;
+
+        public ExpectedBodyActualResponseTuple(
+            VocabularyList expectedBody, APIGatewayProxyResponseEvent response) {
+
+            this.expectedBody = expectedBody;
+            this.response = response;
+        }
+
+        public VocabularyList getExpectedBody() {
+            return expectedBody;
+        }
+
+        public APIGatewayProxyResponseEvent getResponse() {
+            return response;
+        }
     }
 }

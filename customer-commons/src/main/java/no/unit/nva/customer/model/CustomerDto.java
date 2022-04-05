@@ -1,34 +1,160 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.RestConfig.defaultRestObjectMapper;
+import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
+import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-
 import no.unit.nva.customer.model.interfaces.Context;
+import no.unit.nva.customer.model.interfaces.Typed;
+import no.unit.nva.identityservice.json.JsonConfig;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
-public class CustomerDto extends CustomerDtoWithoutContext implements Context {
+//Overriding setters and getters is necessary for Jackson-Jr
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod"})
+public class CustomerDto implements Context {
 
+    public static final String TYPE = "Customer";
     @JsonProperty("@context")
     private URI context;
+    private URI id;
+    private UUID identifier;
+    private Instant createdDate;
+    private Instant modifiedDate;
+    private String name;
+    private String displayName;
+    private String shortName;
+    private String archiveName;
+    private String cname;
+    private String institutionDns;
+    private String feideOrganizationDomain;
+    private URI cristinId;
+    private List<VocabularyDto> vocabularies;
 
     public CustomerDto() {
         super();
-        setVocabularies(Collections.emptySet());
+        this.vocabularies = Collections.emptyList();
     }
 
-    public CustomerDtoWithoutContext withoutContext() {
-        return attempt(() -> defaultRestObjectMapper.convertValue(this, CustomerDtoWithoutContext.class)).orElseThrow();
+    public static CustomerDto fromJson(String json) {
+        return attempt(() -> JsonConfig.beanFrom(CustomerDto.class, json))
+            .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public URI getId() {
+        return id;
+    }
+
+    public void setId(URI id) {
+        this.id = id;
+    }
+
+    public UUID getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(UUID identifier) {
+        this.identifier = identifier;
+    }
+
+    public String getCreatedDate() {
+        return instantToString(createdDate);
+    }
+
+    public void setCreatedDate(String createdDate) {
+        this.createdDate = stringToInstant(createdDate);
+    }
+
+    public String getModifiedDate() {
+        return instantToString(modifiedDate);
+    }
+
+    public void setModifiedDate(String modifiedDate) {
+        this.modifiedDate = stringToInstant(modifiedDate);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
+    public String getArchiveName() {
+        return archiveName;
+    }
+
+    public void setArchiveName(String archiveName) {
+        this.archiveName = archiveName;
+    }
+
+    public String getCname() {
+        return cname;
+    }
+
+    public void setCname(String cname) {
+        this.cname = cname;
+    }
+
+    public String getInstitutionDns() {
+        return institutionDns;
+    }
+
+    public void setInstitutionDns(String institutionDns) {
+        this.institutionDns = institutionDns;
+    }
+
+    public String getFeideOrganizationDomain() {
+        return feideOrganizationDomain;
+    }
+
+    public void setFeideOrganizationDomain(String feideOrganizationDomain) {
+        this.feideOrganizationDomain = feideOrganizationDomain;
+    }
+
+    public URI getCristinId() {
+        return cristinId;
+    }
+
+    public void setCristinId(URI cristinId) {
+        this.cristinId = cristinId;
+    }
+
+    public List<VocabularyDto> getVocabularies() {
+        return vocabularies;
+    }
+
+    public void setVocabularies(List<VocabularyDto> vocabularies) {
+        this.vocabularies = vocabularies;
     }
 
     @Override
@@ -47,23 +173,24 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
             .withShortName(getShortName())
             .withInstitutionDns(getInstitutionDns())
             .withDisplayName(getDisplayName())
-            .withCreatedDate(getCreatedDate())
+            .withCreatedDate(stringToInstant(getCreatedDate()))
             .withArchiveName(getArchiveName())
             .withIdentifier(getIdentifier())
             .withContext(getContext())
             .withCname(getCname())
             .withId(getId())
             .withCristinId(getCristinId())
-            .withFeideOrganizationId(getFeideOrganizationId())
+            .withFeideOrganizationDomain(getFeideOrganizationDomain())
             .withName(getName())
-            .withModifiedDate(getModifiedDate());
+            .withModifiedDate(stringToInstant(getModifiedDate()));
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationId(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(),
                             getCristinId(), getVocabularies(), getContext());
     }
 
@@ -87,10 +214,25 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
                && Objects.equals(getArchiveName(), that.getArchiveName())
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationId(), that.getFeideOrganizationId())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getContext(), that.getContext());
+    }
+
+    @Override
+    @JacocoGenerated
+    public String toString() {
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+    }
+
+    @JsonProperty(Typed.TYPE_FIELD)
+    public String getType() {
+        return TYPE;
+    }
+
+    public void setType(String type) {
+        // do nothing;
     }
 
     public static final class Builder {
@@ -112,12 +254,12 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
         }
 
         public Builder withCreatedDate(Instant createdDate) {
-            customerDto.setCreatedDate(createdDate);
+            customerDto.setCreatedDate(instantToString(createdDate));
             return this;
         }
 
         public Builder withModifiedDate(Instant modifiedDate) {
-            customerDto.setModifiedDate(modifiedDate);
+            customerDto.setModifiedDate(instantToString(modifiedDate));
             return this;
         }
 
@@ -151,18 +293,18 @@ public class CustomerDto extends CustomerDtoWithoutContext implements Context {
             return this;
         }
 
-        public Builder withFeideOrganizationId(String feideOrganizationId) {
-            customerDto.setFeideOrganizationId(feideOrganizationId);
+        public Builder withFeideOrganizationDomain(String feideOrganizationDomain) {
+            customerDto.setFeideOrganizationDomain(feideOrganizationDomain);
             return this;
         }
 
-        public Builder withCristinId(String cristinId) {
+        public Builder withCristinId(URI cristinId) {
             customerDto.setCristinId(cristinId);
             return this;
         }
 
-        public Builder withVocabularies(Set<VocabularyDto> vocabularies) {
-            customerDto.setVocabularies(vocabularies);
+        public Builder withVocabularies(Collection<VocabularyDto> vocabularies) {
+            customerDto.setVocabularies(new ArrayList<>(vocabularies));
             return this;
         }
 

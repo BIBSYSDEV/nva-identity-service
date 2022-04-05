@@ -29,11 +29,6 @@ Parameters:
     Type: String
     Description: Prefix used for naming parameters.
     Default: ''
-  ExplicitAuthFlows:
-    Type: CommaDelimitedList
-    Default: ALLOW_ADMIN_USER_PASSWORD_AUTH, ALLOW_CUSTOM_AUTH, ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH
-    Description: Set explicit authenticaton flows.
-
   ApiDomain:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApiDomain
@@ -59,6 +54,12 @@ Parameters:
     Default: ''
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
 
+Mappings:
+  Constants:
+    Cognito:
+      UserPoolNamePrefix: IdentityService-UserPool-
+
+
 Conditions:
   WithSuffix: !Not [ !Equals [ !Ref Suffix, '' ] ]
 
@@ -71,6 +72,10 @@ Globals:
     Environment:
       Variables:
         API_HOST: !Ref ApiDomain
+        CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+        BY_ORG_DOMAIN_INDEX_NAME: byOrgDomain
+        BY_CRISTIN_ID_INDEX_NAME: byCristinId
+        USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
 
   Api:
     Cors:
@@ -82,282 +87,77 @@ Resources:
 
   ### Cognito ##########################################################################################################
 
-  UserPool:
-    Type: AWS::Cognito::UserPool
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-    Properties:
-      AdminCreateUserConfig:
-        AllowAdminCreateUserOnly: true
-      UsernameAttributes: [ email ]
-      EmailConfiguration:
-        EmailSendingAccount: 'COGNITO_DEFAULT'
-      MfaConfiguration: 'OFF'
-      LambdaConfig:
-        PreTokenGeneration: !GetAtt TriggerFunction.Arn
-      Schema:
-        - Name: affiliation
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: application
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: applicationRoles
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: commonName
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: email
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: feideTargetedId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: feideId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: identifiers
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: name
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: orgEmail
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: orgLegalName
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: orgName
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: orgNumber
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: schoolList
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: yearOfBirth
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: customerId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: cristinId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: accessRights
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: hostedOrgNumber
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: hostedAffiliation
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-
-  UserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain
-    Properties:
-      UserPoolId: !Ref UserPool
-      Domain: !Ref AuthenticationDomainPrefix
-
-  UserPoolIdentityProviderFeide:
-    Type: AWS::Cognito::UserPoolIdentityProvider
-    Properties:
-      AttributeMapping:
-        custom:affiliation: eduPersonAffiliation
-        custom:commonName: cn
-        custom:feideId: eduPersonPrincipalName
-        custom:feideTargetedId: eduPersonTargetedID
-        custom:orgLegalName: eduPersonOrgDN:eduOrgLegalName
-        name: displayName
-        custom:orgEmail: eduPersonOrgDN:mail
-        custom:orgName: eduPersonOrgDN:o
-        custom:orgNumber: eduPersonOrgDN:norEduOrgNIN
-        custom:schoolList: feideSchoolList
-        custom:yearOfBirth: feideYearOfBirth
-        given_name: givenName
-        email: mail
-        family_name: sn
-        custom:hostedOrgNumber: eduPersonOrgUnitDN:norEduOrgUnitUniqueIdentifier
-        custom:hostedAffiliation: eduPersonScopedAffiliation
-      UserPoolId: !Ref UserPool
-      ProviderName: FeideIdentityProvider
-      ProviderType: SAML
-      ProviderDetails:
-        MetadataURL: !Ref FeideMetadataUrl
-
-  UserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      GenerateSecret: false
-      SupportedIdentityProviders:
-        - !Ref UserPoolIdentityProviderFeide
-      UserPoolId: !Ref UserPool
-      CallbackURLs:
-        - !Sub 'https://${ApplicationDomain}'
-        - 'http://localhost:3000' # todo: make this conditional in parameters
-      LogoutURLs:
-        - !Sub 'https://${ApplicationDomain}/logout'
-        - 'http://localhost:3000/logout' # todo: make this conditional in parameters
-      AllowedOAuthFlowsUserPoolClient: True
-      AllowedOAuthFlows:
-        - code
-      AllowedOAuthScopes:
-        - openid
-        - aws.cognito.signin.user.admin
-      ExplicitAuthFlows: !Ref ExplicitAuthFlows
-      RefreshTokenValidity: 1
-      TokenValidityUnits:
-        RefreshToken: hours
-
   IdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
       AllowUnauthenticatedIdentities: True
       CognitoIdentityProviders:
-        - ClientId: !Ref UserPoolClient
+        - ClientId: !Ref ApplicationClient
           ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
 
-  # IAM role used for authenticated users
-  FeideAuthenticatedRole:
+
+
+  UpdateCognintoUserAttributesRole:
     Type: AWS::IAM::Role
     Properties:
-      Path: /
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: 2012-10-17
         Statement:
-          - Effect: 'Allow'
+          - Effect: Allow
             Principal:
-              Federated: 'cognito-identity.amazonaws.com'
-            Action:
-              - 'sts:AssumeRoleWithWebIdentity'
-            Condition:
-              StringEquals:
-                'cognito-identity.amazonaws.com:aud':
-                  Ref: IdentityPool
-              'ForAnyValue:StringLike':
-                'cognito-identity.amazonaws.com:amr': authenticated
+              Service: [ lambda.amazonaws.com ]
+            Action: [ 'sts:AssumeRole' ]
+      Path: /
       Policies:
-        - PolicyName: 'CognitoAuthorizedPolicy'
+        - PolicyName: accessToCustomers
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Effect: 'Allow'
+              - Effect: Allow
                 Action:
-                  - 'mobileanalytics:PutEvents'
-                  - 'cognito-sync:*'
-                  - 'cognito-identity:*'
-                Resource: [ '*' ]
-
-  # IAM role used for unauthenticated users
-  UnauthenticatedRole:
-    Type: AWS::IAM::Role
-    Properties:
-      Path: /
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: 'Allow'
-            Principal:
-              Federated: 'cognito-identity.amazonaws.com'
-            Action:
-              - 'sts:AssumeRoleWithWebIdentity'
-            Condition:
-              StringEquals:
-                'cognito-identity.amazonaws.com:aud':
-                  Ref: IdentityPool
-              'ForAnyValue:StringLike':
-                'cognito-identity.amazonaws.com:amr': unauthenticated
-      Policies:
-        - PolicyName: 'CognitoUnauthenticatedRolePolicy'
+                  - dynamodb:BatchGetItem
+                  - dynamodb:ConditionCheckItem
+                  - dynamodb:DescribeTable
+                  - dynamodb:GetItem
+                  - dynamodb:Scan
+                  - dynamodb:Query
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
+        - PolicyName: writeLog
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Effect: 'Allow'
+              - Effect: Allow
                 Action:
-                  - 'mobileanalytics:PutEvents'
-                  - 'cognito-sync:*'
-                Resource: [ '*' ]
-
-  # Assigns the roles to the Identity Pool
-  IdentityPoolRoleMapping:
-    Type: AWS::Cognito::IdentityPoolRoleAttachment
-    Properties:
-      IdentityPoolId: !Ref IdentityPool
-      Roles:
-        authenticated: !GetAtt FeideAuthenticatedRole.Arn
-        unauthenticated: !GetAtt UnauthenticatedRole.Arn
-
-  # IAM role used for users allowed to publish
-  PublisherRole:
-    Type: AWS::IAM::Role
-    Properties:
-      Path: /
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: 'Allow'
-            Principal:
-              Federated: 'cognito-identity.amazonaws.com'
-            Action:
-              - 'sts:AssumeRoleWithWebIdentity'
-            Condition:
-              StringEquals:
-                'cognito-identity.amazonaws.com:aud':
-                  Ref: IdentityPool
-              'ForAnyValue:StringLike':
-                'cognito-identity.amazonaws.com:amr': authenticated
-      Policies:
-        - PolicyName: PublisherPolicy
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
+        - PolicyName: CommunicationWithCognito
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Effect: 'Allow'
+              - Effect: Allow
                 Action:
-                  - 'mobileanalytics:PutEvents'
-                  - 'cognito-sync:*'
-                Resource: [ '*' ]
-
-  FeideAuthenticatedGroup:
-    Type: AWS::Cognito::UserPoolGroup
-    Properties:
-      GroupName: FeideAuthenticatedGroup
-      Description: Common users authenticated with Feide
-      RoleArn: !GetAtt FeideAuthenticatedRole.Arn
-      UserPoolId: !Ref UserPool
-
-  PublisherGroup:
-    Type: AWS::Cognito::UserPoolGroup
-    Properties:
-      GroupName: PublisherGroup
-      Description: Users allowed to publish
-      RoleArn: !GetAtt PublisherRole.Arn
-      UserPoolId: !Ref UserPool
-
-  ### Cognito Trigger ##################################################################################################
+                  - cognito-idp:AdminAddUserToGroup
+                  - cognito-idp:AdminUpdateUserAttributes
+                  - cognito-idp:AdminGetUser
+                  - cognito-idp:AddCustomAttributes
+                  - cognito-idp:DescribeUserPoolClient
+                  - cognito-idp:DescribeUserPool
+                  - cognito-idp:AdminCreateUser
+                  - cognito-idp:ListUserPoolClients
+                  - cognito-idp:CreateGroup
+                  - cognito-idp:GetGroup
+                Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+              - Effect: Allow
+                Action:
+                  - cognito-idp:ListUserPools
+                  - cognito-idp:GetUser
+                  - cognito-idp:DescribeUserPoolDomain
+                Resource: "*"
 
   TriggerExecutionRole:
     Type: AWS::IAM::Role
@@ -370,6 +170,8 @@ Resources:
               Service: [ lambda.amazonaws.com ]
             Action: [ 'sts:AssumeRole' ]
       Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Policies:
         - PolicyName: writeLog
           PolicyDocument:
@@ -381,7 +183,7 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
-        - PolicyName: AddUserToGroup
+        - PolicyName: CommunicationWithCognito
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -390,7 +192,20 @@ Resources:
                   - cognito-idp:AdminAddUserToGroup
                   - cognito-idp:AdminUpdateUserAttributes
                   - cognito-idp:AdminGetUser
+                  - cognito-idp:AddCustomAttributes
+                  - cognito-idp:DescribeUserPoolClient
+                  - cognito-idp:DescribeUserPool
+                  - cognito-idp:AdminCreateUser
+                  - cognito-idp:ListUserPoolClients
+                  - cognito-idp:CreateGroup
+                  - cognito-idp:GetGroup
                 Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+              - Effect: Allow
+                Action:
+                 - cognito-idp:ListUserPools
+                 - cognito-idp:GetUser
+                 - cognito-idp:DescribeUserPoolDomain
+                Resource: "*"
         - PolicyName: DatabasePermissions
           PolicyDocument:
             Version: '2012-10-17'
@@ -403,26 +218,6 @@ Resources:
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}/index/*'
-
-  InvokeTriggerPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref TriggerFunction
-      Principal: cognito-idp.amazonaws.com
-
-  TriggerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cognito-pre-token-generation
-      Handler: no.unit.nva.cognito.TriggerHandler::handleRequest
-      Role: !GetAtt TriggerExecutionRole.Arn
-      Timeout: 10
-      Environment:
-        Variables:
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
 
   ### User Access Service ##############################################################################################
 
@@ -443,6 +238,10 @@ Resources:
           AttributeType: S
         - AttributeName: SecondaryIndex1RangeKey
           AttributeType: S
+        - AttributeName: SecondaryIndex2HashKey
+          AttributeType: S
+        - AttributeName: SecondaryIndex2RangeKey
+          AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
         - AttributeName: PrimaryKeyHashKey
@@ -458,11 +257,28 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+        - IndexName: SearchUsersByCristinIdentifiers
+          KeySchema:
+            - AttributeName: SecondaryIndex2HashKey
+              KeyType: HASH
+            - AttributeName: SecondaryIndex2RangeKey
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
 
   UsersAndRolesApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
+#      Auth:
+#        DefaultAuthorizer: CognitoAuthorizer
+#        Authorizers:
+#          CognitoAuthorizer:
+#            UserPoolArn: !GetAtt UserPool.Arn
+#            Identity:
+#              Header: Authorization
+#              ValidationExpression: Bearer.*
+#              ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
       DefinitionBody:
         'Fn::Transform':
@@ -478,7 +294,6 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
@@ -498,7 +313,6 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UserRoleMappings
@@ -517,7 +331,6 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
@@ -529,25 +342,7 @@ Resources:
             Method: post
             RestApiId: !Ref UsersAndRolesApi
 
-  GetUserHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /users/{username}
-            Method: get
-            RestApiId: !Ref UsersAndRolesApi
+
   UpdateUserHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -556,7 +351,6 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
@@ -567,6 +361,72 @@ Resources:
             Path: /users/{username}
             Method: put
             RestApiId: !Ref UsersAndRolesApi
+
+  GetUserHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+#      AutoPublishAlias: live
+#      DeploymentPreference:
+#        Enabled: true
+#        Type: AllAtOnce
+#      ProvisionedConcurrencyConfig:
+#        ProvisionedConcurrentExecutions: 1
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserRoleMappings
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/{username}
+            Method: get
+            RestApiId: !Ref UsersAndRolesApi
+
+#  GetUserHandlerScalableTarget:
+#    Type: AWS::ApplicationAutoScaling::ScalableTarget
+#    Properties:
+#      MaxCapacity: 10
+#      MinCapacity: 1
+#      ResourceId: !Sub function:${GetUserHandler}:live
+#      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+#      ScalableDimension: lambda:function:ProvisionedConcurrency
+#      ServiceNamespace: lambda
+#    DependsOn: GetUserHandlerAliaslive
+#
+#  GetUserHandlerFunctionScalingPolicy:
+#    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+#    Properties:
+#      PolicyName: getUserHandlerScalingPolicy
+#      PolicyType: TargetTrackingScaling
+#      ScalingTargetId: !Ref GetUserHandlerScalableTarget
+#      TargetTrackingScalingPolicyConfiguration:
+#        TargetValue: 0.90
+#        PredefinedMetricSpecification:
+#          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+  CustomerSelectionHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.CustomerSelectionHandler::handleRequest
+      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: post
+            RestApiId: !Ref UsersAndRolesApi
+
   ListByInstitutionHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -575,7 +435,6 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UserRoleMappings
@@ -616,7 +475,7 @@ Resources:
       AttributeDefinitions:
         - AttributeName: identifier
           AttributeType: S
-        - AttributeName: feideOrganizationId
+        - AttributeName: feideOrganizationDomain
           AttributeType: S
         - AttributeName: cristinId
           AttributeType: S
@@ -624,9 +483,9 @@ Resources:
         - AttributeName: identifier
           KeyType: HASH
       GlobalSecondaryIndexes:
-        - IndexName: byOrgNumber
+        - IndexName: byOrgDomain
           KeySchema:
-            - AttributeName: feideOrganizationId
+            - AttributeName: feideOrganizationDomain
               KeyType: HASH
           Projection:
             ProjectionType: ALL
@@ -647,6 +506,14 @@ Resources:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
       StageName: Prod
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+            Identity:
+              Header: Authorization
+              ValidationExpression: Bearer.*
+              ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
       DefinitionBody:
         'Fn::Transform':
@@ -684,7 +551,6 @@ Resources:
           ALLOWED_ORIGIN: '*'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -755,7 +621,7 @@ Resources:
             Path: /{identifier}/vocabularies
             Method: put
             RestApiId: !Ref NvaCustomerApi
-  NvaGetCustomerByOrgNumberFunction:
+  NvaGetCustomerByOrgDomainFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: customer
@@ -769,10 +635,10 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
       Events:
-        GetByOrgNumberEvent:
+        GetByOrgDomainEvent:
           Type: Api
           Properties:
-            Path: /orgNumber/{orgNumber}
+            Path: /orgDomain/{orgDomain}
             Method: get
             RestApiId: !Ref NvaCustomerApi
   NvaGetCustomerByCristinIdFunction:
@@ -1163,7 +1029,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}CognitoUserPoolAppClientId'
       Description: Identifier to use for the app clients to access this user pool
       Type: String
-      Value: !Ref UserPoolClient
+      Value: !Ref ApplicationClient
 
   CognitoURNParameter:
     Type: AWS::SSM::Parameter
@@ -1249,6 +1115,305 @@ Resources:
       StageName: !Ref NvaCustomerApi.Stage
       Timestamp: '${BUILD_TIMESTAMP}'
       AuthorizerArn: !GetAtt UserPool.Arn
+
+### New Cognito ########################################################################################################
+
+  UserPoolName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      DataType: text
+      Description: Userpool's Backend client ID
+      Name: /NVA/UserPoolName
+      Type: String
+      Value: !Sub
+        - "${UserPoolName}${AWS::AccountId}"
+        - UserPoolName: !FindInMap [ 'Constants', 'Cognito','UserPoolNamePrefix' ]
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      MfaConfiguration: "OFF"
+      LambdaConfig:
+        PreTokenGeneration: !Sub '${PreTokenGenerationnHandler.Arn}:live'
+      Schema:
+        - Name: nin
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: feideId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: feidememberrole
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: feideIdNin
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: orgFeideDomain
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: firstName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: lastName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: accessRights
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: customerId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: allowedCustomers
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: roles
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: nvaUsername
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: cristinId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: topOrgCristinId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+      UsernameConfiguration:
+        CaseSensitive: true
+      UserPoolName: !GetAtt UserPoolName.Value
+
+  CongitoAuthUri:
+    Type: AWS::SSM::Parameter
+    Properties:
+      DataType: text
+      Description: Cognito Authentication URI
+      Name: /NVA/CognitoUri
+      Type: String
+      Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+
+  ConnectionToDataporten:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      AttributeMapping:
+        custom:nin: https://n.feide.no/claims/nin
+        custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
+        custom:feidememberrole: eduPersonAffiliation
+        custom:feideIdNin: norEduPersonNIN
+        custom:orgFeideDomain: schacHomeOrganization
+      ProviderDetails:
+        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        attributes_request_method: POST
+        oidc_issuer: 'https://auth.dataporten.no'
+        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+        token_url: 'https://auth.dataporten.no/oauth/token'
+        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+      ProviderName: Dataporten
+      ProviderType: OIDC
+      UserPoolId: !Ref UserPool
+
+  ResourceServerScopes:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      Identifier: https://api.nva.unit.no/scopes
+      Name: Scopes for backend
+      Scopes:
+        - ScopeDescription: Necessary scope for backend authentication to work
+          ScopeName: backend
+        - ScopeDescription: Frontend scope
+          ScopeName: frontend
+      UserPoolId: !Ref UserPool
+
+  BackendApplicationClient:
+    DependsOn: ResourceServerScopes
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      AllowedOAuthFlows:
+          - client_credentials
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+         - https://api.nva.unit.no/scopes/backend
+      ClientName: BackendApplicationClient
+      CallbackURLs:
+        - https://api.nva.unit.no/scopes # not necessary maybe.
+      DefaultRedirectURI: https://api.nva.unit.no/scopes
+      ExplicitAuthFlows:
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: true
+      IdTokenValidity: 15
+      AccessTokenValidity: 15
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+
+  BackendClientId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      DataType: text
+      Description: Userpool's Backend client ID
+      Name: /NVA/BackendClientId
+      Type: String
+      Value: !Ref BackendApplicationClient
+
+  ApplicationClient:
+    DependsOn: ResourceServerScopes
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - aws.cognito.signin.user.admin
+        - openid
+        - email
+        - phone
+        - profile # it seems to be necessary for the custom attributes to appear
+        - https://api.nva.unit.no/scopes/frontend
+      CallbackURLs:
+        - 'http://localhost:3000'
+        - !Sub 'https://${ApplicationDomain}'
+      LogoutURLs:
+        - 'http://localhost:3000/logout'
+        - !Sub 'https://${ApplicationDomain}/logout'
+      ClientName: NvaApplicationClient
+      DefaultRedirectURI: 'http://localhost:3000'
+      EnableTokenRevocation: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - custom:feideId
+        - custom:nin
+        - custom:feideIdNin
+        - custom:feidememberrole
+        - custom:orgFeideDomain
+        - custom:firstName
+        - custom:lastName
+        - custom:accessRights
+        - custom:customerId
+        - custom:allowedCustomers
+        - custom:roles
+        - custom:nvaUsername
+        - custom:cristinId
+        - custom:topOrgCristinId
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      RefreshTokenValidity: 2
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: hours
+      SupportedIdentityProviders:
+        - !Ref ConnectionToDataporten
+      UserPoolId: !Ref UserPool
+      WriteAttributes:
+        - custom:feideId
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideIdNin
+        - custom:orgFeideDomain
+        - custom:firstName
+        - custom:lastName
+        - custom:accessRights
+        - custom:customerId
+        - custom:allowedCustomers
+        - custom:roles
+        - custom:nvaUsername
+        - custom:cristinId
+        - custom:topOrgCristinId
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId: !Ref UserPool
+      Domain: !Ref AuthenticationDomainPrefix
+
+
+  PreTokenGenerationnHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.IdentityServiceEntryUpdateHandler::handleRequest
+      Role: !GetAtt TriggerExecutionRole.Arn
+      AutoPublishAlias: live
+      Tracing: Active
+      DeploymentPreference:
+        Enabled: true
+        Type: AllAtOnce
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+          USERPOOL_NAME: !GetAtt UserPoolName.Value
+          API_DOMAIN: !Ref ApiDomain
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+      Timeout: 20
+
+  PreTokenGenerationnHandlerScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 10
+      MinCapacity: 1
+      ResourceId: !Sub function:${PreTokenGenerationnHandler}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: PreTokenGenerationnHandlerAliaslive
+
+  PreTokenGenerationnHandlerScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: PpeTokenGenerationnHandlerScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref PreTokenGenerationnHandlerScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+#
+  PreTokenGenerationnHandlerTriggerPermission:
+    DependsOn:
+      - PreTokenGenerationnHandlerScalingPolicy
+      - PreTokenGenerationnHandlerScalableTarget
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub '${PreTokenGenerationnHandler.Arn}:live'
+      Principal: cognito-idp.amazonaws.com
+
+
 
 ### Outputs ############################################################################################################
 

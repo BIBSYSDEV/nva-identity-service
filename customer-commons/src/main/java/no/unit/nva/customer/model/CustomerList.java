@@ -3,7 +3,7 @@ package no.unit.nva.customer.model;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
-import com.fasterxml.jackson.annotation.JsonCreator;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.net.URI;
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
 
 @SuppressWarnings("PMD.ShortMethodName")
@@ -20,13 +21,19 @@ import nva.commons.core.JacocoGenerated;
 public class CustomerList {
 
     public static final String CUSTOMERS = "customers";
-
     @JsonProperty(CUSTOMERS)
-    private final List<CustomerDtoWithoutContext> customers;
+    private List<CustomerReference> customers;
 
-    @JsonCreator
-    public CustomerList(@JsonProperty(CUSTOMERS) List<CustomerDto> customers) {
+    public CustomerList() {
+
+    }
+
+    public CustomerList(List<CustomerDto> customers) {
         this.customers = extractCustomers(customers);
+    }
+
+    public static CustomerList fromString(String json) {
+        return attempt(() -> JsonConfig.beanFrom(CustomerList.class, json)).orElseThrow();
     }
 
     @JsonProperty(LINKED_DATA_CONTEXT)
@@ -39,8 +46,12 @@ public class CustomerList {
         return ID_NAMESPACE;
     }
 
-    public List<CustomerDtoWithoutContext> getCustomers() {
+    public List<CustomerReference> getCustomers() {
         return nonNull(customers) ? customers : Collections.emptyList();
+    }
+
+    public void setCustomers(List<CustomerReference> customers) {
+        this.customers = customers;
     }
 
     @Override
@@ -64,13 +75,18 @@ public class CustomerList {
                && Objects.equals(getContext(), that.getContext());
     }
 
-    private List<CustomerDtoWithoutContext> extractCustomers(List<CustomerDto> customers) {
+    @Override
+    public String toString() {
+        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+    }
+
+    private List<CustomerReference> extractCustomers(List<CustomerDto> customers) {
         return Optional.ofNullable(customers)
             .stream()
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .filter(Objects::nonNull)
-            .map(CustomerDto::withoutContext)
+            .map(CustomerReference::fromCustomerDto)
             .collect(Collectors.toList());
     }
 }

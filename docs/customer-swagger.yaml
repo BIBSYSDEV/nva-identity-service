@@ -82,8 +82,6 @@ paths:
                   $ref: '#/components/examples/BadGatewayProblemExample'
     get:
       summary: Get All Customers
-      security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetAllCustomersFunction.Arn}/invocations

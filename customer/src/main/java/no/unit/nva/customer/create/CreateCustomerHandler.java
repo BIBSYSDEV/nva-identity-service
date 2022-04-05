@@ -12,7 +12,7 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.core.JacocoGenerated;
 
-public class CreateCustomerHandler extends CustomerHandler<CustomerDto> {
+public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest> {
 
     private final CustomerService customerService;
 
@@ -41,7 +41,8 @@ public class CreateCustomerHandler extends CustomerHandler<CustomerDto> {
 
     @Override
     protected CustomerDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
-        return customerService.createCustomer(parseInput(input));
+        var request = CreateCustomerRequest.fromJson(input);
+        return customerService.createCustomer(request.toCustomerDto());
     }
 
     @Override

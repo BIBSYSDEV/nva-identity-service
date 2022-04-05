@@ -3,6 +3,7 @@ package no.unit.nva.customer.update;
 import static no.unit.nva.customer.testing.TestHeaders.getMultiValuedHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.ioutils.IoUtils.stringFromResources;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -26,7 +27,6 @@ import no.unit.nva.stubs.FakeContext;
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 public class UpdateCustomerHandlerTest {
 
@@ -92,6 +92,21 @@ public class UpdateCustomerHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
         assertThat(response.getBody(),
                    containsString(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID + malformedIdentifier));
+    }
+
+    @Test
+    void shouldReturnBadRequestForMalformedObject() {
+
+        var pathParameters = Map.of(IDENTIFIER, UUID.randomUUID().toString());
+        var request = new APIGatewayProxyRequestEvent()
+            .withBody(randomString())
+            .withHeaders(getRequestHeaders())
+            .withMultiValueHeaders(getMultiValuedHeaders())
+            .withPathParameters(pathParameters);
+
+        var response = handler.handleRequest(request, context);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
     private APIGatewayProxyRequestEvent createInput(CustomerDto customer, Map<String, String> pathParameters) {

@@ -8,14 +8,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
-import java.util.UUID;
-import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.service.CustomerService;
@@ -59,15 +56,6 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(actualCustomerList, equalTo(customerList));
     }
 
-    private CustomerDto insertRandomCustomer() {
-        var customer =  CustomerDto.builder()
-            .withDisplayName(randomString())
-            .withCristinId(randomUri())
-            .build();
-        customerService.createCustomer(customer);
-        return customerService.getCustomerByCristinId(customer.getCristinId());
-    }
-
     @Test
     void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate() {
         var existingCustomer = insertRandomCustomer();
@@ -77,13 +65,20 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(customerList.getId(), notNullValue());
         assertThat(customerList.getContext(), notNullValue());
 
-        for(var customer: customerList.getCustomers()){
-            assertThat(customer.getDisplayName(),is(equalTo(existingCustomer.getDisplayName())));
-            assertThat(customer.getId(),is(equalTo(existingCustomer.getId())));
-            assertThat(customer.getCreatedDate(),is(equalTo(existingCustomer.getCreatedDate())));
+        for (var customer : customerList.getCustomers()) {
+            assertThat(customer.getDisplayName(), is(equalTo(existingCustomer.getDisplayName())));
+            assertThat(customer.getId(), is(equalTo(existingCustomer.getId())));
+            assertThat(customer.getCreatedDate(), is(equalTo(existingCustomer.getCreatedDate())));
             assertThat(customer, is(not(instanceOf(CustomerDto.class))));
         }
+    }
 
-
+    private CustomerDto insertRandomCustomer() {
+        var customer = CustomerDto.builder()
+            .withDisplayName(randomString())
+            .withCristinId(randomUri())
+            .build();
+        customerService.createCustomer(customer);
+        return customerService.getCustomerByCristinId(customer.getCristinId());
     }
 }

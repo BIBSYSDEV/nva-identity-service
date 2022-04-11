@@ -51,7 +51,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
-public class IdentityServiceEntryUpdateHandler
+public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
     private static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
@@ -64,17 +64,17 @@ public class IdentityServiceEntryUpdateHandler
     private LambdaLogger logger;
 
     @JacocoGenerated
-    public IdentityServiceEntryUpdateHandler() {
+    public UserSelectionUponLoginHandler() {
         this(defaultCognitoClient(), HttpClient.newHttpClient(), COGNITO_HOST, CRISTIN_HOST,
              defaultCustomerService(DEFAULT_DYNAMO_CLIENT), defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
     }
 
-    public IdentityServiceEntryUpdateHandler(CognitoIdentityProviderClient cognitoClient,
-                                             HttpClient httpClient,
-                                             URI cognitoHost,
-                                             URI cristinHost,
-                                             CustomerService customerService,
-                                             IdentityService identityService) {
+    public UserSelectionUponLoginHandler(CognitoIdentityProviderClient cognitoClient,
+                                         HttpClient httpClient,
+                                         URI cognitoHost,
+                                         URI cristinHost,
+                                         CustomerService customerService,
+                                         IdentityService identityService) {
         this.cognitoClient = cognitoClient;
         this.backendJwtTokenRetriever = new BackendJwtTokenRetriever(cognitoClient, cognitoHost, httpClient);
         this.cristinClient = new CristinClient(cristinHost, httpClient);
@@ -285,7 +285,7 @@ public class IdentityServiceEntryUpdateHandler
         var cristinResponse = authenticationInformation.getCristinPersonResponse();
         var feideIdentifier = authenticationInformation.getFeideIdentifier();
         var user = UserDto.newBuilder()
-            .withUsername(formatUsername(cristinResponse, customer))
+            .withUsername(createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(cristinResponse, customer))
             .withRoles(Collections.singletonList(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
             .withFeideIdentifier(feideIdentifier)
             .withInstitution(customer.getId())
@@ -298,7 +298,10 @@ public class IdentityServiceEntryUpdateHandler
         return user.build();
     }
 
-    private String formatUsername(CristinPersonResponse cristinResponse, CustomerDto customer) {
+    // Create a username that will allow the user to access their resources even if the identity service stack
+    // gets totally destroyed.
+    private String createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(CristinPersonResponse cristinResponse,
+                                                                                   CustomerDto customer) {
         var personIdentifier = cristinResponse.getPersonsCristinIdentifier().getValue();
         var customerIdentifier = UriWrapper.fromUri(customer.getCristinId()).getLastPathElement();
         return personIdentifier + AT + customerIdentifier;

@@ -64,7 +64,7 @@ import org.junit.jupiter.params.provider.EnumSource.Mode;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-class IdentityServiceEntryUpdateHandlerTest {
+class UserSelectionUponLoginHandlerTest {
 
     public static final HttpClient HTTP_CLIENT = WiremockHttpClient.create();
     public static final boolean INCLUDE_INACTIVE = true;
@@ -75,7 +75,7 @@ class IdentityServiceEntryUpdateHandlerTest {
     public static final RoleDto ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION = RoleDto.newBuilder().withRoleName("Creator").build();
 
     private final Context context = new FakeContext();
-    private IdentityServiceEntryUpdateHandler handler;
+    private UserSelectionUponLoginHandler handler;
 
     private WireMockServer httpServer;
     private URI serverUri;
@@ -102,12 +102,12 @@ class IdentityServiceEntryUpdateHandlerTest {
 
         var cognitoHost = this.serverUri;
         var cristinHost = this.serverUri;
-        handler = new IdentityServiceEntryUpdateHandler(congitoClient,
-                                                        HTTP_CLIENT,
-                                                        cognitoHost,
-                                                        cristinHost,
-                                                        customerService,
-                                                        identityService);
+        handler = new UserSelectionUponLoginHandler(congitoClient,
+                                                    HTTP_CLIENT,
+                                                    cognitoHost,
+                                                    cristinHost,
+                                                    customerService,
+                                                    identityService);
     }
 
     @AfterEach

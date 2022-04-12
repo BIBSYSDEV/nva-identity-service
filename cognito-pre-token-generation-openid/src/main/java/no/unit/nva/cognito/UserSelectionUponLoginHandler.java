@@ -132,7 +132,7 @@ public class UserSelectionUponLoginHandler
         authenticationInfo.setCristinResponse(cristinResponse);
 
         var affiliationInformation = fetchParentInstitutionsForPersonAffiliations(authenticationInfo);
-        authenticationInfo.setAffiliationInformation(affiliationInformation);
+        authenticationInfo.setPersonAffiliations(affiliationInformation);
 
         var activeCustomers = fetchCustomersForActiveAffiliations(authenticationInfo);
         authenticationInfo.setActiveCustomers(activeCustomers);
@@ -252,26 +252,42 @@ public class UserSelectionUponLoginHandler
     }
 
     private UserDto getExistingUserOrCreateNew(UserDto user, AuthenticationInformation authenticationInformation) {
-        return attempt(() -> fetchUserBasedOnCristinIdentifiers(user))
-            .or(() -> fetchLegacyUserWithFeideIdentifier(user, authenticationInformation.getFeideIdentifier()))
+        return attempt(() -> fetchUserBasedOnCristinIdentifiers(user, authenticationInformation))
+            .or(() -> fetchLegacyUserWithFeideIdentifier(user, authenticationInformation))
             .or(() -> addUser(user))
             .orElseThrow();
     }
 
-    private UserDto fetchLegacyUserWithFeideIdentifier(UserDto userWithUpdatedInformation, String feideIdentifier) {
-        var queryObject = UserDto.newBuilder().withUsername(feideIdentifier).build();
+    private UserDto fetchLegacyUserWithFeideIdentifier(UserDto userWithUpdatedInformation,
+                                                       AuthenticationInformation authenticationInformation) {
+        var queryObject =
+            UserDto.newBuilder().withUsername(authenticationInformation.getFeideIdentifier()).build();
         var savedUser = identityService.getUser(queryObject);
+        var affiliation =
+            authenticationInformation.getOrganizationAffiliation(userWithUpdatedInformation.getInstitutionCristinId());
         var updatedUser = savedUser.copy()
-            .withFeideIdentifier(feideIdentifier)
+            .withFeideIdentifier(userWithUpdatedInformation.getFeideIdentifier())
             .withCristinId(userWithUpdatedInformation.getCristinId())
             .withInstitutionCristinId(userWithUpdatedInformation.getInstitutionCristinId())
+            .withAffiliation(affiliation)
             .build();
         identityService.updateUser(updatedUser);
         return updatedUser;
     }
 
-    private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user) {
-        return identityService.getUserByCristinIdAndCristinOrgId(user.getCristinId(), user.getInstitutionCristinId());
+    private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user,
+                                                       AuthenticationInformation authenticationInformation) {
+        var existingUser =
+            identityService.getUserByCristinIdAndCristinOrgId(user.getCristinId(), user.getInstitutionCristinId());
+        return updateUserAffiliation(user, authenticationInformation, existingUser);
+    }
+
+    private UserDto updateUserAffiliation(UserDto user, AuthenticationInformation authenticationInformation,
+                                          UserDto existingUser) {
+        var affiliation = authenticationInformation.getOrganizationAffiliation(user.getInstitutionCristinId());
+        var updatedUser = existingUser.copy().withAffiliation(affiliation).build();
+        identityService.updateUser(updatedUser);
+        return updatedUser;
     }
 
     private UserDto addUser(UserDto user) {
@@ -312,7 +328,7 @@ public class UserSelectionUponLoginHandler
 
     private Set<CustomerDto> fetchCustomersForActiveAffiliations(AuthenticationInformation authenticationInformation) {
 
-        return authenticationInformation.getAffiliationInformation()
+        return authenticationInformation.getPersonAffiliations()
             .stream()
             .map(UserAffiliation::getParentInstitution)
             .map(attempt(customerService::getCustomerByCristinId))

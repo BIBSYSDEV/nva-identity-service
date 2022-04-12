@@ -172,15 +172,18 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualUsers, containsInAnyOrder(expectedUsers));
     }
 
-    @ParameterizedTest(name = " should not alter user entries for institutions (top orgs) that the user has already "
-                              + "logged in for both valid and invalid affiliations")
+    @ParameterizedTest(name = " should not alter user names for institutions (top orgs) that the user has "
+                              + "already logged in for both valid and invalid affiliations")
     @EnumSource(LoginEventType.class)
     void shouldMaintainPreexistingUserEntriesForBothValidAndInvalidAffiliations(LoginEventType eventType) {
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
         var alreadyExistingUsers = createUsersForAffiliations(personLoggingIn, INCLUDE_INACTIVE);
+        var expectedUsernames =
+            alreadyExistingUsers.stream().map(UserDto::getUsername).collect(Collectors.toList());
         handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
-        var actualUsers = scanAllUsers();
-        assertThat(actualUsers, containsInAnyOrder(alreadyExistingUsers.toArray(UserDto[]::new)));
+        var actualUsernames =
+            scanAllUsers().stream().map(UserDto::getUsername).collect(Collectors.toList());
+        assertThat(actualUsernames, containsInAnyOrder(expectedUsernames.toArray(String[]::new)));
     }
 
     @ParameterizedTest(name = "should return access rights as user groups for user concatenated with customer cristin "
@@ -496,6 +499,20 @@ class UserSelectionUponLoginHandlerTest {
         var bottomLevelAffiliations = registeredPeople.getBottomLevelAffiliations(person)
             .stream().collect(SingletonCollector.collect());
         assertThat(user.getAffiliation(), is(equalTo(bottomLevelAffiliations)));
+    }
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldAddUserAffiliationToExistingUserEntryWhenUserEntryPreexists(LoginEventType loginEventType) {
+        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
+        var existingUser = createUsersForAffiliations(person,ONLY_ACTIVE)
+                              .stream().collect(SingletonCollector.collect());
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var updateUser = identityService.getUser(existingUser);
+        var affiliation = registeredPeople.getBottomLevelAffiliations(person)
+            .stream().collect(SingletonCollector.collect());
+        assertThat(updateUser.getAffiliation(), is(equalTo(affiliation)));
     }
 
     private void assertThatUserHasUserRoleAttached(UserDto user) {

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -27,7 +28,7 @@ public class AuthenticationInformation {
     private CristinPersonResponse cristinResponse;
     private Set<CustomerDto> activeCustomers;
     private CustomerDto currentCustomer;
-    private List<UserAffiliation> affiliationInformation;
+    private List<UserAffiliation> personAffiliations;
     private UserDto currentUser;
 
     public AuthenticationInformation(String nin, String feideIdentifier, String orgFeideDomain) {
@@ -106,19 +107,27 @@ public class AuthenticationInformation {
     }
 
     public URI getOrganizationAffiliation(URI parentInstitution) {
-        return this.affiliationInformation.stream()
+        var affiliations= allAffiliationsWithSameParentInstitution(parentInstitution);
+        return anyAffiliationButProduceConsistentResponseForSameInputSet(affiliations);
+
+    }
+
+    private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {
+        return this.personAffiliations.stream()
             .filter(pair -> pair.getParentInstitution().equals(parentInstitution))
-            .map(UserAffiliation::getOrganization)
-            .findFirst()
-            .orElseThrow();
+            .map(UserAffiliation::getOrganization);
     }
 
-    public List<UserAffiliation> getAffiliationInformation() {
-        return this.affiliationInformation;
+    private URI anyAffiliationButProduceConsistentResponseForSameInputSet(Stream<URI> affiliations) {
+        return affiliations.map(URI::toString).sorted().map(URI::create).findFirst().orElseThrow();
     }
 
-    public void setAffiliationInformation(List<UserAffiliation> affiliationInformation) {
-        this.affiliationInformation = affiliationInformation;
+    public List<UserAffiliation> getPersonAffiliations() {
+        return this.personAffiliations;
+    }
+
+    public void setPersonAffiliations(List<UserAffiliation> affiliationInformation) {
+        this.personAffiliations = affiliationInformation;
     }
 
     public UserDto getCurrentUser() {

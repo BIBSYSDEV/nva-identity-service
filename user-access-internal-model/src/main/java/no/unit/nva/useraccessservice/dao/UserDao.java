@@ -348,7 +348,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public int hashCode() {
         return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
                             getViewingScope(),
-                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId());
+                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId(),getAffiliation());
     }
 
     @Override
@@ -369,7 +369,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                && Objects.equals(getViewingScope(), userDao.getViewingScope())
                && Objects.equals(getCristinId(), userDao.getCristinId())
                && Objects.equals(getFeideIdentifier(), userDao.getFeideIdentifier())
-               && Objects.equals(getInstitutionCristinId(), userDao.getInstitutionCristinId());
+               && Objects.equals(getInstitutionCristinId(), userDao.getInstitutionCristinId())
+               && Objects.equals(getAffiliation(),userDao.getAffiliation());
     }
 
     @DynamoDbAttribute("institutionCristinId")

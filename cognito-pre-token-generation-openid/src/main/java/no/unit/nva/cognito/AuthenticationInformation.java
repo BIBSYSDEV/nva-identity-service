@@ -27,7 +27,7 @@ public class AuthenticationInformation {
     private CristinPersonResponse cristinResponse;
     private Set<CustomerDto> activeCustomers;
     private CustomerDto currentCustomer;
-    private List<URI> topLevelOrganizations;
+    private List<UserAffiliation> affiliationInformation;
     private UserDto currentUser;
 
     public AuthenticationInformation(String nin, String feideIdentifier, String orgFeideDomain) {
@@ -105,12 +105,20 @@ public class AuthenticationInformation {
         return currentCustomer;
     }
 
-    public List<URI> getTopLevelOrganizations() {
-        return this.topLevelOrganizations;
+    public URI getOrganizationAffiliation(URI parentInstitution) {
+        return this.affiliationInformation.stream()
+            .filter(pair -> pair.getParentInstitution().equals(parentInstitution))
+            .map(UserAffiliation::getOrganization)
+            .findFirst()
+            .orElseThrow();
     }
 
-    public void setTopLevelOrganizations(List<URI> topLevelOrganizations) {
-        this.topLevelOrganizations = topLevelOrganizations;
+    public List<UserAffiliation> getAffiliationInformation() {
+        return this.affiliationInformation;
+    }
+
+    public void setAffiliationInformation(List<UserAffiliation> affiliationInformation) {
+        this.affiliationInformation = affiliationInformation;
     }
 
     public UserDto getCurrentUser() {

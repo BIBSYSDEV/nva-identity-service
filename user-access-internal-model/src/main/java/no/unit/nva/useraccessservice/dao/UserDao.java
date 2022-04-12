@@ -46,6 +46,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
+    public static final TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
     public static final String TYPE_VALUE = "USER";
     public static final String INVALID_USER_EMPTY_USERNAME = "Invalid user entry: Empty username is not allowed";
     public static final String ERROR_DUE_TO_INVALID_ROLE =
@@ -55,11 +56,11 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String FAMILY_NAME_FIELD = "familyName";
     public static final String ROLES_LIST = "roles";
     public static final String INSTITUTION_FIELD = "institution";
-    public static final TableSchema<UserDao> TABLE_SCHEMA = TableSchema.fromClass(UserDao.class);
     public static final String CRISTIN_ID = "cristinId";
     public static final String FEIDE_IDENTIFIER = "feideIdentifier";
-    public static final String AT = "@";
+    public static final String AFFILIATION_FIELD = "affiliation";
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+
     private String username;
     private URI institution;
     private Set<RoleDb> roles;
@@ -69,6 +70,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     private URI cristinId;
     private String feideIdentifier;
     private URI institutionCristinId;
+    private URI affiliation;
 
     public UserDao() {
         super();
@@ -88,10 +90,13 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
             .withCristinId(userDto.getCristinId())
             .withFeideIdentifier(userDto.getFeideIdentifier())
-            .withInstitutionCristinId(userDto.getInstitutionCristinId());
+            .withInstitutionCristinId(userDto.getInstitutionCristinId())
+            .withAffiliation(userDto.getAffiliation());
 
         return userDb.build();
     }
+
+
 
     public ViewingScopeDb getViewingScope() {
         return viewingScope;
@@ -117,7 +122,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withViewingScope(convertViewingScope())
             .withCristinId(getCristinId())
             .withFeideIdentifier(getFeideIdentifier())
-            .withInstitutionCristinId(getInstitutionCristinId());
+            .withInstitutionCristinId(getInstitutionCristinId())
+            .withAffiliation(getAffiliation());
 
         return userDto.build();
     }
@@ -303,6 +309,16 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         DynamoEntryWithRangeKey.super.setType(type);
     }
 
+
+    @DynamoDbAttribute(AFFILIATION_FIELD)
+    public URI getAffiliation() {
+        return affiliation;
+    }
+
+    public void setAffiliation(URI affiliation) {
+        this.affiliation = affiliation;
+    }
+
     @Override
     public UserDao.Builder copy() {
         return newBuilder()
@@ -314,7 +330,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
             .withCristinId(this.cristinId)
             .withRoles(this.getRolesNonNull())
             .withFeideIdentifier(this.getFeideIdentifier())
-            .withInstitutionCristinId(this.getInstitutionCristinId());
+            .withInstitutionCristinId(this.getInstitutionCristinId())
+            .withAffiliation(this.getAffiliation());
     }
 
     @DynamoDbAttribute(FEIDE_IDENTIFIER)
@@ -460,6 +477,11 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         public Builder withInstitutionCristinId(URI insititutionCristinId) {
             userDao.setInstitutionCristinId(insititutionCristinId);
+            return this;
+        }
+
+        public Builder withAffiliation(URI affiliation) {
+            userDao.setAffiliation(affiliation);
             return this;
         }
     }

@@ -61,7 +61,7 @@ import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
-public class IdentityServiceTest extends LocalIdentityService {
+class IdentityServiceTest extends LocalIdentityService {
 
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
     private static final String SOME_USERNAME = "someusername";
@@ -357,6 +357,7 @@ public class IdentityServiceTest extends LocalIdentityService {
             .withCristinId(randomUri())
             .withFeideIdentifier(randomString())
             .withInstitutionCristinId(randomCristinOrgId())
+            .withAffiliation(randomCristinOrgId())
             .build();
 
         usersTable.putItem(insertedUser);
@@ -404,17 +405,16 @@ public class IdentityServiceTest extends LocalIdentityService {
         var user1 = createUserAndAddUserToDb(cristinPersonId, randomCristinOrgId(), randomString());
         var user2 = createUserAndAddUserToDb(cristinPersonId, randomCristinOrgId(), randomString());
         var retrievedUsers = identityService.getUsersByCristinId(cristinPersonId);
-        assertThat(retrievedUsers,containsInAnyOrder(user1, user2));
+        assertThat(retrievedUsers, containsInAnyOrder(user1, user2));
     }
-
 
     @Test
     void shouldFetchUsersOfPersonBasedOnCristinPersonIdAndCristinOrgId() {
         var cirstinPersonId = randomUri();
         var cristinOrgId = randomCristinOrgId();
         var expectedUser = createUserAndAddUserToDb(cirstinPersonId, cristinOrgId, randomString());
-        var retrievedUser = identityService.getUserByCristinIdAndCristinOrgId(cirstinPersonId,cristinOrgId);
-        assertThat(retrievedUser,is(equalTo(expectedUser)));
+        var retrievedUser = identityService.getUserByCristinIdAndCristinOrgId(cirstinPersonId, cristinOrgId);
+        assertThat(retrievedUser, is(equalTo(expectedUser)));
     }
 
     private UserDto createUserAndAddUserToDb(URI cristinId, URI cristinOrgId, String feideIdentifier) {
@@ -432,6 +432,7 @@ public class IdentityServiceTest extends LocalIdentityService {
             .withUsername(randomString())
             .withRoles(roles)
             .withViewingScope(randomViewingScope())
+            .withAffiliation(randomCristinOrgId())
             .build();
         identityService.addUser(user);
         var savedUser = identityService.getUser(user);
@@ -568,7 +569,8 @@ public class IdentityServiceTest extends LocalIdentityService {
             .withViewingScope(randomViewingScope())
             .withCristinId(randomUri())
             .withFeideIdentifier(randomString())
-            .withInstitutionCristinId(randomUri())
+            .withInstitutionCristinId(randomCristinOrgId())
+            .withAffiliation(randomCristinOrgId())
             .build();
     }
 

@@ -485,6 +485,19 @@ class UserSelectionUponLoginHandlerTest {
         }
     }
 
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldAddUserAffiliationToNewUserEntryWhenUserEntryDoesNotPreexist(LoginEventType loginEventType){
+        var person  = registeredPeople.personWithExactlyOneActiveAffiliation();
+        var event  = randomEvent(person,loginEventType);
+        handler.handleRequest(event,context);
+        var user = scanAllUsers().stream().collect(SingletonCollector.collect());
+        var bottomLevelAffiliations = registeredPeople.getBottomLevelAffiliations(person)
+            .stream().collect(SingletonCollector.collect());
+        assertThat(user.getAffiliation(), is(equalTo(bottomLevelAffiliations)));
+    }
+
     private void assertThatUserHasUserRoleAttached(UserDto user) {
         var userRoles = user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toList());
         assertThat(userRoles, hasItem("Creator"));

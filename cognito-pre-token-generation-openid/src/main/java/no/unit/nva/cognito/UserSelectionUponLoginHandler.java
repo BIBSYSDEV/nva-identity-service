@@ -131,8 +131,8 @@ public class UserSelectionUponLoginHandler
             fetchPersonInformationFromCristin(input, authenticationInfo.getNationalIdentityNumber());
         authenticationInfo.setCristinResponse(cristinResponse);
 
-        var topLevelOrganizations = fetchTopLevelOrgsForBottomLevelOrgs(authenticationInfo);
-        authenticationInfo.setTopLevelOrganizations(topLevelOrganizations);
+        var affiliationInformation = fetchParentInstitutionsForPersonAffiliations(authenticationInfo);
+        authenticationInfo.setAffiliationInformation(affiliationInformation);
 
         var activeCustomers = fetchCustomersForActiveAffiliations(authenticationInfo);
         authenticationInfo.setActiveCustomers(activeCustomers);
@@ -283,6 +283,7 @@ public class UserSelectionUponLoginHandler
                                         AuthenticationInformation authenticationInformation) {
 
         var cristinResponse = authenticationInformation.getCristinPersonResponse();
+        var affiliation = authenticationInformation.getOrganizationAffiliation(customer.getCristinId());
         var feideIdentifier = authenticationInformation.getFeideIdentifier();
         var user = UserDto.newBuilder()
             .withUsername(createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(cristinResponse, customer))
@@ -293,15 +294,17 @@ public class UserSelectionUponLoginHandler
             .withFamilyName(cristinResponse.extractLastName())
             .withCristinId(cristinResponse.getCristinId())
             .withCristinId(cristinResponse.getCristinId())
-            .withInstitutionCristinId(customer.getCristinId());
+            .withInstitutionCristinId(customer.getCristinId())
+            .withAffiliation(affiliation);
 
         return user.build();
     }
 
     // Create a username that will allow the user to access their resources even if the identity service stack
     // gets totally destroyed.
-    private String createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(CristinPersonResponse cristinResponse,
-                                                                                   CustomerDto customer) {
+    private String createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(
+        CristinPersonResponse cristinResponse,
+        CustomerDto customer) {
         var personIdentifier = cristinResponse.getPersonsCristinIdentifier().getValue();
         var customerIdentifier = UriWrapper.fromUri(customer.getCristinId()).getLastPathElement();
         return personIdentifier + AT + customerIdentifier;
@@ -309,14 +312,15 @@ public class UserSelectionUponLoginHandler
 
     private Set<CustomerDto> fetchCustomersForActiveAffiliations(AuthenticationInformation authenticationInformation) {
 
-        return authenticationInformation.getTopLevelOrganizations()
+        return authenticationInformation.getAffiliationInformation()
             .stream()
+            .map(UserAffiliation::getParentInstitution)
             .map(attempt(customerService::getCustomerByCristinId))
             .flatMap(Try::stream)
             .collect(Collectors.toSet());
     }
 
-    private List<URI> fetchTopLevelOrgsForBottomLevelOrgs(
+    private List<UserAffiliation> fetchParentInstitutionsForPersonAffiliations(
         AuthenticationInformation authenticationInformation) {
         return authenticationInformation.getCristinPersonResponse().getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
@@ -325,8 +329,9 @@ public class UserSelectionUponLoginHandler
             .collect(Collectors.toList());
     }
 
-    private URI fetchTopLevelOrgUri(URI bottomeLevelOrg) {
+    private UserAffiliation fetchTopLevelOrgUri(URI bottomeLevelOrg) {
         return attempt(() -> cristinClient.fetchTopLevelOrgUri(bottomeLevelOrg))
+            .map(parentInstitution -> UserAffiliation.create(bottomeLevelOrg, parentInstitution))
             .orElseThrow();
     }
 

@@ -294,6 +294,7 @@ class UserDaoTest {
             .withCristinId(randomUri())
             .withInstitutionCristinId(randomCristinOrgId())
             .withFeideIdentifier(randomString())
+            .withAffiliation(randomCristinOrgId())
             .build();
         assertThat(randomUser, doesNotHaveEmptyValues());
         return randomUser;

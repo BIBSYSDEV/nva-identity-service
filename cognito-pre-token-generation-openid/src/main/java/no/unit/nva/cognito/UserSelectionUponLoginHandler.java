@@ -8,6 +8,7 @@ import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_ALLOWED_CUSTOMERS;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
@@ -19,7 +20,6 @@ import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.ClaimsOverrideDetails;
@@ -61,7 +61,6 @@ public class UserSelectionUponLoginHandler
     private final IdentityService identityService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final BackendJwtTokenRetriever backendJwtTokenRetriever;
-    private LambdaLogger logger;
 
     @JacocoGenerated
     public UserSelectionUponLoginHandler() {
@@ -85,7 +84,6 @@ public class UserSelectionUponLoginHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
-        this.logger = context.getLogger();
         final var authenticationInfo = collectInformationForPerson(input);
         createUserRole();
         final var usersForPerson = createOrFetchUserEntriesForPerson(authenticationInfo);
@@ -170,7 +168,6 @@ public class UserSelectionUponLoginHandler
                                                               Collection<String> roles) {
 
         var allowedCustomersString = createAllowedCustomersString(authenticationInfo.getActiveCustomers());
-        logger.log("AllowedCustomers: " + allowedCustomersString);
         var claims = new ArrayList<AttributeType>();
         claims.add(createAttribute("custom:firstName", authenticationInfo.extractFirstName()));
         claims.add(createAttribute("custom:lastName", authenticationInfo.extractLastName()));
@@ -199,7 +196,9 @@ public class UserSelectionUponLoginHandler
         var currentTopLevelOrgClaim =
             createAttribute(TOP_ORG_CRISTIN_ID, authenticationInfo.getCurrentCustomer().getCristinId().toString());
         var usernameClaim = createAttribute(NVA_USERNAME_CLAIM, authenticationInfo.getCurrentUser().getUsername());
-        return List.of(currentCustomerClaim, currentTopLevelOrgClaim, usernameClaim);
+        var personAffiliationClaim =
+            createAttribute(PERSON_AFFILIATION_CLAIM,authenticationInfo.getCurrentUser().getAffiliation().toString());
+        return List.of(currentCustomerClaim, currentTopLevelOrgClaim, usernameClaim,personAffiliationClaim);
     }
 
     private String createAllowedCustomersString(Collection<CustomerDto> allowedCustomers) {

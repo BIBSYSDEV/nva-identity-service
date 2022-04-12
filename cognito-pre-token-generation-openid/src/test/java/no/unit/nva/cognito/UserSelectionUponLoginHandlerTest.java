@@ -10,6 +10,7 @@ import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
@@ -513,6 +514,22 @@ class UserSelectionUponLoginHandlerTest {
         var affiliation = registeredPeople.getOrganizations(person)
             .stream().collect(SingletonCollector.collect());
         assertThat(updateUser.getAffiliation(), is(equalTo(affiliation)));
+    }
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType) {
+        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
+        var existingUser = createUsersForAffiliations(person,ONLY_ACTIVE)
+            .stream().collect(SingletonCollector.collect());
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var updateUser = identityService.getUser(existingUser);
+        var affiliation = registeredPeople.getOrganizations(person)
+            .stream().collect(SingletonCollector.collect());
+        var cognitoAttribute = getUpdatedClaimFromCognito(PERSON_AFFILIATION_CLAIM);
+        assertThat(cognitoAttribute,is(equalTo(affiliation.toString())));
+
     }
 
     private void assertThatUserHasUserRoleAttached(UserDto user) {

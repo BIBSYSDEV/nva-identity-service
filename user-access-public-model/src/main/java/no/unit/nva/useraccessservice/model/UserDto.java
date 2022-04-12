@@ -50,6 +50,8 @@ public class UserDto implements WithCopy<Builder>, Typed {
     private String feideIdentifier;
     @JsonProperty("insitutionCristinId")
     private URI institutionCristinId;
+    @JsonProperty("affiliation")
+    private URI affiliation;
 
     public UserDto() {
         roles = Collections.emptyList();
@@ -67,6 +69,14 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public static UserDto fromJson(String input) {
         return attempt(() -> JsonConfig.beanFrom(UserDto.class, input))
             .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
+    }
+
+    public URI getAffiliation() {
+        return affiliation;
+    }
+
+    public void setAffiliation(URI affiliation) {
+        this.affiliation = affiliation;
     }
 
     public String getFeideIdentifier() {
@@ -180,7 +190,8 @@ public class UserDto implements WithCopy<Builder>, Typed {
             .withViewingScope(getViewingScope())
             .withCristinId(getCristinId())
             .withInstitutionCristinId(getInstitutionCristinId())
-            .withFeideIdentifier(getFeideIdentifier());
+            .withFeideIdentifier(getFeideIdentifier())
+            .withAffiliation(getAffiliation());
     }
 
     public ViewingScope getViewingScope() {
@@ -191,16 +202,8 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.viewingScope = viewingScope;
     }
 
-    @JacocoGenerated
     @Override
-    public int hashCode() {
-        return Objects.hash(getUsername(), getInstitution(), getGivenName(), getFamilyName(), getViewingScope(),
-                            getRoles(),
-                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId());
-    }
-
     @JacocoGenerated
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -217,7 +220,16 @@ public class UserDto implements WithCopy<Builder>, Typed {
                && compareRolesAsSets(userDto)
                && Objects.equals(getCristinId(), userDto.getCristinId())
                && Objects.equals(getFeideIdentifier(), userDto.getFeideIdentifier())
-               && Objects.equals(getInstitutionCristinId(), userDto.getInstitutionCristinId());
+               && Objects.equals(getInstitutionCristinId(), userDto.getInstitutionCristinId())
+               && Objects.equals(getAffiliation(), userDto.getAffiliation());
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getUsername(), getInstitution(), getGivenName(), getFamilyName(), getViewingScope(),
+                            JacksonJrDoesNotSupportSets.toSet(getRoles()),
+                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId(), getAffiliation());
     }
 
     @Override
@@ -285,6 +297,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
         public Builder withInstitutionCristinId(URI institutionCristinId) {
             userDto.setInstitutionCristinId(institutionCristinId);
+            return this;
+        }
+
+        public Builder withAffiliation(URI affiliation) {
+            userDto.setAffiliation(affiliation);
             return this;
         }
 

@@ -70,10 +70,11 @@ class UserSelectionUponLoginHandlerTest {
     public static final boolean INCLUDE_INACTIVE = true;
     public static final boolean ONLY_ACTIVE = false;
     public static final String NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES = null;
+    public static final RoleDto ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION = RoleDto.newBuilder()
+        .withRoleName("Creator")
+        .build();
     private static final boolean ACTIVE = true;
     private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
-    public static final RoleDto ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION = RoleDto.newBuilder().withRoleName("Creator").build();
-
     private final Context context = new FakeContext();
     private UserSelectionUponLoginHandler handler;
 
@@ -483,6 +484,18 @@ class UserSelectionUponLoginHandlerTest {
         for (var user : users) {
             assertThatUserHasUserRoleAttached(user);
         }
+    }
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldAddUserAffiliationToNewUserEntryWhenUserEntryDoesNotPreexist(LoginEventType loginEventType) {
+        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
+        var event = randomEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var user = scanAllUsers().stream().collect(SingletonCollector.collect());
+        var bottomLevelAffiliations = registeredPeople.getBottomLevelAffiliations(person)
+            .stream().collect(SingletonCollector.collect());
+        assertThat(user.getAffiliation(), is(equalTo(bottomLevelAffiliations)));
     }
 
     private void assertThatUserHasUserRoleAttached(UserDto user) {

@@ -2,6 +2,7 @@ package no.unit.nva.cognito;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import java.net.URI;
 import java.util.Collection;
@@ -21,6 +22,7 @@ public class AuthenticationInformation {
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideId";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
+    public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
 
     private final String nationalIdentityNumber;
     private final String feideIdentifier;
@@ -107,19 +109,8 @@ public class AuthenticationInformation {
     }
 
     public URI getOrganizationAffiliation(URI parentInstitution) {
-        var affiliations= allAffiliationsWithSameParentInstitution(parentInstitution);
+        var affiliations = allAffiliationsWithSameParentInstitution(parentInstitution);
         return anyAffiliationButProduceConsistentResponseForSameInputSet(affiliations);
-
-    }
-
-    private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {
-        return this.personAffiliations.stream()
-            .filter(pair -> pair.getParentInstitution().equals(parentInstitution))
-            .map(PersonAffiliation::getOrganization);
-    }
-
-    private URI anyAffiliationButProduceConsistentResponseForSameInputSet(Stream<URI> affiliations) {
-        return affiliations.map(URI::toString).sorted().map(URI::create).findFirst().orElseThrow();
     }
 
     public List<PersonAffiliation> getPersonAffiliations() {
@@ -137,9 +128,8 @@ public class AuthenticationInformation {
     public void updateCurrentUser(Collection<UserDto> users) {
         if (nonNull(currentCustomer)) {
             var currentCustomerId = currentCustomer.getId();
-            this.currentUser = users.stream()
-                .filter(user -> user.getInstitution().equals(currentCustomerId))
-                .collect(SingletonCollector.collect());
+            this.currentUser = attempt(() -> filterOutUser(users, currentCustomerId))
+                    .orElseThrow(fail -> handleUserNotFoundError());
         }
     }
 
@@ -155,6 +145,26 @@ public class AuthenticationInformation {
 
     private static String extractFeideIdentifier(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(FEIDE_ID)).orElse(null);
+    }
+
+    private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {
+        return this.personAffiliations.stream()
+            .filter(affiliation -> affiliation.getParentInstitution().equals(parentInstitution))
+            .map(PersonAffiliation::getOrganization);
+    }
+
+    private URI anyAffiliationButProduceConsistentResponseForSameInputSet(Stream<URI> affiliations) {
+        return affiliations.map(URI::toString).sorted().map(URI::create).findFirst().orElseThrow();
+    }
+
+    private IllegalStateException handleUserNotFoundError() {
+        return new IllegalStateException(COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR + currentCustomer.getId());
+    }
+
+    private UserDto filterOutUser(Collection<UserDto> users, URI currentCustomerId) {
+        return users.stream()
+            .filter(user -> user.getInstitution().equals(currentCustomerId))
+            .collect(SingletonCollector.collect());
     }
 
     private CustomerDto returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer() {

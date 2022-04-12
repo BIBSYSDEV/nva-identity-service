@@ -1,6 +1,7 @@
 package no.unit.nva.cognito;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static no.unit.nva.cognito.AuthenticationInformation.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.AuthenticationInformation.FEIDE_ID;
 import static no.unit.nva.cognito.AuthenticationInformation.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.AuthenticationInformation.NIN_FOR_FEIDE_USERS;
@@ -28,6 +29,7 @@ import static org.hamcrest.core.IsIterableContaining.hasItem;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
@@ -306,20 +308,20 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(accessRights, is(empty()));
     }
 
-    @ParameterizedTest(name = "should not create access rights for customer Ids that are invalid")
+    @ParameterizedTest(name = "should fail when selected user has wrong customer id")
     @EnumSource(LoginEventType.class)
-    void shouldNotCreateAccessRightsForCustomerIdsThatAreInvalid(LoginEventType loginEventType) {
-        var person = registeredPeople.personWithActiveAndInactiveAffiliations();
-        var existingUsers = createUsersForAffiliations(person, INCLUDE_INACTIVE);
+    void shouldFailWhenSelectedUserHasWrongCustomerId(LoginEventType loginEventType) {
+        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
+        var existingUsers = createUsersForAffiliations(person, ONLY_ACTIVE);
         var userWithInvalidCustomerId = existingUsers.get(0);
         var invalidCustomerUri = randomUri();
         userWithInvalidCustomerId.setInstitution(invalidCustomerUri);
         identityService.updateUser(userWithInvalidCustomerId);
         var event = randomEvent(person, loginEventType);
-        var response = handler.handleRequest(event, context);
-        var accessRights = String.join(ELEMENTS_DELIMITER, extractAccessRights(response));
-        var unExpectedCustomerIdentifier = UriWrapper.fromUri(invalidCustomerUri).getLastPathElement();
-        assertThat(accessRights, not(containsString(unExpectedCustomerIdentifier)));
+        var exception =
+            assertThrows(IllegalStateException.class, ()->handler.handleRequest(event, context));
+        assertThat(exception.getMessage(),containsString(COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR));
+
     }
 
     @ParameterizedTest(name = "should store all allowed customer IDs in the cognito user attributes")

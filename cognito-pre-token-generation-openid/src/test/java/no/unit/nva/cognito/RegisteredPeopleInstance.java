@@ -83,7 +83,7 @@ public class RegisteredPeopleInstance {
             .stream()
             .filter(org -> org.isActive() || includeInactive)
             .map(CristinAffiliation::getOrganizationUri)
-            .map(cristinProxy::getTopLevelOrgForBottomLevelOrg)
+            .map(cristinProxy::getParentInstitutionForOrganization)
             .collect(Collectors.toSet());
     }
 
@@ -116,7 +116,7 @@ public class RegisteredPeopleInstance {
             .stream()
             .filter(aff -> aff.isActive() == active)
             .map(CristinAffiliation::getOrganizationUri)
-            .map(cristinProxy::getTopLevelOrgForBottomLevelOrg)
+            .map(cristinProxy::getParentInstitutionForOrganization)
             .collect(Collectors.toSet());
     }
 
@@ -126,7 +126,7 @@ public class RegisteredPeopleInstance {
             .map(customerService::getCustomerByCristinId);
     }
 
-    public List<URI> getBottomLevelAffiliations(NationalIdentityNumber person) {
+    public List<URI> getOrganizations(NationalIdentityNumber person) {
         return cristinProxy.getCristinPersonRecord(person).getAffiliations()
             .stream()
             .map(CristinAffiliation::getOrganizationUri)
@@ -154,7 +154,7 @@ public class RegisteredPeopleInstance {
     }
 
     private void nvaHasRegisteredSomeOfCristinsOrganizationsAsCustomers() {
-        var nvaCustomers = cristinProxy.getTopLevelOrgUrisAndNvaCustomers().stream()
+        var nvaCustomers = cristinProxy.getParentInstitutionsThatAreNvaCustomers().stream()
             .map(this::createNvaCustomer)
             .collect(Collectors.toList());
         assertThat(nvaCustomers, is(not(empty())));

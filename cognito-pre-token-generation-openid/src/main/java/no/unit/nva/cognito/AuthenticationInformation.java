@@ -28,7 +28,7 @@ public class AuthenticationInformation {
     private CristinPersonResponse cristinResponse;
     private Set<CustomerDto> activeCustomers;
     private CustomerDto currentCustomer;
-    private List<UserAffiliation> personAffiliations;
+    private List<PersonAffiliation> personAffiliations;
     private UserDto currentUser;
 
     public AuthenticationInformation(String nin, String feideIdentifier, String orgFeideDomain) {
@@ -115,18 +115,18 @@ public class AuthenticationInformation {
     private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {
         return this.personAffiliations.stream()
             .filter(pair -> pair.getParentInstitution().equals(parentInstitution))
-            .map(UserAffiliation::getOrganization);
+            .map(PersonAffiliation::getOrganization);
     }
 
     private URI anyAffiliationButProduceConsistentResponseForSameInputSet(Stream<URI> affiliations) {
         return affiliations.map(URI::toString).sorted().map(URI::create).findFirst().orElseThrow();
     }
 
-    public List<UserAffiliation> getPersonAffiliations() {
+    public List<PersonAffiliation> getPersonAffiliations() {
         return this.personAffiliations;
     }
 
-    public void setPersonAffiliations(List<UserAffiliation> affiliationInformation) {
+    public void setPersonAffiliations(List<PersonAffiliation> affiliationInformation) {
         this.personAffiliations = affiliationInformation;
     }
 

@@ -149,7 +149,7 @@ public class AuthenticationInformation {
 
     private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {
         return this.personAffiliations.stream()
-            .filter(pair -> pair.getParentInstitution().equals(parentInstitution))
+            .filter(affiliation -> affiliation.getParentInstitution().equals(parentInstitution))
             .map(PersonAffiliation::getOrganization);
     }
 

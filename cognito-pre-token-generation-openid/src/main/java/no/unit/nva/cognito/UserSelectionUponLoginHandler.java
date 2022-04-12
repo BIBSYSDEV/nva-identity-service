@@ -330,24 +330,24 @@ public class UserSelectionUponLoginHandler
 
         return authenticationInformation.getPersonAffiliations()
             .stream()
-            .map(UserAffiliation::getParentInstitution)
+            .map(PersonAffiliation::getParentInstitution)
             .map(attempt(customerService::getCustomerByCristinId))
             .flatMap(Try::stream)
             .collect(Collectors.toSet());
     }
 
-    private List<UserAffiliation> fetchParentInstitutionsForPersonAffiliations(
+    private List<PersonAffiliation> fetchParentInstitutionsForPersonAffiliations(
         AuthenticationInformation authenticationInformation) {
         return authenticationInformation.getCristinPersonResponse().getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
-            .map(this::fetchTopLevelOrgUri)
+            .map(this::fetchParentInstitutionCristinId)
             .collect(Collectors.toList());
     }
 
-    private UserAffiliation fetchTopLevelOrgUri(URI bottomeLevelOrg) {
-        return attempt(() -> cristinClient.fetchTopLevelOrgUri(bottomeLevelOrg))
-            .map(parentInstitution -> UserAffiliation.create(bottomeLevelOrg, parentInstitution))
+    private PersonAffiliation fetchParentInstitutionCristinId(URI mostSpecificAffiliation) {
+        return attempt(() -> cristinClient.fetchTopLevelOrgUri(mostSpecificAffiliation))
+            .map(parentInstitution -> PersonAffiliation.create(mostSpecificAffiliation, parentInstitution))
             .orElseThrow();
     }
 

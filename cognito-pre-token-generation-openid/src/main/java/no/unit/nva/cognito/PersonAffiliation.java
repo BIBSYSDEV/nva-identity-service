@@ -4,16 +4,16 @@ import java.net.URI;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
-public class UserAffiliation {
+public class PersonAffiliation {
 
     private URI organization;
     private URI parentInstitution;
 
-    public static UserAffiliation create(URI organization, URI parentInstitution) {
-        var pair = new UserAffiliation();
-        pair.setOrganization(organization);
-        pair.setParentInstitution(parentInstitution);
-        return pair;
+    public static PersonAffiliation create(URI organization, URI parentInstitution) {
+        var userAffiliation = new PersonAffiliation();
+        userAffiliation.setOrganization(organization);
+        userAffiliation.setParentInstitution(parentInstitution);
+        return userAffiliation;
     }
 
     @JacocoGenerated
@@ -28,10 +28,10 @@ public class UserAffiliation {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof UserAffiliation)) {
+        if (!(o instanceof PersonAffiliation)) {
             return false;
         }
-        UserAffiliation that = (UserAffiliation) o;
+        PersonAffiliation that = (PersonAffiliation) o;
         return Objects.equals(getOrganization(), that.getOrganization()) && Objects.equals(
             getParentInstitution(), that.getParentInstitution());
     }

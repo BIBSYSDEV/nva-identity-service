@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
+import no.unit.nva.cognito.cristin.org.CristinOrgResponse;
 import no.unit.nva.cognito.cristin.person.CristinAffiliation;
 import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import nva.commons.core.paths.UriWrapper;
@@ -40,9 +41,9 @@ public class CristinProxyMock {
     public static final boolean DO_NOT_IGNORE_OTHER_ELEMENTS = false;
     public static final boolean INACTIVE = false;
     public static final int LARGE_NUMBER_TO_AVOID_TEST_SUCCESS_BY_LACK = 100;
+    public static final int LARGE_NUMBER_TO_ENSURE_THE_EXISTENCE_OF_BOTH_ACTIVE_AND_INACTIVE_AFFILIATIONS = 50;
     private static final Boolean MATCH_CASE = false;
     private static final boolean ACTIVE = true;
-    public static final int LARGE_NUMBER_TO_ENSURE_THE_EXISTENCE_OF_BOTH_ACTIVE_AND_INACTIVE_AFFILIATIONS = 50;
     private final Set<NationalIdentityNumber> peopleMatchedToSomeScenario;
     private final DataportenMock dataporten;
     private final URI cristinPersonHost;
@@ -53,10 +54,10 @@ public class CristinProxyMock {
     private NationalIdentityNumber personWithActiveAndInactiveAffiliations;
     private NationalIdentityNumber personWithManyActiveAffiliations;
     private NationalIdentityNumber personWithActiveAffiliationThatIsNotCustomer;
-    private List<URI> topLevelOrgUrisAndNvaCustomers;
-    private Set<URI> bottomLevelOrgUris;
-    private Map<URI, URI> bottomTopLevelOrgMap;
-    private URI topLevelOrgUriNotNvaCustomer;
+    private List<URI> parentInstitutionsThatAreNvaCustomers;
+    private Set<URI> organizations;
+    private Map<URI, URI> organizationToParentInstitutionMap;
+    private URI parentInstitutionThatIsNotNvaCustomer;
 
     public CristinProxyMock(WireMockServer httpServer,
                             DataportenMock dataportenMock) {
@@ -80,8 +81,8 @@ public class CristinProxyMock {
         return personWithOneActiveAffiliationAndNoInactiveAffiliations;
     }
 
-    public List<URI> getTopLevelOrgUrisAndNvaCustomers() {
-        return this.topLevelOrgUrisAndNvaCustomers;
+    public List<URI> getParentInstitutionsThatAreNvaCustomers() {
+        return this.parentInstitutionsThatAreNvaCustomers;
     }
 
     public NationalIdentityNumber getPersonWithOnlyInactiveAffiliations() {
@@ -93,15 +94,15 @@ public class CristinProxyMock {
     }
 
     public URI randomOrgFromTheAffiliationsPool() {
-        return randomElement(bottomLevelOrgUris);
+        return randomElement(organizations);
     }
 
     public URI randomPersonUri() {
         return UriWrapper.fromUri(cristinPersonHost).addChild("person").addChild(randomString()).getUri();
     }
 
-    public URI getTopLevelOrgForBottomLevelOrg(URI uri) {
-        return bottomTopLevelOrgMap.get(uri);
+    public URI getParentInstitutionForOrganization(URI uri) {
+        return organizationToParentInstitutionMap.get(uri);
     }
 
     public NationalIdentityNumber getPersonWithManyActiveAffiliations() {
@@ -116,15 +117,15 @@ public class CristinProxyMock {
         return personWithActiveAffiliationThatIsNotCustomer;
     }
 
-    private URI getTopLevelOrgUriNotNvaCustomer() {
-        return topLevelOrgUriNotNvaCustomer;
+    private URI getParentInstitutionThatIsNotNvaCustomer() {
+        return parentInstitutionThatIsNotNvaCustomer;
     }
 
     private void createPersonWithActiveAffiliationThatIsNotCustomer() {
         personWithActiveAffiliationThatIsNotCustomer = nextPerson();
         var affiliationThatIsNotCustomer = CristinAffiliation.builder()
             .withActive(ACTIVE)
-            .withOrganization(getTopLevelOrgUriNotNvaCustomer())
+            .withOrganization(getParentInstitutionThatIsNotNvaCustomer())
             .build();
         createCristinRecord(personWithActiveAffiliationThatIsNotCustomer, List.of(affiliationThatIsNotCustomer));
         createStubResponseForPerson(personWithActiveAffiliationThatIsNotCustomer);
@@ -135,45 +136,51 @@ public class CristinProxyMock {
     }
 
     private void createImaginaryOrganizationStructure() {
-        createTopLevelOrgsThatAreGoingToBeNvaCustomers();
-        setUpBottomLevelOrgs();
-        createTopLeveOrgThatIsNotACustomer();
+        createParentInstitutions();
+        setupOrganizations();
+        createParentInstitutionThatIsNotACustomer();
     }
 
-    private void setUpBottomLevelOrgs() {
-        Set<BottomAndTopLevelOrgPair> bottomLevelOrgs = createBottomLevelOrgsAttachedToSomeTopLevelOrg();
-        bottomTopLevelOrgMap = new HashMap<>();
-        bottomLevelOrgs.forEach(entry -> bottomTopLevelOrgMap.put(entry.getBottomLevelOrg(), entry.getTopLevelOrg()));
+    private void setupOrganizations() {
+        var personAffiliations = createOrganizationsAttachedToParentInstitutions();
+        organizationToParentInstitutionMap = new HashMap<>();
+        personAffiliations.forEach(
+            entry -> organizationToParentInstitutionMap.put(entry.getOrganization(), entry.getParentInstitution()));
     }
 
-    private void createTopLevelOrgsThatAreGoingToBeNvaCustomers() {
-        topLevelOrgUrisAndNvaCustomers = smallSetOfTopLevelOrgUris();
+    private void createParentInstitutions() {
+        parentInstitutionsThatAreNvaCustomers = smallSetOfParentInstitutions();
     }
 
-    private Set<BottomAndTopLevelOrgPair> createBottomLevelOrgsAttachedToSomeTopLevelOrg() {
-        var bottomLevelOrgs = setOfBottomLevelOrgsSignificantlyBiggerThanTopLevelOrgSet();
-        bottomLevelOrgs.forEach(this::attachCristinOrgResponseToStub);
-        bottomLevelOrgUris =
-            bottomLevelOrgs.stream().map(BottomAndTopLevelOrgPair::getBottomLevelOrg).collect(Collectors.toSet());
-        return bottomLevelOrgs;
+    private Set<PersonAffiliation> createOrganizationsAttachedToParentInstitutions() {
+        var organizations = setOfOrganizationsSignificantlyLargerThanParentInstitutions();
+        organizations.forEach(this::attachCristinOrgResponseToStub);
+        this.organizations =
+            organizations.stream().map(PersonAffiliation::getOrganization).collect(Collectors.toSet());
+        return organizations;
     }
 
-    private void createTopLeveOrgThatIsNotACustomer() {
-        topLevelOrgUriNotNvaCustomer = createRandomOrgUriForTheImaginarySetup();
-        bottomTopLevelOrgMap.put(topLevelOrgUriNotNvaCustomer, topLevelOrgUriNotNvaCustomer);
+    private void createParentInstitutionThatIsNotACustomer() {
+        parentInstitutionThatIsNotNvaCustomer = createRandomOrgUriForTheImaginarySetup();
+        organizationToParentInstitutionMap.put(parentInstitutionThatIsNotNvaCustomer,
+                                               parentInstitutionThatIsNotNvaCustomer);
         attachCristinOrgResponseToStub(
-            new BottomAndTopLevelOrgPair(topLevelOrgUriNotNvaCustomer, topLevelOrgUriNotNvaCustomer));
+            PersonAffiliation.create(parentInstitutionThatIsNotNvaCustomer, parentInstitutionThatIsNotNvaCustomer));
     }
 
-    private Set<BottomAndTopLevelOrgPair> setOfBottomLevelOrgsSignificantlyBiggerThanTopLevelOrgSet() {
+    private Set<PersonAffiliation> setOfOrganizationsSignificantlyLargerThanParentInstitutions() {
         return intStream(LARGE_NUMBER_TO_ENSURE_THE_EXISTENCE_OF_BOTH_ACTIVE_AND_INACTIVE_AFFILIATIONS)
             .map(ignored -> createRandomOrgUriForTheImaginarySetup())
-            .map(bottomLevelOrgUri -> new BottomAndTopLevelOrgPair(bottomLevelOrgUri, randomElement(
-                topLevelOrgUrisAndNvaCustomers)))
+            .map(bottomLevelOrgUri ->
+                     PersonAffiliation.create(bottomLevelOrgUri, randomParentInstitution()))
             .collect(Collectors.toSet());
     }
 
-    private List<URI> smallSetOfTopLevelOrgUris() {
+    private URI randomParentInstitution() {
+        return randomElement(parentInstitutionsThatAreNvaCustomers);
+    }
+
+    private List<URI> smallSetOfParentInstitutions() {
         return intStream(10)
             .map(ignored -> createRandomOrgUriForTheImaginarySetup())
             .collect(Collectors.toList());
@@ -241,11 +248,15 @@ public class CristinProxyMock {
         return response;
     }
 
-    private void attachCristinOrgResponseToStub(BottomAndTopLevelOrgPair bottomOrganization) {
-        stubFor(get(bottomOrganization.getBottomLevelOrg().getPath())
+    private void attachCristinOrgResponseToStub(PersonAffiliation personAffiliation) {
+        stubFor(get(personAffiliation.getOrganization().getPath())
                     .withHeader(CONTENT_TYPE, applicationJson())
                     .willReturn(aResponse().withStatus(HTTP_OK)
-                                    .withBody(bottomOrganization.toCristinOrgResponse().toString())));
+                                    .withBody(toCristinOrgResponse(personAffiliation).toString())));
+    }
+
+    private CristinOrgResponse toCristinOrgResponse(PersonAffiliation personAffiliation) {
+        return CristinOrgResponse.create(personAffiliation.getOrganization(), personAffiliation.getParentInstitution());
     }
 
     private void createStubResponseForPerson(NationalIdentityNumber person) {

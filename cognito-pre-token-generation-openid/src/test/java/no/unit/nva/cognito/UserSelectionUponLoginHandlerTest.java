@@ -496,9 +496,9 @@ class UserSelectionUponLoginHandlerTest {
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var user = scanAllUsers().stream().collect(SingletonCollector.collect());
-        var bottomLevelAffiliations = registeredPeople.getBottomLevelAffiliations(person)
+        var organization = registeredPeople.getOrganizations(person)
             .stream().collect(SingletonCollector.collect());
-        assertThat(user.getAffiliation(), is(equalTo(bottomLevelAffiliations)));
+        assertThat(user.getAffiliation(), is(equalTo(organization)));
     }
 
     @ParameterizedTest
@@ -510,7 +510,7 @@ class UserSelectionUponLoginHandlerTest {
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var updateUser = identityService.getUser(existingUser);
-        var affiliation = registeredPeople.getBottomLevelAffiliations(person)
+        var affiliation = registeredPeople.getOrganizations(person)
             .stream().collect(SingletonCollector.collect());
         assertThat(updateUser.getAffiliation(), is(equalTo(affiliation)));
     }

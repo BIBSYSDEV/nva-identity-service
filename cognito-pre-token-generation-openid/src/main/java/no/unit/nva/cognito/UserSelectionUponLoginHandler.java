@@ -208,4 +208,5 @@ public class UserSelectionUponLoginHandler
             .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
             .build();
     }
+
 }

@@ -1,5 +1,5 @@
 [versions]
-nvaCommons = { strictly = '1.21.0-alpha3' }
+nvaCommons = { strictly = '1.22.0' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.152' }
@@ -20,7 +20,7 @@ guava = { strictly = '31.0.1-jre' }
 hamcrestJackson = { strictly = '1.2.0' }
 log4j = { strictly = '2.17.1' }
 awsLambdaEvents = { strictly = '3.11.0' }
-wiremock = {strictly = '2.27.2'}
+wiremock = { strictly = '2.27.2' }
 
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }
@@ -46,7 +46,7 @@ aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge',
 aws-java-sdk2-cognitoidp = { group = 'software.amazon.awssdk', name = 'cognitoidentityprovider', version.ref = 'awsSdk2' }
 
 jackson-jr-objects = { group = 'com.fasterxml.jackson.jr', name = 'jackson-jr-objects', version.ref = 'jackson' }
-jackson-jr-annotations= { group= 'com.fasterxml.jackson.jr', name= 'jackson-jr-annotation-support', version.ref= 'jackson'}
+jackson-jr-annotations = { group = 'com.fasterxml.jackson.jr', name = 'jackson-jr-annotation-support', version.ref = 'jackson' }
 
 
 slf4j = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
@@ -71,17 +71,17 @@ dynamoDbLocal = { group = 'com.amazonaws', name = 'DynamoDBLocal', version.ref =
 nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nvaCommons' }
 hamcrest-jackson = { group = 'com.spotify', name = 'hamcrest-jackson', version.ref = 'hamcrestJackson' }
 
-wiremock= { group= 'com.github.tomakehurst', name= 'wiremock-jre8', version.ref = 'wiremock'}
+wiremock = { group = 'com.github.tomakehurst', name = 'wiremock-jre8', version.ref = 'wiremock' }
 
 apiguardian-api = { group = 'org.apiguardian', name = 'apiguardian-api', version.ref = 'apiGuardian' }
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
 [bundles]
-logging = ['log4j-core', 'log4j-api', 'slf4j','log4j-slf4j18-impl']
+logging = ['log4j-core', 'log4j-api', 'slf4j', 'log4j-slf4j18-impl']
 testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core',
-           'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils',
-           'hamcrest-jackson', 'wiremock'
-           ]
+    'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils',
+    'hamcrest-jackson', 'wiremock'
+]
 jackson = ['jackson-jr-objects', 'jackson-jr-annotations']
 #aws-xray = ['aws-xray-recorder-sdk-core', 'aws-xray-recorder-sdk-aws-sdk', 'aws-xray-recorder-sdk-aws-sdk-instrumentor']
 aws-lambda = ['aws-lambda-java-core', 'zalando-problem', 'aws-lambda-events']

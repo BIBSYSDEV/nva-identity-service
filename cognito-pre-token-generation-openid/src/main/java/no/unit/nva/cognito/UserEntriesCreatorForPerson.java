@@ -165,7 +165,7 @@ public class UserEntriesCreatorForPerson {
     private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user,
                                                        AuthenticationInformation authenticationInformation) {
         var existingUser =
-            identityService.getUserByCristinIdAndCristinOrgId(user.getCristinId(), user.getInstitutionCristinId());
+            identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(), user.getInstitutionCristinId());
         return updateUserAffiliation(user, authenticationInformation, existingUser);
     }
 

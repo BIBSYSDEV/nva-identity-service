@@ -33,10 +33,9 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 
-public abstract class LocalIdentityService implements WithEnvironment {
+public class LocalIdentityService implements WithEnvironment {
 
     public static final int SINGLE_TABLE_EXPECTED = 1;
-    public static final String STRING = "S";
     private static final Long CAPACITY_DOES_NOT_MATTER = 1000L;
     protected DynamoDbClient localDynamo;
     protected IdentityService databaseService;
@@ -47,7 +46,6 @@ public abstract class LocalIdentityService implements WithEnvironment {
 
     public IdentityServiceImpl createDatabaseServiceUsingLocalStorage() {
         databaseService = new IdentityServiceImpl(initializeTestDatabase());
-
         //return the field just to not break the current API.
         //TODO: remove return after merging.
         return (IdentityServiceImpl) databaseService;

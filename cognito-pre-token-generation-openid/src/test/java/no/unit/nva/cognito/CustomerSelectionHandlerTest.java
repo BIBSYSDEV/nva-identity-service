@@ -1,15 +1,15 @@
 package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.CustomerSelectionHandler.AUTHORIZATION_HEADER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.core.Is.is;
@@ -29,38 +29,50 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
+import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.paths.UriWrapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResponse;
 
-class CustomerSelectionHandlerTest extends LocalCustomerServiceDatabase {
+class CustomerSelectionHandlerTest {
 
     public static final String MULTI_VALUE_CLAIMS_DELIMITER = ",";
     private final FakeContext context = new FakeContext();
     private FakeCognito cognito;
-    private String accessToken;
+    private String personAccessToken;
     private Set<URI> allowedCustomers;
     private CustomerService customerService;
     private CustomerSelectionHandler handler;
+    private IdentityService identityService;
+    private LocalCustomerServiceDatabase customerDatabase;
+    private LocalIdentityService usersDatabase;
 
     @BeforeEach
     public void init() {
-        super.setupDatabase();
-        cognito = new FakeCognito(randomString());
-        this.customerService = new DynamoDBCustomerService(dynamoClient);
-        allowedCustomers = addCustomersToDatabase();
-        var personIdentifier = randomString();
-        accessToken = randomString();
-        var user = createUser(allowedCustomers, personIdentifier);
-        cognito.addUser(accessToken, user);
+        setupCustomerService();
+        setupIdentityService();
+        var person = randomUri();
+        personAccessToken = randomString();
+        setupCognitoAndPersonInformation(person);
 
-        this.handler = new CustomerSelectionHandler(cognito, customerService);
+        addUserEntriesInIdentityService(person, allowedCustomers);
+
+        this.handler = new CustomerSelectionHandler(cognito, customerService, identityService);
+    }
+
+    @AfterEach
+    public void close() {
+        customerDatabase.deleteDatabase();
+        usersDatabase.closeDB();
     }
 
     @Test
@@ -87,7 +99,6 @@ class CustomerSelectionHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldNotSendAnUpdateCustomerRequestToCognitoWhenInputContainsAnAccessTokenAndSelectionIsAmongTheValidOptions() {
-
         var input = createRequest(randomUri());
         var response = handler.handleRequest(input, context);
         assertThatUpdateRequestHasNotBeenSent();
@@ -95,12 +106,79 @@ class CustomerSelectionHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldNotUserAdminRightsButOnlyAccessTokenBasedAccessToCognito() {
+    void shouldNotUseAdminRightsButOnlyAccessTokenBasedAccessToCognito() {
         var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
         var input = createRequest(selectedCustomer);
         handler.handleRequest(input, context);
         assertThat(cognito.getAdminUpdateUserRequest(), is(nullValue()));
         assertThat(cognito.getUpdateUserAttributesRequest(), is(not(nullValue())));
+    }
+
+    @Test
+    void shouldUpdateCustomerCristinIfWhenSelectingCustomer() {
+        var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
+        var input = createRequest(selectedCustomer);
+        handler.handleRequest(input, context);
+        var cristinIdForSelectedCustomer = extractAttributeUpdate(TOP_ORG_CRISTIN_ID);
+        var expectedCristinId = customerService.getCustomer(selectedCustomer).getCristinId();
+        assertThat(cristinIdForSelectedCustomer, is(equalTo(expectedCristinId.toString())));
+    }
+
+    @Test
+    void shouldUpdatePersonAffiliationWhenSelectingCustomer() {
+        var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
+        var input = createRequest(selectedCustomer);
+        handler.handleRequest(input, context);
+        var cristinPersonId = URI.create(extractPersonIdFromCognitoData());
+        var customerCristinId = customerService.getCustomer(selectedCustomer).getCristinId();
+        var user = identityService.getUserByPersonCristinIdAndCustomerCristinId(cristinPersonId, customerCristinId);
+        var expectedPersonAffiliation = user.getAffiliation();
+        var actualPersonAffiliation = extractAttributeUpdate(PERSON_AFFILIATION_CLAIM);
+        assertThat(actualPersonAffiliation, is(equalTo(expectedPersonAffiliation.toString())));
+    }
+
+    private void setupCognitoAndPersonInformation(URI person) {
+        cognito = new FakeCognito(randomString());
+        var user = createUserEntryInCognito(allowedCustomers, person);
+        cognito.addUser(personAccessToken, user);
+    }
+
+    private void setupIdentityService() {
+        usersDatabase = new LocalIdentityService();
+        usersDatabase.initializeTestDatabase();
+        this.identityService = new IdentityServiceImpl(usersDatabase.getDynamoDbClient());
+    }
+
+    private void setupCustomerService() {
+        customerDatabase = new LocalCustomerServiceDatabase();
+        customerDatabase.setupDatabase();
+        this.customerService = new DynamoDBCustomerService(customerDatabase.getDynamoClient());
+        allowedCustomers = addCustomersToDatabase();
+    }
+
+    private void addUserEntriesInIdentityService(URI personId, Set<URI> allowedCustomers) {
+        allowedCustomers.stream()
+            .map(customerId -> createUserEntryInIdentityService(customerId, personId))
+            .forEach(user -> identityService.addUser(user));
+    }
+
+    private UserDto createUserEntryInIdentityService(URI selectedCustomer, URI personId) {
+        var customer = customerService.getCustomer(selectedCustomer);
+        var cristinPersonId = URI.create(extractPersonIdFromCognitoData());
+        var nvaUsername = constructUserName();
+
+        return UserDto.newBuilder()
+            .withUsername(nvaUsername)
+            .withCristinId(personId)
+            .withInstitution(customer.getId())
+            .withCristinId(cristinPersonId)
+            .withInstitutionCristinId(customer.getCristinId())
+            .withAffiliation(randomUri())
+            .build();
+    }
+
+    private String constructUserName() {
+        return randomString();
     }
 
     private Set<URI> addCustomersToDatabase() {
@@ -119,25 +197,24 @@ class CustomerSelectionHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     private String constructExpectedUserName(URI selectedCustomer) {
-        var personIdentifier = UriWrapper.fromUri(extractPreExistingAttribute(PERSON_ID_CLAIM))
-            .getLastPathElement();
-        var customerCristinIdentifier = attempt(() -> customerService.getCustomer(selectedCustomer))
-            .map(CustomerDto::getCristinId)
-            .map(UriWrapper::fromUri)
-            .map(UriWrapper::getLastPathElement)
-            .orElseThrow();
-
-        return personIdentifier + AT + customerCristinIdentifier;
+        var personId = URI.create(extractPersonIdFromCognitoData());
+        var customerCristinId = customerService.getCustomer(selectedCustomer).getCristinId();
+        var user = identityService.getUserByPersonCristinIdAndCustomerCristinId(personId, customerCristinId);
+        return user.getUsername();
     }
 
-    private String extractPreExistingAttribute(String attributeName) {
-        return cognito.getUser(GetUserRequest.builder().accessToken(accessToken).build())
+    private String extractPersonIdFromCognitoData() {
+        return cognito.getUser(creteGetUserRequest())
             .userAttributes()
             .stream()
-            .filter(attribute -> attribute.name().equals(attributeName))
+            .filter(attribute -> attribute.name().equals(CognitoClaims.PERSON_ID_CLAIM))
             .map(AttributeType::value)
             .collect(SingletonCollector.tryCollect())
-            .orElseThrow(fail -> new RuntimeException("Could not find " + attributeName));
+            .orElseThrow(fail -> new RuntimeException("Could not find " + CognitoClaims.PERSON_ID_CLAIM));
+    }
+
+    private GetUserRequest creteGetUserRequest() {
+        return GetUserRequest.builder().accessToken(personAccessToken).build();
     }
 
     private String extractAttributeUpdate(String attributeName) {
@@ -150,12 +227,12 @@ class CustomerSelectionHandlerTest extends LocalCustomerServiceDatabase {
             .collect(SingletonCollector.collect());
     }
 
-    private GetUserResponse createUser(Set<URI> allowedCustomers, String personIdentifier) {
+    private GetUserResponse createUserEntryInCognito(Set<URI> allowedCustomers, URI personId) {
         var allowedCustomersString = allowedCustomers.stream()
             .map(URI::toString)
             .collect(Collectors.joining(MULTI_VALUE_CLAIMS_DELIMITER));
         var allowedCustomersClaim = createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString);
-        var cristinPersonIdClaim = createAttribute(PERSON_ID_CLAIM, personIdentifier);
+        var cristinPersonIdClaim = createAttribute(PERSON_ID_CLAIM, personId.toString());
         return GetUserResponse.builder()
             .userAttributes(allowedCustomersClaim, cristinPersonIdClaim)
             .build();
@@ -180,6 +257,6 @@ class CustomerSelectionHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     private String bearerToken() {
-        return "Bearer " + accessToken;
+        return "Bearer " + personAccessToken;
     }
 }

@@ -9,7 +9,6 @@ import static no.unit.nva.cognito.AuthenticationInformation.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
@@ -26,7 +25,6 @@ import static org.hamcrest.core.Every.everyItem;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsIterableContaining.hasItem;
-import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -319,9 +317,8 @@ class UserSelectionUponLoginHandlerTest {
         identityService.updateUser(userWithInvalidCustomerId);
         var event = randomEvent(person, loginEventType);
         var exception =
-            assertThrows(IllegalStateException.class, ()->handler.handleRequest(event, context));
-        assertThat(exception.getMessage(),containsString(COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR));
-
+            assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
+        assertThat(exception.getMessage(), containsString(COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR));
     }
 
     @ParameterizedTest(name = "should store all allowed customer IDs in the cognito user attributes")
@@ -508,8 +505,8 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldAddUserAffiliationToExistingUserEntryWhenUserEntryPreexists(LoginEventType loginEventType) {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-        var existingUser = createUsersForAffiliations(person,ONLY_ACTIVE)
-                              .stream().collect(SingletonCollector.collect());
+        var existingUser = createUsersForAffiliations(person, ONLY_ACTIVE)
+            .stream().collect(SingletonCollector.collect());
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var updateUser = identityService.getUser(existingUser);
@@ -522,7 +519,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType) {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-        var existingUser = createUsersForAffiliations(person,ONLY_ACTIVE)
+        var existingUser = createUsersForAffiliations(person, ONLY_ACTIVE)
             .stream().collect(SingletonCollector.collect());
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
@@ -530,8 +527,7 @@ class UserSelectionUponLoginHandlerTest {
         var affiliation = registeredPeople.getOrganizations(person)
             .stream().collect(SingletonCollector.collect());
         var cognitoAttribute = getUpdatedClaimFromCognito(PERSON_AFFILIATION_CLAIM);
-        assertThat(cognitoAttribute,is(equalTo(affiliation.toString())));
-
+        assertThat(cognitoAttribute, is(equalTo(affiliation.toString())));
     }
 
     private void assertThatUserHasUserRoleAttached(UserDto user) {
@@ -603,7 +599,7 @@ class UserSelectionUponLoginHandlerTest {
     }
 
     private UserDto fetchUserFromDatabase(URI cristinPersonId, URI customerCristinId) {
-        return identityService.getUserByCristinIdAndCristinOrgId(cristinPersonId, customerCristinId);
+        return identityService.getUserByPersonCristinIdAndCustomerCristinId(cristinPersonId, customerCristinId);
     }
 
     private void assertThatUserIsSearchableByCristinCredentials(NationalIdentityNumber personLoggingIn,

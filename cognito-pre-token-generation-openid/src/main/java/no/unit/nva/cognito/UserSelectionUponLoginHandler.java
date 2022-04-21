@@ -197,8 +197,8 @@ public class UserSelectionUponLoginHandler
             createAttribute(TOP_ORG_CRISTIN_ID, authenticationInfo.getCurrentCustomer().getCristinId().toString());
         var usernameClaim = createAttribute(NVA_USERNAME_CLAIM, authenticationInfo.getCurrentUser().getUsername());
         var personAffiliationClaim =
-            createAttribute(PERSON_AFFILIATION_CLAIM,authenticationInfo.getCurrentUser().getAffiliation().toString());
-        return List.of(currentCustomerClaim, currentTopLevelOrgClaim, usernameClaim,personAffiliationClaim);
+            createAttribute(PERSON_AFFILIATION_CLAIM, authenticationInfo.getCurrentUser().getAffiliation().toString());
+        return List.of(currentCustomerClaim, currentTopLevelOrgClaim, usernameClaim, personAffiliationClaim);
     }
 
     private String createAllowedCustomersString(Collection<CustomerDto> allowedCustomers) {
@@ -277,7 +277,8 @@ public class UserSelectionUponLoginHandler
     private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user,
                                                        AuthenticationInformation authenticationInformation) {
         var existingUser =
-            identityService.getUserByCristinIdAndCristinOrgId(user.getCristinId(), user.getInstitutionCristinId());
+            identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(),
+                                                                         user.getInstitutionCristinId());
         return updateUserAffiliation(user, authenticationInformation, existingUser);
     }
 

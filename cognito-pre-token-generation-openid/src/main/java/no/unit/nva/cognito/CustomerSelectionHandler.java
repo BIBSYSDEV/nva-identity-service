@@ -1,10 +1,11 @@
 package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -15,14 +16,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
+import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.useraccessservice.database.DatabaseConfig;
 import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
 import nva.commons.apigatewayv2.exceptions.ForbiddenException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -36,21 +38,26 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserA
 public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
-
-
     public static final String EMPTY_STRING = "";
     private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
     private final CognitoIdentityProviderClient cognito;
     private final CustomerService customerService;
+    private final IdentityService identityService;
 
     public CustomerSelectionHandler() {
-        this(defaultCognitoClient(), defaultCustomerService(DatabaseConfig.DEFAULT_DYNAMO_CLIENT));
+        this(defaultCognitoClient(),
+             defaultCustomerService(DatabaseConfig.DEFAULT_DYNAMO_CLIENT),
+             IdentityService.defaultIdentityService(DatabaseConfig.DEFAULT_DYNAMO_CLIENT)
+        );
     }
 
-    public CustomerSelectionHandler(CognitoIdentityProviderClient cognito, CustomerService customerService) {
+    public CustomerSelectionHandler(CognitoIdentityProviderClient cognito,
+                                    CustomerService customerService,
+                                    IdentityService identityService) {
         super();
         this.cognito = cognito;
         this.customerService = customerService;
+        this.identityService = identityService;
     }
 
     @Override
@@ -63,21 +70,9 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
         var input = CustomerSelection.fromJson(body);
         var accessToken = extractAccessToken(event);
         var userAttributes = fetchUserInfo(accessToken).userAttributes();
-
         validateInput(userAttributes, input.getCustomerId());
         updateCognitoUserEntryAttributes(input, userAttributes, accessToken);
         return null;
-    }
-
-    private String extractCristinPersonId(List<AttributeType> userAttributes) {
-        return userAttributes.stream()
-            .filter(attribute -> PERSON_ID_CLAIM.equals(attribute.name()))
-            .map(AttributeType::value)
-            .collect(SingletonCollector.collect());
-    }
-
-    private GetUserResponse fetchUserInfo(String accessToken) {
-        return cognito.getUser(GetUserRequest.builder().accessToken(accessToken).build());
     }
 
     @JacocoGenerated
@@ -89,52 +84,72 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
             .build();
     }
 
+    private URI extractCristinPersonId(List<AttributeType> userAttributes) {
+        return userAttributes.stream()
+            .filter(attribute -> PERSON_ID_CLAIM.equals(attribute.name()))
+            .map(AttributeType::value)
+            .map(URI::create)
+            .collect(SingletonCollector.collect());
+    }
+
+    private GetUserResponse fetchUserInfo(String accessToken) {
+        return cognito.getUser(GetUserRequest.builder().accessToken(accessToken).build());
+    }
+
     private void updateCognitoUserEntryAttributes(CustomerSelection customerSelection,
                                                   List<AttributeType> userAttributes,
                                                   String accessToken) {
-        var selectedCustomer =
-            createCustomerSelectionClaim(customerSelection);
+        var user = fetchUser(customerSelection, userAttributes);
 
-        var nvaUsername =
-            createUsernameClaim(customerSelection, userAttributes);
+        var selectedCustomerCustomClaim = createCustomerSelectionClaim(user);
+        var nvaUsernameClaim = createUsernameClaim(user);
+        var selectedCustomerCristinId = crateCustomerCristinIdClaim(user);
+        var userAffiliation = createUserAffiliationClaim(user);
 
-        UpdateUserAttributesRequest request = UpdateUserAttributesRequest.builder()
+        var request = UpdateUserAttributesRequest.builder()
             .accessToken(accessToken)
-            .userAttributes(selectedCustomer, nvaUsername)
+            .userAttributes(selectedCustomerCustomClaim, nvaUsernameClaim, selectedCustomerCristinId, userAffiliation)
             .build();
         cognito.updateUserAttributes(request);
     }
 
-    private AttributeType createCustomerSelectionClaim(CustomerSelection customerSelection) {
-        return AttributeType.builder().name(CURRENT_CUSTOMER_CLAIM)
-            .value(customerSelection.getCustomerId().toString())
+    private AttributeType createUserAffiliationClaim(UserDto user) {
+        return createAttribute(PERSON_AFFILIATION_CLAIM, user.getAffiliation());
+    }
+
+    private AttributeType crateCustomerCristinIdClaim(UserDto userDto) {
+        return createAttribute(TOP_ORG_CRISTIN_ID, userDto.getInstitutionCristinId());
+    }
+
+    private AttributeType createUsernameClaim(UserDto user) {
+        return createAttribute(NVA_USERNAME_CLAIM, user.getUsername());
+    }
+
+    private AttributeType createCustomerSelectionClaim(UserDto user) {
+        return createAttribute(CURRENT_CUSTOMER_CLAIM, user.getInstitution());
+    }
+
+    private AttributeType createAttribute(String attributeName, URI attributeValue) {
+        return AttributeType.builder().name(attributeName)
+            .value(attributeValue.toString())
             .build();
     }
 
-    private AttributeType createUsernameClaim(CustomerSelection customerSelection, List<AttributeType> userAttributes) {
-        return AttributeType.builder().name(NVA_USERNAME_CLAIM)
-            .value(constructUserName(customerSelection, userAttributes))
+    private AttributeType createAttribute(String attributeName, String attributeValue) {
+        return AttributeType.builder().name(attributeName)
+            .value(attributeValue)
             .build();
     }
 
-    private String constructUserName(CustomerSelection customerSelection, List<AttributeType> userAttributes) {
-        var cristinPersonIdentifier = extractCristinPersonIdentifier(userAttributes);
-        var customerCristinIdentifier =
-            fetchCustomerCrstinIdentifier(customerSelection);
-        return cristinPersonIdentifier + AT + customerCristinIdentifier;
+    private UserDto fetchUser(CustomerSelection customerSelection, List<AttributeType> userAttributes) {
+        var cristinPersonId = extractCristinPersonId(userAttributes);
+        var customerCristinId =
+            fetchCustomerCristinId(customerSelection);
+        return identityService.getUserByPersonCristinIdAndCustomerCristinId(cristinPersonId, customerCristinId);
     }
 
-    private String extractCristinPersonIdentifier(List<AttributeType> userAttributes) {
-        return attempt(() -> extractCristinPersonId(userAttributes))
-            .map(UriWrapper::fromUri)
-            .map(UriWrapper::getLastPathElement)
-            .orElseThrow();
-    }
-
-    private String fetchCustomerCrstinIdentifier(CustomerSelection customerSelection) {
+    private URI fetchCustomerCristinId(CustomerSelection customerSelection) {
         return attempt(() -> customerService.getCustomer(customerSelection.getCustomerId()).getCristinId())
-            .map(UriWrapper::fromUri)
-            .map(UriWrapper::getLastPathElement)
             .orElseThrow();
     }
 
@@ -159,7 +174,15 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
     }
 
     private String extractAccessToken(APIGatewayProxyRequestEvent event) {
-        var authorizationHeader = Arrays.asList(event.getHeaders().get(AUTHORIZATION_HEADER).split(" "));
+        var authorizationHeader = removeBearerTokenPrefix(event);
+        return everythingAfterBearerTokenPrefix(authorizationHeader);
+    }
+
+    private String everythingAfterBearerTokenPrefix(List<String> authorizationHeader) {
         return String.join("", authorizationHeader.subList(1, authorizationHeader.size()));
+    }
+
+    private List<String> removeBearerTokenPrefix(APIGatewayProxyRequestEvent event) {
+        return Arrays.asList(event.getHeaders().get(AUTHORIZATION_HEADER).split(" "));
     }
 }

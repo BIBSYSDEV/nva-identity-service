@@ -18,7 +18,6 @@ public class AuthenticationInformation {
 
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
 
-    private final String nationalIdentityNumber;
     private final String personFeideIdentifier;
     private final String orgFeideDomain;
     private CristinPersonResponse cristinResponse;
@@ -27,9 +26,7 @@ public class AuthenticationInformation {
     private List<PersonAffiliation> personAffiliations;
     private UserDto currentUser;
 
-    public AuthenticationInformation(String nin, String personFeideIdentifier, String orgFeideDomain) {
-
-        this.nationalIdentityNumber = nin;
+    public AuthenticationInformation(String personFeideIdentifier, String orgFeideDomain) {
         this.personFeideIdentifier = personFeideIdentifier;
         this.orgFeideDomain = orgFeideDomain;
     }

@@ -85,7 +85,7 @@ public class UserSelectionUponLoginHandler
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
 
         var authenticationInfo =
-            userCreator.collectInformationForPerson(nin, personFeideIdentifier, orgFeideDomain);
+            userCreator.collectInformationForPerson(nin,personFeideIdentifier,orgFeideDomain);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
 
         final var accessRights = accessRightsPerCustomer(usersForPerson);

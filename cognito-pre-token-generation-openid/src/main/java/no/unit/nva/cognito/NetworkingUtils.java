@@ -17,8 +17,9 @@ public final class NetworkingUtils {
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
     public static final String COGNITO_CREDENTIALS_SECRET_NAME = ENVIRONMENT.readEnv("COGNITO_CREDENTIALS_SECRET_NAME");
     public static final String COGNITO_ID_KEY = ENVIRONMENT.readEnv("COGNITO_ID_KEY");
-    public static final String COGNITO_SECRET_KEY =ENVIRONMENT.readEnv("COGNITO_SECRET_KEY");
+    public static final String COGNITO_SECRET_KEY = ENVIRONMENT.readEnv("COGNITO_SECRET_KEY");
     public static final String APPLICATION_JSON = "application/json";
+
     private NetworkingUtils() {
 
     }

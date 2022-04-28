@@ -53,6 +53,7 @@ class CustomerDtoTest {
             .withCreatedDate(randomInstant())
             .withModifiedDate(randomInstant())
             .withVocabularies(randomVocabularies())
+                   .withRorId(randomUri())
             .build();
     }
 

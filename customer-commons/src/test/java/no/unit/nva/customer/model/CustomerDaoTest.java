@@ -91,6 +91,7 @@ class CustomerDaoTest {
             .withDisplayName(randomString())
             .withCreatedDate(randomInstant())
             .withVocabularies(randomVocabularyDtoSettings())
+                                   .withRorId(randomUri())
             .build();
 
         assertThat(customer, doesNotHaveEmptyValues());

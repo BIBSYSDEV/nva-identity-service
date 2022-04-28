@@ -289,6 +289,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
             .withFeideOrganizationDomain(randomString())
             .withCristinId(randomCristinOrgId())
             .withVocabularies(randomVocabularySet())
+                           .withRorId(randomUri())
             .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context")));
         return customer;

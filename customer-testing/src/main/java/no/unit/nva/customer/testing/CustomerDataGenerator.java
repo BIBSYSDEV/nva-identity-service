@@ -31,21 +31,22 @@ public class CustomerDataGenerator {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
-            .withName(randomString())
-            .withCristinId(randomUri())
-            .withFeideOrganizationDomain(randomString())
-            .withModifiedDate(randomInstant())
-            .withIdentifier(identifier)
-            .withId(id)
-            .withCname(randomString())
-            .withContext(LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE)
-            .withArchiveName(randomString())
-            .withShortName(randomString())
-            .withInstitutionDns(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withVocabularies(randomVocabularyDtoSettings())
-            .build();
+                                   .withName(randomString())
+                                   .withCristinId(randomUri())
+                                   .withFeideOrganizationDomain(randomString())
+                                   .withModifiedDate(randomInstant())
+                                   .withIdentifier(identifier)
+                                   .withId(id)
+                                   .withCname(randomString())
+                                   .withContext(LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE)
+                                   .withArchiveName(randomString())
+                                   .withShortName(randomString())
+                                   .withInstitutionDns(randomString())
+                                   .withDisplayName(randomString())
+                                   .withCreatedDate(randomInstant())
+                                   .withVocabularies(randomVocabularyDtoSettings())
+                                   .withRorId(randomUri())
+                                   .build();
 
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
@@ -74,6 +75,7 @@ public class CustomerDataGenerator {
             .withCreatedDate(randomInstant())
             .withCname(randomString())
             .withArchiveName(randomString())
+            .withRorId(randomUri())
             .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;

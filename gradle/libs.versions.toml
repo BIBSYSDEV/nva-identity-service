@@ -29,6 +29,7 @@ nva-apigatewayv2 = { group = 'com.github.bibsysdev', name = 'apigatewayv2', vers
 nva-lambdaauthorizer = { group = 'com.github.bibsysdev', name = 'lambdaauthorizer', version.ref = 'nvaCommons' }
 nva-secrets = { group = 'com.github.bibsysdev', name = 'secrets', version.ref = 'nvaCommons' }
 nva-events = { group = 'com.github.bibsysdev', name = 'eventhandlers', version.ref = 'nvaCommons' }
+nva-auth = { group = 'com.github.bibsysdev', name = 'auth', version.ref = 'nvaCommons' }
 nva-testutils = { group = 'com.github.bibsysdev', name = 'nvatestutils', version.ref = 'nvaCommons' }
 
 #aws-xray-recorder-sdk-core = { group = 'com.amazonaws', name = 'aws-xray-recorder-sdk-core', version.ref = 'xraySdk' }

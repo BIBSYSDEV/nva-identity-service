@@ -4,9 +4,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_X_WWW_FORM_URLENCODED;
-import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
-import static no.unit.nva.cognito.NetworkingUtils.JWT_TOKEN_FIELD;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -17,8 +14,12 @@ import java.util.Map;
 import no.unit.nva.FakeCognito;
 import no.unit.nva.identityservice.json.JsonConfig;
 
-public class DataportenMock {
+public class NvaAuthServerMock {
 
+
+    public static final String CONTENT_TYPE = "Content-Type";
+    public static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
+    public static final String JWT_TOKEN_FIELD = "access_token";
     public static final boolean MATCH_CASE = false;
     private final FakeCognito cognitoClient;
     private final String clientSecret;
@@ -26,7 +27,7 @@ public class DataportenMock {
     private final WireMockServer wiremockServer;
     private String jwtToken;
 
-    public DataportenMock(WireMockServer wireMockServer, FakeCognito cognitoClient) {
+    public NvaAuthServerMock(WireMockServer wireMockServer, FakeCognito cognitoClient) {
         this.wiremockServer = wireMockServer;
         this.cognitoClient = cognitoClient;
         clientSecret = cognitoClient.getFakeClientSecret();

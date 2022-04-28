@@ -220,6 +220,23 @@ Resources:
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}/index/*'
+        - PolicyName: SecretPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                   - secretsmanager:GetResourcePolicy
+                   - secretsmanager:GetSecretValue
+                   - secretsmanager:DescribeSecret
+                   - secretsmanager:ListSecretVersionIds
+                Resource:
+                  - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials*'
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetRandomPassword
+                  - secretsmanager:ListSecrets
+                Resource: '*'
 
   ### User Access Service ##############################################################################################
 
@@ -389,27 +406,7 @@ Resources:
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 
-#  GetUserHandlerScalableTarget:
-#    Type: AWS::ApplicationAutoScaling::ScalableTarget
-#    Properties:
-#      MaxCapacity: 10
-#      MinCapacity: 1
-#      ResourceId: !Sub function:${GetUserHandler}:live
-#      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-#      ScalableDimension: lambda:function:ProvisionedConcurrency
-#      ServiceNamespace: lambda
-#    DependsOn: GetUserHandlerAliaslive
-#
-#  GetUserHandlerFunctionScalingPolicy:
-#    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-#    Properties:
-#      PolicyName: getUserHandlerScalingPolicy
-#      PolicyType: TargetTrackingScaling
-#      ScalingTargetId: !Ref GetUserHandlerScalableTarget
-#      TargetTrackingScalingPolicyConfiguration:
-#        TargetValue: 0.90
-#        PredefinedMetricSpecification:
-#          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
   CustomerSelectionHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -1335,6 +1332,9 @@ Resources:
           COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
           USERPOOL_NAME: !GetAtt UserPoolName.Value
           API_DOMAIN: !Ref ApiDomain
+          COGNITO_CREDENTIALS_SECRET_NAME:  BackendCognitoClientCredentials
+          COGNITO_ID_KEY: backendClientId
+          COGNITO_SECRET_KEY: backendClientSecret
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings

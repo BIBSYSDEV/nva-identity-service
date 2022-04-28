@@ -1,31 +1,34 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.cognito.EnvironmentVariables.API_DOMAIN;
 import java.net.URI;
-import java.util.Map;
+import java.net.URISyntaxException;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
+import software.amazon.awssdk.regions.Region;
 
+@JacocoGenerated
 public final class NetworkingUtils {
 
-    public static final String CONTENT_TYPE = "Content-Type";
-    public static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
-    public static final String APPLICATION_JSON = "application/json";
-    public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String JWT_TOKEN_FIELD = "access_token";
+    public static final Environment ENVIRONMENT = new Environment();
+    public static final URI COGNITO_HOST = defaultCognitoHost();
+    public static final String API_DOMAIN = ENVIRONMENT.readEnv("API_DOMAIN");
     public static final URI CRISTIN_HOST = UriWrapper.fromHost(API_DOMAIN).addChild("cristin").getUri();
-
-
-    // This should be equal to the "ClientName" field of in the UserPoolClient entry for the Backend client n the
-    // template file
-    public static final String BACKEND_USER_POOL_CLIENT_NAME = "BackendApplicationClient";
-    public static final Map<String, String> GRANT_TYPE_CLIENT_CREDENTIALS = Map.of("grant_type", "client_credentials");
-
-
+    public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
+    public static final String COGNITO_CREDENTIALS_SECRET_NAME = ENVIRONMENT.readEnv("COGNITO_CREDENTIALS_SECRET_NAME");
+    public static final String COGNITO_ID_KEY = ENVIRONMENT.readEnv("COGNITO_ID_KEY");
+    public static final String COGNITO_SECRET_KEY =ENVIRONMENT.readEnv("COGNITO_SECRET_KEY");
+    public static final String APPLICATION_JSON = "application/json";
     private NetworkingUtils() {
 
     }
 
-
-
-
+    @JacocoGenerated
+    private static URI defaultCognitoHost() {
+        try {
+            return new URI("https", ENVIRONMENT.readEnv("COGNITO_HOST"), null, null);
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

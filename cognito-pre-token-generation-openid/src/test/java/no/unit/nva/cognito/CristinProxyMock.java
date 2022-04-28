@@ -6,8 +6,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.function.Predicate.not;
-import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
-import static no.unit.nva.cognito.NetworkingUtils.CONTENT_TYPE;
 import static no.unit.nva.cognito.cristin.person.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -37,6 +35,8 @@ import nva.commons.core.paths.UriWrapper;
 
 public class CristinProxyMock {
 
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String CONTENT_TYPE = "Content-Type";
     public static final boolean IGNORE_ARRAY_ORDER = true;
     public static final boolean DO_NOT_IGNORE_OTHER_ELEMENTS = false;
     public static final boolean INACTIVE = false;
@@ -45,7 +45,7 @@ public class CristinProxyMock {
     private static final Boolean MATCH_CASE = false;
     private static final boolean ACTIVE = true;
     private final Set<NationalIdentityNumber> peopleMatchedToSomeScenario;
-    private final DataportenMock dataporten;
+    private final NvaAuthServerMock dataporten;
     private final URI cristinPersonHost;
     private final Map<NationalIdentityNumber, CristinPersonResponse> cristinPersonRegistry;
     private Set<NationalIdentityNumber> people;
@@ -60,7 +60,7 @@ public class CristinProxyMock {
     private URI parentInstitutionThatIsNotNvaCustomer;
 
     public CristinProxyMock(WireMockServer httpServer,
-                            DataportenMock dataportenMock) {
+                            NvaAuthServerMock dataportenMock) {
         this.cristinPersonRegistry = new ConcurrentHashMap<>();
         peopleMatchedToSomeScenario = new HashSet<>();
         this.dataporten = dataportenMock;

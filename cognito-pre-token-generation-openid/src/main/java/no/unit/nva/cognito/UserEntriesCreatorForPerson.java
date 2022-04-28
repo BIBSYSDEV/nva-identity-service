@@ -25,16 +25,13 @@ public class UserEntriesCreatorForPerson {
 
     private final CustomerService customerService;
     private final CristinClient cristinClient;
-    private final BackendJwtTokenRetriever backendJwtTokenRetriever;
     private final IdentityService identityService;
 
     public UserEntriesCreatorForPerson(CustomerService customerService,
                                        CristinClient cristinClient,
-                                       BackendJwtTokenRetriever backendJwtTokenRetriever,
                                        IdentityService identityService) {
         this.customerService = customerService;
         this.cristinClient = cristinClient;
-        this.backendJwtTokenRetriever = backendJwtTokenRetriever;
         this.identityService = identityService;
     }
 
@@ -98,9 +95,9 @@ public class UserEntriesCreatorForPerson {
     }
 
     private CristinPersonResponse fetchPersonInformationFromCristin(AuthenticationInformation authenticationInfo) {
-        var jwtToken = backendJwtTokenRetriever.fetchJwtToken(authenticationInfo.getUserPoolId());
+
         String nin = authenticationInfo.getNationalIdentityNumber();
-        return attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
+        return attempt(() -> cristinClient.sendRequestToCristin(nin)).orElseThrow();
     }
 
     private UserDto createNewUserObject(CustomerDto customer,

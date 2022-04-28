@@ -33,7 +33,7 @@ public class RegisteredPeopleInstance {
     private List<RoleDto> availableNvaRoles;
 
     public RegisteredPeopleInstance(WireMockServer httpServer,
-                                    DataportenMock dataportenMock,
+                                    NvaAuthServerMock dataportenMock,
                                     CustomerService customerService,
                                     IdentityService identityService) {
         this.customerService = customerService;

@@ -39,22 +39,22 @@ class CustomerDtoTest {
 
     private CustomerDto randomCustomer() {
         return CustomerDto.builder()
-            .withCname(randomString())
-            .withIdentifier(UUID.randomUUID())
-            .withId(randomUri())
-            .withDisplayName(randomString())
-            .withInstitutionDns(randomString())
-            .withContext(randomUri())
-            .withShortName(randomString())
-            .withArchiveName(randomString())
-            .withName(randomString())
-            .withFeideOrganizationDomain(randomString())
-            .withCristinId(randomUri())
-            .withCreatedDate(randomInstant())
-            .withModifiedDate(randomInstant())
-            .withVocabularies(randomVocabularies())
+                   .withCname(randomString())
+                   .withIdentifier(UUID.randomUUID())
+                   .withId(randomUri())
+                   .withDisplayName(randomString())
+                   .withInstitutionDns(randomString())
+                   .withContext(randomUri())
+                   .withShortName(randomString())
+                   .withArchiveName(randomString())
+                   .withName(randomString())
+                   .withFeideOrganizationDomain(randomString())
+                   .withCristinId(randomUri())
+                   .withCreatedDate(randomInstant())
+                   .withModifiedDate(randomInstant())
+                   .withVocabularies(randomVocabularies())
                    .withRorId(randomUri())
-            .build();
+                   .build();
     }
 
     private Collection<VocabularyDto> randomVocabularies() {

@@ -1,12 +1,9 @@
 package no.unit.nva.customer.model;
 
+import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
+import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import no.unit.nva.customer.model.interfaces.Context;
-import no.unit.nva.customer.model.interfaces.Typed;
-import no.unit.nva.identityservice.json.JsonConfig;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
-import nva.commons.core.JacocoGenerated;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,10 +12,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
-import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
-import static nva.commons.core.attempt.Try.attempt;
+import no.unit.nva.customer.model.interfaces.Context;
+import no.unit.nva.customer.model.interfaces.Typed;
+import no.unit.nva.identityservice.json.JsonConfig;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.core.JacocoGenerated;
 
 //Overriding setters and getters is necessary for Jackson-Jr
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod"})
@@ -180,20 +178,20 @@ public class CustomerDto implements Context {
 
     public Builder copy() {
         return new Builder()
-            .withVocabularies(getVocabularies())
-            .withShortName(getShortName())
-            .withInstitutionDns(getInstitutionDns())
-            .withDisplayName(getDisplayName())
-            .withCreatedDate(stringToInstant(getCreatedDate()))
-            .withArchiveName(getArchiveName())
-            .withIdentifier(getIdentifier())
-            .withContext(getContext())
-            .withCname(getCname())
-            .withId(getId())
-            .withCristinId(getCristinId())
-            .withFeideOrganizationDomain(getFeideOrganizationDomain())
-            .withName(getName())
-            .withModifiedDate(stringToInstant(getModifiedDate()))
+                   .withVocabularies(getVocabularies())
+                   .withShortName(getShortName())
+                   .withInstitutionDns(getInstitutionDns())
+                   .withDisplayName(getDisplayName())
+                   .withCreatedDate(stringToInstant(getCreatedDate()))
+                   .withArchiveName(getArchiveName())
+                   .withIdentifier(getIdentifier())
+                   .withContext(getContext())
+                   .withCname(getCname())
+                   .withId(getId())
+                   .withCristinId(getCristinId())
+                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                   .withName(getName())
+                   .withModifiedDate(stringToInstant(getModifiedDate()))
                    .withRorId(getRorId());
     }
 

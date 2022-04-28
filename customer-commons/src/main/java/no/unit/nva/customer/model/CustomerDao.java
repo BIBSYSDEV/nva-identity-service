@@ -182,7 +182,7 @@ public class CustomerDao implements Typed {
     }
 
     public URI getRorId() {
-        return Optional.ofNullable(rorId).orElse(URI.create("https://uri.example.org"));
+        return rorId;
     }
 
     @JacocoGenerated

@@ -38,6 +38,7 @@ public class CustomerDto implements Context {
     private String feideOrganizationDomain;
     private URI cristinId;
     private List<VocabularyDto> vocabularies;
+    private URI rorId;
 
     public CustomerDto() {
         super();
@@ -157,6 +158,14 @@ public class CustomerDto implements Context {
         this.vocabularies = vocabularies;
     }
 
+    public URI getRorId() {
+        return rorId;
+    }
+
+    public void setRorId(URI rorId) {
+        this.rorId = rorId;
+    }
+
     @Override
     public URI getContext() {
         return context;
@@ -169,20 +178,21 @@ public class CustomerDto implements Context {
 
     public Builder copy() {
         return new Builder()
-            .withVocabularies(getVocabularies())
-            .withShortName(getShortName())
-            .withInstitutionDns(getInstitutionDns())
-            .withDisplayName(getDisplayName())
-            .withCreatedDate(stringToInstant(getCreatedDate()))
-            .withArchiveName(getArchiveName())
-            .withIdentifier(getIdentifier())
-            .withContext(getContext())
-            .withCname(getCname())
-            .withId(getId())
-            .withCristinId(getCristinId())
-            .withFeideOrganizationDomain(getFeideOrganizationDomain())
-            .withName(getName())
-            .withModifiedDate(stringToInstant(getModifiedDate()));
+                   .withVocabularies(getVocabularies())
+                   .withShortName(getShortName())
+                   .withInstitutionDns(getInstitutionDns())
+                   .withDisplayName(getDisplayName())
+                   .withCreatedDate(stringToInstant(getCreatedDate()))
+                   .withArchiveName(getArchiveName())
+                   .withIdentifier(getIdentifier())
+                   .withContext(getContext())
+                   .withCname(getCname())
+                   .withId(getId())
+                   .withCristinId(getCristinId())
+                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                   .withName(getName())
+                   .withModifiedDate(stringToInstant(getModifiedDate()))
+                   .withRorId(getRorId());
     }
 
     @JacocoGenerated
@@ -191,7 +201,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(),
-                            getCristinId(), getVocabularies(), getContext());
+                            getCristinId(), getVocabularies(), getContext(), getRorId());
     }
 
     @JacocoGenerated
@@ -217,7 +227,8 @@ public class CustomerDto implements Context {
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getContext(), that.getContext());
+               && Objects.equals(getContext(), that.getContext())
+               && Objects.equals(getRorId(), that.getRorId());
     }
 
     @Override
@@ -310,6 +321,11 @@ public class CustomerDto implements Context {
 
         public Builder withContext(URI context) {
             customerDto.setContext(context);
+            return this;
+        }
+
+        public Builder withRorId(URI rorId) {
+            customerDto.setRorId(rorId);
             return this;
         }
 

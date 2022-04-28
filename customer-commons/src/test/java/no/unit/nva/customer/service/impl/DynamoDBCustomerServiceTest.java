@@ -278,18 +278,19 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     private CustomerDto newCustomerDto() {
         var oneMinuteInThePast = Instant.now().minusSeconds(60L);
         var customer = CustomerDto.builder()
-            .withName(randomString())
-            .withShortName(randomString())
-            .withCreatedDate(oneMinuteInThePast)
-            .withModifiedDate(oneMinuteInThePast)
-            .withDisplayName(randomString())
-            .withArchiveName(randomString())
-            .withCname(randomString())
-            .withInstitutionDns(randomString())
-            .withFeideOrganizationDomain(randomString())
-            .withCristinId(randomCristinOrgId())
-            .withVocabularies(randomVocabularySet())
-            .build();
+                           .withName(randomString())
+                           .withShortName(randomString())
+                           .withCreatedDate(oneMinuteInThePast)
+                           .withModifiedDate(oneMinuteInThePast)
+                           .withDisplayName(randomString())
+                           .withArchiveName(randomString())
+                           .withCname(randomString())
+                           .withInstitutionDns(randomString())
+                           .withFeideOrganizationDomain(randomString())
+                           .withCristinId(randomCristinOrgId())
+                           .withVocabularies(randomVocabularySet())
+                           .withRorId(randomUri())
+                           .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context")));
         return customer;
     }

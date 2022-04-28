@@ -20,12 +20,15 @@ dependencies {
     implementation libs.aws.lambda.java.core
     implementation libs.bundles.jackson
     implementation libs.nva.core
+    implementation libs.nva.secrets
+    implementation libs.nva.auth
     implementation libs.aws.lambda.events
 
-    implementation libs.nva.core
+
     implementation libs.aws.sdk2.dynamodbenhanced
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.urlconnection
+    implementation libs.aws.sdk2.secrets
 
 
     testImplementation libs.slf4j

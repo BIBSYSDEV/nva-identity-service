@@ -2,16 +2,15 @@ package no.unit.nva.cognito.cristin.person;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_JSON;
-import static no.unit.nva.cognito.NetworkingUtils.AUTHORIZATION_HEADER;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.cognito.BadGatewayException;
 import no.unit.nva.cognito.cristin.org.CristinOrgResponse;
 import no.unit.nva.identityservice.json.JsonConfig;
@@ -23,30 +22,27 @@ public class CristinClient {
     public static final String REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE =
         "{\"type\":\"NationalIdentificationNumber\",\"value\":\"%s\"}";
     private final URI getUserByNinUri;
-    private final HttpClient httpClient;
+    private final AuthorizedBackendClient httpClient;
 
-    public CristinClient(URI cristinHost, HttpClient httpClient) {
+    public CristinClient(URI cristinHost, AuthorizedBackendClient httpClient) {
         this.httpClient = httpClient;
         this.getUserByNinUri = formatUriForGettingUserByNin(cristinHost);
     }
 
-    public CristinPersonResponse sendRequestToCristin(String jwtToken, String nin)
+    public CristinPersonResponse sendRequestToCristin(String nin)
         throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder(getUserByNinUri)
-            .setHeader(AUTHORIZATION_HEADER, "Bearer " + jwtToken)
+        var request = HttpRequest.newBuilder(getUserByNinUri)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
-            .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8))
-            .build();
+            .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8));
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThatResponseIsSuccessful(response);
         return JsonConfig.beanFrom(CristinPersonResponse.class, response.body());
     }
 
     public URI fetchTopLevelOrgUri(URI orgUri) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder(orgUri)
+        var request = HttpRequest.newBuilder(orgUri)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
-            .GET()
-            .build();
+            .GET();
         var response = httpClient.send(request,BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThatResponseIsSuccessful(response);
 
@@ -63,7 +59,7 @@ public class CristinClient {
 
     private void assertThatResponseIsSuccessful(HttpResponse<String> response) {
         if (response.statusCode() != HTTP_OK) {
-            throw new BadGatewayException("Connection to Cristin failed." + response.toString());
+            throw new BadGatewayException("Connection to Cristin failed." + response);
         }
     }
 

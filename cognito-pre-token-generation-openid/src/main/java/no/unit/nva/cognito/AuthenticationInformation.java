@@ -32,7 +32,6 @@ public class AuthenticationInformation {
     private CustomerDto currentCustomer;
     private List<PersonAffiliation> personAffiliations;
     private UserDto currentUser;
-    private String userPoolId;
 
     public AuthenticationInformation(String nin, String feideIdentifier, String orgFeideDomain) {
 
@@ -45,18 +44,7 @@ public class AuthenticationInformation {
         var nin = extractNin(input.getRequest().getUserAttributes());
         var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
-        var userPoolId = input.getUserPoolId();
-        var authenticationInfo = new AuthenticationInformation(nin, feideIdentifier, orgFeideDomain);
-        authenticationInfo.setUserPoolId(userPoolId);
-        return authenticationInfo;
-    }
-
-    public String getUserPoolId() {
-        return userPoolId;
-    }
-
-    private void setUserPoolId(String userPoolId) {
-        this.userPoolId = userPoolId;
+        return new AuthenticationInformation(nin, feideIdentifier, orgFeideDomain);
     }
 
     public boolean userLoggedInWithNin() {

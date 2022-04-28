@@ -14,7 +14,6 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
-import static no.unit.nva.cognito.NetworkingUtils.BACKEND_USER_POOL_CLIENT_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -43,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import no.unit.nva.FakeCognito;
+import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -85,7 +85,7 @@ class UserSelectionUponLoginHandlerTest {
     private DynamoDBCustomerService customerService;
     private LocalIdentityService userAccessDynamoDbLocal;
     private IdentityService identityService;
-    private DataportenMock dataporten;
+    private NvaAuthServerMock authServerMock;
     private RegisteredPeopleInstance registeredPeople;
     private NvaDataGenerator nvaDataGenerator;
     private FakeCognito congitoClient;
@@ -93,20 +93,21 @@ class UserSelectionUponLoginHandlerTest {
     @BeforeEach
     public void init() {
         setUpWiremock();
-        this.congitoClient = new FakeCognito(BACKEND_USER_POOL_CLIENT_NAME);
-        this.dataporten = new DataportenMock(httpServer, congitoClient);
+        this.congitoClient = new FakeCognito(randomString());
+        this.authServerMock = new NvaAuthServerMock(httpServer, congitoClient);
 
         setupCustomerService();
         setupIdentityService();
 
-        registeredPeople = new RegisteredPeopleInstance(httpServer, dataporten, customerService, identityService);
+        var authorizedBackedClient =
+            AuthorizedBackendClient.prepareWithBearerToken(HTTP_CLIENT, "Bearer " + authServerMock.getJwtToken());
+
+        registeredPeople = new RegisteredPeopleInstance(httpServer, authServerMock, customerService, identityService);
         nvaDataGenerator = new NvaDataGenerator(registeredPeople, customerService);
 
-        var cognitoHost = this.serverUri;
         var cristinHost = this.serverUri;
         handler = new UserSelectionUponLoginHandler(congitoClient,
-                                                    HTTP_CLIENT,
-                                                    cognitoHost,
+                                                    authorizedBackedClient,
                                                     cristinHost,
                                                     customerService,
                                                     identityService);
@@ -696,7 +697,7 @@ class UserSelectionUponLoginHandlerTest {
             .withUserPoolId(randomString())
             .withUserName(randomString())
             .withRequest(Request.builder().withUserAttributes(userAttributes).build())
-            .withCallerContext(CallerContext.builder().withClientId(dataporten.getClientId()).build())
+            .withCallerContext(CallerContext.builder().withClientId(authServerMock.getClientId()).build())
             .build();
     }
 
@@ -706,7 +707,7 @@ class UserSelectionUponLoginHandlerTest {
             .withUserPoolId(randomString())
             .withUserName(randomString())
             .withRequest(Request.builder().withUserAttributes(userAttributes).build())
-            .withCallerContext(CallerContext.builder().withClientId(dataporten.getClientId()).build())
+            .withCallerContext(CallerContext.builder().withClientId(authServerMock.getClientId()).build())
             .build();
     }
 

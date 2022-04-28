@@ -75,6 +75,7 @@ public class CustomerDataGenerator {
             .withCreatedDate(randomInstant())
             .withCname(randomString())
             .withArchiveName(randomString())
+            .withRorId(randomUri())
             .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;

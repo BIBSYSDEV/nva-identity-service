@@ -1,9 +1,12 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
-import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.unit.nva.customer.model.interfaces.Context;
+import no.unit.nva.customer.model.interfaces.Typed;
+import no.unit.nva.identityservice.json.JsonConfig;
+import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.core.JacocoGenerated;
+
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -11,13 +14,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
-import no.unit.nva.customer.model.interfaces.Context;
-import no.unit.nva.customer.model.interfaces.Typed;
-import no.unit.nva.identityservice.json.JsonConfig;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
-import nva.commons.core.JacocoGenerated;
+
+import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
+import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
+import static nva.commons.core.attempt.Try.attempt;
 
 //Overriding setters and getters is necessary for Jackson-Jr
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod"})
@@ -160,7 +161,7 @@ public class CustomerDto implements Context {
     }
 
     public URI getRorId() {
-        return Optional.ofNullable(rorId).orElse(URI.create("https://uri.example.org"));
+        return rorId;
     }
 
     public void setRorId(URI rorId) {

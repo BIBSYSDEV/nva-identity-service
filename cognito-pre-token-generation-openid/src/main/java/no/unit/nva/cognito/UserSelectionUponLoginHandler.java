@@ -74,9 +74,10 @@ public class UserSelectionUponLoginHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
-        //TODO: Authentication information has to be decomposed to pieces
-        //TODO: usersCreator should not accept an AWS event but only a NationalIdentityNumber
-        final var authenticationInfo = userCreator.collectInformationForPerson(input);
+        //TODO: usersCreator is coupled to the event because it uses the userpool id.
+        //TODO: next step is removing the dependency of CognitoUserPool(BackendJwtTokenRetriever) from userCreator.
+        var authenticationInfo = AuthenticationInformation.create(input);
+        authenticationInfo = userCreator.collectInformationForPerson(authenticationInfo);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
 
         final var accessRights = accessRightsPerCustomer(usersForPerson);

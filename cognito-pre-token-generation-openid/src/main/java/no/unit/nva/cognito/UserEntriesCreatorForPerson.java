@@ -60,11 +60,9 @@ public class UserEntriesCreatorForPerson {
             .collect(Collectors.toList());
     }
 
-    public AuthenticationInformation collectInformationForPerson(CognitoUserPoolPreTokenGenerationEvent input) {
-        var authenticationInfo = AuthenticationInformation.create(input);
+    public AuthenticationInformation collectInformationForPerson(AuthenticationInformation authenticationInfo) {
 
-        var cristinResponse =
-            fetchPersonInformationFromCristin(input, authenticationInfo.getNationalIdentityNumber());
+        var cristinResponse = fetchPersonInformationFromCristin(authenticationInfo);
         authenticationInfo.setCristinResponse(cristinResponse);
 
         var affiliationInformation = fetchParentInstitutionsForPersonAffiliations(authenticationInfo);
@@ -101,9 +99,9 @@ public class UserEntriesCreatorForPerson {
             .orElseThrow();
     }
 
-    private CristinPersonResponse fetchPersonInformationFromCristin(
-        CognitoUserPoolPreTokenGenerationEvent input, String nin) {
-        var jwtToken = backendJwtTokenRetriever.fetchJwtToken(input.getUserPoolId());
+    private CristinPersonResponse fetchPersonInformationFromCristin(AuthenticationInformation authenticationInfo) {
+        var jwtToken = backendJwtTokenRetriever.fetchJwtToken(authenticationInfo.getUserPoolId());
+        String nin = authenticationInfo.getNationalIdentityNumber();
         return attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
     }
 

@@ -20,7 +20,6 @@ import nva.commons.core.paths.UriWrapper;
 public class CristinClient {
 
     public static final String CRISTIN_PATH_FOR_GETTING_USER_BY_NIN = "person/identityNumber";
-    public static final String CRISTIN_PATH_FOR_USER_ID = "person";
     public static final String REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE =
         "{\"type\":\"NationalIdentificationNumber\",\"value\":\"%s\"}";
     private final URI getUserByNinUri;

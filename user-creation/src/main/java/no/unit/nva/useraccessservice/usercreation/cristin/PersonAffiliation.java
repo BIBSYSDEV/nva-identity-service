@@ -1,4 +1,4 @@
-package no.unit.nva.cognito;
+package no.unit.nva.useraccessservice.usercreation.cristin;
 
 import java.net.URI;
 import java.util.Objects;

@@ -1,4 +1,4 @@
-package no.unit.nva.cognito.cristin.person;
+package no.unit.nva.useraccessservice.usercreation.cristin.person;
 
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;

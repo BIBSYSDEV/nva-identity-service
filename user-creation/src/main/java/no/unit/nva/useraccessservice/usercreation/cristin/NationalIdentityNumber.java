@@ -1,4 +1,4 @@
-package no.unit.nva.cognito.cristin;
+package no.unit.nva.useraccessservice.usercreation.cristin;
 
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;

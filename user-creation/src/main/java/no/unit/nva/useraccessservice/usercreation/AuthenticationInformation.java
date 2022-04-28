@@ -1,4 +1,4 @@
-package no.unit.nva.cognito;
+package no.unit.nva.useraccessservice.usercreation;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -9,9 +9,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.core.SingletonCollector;
 
 public class AuthenticationInformation {

@@ -61,7 +61,6 @@ public class UserEntriesCreatorForPerson {
     }
 
     public AuthenticationInformation collectInformationForPerson(AuthenticationInformation authenticationInfo) {
-
         var cristinResponse = fetchPersonInformationFromCristin(authenticationInfo);
         authenticationInfo.setCristinResponse(cristinResponse);
 

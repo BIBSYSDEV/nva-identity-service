@@ -76,7 +76,9 @@ public class UserSelectionUponLoginHandler
                                                                 Context context) {
         //TODO: usersCreator is coupled to the event because it uses the userpool id.
         //TODO: next step is removing the dependency of CognitoUserPool(BackendJwtTokenRetriever) from userCreator.
+
         var authenticationInfo = AuthenticationInformation.create(input);
+        //TODO: userCreator should not mutate authenticationInfo
         authenticationInfo = userCreator.collectInformationForPerson(authenticationInfo);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
 

@@ -32,6 +32,7 @@ public class AuthenticationInformation {
     private CustomerDto currentCustomer;
     private List<PersonAffiliation> personAffiliations;
     private UserDto currentUser;
+    private String userPoolId;
 
     public AuthenticationInformation(String nin, String feideIdentifier, String orgFeideDomain) {
 
@@ -44,7 +45,18 @@ public class AuthenticationInformation {
         var nin = extractNin(input.getRequest().getUserAttributes());
         var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
-        return new AuthenticationInformation(nin, feideIdentifier, orgFeideDomain);
+        var userPoolId = input.getUserPoolId();
+        var authenticationInfo = new AuthenticationInformation(nin, feideIdentifier, orgFeideDomain);
+        authenticationInfo.setUserPoolId(userPoolId);
+        return authenticationInfo;
+    }
+
+    public String getUserPoolId() {
+        return userPoolId;
+    }
+
+    private void setUserPoolId(String userPoolId) {
+        this.userPoolId = userPoolId;
     }
 
     public boolean userLoggedInWithNin() {
@@ -129,7 +141,7 @@ public class AuthenticationInformation {
         if (nonNull(currentCustomer)) {
             var currentCustomerId = currentCustomer.getId();
             this.currentUser = attempt(() -> filterOutUser(users, currentCustomerId))
-                    .orElseThrow(fail -> handleUserNotFoundError());
+                .orElseThrow(fail -> handleUserNotFoundError());
         }
     }
 

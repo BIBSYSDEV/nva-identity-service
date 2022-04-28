@@ -2,7 +2,6 @@ package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.AT;
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -60,11 +59,8 @@ public class UserEntriesCreatorForPerson {
             .collect(Collectors.toList());
     }
 
-    public AuthenticationInformation collectInformationForPerson(CognitoUserPoolPreTokenGenerationEvent input) {
-        var authenticationInfo = AuthenticationInformation.create(input);
-
-        var cristinResponse =
-            fetchPersonInformationFromCristin(input, authenticationInfo.getNationalIdentityNumber());
+    public AuthenticationInformation collectInformationForPerson(AuthenticationInformation authenticationInfo) {
+        var cristinResponse = fetchPersonInformationFromCristin(authenticationInfo);
         authenticationInfo.setCristinResponse(cristinResponse);
 
         var affiliationInformation = fetchParentInstitutionsForPersonAffiliations(authenticationInfo);
@@ -101,9 +97,9 @@ public class UserEntriesCreatorForPerson {
             .orElseThrow();
     }
 
-    private CristinPersonResponse fetchPersonInformationFromCristin(
-        CognitoUserPoolPreTokenGenerationEvent input, String nin) {
-        var jwtToken = backendJwtTokenRetriever.fetchJwtToken(input.getUserPoolId());
+    private CristinPersonResponse fetchPersonInformationFromCristin(AuthenticationInformation authenticationInfo) {
+        var jwtToken = backendJwtTokenRetriever.fetchJwtToken(authenticationInfo.getUserPoolId());
+        String nin = authenticationInfo.getNationalIdentityNumber();
         return attempt(() -> cristinClient.sendRequestToCristin(jwtToken, nin)).orElseThrow();
     }
 

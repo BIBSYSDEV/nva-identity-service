@@ -220,20 +220,20 @@ public class CustomerDao implements Typed {
 
     public CustomerDto toCustomerDto() {
         CustomerDto customerDto = CustomerDto.builder()
-            .withCname(this.getCname())
-            .withName(getName())
-            .withIdentifier(this.getIdentifier())
-            .withArchiveName(this.getArchiveName())
-            .withCreatedDate(Optional.ofNullable(this.getCreatedDate()).orElse(null))
-            .withDisplayName(this.getDisplayName())
-            .withInstitutionDns(this.getInstitutionDns())
-            .withShortName(this.getShortName())
-            .withVocabularies(extractVocabularySettings())
-            .withModifiedDate(Optional.ofNullable(getModifiedDate()).orElse(null))
-            .withFeideOrganizationDomain(getFeideOrganizationDomain())
-            .withCristinId(getCristinId())
-            .withRorId(rorId)
-            .build();
+                                      .withCname(this.getCname())
+                                      .withName(getName())
+                                      .withIdentifier(this.getIdentifier())
+                                      .withArchiveName(this.getArchiveName())
+                                      .withCreatedDate(Optional.ofNullable(this.getCreatedDate()).orElse(null))
+                                      .withDisplayName(this.getDisplayName())
+                                      .withInstitutionDns(this.getInstitutionDns())
+                                      .withShortName(this.getShortName())
+                                      .withVocabularies(extractVocabularySettings())
+                                      .withModifiedDate(Optional.ofNullable(getModifiedDate()).orElse(null))
+                                      .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                                      .withCristinId(getCristinId())
+                                      .withRorId(getRorId())
+                                      .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
 

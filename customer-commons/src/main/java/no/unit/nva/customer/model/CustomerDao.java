@@ -213,7 +213,9 @@ public class CustomerDao implements Typed {
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(), getRorId());
+        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getVocabularies(), getRorId());
     }
 
     public CustomerDto toCustomerDto() {

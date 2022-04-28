@@ -2,7 +2,6 @@ package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.AT;
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;

@@ -3,11 +3,9 @@ package no.unit.nva.cognito;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -18,14 +16,9 @@ import nva.commons.core.SingletonCollector;
 
 public class AuthenticationInformation {
 
-    public static final String NIN_FOR_FEIDE_USERS = "custom:feideIdNin";
-    public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
-    public static final String FEIDE_ID = "custom:feideId";
-    public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
 
-    private final String nationalIdentityNumber;
-    private final String feideIdentifier;
+    private final String personFeideIdentifier;
     private final String orgFeideDomain;
     private CristinPersonResponse cristinResponse;
     private Set<CustomerDto> activeCustomers;
@@ -33,22 +26,9 @@ public class AuthenticationInformation {
     private List<PersonAffiliation> personAffiliations;
     private UserDto currentUser;
 
-    public AuthenticationInformation(String nin, String feideIdentifier, String orgFeideDomain) {
-
-        this.nationalIdentityNumber = nin;
-        this.feideIdentifier = feideIdentifier;
+    public AuthenticationInformation(String personFeideIdentifier, String orgFeideDomain) {
+        this.personFeideIdentifier = personFeideIdentifier;
         this.orgFeideDomain = orgFeideDomain;
-    }
-
-    public static AuthenticationInformation create(CognitoUserPoolPreTokenGenerationEvent input) {
-        var nin = extractNin(input.getRequest().getUserAttributes());
-        var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
-        var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
-        return new AuthenticationInformation(nin, feideIdentifier, orgFeideDomain);
-    }
-
-    public boolean userLoggedInWithNin() {
-        return isNull(orgFeideDomain);
     }
 
     public Set<CustomerDto> getActiveCustomers() {
@@ -63,12 +43,8 @@ public class AuthenticationInformation {
         return orgFeideDomain;
     }
 
-    public String getNationalIdentityNumber() {
-        return nationalIdentityNumber;
-    }
-
-    public String getFeideIdentifier() {
-        return feideIdentifier;
+    public String getPersonFeideIdentifier() {
+        return personFeideIdentifier;
     }
 
     public CristinPersonResponse getCristinPersonResponse() {
@@ -133,18 +109,8 @@ public class AuthenticationInformation {
         }
     }
 
-    private static String extractNin(Map<String, String> userAttributes) {
-        return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
-            .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
-            .orElseThrow();
-    }
-
-    private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
-        return Optional.ofNullable(userAttributes.get(ORG_FEIDE_DOMAIN)).orElse(null);
-    }
-
-    private static String extractFeideIdentifier(Map<String, String> userAttributes) {
-        return Optional.ofNullable(userAttributes.get(FEIDE_ID)).orElse(null);
+    private boolean userAuthenticatedWithNin() {
+        return isNull(orgFeideDomain);
     }
 
     private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {
@@ -175,7 +141,7 @@ public class AuthenticationInformation {
     }
 
     private boolean selectFeideOrgIfApplicable(CustomerDto customer) {
-        return userLoggedInWithNin()
+        return userAuthenticatedWithNin()
                || getOrgFeideDomain().equals(customer.getFeideOrganizationDomain());
     }
 }

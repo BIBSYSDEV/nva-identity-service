@@ -56,8 +56,11 @@ public class UserEntriesCreatorForPerson {
             .collect(Collectors.toList());
     }
 
-    public AuthenticationInformation collectInformationForPerson(AuthenticationInformation authenticationInfo) {
-        var cristinResponse = fetchPersonInformationFromCristin(authenticationInfo);
+    public AuthenticationInformation collectInformationForPerson(String nationalIdentityNumber,
+                                                                 String personFeideIdentifier,
+                                                                 String orgFeideDomain) {
+        var authenticationInfo = new AuthenticationInformation(personFeideIdentifier, orgFeideDomain);
+        var cristinResponse = fetchPersonInformationFromCristin(nationalIdentityNumber);
         authenticationInfo.setCristinResponse(cristinResponse);
 
         var affiliationInformation = fetchParentInstitutionsForPersonAffiliations(authenticationInfo);
@@ -94,9 +97,7 @@ public class UserEntriesCreatorForPerson {
             .orElseThrow();
     }
 
-    private CristinPersonResponse fetchPersonInformationFromCristin(AuthenticationInformation authenticationInfo) {
-
-        String nin = authenticationInfo.getNationalIdentityNumber();
+    private CristinPersonResponse fetchPersonInformationFromCristin(String nin) {
         return attempt(() -> cristinClient.sendRequestToCristin(nin)).orElseThrow();
     }
 
@@ -105,7 +106,7 @@ public class UserEntriesCreatorForPerson {
 
         var cristinResponse = authenticationInformation.getCristinPersonResponse();
         var affiliation = authenticationInformation.getOrganizationAffiliation(customer.getCristinId());
-        var feideIdentifier = authenticationInformation.getFeideIdentifier();
+        var feideIdentifier = authenticationInformation.getPersonFeideIdentifier();
         var user = UserDto.newBuilder()
             .withUsername(createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(cristinResponse, customer))
             .withRoles(Collections.singletonList(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
@@ -141,7 +142,7 @@ public class UserEntriesCreatorForPerson {
     private UserDto fetchLegacyUserWithFeideIdentifier(UserDto userWithUpdatedInformation,
                                                        AuthenticationInformation authenticationInformation) {
         var queryObject =
-            UserDto.newBuilder().withUsername(authenticationInformation.getFeideIdentifier()).build();
+            UserDto.newBuilder().withUsername(authenticationInformation.getPersonFeideIdentifier()).build();
         var savedUser = identityService.getUser(queryObject);
         var affiliation =
             authenticationInformation.getOrganizationAffiliation(userWithUpdatedInformation.getInstitutionCristinId());
@@ -158,7 +159,8 @@ public class UserEntriesCreatorForPerson {
     private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user,
                                                        AuthenticationInformation authenticationInformation) {
         var existingUser =
-            identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(), user.getInstitutionCristinId());
+            identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(),
+                                                                         user.getInstitutionCristinId());
         return updateUserAffiliation(user, authenticationInformation, existingUser);
     }
 

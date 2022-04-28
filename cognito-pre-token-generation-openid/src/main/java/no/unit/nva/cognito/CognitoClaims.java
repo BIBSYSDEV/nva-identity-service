@@ -1,7 +1,7 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.cognito.AuthenticationInformation.NIN_FON_NON_FEIDE_USERS;
-import static no.unit.nva.cognito.AuthenticationInformation.NIN_FOR_FEIDE_USERS;
+import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FON_NON_FEIDE_USERS;
+import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 
 public final class CognitoClaims {
 

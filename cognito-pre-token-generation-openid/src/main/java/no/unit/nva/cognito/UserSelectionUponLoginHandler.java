@@ -30,6 +30,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.auth.CognitoCredentials;
@@ -50,6 +52,10 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
+    public static final String NIN_FOR_FEIDE_USERS = "custom:feideIdNin";
+    public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
+    public static final String FEIDE_ID = "custom:feideId";
+    public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -74,12 +80,12 @@ public class UserSelectionUponLoginHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
-        //TODO: usersCreator is coupled to the event because it uses the userpool id.
-        //TODO: next step is removing the dependency of CognitoUserPool(BackendJwtTokenRetriever) from userCreator.
+        var nin = extractNin(input.getRequest().getUserAttributes());
+        var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
+        var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
 
-        var authenticationInfo = AuthenticationInformation.create(input);
-        //TODO: userCreator should not mutate authenticationInfo
-        authenticationInfo = userCreator.collectInformationForPerson(authenticationInfo);
+        var authenticationInfo =
+            userCreator.collectInformationForPerson(nin,personFeideIdentifier,orgFeideDomain);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
 
         final var accessRights = accessRightsPerCustomer(usersForPerson);
@@ -91,6 +97,20 @@ public class UserSelectionUponLoginHandler
         updateCognitoUserAttributes(input, authenticationInfo, accessRights, roles);
 
         return input;
+    }
+
+    private static String extractNin(Map<String, String> userAttributes) {
+        return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
+            .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
+            .orElseThrow();
+    }
+
+    private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
+        return Optional.ofNullable(userAttributes.get(ORG_FEIDE_DOMAIN)).orElse(null);
+    }
+
+    private static String extractFeideIdentifier(Map<String, String> userAttributes) {
+        return Optional.ofNullable(userAttributes.get(FEIDE_ID)).orElse(null);
     }
 
     @JacocoGenerated

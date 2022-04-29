@@ -150,11 +150,11 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualUsers, containsInAnyOrder(expectedUsers.toArray()));
     }
 
-    @ParameterizedTest(name = "should not create user for institutions (top orgs) that the user has active "
-                              + "affiliations "
-                              + "with when person has not logged int and has active and inactive affiliations")
+    @ParameterizedTest(name = "should not create user for institutions (top orgs) that the user has inactive "
+                              + "affiliations with "
+                              + "when person has not logged int and has active and inactive affiliations")
     @EnumSource(LoginEventType.class)
-    void shouldNotCreateUsersForPersonsActiveTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
+    void shouldNotCreateUsersForPersonsAInactiveTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
         LoginEventType loginEventType) {
 
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
@@ -296,7 +296,7 @@ class UserSelectionUponLoginHandlerTest {
     @ParameterizedTest(name = "should not assign access rights for active affiliation when customer is not "
                               + "a registered customer in NVA")
     @EnumSource(LoginEventType.class)
-    void shouldNotUAssignAccessRightsForActiveAffiliationsWhenTopLevelOrgIsNotARegisteredCustomerInNva(
+    void shouldNotAssignAccessRightsForActiveAffiliationsWhenTopLevelOrgIsNotARegisteredCustomerInNva(
         LoginEventType loginEventType) {
         var person = registeredPeople.personWithActiveAffiliationThatIsNotCustomer();
         var event = randomEvent(person, loginEventType);
@@ -529,6 +529,25 @@ class UserSelectionUponLoginHandlerTest {
             .stream().collect(SingletonCollector.collect());
         var cognitoAttribute = getUpdatedClaimFromCognito(PERSON_AFFILIATION_CLAIM);
         assertThat(cognitoAttribute, is(equalTo(affiliation.toString())));
+    }
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldUpdateCognitoGroupsToIncludeCustomerIdWhenUserHasExactlyOneActiveAffiliation(
+        LoginEventType loginEventType) {
+        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
+        var event = randomEvent(person, loginEventType);
+        var response = handler.handleRequest(event, context);
+        var groups = extractAccessRights(response);
+        var expectedCustomerId = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE).stream()
+                                     .map(id->customerService.getCustomerByCristinId(id))
+                                     .map(CustomerDto::getId)
+                                     .collect(SingletonCollector.collect());
+
+        var expectedCognitoGroup =
+            "USER" + AT + expectedCustomerId.toString();
+
+        assertThat(groups, hasItem(expectedCognitoGroup));
     }
 
     private void assertThatUserHasUserRoleAttached(UserDto user) {

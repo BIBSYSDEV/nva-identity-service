@@ -1,12 +1,12 @@
 [versions]
-nvaCommons = { strictly = '1.24.0-alpha2' }
+nvaCommons = { strictly = '1.24.0-alpha3' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.175' }
 jackson = { strictly = "2.13.1" }
 xraySdk = { strictly = '2.9.1' }
 dynamoDbLocal = { strictly = '1.17.2' }
-zalandoProblem = { strictly = '0.26.0' }
+zalandoProblem = { strictly = '0.27.1' }
 awsLambdaCore = { strictly = '1.2.1' }
 jupiter = { strictly = "5.8.1" }
 slf4j = { strictly = '1.8.0-beta4' }

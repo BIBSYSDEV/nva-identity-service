@@ -3,7 +3,6 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static nva.commons.core.attempt.Try.attempt;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -26,11 +25,8 @@ public class CustomerAccessRight {
 
     public static List<CustomerAccessRight> fromUser(UserDto user, CustomerService customerService) {
         var customer =
-            attempt(() -> customerService.getCustomer(user.getInstitution())).toOptional();
-
-        return customer.isPresent()
-                   ? createAccessRightsForExistingCustomer(user, customer.orElseThrow())
-                   : customerDoesNotExist();
+            attempt(() -> customerService.getCustomer(user.getInstitution())).orElseThrow();
+        return createAccessRightsForExistingCustomer(user, customer);
     }
 
     public List<String> asStrings() {
@@ -60,10 +56,6 @@ public class CustomerAccessRight {
     @JacocoGenerated
     public String toString() {
         return asStrings().stream().collect(Collectors.joining(ELEMENTS_DELIMITER));
-    }
-
-    private static List<CustomerAccessRight> customerDoesNotExist() {
-        return Collections.emptyList();
     }
 
     private static List<CustomerAccessRight> createAccessRightsForExistingCustomer(UserDto user, CustomerDto customer) {

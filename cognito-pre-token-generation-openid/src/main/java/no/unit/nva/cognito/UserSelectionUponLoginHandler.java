@@ -2,6 +2,7 @@ package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
@@ -29,6 +30,7 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,6 +58,9 @@ public class UserSelectionUponLoginHandler
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideId";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
+    public static final String INJECTED_ACCESS_RIGHT_TO_SINGLE_CUSTOMER_ID_IN_COGNITO_GROUPS = "USER";
+    public static final int SINGLE_ITEM_LIST = 1;
+    private static final int SINGLE_ITEM = 0;
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -85,18 +90,36 @@ public class UserSelectionUponLoginHandler
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
 
         var authenticationInfo =
-            userCreator.collectInformationForPerson(nin,personFeideIdentifier,orgFeideDomain);
+            userCreator.collectInformationForPerson(nin, personFeideIdentifier, orgFeideDomain);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
 
-        final var accessRights = accessRightsPerCustomer(usersForPerson);
         final var roles = rolesPerCustomer(usersForPerson);
         authenticationInfo.updateCurrentCustomer();
         authenticationInfo.updateCurrentUser(usersForPerson);
 
-        injectAccessRightsToEventResponse(input, accessRights);
-        updateCognitoUserAttributes(input, authenticationInfo, accessRights, roles);
-
+        final var cognitoGroups = createCognitoGroupsEntry(usersForPerson);
+        updateCognitoUserAttributes(input, authenticationInfo, cognitoGroups, roles);
+        injectAccessRightsToEventResponse(input, cognitoGroups);
         return input;
+    }
+
+    private List<String> createCognitoGroupsEntry(List<UserDto> usersForPerson) {
+        final var accessRights = new ArrayList<>(accessRightsPerCustomer(usersForPerson));
+        final var injectedCustomerIdInAccessRights =
+            injectCustomerIdInCognitoGroupsToFaciliateOnlineTests(usersForPerson);
+        accessRights.addAll(injectedCustomerIdInAccessRights);
+        return accessRights;
+    }
+
+    private List<String> injectCustomerIdInCognitoGroupsToFaciliateOnlineTests(List<UserDto> usersForPerson) {
+        if (usersForPerson.size() == SINGLE_ITEM_LIST) {
+            var user = usersForPerson.get(SINGLE_ITEM);
+            var accessRight = INJECTED_ACCESS_RIGHT_TO_SINGLE_CUSTOMER_ID_IN_COGNITO_GROUPS + AT + user.getInstitution()
+                .toString();
+            return List.of(accessRight);
+        }
+
+        return Collections.emptyList();
     }
 
     private static String extractNin(Map<String, String> userAttributes) {

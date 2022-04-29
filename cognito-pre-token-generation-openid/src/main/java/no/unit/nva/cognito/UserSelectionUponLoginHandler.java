@@ -103,25 +103,6 @@ public class UserSelectionUponLoginHandler
         return input;
     }
 
-    private List<String> createCognitoGroupsEntry(List<UserDto> usersForPerson) {
-        final var accessRights = new ArrayList<>(accessRightsPerCustomer(usersForPerson));
-        final var injectedCustomerIdInAccessRights =
-            injectCustomerIdInCognitoGroupsToFaciliateOnlineTests(usersForPerson);
-        accessRights.addAll(injectedCustomerIdInAccessRights);
-        return accessRights;
-    }
-
-    private List<String> injectCustomerIdInCognitoGroupsToFaciliateOnlineTests(List<UserDto> usersForPerson) {
-        if (usersForPerson.size() == SINGLE_ITEM_LIST) {
-            var user = usersForPerson.get(SINGLE_ITEM);
-            var accessRight = INJECTED_ACCESS_RIGHT_TO_SINGLE_CUSTOMER_ID_IN_COGNITO_GROUPS + AT + user.getInstitution()
-                .toString();
-            return List.of(accessRight);
-        }
-
-        return Collections.emptyList();
-    }
-
     private static String extractNin(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
             .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
@@ -156,6 +137,27 @@ public class UserSelectionUponLoginHandler
             .httpClient(UrlConnectionHttpClient.create())
             .region(AWS_REGION)
             .build();
+    }
+
+    private List<String> createCognitoGroupsEntry(List<UserDto> usersForPerson) {
+        final var accessRights = new ArrayList<>(accessRightsPerCustomer(usersForPerson));
+        final var injectedCustomerIdInAccessRights =
+            injectCustomerIdInCognitoGroupsToFacilitateOnlineTests(usersForPerson);
+        accessRights.addAll(injectedCustomerIdInAccessRights);
+        return accessRights;
+    }
+
+    private List<String> injectCustomerIdInCognitoGroupsToFacilitateOnlineTests(List<UserDto> usersForPerson) {
+        return (usersForPerson.size() == SINGLE_ITEM_LIST)
+                   ? createVirtualAccessRightForCustomerIdForUseInTests(usersForPerson)
+                   : Collections.emptyList();
+    }
+
+    private List<String> createVirtualAccessRightForCustomerIdForUseInTests(List<UserDto> usersForPerson) {
+        var user = usersForPerson.get(SINGLE_ITEM);
+        var accessRight = INJECTED_ACCESS_RIGHT_TO_SINGLE_CUSTOMER_ID_IN_COGNITO_GROUPS + AT + user.getInstitution()
+            .toString();
+        return List.of(accessRight);
     }
 
     private Collection<String> rolesPerCustomer(List<UserDto> usersForPerson) {

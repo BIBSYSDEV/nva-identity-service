@@ -41,20 +41,8 @@ public class UserEntriesCreatorForPerson {
         return createOrFetchUserEntriesForPerson(authenticationInfo);
     }
 
-    public void createUserRole() {
-        try {
-            identityService.addRole(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION);
-        } catch (Exception ignored) {
-            //Do nothing if role exists.
-        }
-    }
-
-    public List<UserDto> createOrFetchUserEntriesForPerson(AuthenticationInformation authenticationInformation) {
-
-        return authenticationInformation.getActiveCustomers().stream()
-            .map(customer -> createNewUserObject(customer, authenticationInformation))
-            .map(user -> getExistingUserOrCreateNew(user, authenticationInformation))
-            .collect(Collectors.toList());
+    public AuthenticationInformation collectInformationForPerson(String nationalIdentityNumber){
+        return collectInformationForPerson(nationalIdentityNumber,null,null);
     }
 
     public AuthenticationInformation collectInformationForPerson(String nationalIdentityNumber,
@@ -71,6 +59,22 @@ public class UserEntriesCreatorForPerson {
         authenticationInfo.setActiveCustomers(activeCustomers);
 
         return authenticationInfo;
+    }
+
+    private List<UserDto> createOrFetchUserEntriesForPerson(AuthenticationInformation authenticationInformation) {
+
+        return authenticationInformation.getActiveCustomers().stream()
+            .map(customer -> createNewUserObject(customer, authenticationInformation))
+            .map(user -> getExistingUserOrCreateNew(user, authenticationInformation))
+            .collect(Collectors.toList());
+    }
+
+    private void createUserRole() {
+        try {
+            identityService.addRole(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION);
+        } catch (Exception ignored) {
+            //Do nothing if role exists.
+        }
     }
 
     private Set<CustomerDto> fetchCustomersForActiveAffiliations(AuthenticationInformation authenticationInformation) {

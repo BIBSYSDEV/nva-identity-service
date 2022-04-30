@@ -16,6 +16,8 @@ public class PersonAffiliation {
         return userAffiliation;
     }
 
+
+
     @JacocoGenerated
     @Override
     public int hashCode() {

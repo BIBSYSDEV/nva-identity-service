@@ -9,7 +9,7 @@ import static java.util.function.Predicate.not;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
+import static no.unit.nva.useraccessservice.usercreation.cristin.person.PersonAndInstitutionRegistryClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
 import com.github.tomakehurst.wiremock.matching.EqualToJsonPattern;

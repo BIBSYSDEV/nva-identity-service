@@ -11,10 +11,11 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.PersonAndInstitutionRegistryClient;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 
@@ -25,14 +26,14 @@ public class UserEntriesCreatorForPerson {
     private static final String AT = "@";
 
     private final CustomerService customerService;
-    private final CristinClient cristinClient;
+    private final PersonAndInstitutionRegistryClient personAndInstitutionRegistryClient;
     private final IdentityService identityService;
 
     public UserEntriesCreatorForPerson(CustomerService customerService,
-                                       CristinClient cristinClient,
+                                       PersonAndInstitutionRegistryClient personAndInstitutionRegistryClient,
                                        IdentityService identityService) {
         this.customerService = customerService;
-        this.cristinClient = cristinClient;
+        this.personAndInstitutionRegistryClient = personAndInstitutionRegistryClient;
         this.identityService = identityService;
     }
 
@@ -41,13 +42,13 @@ public class UserEntriesCreatorForPerson {
         return createOrFetchUserEntriesForPerson(authenticationInfo);
     }
 
-    public AuthenticationInformation collectInformationForPerson(String nationalIdentityNumber){
-        return collectInformationForPerson(nationalIdentityNumber,null,null);
+    public AuthenticationInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber) {
+        return collectPersonInformation(nationalIdentityNumber, null, null);
     }
 
-    public AuthenticationInformation collectInformationForPerson(String nationalIdentityNumber,
-                                                                 String personFeideIdentifier,
-                                                                 String orgFeideDomain) {
+    public AuthenticationInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber,
+                                                              String personFeideIdentifier,
+                                                              String orgFeideDomain) {
         var authenticationInfo = new AuthenticationInformation(personFeideIdentifier, orgFeideDomain);
         var cristinResponse = fetchPersonInformationFromCristin(nationalIdentityNumber);
         authenticationInfo.setCristinResponse(cristinResponse);
@@ -97,13 +98,13 @@ public class UserEntriesCreatorForPerson {
     }
 
     private PersonAffiliation fetchParentInstitutionCristinId(URI mostSpecificAffiliation) {
-        return attempt(() -> cristinClient.fetchTopLevelOrgUri(mostSpecificAffiliation))
+        return attempt(() -> personAndInstitutionRegistryClient.fetchTopLevelOrgUri(mostSpecificAffiliation))
             .map(parentInstitution -> PersonAffiliation.create(mostSpecificAffiliation, parentInstitution))
             .orElseThrow();
     }
 
-    private CristinPersonResponse fetchPersonInformationFromCristin(String nin) {
-        return attempt(() -> cristinClient.sendRequestToCristin(nin)).orElseThrow();
+    private CristinPersonResponse fetchPersonInformationFromCristin(NationalIdentityNumber nin) {
+        return attempt(() -> personAndInstitutionRegistryClient.sendRequestToCristin(nin)).orElseThrow();
     }
 
     private UserDto createNewUserObject(CustomerDto customer,

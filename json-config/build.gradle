@@ -1,0 +1,8 @@
+plugins {
+    id 'nva.identity.service.java-library-conventions'
+    id 'nva.identity.service.dynamodblocal'
+}
+
+dependencies{
+    implementation libs.bundles.jackson
+}

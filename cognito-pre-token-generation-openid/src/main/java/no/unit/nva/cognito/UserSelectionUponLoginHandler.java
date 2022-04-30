@@ -41,7 +41,8 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.AuthenticationInformation;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
+import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.PersonAndInstitutionRegistryClient;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 import nva.commons.secrets.SecretsReader;
@@ -75,7 +76,7 @@ public class UserSelectionUponLoginHandler
                                          IdentityService identityService) {
         this.cognitoClient = cognitoClient;
         this.customerService = customerService;
-        var cristinClient = new CristinClient(cristinHost, httpClient);
+        var cristinClient = new PersonAndInstitutionRegistryClient(cristinHost, httpClient);
         this.userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient, identityService);
     }
 
@@ -87,7 +88,9 @@ public class UserSelectionUponLoginHandler
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
 
         var authenticationInfo =
-            userCreator.collectInformationForPerson(nin,personFeideIdentifier,orgFeideDomain);
+            userCreator.collectPersonInformation(new NationalIdentityNumber(nin),
+                                                 personFeideIdentifier,
+                                                 orgFeideDomain);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
 
         final var accessRights = accessRightsPerCustomer(usersForPerson);

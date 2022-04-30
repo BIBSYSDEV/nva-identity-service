@@ -48,11 +48,13 @@ class UserEntriesCreatorForPersonTest {
     }
 
     @Test
-    @DisplayName("should create user for institution when the Person  exists in Person registry,"
-                 + "and the Institution is an NVA Customer"
-                 + "and the Person has an active affiliation with the institution"
-                 + "and the Person has no other affiliations active or inactive")
-    void shouldCreateUserForInstWhenPersonIsInPersonExistsAndInstIsNvaCustomerAndPersonHasSingleAffiliation()
+    @DisplayName("should create User for Institution when the Person exists in the Person-Registry,"
+                 + "and they have an Affiliation with the Institution "
+                 + "and the Affiliation is active"
+                 + "and the the Institution is an NVA Customer"
+                 + "and the Person has no other Affiliations active or inactive"
+    )
+    void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleAffiliation()
         throws IOException, InterruptedException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
@@ -61,6 +63,8 @@ class UserEntriesCreatorForPersonTest {
         var actualUser = users.get(SINGLE_USER);
         assertThat(actualUser.getCristinId(), is(equalTo(peopleAndInstitutions.getCristinId(person))));
     }
+
+
 
     private void setupCustomerAndIdentityService() {
         customerServiceDatabase = new LocalCustomerServiceDatabase();

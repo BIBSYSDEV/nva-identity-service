@@ -14,13 +14,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import no.unit.nva.cognito.cristin.NationalIdentityNumber;
-import no.unit.nva.cognito.cristin.person.CristinAffiliation;
-import no.unit.nva.cognito.cristin.person.CristinIdentifier;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinIdentifier;
 import nva.commons.core.attempt.Try;
 
 public class RegisteredPeopleInstance {

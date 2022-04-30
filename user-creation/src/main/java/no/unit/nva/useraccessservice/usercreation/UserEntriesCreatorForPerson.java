@@ -1,20 +1,20 @@
-package no.unit.nva.cognito;
+package no.unit.nva.useraccessservice.usercreation;
 
-import static no.unit.nva.cognito.CognitoClaims.AT;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.cognito.cristin.person.CristinAffiliation;
-import no.unit.nva.cognito.cristin.person.CristinClient;
-import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 
@@ -22,6 +22,7 @@ public class UserEntriesCreatorForPerson {
 
     private static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
         RoleDto.newBuilder().withRoleName("Creator").build();
+    private static final String AT = "@";
 
     private final CustomerService customerService;
     private final CristinClient cristinClient;

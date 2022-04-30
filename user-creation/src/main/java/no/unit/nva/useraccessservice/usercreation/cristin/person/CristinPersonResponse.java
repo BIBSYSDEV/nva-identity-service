@@ -1,4 +1,4 @@
-package no.unit.nva.cognito.cristin.person;
+package no.unit.nva.useraccessservice.usercreation.cristin.person;
 
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
@@ -8,8 +8,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import no.unit.nva.cognito.cristin.NationalIdentityNumber;
 import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import nva.commons.core.JacocoGenerated;
 
 @JacocoGenerated

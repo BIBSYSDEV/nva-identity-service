@@ -6,10 +6,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.function.Predicate.not;
-import static no.unit.nva.cognito.cristin.person.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
 import com.github.tomakehurst.wiremock.matching.EqualToJsonPattern;
@@ -27,10 +27,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import no.unit.nva.cognito.cristin.NationalIdentityNumber;
-import no.unit.nva.cognito.cristin.org.CristinOrgResponse;
-import no.unit.nva.cognito.cristin.person.CristinAffiliation;
-import no.unit.nva.cognito.cristin.person.CristinPersonResponse;
+import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
+import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.core.paths.UriWrapper;
 
 public class CristinProxyMock {

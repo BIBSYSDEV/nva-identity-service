@@ -1,7 +1,6 @@
-package no.unit.nva.cognito.cristin.person;
+package no.unit.nva.useraccessservice.usercreation.cristin.person;
 
 import static java.net.HttpURLConnection.HTTP_OK;
-import static no.unit.nva.cognito.NetworkingUtils.APPLICATION_JSON;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 import java.io.IOException;
 import java.net.URI;
@@ -11,9 +10,9 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import no.unit.nva.auth.AuthorizedBackendClient;
-import no.unit.nva.cognito.BadGatewayException;
-import no.unit.nva.cognito.cristin.org.CristinOrgResponse;
 import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
+import nva.commons.apigatewayv2.exceptions.BadGatewayException;
 import nva.commons.core.paths.UriWrapper;
 
 public class CristinClient {
@@ -21,6 +20,7 @@ public class CristinClient {
     public static final String CRISTIN_PATH_FOR_GETTING_USER_BY_NIN = "person/identityNumber";
     public static final String REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE =
         "{\"type\":\"NationalIdentificationNumber\",\"value\":\"%s\"}";
+    private static final String APPLICATION_JSON = "application/json";
     private final URI getUserByNinUri;
     private final AuthorizedBackendClient httpClient;
 

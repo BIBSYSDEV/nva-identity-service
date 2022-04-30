@@ -12,6 +12,7 @@ include 'user-access-event-handlers'
 include 'customer-commons'
 include 'customer-testing'
 include 'customer'
+include 'user-creation'
 include 'cognito-pre-token-generation-openid'
 //include 'cognito-pre-token-generation'
 

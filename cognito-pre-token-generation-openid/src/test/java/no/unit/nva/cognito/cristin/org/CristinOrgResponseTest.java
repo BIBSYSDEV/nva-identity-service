@@ -6,6 +6,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import java.io.IOException;
 import java.nio.file.Path;
 import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
 import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.Test;
 

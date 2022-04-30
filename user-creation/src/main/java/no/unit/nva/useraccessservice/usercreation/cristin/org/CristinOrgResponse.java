@@ -1,4 +1,4 @@
-package no.unit.nva.cognito.cristin.org;
+package no.unit.nva.useraccessservice.usercreation.cristin.org;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;

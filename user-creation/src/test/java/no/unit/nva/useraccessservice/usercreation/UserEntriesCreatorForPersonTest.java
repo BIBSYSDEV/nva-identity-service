@@ -64,9 +64,9 @@ class UserEntriesCreatorForPersonTest {
     }
 
     @Test
-    @DisplayName("should create User for Institution when the Person exists in the Person-Registry,"
+    @DisplayName("should not create User for Institution when the Person exists in the Person-Registry,"
                  + "and they have an Affiliation with the Institution "
-                 + "and the Affiliation is active"
+                 + "and the Affiliation is inactive"
                  + "and the the Institution is an NVA Customer"
                  + "and the Person has no other Affiliations active or inactive"
     )

@@ -41,7 +41,7 @@ public class CristinServerMock {
         return serverUri;
     }
 
-    public void addPerson(NationalIdentityNumber nin, PersonEmployment... employments) {
+    public void addPerson(NationalIdentityNumber nin, PersonAffiliation... employments) {
         for (var employment : employments) {
             createResponseForOrganization(employment);
         }
@@ -50,7 +50,7 @@ public class CristinServerMock {
         addResponseToRegistryServer(nin, personCristinEntry);
     }
 
-    private void createResponseForOrganization(PersonEmployment orgStructure) {
+    private void createResponseForOrganization(PersonAffiliation orgStructure) {
         stubFor(WireMock.get(urlEqualTo(organizationPath(orgStructure.getChild())))
                     .willReturn(createInstitutionRegistryResponseForOrganization(orgStructure))
 
@@ -58,9 +58,9 @@ public class CristinServerMock {
     }
 
     private CristinPersonResponse cristinPersonResponse(NationalIdentityNumber nin,
-                                                        PersonEmployment... employmentAffiliations) {
+                                                        PersonAffiliation... employmentAffiliations) {
         var affiliations = Arrays.stream(employmentAffiliations)
-            .map(PersonEmployment::toCristinAffiliation)
+            .map(PersonAffiliation::toCristinAffiliation)
             .collect(Collectors.toList());
         return CristinPersonResponse.builder()
             .withCristinId(randomPersonId())
@@ -101,13 +101,13 @@ public class CristinServerMock {
     }
 
     private ResponseDefinitionBuilder createInstitutionRegistryResponseForOrganization(
-        PersonEmployment employmentAffiliations) {
+        PersonAffiliation employmentAffiliations) {
         return aResponse()
             .withStatus(HttpURLConnection.HTTP_OK)
             .withBody(organizationBody(employmentAffiliations));
     }
 
-    private String organizationBody(PersonEmployment employmentAffiliation) {
+    private String organizationBody(PersonAffiliation employmentAffiliation) {
         var parent = new CristinOrgResponse();
         parent.setOrgId(employmentAffiliation.getParent());
         var response = new CristinOrgResponse();

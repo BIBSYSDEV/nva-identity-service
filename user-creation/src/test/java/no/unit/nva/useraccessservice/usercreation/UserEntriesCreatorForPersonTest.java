@@ -77,6 +77,7 @@ class UserEntriesCreatorForPersonTest {
         assertThat(users, is(empty()));
     }
 
+
     private void setupCustomerAndIdentityService() {
         customerServiceDatabase = new LocalCustomerServiceDatabase();
         customerServiceDatabase.setupDatabase();

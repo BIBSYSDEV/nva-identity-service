@@ -20,30 +20,31 @@ public class PeopleAndInstitutions {
 
     public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() {
         var person = new NationalIdentityNumber(randomString());
-        var organization = cristinServer.randomOrgUri();
-        var parentInstitution = cristinServer.randomOrgUri();
-        cristinServer.addPerson(person, createEmployment(organization, parentInstitution,ACTIVE));
-        registerInstitutionAsNvaCustomer(parentInstitution);
-
+        var affiliation = createAffiliation(createOrganization(), createNvaCustomerInstitution(), ACTIVE);
+        cristinServer.addPerson(person, affiliation);
         return person;
     }
 
     public NationalIdentityNumber getPersonWithExactlyOneInActiveAffiliation() {
         var person = new NationalIdentityNumber(randomString());
-        var organization = cristinServer.randomOrgUri();
-        var parentInstitution = cristinServer.randomOrgUri();
-        cristinServer.addPerson(person, createEmployment(organization, parentInstitution, INACTIVE));
-        registerInstitutionAsNvaCustomer(parentInstitution);
-
+        var affiliation = createAffiliation(createOrganization(), createNvaCustomerInstitution(), INACTIVE);
+        cristinServer.addPerson(person, affiliation);
         return person;
-
     }
 
-    public  URI getCristinId(NationalIdentityNumber person) {
+    private URI createOrganization() {
+        return cristinServer.randomOrgUri();
+    }
+
+    private URI createNvaCustomerInstitution() {
+        var parentInstitution = createOrganization();
+        registerInstitutionAsNvaCustomer(parentInstitution);
+        return parentInstitution;
+    }
+
+    public URI getCristinId(NationalIdentityNumber person) {
         return cristinServer.getCristinId(person);
     }
-
-
 
     private void registerInstitutionAsNvaCustomer(URI institution) {
         var customer = CustomerDto.builder().withCristinId(institution).build();
@@ -58,9 +59,7 @@ public class PeopleAndInstitutions {
         return cristinServer.getServerUri();
     }
 
-
-    private PersonEmployment createEmployment(URI organization, URI institution, boolean active) {
-        return PersonEmployment.builder().withChild(organization).withParent(institution).withActive(active).build();
+    private PersonAffiliation createAffiliation(URI organization, URI institution, boolean active) {
+        return PersonAffiliation.builder().withChild(organization).withParent(institution).withActive(active).build();
     }
-
 }

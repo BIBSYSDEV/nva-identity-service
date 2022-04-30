@@ -4,17 +4,17 @@ import java.net.URI;
 import java.util.Objects;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 
-public class PersonEmployment {
+public class PersonAffiliation {
 
     private URI child;
     private URI parent;
     private boolean active;
 
-    protected PersonEmployment() {
+    protected PersonAffiliation() {
 
     }
 
-    public PersonEmployment(URI child, URI parent, boolean active) {
+    public PersonAffiliation(URI child, URI parent, boolean active) {
         this.child = child;
         this.parent = parent;
         this.active = active;
@@ -65,10 +65,10 @@ public class PersonEmployment {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof PersonEmployment)) {
+        if (!(o instanceof PersonAffiliation)) {
             return false;
         }
-        PersonEmployment that = (PersonEmployment) o;
+        PersonAffiliation that = (PersonAffiliation) o;
         return isActive() == that.isActive()
                && Objects.equals(getChild(), that.getChild())
                && Objects.equals(getParent(), that.getParent());
@@ -76,10 +76,10 @@ public class PersonEmployment {
 
     public static class Builder {
 
-        private PersonEmployment personEmployment;
+        private PersonAffiliation personEmployment;
 
         private Builder() {
-            this.personEmployment = new PersonEmployment();
+            this.personEmployment = new PersonAffiliation();
         }
 
         public Builder withChild(URI child) {
@@ -97,7 +97,7 @@ public class PersonEmployment {
             return this;
         }
 
-        public PersonEmployment build() {
+        public PersonAffiliation build() {
             return personEmployment;
         }
     }

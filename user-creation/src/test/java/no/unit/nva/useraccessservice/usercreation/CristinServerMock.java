@@ -46,30 +46,15 @@ public class CristinServerMock {
             createResponseForOrganization(employment);
         }
         var personCristinEntry = cristinPersonResponse(nin, employments);
-        cacheResponseForAssertions(nin, personCristinEntry);
+        cacheCristinPersonResponsesForTestingAssertions(nin, personCristinEntry);
         addResponseToRegistryServer(nin, personCristinEntry);
     }
 
-    public URI randomOrgUri() {
-        return UriWrapper.fromUri(serverUri).addChild(ORGANIZATION_PATH).addChild(randomString()).getUri();
-    }
+    private void createResponseForOrganization(PersonEmployment orgStructure) {
+        stubFor(WireMock.get(urlEqualTo(organizationPath(orgStructure.getChild())))
+                    .willReturn(createInstitutionRegistryResponseForOrganization(orgStructure))
 
-    public URI getCristinId(NationalIdentityNumber person) {
-        return people.get(person).getCristinId();
-    }
-
-    public void shutDown() {
-        httpServer.stop();
-    }
-
-    private void addResponseToRegistryServer(NationalIdentityNumber nin, CristinPersonResponse personCristinEntry) {
-        stubFor(post(PERSON_IDENTITY_NUMBER_PATH)
-                    .withRequestBody(equalToJson(formatSearchByNinRequestBody(nin)))
-                    .willReturn(aResponse().withBody(personCristinEntry.toString())));
-    }
-
-    private void cacheResponseForAssertions(NationalIdentityNumber nin, CristinPersonResponse personCristinEntry) {
-        people.put(nin, personCristinEntry);
+        );
     }
 
     private CristinPersonResponse cristinPersonResponse(NationalIdentityNumber nin,
@@ -84,19 +69,35 @@ public class CristinServerMock {
             .build();
     }
 
+    private void cacheCristinPersonResponsesForTestingAssertions(NationalIdentityNumber nin,
+                                                                 CristinPersonResponse personCristinEntry) {
+        people.put(nin, personCristinEntry);
+    }
+
+    private void addResponseToRegistryServer(NationalIdentityNumber nin, CristinPersonResponse personCristinEntry) {
+        stubFor(post(PERSON_IDENTITY_NUMBER_PATH)
+                    .withRequestBody(equalToJson(formatSearchByNinRequestBody(nin)))
+                    .willReturn(aResponse().withBody(personCristinEntry.toString())));
+    }
+
+    public URI randomOrgUri() {
+        return UriWrapper.fromUri(serverUri).addChild(ORGANIZATION_PATH).addChild(randomString()).getUri();
+    }
+
+    public URI getCristinId(NationalIdentityNumber person) {
+        return people.get(person).getCristinId();
+    }
+
+    public void shutDown() {
+        httpServer.stop();
+    }
+
     private URI randomPersonId() {
         return UriWrapper.fromUri(serverUri).addChild(PERSON_PATH).addChild(randomString()).getUri();
     }
 
     private String formatSearchByNinRequestBody(NationalIdentityNumber nin) {
         return String.format(CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, nin.getNin());
-    }
-
-    private void createResponseForOrganization(PersonEmployment orgStructure) {
-        stubFor(WireMock.get(urlEqualTo(organizationPath(orgStructure.getChild())))
-                    .willReturn(createInstitutionRegistryResponseForOrganization(orgStructure))
-
-        );
     }
 
     private ResponseDefinitionBuilder createInstitutionRegistryResponseForOrganization(

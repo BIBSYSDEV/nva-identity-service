@@ -2,9 +2,9 @@ package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import java.io.IOException;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
@@ -48,18 +48,33 @@ class UserEntriesCreatorForPersonTest {
     }
 
     @Test
-    @DisplayName("should create user for institution when the Person  exists in Person registry,"
-                 + "and the Institution is an NVA Customer"
-                 + "and the Person has an active affiliation with the institution"
-                 + "and the Person has no other affiliations active or inactive")
-    void shouldCreateUserForInstWhenPersonIsInPersonExistsAndInstIsNvaCustomerAndPersonHasSingleAffiliation()
-        throws IOException, InterruptedException {
+    @DisplayName("should create User for Institution when the Person exists in the Person-Registry,"
+                 + "and they have an Affiliation with the Institution "
+                 + "and the Affiliation is active"
+                 + "and the the Institution is an NVA Customer"
+                 + "and the Person has no other Affiliations active or inactive"
+    )
+    void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleActiveAffiliation() {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var users = userCreator.createUsers(personInfo);
         assertThat(users.size(), is(equalTo(1)));
         var actualUser = users.get(SINGLE_USER);
         assertThat(actualUser.getCristinId(), is(equalTo(peopleAndInstitutions.getCristinId(person))));
+    }
+
+    @Test
+    @DisplayName("should create User for Institution when the Person exists in the Person-Registry,"
+                 + "and they have an Affiliation with the Institution "
+                 + "and the Affiliation is active"
+                 + "and the the Institution is an NVA Customer"
+                 + "and the Person has no other Affiliations active or inactive"
+    )
+    void shouldNotCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleInactiveAffiliation() {
+        var person = peopleAndInstitutions.getPersonWithExactlyOneInActiveAffiliation();
+        var personInfo = userCreator.collectPersonInformation(person);
+        var users = userCreator.createUsers(personInfo);
+        assertThat(users, is(empty()));
     }
 
     private void setupCustomerAndIdentityService() {

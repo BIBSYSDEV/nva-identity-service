@@ -1,16 +1,15 @@
 package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import java.net.URI;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
-import nva.commons.core.paths.UriWrapper;
 
 public class PeopleAndInstitutions {
 
     public static final boolean ACTIVE = true;
+    public static final boolean INACTIVE = false;
     private final CristinServerMock cristinServer;
     private final CustomerService customerService;
 
@@ -23,15 +22,28 @@ public class PeopleAndInstitutions {
         var person = new NationalIdentityNumber(randomString());
         var organization = cristinServer.randomOrgUri();
         var parentInstitution = cristinServer.randomOrgUri();
-        cristinServer.addPerson(person, createActiveEmployment(organization, parentInstitution));
+        cristinServer.addPerson(person, createEmployment(organization, parentInstitution,ACTIVE));
         registerInstitutionAsNvaCustomer(parentInstitution);
 
         return person;
     }
 
+    public NationalIdentityNumber getPersonWithExactlyOneInActiveAffiliation() {
+        var person = new NationalIdentityNumber(randomString());
+        var organization = cristinServer.randomOrgUri();
+        var parentInstitution = cristinServer.randomOrgUri();
+        cristinServer.addPerson(person, createEmployment(organization, parentInstitution, INACTIVE));
+        registerInstitutionAsNvaCustomer(parentInstitution);
+
+        return person;
+
+    }
+
     public  URI getCristinId(NationalIdentityNumber person) {
         return cristinServer.getCristinId(person);
     }
+
+
 
     private void registerInstitutionAsNvaCustomer(URI institution) {
         var customer = CustomerDto.builder().withCristinId(institution).build();
@@ -47,8 +59,8 @@ public class PeopleAndInstitutions {
     }
 
 
-    private PersonEmployment createActiveEmployment(URI organization, URI institution) {
-        return PersonEmployment.builder().withChild(organization).withParent(institution).withActive(ACTIVE).build();
+    private PersonEmployment createEmployment(URI organization, URI institution, boolean active) {
+        return PersonEmployment.builder().withChild(organization).withParent(institution).withActive(active).build();
     }
 
 }

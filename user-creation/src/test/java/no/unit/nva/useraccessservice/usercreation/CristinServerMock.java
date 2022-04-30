@@ -19,12 +19,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.core.paths.UriWrapper;
 
 public class CristinServerMock {
 
+    public static final String ORGANIZATION_PATH = "organization";
+    public static final String PERSON_IDENTITY_NUMBER_PATH = "/person/identityNumber";
+    public static final String PERSON_PATH = "person";
     private URI serverUri;
     private WireMockServer httpServer;
     private Map<NationalIdentityNumber, CristinPersonResponse> people;
@@ -38,17 +41,17 @@ public class CristinServerMock {
         return serverUri;
     }
 
-    public void addPerson(NationalIdentityNumber nin, PersonEmployment... employmentAffiliations) {
-        for (var employmentAffiliation : employmentAffiliations) {
-            createResponseForOrganization(employmentAffiliation);
+    public void addPerson(NationalIdentityNumber nin, PersonEmployment... employments) {
+        for (var employment : employments) {
+            createResponseForOrganization(employment);
         }
-        var personCristinEntry = cristinPersonResponse(nin, employmentAffiliations);
+        var personCristinEntry = cristinPersonResponse(nin, employments);
         cacheResponseForAssertions(nin, personCristinEntry);
         addResponseToRegistryServer(nin, personCristinEntry);
     }
 
     public URI randomOrgUri() {
-        return UriWrapper.fromUri(serverUri).addChild("organization").addChild(randomString()).getUri();
+        return UriWrapper.fromUri(serverUri).addChild(ORGANIZATION_PATH).addChild(randomString()).getUri();
     }
 
     public URI getCristinId(NationalIdentityNumber person) {
@@ -60,7 +63,7 @@ public class CristinServerMock {
     }
 
     private void addResponseToRegistryServer(NationalIdentityNumber nin, CristinPersonResponse personCristinEntry) {
-        stubFor(post("/person/identityNumber")
+        stubFor(post(PERSON_IDENTITY_NUMBER_PATH)
                     .withRequestBody(equalToJson(formatSearchByNinRequestBody(nin)))
                     .willReturn(aResponse().withBody(personCristinEntry.toString())));
     }
@@ -82,7 +85,7 @@ public class CristinServerMock {
     }
 
     private URI randomPersonId() {
-        return UriWrapper.fromUri(serverUri).addChild("person").addChild(randomString()).getUri();
+        return UriWrapper.fromUri(serverUri).addChild(PERSON_PATH).addChild(randomString()).getUri();
     }
 
     private String formatSearchByNinRequestBody(NationalIdentityNumber nin) {
@@ -119,7 +122,6 @@ public class CristinServerMock {
     private void setUpWiremock() {
         httpServer = new WireMockServer(options().dynamicHttpsPort());
         httpServer.start();
-
         serverUri = URI.create(httpServer.baseUrl());
     }
 }

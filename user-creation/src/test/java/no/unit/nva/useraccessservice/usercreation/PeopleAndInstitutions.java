@@ -10,6 +10,7 @@ import nva.commons.core.paths.UriWrapper;
 
 public class PeopleAndInstitutions {
 
+    public static final boolean ACTIVE = true;
     private final CristinServerMock cristinServer;
     private final CustomerService customerService;
 
@@ -47,7 +48,7 @@ public class PeopleAndInstitutions {
 
 
     private PersonEmployment createActiveEmployment(URI organization, URI institution) {
-        return PersonEmployment.builder().withChild(organization).withParent(institution).withActive(true).build();
+        return PersonEmployment.builder().withChild(organization).withParent(institution).withActive(ACTIVE).build();
     }
 
 }

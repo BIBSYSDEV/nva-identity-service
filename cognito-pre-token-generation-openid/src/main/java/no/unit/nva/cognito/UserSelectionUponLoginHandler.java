@@ -44,7 +44,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.AuthenticationInformation;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.PersonAndInstitutionRegistryClient;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 import nva.commons.secrets.SecretsReader;
@@ -81,7 +81,7 @@ public class UserSelectionUponLoginHandler
                                          IdentityService identityService) {
         this.cognitoClient = cognitoClient;
         this.customerService = customerService;
-        var cristinClient = new PersonAndInstitutionRegistryClient(cristinHost, httpClient);
+        var cristinClient = new CristinClient(cristinHost, httpClient);
         this.userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient, identityService);
     }
 

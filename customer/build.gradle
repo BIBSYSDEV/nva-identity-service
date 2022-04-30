@@ -6,7 +6,7 @@ apply plugin: 'nva.identity.service.java-common-conventions'
 
 dependencies {
     implementation project(":customer-commons")
-    implementation project(":json-config")
+    implementation project(":json")
 
     implementation libs.nva.apigatewayv2
     implementation libs.nva.core

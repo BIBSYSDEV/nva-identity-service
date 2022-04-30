@@ -16,7 +16,7 @@ import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse
 import nva.commons.apigatewayv2.exceptions.BadGatewayException;
 import nva.commons.core.paths.UriWrapper;
 
-public class PersonAndInstitutionRegistryClient {
+public class CristinClient {
 
     public static final String CRISTIN_PATH_FOR_GETTING_USER_BY_NIN = "person/identityNumber";
     public static final String REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE =
@@ -25,7 +25,7 @@ public class PersonAndInstitutionRegistryClient {
     private final URI getUserByNinUri;
     private final AuthorizedBackendClient httpClient;
 
-    public PersonAndInstitutionRegistryClient(URI cristinHost, AuthorizedBackendClient httpClient) {
+    public CristinClient(URI cristinHost, AuthorizedBackendClient httpClient) {
         this.httpClient = httpClient;
         this.getUserByNinUri = formatUriForGettingUserByNin(cristinHost);
     }

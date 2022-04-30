@@ -7,7 +7,7 @@ plugins {
 dependencies {
 
 
-    implementation project(":json-config")
+    implementation project(":json")
     implementation project(":dynamo-client")
     implementation project (":customer-commons")
     implementation project (":user-access-commons")

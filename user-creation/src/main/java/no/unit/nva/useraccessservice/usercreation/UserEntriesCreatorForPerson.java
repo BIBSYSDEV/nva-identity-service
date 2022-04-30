@@ -15,7 +15,7 @@ import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber
 import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.PersonAndInstitutionRegistryClient;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 
@@ -26,14 +26,14 @@ public class UserEntriesCreatorForPerson {
     private static final String AT = "@";
 
     private final CustomerService customerService;
-    private final PersonAndInstitutionRegistryClient personAndInstitutionRegistryClient;
+    private final CristinClient cristinClient;
     private final IdentityService identityService;
 
     public UserEntriesCreatorForPerson(CustomerService customerService,
-                                       PersonAndInstitutionRegistryClient personAndInstitutionRegistryClient,
+                                       CristinClient cristinClient,
                                        IdentityService identityService) {
         this.customerService = customerService;
-        this.personAndInstitutionRegistryClient = personAndInstitutionRegistryClient;
+        this.cristinClient = cristinClient;
         this.identityService = identityService;
     }
 
@@ -98,13 +98,13 @@ public class UserEntriesCreatorForPerson {
     }
 
     private PersonAffiliation fetchParentInstitutionCristinId(URI mostSpecificAffiliation) {
-        return attempt(() -> personAndInstitutionRegistryClient.fetchTopLevelOrgUri(mostSpecificAffiliation))
+        return attempt(() -> cristinClient.fetchTopLevelOrgUri(mostSpecificAffiliation))
             .map(parentInstitution -> PersonAffiliation.create(mostSpecificAffiliation, parentInstitution))
             .orElseThrow();
     }
 
     private CristinPersonResponse fetchPersonInformationFromCristin(NationalIdentityNumber nin) {
-        return attempt(() -> personAndInstitutionRegistryClient.sendRequestToCristin(nin)).orElseThrow();
+        return attempt(() -> cristinClient.sendRequestToCristin(nin)).orElseThrow();
     }
 
     private UserDto createNewUserObject(CustomerDto customer,

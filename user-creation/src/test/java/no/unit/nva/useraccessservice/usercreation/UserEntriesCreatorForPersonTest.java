@@ -11,7 +11,7 @@ import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.stubs.WiremockHttpClient;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.PersonAndInstitutionRegistryClient;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +24,7 @@ class UserEntriesCreatorForPersonTest {
     private UserEntriesCreatorForPerson userCreator;
     private LocalCustomerServiceDatabase customerServiceDatabase;
     private LocalIdentityService identityServiceDatabase;
-    private PersonAndInstitutionRegistryClient personAndInstitutionRegistryClient;
+    private CristinClient cristinClient;
     private AuthorizedBackendClient httpClient;
     private IdentityServiceImpl identityService;
     private DynamoDBCustomerService customerService;
@@ -36,7 +36,7 @@ class UserEntriesCreatorForPersonTest {
         this.httpClient = AuthorizedBackendClient.prepareWithBearerToken(WiremockHttpClient.create(), randomString());
 
         seteupPersonAndIsntituttionRegistryClient();
-        userCreator = new UserEntriesCreatorForPerson(customerService, personAndInstitutionRegistryClient,
+        userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient,
                                                       identityService);
     }
 
@@ -71,8 +71,8 @@ class UserEntriesCreatorForPersonTest {
     }
 
     private void seteupPersonAndIsntituttionRegistryClient() {
-        personAndInstitutionRegistryClient =
-            new PersonAndInstitutionRegistryClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(),
-                                                   httpClient);
+        cristinClient =
+            new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(),
+                              httpClient);
     }
 }

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.PersonAndInstitutionRegistryClient;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.paths.UriWrapper;
 
 public class CristinServerMock {
@@ -86,7 +86,7 @@ public class CristinServerMock {
     }
 
     private String formatSearchByNinRequestBody(NationalIdentityNumber nin) {
-        return String.format(PersonAndInstitutionRegistryClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, nin.getNin());
+        return String.format(CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, nin.getNin());
     }
 
     private void createResponseForOrganization(PersonEmployment orgStructure) {

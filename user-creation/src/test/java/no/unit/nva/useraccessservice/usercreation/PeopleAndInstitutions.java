@@ -67,7 +67,7 @@ public class PeopleAndInstitutions {
         return cristinServer.getServerUri();
     }
 
-    public List<URI> getParentIntituttionsWithActiveAffiliations(
+    public List<URI> getParentIntitutionsWithActiveAffiliations(
         NationalIdentityNumber person) {
         return cristinServer.getActiveAffiliations(person)
             .stream()
@@ -78,7 +78,7 @@ public class PeopleAndInstitutions {
 
     public UserDto createNvaUserForPerson(NationalIdentityNumber person) {
         var personInstitution =
-            getParentIntituttionsWithActiveAffiliations(person).stream().collect(SingletonCollector.collect());
+            getParentIntitutionsWithActiveAffiliations(person).stream().collect(SingletonCollector.collect());
         var personAffiliation =
             cristinServer.getActiveAffiliations(person)
                 .stream()

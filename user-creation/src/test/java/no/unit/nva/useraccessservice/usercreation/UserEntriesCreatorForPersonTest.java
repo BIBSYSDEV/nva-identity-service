@@ -96,7 +96,7 @@ class UserEntriesCreatorForPersonTest {
         var person = peopleAndInstitutions.getPersonWithSomeActiveAndSomeInactiveAffiliations();
         var personInfo = userCreator.collectPersonInformation(person);
         var expectedCustomers =
-            peopleAndInstitutions.getParentIntituttionsWithActiveAffiliations(person)
+            peopleAndInstitutions.getParentIntitutionsWithActiveAffiliations(person)
                 .stream()
                 .map(institution -> customerService.getCustomerByCristinId(institution))
                 .map(CustomerDto::getId)

@@ -9,6 +9,7 @@ import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber
 public class PeopleAndInstitutions {
 
     public static final boolean ACTIVE = true;
+    public static final boolean INACTIVE = false;
     private final CristinServerMock cristinServer;
     private final CustomerService customerService;
 
@@ -25,8 +26,19 @@ public class PeopleAndInstitutions {
         var person = new NationalIdentityNumber(randomString());
         var organization = cristinServer.randomOrgUri();
         var parentInstitution = cristinServer.randomOrgUri();
-        var activeEmployment = createActiveEmployment(organization, parentInstitution);
+        var activeEmployment = createEmployment(organization, parentInstitution, ACTIVE);
         cristinServer.addPerson(person, activeEmployment);
+
+        registerInstitutionAsNvaCustomer(parentInstitution);
+
+        return person;
+    }
+
+    public NationalIdentityNumber getPersonWithExactlyOneInActiveAffiliation() {
+        var person = new NationalIdentityNumber(randomString());
+        var organization = cristinServer.randomOrgUri();
+        var parentInstitution = cristinServer.randomOrgUri();
+        cristinServer.addPerson(person, createEmployment(organization, parentInstitution, INACTIVE));
         registerInstitutionAsNvaCustomer(parentInstitution);
 
         return person;
@@ -45,7 +57,7 @@ public class PeopleAndInstitutions {
         customerService.createCustomer(customer);
     }
 
-    private PersonEmployment createActiveEmployment(URI organization, URI institution) {
-        return PersonEmployment.builder().withChild(organization).withParent(institution).withActive(ACTIVE).build();
+    private PersonEmployment createEmployment(URI organization, URI institution, boolean active) {
+        return PersonEmployment.builder().withChild(organization).withParent(institution).withActive(active).build();
     }
 }

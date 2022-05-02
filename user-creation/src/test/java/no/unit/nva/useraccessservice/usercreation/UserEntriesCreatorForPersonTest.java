@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
@@ -119,6 +120,32 @@ class UserEntriesCreatorForPersonTest {
         var existingUser = peopleAndInstitutions.createNvaUserForPerson(person);
         var actualUser = userCreator.createUsers(personInfo).stream().collect(SingletonCollector.collect());
         assertThat(actualUser.getUsername(), is(equalTo(existingUser.getUsername())));
+    }
+
+    @Test
+    void shouldAddFeideIdentifierWhenFeideIdentifierIsAvailable() {
+        var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
+        var personFeideIdentifier = randomString();
+        var personInfo = userCreator.collectPersonInformation(person, personFeideIdentifier, randomString());
+        var actualUser = userCreator.createUsers(personInfo).stream().collect(SingletonCollector.collect());
+        assertThat(actualUser.getFeideIdentifier(), is(equalTo(personFeideIdentifier)));
+    }
+
+    @Test
+    void shouldNotCreateUserForInstitutionThatIsNotAnNvaCustomer() {
+        var person = peopleAndInstitutions.getPersonAffiliatedWithNonNvaCustomerInstitution();
+        var personInfo = userCreator.collectPersonInformation(person);
+        var actualUsers = userCreator.createUsers(personInfo);
+        assertThat(actualUsers, is(empty()));
+    }
+
+    @Test
+    void createdUserShouldHaveTheCreatorRoleByDefault() {
+        var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
+        var personInfo = userCreator.collectPersonInformation(person);
+        var actualUser = userCreator.createUsers(personInfo).stream().collect(SingletonCollector.collect());
+        var defaultRoles = actualUser.getRoles();
+        assertThat(defaultRoles, contains(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION));
     }
 
     private void setupCustomerAndIdentityService() {

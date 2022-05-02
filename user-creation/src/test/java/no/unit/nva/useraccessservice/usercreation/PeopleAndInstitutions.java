@@ -59,6 +59,13 @@ public class PeopleAndInstitutions {
         return person;
     }
 
+    public NationalIdentityNumber getPersonAffiliatedWithNonNvaCustomerInstitution() {
+        var person = newPerson();
+        var nonNvaCustomerAffiliation = createNonNvaCustomerAffiliation();
+        cristinServer.addPerson(person, nonNvaCustomerAffiliation);
+        return person;
+    }
+
     public URI getCristinId(NationalIdentityNumber person) {
         return cristinServer.getCristinId(person);
     }
@@ -77,22 +84,29 @@ public class PeopleAndInstitutions {
     }
 
     public UserDto createNvaUserForPerson(NationalIdentityNumber person) {
+        var personAffiliation = getPersonAffiliations(person).stream().collect(SingletonCollector.collect());
         var personInstitution =
             getParentIntitutionsWithActiveAffiliations(person).stream().collect(SingletonCollector.collect());
-        var personAffiliation =
-            cristinServer.getActiveAffiliations(person)
-                .stream()
-                .collect(SingletonCollector.collect());
+
         var userCustomer = customerService.getCustomerByCristinId(personInstitution);
-        var user = UserDto.newBuilder()
+        var user = createUserObject(person, personAffiliation, userCustomer);
+        identityService.addUser(user);
+        return identityService.getUser(user);
+    }
+
+    private UserDto createUserObject(NationalIdentityNumber person, CristinAffiliation personAffiliation,
+                                     CustomerDto userCustomer) {
+        return UserDto.newBuilder()
             .withUsername(randomString())
             .withAffiliation(personAffiliation.getOrganizationUri())
             .withCristinId(getCristinId(person))
             .withInstitutionCristinId(userCustomer.getCristinId())
             .withInstitution(userCustomer.getId())
             .build();
-        identityService.addUser(user);
-        return identityService.getUser(user);
+    }
+
+    private List<CristinAffiliation> getPersonAffiliations(NationalIdentityNumber person) {
+        return cristinServer.getActiveAffiliations(person);
     }
 
     private Stream<PersonAffiliation> createAffiliations(boolean active) {
@@ -124,5 +138,13 @@ public class PeopleAndInstitutions {
             .withChild(createOrganization())
             .withParent(createNvaCustomerInstitution())
             .withActive(active).build();
+    }
+
+    private PersonAffiliation createNonNvaCustomerAffiliation() {
+        return PersonAffiliation.builder()
+            .withChild(createOrganization())
+            .withParent(createOrganization())
+            .withActive(ACTIVE)
+            .build();
     }
 }

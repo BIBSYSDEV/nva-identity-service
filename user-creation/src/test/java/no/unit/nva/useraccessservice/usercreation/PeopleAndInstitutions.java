@@ -85,12 +85,12 @@ public class PeopleAndInstitutions {
                 .collect(SingletonCollector.collect());
         var userCustomer = customerService.getCustomerByCristinId(personInstitution);
         var user = UserDto.newBuilder()
-                       .withUsername(randomString())
-                       .withAffiliation(personAffiliation.getOrganizationUri())
-                       .withCristinId(getCristinId(person))
-                       .withInstitutionCristinId(userCustomer.getCristinId())
-                       .withInstitution(userCustomer.getId())
-                       .build();
+            .withUsername(randomString())
+            .withAffiliation(personAffiliation.getOrganizationUri())
+            .withCristinId(getCristinId(person))
+            .withInstitutionCristinId(userCustomer.getCristinId())
+            .withInstitution(userCustomer.getId())
+            .build();
         identityService.addUser(user);
         return identityService.getUser(user);
     }

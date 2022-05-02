@@ -25,6 +25,7 @@ dependencies {
     implementation libs.bundles.jackson
     implementation libs.aws.lambda.events
     implementation libs.zalando.problem
+    implementation libs.jackson.datatype.problem
 
 
     implementation libs.aws.sdk2.dynamodbenhanced

@@ -5,6 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import java.io.IOException;
+import java.net.URI;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
@@ -54,8 +55,7 @@ class UserEntriesCreatorForPersonTest {
                  + "and the the Institution is an NVA Customer"
                  + "and the Person has no other Affiliations active or inactive"
     )
-    void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleAffiliation()
-        throws IOException, InterruptedException {
+    void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleAffiliation() {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var users = userCreator.createUsers(personInfo);
@@ -75,8 +75,6 @@ class UserEntriesCreatorForPersonTest {
     }
 
     private void seteupPersonAndIsntituttionRegistryClient() {
-        cristinClient =
-            new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(),
-                              httpClient);
+        cristinClient =new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(), httpClient);
     }
 }

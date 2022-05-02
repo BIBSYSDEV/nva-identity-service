@@ -1,14 +1,13 @@
 package no.unit.nva.customer.testing;
 
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
-import com.github.javafaker.Faker;
 import java.net.URI;
-import java.time.Instant;
-import java.time.Period;
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,8 +21,6 @@ import nva.commons.core.paths.UriWrapper;
 
 public class CustomerDataGenerator {
 
-    public static final Random RANDOM = new Random(System.currentTimeMillis());
-    public static final Faker FAKER = Faker.instance();
     private static final String API_HOST = "api.dev.aws.nva.unit.no";
     private static final String CRISTIN_PATH = "/cristin/organization";
 
@@ -81,22 +78,7 @@ public class CustomerDataGenerator {
         return customer;
     }
 
-    public static <T> T randomElement(T... values) {
-        return values[RANDOM.nextInt(values.length)];
-    }
 
-    public static URI randomUri() {
-        return URI.create("https://www.example.com/" + FAKER.lorem().word() + FAKER.lorem().word());
-    }
-
-    public static Instant randomInstant() {
-        return FAKER.date().between(Date.from(Instant.now().minus(Period.ofDays(10))),
-                                    Date.from(Instant.now())).toInstant();
-    }
-
-    public static String randomString() {
-        return FAKER.lorem().sentence(2);
-    }
 
     public static UUID randomIdentifier() {
         return UUID.randomUUID();

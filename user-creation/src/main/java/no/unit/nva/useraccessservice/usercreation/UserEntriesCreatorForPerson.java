@@ -11,10 +11,11 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 
@@ -41,25 +42,13 @@ public class UserEntriesCreatorForPerson {
         return createOrFetchUserEntriesForPerson(authenticationInfo);
     }
 
-    public void createUserRole() {
-        try {
-            identityService.addRole(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION);
-        } catch (Exception ignored) {
-            //Do nothing if role exists.
-        }
+    public AuthenticationInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber) {
+        return collectPersonInformation(nationalIdentityNumber, null, null);
     }
 
-    public List<UserDto> createOrFetchUserEntriesForPerson(AuthenticationInformation authenticationInformation) {
-
-        return authenticationInformation.getActiveCustomers().stream()
-            .map(customer -> createNewUserObject(customer, authenticationInformation))
-            .map(user -> getExistingUserOrCreateNew(user, authenticationInformation))
-            .collect(Collectors.toList());
-    }
-
-    public AuthenticationInformation collectInformationForPerson(String nationalIdentityNumber,
-                                                                 String personFeideIdentifier,
-                                                                 String orgFeideDomain) {
+    public AuthenticationInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber,
+                                                              String personFeideIdentifier,
+                                                              String orgFeideDomain) {
         var authenticationInfo = new AuthenticationInformation(personFeideIdentifier, orgFeideDomain);
         var cristinResponse = fetchPersonInformationFromCristin(nationalIdentityNumber);
         authenticationInfo.setCristinResponse(cristinResponse);
@@ -71,6 +60,22 @@ public class UserEntriesCreatorForPerson {
         authenticationInfo.setActiveCustomers(activeCustomers);
 
         return authenticationInfo;
+    }
+
+    private List<UserDto> createOrFetchUserEntriesForPerson(AuthenticationInformation authenticationInformation) {
+
+        return authenticationInformation.getActiveCustomers().stream()
+            .map(customer -> createNewUserObject(customer, authenticationInformation))
+            .map(user -> getExistingUserOrCreateNew(user, authenticationInformation))
+            .collect(Collectors.toList());
+    }
+
+    private void createUserRole() {
+        try {
+            identityService.addRole(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION);
+        } catch (Exception ignored) {
+            //Do nothing if role exists.
+        }
     }
 
     private Set<CustomerDto> fetchCustomersForActiveAffiliations(AuthenticationInformation authenticationInformation) {
@@ -98,7 +103,7 @@ public class UserEntriesCreatorForPerson {
             .orElseThrow();
     }
 
-    private CristinPersonResponse fetchPersonInformationFromCristin(String nin) {
+    private CristinPersonResponse fetchPersonInformationFromCristin(NationalIdentityNumber nin) {
         return attempt(() -> cristinClient.sendRequestToCristin(nin)).orElseThrow();
     }
 

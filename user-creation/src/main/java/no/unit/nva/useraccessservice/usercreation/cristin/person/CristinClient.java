@@ -11,6 +11,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
 import nva.commons.apigatewayv2.exceptions.BadGatewayException;
 import nva.commons.core.paths.UriWrapper;
@@ -29,7 +30,7 @@ public class CristinClient {
         this.getUserByNinUri = formatUriForGettingUserByNin(cristinHost);
     }
 
-    public CristinPersonResponse sendRequestToCristin(String nin)
+    public CristinPersonResponse sendRequestToCristin(NationalIdentityNumber nin)
         throws IOException, InterruptedException {
         var request = HttpRequest.newBuilder(getUserByNinUri)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
@@ -63,7 +64,7 @@ public class CristinClient {
         }
     }
 
-    private String cristinRequestBody(String nin) {
-        return String.format(REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, nin);
+    private String cristinRequestBody(NationalIdentityNumber nin) {
+        return String.format(REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, nin.getNin());
     }
 }

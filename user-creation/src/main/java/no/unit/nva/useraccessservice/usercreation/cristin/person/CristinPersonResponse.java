@@ -11,6 +11,7 @@ import java.util.Optional;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.exceptions.ExceptionUtils;
 
 @JacocoGenerated
 public class CristinPersonResponse {
@@ -67,7 +68,7 @@ public class CristinPersonResponse {
 
     @JacocoGenerated
     public String getNin() {
-        return nin.getNin();
+        return Optional.ofNullable(nin).map(NationalIdentityNumber::getNin).orElseThrow();
     }
 
     @JacocoGenerated
@@ -77,7 +78,8 @@ public class CristinPersonResponse {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.asString(this)).orElse(
+            fail -> ExceptionUtils.stackTraceInSingleLine(fail.getException()));
     }
 
     @JsonIgnore

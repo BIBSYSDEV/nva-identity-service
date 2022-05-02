@@ -1,10 +1,11 @@
 package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomInstant;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomUri;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.Is.is;
@@ -106,8 +107,8 @@ class CustomerDaoTest {
     }
 
     private Set<VocabularyDao> randomVocabularySettings() {
-        VocabularyDao vocabulary = new VocabularyDao(randomString(), CustomerDataGenerator.randomUri(),
-                                                     CustomerDataGenerator.randomElement(VocabularyStatus.values()));
+        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
+                                                     randomElement(VocabularyStatus.values()));
         return Set.of(vocabulary);
     }
 

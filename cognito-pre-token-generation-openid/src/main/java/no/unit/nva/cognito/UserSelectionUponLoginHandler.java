@@ -43,6 +43,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.AuthenticationInformation;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
+import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
@@ -92,7 +93,9 @@ public class UserSelectionUponLoginHandler
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
 
         var authenticationInfo =
-            userCreator.collectInformationForPerson(nin, personFeideIdentifier, orgFeideDomain);
+            userCreator.collectPersonInformation(new NationalIdentityNumber(nin),
+                                                 personFeideIdentifier,
+                                                 orgFeideDomain);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
 
         final var roles = rolesPerCustomer(usersForPerson);

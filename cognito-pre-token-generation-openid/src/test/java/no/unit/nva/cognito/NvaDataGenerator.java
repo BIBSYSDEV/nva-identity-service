@@ -1,8 +1,8 @@
 package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.AT;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomElement;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.List;

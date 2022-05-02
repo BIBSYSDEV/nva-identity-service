@@ -1,9 +1,9 @@
 package no.unit.nva.customer.get;
 
 import static java.util.Collections.singletonList;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomString;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomUri;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -43,7 +43,7 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void requestToHandlerReturnsCustomerList() {
 
-        var savedCustomer = insertRandomCustomer();
+        final var savedCustomer = insertRandomCustomer();
         var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
         var response = handler.handleRequest(input, context);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));

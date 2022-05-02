@@ -77,7 +77,6 @@ class UserEntriesCreatorForPersonTest {
         assertThat(users, is(empty()));
     }
 
-
     private void setupCustomerAndIdentityService() {
         customerServiceDatabase = new LocalCustomerServiceDatabase();
         customerServiceDatabase.setupDatabase();
@@ -87,8 +86,6 @@ class UserEntriesCreatorForPersonTest {
     }
 
     private void seteupPersonAndIsntituttionRegistryClient() {
-        cristinClient =
-            new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(),
-                              httpClient);
+        cristinClient = new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(), httpClient);
     }
 }

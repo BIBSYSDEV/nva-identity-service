@@ -1,12 +1,10 @@
 package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import java.net.URI;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
-import nva.commons.core.paths.UriWrapper;
 
 public class PeopleAndInstitutions {
 
@@ -23,13 +21,14 @@ public class PeopleAndInstitutions {
         var person = new NationalIdentityNumber(randomString());
         var organization = cristinServer.randomOrgUri();
         var parentInstitution = cristinServer.randomOrgUri();
-        cristinServer.addPerson(person, createActiveEmployment(organization, parentInstitution));
+        var activeEmployment = createActiveEmployment(organization, parentInstitution);
+        cristinServer.addPerson(person, activeEmployment);
         registerInstitutionAsNvaCustomer(parentInstitution);
 
         return person;
     }
 
-    public  URI getCristinId(NationalIdentityNumber person) {
+    public URI getCristinId(NationalIdentityNumber person) {
         return cristinServer.getCristinId(person);
     }
 
@@ -40,24 +39,13 @@ public class PeopleAndInstitutions {
 
     public void shutdown() {
         cristinServer.shutDown();
-        waitForServerToStop();
-    }
-
-    private void waitForServerToStop() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     public URI getPersonAndInstitutionRegistryUri() {
         return cristinServer.getServerUri();
     }
 
-
     private PersonEmployment createActiveEmployment(URI organization, URI institution) {
         return PersonEmployment.builder().withChild(organization).withParent(institution).withActive(ACTIVE).build();
     }
-
 }

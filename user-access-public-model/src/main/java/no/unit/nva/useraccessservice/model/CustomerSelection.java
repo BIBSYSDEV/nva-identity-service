@@ -18,7 +18,7 @@ public class CustomerSelection {
     }
 
     public static CustomerSelection fromJson(String body) {
-        return attempt(() -> JsonConfig.beanFrom(CustomerSelection.class, body)).orElseThrow();
+        return attempt(() -> JsonConfig.readValue(body, CustomerSelection.class)).orElseThrow();
     }
 
     @JacocoGenerated
@@ -44,6 +44,6 @@ public class CustomerSelection {
     @JacocoGenerated
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 }

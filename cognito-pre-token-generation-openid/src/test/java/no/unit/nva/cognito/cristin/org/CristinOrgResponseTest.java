@@ -15,14 +15,14 @@ class CristinOrgResponseTest {
     @Test
     void shouldReturnOwnIdAsTopLevelOrgWhenIsTopLevelOrg() throws IOException {
         var input = IoUtils.stringFromResources(Path.of("cristin", "org", "top_level_org.json"));
-        var org = JsonConfig.beanFrom(CristinOrgResponse.class, input);
+        var org = JsonConfig.readValue(input, CristinOrgResponse.class);
         assertThat(org.extractTopOrgUri().toString(), is(equalTo(org.getOrgId())));
     }
 
     @Test
     void shouldReturnFirstLevelPartOfIdAsTopLevelOrgWhenOrgIsExactlyUnderTopLevel() throws IOException {
         var input = IoUtils.stringFromResources(Path.of("cristin", "org", "one_level_under_top_level.json"));
-        var org = JsonConfig.beanFrom(CristinOrgResponse.class, input);
+        var org = JsonConfig.readValue(input, CristinOrgResponse.class);
         String topLevelOrgId = org.getPartOf().get(0).getOrgId();
         assertThat(org.extractTopOrgUri().toString(), is(equalTo(topLevelOrgId)));
     }
@@ -30,7 +30,7 @@ class CristinOrgResponseTest {
     @Test
     void shouldReturnSecondLevelPartOfIdAsTopLevelOrgWhenOrgIsTwoLevelsUnderTopLevel() throws IOException {
         var input = IoUtils.stringFromResources(Path.of("cristin", "org", "two_levels_under_top_level.json"));
-        var org = JsonConfig.beanFrom(CristinOrgResponse.class, input);
+        var org = JsonConfig.readValue(input, CristinOrgResponse.class);
         String topLevelOrgId = org.getPartOf().get(0).getPartOf().get(0).getOrgId();
         assertThat(org.extractTopOrgUri().toString(), is(equalTo(topLevelOrgId)));
     }

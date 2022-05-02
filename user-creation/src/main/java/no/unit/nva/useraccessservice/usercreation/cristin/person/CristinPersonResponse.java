@@ -78,7 +78,7 @@ public class CristinPersonResponse {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElse(
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElse(
             fail -> ExceptionUtils.stackTraceInSingleLine(fail.getException()));
     }
 

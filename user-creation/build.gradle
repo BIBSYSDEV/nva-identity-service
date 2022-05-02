@@ -15,14 +15,16 @@ dependencies {
     implementation project (":user-access-public-model")
 
     implementation libs.nva.apigatewayv2
+    implementation libs.nva.core
+    implementation libs.nva.secrets
+    implementation libs.nva.auth
+
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection
     implementation libs.aws.lambda.java.core
     implementation libs.bundles.jackson
-    implementation libs.nva.core
-    implementation libs.nva.secrets
-    implementation libs.nva.auth
     implementation libs.aws.lambda.events
+    implementation libs.zalando.problem
 
 
     implementation libs.aws.sdk2.dynamodbenhanced

@@ -18,14 +18,20 @@ public class PeopleAndInstitutions {
         this.customerService = customerService;
     }
 
+    public void shutdown() {
+        cristinServer.shutDown();
+    }
+
     public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() {
         var person = new NationalIdentityNumber(randomString());
-        var affiliation = createAffiliation(createOrganization(), createNvaCustomerInstitution(), ACTIVE);
-        cristinServer.addPerson(person, affiliation);
+        var organization = createOrganization();
+        var parentInstitution = createNvaCustomerInstitution();
+        var activeEmployment = createAffiliation(organization, parentInstitution, ACTIVE);
+        cristinServer.addPerson(person, activeEmployment);
         return person;
     }
 
-    public NationalIdentityNumber getPersonWithExactlyOneInActiveAffiliation() {
+    public NationalIdentityNumber getPersonWithExactlyOneInactiveAffiliation() {
         var person = new NationalIdentityNumber(randomString());
         var affiliation = createAffiliation(createOrganization(), createNvaCustomerInstitution(), INACTIVE);
         cristinServer.addPerson(person, affiliation);
@@ -46,26 +52,13 @@ public class PeopleAndInstitutions {
         return cristinServer.getCristinId(person);
     }
 
+    public URI getPersonAndInstitutionRegistryUri() {
+        return cristinServer.getServerUri();
+    }
+
     private void registerInstitutionAsNvaCustomer(URI institution) {
         var customer = CustomerDto.builder().withCristinId(institution).build();
         customerService.createCustomer(customer);
-    }
-
-    public void shutdown() {
-        cristinServer.shutDown();
-        waitForServerToStop();
-    }
-
-    private void waitForServerToStop() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public URI getPersonAndInstitutionRegistryUri() {
-        return cristinServer.getServerUri();
     }
 
     private PersonAffiliation createAffiliation(URI organization, URI institution, boolean active) {

@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.core.paths.UriWrapper;
@@ -31,10 +32,12 @@ public class CristinServerMock {
     public static final String PERSON_PATH = "person";
     private URI serverUri;
     private WireMockServer httpServer;
-    private Map<NationalIdentityNumber, CristinPersonResponse> people;
+    private final Map<NationalIdentityNumber, CristinPersonResponse> people;
+    private final Map<URI, URI> orgToParent;
 
     public CristinServerMock() {
         people = new ConcurrentHashMap<>();
+        orgToParent = new ConcurrentHashMap<>();
         setUpWiremock();
     }
 
@@ -51,7 +54,6 @@ public class CristinServerMock {
         addResponseToRegistryServer(nin, personCristinEntry);
     }
 
-
     public URI randomOrgUri() {
         return UriWrapper.fromUri(serverUri).addChild(ORGANIZATION_PATH).addChild(randomString()).getUri();
     }
@@ -64,13 +66,26 @@ public class CristinServerMock {
         httpServer.stop();
     }
 
-    private void createResponseForOrganization(PersonAffiliation orgStructure) {
-        setupWiremockPorts();
+    public List<CristinAffiliation> getActiveAffiliations(NationalIdentityNumber person) {
+        return people.get(person).getAffiliations().stream().filter(CristinAffiliation::isActive)
+            .collect(Collectors.toList());
+    }
 
+    public URI getParentInstitution(URI orgUri) {
+        return orgToParent.get(orgUri);
+    }
+
+    private void createResponseForOrganization(PersonAffiliation orgStructure) {
+        cacheForInternalUse(orgStructure);
+        setupWiremockPorts();
         stubFor(WireMock.get(urlEqualTo(organizationPath(orgStructure.getChild())))
                     .willReturn(createInstitutionRegistryResponseForOrganization(orgStructure))
 
         );
+    }
+
+    private void cacheForInternalUse(PersonAffiliation orgStructure) {
+        orgToParent.put(orgStructure.getChild(), orgStructure.getParent());
     }
 
     private void setupWiremockPorts() {

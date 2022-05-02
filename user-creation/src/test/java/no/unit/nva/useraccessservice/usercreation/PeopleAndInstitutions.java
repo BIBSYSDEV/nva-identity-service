@@ -2,9 +2,15 @@ package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import java.net.URI;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 
 public class PeopleAndInstitutions {
 
@@ -19,17 +25,58 @@ public class PeopleAndInstitutions {
     }
 
     public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() {
-        var person = new NationalIdentityNumber(randomString());
-        var affiliation = createAffiliation(createOrganization(), createNvaCustomerInstitution(), ACTIVE);
+        var person = newPerson();
+        var affiliation = createAffiliation(ACTIVE);
         cristinServer.addPerson(person, affiliation);
         return person;
     }
 
     public NationalIdentityNumber getPersonWithExactlyOneInActiveAffiliation() {
-        var person = new NationalIdentityNumber(randomString());
-        var affiliation = createAffiliation(createOrganization(), createNvaCustomerInstitution(), INACTIVE);
+        var person = newPerson();
+        var affiliation = createAffiliation(INACTIVE);
         cristinServer.addPerson(person, affiliation);
         return person;
+    }
+
+    public NationalIdentityNumber getPersonWithSomeActiveAndSomeInactiveAffiliations() {
+        var person = newPerson();
+        var activeAffiliations = createAffiliations(ACTIVE);
+        var inactiveAffiliations = createAffiliations(INACTIVE);
+        var allAffiliations = Stream.of(activeAffiliations, inactiveAffiliations)
+            .flatMap(Function.identity())
+            .toArray(PersonAffiliation[]::new);
+        cristinServer.addPerson(person, allAffiliations);
+        return person;
+    }
+
+    public URI getCristinId(NationalIdentityNumber person) {
+        return cristinServer.getCristinId(person);
+    }
+
+    public void shutdown() {
+        cristinServer.shutDown();
+    }
+
+    public URI getPersonAndInstitutionRegistryUri() {
+        return cristinServer.getServerUri();
+    }
+
+    public List<URI> getInstitutionsWhereTheUserHasAtLeastOneActiveAffiliationWithAChildOrg(
+        NationalIdentityNumber person) {
+        return cristinServer.getActiveAffiliations(person)
+            .stream()
+            .map(CristinAffiliation::getOrganizationUri)
+            .map(cristinServer::getParentInstitution)
+            .collect(Collectors.toList());
+    }
+
+    private Stream<PersonAffiliation> createAffiliations(boolean active) {
+        return IntStream.range(0, 10).boxed()
+            .map(ignored -> createAffiliation(active));
+    }
+
+    private NationalIdentityNumber newPerson() {
+        return new NationalIdentityNumber(randomString());
     }
 
     private URI createOrganization() {
@@ -42,33 +89,15 @@ public class PeopleAndInstitutions {
         return parentInstitution;
     }
 
-    public URI getCristinId(NationalIdentityNumber person) {
-        return cristinServer.getCristinId(person);
-    }
-
     private void registerInstitutionAsNvaCustomer(URI institution) {
         var customer = CustomerDto.builder().withCristinId(institution).build();
         customerService.createCustomer(customer);
     }
 
-    public void shutdown() {
-        cristinServer.shutDown();
-        waitForServerToStop();
-    }
-
-    private void waitForServerToStop() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public URI getPersonAndInstitutionRegistryUri() {
-        return cristinServer.getServerUri();
-    }
-
-    private PersonAffiliation createAffiliation(URI organization, URI institution, boolean active) {
-        return PersonAffiliation.builder().withChild(organization).withParent(institution).withActive(active).build();
+    private PersonAffiliation createAffiliation(boolean active) {
+        return PersonAffiliation.builder()
+            .withChild(createOrganization())
+            .withParent(createNvaCustomerInstitution())
+            .withActive(active).build();
     }
 }

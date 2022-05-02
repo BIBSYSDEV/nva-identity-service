@@ -8,7 +8,7 @@ dependencies {
     implementation project(':user-access-commons')
     implementation project(':user-access-public-model')
     implementation project(':user-access-service')
-    implementation project(':json')
+    implementation project(':json-config')
 
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection

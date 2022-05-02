@@ -18,6 +18,7 @@ import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
+import nva.commons.core.SingletonCollector;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +39,7 @@ class UserEntriesCreatorForPersonTest {
     @BeforeEach
     public void init() {
         setupCustomerAndIdentityService();
-        peopleAndInstitutions = new PeopleAndInstitutions(customerService);
+        peopleAndInstitutions = new PeopleAndInstitutions(customerService, identityService);
         this.httpClient = AuthorizedBackendClient.prepareWithBearerToken(WiremockHttpClient.create(), randomString());
 
         setupPersonAndIsntituttionRegistryClient();
@@ -95,7 +96,7 @@ class UserEntriesCreatorForPersonTest {
         var person = peopleAndInstitutions.getPersonWithSomeActiveAndSomeInactiveAffiliations();
         var personInfo = userCreator.collectPersonInformation(person);
         var expectedCustomers =
-            peopleAndInstitutions.getInstitutionsWhereTheUserHasAtLeastOneActiveAffiliationWithAChildOrg(person)
+            peopleAndInstitutions.getParentIntituttionsWithActiveAffiliations(person)
                 .stream()
                 .map(institution -> customerService.getCustomerByCristinId(institution))
                 .map(CustomerDto::getId)
@@ -103,6 +104,21 @@ class UserEntriesCreatorForPersonTest {
         var users = userCreator.createUsers(personInfo);
         var actualCustomers = users.stream().map(UserDto::getInstitution).collect(Collectors.toList());
         assertThat(expectedCustomers, containsInAnyOrder(actualCustomers.toArray(URI[]::new)));
+    }
+
+    @Test
+    @DisplayName(" Given that a Person exists in the Person-Registry,"
+                 + "And they have an active affiliation with an Organization"
+                 + "And the Organization's parent Institution is an NVA customer"
+                 + "And there is already a User for the Person for the Institution"
+                 + "Then the username of the existing User is maintained by all means"
+    )
+    void shouldNotOverwriteUsernameOfExistingUsers() {
+        var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
+        var personInfo = userCreator.collectPersonInformation(person);
+        var existingUser = peopleAndInstitutions.createNvaUserForPerson(person);
+        var actualUser = userCreator.createUsers(personInfo).stream().collect(SingletonCollector.collect());
+        assertThat(actualUser.getUsername(), is(equalTo(existingUser.getUsername())));
     }
 
     private void setupCustomerAndIdentityService() {

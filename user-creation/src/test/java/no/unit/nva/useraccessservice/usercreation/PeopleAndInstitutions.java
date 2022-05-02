@@ -24,14 +24,19 @@ public class PeopleAndInstitutions {
         this.customerService = customerService;
     }
 
+    public void shutdown() {
+        cristinServer.shutDown();
+    }
+
     public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() {
+
         var person = newPerson();
         var affiliation = createAffiliation(ACTIVE);
         cristinServer.addPerson(person, affiliation);
         return person;
     }
 
-    public NationalIdentityNumber getPersonWithExactlyOneInActiveAffiliation() {
+    public NationalIdentityNumber getPersonWithExactlyOneInactiveAffiliation() {
         var person = newPerson();
         var affiliation = createAffiliation(INACTIVE);
         cristinServer.addPerson(person, affiliation);
@@ -51,10 +56,6 @@ public class PeopleAndInstitutions {
 
     public URI getCristinId(NationalIdentityNumber person) {
         return cristinServer.getCristinId(person);
-    }
-
-    public void shutdown() {
-        cristinServer.shutDown();
     }
 
     public URI getPersonAndInstitutionRegistryUri() {

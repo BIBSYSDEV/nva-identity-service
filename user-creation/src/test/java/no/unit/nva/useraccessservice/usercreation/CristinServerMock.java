@@ -30,15 +30,19 @@ public class CristinServerMock {
     public static final String ORGANIZATION_PATH = "organization";
     public static final String PERSON_IDENTITY_NUMBER_PATH = "/person/identityNumber";
     public static final String PERSON_PATH = "person";
-    private URI serverUri;
-    private WireMockServer httpServer;
     private final Map<NationalIdentityNumber, CristinPersonResponse> people;
     private final Map<URI, URI> orgToParent;
+    private URI serverUri;
+    private WireMockServer httpServer;
 
     public CristinServerMock() {
         people = new ConcurrentHashMap<>();
         orgToParent = new ConcurrentHashMap<>();
         setUpWiremock();
+    }
+
+    public void shutDown() {
+        httpServer.stop();
     }
 
     public URI getServerUri() {
@@ -47,7 +51,7 @@ public class CristinServerMock {
 
     public void addPerson(NationalIdentityNumber nin, PersonAffiliation... employments) {
         for (var employment : employments) {
-            createResponseForOrganization(employment);
+            createOrganizationResponse(employment);
         }
         var personCristinEntry = cristinPersonResponse(nin, employments);
         cacheCristinPersonResponsesForTestingAssertions(nin, personCristinEntry);
@@ -62,10 +66,6 @@ public class CristinServerMock {
         return people.get(person).getCristinId();
     }
 
-    public void shutDown() {
-        httpServer.stop();
-    }
-
     public List<CristinAffiliation> getActiveAffiliations(NationalIdentityNumber person) {
         return people.get(person).getAffiliations().stream().filter(CristinAffiliation::isActive)
             .collect(Collectors.toList());
@@ -75,7 +75,13 @@ public class CristinServerMock {
         return orgToParent.get(orgUri);
     }
 
-    private void createResponseForOrganization(PersonAffiliation orgStructure) {
+    private void setUpWiremock() {
+        httpServer = new WireMockServer(options().dynamicPort().dynamicHttpsPort().httpDisabled(true));
+        httpServer.start();
+        serverUri = URI.create(httpServer.baseUrl());
+    }
+
+    private void createOrganizationResponse(PersonAffiliation orgStructure) {
         cacheForInternalUse(orgStructure);
         setupWiremockPorts();
         stubFor(WireMock.get(urlEqualTo(organizationPath(orgStructure.getChild())))
@@ -111,7 +117,6 @@ public class CristinServerMock {
 
     private void addResponseToRegistryServer(NationalIdentityNumber nin, CristinPersonResponse personCristinEntry) {
         setupWiremockPorts();
-
         stubFor(post(PERSON_IDENTITY_NUMBER_PATH)
                     .withRequestBody(equalToJson(formatSearchByNinRequestBody(nin)))
                     .willReturn(aResponse().withBody(personCristinEntry.toString())));
@@ -143,11 +148,5 @@ public class CristinServerMock {
 
     private String organizationPath(URI organization) {
         return UriWrapper.fromUri(organization).getPath().toString();
-    }
-
-    private void setUpWiremock() {
-        httpServer = new WireMockServer(options().dynamicPort().dynamicHttpsPort().httpDisabled(true));
-        httpServer.start();
-        serverUri = URI.create(httpServer.baseUrl());
     }
 }

@@ -15,6 +15,8 @@ import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber
 import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
 import nva.commons.apigatewayv2.exceptions.BadGatewayException;
 import nva.commons.core.paths.UriWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CristinClient {
 
@@ -24,6 +26,7 @@ public class CristinClient {
     private static final String APPLICATION_JSON = "application/json";
     private final URI getUserByNinUri;
     private final AuthorizedBackendClient httpClient;
+    private static final Logger logger = LoggerFactory.getLogger(CristinClient.class);
 
     public CristinClient(URI cristinHost, AuthorizedBackendClient httpClient) {
         this.httpClient = httpClient;
@@ -32,12 +35,14 @@ public class CristinClient {
 
     public CristinPersonResponse sendRequestToCristin(NationalIdentityNumber nin)
         throws IOException, InterruptedException {
+        var requestBody = cristinRequestBody(nin);
         var request = HttpRequest.newBuilder(getUserByNinUri)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
-            .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8));
+            .POST(BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8));
+        logger.info(requestBody);
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThatResponseIsSuccessful(response);
-        return JsonConfig.beanFrom(CristinPersonResponse.class, response.body());
+        return JsonConfig.readValue(response.body(), CristinPersonResponse.class);
     }
 
     public URI fetchTopLevelOrgUri(URI orgUri) throws IOException, InterruptedException {

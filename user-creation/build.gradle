@@ -7,7 +7,7 @@ plugins {
 dependencies {
 
 
-    implementation project(":json")
+    implementation project(":json-config")
     implementation project(":dynamo-client")
     implementation project (":customer-commons")
     implementation project (":user-access-commons")
@@ -25,6 +25,7 @@ dependencies {
     implementation libs.bundles.jackson
     implementation libs.aws.lambda.events
     implementation libs.zalando.problem
+    implementation libs.jackson.datatype.problem
 
 
     implementation libs.aws.sdk2.dynamodbenhanced

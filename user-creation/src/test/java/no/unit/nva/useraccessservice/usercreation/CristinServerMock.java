@@ -55,7 +55,6 @@ public class CristinServerMock {
         addResponseToRegistryServer(nin, personCristinEntry);
     }
 
-
     public URI randomOrgUri() {
         return UriWrapper.fromUri(serverUri).addChild(ORGANIZATION_PATH).addChild(randomString()).getUri();
     }

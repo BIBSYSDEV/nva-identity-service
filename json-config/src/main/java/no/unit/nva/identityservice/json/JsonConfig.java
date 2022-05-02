@@ -1,0 +1,56 @@
+package no.unit.nva.identityservice.json;
+
+import static java.util.Objects.nonNull;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import no.unit.nva.commons.json.JsonUtils;
+
+public final class JsonConfig {
+
+    private static final ObjectMapper objectMapper = JsonUtils.dtoObjectMapper;
+
+    private JsonConfig() {
+
+    }
+
+    public static <T> T readValue(String source, Class<T> type) throws IOException {
+        return objectMapper.readValue(source, type);
+    }
+
+    public static <T> String writeValueAsString(T object) throws IOException {
+        return objectMapper.writeValueAsString(object);
+    }
+
+    @Deprecated(since = "We rolled back to using normal jackson. Use readValue instead")
+    public static <T> T beanFrom(Class<T> type, String source) throws IOException {
+        return readValue(source, type);
+    }
+
+    @Deprecated(since = "We rolled back to using normal jackson. Use writeValueAsString instead")
+    public static <T> String asString(T object) throws IOException {
+        return writeValueAsString(object);
+    }
+
+    public static Map<String, Object> mapFrom(String source) throws IOException {
+        var mapType = objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class);
+        return objectMapper.readValue(source, mapType);
+    }
+
+    public static <T> List<T> listOfFrom(Class<T> type, String source) throws IOException {
+        var listType = objectMapper.getTypeFactory().constructCollectionType(List.class, type);
+        return objectMapper.readValue(source, listType);
+    }
+
+    @Deprecated(since = "We rolled back to using normal jackson")
+    public static String instantToString(Instant instant) {
+        return nonNull(instant) ? instant.toString() : null;
+    }
+
+    @Deprecated(since = "We rolled back to using normal jackson")
+    public static Instant stringToInstant(String instant) {
+        return nonNull(instant) ? Instant.parse(instant) : null;
+    }
+}

@@ -6,7 +6,7 @@ plugins {
 dependencies {
 
     implementation project(':dynamo-client')
-    implementation project (':json')
+    implementation project (':json-config')
     implementation libs.nva.apigatewayv2
     implementation libs.nva.core
     implementation libs.bundles.jackson

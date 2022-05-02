@@ -33,7 +33,7 @@ public class CustomerList {
     }
 
     public static CustomerList fromString(String json) {
-        return attempt(() -> JsonConfig.beanFrom(CustomerList.class, json)).orElseThrow();
+        return attempt(() -> JsonConfig.readValue(json, CustomerList.class)).orElseThrow();
     }
 
     @JsonProperty(LINKED_DATA_CONTEXT)
@@ -77,7 +77,7 @@ public class CustomerList {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     private List<CustomerReference> extractCustomers(List<CustomerDto> customers) {

@@ -8,6 +8,6 @@ class VocabularyStatusTest {
 
     @Test
     void shouldBeDeserialized() throws IOException {
-        var status = JsonConfig.beanFrom(VocabularyStatus.class, "\"Allowed\"");
+        var status = JsonConfig.readValue("\"Allowed\"", VocabularyStatus.class);
     }
 }

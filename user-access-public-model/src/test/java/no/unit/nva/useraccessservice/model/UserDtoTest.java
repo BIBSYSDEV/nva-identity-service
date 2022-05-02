@@ -71,8 +71,8 @@ class UserDtoTest extends DtoTest {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
         var jsonMap = toMap(sampleUser);
         jsonMap.remove(JSON_TYPE_ATTRIBUTE);
-        String jsonStringWithoutType = JsonConfig.asString(jsonMap);
-        Executable action = () -> JsonConfig.beanFrom(UserDto.class, jsonStringWithoutType);
+        String jsonStringWithoutType = JsonConfig.writeValueAsString(jsonMap);
+        Executable action = () -> JsonConfig.readValue(jsonStringWithoutType, UserDto.class);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
         assertThat(exception.getMessage(), containsString(UserDto.TYPE));
     }
@@ -85,8 +85,8 @@ class UserDtoTest extends DtoTest {
         var json = toMap(sampleUser);
         assertThatSerializedItemContainsType(json, USER_TYPE_LITERAL);
 
-        String jsonStringWithType = JsonConfig.asString(json);
-        UserDto deserializedItem = JsonConfig.beanFrom(UserDto.class, jsonStringWithType);
+        String jsonStringWithType = JsonConfig.writeValueAsString(json);
+        UserDto deserializedItem = JsonConfig.readValue(jsonStringWithType, UserDto.class);
 
         assertThat(deserializedItem, is(equalTo(sampleUser)));
         assertThat(deserializedItem, is(not(sameInstance(sampleUser))));

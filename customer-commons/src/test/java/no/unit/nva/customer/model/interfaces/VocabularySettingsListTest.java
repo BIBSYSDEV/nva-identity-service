@@ -42,7 +42,7 @@ class VocabularySettingsListTest {
     }
 
     private Map<String, Object> toJsonMap(VocabularyList list) throws IOException {
-        String jsonString = JsonConfig.asString(list);
+        String jsonString = JsonConfig.writeValueAsString(list);
         return  JsonConfig.mapFrom(jsonString);
     }
 }

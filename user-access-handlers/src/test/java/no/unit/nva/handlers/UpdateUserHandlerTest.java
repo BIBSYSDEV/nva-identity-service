@@ -7,7 +7,6 @@ import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
 import static no.unit.nva.handlers.UpdateUserHandler.INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR;
 import static no.unit.nva.handlers.UpdateUserHandler.LOCATION_HEADER;
 import static no.unit.nva.handlers.UpdateUserHandler.USERNAME_PATH_PARAMETER;
-import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.useraccessservice.model.UserDto.VIEWING_SCOPE_FIELD;
 import static no.unit.nva.useraccessservice.model.ViewingScope.INCLUDED_UNITS;
 import static nva.commons.core.attempt.Try.attempt;
@@ -16,7 +15,6 @@ import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
@@ -28,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -236,7 +235,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private APIGatewayProxyResponseEvent sendUpdateRequestWithoutPathParameters(UserDto userUpdate) {
         UpdateUserHandler updateUserHandler = new UpdateUserHandler(databaseService);
-        var bodyString = attempt(() -> JsonConfig.asString(userUpdate)).orElseThrow();
+        var bodyString = attempt(() -> JsonConfig.writeValueAsString(userUpdate)).orElseThrow();
         var input = new APIGatewayProxyRequestEvent().withBody(bodyString);
 
         return updateUserHandler.handleRequest(input, context);

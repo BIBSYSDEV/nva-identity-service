@@ -40,6 +40,15 @@ public class PeopleAndInstitutions {
 
     public void shutdown() {
         cristinServer.shutDown();
+        waitForServerToStop();
+    }
+
+    private void waitForServerToStop() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public URI getPersonAndInstitutionRegistryUri() {

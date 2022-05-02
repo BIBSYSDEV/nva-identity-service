@@ -17,6 +17,10 @@ public class PeopleAndInstitutions {
         this.customerService = customerService;
     }
 
+    public void shutdown() {
+        cristinServer.shutDown();
+    }
+
     public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() {
         var person = new NationalIdentityNumber(randomString());
         var organization = cristinServer.randomOrgUri();
@@ -32,17 +36,13 @@ public class PeopleAndInstitutions {
         return cristinServer.getCristinId(person);
     }
 
+    public URI getPersonAndInstitutionRegistryUri() {
+        return cristinServer.getServerUri();
+    }
+
     private void registerInstitutionAsNvaCustomer(URI institution) {
         var customer = CustomerDto.builder().withCristinId(institution).build();
         customerService.createCustomer(customer);
-    }
-
-    public void shutdown() {
-        cristinServer.shutDown();
-    }
-
-    public URI getPersonAndInstitutionRegistryUri() {
-        return cristinServer.getServerUri();
     }
 
     private PersonEmployment createActiveEmployment(URI organization, URI institution) {

@@ -29,13 +29,17 @@ public class CristinServerMock {
     public static final String ORGANIZATION_PATH = "organization";
     public static final String PERSON_IDENTITY_NUMBER_PATH = "/person/identityNumber";
     public static final String PERSON_PATH = "person";
+    private final Map<NationalIdentityNumber, CristinPersonResponse> people;
     private URI serverUri;
     private WireMockServer httpServer;
-    private final Map<NationalIdentityNumber, CristinPersonResponse> people;
 
     public CristinServerMock() {
         people = new ConcurrentHashMap<>();
         setUpWiremock();
+    }
+
+    public void shutDown() {
+        httpServer.stop();
     }
 
     public URI getServerUri() {
@@ -59,8 +63,10 @@ public class CristinServerMock {
         return people.get(person).getCristinId();
     }
 
-    public void shutDown() {
-        httpServer.stop();
+    private void setUpWiremock() {
+        httpServer = new WireMockServer(options().dynamicPort().dynamicHttpsPort().httpDisabled(true));
+        httpServer.start();
+        serverUri = URI.create(httpServer.baseUrl());
     }
 
     private void createOrganizationResponse(PersonEmployment orgStructure) {
@@ -126,11 +132,5 @@ public class CristinServerMock {
 
     private String organizationPath(URI organization) {
         return UriWrapper.fromUri(organization).getPath().toString();
-    }
-
-    private void setUpWiremock() {
-        httpServer = new WireMockServer(options().dynamicPort().dynamicHttpsPort().httpDisabled(true));
-        httpServer.start();
-        serverUri = URI.create(httpServer.baseUrl());
     }
 }

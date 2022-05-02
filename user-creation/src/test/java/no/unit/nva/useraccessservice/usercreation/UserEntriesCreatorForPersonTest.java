@@ -4,8 +4,6 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import java.io.IOException;
-import java.net.URI;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
@@ -64,8 +62,6 @@ class UserEntriesCreatorForPersonTest {
         assertThat(actualUser.getCristinId(), is(equalTo(peopleAndInstitutions.getCristinId(person))));
     }
 
-
-
     private void setupCustomerAndIdentityService() {
         customerServiceDatabase = new LocalCustomerServiceDatabase();
         customerServiceDatabase.setupDatabase();
@@ -75,6 +71,6 @@ class UserEntriesCreatorForPersonTest {
     }
 
     private void seteupPersonAndIsntituttionRegistryClient() {
-        cristinClient =new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(), httpClient);
+        cristinClient = new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(), httpClient);
     }
 }

@@ -31,7 +31,7 @@ public class CristinServerMock {
     public static final String PERSON_PATH = "person";
     private URI serverUri;
     private WireMockServer httpServer;
-    private Map<NationalIdentityNumber, CristinPersonResponse> people;
+    private final Map<NationalIdentityNumber, CristinPersonResponse> people;
 
     public CristinServerMock() {
         people = new ConcurrentHashMap<>();
@@ -44,7 +44,7 @@ public class CristinServerMock {
 
     public void addPerson(NationalIdentityNumber nin, PersonEmployment... employments) {
         for (var employment : employments) {
-            createResponseForOrganization(employment);
+            createOrganizationResponse(employment);
         }
         var personCristinEntry = cristinPersonResponse(nin, employments);
         cacheCristinPersonResponsesForTestingAssertions(nin, personCristinEntry);
@@ -63,7 +63,7 @@ public class CristinServerMock {
         httpServer.stop();
     }
 
-    private void createResponseForOrganization(PersonEmployment orgStructure) {
+    private void createOrganizationResponse(PersonEmployment orgStructure) {
         setupWiremockPorts();
 
         stubFor(WireMock.get(urlEqualTo(organizationPath(orgStructure.getChild())))
@@ -95,7 +95,6 @@ public class CristinServerMock {
 
     private void addResponseToRegistryServer(NationalIdentityNumber nin, CristinPersonResponse personCristinEntry) {
         setupWiremockPorts();
-
         stubFor(post(PERSON_IDENTITY_NUMBER_PATH)
                     .withRequestBody(equalToJson(formatSearchByNinRequestBody(nin)))
                     .willReturn(aResponse().withBody(personCristinEntry.toString())));

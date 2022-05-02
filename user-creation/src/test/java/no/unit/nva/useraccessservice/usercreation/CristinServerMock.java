@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -28,13 +29,17 @@ public class CristinServerMock {
     public static final String ORGANIZATION_PATH = "organization";
     public static final String PERSON_IDENTITY_NUMBER_PATH = "/person/identityNumber";
     public static final String PERSON_PATH = "person";
+    private final Map<NationalIdentityNumber, CristinPersonResponse> people;
     private URI serverUri;
     private WireMockServer httpServer;
-    private Map<NationalIdentityNumber, CristinPersonResponse> people;
 
     public CristinServerMock() {
         people = new ConcurrentHashMap<>();
         setUpWiremock();
+    }
+
+    public void shutDown() {
+        httpServer.stop();
     }
 
     public URI getServerUri() {
@@ -43,18 +48,38 @@ public class CristinServerMock {
 
     public void addPerson(NationalIdentityNumber nin, PersonEmployment... employments) {
         for (var employment : employments) {
-            createResponseForOrganization(employment);
+            createOrganizationResponse(employment);
         }
         var personCristinEntry = cristinPersonResponse(nin, employments);
         cacheCristinPersonResponsesForTestingAssertions(nin, personCristinEntry);
         addResponseToRegistryServer(nin, personCristinEntry);
     }
 
-    private void createResponseForOrganization(PersonEmployment orgStructure) {
+    public URI randomOrgUri() {
+        return UriWrapper.fromUri(serverUri).addChild(ORGANIZATION_PATH).addChild(randomString()).getUri();
+    }
+
+    public URI getCristinId(NationalIdentityNumber person) {
+        return people.get(person).getCristinId();
+    }
+
+    private void setUpWiremock() {
+        httpServer = new WireMockServer(options().dynamicPort().dynamicHttpsPort().httpDisabled(true));
+        httpServer.start();
+        serverUri = URI.create(httpServer.baseUrl());
+    }
+
+    private void createOrganizationResponse(PersonEmployment orgStructure) {
+        setupWiremockPorts();
+
         stubFor(WireMock.get(urlEqualTo(organizationPath(orgStructure.getChild())))
                     .willReturn(createInstitutionRegistryResponseForOrganization(orgStructure))
 
         );
+    }
+
+    private void setupWiremockPorts() {
+        configureFor(serverUri.getScheme(), serverUri.getHost(), serverUri.getPort());
     }
 
     private CristinPersonResponse cristinPersonResponse(NationalIdentityNumber nin,
@@ -75,21 +100,10 @@ public class CristinServerMock {
     }
 
     private void addResponseToRegistryServer(NationalIdentityNumber nin, CristinPersonResponse personCristinEntry) {
+        setupWiremockPorts();
         stubFor(post(PERSON_IDENTITY_NUMBER_PATH)
                     .withRequestBody(equalToJson(formatSearchByNinRequestBody(nin)))
                     .willReturn(aResponse().withBody(personCristinEntry.toString())));
-    }
-
-    public URI randomOrgUri() {
-        return UriWrapper.fromUri(serverUri).addChild(ORGANIZATION_PATH).addChild(randomString()).getUri();
-    }
-
-    public URI getCristinId(NationalIdentityNumber person) {
-        return people.get(person).getCristinId();
-    }
-
-    public void shutDown() {
-        httpServer.stop();
     }
 
     private URI randomPersonId() {
@@ -118,11 +132,5 @@ public class CristinServerMock {
 
     private String organizationPath(URI organization) {
         return UriWrapper.fromUri(organization).getPath().toString();
-    }
-
-    private void setUpWiremock() {
-        httpServer = new WireMockServer(options().dynamicHttpsPort());
-        httpServer.start();
-        serverUri = URI.create(httpServer.baseUrl());
     }
 }

@@ -3,6 +3,7 @@ package no.unit.nva.useraccessservice.usercreation;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import no.unit.nva.auth.AuthorizedBackendClient;
@@ -55,11 +56,13 @@ class UserEntriesCreatorForPersonTest {
                  + "and the Person has no other Affiliations active or inactive"
     )
     void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleActiveAffiliation() {
+
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var users = userCreator.createUsers(personInfo);
         assertThat(users.size(), is(equalTo(1)));
         var actualUser = users.get(SINGLE_USER);
+        assertThat(users, contains(actualUser));
         assertThat(actualUser.getCristinId(), is(equalTo(peopleAndInstitutions.getCristinId(person))));
     }
 
@@ -86,8 +89,6 @@ class UserEntriesCreatorForPersonTest {
     }
 
     private void seteupPersonAndIsntituttionRegistryClient() {
-        cristinClient =
-            new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(),
-                              httpClient);
+        cristinClient = new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(), httpClient);
     }
 }

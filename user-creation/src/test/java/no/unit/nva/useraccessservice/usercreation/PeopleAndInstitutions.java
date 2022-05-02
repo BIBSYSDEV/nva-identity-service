@@ -18,11 +18,17 @@ public class PeopleAndInstitutions {
         this.customerService = customerService;
     }
 
+    public void shutdown() {
+        cristinServer.shutDown();
+    }
+
     public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() {
         var person = new NationalIdentityNumber(randomString());
         var organization = cristinServer.randomOrgUri();
         var parentInstitution = cristinServer.randomOrgUri();
-        cristinServer.addPerson(person, createEmployment(organization, parentInstitution,ACTIVE));
+        var activeEmployment = createEmployment(organization, parentInstitution, ACTIVE);
+        cristinServer.addPerson(person, activeEmployment);
+
         registerInstitutionAsNvaCustomer(parentInstitution);
 
         return person;
@@ -36,31 +42,22 @@ public class PeopleAndInstitutions {
         registerInstitutionAsNvaCustomer(parentInstitution);
 
         return person;
-
     }
 
-    public  URI getCristinId(NationalIdentityNumber person) {
+    public URI getCristinId(NationalIdentityNumber person) {
         return cristinServer.getCristinId(person);
-    }
-
-
-
-    private void registerInstitutionAsNvaCustomer(URI institution) {
-        var customer = CustomerDto.builder().withCristinId(institution).build();
-        customerService.createCustomer(customer);
-    }
-
-    public void shutdown() {
-        cristinServer.shutDown();
     }
 
     public URI getPersonAndInstitutionRegistryUri() {
         return cristinServer.getServerUri();
     }
 
+    private void registerInstitutionAsNvaCustomer(URI institution) {
+        var customer = CustomerDto.builder().withCristinId(institution).build();
+        customerService.createCustomer(customer);
+    }
 
     private PersonEmployment createEmployment(URI organization, URI institution, boolean active) {
         return PersonEmployment.builder().withChild(organization).withParent(institution).withActive(active).build();
     }
-
 }

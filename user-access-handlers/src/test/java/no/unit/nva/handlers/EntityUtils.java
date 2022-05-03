@@ -1,7 +1,6 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import no.unit.nva.identityservice.json.JsonConfig;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.io.InputStream;
@@ -9,6 +8,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -34,7 +34,7 @@ public final class EntityUtils {
     public static APIGatewayProxyRequestEvent createRequestBuilderWithUserWithoutUsername() {
 
         var userWithoutUsername = createUserWithoutUsername();
-        var jsonString = attempt(() -> JsonConfig.asString(userWithoutUsername)).orElseThrow();
+        var jsonString = attempt(() -> JsonConfig.writeValueAsString(userWithoutUsername)).orElseThrow();
         return new APIGatewayProxyRequestEvent().withBody(jsonString);
     }
 

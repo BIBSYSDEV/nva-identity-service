@@ -1,7 +1,6 @@
 package no.unit.nva.useraccessservice.model;
 
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
-import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.model.EntityUtils.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.useraccessservice.model.EntityUtils.SOME_ROLENAME;
@@ -21,6 +20,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto.Builder;
@@ -118,7 +118,7 @@ class RoleDtoTest extends DtoTest {
         RoleDto sampleUser = createRole(SOME_ROLE_NAME);
         var jsonMap = toMap(sampleUser);
         var objectWithoutType = jsonMap.remove(JSON_TYPE_ATTRIBUTE);
-        String jsonStringWithoutType = JsonConfig.asString(objectWithoutType);
+        String jsonStringWithoutType = JsonConfig.writeValueAsString(objectWithoutType);
 
         Executable action = () -> RoleDto.fromJson(jsonStringWithoutType);
         InvalidTypeIdException exception = assertThrows(InvalidTypeIdException.class, action);
@@ -133,7 +133,7 @@ class RoleDtoTest extends DtoTest {
         var jsonMap = JsonConfig.mapFrom(someRole.toString());
         assertThatSerializedItemContainsType(jsonMap, ROLE_TYPE_LITERAL);
 
-        String jsonStringWithType = JsonConfig.asString(jsonMap);
+        String jsonStringWithType = JsonConfig.writeValueAsString(jsonMap);
         RoleDto deserializedItem = RoleDto.fromJson(jsonStringWithType);
 
         assertThat(deserializedItem, is(equalTo(someRole)));

@@ -51,7 +51,7 @@ public class UserEntriesCreatorForPerson {
                                                               String orgFeideDomain) {
         var authenticationInfo = new AuthenticationInformation(personFeideIdentifier, orgFeideDomain);
         var cristinResponse = fetchPersonInformationFromCristin(nationalIdentityNumber);
-        authenticationInfo.setCristinResponse(cristinResponse);
+        authenticationInfo.setCristinPersonResponse(cristinResponse);
 
         var affiliationInformation = fetchParentInstitutionsForPersonAffiliations(authenticationInfo);
         authenticationInfo.setPersonAffiliations(affiliationInformation);

@@ -75,6 +75,10 @@ public class CristinServerMock {
         return orgToParent.get(orgUri);
     }
 
+    public CristinPersonResponse getPerson(NationalIdentityNumber person) {
+        return people.get(person);
+    }
+
     private void setUpWiremock() {
         httpServer = new WireMockServer(options().dynamicPort().dynamicHttpsPort().httpDisabled(true));
         httpServer.start();

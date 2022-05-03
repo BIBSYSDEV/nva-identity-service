@@ -3,6 +3,7 @@ package no.unit.nva.useraccessservice.usercreation;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
@@ -18,6 +19,7 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.SingletonCollector;
 import org.junit.jupiter.api.AfterEach;
@@ -146,6 +148,32 @@ class UserEntriesCreatorForPersonTest {
         var actualUser = userCreator.createUsers(personInfo).stream().collect(SingletonCollector.collect());
         var defaultRoles = actualUser.getRoles();
         assertThat(defaultRoles, contains(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION));
+    }
+
+    @Test
+    void shouldUpdateLegacyFeideUserWithNecessaryDetailsWhenSuchUserExists() {
+        var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
+        var feideIdentifier = randomString();
+        var existingUser = peopleAndInstitutions.createLegacyNvaUserForPerson(person, feideIdentifier);
+        var personInfo = userCreator.collectPersonInformation(person, feideIdentifier, randomString());
+        var actualUser = userCreator.createUsers(personInfo).stream().collect(SingletonCollector.collect());
+        var expectedUser = constructExpectedUpdatedUserForLegaceFeideUser(person, feideIdentifier, existingUser);
+
+        assertThat(actualUser, samePropertyValuesAs(expectedUser));
+    }
+
+    private UserDto constructExpectedUpdatedUserForLegaceFeideUser(NationalIdentityNumber person,
+                                                                   String feideIdentifier, UserDto existingUser) {
+        var expectedInstitutionCristinId =
+            peopleAndInstitutions.getInstitutions(person).stream().collect(SingletonCollector.collect());
+        var expectedAffiliation =
+            peopleAndInstitutions.getAffiliations(person).stream().collect(SingletonCollector.collect());
+        return existingUser.copy()
+            .withCristinId(peopleAndInstitutions.getCristinId(person))
+            .withInstitutionCristinId(expectedInstitutionCristinId)
+            .withFeideIdentifier(feideIdentifier)
+            .withAffiliation(expectedAffiliation)
+            .build();
     }
 
     private void setupCustomerAndIdentityService() {

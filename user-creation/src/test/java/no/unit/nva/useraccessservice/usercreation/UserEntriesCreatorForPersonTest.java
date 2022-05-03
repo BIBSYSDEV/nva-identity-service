@@ -3,6 +3,7 @@ package no.unit.nva.useraccessservice.usercreation;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
@@ -10,6 +11,7 @@ import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import java.net.URI;
+import java.util.List;
 import java.util.stream.Collectors;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.customer.model.CustomerDto;
@@ -157,12 +159,32 @@ class UserEntriesCreatorForPersonTest {
         var existingUser = peopleAndInstitutions.createLegacyNvaUserForPerson(person, feideIdentifier);
         var personInfo = userCreator.collectPersonInformation(person, feideIdentifier, randomString());
         var actualUser = userCreator.createUsers(personInfo).stream().collect(SingletonCollector.collect());
-        var expectedUser = constructExpectedUpdatedUserForLegaceFeideUser(person, feideIdentifier, existingUser);
+        var expectedUser = constructExpectedUpdatedUserForLegacyFeideUser(person, feideIdentifier, existingUser);
 
         assertThat(actualUser, samePropertyValuesAs(expectedUser));
     }
 
-    private UserDto constructExpectedUpdatedUserForLegaceFeideUser(NationalIdentityNumber person,
+    @Test
+    void shouldCreateUserForSpecificCustomerInstitutionWhenPersonHasActiveAffiliationWithCustomerInstitution() {
+        var person = peopleAndInstitutions.getPersonWithSomeActiveAndSomeInactiveAffiliations();
+        var personInfo = userCreator.collectPersonInformation(person);
+        var allCustomers = peopleAndInstitutions.getInstitutions(person)
+            .stream()
+            .map(institution -> customerService.getCustomerByCristinId(institution))
+            .collect(Collectors.toList());
+        assertThatWeHaveMoreThanOneCustomer(allCustomers);
+        var selectedCustomer = allCustomers.stream().findAny().map(CustomerDto::getId).orElseThrow();
+        var actualUser = userCreator.createUser(personInfo, selectedCustomer)
+            .stream()
+            .collect(SingletonCollector.collect());
+        assertThat(actualUser.getInstitution(), is(equalTo(selectedCustomer)));
+    }
+
+    private void assertThatWeHaveMoreThanOneCustomer(List<CustomerDto> allCustomers) {
+        assertThat(allCustomers.size(), is(greaterThan(1)));
+    }
+
+    private UserDto constructExpectedUpdatedUserForLegacyFeideUser(NationalIdentityNumber person,
                                                                    String feideIdentifier, UserDto existingUser) {
         var expectedInstitutionCristinId =
             peopleAndInstitutions.getInstitutions(person).stream().collect(SingletonCollector.collect());

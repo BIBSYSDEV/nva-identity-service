@@ -3,15 +3,20 @@ package no.unit.nva.useraccessservice.usercreation;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import java.net.URI;
+import java.util.stream.Collectors;
 import no.unit.nva.auth.AuthorizedBackendClient;
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.stubs.WiremockHttpClient;
+import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,9 +41,8 @@ class UserEntriesCreatorForPersonTest {
         peopleAndInstitutions = new PeopleAndInstitutions(customerService);
         this.httpClient = AuthorizedBackendClient.prepareWithBearerToken(WiremockHttpClient.create(), randomString());
 
-        seteupPersonAndIsntituttionRegistryClient();
-        userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient,
-                                                      identityService);
+        setupPersonAndInstituttionRegistryClient();
+        userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient,identityService);
     }
 
     @AfterEach
@@ -79,6 +83,27 @@ class UserEntriesCreatorForPersonTest {
         assertThat(users, is(empty()));
     }
 
+    @Test
+    @DisplayName(" Given that a Person exists in the Person-Registry,"
+                 + "And they have some active Affiliations in some Organizations"
+                 + "And the  have some inactive Affiliations is some other Organizations"
+                 + "And the parent Institutions are all NVA customers"
+                 + "Then it should create a User for each Institution where the Person has an active affiliation with"
+    )
+    void shouldCreateUsersOnlyForActiveAffiliations() {
+        var person = peopleAndInstitutions.getPersonWithSomeActiveAndSomeInactiveAffiliations();
+        var personInfo = userCreator.collectPersonInformation(person);
+        var expectedCustomers =
+            peopleAndInstitutions.getInstitutionsWhereTheUserHasAtLeastOneActiveAffiliationWithAChildOrg(person)
+                .stream()
+                .map(institution -> customerService.getCustomerByCristinId(institution))
+                .map(CustomerDto::getId)
+                .collect(Collectors.toList());
+        var users = userCreator.createUsers(personInfo);
+        var actualCustomers = users.stream().map(UserDto::getInstitution).collect(Collectors.toList());
+        assertThat(expectedCustomers, containsInAnyOrder(actualCustomers.toArray(URI[]::new)));
+    }
+
     private void setupCustomerAndIdentityService() {
         customerServiceDatabase = new LocalCustomerServiceDatabase();
         customerServiceDatabase.setupDatabase();
@@ -87,7 +112,7 @@ class UserEntriesCreatorForPersonTest {
         customerService = new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
     }
 
-    private void seteupPersonAndIsntituttionRegistryClient() {
+    private void setupPersonAndInstituttionRegistryClient() {
         cristinClient = new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(), httpClient);
     }
 }

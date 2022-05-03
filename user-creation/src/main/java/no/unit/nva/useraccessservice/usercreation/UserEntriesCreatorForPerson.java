@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -39,7 +40,16 @@ public class UserEntriesCreatorForPerson {
 
     public List<UserDto> createUsers(PersonInformation authenticationInfo) {
         createUserRole();
-        return createOrFetchUserEntriesForPerson(authenticationInfo);
+        return createOrFetchUserEntriesForPerson(authenticationInfo, keepAll());
+    }
+
+    public List<UserDto> createUser(PersonInformation authenticationInfo, URI selectedCustomer) {
+        createUserRole();
+        return createOrFetchUserEntriesForPerson(authenticationInfo, selectedCustomer::equals);
+    }
+
+    private Predicate<URI> keepAll() {
+        return customerDto -> true;
     }
 
     public PersonInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber) {
@@ -62,9 +72,11 @@ public class UserEntriesCreatorForPerson {
         return personInformation;
     }
 
-    private List<UserDto> createOrFetchUserEntriesForPerson(PersonInformation personInformation) {
+    private List<UserDto> createOrFetchUserEntriesForPerson(PersonInformation personInformation,
+                                                            Predicate<URI> filterActiveCustomers) {
 
         return personInformation.getActiveCustomers().stream()
+            .filter(customerDto -> filterActiveCustomers.test(customerDto.getId()))
             .map(customer -> createNewUserObject(customer, personInformation))
             .map(user -> getExistingUserOrCreateNew(user, personInformation))
             .collect(Collectors.toList());

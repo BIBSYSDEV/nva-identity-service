@@ -19,6 +19,7 @@ public class PeopleAndInstitutions {
 
     public static final boolean ACTIVE = true;
     public static final boolean INACTIVE = false;
+    public static final URI NOT_FILLED_IN = null;
     private final CristinServerMock cristinServer;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -91,6 +92,37 @@ public class PeopleAndInstitutions {
         var user = createUserObject(person, personAffiliation, userCustomer);
         identityService.addUser(user);
         return identityService.getUser(user);
+    }
+
+    public UserDto createLegacyNvaUserForPerson(NationalIdentityNumber person, String feideIdentifier) {
+        var personAffiliation =
+            getPersonAffiliations(person).stream().collect(SingletonCollector.collect());
+        var personInstitution =
+            getParentIntitutionsWithActiveAffiliations(person).stream().collect(SingletonCollector.collect());
+        var userCustomer = customerService.getCustomerByCristinId(personInstitution);
+        var user = UserDto.newBuilder()
+            .withInstitution(userCustomer.getId())
+            .withUsername(feideIdentifier)
+            .withFamilyName(randomString())
+            .withGivenName(randomString())
+            .withInstitutionCristinId(NOT_FILLED_IN)
+            .withCristinId(NOT_FILLED_IN)
+            .build();
+        identityService.addUser(user);
+        return identityService.getUser(user);
+    }
+
+    public List<URI> getInstitutions(NationalIdentityNumber person) {
+        return cristinServer.getActiveAffiliations(person).stream()
+            .map(CristinAffiliation::getOrganizationUri)
+            .map(cristinServer::getParentInstitution)
+            .collect(Collectors.toList());
+    }
+
+    public List<URI> getAffiliations(NationalIdentityNumber person) {
+        return cristinServer.getPerson(person).getAffiliations().stream()
+            .map(CristinAffiliation::getOrganizationUri)
+            .collect(Collectors.toList());
     }
 
     private UserDto createUserObject(NationalIdentityNumber person, CristinAffiliation personAffiliation,

@@ -52,11 +52,7 @@ public class AuthenticationInformation {
         return this.cristinResponse;
     }
 
-    public CristinPersonResponse getCristinResponse() {
-        return cristinResponse;
-    }
-
-    public void setCristinResponse(CristinPersonResponse cristinResponse) {
+    public void setCristinPersonResponse(CristinPersonResponse cristinResponse) {
         this.cristinResponse = cristinResponse;
     }
 
@@ -69,7 +65,7 @@ public class AuthenticationInformation {
     }
 
     public String extractLastName() {
-        return getCristinResponse().extractLastName();
+        return getCristinPersonResponse().extractLastName();
     }
 
     public Optional<String> getCurrentCustomerId() {

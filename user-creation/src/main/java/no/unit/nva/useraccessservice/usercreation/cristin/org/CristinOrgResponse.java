@@ -23,12 +23,12 @@ public class CristinOrgResponse {
     private List<CristinOrgResponse> partOf;
 
     public static CristinOrgResponse fromJson(String body) {
-        return attempt(() -> JsonConfig.beanFrom(CristinOrgResponse.class, body)).orElseThrow();
+        return attempt(() -> JsonConfig.readValue(body, CristinOrgResponse.class)).orElseThrow();
     }
 
     public static CristinOrgResponse create(URI orgId) {
         var response = new CristinOrgResponse();
-        response.setOrgId(orgId.toString());
+        response.setOrgId(orgId);
         return response;
     }
 
@@ -54,17 +54,17 @@ public class CristinOrgResponse {
         this.partOf = nonNull(partOf) ? partOf : null;
     }
 
-    public URI extractTopOrgUri() {
+    public URI extractInstitutionUri() {
         if (isNull(partOf) || partOf.isEmpty()) {
             return orgId;
         } else {
-            return partOf.get(0).extractTopOrgUri();
+            return partOf.get(0).extractInstitutionUri();
         }
     }
 
     @JacocoGenerated
-    public String getOrgId() {
-        return nonNull(orgId) ? orgId.toString() : null;
+    public URI getOrgId() {
+        return orgId;
     }
 
     @JacocoGenerated
@@ -72,15 +72,10 @@ public class CristinOrgResponse {
         this.orgId = orgId;
     }
 
-    @JacocoGenerated
-    public void setOrgId(String orgId) {
-        this.orgId = nonNull(orgId) ? URI.create(orgId) : null;
-    }
-
     @Override
     @JacocoGenerated
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     private static ArrayDeque<CristinOrgResponse> addAllParentIdsInQueue(URI... partOfOrgIds) {

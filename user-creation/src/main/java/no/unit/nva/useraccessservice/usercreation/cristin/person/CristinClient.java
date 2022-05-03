@@ -48,7 +48,7 @@ public class CristinClient {
         assertThatResponseIsSuccessful(response);
 
         var responseObject = CristinOrgResponse.fromJson(response.body());
-        return responseObject.extractTopOrgUri();
+        return responseObject.extractInstitutionUri();
 
     }
 

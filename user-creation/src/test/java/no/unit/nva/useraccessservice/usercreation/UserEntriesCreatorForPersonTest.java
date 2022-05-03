@@ -47,9 +47,8 @@ class UserEntriesCreatorForPersonTest {
         peopleAndInstitutions = new PeopleAndInstitutions(customerService, identityService);
         this.httpClient = AuthorizedBackendClient.prepareWithBearerToken(WiremockHttpClient.create(), randomString());
 
-        setupPersonAndIsntituttionRegistryClient();
-        userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient,
-                                                      identityService);
+        setupPersonAndInstituttionRegistryClient();
+        userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient,identityService);
     }
 
     @AfterEach
@@ -206,7 +205,7 @@ class UserEntriesCreatorForPersonTest {
         customerService = new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
     }
 
-    private void setupPersonAndIsntituttionRegistryClient() {
+    private void setupPersonAndInstituttionRegistryClient() {
         cristinClient = new CristinClient(peopleAndInstitutions.getPersonAndInstitutionRegistryUri(), httpClient);
     }
 }

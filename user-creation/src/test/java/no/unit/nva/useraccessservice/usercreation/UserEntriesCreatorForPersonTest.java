@@ -56,7 +56,6 @@ class UserEntriesCreatorForPersonTest {
                  + "and the Person has no other Affiliations active or inactive"
     )
     void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleActiveAffiliation() {
-
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var users = userCreator.createUsers(personInfo);
@@ -74,7 +73,7 @@ class UserEntriesCreatorForPersonTest {
                  + "and the Person has no other Affiliations active or inactive"
     )
     void shouldNotCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleInactiveAffiliation() {
-        var person = peopleAndInstitutions.getPersonWithExactlyOneInActiveAffiliation();
+        var person = peopleAndInstitutions.getPersonWithExactlyOneInactiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var users = userCreator.createUsers(personInfo);
         assertThat(users, is(empty()));

@@ -9,6 +9,11 @@ dependencies {
     implementation libs.aws.sdk2.dynamodbenhanced
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.urlconnection
+    implementation libs.aws.http.client.spi
+    implementation libs.aws.core
+    implementation libs.aws.auth
+    implementation libs.aws.regions
+    implementation libs.aws.sdk2.core
 
 }
 

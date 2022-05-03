@@ -38,7 +38,7 @@ public class DatabaseSubService {
 
     protected static String convertToStringOrWriteErrorMessage(Object queryObject) {
         return Optional.ofNullable(queryObject)
-            .map(attempt(JsonConfig::asString))
+            .map(attempt(JsonConfig::writeValueAsString))
             .map(Try::orElseThrow)
             .orElse(EMPTY_INPUT_ERROR_MESSAGE);
     }

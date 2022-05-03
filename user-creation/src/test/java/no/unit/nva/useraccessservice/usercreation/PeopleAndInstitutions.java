@@ -34,7 +34,6 @@ public class PeopleAndInstitutions {
     }
 
     public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() {
-
         var person = newPerson();
         var affiliation = createAffiliation(ACTIVE);
         cristinServer.addPerson(person, affiliation);

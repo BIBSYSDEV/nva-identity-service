@@ -55,33 +55,31 @@ public class CustomerDataGenerator {
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
         VocabularyDao vocabulary = randomVocabularyDao();
         return Stream.of(vocabulary)
-            .map(VocabularyDao::toVocabularySettingsDto)
-            .collect(Collectors.toSet());
+                   .map(VocabularyDao::toVocabularySettingsDto)
+                   .collect(Collectors.toSet());
     }
 
     public static CustomerDao createSampleCustomerDao() {
         VocabularyDao vocabulary = randomVocabularyDao();
         CustomerDao customer = CustomerDao.builder()
-            .withIdentifier(randomIdentifier())
-            .withName(randomString())
-            .withModifiedDate(randomInstant())
-            .withShortName(randomString())
-            .withCristinId(randomUri())
-            .withVocabularySettings(Set.of(vocabulary))
-            .withInstitutionDns(randomString())
-            .withFeideOrganizationDomain(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withCname(randomString())
-            .withArchiveName(randomString())
-            .withRorId(randomUri())
+                                   .withIdentifier(randomIdentifier())
+                                   .withName(randomString())
+                                   .withModifiedDate(randomInstant())
+                                   .withShortName(randomString())
+                                   .withCristinId(randomUri())
+                                   .withVocabularySettings(Set.of(vocabulary))
+                                   .withInstitutionDns(randomString())
+                                   .withFeideOrganizationDomain(randomString())
+                                   .withDisplayName(randomString())
+                                   .withCreatedDate(randomInstant())
+                                   .withCname(randomString())
+                                   .withArchiveName(randomString())
+                                   .withRorId(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
-            .build();
+                                   .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
     }
-
-
 
     public static UUID randomIdentifier() {
         return UUID.randomUUID();
@@ -89,9 +87,9 @@ public class CustomerDataGenerator {
 
     public static URI randomCristinOrgId() {
         return new UriWrapper("https", API_HOST)
-            .addChild(CRISTIN_PATH)
-            .addChild(randomString())
-            .getUri();
+                   .addChild(CRISTIN_PATH)
+                   .addChild(randomString())
+                   .getUri();
     }
 
     public static VocabularyDao randomVocabularyDao() {

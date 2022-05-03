@@ -14,14 +14,14 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 
 public class UserEntriesCreatorForPerson {
 
-    private static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
+    public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
         RoleDto.newBuilder().withRoleName("Creator").build();
     private static final String AT = "@";
 

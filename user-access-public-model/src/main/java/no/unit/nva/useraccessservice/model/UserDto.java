@@ -67,7 +67,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     }
 
     public static UserDto fromJson(String input) {
-        return attempt(() -> JsonConfig.beanFrom(UserDto.class, input))
+        return attempt(() -> JsonConfig.readValue(input, UserDto.class))
             .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
     }
 
@@ -234,7 +234,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     private boolean compareRolesAsSets(UserDto userDto) {

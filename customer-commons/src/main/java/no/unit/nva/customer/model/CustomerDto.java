@@ -46,7 +46,7 @@ public class CustomerDto implements Context {
     }
 
     public static CustomerDto fromJson(String json) {
-        return attempt(() -> JsonConfig.beanFrom(CustomerDto.class, json))
+        return attempt(() -> JsonConfig.readValue(json, CustomerDto.class))
             .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
@@ -234,7 +234,7 @@ public class CustomerDto implements Context {
     @Override
     @JacocoGenerated
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     @JsonProperty(Typed.TYPE_FIELD)

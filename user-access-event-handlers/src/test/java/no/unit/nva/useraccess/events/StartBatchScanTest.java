@@ -1,6 +1,5 @@
 package no.unit.nva.useraccess.events;
 
-import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
 import static nva.commons.core.attempt.Try.attempt;
@@ -14,6 +13,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeEventBridgeClient;
 import nva.commons.core.SingletonCollector;
@@ -77,6 +77,6 @@ class StartBatchScanTest {
     }
 
     private InputStream emptyInput() throws IOException {
-        return IoUtils.stringToStream(JsonConfig.asString(Collections.emptyMap()));
+        return IoUtils.stringToStream(JsonConfig.writeValueAsString(Collections.emptyMap()));
     }
 }

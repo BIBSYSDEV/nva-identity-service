@@ -37,19 +37,18 @@ public class CristinClient {
             .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8));
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThatResponseIsSuccessful(response);
-        return JsonConfig.beanFrom(CristinPersonResponse.class, response.body());
+        return JsonConfig.readValue(response.body(), CristinPersonResponse.class);
     }
 
     public URI fetchTopLevelOrgUri(URI orgUri) throws IOException, InterruptedException {
         var request = HttpRequest.newBuilder(orgUri)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
             .GET();
-        var response = httpClient.send(request,BodyHandlers.ofString(StandardCharsets.UTF_8));
+        var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThatResponseIsSuccessful(response);
 
         var responseObject = CristinOrgResponse.fromJson(response.body());
         return responseObject.extractTopOrgUri();
-
     }
 
     private URI formatUriForGettingUserByNin(URI cristinHost) {

@@ -40,7 +40,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     public static RoleDto fromJson(String json) {
-        RoleDto roleDto = attempt(() -> JsonConfig.beanFrom(RoleDto.class, json))
+        RoleDto roleDto = attempt(() -> JsonConfig.readValue(json, RoleDto.class))
             .orElseThrow(fail -> new BadRequestException("Could not parse role: " + json));
         if (roleDto.isInvalid()) {
             throw roleDto.exceptionWhenInvalid();
@@ -54,7 +54,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     @Override

@@ -38,7 +38,7 @@ public class CreateCustomerRequest {
     }
 
     public static CreateCustomerRequest fromJson(String json) {
-        return attempt(() -> JsonConfig.beanFrom(CreateCustomerRequest.class, json))
+        return attempt(() -> JsonConfig.readValue(json, CreateCustomerRequest.class))
             .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json));
     }
 
@@ -177,7 +177,7 @@ public class CreateCustomerRequest {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     @JacocoGenerated

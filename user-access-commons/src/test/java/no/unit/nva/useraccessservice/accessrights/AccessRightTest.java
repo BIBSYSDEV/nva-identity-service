@@ -14,7 +14,6 @@ class AccessRightTest {
 
     public static final String APPROVE_DOI_REQUEST_STRING = "\"APPROVE_DOI_REQUEST\"";
 
-
     @Test
     void fromStringParsesStringCaseInsensitive() {
         String variableCase = "apProve_DOi_reQueST";
@@ -32,13 +31,13 @@ class AccessRightTest {
 
     @Test
     void accessRightIsSerializedUpperCase() throws IOException {
-        String value = JsonConfig.asString(AccessRight.APPROVE_DOI_REQUEST);
+        String value = JsonConfig.writeValueAsString(AccessRight.APPROVE_DOI_REQUEST);
         assertThat(value, is(equalTo(APPROVE_DOI_REQUEST_STRING)));
     }
 
     @Test
     void accessRightIsDeserializedFromString() throws IOException {
-        AccessRight accessRight = JsonConfig.beanFrom(AccessRight.class,APPROVE_DOI_REQUEST_STRING);
+        AccessRight accessRight = JsonConfig.readValue(APPROVE_DOI_REQUEST_STRING, AccessRight.class);
         assertThat(accessRight, is(equalTo(AccessRight.APPROVE_DOI_REQUEST)));
     }
 }

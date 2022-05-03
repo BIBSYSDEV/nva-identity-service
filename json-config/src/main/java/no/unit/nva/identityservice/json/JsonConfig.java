@@ -24,16 +24,6 @@ public final class JsonConfig {
         return objectMapper.writeValueAsString(object);
     }
 
-    @Deprecated(since = "We rolled back to using normal jackson. Use readValue instead")
-    public static <T> T beanFrom(Class<T> type, String source) throws IOException {
-        return readValue(source, type);
-    }
-
-    @Deprecated(since = "We rolled back to using normal jackson. Use writeValueAsString instead")
-    public static <T> String asString(T object) throws IOException {
-        return writeValueAsString(object);
-    }
-
     public static Map<String, Object> mapFrom(String source) throws IOException {
         var mapType = objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class);
         return objectMapper.readValue(source, mapType);

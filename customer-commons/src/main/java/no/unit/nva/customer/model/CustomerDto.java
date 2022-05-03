@@ -205,12 +205,13 @@ public class CustomerDto implements Context {
                    .withPublicationWorkflow(getPublicationWorkflow());
     }
 
+    @JacocoGenerated
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof CustomerDto)) {
             return false;
         }
         CustomerDto that = (CustomerDto) o;
@@ -232,6 +233,7 @@ public class CustomerDto implements Context {
                && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
+    @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),

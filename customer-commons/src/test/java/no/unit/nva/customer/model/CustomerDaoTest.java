@@ -1,6 +1,7 @@
 package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
@@ -40,7 +41,7 @@ class CustomerDaoTest {
 
     @Test
     void fromCustomerDbReturnsDbWithoutLossOfInformation() {
-        CustomerDto expected = crateSampleCustomerDto();
+        CustomerDto expected = createSampleCustomerDto();
         CustomerDao customerDb = CustomerDao.fromCustomerDto(expected);
         CustomerDto actual = customerDb.toCustomerDto();
         Diff diff = JAVERS.compare(expected, actual);
@@ -74,26 +75,27 @@ class CustomerDaoTest {
         return JsonConfig.mapFrom(jsonString);
     }
 
-    private CustomerDto crateSampleCustomerDto() {
+    private CustomerDto createSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
-            .withName(randomString())
-            .withCristinId(randomUri())
-            .withFeideOrganizationDomain(randomString())
-            .withModifiedDate(randomInstant())
-            .withIdentifier(identifier)
-            .withId(id)
-            .withCname(randomString())
-            .withContext(LINKED_DATA_CONTEXT_VALUE)
-            .withArchiveName(randomString())
-            .withShortName(randomString())
-            .withInstitutionDns(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withVocabularies(randomVocabularyDtoSettings())
-            .withRorId(randomUri())
-            .build();
+                                   .withName(randomString())
+                                   .withCristinId(randomUri())
+                                   .withFeideOrganizationDomain(randomString())
+                                   .withModifiedDate(randomInstant())
+                                   .withIdentifier(identifier)
+                                   .withId(id)
+                                   .withCname(randomString())
+                                   .withContext(LINKED_DATA_CONTEXT_VALUE)
+                                   .withArchiveName(randomString())
+                                   .withShortName(randomString())
+                                   .withInstitutionDns(randomString())
+                                   .withDisplayName(randomString())
+                                   .withCreatedDate(randomInstant())
+                                   .withVocabularies(randomVocabularyDtoSettings())
+                                   .withRorId(randomUri())
+                                   .withPublicationWorkflow(randomPublicationWorkflow())
+                                   .build();
 
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
@@ -101,9 +103,9 @@ class CustomerDaoTest {
 
     private Set<VocabularyDto> randomVocabularyDtoSettings() {
         return randomVocabularySettings()
-            .stream()
-            .map(VocabularyDao::toVocabularySettingsDto)
-            .collect(Collectors.toSet());
+                   .stream()
+                   .map(VocabularyDao::toVocabularySettingsDto)
+                   .collect(Collectors.toSet());
     }
 
     private Set<VocabularyDao> randomVocabularySettings() {
@@ -114,8 +116,8 @@ class CustomerDaoTest {
 
     private CustomerDao sampleCustomerDao() {
         return CustomerDao.builder()
-            .withArchiveName("someName")
-            .withIdentifier(UUID.randomUUID())
-            .build();
+                   .withArchiveName("someName")
+                   .withIdentifier(UUID.randomUUID())
+                   .build();
     }
 }

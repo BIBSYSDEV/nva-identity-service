@@ -47,6 +47,7 @@ public class CustomerDao implements Typed {
     private URI cristinId;
     private Set<VocabularyDao> vocabularies;
     private URI rorId;
+    private PublicationWorkflow publicationWorkflow;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -70,6 +71,7 @@ public class CustomerDao implements Typed {
             .withVocabularySettings(extractVocabularySettings(dto))
             .withName(dto.getName())
             .withRorId(dto.getRorId())
+                   .withPublicationWorkflow(dto.getPublicationWorkflow())
             .build();
     }
 
@@ -185,6 +187,15 @@ public class CustomerDao implements Typed {
         return rorId;
     }
 
+    private PublicationWorkflow getPublicationWorkflow() {
+        return nonNull(publicationWorkflow)
+                   ? publicationWorkflow : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+    }
+
+    private void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+        this.publicationWorkflow = publicationWorkflow;
+    }
+
     @JacocoGenerated
     @Override
     public boolean equals(Object o) {
@@ -233,6 +244,7 @@ public class CustomerDao implements Typed {
                                       .withFeideOrganizationDomain(getFeideOrganizationDomain())
                                       .withCristinId(getCristinId())
                                       .withRorId(getRorId())
+                                      .withPublicationWorkflow(getPublicationWorkflow())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -339,8 +351,14 @@ public class CustomerDao implements Typed {
             return this;
         }
 
+        public Builder withPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+            customerDb.setPublicationWorkflow(publicationWorkflow);
+            return this;
+        }
+
         public CustomerDao build() {
             return customerDb;
         }
     }
+
 }

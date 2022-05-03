@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
+import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
@@ -43,6 +45,7 @@ public class CustomerDataGenerator {
                                    .withCreatedDate(randomInstant())
                                    .withVocabularies(randomVocabularyDtoSettings())
                                    .withRorId(randomUri())
+                                   .withPublicationWorkflow(randomPublicationWorkflow())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValues());
@@ -51,8 +54,7 @@ public class CustomerDataGenerator {
 
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
         VocabularyDao vocabulary = randomVocabularyDao();
-        return Set.of(vocabulary)
-            .stream()
+        return Stream.of(vocabulary)
             .map(VocabularyDao::toVocabularySettingsDto)
             .collect(Collectors.toSet());
     }
@@ -73,6 +75,7 @@ public class CustomerDataGenerator {
             .withCname(randomString())
             .withArchiveName(randomString())
             .withRorId(randomUri())
+                                   .withPublicationWorkflow(randomPublicationWorkflow())
             .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
@@ -103,6 +106,10 @@ public class CustomerDataGenerator {
 
     public static List<VocabularyDto> randomVocabularies() {
         return List.of(randomVocabularyDto(), randomVocabularyDto(), randomVocabularyDto());
+    }
+
+    public static PublicationWorkflow randomPublicationWorkflow() {
+        return randomElement(PublicationWorkflow.values());
     }
 }
 

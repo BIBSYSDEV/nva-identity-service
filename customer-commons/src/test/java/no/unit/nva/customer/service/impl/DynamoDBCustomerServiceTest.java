@@ -3,6 +3,7 @@ package no.unit.nva.customer.service.impl;
 import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -290,6 +291,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withCristinId(randomCristinOrgId())
                            .withVocabularies(randomVocabularySet())
                            .withRorId(randomUri())
+                           .withPublicationWorkflow(randomPublicationWorkflow())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context")));
         return customer;

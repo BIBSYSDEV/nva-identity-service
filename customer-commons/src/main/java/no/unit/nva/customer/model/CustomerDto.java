@@ -19,7 +19,7 @@ import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 //Overriding setters and getters is necessary for Jackson-Jr
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod"})
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields"})
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
@@ -39,6 +39,7 @@ public class CustomerDto implements Context {
     private URI cristinId;
     private List<VocabularyDto> vocabularies;
     private URI rorId;
+    private PublicationWorkflow publicationWorkflow;
 
     public CustomerDto() {
         super();
@@ -166,6 +167,14 @@ public class CustomerDto implements Context {
         this.rorId = rorId;
     }
 
+    public PublicationWorkflow getPublicationWorkflow() {
+        return publicationWorkflow;
+    }
+
+    public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+        this.publicationWorkflow = publicationWorkflow;
+    }
+
     @Override
     public URI getContext() {
         return context;
@@ -192,29 +201,21 @@ public class CustomerDto implements Context {
                    .withFeideOrganizationDomain(getFeideOrganizationDomain())
                    .withName(getName())
                    .withModifiedDate(stringToInstant(getModifiedDate()))
-                   .withRorId(getRorId());
+                   .withRorId(getRorId())
+                   .withPublicationWorkflow(getPublicationWorkflow());
     }
 
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(),
-                            getCristinId(), getVocabularies(), getContext(), getRorId());
-    }
-
-    @JacocoGenerated
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CustomerDto)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         CustomerDto that = (CustomerDto) o;
-        return Objects.equals(getId(), that.getId())
+        return Objects.equals(getContext(), that.getContext())
+               && Objects.equals(getId(), that.getId())
                && Objects.equals(getIdentifier(), that.getIdentifier())
                && Objects.equals(getCreatedDate(), that.getCreatedDate())
                && Objects.equals(getModifiedDate(), that.getModifiedDate())
@@ -227,8 +228,16 @@ public class CustomerDto implements Context {
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getContext(), that.getContext())
-               && Objects.equals(getRorId(), that.getRorId());
+               && Objects.equals(getRorId(), that.getRorId())
+               && getPublicationWorkflow() == that.getPublicationWorkflow();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
+                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getVocabularies(), getRorId(),
+                            getPublicationWorkflow());
     }
 
     @Override
@@ -329,8 +338,14 @@ public class CustomerDto implements Context {
             return this;
         }
 
+        public Builder withPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+            customerDto.setPublicationWorkflow(publicationWorkflow);
+            return this;
+        }
+
         public CustomerDto build() {
             return customerDto;
         }
+
     }
 }

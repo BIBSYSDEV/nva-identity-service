@@ -1,6 +1,7 @@
 package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -54,6 +55,7 @@ class CustomerDtoTest {
                    .withModifiedDate(randomInstant())
                    .withVocabularies(randomVocabularies())
                    .withRorId(randomUri())
+                   .withPublicationWorkflow(randomPublicationWorkflow())
                    .build();
     }
 

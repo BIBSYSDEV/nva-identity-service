@@ -9,8 +9,11 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
+import nva.commons.core.SingletonCollector;
 
 public class PeopleAndInstitutions {
 
@@ -18,10 +21,12 @@ public class PeopleAndInstitutions {
     public static final boolean INACTIVE = false;
     private final CristinServerMock cristinServer;
     private final CustomerService customerService;
+    private final IdentityService identityService;
 
-    public PeopleAndInstitutions(CustomerService customerService) {
+    public PeopleAndInstitutions(CustomerService customerService, IdentityService identityService) {
         this.cristinServer = new CristinServerMock();
         this.customerService = customerService;
+        this.identityService = identityService;
     }
 
     public void shutdown() {
@@ -61,13 +66,32 @@ public class PeopleAndInstitutions {
         return cristinServer.getServerUri();
     }
 
-    public List<URI> getInstitutionsWhereTheUserHasAtLeastOneActiveAffiliationWithAChildOrg(
+    public List<URI> getParentIntitutionsWithActiveAffiliations(
         NationalIdentityNumber person) {
         return cristinServer.getActiveAffiliations(person)
             .stream()
             .map(CristinAffiliation::getOrganizationUri)
             .map(cristinServer::getParentInstitution)
             .collect(Collectors.toList());
+    }
+
+    public UserDto createNvaUserForPerson(NationalIdentityNumber person) {
+        var personInstitution =
+            getParentIntitutionsWithActiveAffiliations(person).stream().collect(SingletonCollector.collect());
+        var personAffiliation =
+            cristinServer.getActiveAffiliations(person)
+                .stream()
+                .collect(SingletonCollector.collect());
+        var userCustomer = customerService.getCustomerByCristinId(personInstitution);
+        var user = UserDto.newBuilder()
+            .withUsername(randomString())
+            .withAffiliation(personAffiliation.getOrganizationUri())
+            .withCristinId(getCristinId(person))
+            .withInstitutionCristinId(userCustomer.getCristinId())
+            .withInstitution(userCustomer.getId())
+            .build();
+        identityService.addUser(user);
+        return identityService.getUser(user);
     }
 
     private Stream<PersonAffiliation> createAffiliations(boolean active) {

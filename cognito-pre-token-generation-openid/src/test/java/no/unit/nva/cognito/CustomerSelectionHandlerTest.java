@@ -98,7 +98,7 @@ class CustomerSelectionHandlerTest {
     }
 
     @Test
-    void shouldNotSendAnUpdateCustomerRequestToCognitoWhenInputContainsAnAccessTokenAndSelectionIsAmongTheValidOptions() {
+    void shouldNotSendAnUpdateCustomerRequestToCognitoWhenInputDoesNotContainAccessToken() {
         var input = createRequest(randomUri());
         var response = handler.handleRequest(input, context);
         assertThatUpdateRequestHasNotBeenSent();

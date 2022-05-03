@@ -50,10 +50,11 @@ public class CristinClient {
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
             .GET();
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
+
         assertThatResponseIsSuccessful(response);
 
         var responseObject = CristinOrgResponse.fromJson(response.body());
-        return responseObject.extractTopOrgUri();
+        return responseObject.extractInstitutionUri();
     }
 
     private URI formatUriForGettingUserByNin(URI cristinHost) {

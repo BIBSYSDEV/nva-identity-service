@@ -1,4 +1,4 @@
-package no.unit.nva.useraccessservice.usercreation;
+package no.unit.nva.cognito;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -8,52 +8,22 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.PersonInformation;
 import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.core.SingletonCollector;
 
-public class AuthenticationInformation {
+public class AuthenticationInformation implements PersonInformation {
 
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
-
-    private final String personFeideIdentifier;
-    private final String orgFeideDomain;
-    private CristinPersonResponse cristinResponse;
-    private Set<CustomerDto> activeCustomers;
+    private final PersonInformation personInformation;
     private CustomerDto currentCustomer;
-    private List<PersonAffiliation> personAffiliations;
     private UserDto currentUser;
 
-    public AuthenticationInformation(String personFeideIdentifier, String orgFeideDomain) {
-        this.personFeideIdentifier = personFeideIdentifier;
-        this.orgFeideDomain = orgFeideDomain;
-    }
-
-    public Set<CustomerDto> getActiveCustomers() {
-        return activeCustomers;
-    }
-
-    public void setActiveCustomers(Set<CustomerDto> activeCustomers) {
-        this.activeCustomers = activeCustomers;
-    }
-
-    public String getOrgFeideDomain() {
-        return orgFeideDomain;
-    }
-
-    public String getPersonFeideIdentifier() {
-        return personFeideIdentifier;
-    }
-
-    public CristinPersonResponse getCristinPersonResponse() {
-        return this.cristinResponse;
-    }
-
-    public void setCristinPersonResponse(CristinPersonResponse cristinResponse) {
-        this.cristinResponse = cristinResponse;
+    public AuthenticationInformation(PersonInformation personInformation) {
+        this.personInformation = personInformation;
     }
 
     public CustomerDto getCurrentCustomer() {
@@ -81,19 +51,6 @@ public class AuthenticationInformation {
         return currentCustomer;
     }
 
-    public URI getOrganizationAffiliation(URI parentInstitution) {
-        var affiliations = allAffiliationsWithSameParentInstitution(parentInstitution);
-        return anyAffiliationButProduceConsistentResponseForSameInputSet(affiliations);
-    }
-
-    public List<PersonAffiliation> getPersonAffiliations() {
-        return this.personAffiliations;
-    }
-
-    public void setPersonAffiliations(List<PersonAffiliation> affiliationInformation) {
-        this.personAffiliations = affiliationInformation;
-    }
-
     public UserDto getCurrentUser() {
         return currentUser;
     }
@@ -106,18 +63,49 @@ public class AuthenticationInformation {
         }
     }
 
-    private boolean userAuthenticatedWithNin() {
-        return isNull(orgFeideDomain);
+    @Override
+    public Set<CustomerDto> getActiveCustomers() {
+        return personInformation.getActiveCustomers();
     }
 
-    private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {
-        return this.personAffiliations.stream()
-            .filter(affiliation -> affiliation.getParentInstitution().equals(parentInstitution))
-            .map(PersonAffiliation::getOrganization);
+    @Override
+    public void setActiveCustomers(Set<CustomerDto> activeCustomers) {
+        personInformation.setActiveCustomers(activeCustomers);
     }
 
-    private URI anyAffiliationButProduceConsistentResponseForSameInputSet(Stream<URI> affiliations) {
-        return affiliations.map(URI::toString).sorted().map(URI::create).findFirst().orElseThrow();
+    @Override
+    public String getOrgFeideDomain() {
+        return personInformation.getOrgFeideDomain();
+    }
+
+    @Override
+    public String getPersonFeideIdentifier() {
+        return personInformation.getPersonFeideIdentifier();
+    }
+
+    @Override
+    public CristinPersonResponse getCristinPersonResponse() {
+        return personInformation.getCristinPersonResponse();
+    }
+
+    @Override
+    public void setCristinPersonResponse(CristinPersonResponse cristinResponse) {
+        personInformation.setCristinPersonResponse(cristinResponse);
+    }
+
+    @Override
+    public URI getOrganizationAffiliation(URI parentInstitution) {
+        return personInformation.getOrganizationAffiliation(parentInstitution);
+    }
+
+    @Override
+    public List<PersonAffiliation> getPersonAffiliations() {
+        return personInformation.getPersonAffiliations();
+    }
+
+    @Override
+    public void setPersonAffiliations(List<PersonAffiliation> affiliationInformation) {
+        personInformation.setPersonAffiliations(affiliationInformation);
     }
 
     private IllegalStateException handleUserNotFoundError() {
@@ -131,7 +119,7 @@ public class AuthenticationInformation {
     }
 
     private CustomerDto returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer() {
-        return activeCustomers.stream()
+        return getActiveCustomers().stream()
             .filter(this::selectFeideOrgIfApplicable)
             .collect(SingletonCollector.tryCollect())
             .orElse(fail -> null);
@@ -140,5 +128,9 @@ public class AuthenticationInformation {
     private boolean selectFeideOrgIfApplicable(CustomerDto customer) {
         return userAuthenticatedWithNin()
                || getOrgFeideDomain().equals(customer.getFeideOrganizationDomain());
+    }
+
+    private boolean userAuthenticatedWithNin() {
+        return isNull(getOrgFeideDomain());
     }
 }

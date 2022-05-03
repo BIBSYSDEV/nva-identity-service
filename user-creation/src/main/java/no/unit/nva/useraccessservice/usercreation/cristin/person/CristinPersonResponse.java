@@ -33,18 +33,22 @@ public class CristinPersonResponse {
         return List.of(new CristinIdentifier(identifier));
     }
 
+    @JacocoGenerated
     public URI getCristinId() {
         return cristinId;
     }
 
+    @JacocoGenerated
     public void setCristinId(URI cristinId) {
         this.cristinId = cristinId;
     }
 
+    @JacocoGenerated
     public List<NameValue> getNames() {
         return names;
     }
 
+    @JacocoGenerated
     public void setNames(List<NameValue> names) {
         this.names = names;
     }

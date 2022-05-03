@@ -32,7 +32,7 @@ public abstract class WriteControlledVocabularyHandler
     }
 
     private VocabularyList parseInput(String input) {
-        return attempt(() -> JsonConfig.beanFrom(VocabularyList.class, input))
-            .orElseThrow(fail -> new BadRequestException("Invalid input object",fail.getException()));
+        return attempt(() -> JsonConfig.readValue(input, VocabularyList.class))
+            .orElseThrow(fail -> new BadRequestException("Invalid input object", fail.getException()));
     }
 }

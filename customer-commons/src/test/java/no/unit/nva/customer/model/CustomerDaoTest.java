@@ -54,8 +54,8 @@ class CustomerDaoTest {
         CustomerDao someDao = sampleCustomerDao();
         Map<String, Object> jsonMap = customerToJsonMap(someDao);
         jsonMap.remove("type");
-        var jsonStringWithoutType = JsonConfig.asString(jsonMap);
-        CustomerDao deserialized = JsonConfig.beanFrom(CustomerDao.class, jsonStringWithoutType);
+        var jsonStringWithoutType = JsonConfig.writeValueAsString(jsonMap);
+        CustomerDao deserialized = JsonConfig.readValue(jsonStringWithoutType, CustomerDao.class);
         assertThat(deserialized, is(equalTo(someDao)));
     }
 
@@ -64,13 +64,13 @@ class CustomerDaoTest {
         CustomerDao someDao = sampleCustomerDao();
         var jsonMap = customerToJsonMap(someDao);
         assertThat(jsonMap, hasKey("type"));
-        var jsonString = JsonConfig.asString(jsonMap);
-        CustomerDao deserialized = JsonConfig.beanFrom(CustomerDao.class, jsonString);
+        var jsonString = JsonConfig.writeValueAsString(jsonMap);
+        CustomerDao deserialized = JsonConfig.readValue(jsonString, CustomerDao.class);
         assertThat(deserialized, is(equalTo(someDao)));
     }
 
     private Map<String, Object> customerToJsonMap(CustomerDao someDao) throws IOException {
-        var jsonString = JsonConfig.asString(someDao);
+        var jsonString = JsonConfig.writeValueAsString(someDao);
         return JsonConfig.mapFrom(jsonString);
     }
 
@@ -78,22 +78,22 @@ class CustomerDaoTest {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
-                                   .withName(randomString())
-                                   .withCristinId(randomUri())
-                                   .withFeideOrganizationDomain(randomString())
-                                   .withModifiedDate(randomInstant())
-                                   .withIdentifier(identifier)
-                                   .withId(id)
-                                   .withCname(randomString())
-                                   .withContext(LINKED_DATA_CONTEXT_VALUE)
-                                   .withArchiveName(randomString())
-                                   .withShortName(randomString())
-                                   .withInstitutionDns(randomString())
-                                   .withDisplayName(randomString())
-                                   .withCreatedDate(randomInstant())
-                                   .withVocabularies(randomVocabularyDtoSettings())
-                                   .withRorId(randomUri())
-                                   .build();
+            .withName(randomString())
+            .withCristinId(randomUri())
+            .withFeideOrganizationDomain(randomString())
+            .withModifiedDate(randomInstant())
+            .withIdentifier(identifier)
+            .withId(id)
+            .withCname(randomString())
+            .withContext(LINKED_DATA_CONTEXT_VALUE)
+            .withArchiveName(randomString())
+            .withShortName(randomString())
+            .withInstitutionDns(randomString())
+            .withDisplayName(randomString())
+            .withCreatedDate(randomInstant())
+            .withVocabularies(randomVocabularyDtoSettings())
+            .withRorId(randomUri())
+            .build();
 
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;

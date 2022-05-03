@@ -45,7 +45,7 @@ public class VocabularyList implements Context, Typed {
     }
 
     public static VocabularyList fromJson(String json) {
-        return attempt(() -> JsonConfig.beanFrom(VocabularyList.class, json)).orElseThrow();
+        return attempt(() -> JsonConfig.readValue(json, VocabularyList.class)).orElseThrow();
     }
 
     public List<VocabularyDto> getVocabularies() {
@@ -100,7 +100,7 @@ public class VocabularyList implements Context, Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     @Override

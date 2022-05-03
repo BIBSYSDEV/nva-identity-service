@@ -78,7 +78,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     void shouldReturnBadRequestWhenInputIsNotAValidCustomerRequest() {
         var body = Map.of("type", randomString());
         var input = new APIGatewayProxyRequestEvent()
-            .withBody(attempt(() -> JsonConfig.asString(body)).orElseThrow())
+            .withBody(attempt(() -> JsonConfig.writeValueAsString(body)).orElseThrow())
             .withHeaders(getRequestHeaders());
         var response = handler.handleRequest(input, context);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));

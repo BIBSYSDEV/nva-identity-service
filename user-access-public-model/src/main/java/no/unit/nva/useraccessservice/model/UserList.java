@@ -35,7 +35,7 @@ public class UserList implements Typed {
     }
 
     public static UserList fromJson(String json) {
-        return attempt(() -> JsonConfig.beanFrom(UserList.class, json)).orElseThrow();
+        return attempt(() -> JsonConfig.readValue(json, UserList.class)).orElseThrow();
     }
 
 
@@ -65,6 +65,6 @@ public class UserList implements Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 }

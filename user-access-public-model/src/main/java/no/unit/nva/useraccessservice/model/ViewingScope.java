@@ -67,7 +67,7 @@ public class ViewingScope implements Typed {
     }
 
     public static ViewingScope fromJson(String input) {
-        return attempt(() -> JsonConfig.beanFrom(ViewingScope.class, input))
+        return attempt(() -> JsonConfig.readValue(input, ViewingScope.class))
             .orElseThrow(fail -> new BadRequestException("Could not read viewing scope:" + input));
     }
 
@@ -126,7 +126,7 @@ public class ViewingScope implements Typed {
 
     @Override
     public String toString() {
-        return attempt(() -> JsonConfig.asString(this)).orElseThrow();
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     private static boolean pathIsNotExpectedPath(URI uri) {

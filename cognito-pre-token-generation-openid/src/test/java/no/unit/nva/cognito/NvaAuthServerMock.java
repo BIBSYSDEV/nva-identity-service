@@ -66,7 +66,7 @@ public class NvaAuthServerMock {
 
     private ResponseDefinitionBuilder createCognitoResponse(String jwtToken) {
         var jsonMap = Map.of(JWT_TOKEN_FIELD, jwtToken);
-        var responseBody = attempt(() -> JsonConfig.asString(jsonMap)).orElseThrow();
+        var responseBody = attempt(() -> JsonConfig.writeValueAsString(jsonMap)).orElseThrow();
         return aResponse().withStatus(HTTP_OK).withBody(responseBody);
     }
 

@@ -102,18 +102,18 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     private APIGatewayProxyRequestEvent createUpdateViewingScopeRequest(UserDto sampleUser,
                                                                         ViewingScope expectedViewingScope) {
-        String bodyString = attempt(() -> JsonConfig.asString(expectedViewingScope)).orElseThrow();
+        String bodyString = attempt(() -> JsonConfig.writeValueAsString(expectedViewingScope)).orElseThrow();
         return new APIGatewayProxyRequestEvent()
             .withBody(bodyString)
             .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, sampleUser.getUsername()));
     }
 
     private APIGatewayProxyRequestEvent createInvalidUpdateViewingScopeRequest(UserDto objectThatIsNotViewingScope) {
-        var jsonMap = attempt(() -> JsonConfig.asString(objectThatIsNotViewingScope))
+        var jsonMap = attempt(() -> JsonConfig.writeValueAsString(objectThatIsNotViewingScope))
             .map(JsonConfig::mapFrom)
             .orElseThrow();
         jsonMap.remove("type");
-        String body = attempt(() -> JsonConfig.asString(jsonMap)).orElseThrow();
+        String body = attempt(() -> JsonConfig.writeValueAsString(jsonMap)).orElseThrow();
         return new APIGatewayProxyRequestEvent().withBody(body)
             .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, objectThatIsNotViewingScope.getUsername()));
     }

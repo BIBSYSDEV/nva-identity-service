@@ -198,7 +198,7 @@ public class CreateCustomerRequest {
     }
 
     public void setType(String type) {
-         validateType(type);
+        validateType(type);
     }
 
     private String validateType(String type) {

@@ -1,5 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation.cristin;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
@@ -7,6 +9,7 @@ public class NationalIdentityNumber {
 
     private final String nin;
 
+    @JsonCreator
     public NationalIdentityNumber(String nin) {
         this.nin = nin;
     }
@@ -36,6 +39,7 @@ public class NationalIdentityNumber {
 
     @JacocoGenerated
     @Override
+    @JsonValue
     public String toString() {
         return getNin();
     }

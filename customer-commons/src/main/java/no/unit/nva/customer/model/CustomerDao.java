@@ -71,7 +71,7 @@ public class CustomerDao implements Typed {
             .withVocabularySettings(extractVocabularySettings(dto))
             .withName(dto.getName())
             .withRorId(dto.getRorId())
-                   .withPublicationWorkflow(dto.getPublicationWorkflow())
+            .withPublicationWorkflow(dto.getPublicationWorkflow())
             .build();
     }
 

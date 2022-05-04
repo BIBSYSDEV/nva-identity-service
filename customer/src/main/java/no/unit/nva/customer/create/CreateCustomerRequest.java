@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigatewayv2.exceptions.BadRequestException;
@@ -23,6 +24,7 @@ public class CreateCustomerRequest {
     private String feideOrganizationDomain;
     private URI cristinId;
     private List<VocabularyDto> vocabularies;
+    private PublicationWorkflow publicationWorkflow;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
         var request = new CreateCustomerRequest();
@@ -34,6 +36,7 @@ public class CreateCustomerRequest {
         request.setFeideOrganizationDomain(customerDto.getFeideOrganizationDomain());
         request.setVocabularies(customerDto.getVocabularies());
         request.setType(customerDto.getType());
+        request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         return request;
     }
 
@@ -53,6 +56,7 @@ public class CreateCustomerRequest {
             .withFeideOrganizationDomain(getFeideOrganizationDomain())
             .withCristinId(getCristinId())
             .withVocabularies(vocabularies)
+            .withPublicationWorkflow(getPublicationWorkflow())
             .build();
     }
 
@@ -144,6 +148,14 @@ public class CreateCustomerRequest {
     @JacocoGenerated
     public void setVocabularies(List<VocabularyDto> vocabularies) {
         this.vocabularies = vocabularies;
+    }
+
+    public PublicationWorkflow getPublicationWorkflow() {
+        return publicationWorkflow;
+    }
+
+    public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+        this.publicationWorkflow = publicationWorkflow;
     }
 
     @JacocoGenerated

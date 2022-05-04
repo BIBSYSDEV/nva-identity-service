@@ -13,12 +13,16 @@ import nva.commons.core.JacocoGenerated;
 
 public class CreateUserRequest {
 
-    @JsonProperty("nationalIdentityNumber")
+    protected static final String NATIONAL_IDENTITY_NUMBER_FIELD = "nationalIdentityNumber";
+    protected static final String CUSTOMER_ID_FIELD = "customerId";
+    protected static final String ROLES_FIELD = "roles";
+
+    @JsonProperty(NATIONAL_IDENTITY_NUMBER_FIELD)
     @JsonAlias("nin")
     private NationalIdentityNumber nin;
-    @JsonProperty("customerId")
+    @JsonProperty(CUSTOMER_ID_FIELD)
     private URI customerId;
-    @JsonProperty("roles")
+    @JsonProperty(ROLES_FIELD)
     private List<RoleDto> roles;
 
     public CreateUserRequest(NationalIdentityNumber nin,

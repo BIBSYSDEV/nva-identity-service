@@ -25,7 +25,6 @@ wiremock = { strictly = '2.27.2' }
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }
 nva-json = { group = 'com.github.bibsysdev', name = 'json', version.ref = 'nvaCommons' }
-#nva-apigatewayv2 = { group = 'com.github.bibsysdev', name = 'apigatewayv2', version.ref = 'nvaCommons' }
 nva-apigateway = { group = 'com.github.bibsysdev', name = 'apigateway', version.ref = 'nvaCommons' }
 
 nva-lambdaauthorizer = { group = 'com.github.bibsysdev', name = 'lambdaauthorizer', version.ref = 'nvaCommons' }

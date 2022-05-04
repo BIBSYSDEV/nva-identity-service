@@ -113,38 +113,16 @@ public class UpdateCustomerHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
+    //TODO
     @Test
     void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() {
-        UUID identifier = UUID.randomUUID();
-        CustomerDto customer = createCustomer(identifier);
-        customer.setPublicationWorkflow(null);
-        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
-
-        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        var input = createInput(customer, pathParameters);
-
-        var response = handler.handleRequest(input, context);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE), is(equalTo(MediaType.JSON_UTF_8.toString())));
-
-        var responseBody = CustomerDto.fromJson(response.getBody());
-
-        assertThat(responseBody.getPublicationWorkflow(), is(equalTo(REGISTRATOR_PUBLISHES_METADATA_AND_FILES)));
     }
 
-    /*@Test
+    //TODO
+    @Test
     void shouldReturnPublicationWorkflowWhenValueIsSet() {
-        var customerDto = CustomerDto.builder()
-                              .withName("New Customer")
-                              .withVocabularies(Collections.emptySet())
-                              .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
-                              .build();
-        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
-        var response = executeRequest(requestBody);
-        var actualResponseBody = CustomerDto.fromJson(response.getBody());
-        assertThat(actualResponseBody.getPublicationWorkflow(), is(equalTo(REGISTRATOR_PUBLISHES_METADATA_ONLY)));
-    }*/
+
+    }
 
     private APIGatewayProxyRequestEvent createInput(CustomerDto customer, Map<String, String> pathParameters) {
         return new APIGatewayProxyRequestEvent()

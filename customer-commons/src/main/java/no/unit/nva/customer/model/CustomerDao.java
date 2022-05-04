@@ -71,7 +71,7 @@ public class CustomerDao implements Typed {
             .withVocabularySettings(extractVocabularySettings(dto))
             .withName(dto.getName())
             .withRorId(dto.getRorId())
-                   .withPublicationWorkflow(dto.getPublicationWorkflow())
+            .withPublicationWorkflow(dto.getPublicationWorkflow())
             .build();
     }
 
@@ -187,12 +187,12 @@ public class CustomerDao implements Typed {
         return rorId;
     }
 
-    private PublicationWorkflow getPublicationWorkflow() {
+    public PublicationWorkflow getPublicationWorkflow() {
         return nonNull(publicationWorkflow)
                    ? publicationWorkflow : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
-    private void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+    public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
         this.publicationWorkflow = publicationWorkflow;
     }
 

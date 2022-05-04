@@ -342,11 +342,11 @@ Resources:
             Path: /roles/{role}
             Method: get
             RestApiId: !Ref UsersAndRolesApi
-  AddUserHandler:
+  CreateUserHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.AddUserHandler::handleRequest
+      Handler: no.unit.nva.handlers.CreateUserHandler::handleRequest
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'

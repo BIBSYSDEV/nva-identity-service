@@ -1,6 +1,7 @@
 package no.unit.nva.cognito;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static no.unit.nva.cognito.AuthenticationInformation.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
@@ -15,7 +16,6 @@ import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_US
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static no.unit.nva.useraccessservice.usercreation.AuthenticationInformation.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIn.in;
@@ -154,7 +154,7 @@ class UserSelectionUponLoginHandlerTest {
                               + "affiliations with "
                               + "when person has not logged int and has active and inactive affiliations")
     @EnumSource(LoginEventType.class)
-    void shouldNotCreateUsersForPersonsAInactiveTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
+    void shouldNotCreateUsersForPersonsTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
         LoginEventType loginEventType) {
 
         var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
@@ -540,9 +540,9 @@ class UserSelectionUponLoginHandlerTest {
         var response = handler.handleRequest(event, context);
         var groups = extractAccessRights(response);
         var expectedCustomerId = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE).stream()
-                                     .map(id->customerService.getCustomerByCristinId(id))
-                                     .map(CustomerDto::getId)
-                                     .collect(SingletonCollector.collect());
+            .map(id -> customerService.getCustomerByCristinId(id))
+            .map(CustomerDto::getId)
+            .collect(SingletonCollector.collect());
 
         var expectedCognitoGroup =
             "USER" + AT + expectedCustomerId.toString();

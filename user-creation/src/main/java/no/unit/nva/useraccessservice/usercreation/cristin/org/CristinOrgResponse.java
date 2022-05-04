@@ -28,7 +28,7 @@ public class CristinOrgResponse {
 
     public static CristinOrgResponse create(URI orgId) {
         var response = new CristinOrgResponse();
-        response.setOrgId(orgId.toString());
+        response.setOrgId(orgId);
         return response;
     }
 
@@ -54,27 +54,22 @@ public class CristinOrgResponse {
         this.partOf = nonNull(partOf) ? partOf : null;
     }
 
-    public URI extractTopOrgUri() {
+    public URI extractInstitutionUri() {
         if (isNull(partOf) || partOf.isEmpty()) {
             return orgId;
         } else {
-            return partOf.get(0).extractTopOrgUri();
+            return partOf.get(0).extractInstitutionUri();
         }
     }
 
     @JacocoGenerated
-    public String getOrgId() {
-        return nonNull(orgId) ? orgId.toString() : null;
+    public URI getOrgId() {
+        return orgId;
     }
 
     @JacocoGenerated
     public void setOrgId(URI orgId) {
         this.orgId = orgId;
-    }
-
-    @JacocoGenerated
-    public void setOrgId(String orgId) {
-        this.orgId = nonNull(orgId) ? URI.create(orgId) : null;
     }
 
     @Override

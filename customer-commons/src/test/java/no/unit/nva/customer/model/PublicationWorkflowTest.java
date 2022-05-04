@@ -1,6 +1,7 @@
 package no.unit.nva.customer.model;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
@@ -18,7 +19,8 @@ class PublicationWorkflowTest {
 
     @Test
     void shouldThrowRuntimeExceptionWhenInputIsInvalid() {
-        var exception = assertThrows(RuntimeException.class, () -> PublicationWorkflow.lookUp(NONSENSE));
+        Executable executable = () -> PublicationWorkflow.lookUp(NONSENSE);
+        var exception = assertThrows(RuntimeException.class, executable);
         var expected = format(ERROR_MESSAGE_TEMPLATE, NONSENSE, stream(PublicationWorkflow.values())
                 .map(PublicationWorkflow::toString).collect(joining(DELIMITER)));
         assertThat(exception.getMessage(), is(equalTo(expected)));

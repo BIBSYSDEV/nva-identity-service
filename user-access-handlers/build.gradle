@@ -8,7 +8,9 @@ dependencies {
     implementation project(':user-access-commons')
     implementation project(':user-access-public-model')
     implementation project(':user-access-service')
+    implementation project(':user-creation')
     implementation project(':json-config')
+    implementation project(':user-creation')
 
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection
@@ -19,6 +21,7 @@ dependencies {
     implementation libs.aws.lambda.events
     implementation libs.bundles.aws.lambda
     implementation libs.bundles.jackson
+    implementation libs.nva.json
 
 
     implementation libs.aws.sdk2.secrets

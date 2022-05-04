@@ -21,6 +21,7 @@ import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
@@ -41,7 +42,6 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.usercreation.AuthenticationInformation;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
@@ -92,10 +92,7 @@ public class UserSelectionUponLoginHandler
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
 
-        var authenticationInfo =
-            userCreator.collectPersonInformation(new NationalIdentityNumber(nin),
-                                                 personFeideIdentifier,
-                                                 orgFeideDomain);
+        var authenticationInfo = collectAuthenticationInformation(nin, orgFeideDomain, personFeideIdentifier);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
 
         final var roles = rolesPerCustomer(usersForPerson);
@@ -142,6 +139,15 @@ public class UserSelectionUponLoginHandler
             .httpClient(UrlConnectionHttpClient.create())
             .region(AWS_REGION)
             .build();
+    }
+
+    private AuthenticationInformation collectAuthenticationInformation(String nin,
+                                                                       String orgFeideDomain,
+                                                                       String personFeideIdentifier) {
+        return attempt(() -> new NationalIdentityNumber(nin))
+            .map(idNumber -> userCreator.collectPersonInformation(idNumber, personFeideIdentifier, orgFeideDomain))
+            .map(AuthenticationInformation::new)
+            .orElseThrow();
     }
 
     private List<String> createCognitoGroupsEntry(List<UserDto> usersForPerson) {

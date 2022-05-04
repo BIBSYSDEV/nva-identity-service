@@ -37,7 +37,6 @@ public class CristinClient {
         var request = HttpRequest.newBuilder(getUserByNinUri)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
             .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8));
-        logger.info("Bearer token:{}", httpClient.getBearerToken());
         var requestString = request.build().toString();
         logger.info("Request:{}", requestString);
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));

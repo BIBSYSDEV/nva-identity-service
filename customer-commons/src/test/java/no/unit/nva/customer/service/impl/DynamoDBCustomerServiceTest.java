@@ -32,7 +32,7 @@ import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
-import nva.commons.apigatewayv2.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void createNewCustomerReturnsTheCustomer() {
+    void createNewCustomerReturnsTheCustomer() throws NotFoundException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
 
@@ -67,7 +67,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void updateExistingCustomerWithNewName() {
+    void updateExistingCustomerWithNewName() throws NotFoundException, InputException {
         String newName = "New name";
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
@@ -79,7 +79,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void updateExistingCustomerChangesModifiedDate() {
+    void updateExistingCustomerChangesModifiedDate() throws NotFoundException, InputException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
 
@@ -88,7 +88,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void updateExistingCustomerPreservesCreatedDate() {
+    void updateExistingCustomerPreservesCreatedDate() throws NotFoundException, InputException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
@@ -96,7 +96,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void updateExistingCustomerWithDifferentIdentifiersThrowsException() {
+    void updateExistingCustomerWithDifferentIdentifiersThrowsException() throws NotFoundException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         var differentIdentifier = UUID.randomUUID();
@@ -108,31 +108,46 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void getExistingCustomerReturnsTheCustomer() {
+    void getExistingCustomerReturnsTheCustomer() throws NotFoundException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
-        var getCustomer = service.getCustomer(createdCustomer.getIdentifier());
+        CustomerDto getCustomer = null;
+        try {
+            getCustomer = service.getCustomer(createdCustomer.getIdentifier());
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+        }
         assertEquals(createdCustomer, getCustomer);
     }
 
     @Test
-    void shouldReturnCustomerById() {
+    void shouldReturnCustomerById() throws NotFoundException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
-        var retrievedCustomer = service.getCustomer(createdCustomer.getId());
+        CustomerDto retrievedCustomer = null;
+        try {
+            retrievedCustomer = service.getCustomer(createdCustomer.getId());
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+        }
         assertThat(createdCustomer, is(equalTo(retrievedCustomer)));
     }
 
     @Test
-    void getCustomerByOrgDomainReturnsTheCustomer() {
+    void getCustomerByOrgDomainReturnsTheCustomer() throws NotFoundException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
-        var getCustomer = service.getCustomerByOrgDomain(createdCustomer.getFeideOrganizationDomain());
+        CustomerDto getCustomer = null;
+        try {
+            getCustomer = service.getCustomerByOrgDomain(createdCustomer.getFeideOrganizationDomain());
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+        }
         assertEquals(createdCustomer, getCustomer);
     }
 
     @Test
-    void getCustomerByCristinIdReturnsTheCustomer() {
+    void getCustomerByCristinIdReturnsTheCustomer() throws NotFoundException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         assertThat(createdCustomer, doesNotHaveEmptyValues());
@@ -141,14 +156,14 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldThrowNotFoundExceptionWhenQueryResultIsEmpty() {
+    void shouldThrowNotFoundExceptionWhenQueryResultIsEmpty() throws NotFoundException {
         var customer = newCustomerDto();
         service.createCustomer(customer);
         assertThrows(NotFoundException.class, () -> service.getCustomerByCristinId(randomUri()));
     }
 
     @Test
-    void getAllCustomersReturnsListOfCustomers() {
+    void getAllCustomersReturnsListOfCustomers() throws NotFoundException {
         // create three customers
         service.createCustomer(newCustomerDto());
         service.createCustomer(newCustomerDto());
@@ -224,7 +239,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldReadEntryWhereVocabularyStatusIsNotCamelCase() {
+    void shouldReadEntryWhereVocabularyStatusIsNotCamelCase() throws NotFoundException {
         var savedCustomer = createCustomerWithSingleVocabularyEntry();
         var entry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
         updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(entry);
@@ -264,7 +279,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         return entry;
     }
 
-    private CustomerDto createCustomerWithSingleVocabularyEntry() {
+    private CustomerDto createCustomerWithSingleVocabularyEntry() throws NotFoundException {
         var customer = newCustomerDto();
         customer.setVocabularies(List.of(randomVocabulary()));
         var savedCustomer = service.createCustomer(customer);

@@ -52,7 +52,7 @@ public class ViewingScopeDb implements Typed {
     }
 
     public ViewingScope toViewingScope() {
-        return attempt(() -> new ViewingScope(getIncludedUnits(), getExcludedUnits())).orElseThrow();
+        return attempt(() -> ViewingScope.create(getIncludedUnits(), getExcludedUnits())).orElseThrow();
     }
 
     @DynamoDbAttribute(INCLUDED_UNITS)
@@ -109,13 +109,13 @@ public class ViewingScopeDb implements Typed {
         var dao = new ViewingScopeDb();
         dao.setExcludedUnits(JacksonJrDoesNotSupportSets.toSet(dto.getExcludedUnits()));
         dao.setIncludedUnits(JacksonJrDoesNotSupportSets.toSet(dto.getIncludedUnits()));
-        attempt(() -> validate(dao.getIncludedUnits())).orElseThrow();
+        validate(dao.getIncludedUnits());
         return dao;
     }
 
-    private static Void validate(Set<URI> includedUnits) throws BadRequestException {
+    private static Void validate(Set<URI> includedUnits) {
         if (isNull(includedUnits) || includedUnits.isEmpty()) {
-            throw new BadRequestException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
+            throw new IllegalArgumentException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
         }
         return null;
     }

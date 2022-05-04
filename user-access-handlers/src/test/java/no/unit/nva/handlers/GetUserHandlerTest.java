@@ -21,8 +21,8 @@ import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
-import nva.commons.apigatewayv2.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.ConflictException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +46,7 @@ class GetUserHandlerTest extends HandlerTest {
     @DisplayName("handleRequest returns User object with type \"User\"")
     @Test
     void handleRequestReturnsUserObjectWithTypeRole()
-        throws ConflictException, InvalidEntryInternalException, InvalidInputException, IOException {
+        throws InvalidEntryInternalException, InvalidInputException, IOException, ConflictException {
         insertSampleUserToDatabase();
 
         var request = createRequest(DEFAULT_USERNAME);
@@ -58,9 +58,9 @@ class GetUserHandlerTest extends HandlerTest {
         assertThat(type, is(equalTo(UserDto.TYPE)));
     }
 
-    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responsBodyType) throws IOException {
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseBodyType) throws IOException {
         getUserHandler.handleRequest(request, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responsBodyType);
+        return GatewayResponse.fromOutputStream(outputStream, responseBodyType);
     }
 
     @Test

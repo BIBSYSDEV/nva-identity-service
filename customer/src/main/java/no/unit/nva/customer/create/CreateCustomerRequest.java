@@ -1,12 +1,10 @@
 package no.unit.nva.customer.create;
 
-import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDto;
-import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
@@ -168,11 +166,6 @@ public class CreateCustomerRequest {
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies());
-    }
-
-    @Override
-    public String toString() {
-        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     @JacocoGenerated

@@ -1,12 +1,12 @@
 package no.unit.nva.useraccessservice.model;
 
-import no.unit.nva.identityservice.json.JsonConfig;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.util.Map;
+import no.unit.nva.identityservice.json.JsonConfig;
 
 // Not a final class in order to show where these values methods are used through inheritance.
 @SuppressWarnings("NonFinalUtilityClass")

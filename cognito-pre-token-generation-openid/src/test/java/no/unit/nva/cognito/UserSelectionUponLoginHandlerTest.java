@@ -16,6 +16,7 @@ import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_US
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIn.in;
@@ -51,10 +52,14 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -232,7 +237,8 @@ class UserSelectionUponLoginHandlerTest {
     }
 
     @Test
-    void shouldMaintainFeideIdAsUsernameForLegacyEntriesAndUpdateAllExternalIdentifierFields() {
+    void shouldMaintainFeideIdAsUsernameForLegacyEntriesAndUpdateAllExternalIdentifierFields()
+        throws NotFoundException {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
         final String orgFeideDomain = feideDomainOfUsersInstitution(person);
         var personsFeideIdentifier = randomString() + AT + orgFeideDomain;
@@ -251,7 +257,7 @@ class UserSelectionUponLoginHandlerTest {
                               + "active affiliation")
     @EnumSource(LoginEventType.class)
     void shouldAddCustomerIdAsChosenCustomerIdWhenUserLogsInAndHasOnlyOneActiveAffiliation(
-        LoginEventType loginEventType) {
+        LoginEventType loginEventType) throws NotFoundException {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
         var expectedCustomerCristinId = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
             .stream().collect(SingletonCollector.collect());
@@ -309,7 +315,7 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest(name = "should fail when selected user has wrong customer id")
     @EnumSource(LoginEventType.class)
-    void shouldFailWhenSelectedUserHasWrongCustomerId(LoginEventType loginEventType) {
+    void shouldFailWhenSelectedUserHasWrongCustomerId(LoginEventType loginEventType) throws NotFoundException {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
         var existingUsers = createUsersForAffiliations(person, ONLY_ACTIVE);
         var userWithInvalidCustomerId = existingUsers.get(0);
@@ -328,7 +334,8 @@ class UserSelectionUponLoginHandlerTest {
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var expectedCustomerIds = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
             .stream()
-            .map(cristinId -> customerService.getCustomerByCristinId(cristinId))
+            .map(attempt(cristinId -> customerService.getCustomerByCristinId(cristinId)))
+            .map(Try::orElseThrow)
             .map(CustomerDto::getId)
             .collect(Collectors.toList());
         var event = randomEvent(person, loginEventType);
@@ -458,7 +465,7 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest(name = "should create role \"Creator\" when the role does not exist")
     @EnumSource(LoginEventType.class)
-    void shouldCreateRoleUserWhenRoleDoesNotExist(LoginEventType loginEventType) {
+    void shouldCreateRoleUserWhenRoleDoesNotExist(LoginEventType loginEventType) throws NotFoundException {
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);
@@ -469,7 +476,8 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest(name = "should not fail when role \"Creator\" already exits")
     @EnumSource(LoginEventType.class)
-    void shouldNotFailWhenUserRoleAlreadyExists(LoginEventType loginEventType) {
+    void shouldNotFailWhenUserRoleAlreadyExists(LoginEventType loginEventType)
+        throws InvalidInputException, ConflictException, NotFoundException {
         identityService.addRole(ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION);
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var event = randomEvent(person, loginEventType);
@@ -504,7 +512,8 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
-    void shouldAddUserAffiliationToExistingUserEntryWhenUserEntryPreexists(LoginEventType loginEventType) {
+    void shouldAddUserAffiliationToExistingUserEntryWhenUserEntryPreexists(LoginEventType loginEventType)
+        throws NotFoundException {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
         var existingUser = createUsersForAffiliations(person, ONLY_ACTIVE)
             .stream().collect(SingletonCollector.collect());
@@ -518,7 +527,8 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
-    void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType) {
+    void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType)
+        throws NotFoundException {
         var person = registeredPeople.personWithExactlyOneActiveAffiliation();
         var existingUser = createUsersForAffiliations(person, ONLY_ACTIVE)
             .stream().collect(SingletonCollector.collect());
@@ -540,7 +550,8 @@ class UserSelectionUponLoginHandlerTest {
         var response = handler.handleRequest(event, context);
         var groups = extractAccessRights(response);
         var expectedCustomerId = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE).stream()
-            .map(id -> customerService.getCustomerByCristinId(id))
+            .map(attempt(id -> customerService.getCustomerByCristinId(id)))
+            .map(Try::orElseThrow)
             .map(CustomerDto::getId)
             .collect(SingletonCollector.collect());
 
@@ -601,17 +612,21 @@ class UserSelectionUponLoginHandlerTest {
 
     private UserDto legacyUserWithFeideIdentifierAsUsername(NationalIdentityNumber person,
                                                             String personsFeideIdentifier) {
-        var preExistingUser = nvaDataGenerator.createUsers(person, ONLY_ACTIVE)
-            .stream().collect(SingletonCollector.collect());
-        preExistingUser.setUsername(personsFeideIdentifier);
-        preExistingUser.setFeideIdentifier(NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES);
-        preExistingUser.setInstitutionCristinId(NOT_EXISTING_URI_IN_LEGACY_ENTRIES);
-        preExistingUser.setCristinId(NOT_EXISTING_URI_IN_LEGACY_ENTRIES);
-        identityService.addUser(preExistingUser);
-        return preExistingUser;
+        try {
+            var preExistingUser = nvaDataGenerator.createUsers(person, ONLY_ACTIVE)
+                .stream().collect(SingletonCollector.collect());
+            preExistingUser.setUsername(personsFeideIdentifier);
+            preExistingUser.setFeideIdentifier(NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES);
+            preExistingUser.setInstitutionCristinId(NOT_EXISTING_URI_IN_LEGACY_ENTRIES);
+            preExistingUser.setCristinId(NOT_EXISTING_URI_IN_LEGACY_ENTRIES);
+            identityService.addUser(preExistingUser);
+            return preExistingUser;
+        } catch (InvalidInputException | ConflictException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private String feideDomainOfUsersInstitution(NationalIdentityNumber person) {
+    private String feideDomainOfUsersInstitution(NationalIdentityNumber person) throws NotFoundException {
         var topLeveOrg = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
             .stream()
             .collect(SingletonCollector.collect());
@@ -648,20 +663,26 @@ class UserSelectionUponLoginHandlerTest {
     private List<UserDto> createUsersForAffiliations(NationalIdentityNumber personLoggingIn, boolean includeInactive) {
         return nvaDataGenerator.createUsers(personLoggingIn, includeInactive)
             .stream()
-            .map(user -> identityService.addUser(user))
-            .map(user -> identityService.getUser(user))
+            .map(attempt(user -> identityService.addUser(user)))
+            .map(attempt -> attempt.map(user -> identityService.getUser(user)))
+            .map(Try::orElseThrow)
             .collect(Collectors.toList());
     }
 
     private List<String> createAccessRightsNvaVersion(UserDto user) {
-        var customerIdentifier = customerService.getCustomer(user.getInstitution()).getId().toString();
+        var customerId = attempt(() -> customerService.getCustomer(user.getInstitution()))
+            .map(CustomerDto::getId)
+            .map(URI::toString)
+            .orElseThrow();
+
         return user.getAccessRights().stream()
-            .map(accessRight -> accessRight + AT + customerIdentifier)
+            .map(accessRight -> accessRight + AT + customerId)
             .collect(Collectors.toList());
     }
 
     private List<String> createAccessRightsCristinIdVersion(UserDto user) {
-        var customerCristinId = customerService.getCustomer(user.getInstitution()).getCristinId();
+        var customerCristinId =
+            attempt(() -> customerService.getCustomer(user.getInstitution()).getCristinId()).orElseThrow();
         return user.getAccessRights().stream()
             .map(accessRight -> accessRight + AT + customerCristinId)
             .collect(Collectors.toList());
@@ -690,7 +711,8 @@ class UserSelectionUponLoginHandlerTest {
     private List<URI> constructExpectedCustomersFromMockData(NationalIdentityNumber personLoggingIn) {
         return registeredPeople.getTopLevelOrgsForPerson(personLoggingIn, ONLY_ACTIVE)
             .stream()
-            .map(cristinId -> customerService.getCustomerByCristinId(cristinId))
+            .map(attempt(cristinId -> customerService.getCustomerByCristinId(cristinId)))
+            .map(Try::orElseThrow)
             .map(CustomerDto::getCristinId)
             .collect(Collectors.toList());
     }

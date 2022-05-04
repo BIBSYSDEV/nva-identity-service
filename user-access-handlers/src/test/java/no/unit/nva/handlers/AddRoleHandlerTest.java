@@ -18,7 +18,7 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigatewayv2.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.apache.http.HttpStatus;

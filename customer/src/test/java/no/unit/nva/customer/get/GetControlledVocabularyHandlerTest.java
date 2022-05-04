@@ -1,5 +1,6 @@
 package no.unit.nva.customer.get;
 
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
@@ -8,14 +9,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
@@ -25,9 +26,12 @@ import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
-import nva.commons.apigatewayv2.MediaTypes;
+import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.MediaTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
 
 class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
 
@@ -35,6 +39,7 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
     private GetControlledVocabularyHandler handler;
     private DynamoDBCustomerService customerService;
     private CustomerDto existingCustomer;
+    private ByteArrayOutputStream outputStream;
 
     @BeforeEach
     public void init() {
@@ -44,23 +49,24 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
             .map(customerInput -> customerService.createCustomer(customerInput))
             .orElseThrow();
         handler = new GetControlledVocabularyHandler(customerService);
+        outputStream = new ByteArrayOutputStream();
     }
 
     @Test
-    void handleRequestReturnsOkWhenARequestWithAnExistingIdentifierIsSubmitted() {
-        var response = sendGetRequest(getExistingCustomerIdentifier());
+    void handleRequestReturnsOkWhenARequestWithAnExistingIdentifierIsSubmitted() throws IOException {
+        var response = sendRequest(getExistingCustomerIdentifier(), VocabularyList.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
     @Test
-    void handleRequestReturnsNotFoundWhenARequestWithANonExistingIdentifierIsSubmitted() {
-        var response = sendGetRequest(randomCustomerIdentifier());
+    void handleRequestReturnsNotFoundWhenARequestWithANonExistingIdentifierIsSubmitted() throws IOException {
+        var response = sendRequest(randomCustomerIdentifier(), Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
     @Test
     void handleRequestReturnsOutputWithLinkedDataContextWhenRequestIsSubmitted() throws IOException {
-        var response = sendGetRequest(getExistingCustomerIdentifier());
+        var response = sendRequest(getExistingCustomerIdentifier(), VocabularyList.class);
         var body = JsonConfig.mapFrom(response.getBody());
         String contextValue = body.get(LINKED_DATA_CONTEXT).toString();
         assertThat(contextValue, is(equalTo(LINKED_DATA_CONTEXT_VALUE.toString())));
@@ -70,7 +76,7 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
     void handleRequestReturnsListWithIdEqualToTheGetPathOfTheResource() throws IOException {
         var request =
             createRequestWithMediaType(existingCustomer.getIdentifier(), MediaTypes.APPLICATION_JSON_LD);
-        var response = handler.handleRequest(request, CONTEXT);
+        var response = sendRequest(request, VocabularyList.class);
 
         var body = JsonConfig.mapFrom(response.getBody());
         String idValue = body.get(LINKED_DATA_ID).toString();
@@ -79,46 +85,54 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void handleRequestReturnsControlledVocabulariesOfSpecifiedCustomerWhenCustomerIdIsValid() {
-        var response = sendGetRequest(getExistingCustomerIdentifier());
+    void handleRequestReturnsControlledVocabulariesOfSpecifiedCustomerWhenCustomerIdIsValid()
+        throws IOException {
+        var response = sendRequest(getExistingCustomerIdentifier(), VocabularyList.class);
         VocabularyList body = VocabularyList.fromJson(response.getBody());
         var actualVocabularySettings = body.getVocabularies();
         assertThat(actualVocabularySettings, is(equalTo(existingCustomer.getVocabularies())));
     }
 
     @Test
-    void handleRequestReturnsResponseWithContentTypeJsonLdWhenAcceptHeaderIsJsonLd() {
-        var response = sendGetRequest(getExistingCustomerIdentifier());
+    void handleRequestReturnsResponseWithContentTypeJsonLdWhenAcceptHeaderIsJsonLd() throws IOException {
+        var response = sendRequest(getExistingCustomerIdentifier(), VocabularyList.class);
         String content = response.getHeaders().get(HttpHeaders.CONTENT_TYPE);
         assertThat(content, is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
     }
 
     @Test
-    void handleRequestReturnsResponseWithContentTypeJsonWhenAcceptHeaderIsJson() {
-        var response = sendRequestAcceptingJson(getExistingCustomerIdentifier());
+    void handleRequestReturnsResponseWithContentTypeJsonWhenAcceptHeaderIsJson() throws IOException {
+        var response = sendRequestAcceptingJson(getExistingCustomerIdentifier(), VocabularyList.class);
         String content = response.getHeaders().get(HttpHeaders.CONTENT_TYPE);
         assertThat(content, is(equalTo(MediaType.JSON_UTF_8.toString())));
     }
 
-    private APIGatewayProxyResponseEvent sendGetRequest(UUID identifier) {
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, CONTEXT);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    private <T> GatewayResponse<T> sendRequest(UUID identifier, Class<T> responseType) throws IOException {
         var request = createRequestWithMediaType(identifier, MediaTypes.APPLICATION_JSON_LD);
-        return handler.handleRequest(request, CONTEXT);
+        return sendRequest(request, responseType);
     }
 
     private UUID getExistingCustomerIdentifier() {
         return existingCustomer.getIdentifier();
     }
 
-    private APIGatewayProxyResponseEvent sendRequestAcceptingJson(UUID identifier) {
+    private <T> GatewayResponse<T> sendRequestAcceptingJson(UUID identifier, Class<T> responseType)
+        throws IOException {
         var request = createRequestWithMediaType(identifier, MediaType.JSON_UTF_8);
-        return handler.handleRequest(request, CONTEXT);
+        return sendRequest(request, responseType);
     }
 
-    private APIGatewayProxyRequestEvent createRequestWithMediaType(UUID identifier, MediaType acceptHeader) {
-        return new APIGatewayProxyRequestEvent()
+    private InputStream createRequestWithMediaType(UUID identifier, MediaType acceptHeader)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
             .withPathParameters(Map.of("identifier", identifier.toString()))
             .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
-            .withMultiValueHeaders(Map.of(HttpHeaders.ACCEPT, List.of(acceptHeader.toString())));
+            .build();
     }
 
     private UUID randomCustomerIdentifier() {

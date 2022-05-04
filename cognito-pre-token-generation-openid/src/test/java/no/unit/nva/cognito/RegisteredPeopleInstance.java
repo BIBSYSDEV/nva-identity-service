@@ -17,10 +17,12 @@ import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinIdentifier;
+import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.core.attempt.Try;
 
 public class RegisteredPeopleInstance {
@@ -123,7 +125,8 @@ public class RegisteredPeopleInstance {
     public Stream<CustomerDto> getCustomersWithActiveAffiliations(NationalIdentityNumber personsNin) {
         return getTopLevelAffiliationsForUser(personsNin, ACTIVE)
             .stream()
-            .map(customerService::getCustomerByCristinId);
+            .map(attempt(customerService::getCustomerByCristinId))
+            .map(Try::orElseThrow);
     }
 
     public List<URI> getOrganizations(NationalIdentityNumber person) {
@@ -148,9 +151,18 @@ public class RegisteredPeopleInstance {
     private List<RoleDto> insertSomeRolesInNva() {
         return IntStream.range(0, 10).boxed()
             .map(ignored -> NvaDataGenerator.createRole())
-            .peek(identityService::addRole)
-            .map(identityService::getRole)
+            .peek(this::addRole)
+            .map(attempt(identityService::getRole))
+            .map(Try::orElseThrow)
             .collect(Collectors.toList());
+    }
+
+    private void addRole(RoleDto roleDto) {
+        try {
+            identityService.addRole(roleDto);
+        } catch (ConflictException | InvalidInputException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void nvaHasRegisteredSomeOfCristinsOrganizationsAsCustomers() {
@@ -162,8 +174,8 @@ public class RegisteredPeopleInstance {
 
     private CustomerDto createNvaCustomer(URI topLevelOrg) {
         var customer = randomCustomer(topLevelOrg);
-        var savedCustomer = customerService.createCustomer(customer);
-        return customerService.getCustomer(savedCustomer.getIdentifier());
+        var savedCustomer = attempt(() -> customerService.createCustomer(customer)).orElseThrow();
+        return attempt(() -> customerService.getCustomer(savedCustomer.getIdentifier())).orElseThrow();
     }
 
     private CustomerDto randomCustomer(URI topLevelOrg) {

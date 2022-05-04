@@ -1,5 +1,6 @@
 package no.unit.nva.customer.create;
 
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -8,8 +9,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Map;
@@ -19,9 +21,13 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
 
 public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
 
@@ -45,42 +51,51 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void requestToHandlerReturnsCustomerCreated() {
+    void requestToHandlerReturnsCustomerCreated() throws IOException, BadRequestException {
         var inputRequest = CustomerDto.builder()
             .withName("New Customer")
             .withVocabularies(Collections.emptySet())
             .build();
-        var request = CreateCustomerRequest.fromCustomerDto(inputRequest);
+        var requestBody = CreateCustomerRequest.fromCustomerDto(inputRequest);
 
-        var input = new APIGatewayProxyRequestEvent()
-            .withBody(request.toString())
-            .withHeaders(getRequestHeaders());
-        var response = handler.handleRequest(input, context);
+        var input = new HandlerRequestBuilder<CreateCustomerRequest>(dtoObjectMapper)
+            .withBody(requestBody)
+            .withHeaders(getRequestHeaders())
+            .build();
+
+        var response = sendRequest(input, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
         assertThat(response.getHeaders(), is(equalTo(getResponseHeaders())));
 
         var actualBody = CustomerDto.fromJson(response.getBody());
         var expectedPersistedInformation = CreateCustomerRequest.fromCustomerDto(actualBody);
-        assertThat(expectedPersistedInformation, is(equalTo(request)));
+        assertThat(expectedPersistedInformation, is(equalTo(requestBody)));
     }
 
     @Test
-    void shouldReturnBadRequestWhenInputIsNotAValidJson() {
-        var input = new APIGatewayProxyRequestEvent()
+    void shouldReturnBadRequestWhenInputIsNotAValidJson() throws IOException {
+        var input = new HandlerRequestBuilder<String>(dtoObjectMapper)
             .withBody(randomString())
-            .withHeaders(getRequestHeaders());
-        var response = handler.handleRequest(input, context);
+            .withHeaders(getRequestHeaders())
+            .build();
+        var response = sendRequest(input, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
     @Test
-    void shouldReturnBadRequestWhenInputIsNotAValidCustomerRequest() {
+    void shouldReturnBadRequestWhenInputIsNotAValidCustomerRequest() throws IOException {
         var body = Map.of("type", randomString());
-        var input = new APIGatewayProxyRequestEvent()
+        var input = new HandlerRequestBuilder<String>(dtoObjectMapper)
             .withBody(attempt(() -> JsonConfig.writeValueAsString(body)).orElseThrow())
-            .withHeaders(getRequestHeaders());
-        var response = handler.handleRequest(input, context);
+            .withHeaders(getRequestHeaders())
+            .build();
+        var response = sendRequest(input, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+    }
+
+    private <T> GatewayResponse<T> sendRequest(InputStream input, Class<T> responseType) throws IOException {
+        handler.handleRequest(input, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
 }

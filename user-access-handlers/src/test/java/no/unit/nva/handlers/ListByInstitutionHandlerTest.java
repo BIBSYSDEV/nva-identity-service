@@ -25,11 +25,10 @@ import java.util.stream.Collectors;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.UserList;
 import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigatewayv2.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.ConflictException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,11 +60,11 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     @Test
     void handleRequestReturnsListOfUsersGivenAnInstitution()
-        throws IOException, ConflictException, InvalidEntryInternalException, InvalidInputException {
+        throws IOException, ConflictException, InvalidEntryInternalException {
         UserList expectedUsers = insertTwoUsersOfSameInstitution();
 
         var validRequest = createListRequest(DEFAULT_INSTITUTION);
-        var response = sendRequestToHandler(validRequest,UserList.class);
+        var response = sendRequestToHandler(validRequest, UserList.class);
 
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
         var actualUsers = parseResponseBody(response);
@@ -74,11 +73,11 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     @Test
     void handleRequestReturnsListOfUsersContainingOnlyUsersOfGivenInstitution()
-        throws IOException, ConflictException, InvalidEntryInternalException, InvalidInputException {
+        throws IOException, InvalidEntryInternalException, ConflictException {
         UserList insertedUsers = insertTwoUsersOfDifferentInstitutions();
 
         var validRequest = createListRequest(DEFAULT_INSTITUTION);
-        var response = sendRequestToHandler(validRequest,UserList.class);
+        var response = sendRequestToHandler(validRequest, UserList.class);
 
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
 
@@ -92,11 +91,11 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     @Test
     void handleRequestReturnsEmptyListOfUsersWhenNoUsersOfSpecifiedInstitutionAreFound()
-        throws ConflictException, InvalidEntryInternalException, InvalidInputException, IOException {
+        throws ConflictException, InvalidEntryInternalException, IOException {
         insertTwoUsersOfSameInstitution();
 
         var validRequest = createListRequest(SOME_OTHER_INSTITUTION);
-        var response = sendRequestToHandler(validRequest,UserList.class);
+        var response = sendRequestToHandler(validRequest, UserList.class);
 
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
         UserList actualUserList = parseResponseBody(response);
@@ -141,7 +140,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     private UserList insertTwoUsersOfDifferentInstitutions()
-        throws InvalidEntryInternalException, ConflictException, InvalidInputException {
+        throws InvalidEntryInternalException, ConflictException {
         UserList users = new UserList();
         users.getUsers().add(insertSampleUserToDatabase(DEFAULT_USERNAME, HandlerTest.DEFAULT_INSTITUTION));
         users.getUsers().add(insertSampleUserToDatabase(SOME_OTHER_USERNAME, SOME_OTHER_INSTITUTION));
@@ -162,7 +161,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     private UserList insertTwoUsersOfSameInstitution()
-        throws ConflictException, InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException, ConflictException {
         UserList users = new UserList();
         users.getUsers().add(insertSampleUserToDatabase(DEFAULT_USERNAME, DEFAULT_INSTITUTION));
         users.getUsers().add(insertSampleUserToDatabase(SOME_OTHER_USERNAME, DEFAULT_INSTITUTION));

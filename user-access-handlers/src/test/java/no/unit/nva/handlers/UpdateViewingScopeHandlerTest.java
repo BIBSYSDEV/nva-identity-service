@@ -22,12 +22,11 @@ import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigatewayv2.exceptions.ConflictException;
-import nva.commons.apigatewayv2.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +47,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     @Test
     void shouldUpdateAccessRightsWhenInputIsValidRequest()
-        throws InvalidInputException, NotFoundException, ConflictException, IOException {
+        throws NotFoundException, ConflictException, IOException {
         UserDto sampleUser = addSampleUserToDb();
         var expectedViewingScope = randomViewingScope();
         var input = createUpdateViewingScopeRequest(sampleUser, expectedViewingScope);
@@ -61,7 +60,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     @Test
     void shouldReturnAcceptedWhenInputIsValidAndUpdateHasBeenSubmittedToEventuallyConsistentDb()
-        throws InvalidInputException, ConflictException, IOException {
+        throws ConflictException, IOException {
         var sampleUser = addSampleUserToDb();
         var request = createUpdateViewingScopeRequest(sampleUser, randomViewingScope());
         var response = sendRequest(request, Void.class);
@@ -78,7 +77,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     @Test
     void shouldReturnBadRequestWhenBodyIsNotValidViewingScope()
-        throws InvalidInputException, ConflictException, IOException {
+        throws ConflictException, IOException {
         var sampleUser = addSampleUserToDb();
         var request = createInvalidUpdateViewingScopeRequest(sampleUser);
         var response = sendRequest(request, Problem.class);
@@ -87,7 +86,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     @Test
     void shouldContainContentTypeHeaderWithValueJson()
-        throws InvalidInputException, ConflictException, IOException {
+        throws ConflictException, IOException {
         var sampleUser = addSampleUserToDb();
         var request = createUpdateViewingScopeRequest(sampleUser, randomViewingScope());
         var response = sendRequest(request, Problem.class);
@@ -110,7 +109,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
         return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
 
-    private UserDto addSampleUserToDb() throws ConflictException, InvalidInputException {
+    private UserDto addSampleUserToDb() throws ConflictException {
         var sampleUser = createSampleUserAndInsertUserRoles();
         databaseService.addUser(sampleUser);
         return sampleUser;

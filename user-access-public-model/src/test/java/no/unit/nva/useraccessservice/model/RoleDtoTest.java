@@ -24,7 +24,7 @@ import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto.Builder;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import org.hamcrest.core.IsSame;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Disabled;
@@ -128,7 +128,7 @@ class RoleDtoTest extends DtoTest {
     @DisplayName("RoleDto can be created when it contains the right type value")
     @Test
     void roleDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
-        throws InvalidEntryInternalException, IOException {
+        throws InvalidEntryInternalException, IOException, InvalidInputException, BadRequestException {
         var someRole = createRole(SOME_ROLE_NAME);
         var jsonMap = JsonConfig.mapFrom(someRole.toString());
         assertThatSerializedItemContainsType(jsonMap, ROLE_TYPE_LITERAL);
@@ -149,7 +149,7 @@ class RoleDtoTest extends DtoTest {
     }
 
     @Test
-    void shouldSerializeAsJson() {
+    void shouldSerializeAsJson() throws InvalidInputException, BadRequestException {
         Set<String> randomAccessRights = Set.of(randomString(), randomString());
         var sample = RoleDto.newBuilder()
             .withRoleName(randomString())

@@ -1,7 +1,6 @@
 package no.unit.nva.customer;
 
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
 import java.util.List;
 import java.util.Optional;

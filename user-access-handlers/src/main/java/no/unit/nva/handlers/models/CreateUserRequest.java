@@ -37,11 +37,6 @@ public class CreateUserRequest {
     public CreateUserRequest() {
 
     }
-
-    public static CreateUserRequest fromJson(String json) {
-        return attempt(() -> JsonConfig.readValue(json, CreateUserRequest.class)).orElseThrow();
-    }
-
     @JacocoGenerated
     public NationalIdentityNumber getNin() {
         return nin;

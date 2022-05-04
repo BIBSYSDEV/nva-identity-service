@@ -5,7 +5,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.io.IOException;
@@ -18,12 +17,20 @@ import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.stubs.FakeContext;
-import nva.commons.apigatewayv2.MediaTypes;
+import nva.commons.apigateway.MediaTypes;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
 
 public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlledVocabularySettingsTests {
 
     public static final Context CONTEXT = new FakeContext();
+
+    @BeforeEach
+    public void init() throws NotFoundException {
+        super.init();
+    }
 
     @Test
     public void handleRequestReturnsAcceptedWhenUpdatingVocabularyForExistingCustomer() throws IOException {
@@ -41,7 +48,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Test
     public void handleRequestSavesVocabularySettingsToDatabaseWhenUpdatingSettingsForExistingCustomer()
-        throws IOException {
+        throws IOException, NotFoundException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
         var savedVocabularySettings = customerService.getCustomer(existingIdentifier()).getVocabularies();
 
@@ -60,7 +67,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
         throws IOException {
         CustomerDto invalidBody = CustomerDataGenerator.createSampleCustomerDto();
         var request = createRequest(existingIdentifier(), invalidBody, MediaTypes.APPLICATION_JSON_LD);
-        var response = handler.handleRequest(request, CONTEXT);
+        var response = sendRequest(handler, request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
@@ -88,7 +95,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Test
     public void handleRequestReturnsConflictWhenCustomerAlreadyHasVocabularySettings()
-        throws IOException {
+        throws IOException, NotFoundException {
         CustomerDto customerWithoutVocabularySettings = CustomerDataGenerator
             .createSampleCustomerDto().copy()
             .withVocabularies(Collections.emptySet())

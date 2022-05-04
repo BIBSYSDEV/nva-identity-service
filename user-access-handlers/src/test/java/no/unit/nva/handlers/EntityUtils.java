@@ -2,8 +2,6 @@ package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static nva.commons.core.attempt.Try.attempt;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;

@@ -9,7 +9,6 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
@@ -35,7 +34,7 @@ public class GetRoleHandler extends ApiGatewayHandler<Void, RoleDto> {
 
     @Override
     public RoleDto processInput(Void input, RequestInfo requestInfo, Context context)
-        throws BadRequestException, NotFoundException {
+        throws NotFoundException {
         String roleName = roleNameThatIsNotNullOrBlank(requestInfo);
 
         RoleDto searchObject = RoleDto.newBuilder().withRoleName(roleName).build();
@@ -47,10 +46,10 @@ public class GetRoleHandler extends ApiGatewayHandler<Void, RoleDto> {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private String roleNameThatIsNotNullOrBlank(RequestInfo requestInfo) throws BadRequestException {
+    private String roleNameThatIsNotNullOrBlank(RequestInfo requestInfo) {
         return Optional.ofNullable(requestInfo.getPathParameters())
             .map(pathParams -> pathParams.get(ROLE_PATH_PARAMETER))
             .filter(not(String::isBlank))
-            .orElseThrow(() -> new BadRequestException(EMPTY_ROLE_NAME));
+            .orElseThrow();
     }
 }

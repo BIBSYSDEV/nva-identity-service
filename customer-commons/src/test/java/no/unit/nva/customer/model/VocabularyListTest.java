@@ -10,8 +10,6 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.util.List;
-import no.unit.nva.customer.testing.CustomerDataGenerator;
 import org.junit.jupiter.api.Test;
 
 class VocabularyListTest {

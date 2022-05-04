@@ -1,6 +1,5 @@
 package no.unit.nva.customer;
 
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.util.Optional;
 import nva.commons.apigateway.RequestInfo;
 

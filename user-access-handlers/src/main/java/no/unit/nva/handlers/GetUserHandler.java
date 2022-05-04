@@ -39,13 +39,12 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
         return databaseService.getUser(queryObject);
     }
 
-    private String extractValidUserNameOrThrowException(RequestInfo requestInfo)
-        throws BadRequestException {
+    private String extractValidUserNameOrThrowException(RequestInfo requestInfo) {
         return Optional.of(requestInfo)
             .map(RequestInfo::getPathParameters)
             .map(map -> map.get(USERNAME_PATH_PARAMETER))
             .map(this::decodeUrlPart)
             .filter(not(String::isBlank))
-            .orElseThrow(() -> new BadRequestException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
+            .orElseThrow();
     }
 }

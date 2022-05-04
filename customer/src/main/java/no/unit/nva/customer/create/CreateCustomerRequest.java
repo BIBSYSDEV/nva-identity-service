@@ -7,7 +7,7 @@ import java.util.Objects;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.identityservice.json.JsonConfig;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 public class CreateCustomerRequest {
@@ -24,7 +24,7 @@ public class CreateCustomerRequest {
     private URI cristinId;
     private List<VocabularyDto> vocabularies;
 
-    public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
+    public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) throws BadRequestException {
         var request = new CreateCustomerRequest();
         request.setName(customerDto.getName());
         request.setDisplayName(customerDto.getDisplayName());
@@ -35,11 +35,6 @@ public class CreateCustomerRequest {
         request.setVocabularies(customerDto.getVocabularies());
         request.setType(customerDto.getType());
         return request;
-    }
-
-    public static CreateCustomerRequest fromJson(String json) {
-        return attempt(() -> JsonConfig.readValue(json, CreateCustomerRequest.class))
-            .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json));
     }
 
     public CustomerDto toCustomerDto() {
@@ -185,11 +180,11 @@ public class CreateCustomerRequest {
         return TYPE_VALUE;
     }
 
-    public void setType(String type) {
+    public void setType(String type) throws BadRequestException {
          validateType(type);
     }
 
-    private String validateType(String type) {
+    private String validateType(String type) throws BadRequestException {
         if (!TYPE_VALUE.equals(type)) {
             throw new BadRequestException("Input request is not of type 'Customer'");
         }

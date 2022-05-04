@@ -17,6 +17,8 @@ import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 
@@ -157,7 +159,7 @@ public class UserEntriesCreatorForPerson {
     }
 
     private UserDto fetchLegacyUserWithFeideIdentifier(UserDto userWithUpdatedInformation,
-                                                       PersonInformation personInformation) {
+                                                       PersonInformation personInformation) throws NotFoundException {
         var queryObject =
             UserDto.newBuilder().withUsername(personInformation.getPersonFeideIdentifier()).build();
         var savedUser = identityService.getUser(queryObject);
@@ -173,7 +175,8 @@ public class UserEntriesCreatorForPerson {
         return updatedUser;
     }
 
-    private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user, PersonInformation personInformation) {
+    private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user, PersonInformation personInformation)
+        throws NotFoundException {
         var existingUser =
             identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(),
                                                                          user.getInstitutionCristinId());
@@ -182,14 +185,14 @@ public class UserEntriesCreatorForPerson {
 
     private UserDto updateUserAffiliation(UserDto user,
                                           PersonInformation personInformation,
-                                          UserDto existingUser) {
+                                          UserDto existingUser) throws NotFoundException {
         var affiliation = personInformation.getOrganizationAffiliation(user.getInstitutionCristinId());
         var updatedUser = existingUser.copy().withAffiliation(affiliation).build();
         identityService.updateUser(updatedUser);
         return updatedUser;
     }
 
-    private UserDto addUser(UserDto user) {
+    private UserDto addUser(UserDto user) throws ConflictException {
         identityService.addUser(user);
         return user;
     }

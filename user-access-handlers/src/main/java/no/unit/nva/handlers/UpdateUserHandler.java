@@ -1,7 +1,6 @@
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Map;
@@ -11,6 +10,8 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
 public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
@@ -27,39 +28,39 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
     }
 
     public UpdateUserHandler(IdentityService databaseService) {
-        super();
+        super(UserDto.class);
         this.databaseService = databaseService;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, Void output) {
-        return HttpURLConnection.HTTP_ACCEPTED;
-    }
+    protected Void processInput(UserDto input, RequestInfo requestInfo, Context context)
+        throws NotFoundException, InvalidInputException {
 
-    @Override
-    protected Void processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
-        UserDto inputObject = UserDto.fromJson(input);
-        validateRequest(inputObject, requestInfo);
-        databaseService.updateUser(inputObject);
-        addAdditionalSuccessHeaders(addLocationHeaderToResponseSupplier(inputObject));
+        validateRequest(input, requestInfo);
+        databaseService.updateUser(input);
+        addAdditionalHeaders(addLocationHeaderToResponseSupplier(input));
         return null;
     }
 
+    @Override
+    protected Integer getSuccessStatusCode(UserDto input, Void output) {
+        return HttpURLConnection.HTTP_ACCEPTED;
+    }
 
-
-    private void validateRequest(UserDto input, APIGatewayProxyRequestEvent requestInfo) {
+    private void validateRequest(UserDto input, RequestInfo requestInfo) throws InvalidInputException {
         String userIdFromPath = extractUsernameFromPathParameters(requestInfo);
         comparePathAndInputObjectUsername(input, userIdFromPath);
     }
 
-    private String extractUsernameFromPathParameters(APIGatewayProxyRequestEvent requestInfo) {
+    private String extractUsernameFromPathParameters(RequestInfo requestInfo) {
         return Optional.ofNullable(requestInfo.getPathParameters())
             .flatMap(pathParams -> Optional.ofNullable(pathParams.get(USERNAME_PATH_PARAMETER)))
             .map(this::decodeUrlPart)
             .orElseThrow(() -> new RuntimeException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
     }
 
-    private void comparePathAndInputObjectUsername(UserDto input, String userIdFromPathParameter) {
+    private void comparePathAndInputObjectUsername(UserDto input, String userIdFromPathParameter)
+        throws InvalidInputException {
         if (!userIdFromPathParameter.equals(input.getUsername())) {
             throw new InvalidInputException(INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR);
         }

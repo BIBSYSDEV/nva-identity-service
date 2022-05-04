@@ -14,7 +14,7 @@ dependencies {
     implementation project (":user-access-service")
     implementation project (":user-access-public-model")
 
-    implementation libs.nva.apigatewayv2
+    implementation libs.nva.apigateway
     implementation libs.nva.core
     implementation libs.nva.secrets
     implementation libs.nva.auth

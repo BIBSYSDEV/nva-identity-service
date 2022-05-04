@@ -10,7 +10,7 @@ dependencies {
 
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.nva.core
-    implementation libs.nva.apigatewayv2
+    implementation libs.nva.apigateway
     implementation libs.bundles.aws.lambda
     implementation libs.aws.sdk2.dynamodb
     implementation libs.dynamoDbLocal

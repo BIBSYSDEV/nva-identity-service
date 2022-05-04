@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.interfaces.Typed;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 public class UserList implements Typed {
@@ -59,7 +60,7 @@ public class UserList implements Typed {
 
     @Override
     @JacocoGenerated
-    public void setType(String type) {
+    public void setType(String type) throws BadRequestException {
         Typed.super.setType(type);
     }
 

@@ -13,7 +13,7 @@ import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
-import nva.commons.apigatewayv2.exceptions.BadGatewayException;
+import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public class CristinClient {
     }
 
     public CristinPersonResponse sendRequestToCristin(NationalIdentityNumber nin)
-        throws IOException, InterruptedException {
+        throws IOException, InterruptedException, BadGatewayException {
         var request = HttpRequest.newBuilder(getUserByNinUri)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
             .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8));
@@ -44,7 +44,7 @@ public class CristinClient {
         return JsonConfig.readValue(response.body(), CristinPersonResponse.class);
     }
 
-    public URI fetchTopLevelOrgUri(URI orgUri) throws IOException, InterruptedException {
+    public URI fetchTopLevelOrgUri(URI orgUri) throws IOException, InterruptedException, BadGatewayException {
         var request = HttpRequest.newBuilder(orgUri)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
             .GET();
@@ -62,7 +62,7 @@ public class CristinClient {
             .getUri();
     }
 
-    private void assertThatResponseIsSuccessful(HttpResponse<String> response) {
+    private void assertThatResponseIsSuccessful(HttpResponse<String> response) throws BadGatewayException {
         if (response.statusCode() != HTTP_OK) {
             throw new BadGatewayException("Connection to Cristin failed." + response + " " + response.body());
         }

@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessservice.exceptions;
 
 import java.net.HttpURLConnection;
-import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 
 public class DataSyncException extends ApiGatewayException {
 

@@ -5,7 +5,7 @@ import no.unit.nva.customer.create.CreateControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import nva.commons.apigatewayv2.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
 public class UpdateControlledVocabularyHandler extends CreateControlledVocabularyHandler {
@@ -23,7 +23,8 @@ public class UpdateControlledVocabularyHandler extends CreateControlledVocabular
     }
 
     @Override
-    protected CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer) {
+    protected CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer)
+        throws NotFoundException {
         if (!customer.getVocabularies().isEmpty()) {
             return customer.copy().withVocabularies(input.getVocabularies()).build();
         }
@@ -31,7 +32,7 @@ public class UpdateControlledVocabularyHandler extends CreateControlledVocabular
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, VocabularyList output) {
+    protected Integer getSuccessStatusCode(VocabularyList input, VocabularyList output) {
         return HttpURLConnection.HTTP_ACCEPTED;
     }
 }

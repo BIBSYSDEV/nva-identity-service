@@ -1,6 +1,6 @@
 package no.unit.nva.customer.model.interfaces;
 
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 
 public interface Typed {
 
@@ -8,7 +8,7 @@ public interface Typed {
 
     String getType();
 
-    default void setType(String type) {
+    default void setType(String type) throws BadRequestException {
         if (!getType().equals(type)) {
             throw new BadRequestException(errorMessage(type, getType()));
         }

@@ -8,7 +8,7 @@ dependencies {
     implementation project(":customer-commons")
     implementation project(":json-config")
 
-    implementation libs.nva.apigatewayv2
+    implementation libs.nva.apigateway
     implementation libs.nva.core
     implementation libs.bundles.aws.lambda
     implementation libs.aws.sdk2.dynamodb

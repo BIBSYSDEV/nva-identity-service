@@ -2,7 +2,6 @@ package no.unit.nva.customer.get;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -12,10 +11,12 @@ import no.unit.nva.customer.RequestUtils;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
-public class GetCustomerByCristinIdHandler extends ApiGatewayHandlerV2<Void, CustomerDto> {
+public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, CustomerDto> {
 
     public static final String CRISTIN_ID = "cristinId";
 
@@ -32,17 +33,18 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandlerV2<Void, Cus
      * @param customerService customerService
      */
     public GetCustomerByCristinIdHandler(CustomerService customerService) {
-        super();
+        super(Void.class);
         this.customerService = customerService;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, CustomerDto output) {
+    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
         return HttpURLConnection.HTTP_OK;
     }
 
     @Override
-    protected CustomerDto processInput(String input, APIGatewayProxyRequestEvent request, Context context) {
+    protected CustomerDto processInput(Void input, RequestInfo request, Context context)
+        throws NotFoundException, InputException {
         var cristinId = URI.create(getCristinId(request));
         return customerService.getCustomerByCristinId(cristinId);
     }
@@ -52,7 +54,7 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandlerV2<Void, Cus
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
 
-    private String getCristinId(APIGatewayProxyRequestEvent request) {
+    private String getCristinId(RequestInfo request) throws InputException {
         try {
             return RequestUtils.getPathParameter(request, CRISTIN_ID).orElseThrow();
         } catch (IllegalArgumentException e) {

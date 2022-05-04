@@ -1,6 +1,7 @@
 package no.unit.nva.customer.get;
 
 import static java.util.Collections.singletonList;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -11,7 +12,10 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
@@ -19,6 +23,9 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,8 +33,8 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
     private CustomerService customerService;
     private GetAllCustomersHandler handler;
-
     private Context context;
+    private ByteArrayOutputStream outputStream;
 
     /**
      * Setting up test environment.
@@ -38,14 +45,15 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         customerService = new DynamoDBCustomerService(this.dynamoClient);
         handler = new GetAllCustomersHandler(customerService);
         context = new FakeContext();
+        outputStream = new ByteArrayOutputStream();
     }
 
     @Test
-    void requestToHandlerReturnsCustomerList() {
+    void requestToHandlerReturnsCustomerList() throws IOException, NotFoundException {
 
         final var savedCustomer = insertRandomCustomer();
-        var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
-        var response = handler.handleRequest(input, context);
+        var input = sampleRequest();
+        var response = sendRequest(input, CustomerList.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 
         CustomerList actualCustomerList = CustomerList.fromString(response.getBody());
@@ -57,10 +65,11 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate() {
+    void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate()
+        throws IOException, NotFoundException {
         var existingCustomer = insertRandomCustomer();
-        var input = new APIGatewayProxyRequestEvent().withHeaders(getRequestHeaders());
-        var response = handler.handleRequest(input, context);
+        var input = sampleRequest();
+        var response = sendRequest(input, CustomerList.class);
         var customerList = CustomerList.fromString(response.getBody());
         assertThat(customerList.getId(), notNullValue());
         assertThat(customerList.getContext(), notNullValue());
@@ -73,7 +82,16 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         }
     }
 
-    private CustomerDto insertRandomCustomer() {
+    private <T> GatewayResponse<T> sendRequest(InputStream input, Class<T> responseType) throws java.io.IOException {
+        handler.handleRequest(input, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    private InputStream sampleRequest() throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withHeaders(getRequestHeaders()).build();
+    }
+
+    private CustomerDto insertRandomCustomer() throws NotFoundException {
         var customer = CustomerDto.builder()
             .withDisplayName(randomString())
             .withCristinId(randomUri())

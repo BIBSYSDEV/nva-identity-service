@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -9,11 +10,11 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
-import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.ArrayList;
@@ -22,14 +23,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.UserList;
+import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigatewayv2.exceptions.ConflictException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
 
 class ListByInstitutionHandlerTest extends HandlerTest {
 
@@ -37,19 +41,21 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     public static final URI SOME_OTHER_INSTITUTION = randomCristinOrgId();
     private ListByInstitutionHandler listByInstitutionHandler;
     private Context context;
+    private ByteArrayOutputStream outputStream;
 
     @BeforeEach
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
         listByInstitutionHandler = new ListByInstitutionHandler(databaseService);
         context = new FakeContext();
+        outputStream = new ByteArrayOutputStream();
     }
 
     @Test
-    void handleRequestReturnsOkUponSuccessfulRequest() {
+    void handleRequestReturnsOkUponSuccessfulRequest() throws IOException {
         var validRequest = createListRequest(DEFAULT_INSTITUTION);
 
-        var response = sendRequestToHandler(validRequest);
+        var response = sendRequestToHandler(validRequest, UserList.class);
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
     }
 
@@ -59,7 +65,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         UserList expectedUsers = insertTwoUsersOfSameInstitution();
 
         var validRequest = createListRequest(DEFAULT_INSTITUTION);
-        var response = sendRequestToHandler(validRequest);
+        var response = sendRequestToHandler(validRequest,UserList.class);
 
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
         var actualUsers = parseResponseBody(response);
@@ -72,7 +78,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         UserList insertedUsers = insertTwoUsersOfDifferentInstitutions();
 
         var validRequest = createListRequest(DEFAULT_INSTITUTION);
-        var response = sendRequestToHandler(validRequest);
+        var response = sendRequestToHandler(validRequest,UserList.class);
 
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
 
@@ -86,11 +92,11 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     @Test
     void handleRequestReturnsEmptyListOfUsersWhenNoUsersOfSpecifiedInstitutionAreFound()
-        throws IOException, ConflictException, InvalidEntryInternalException, InvalidInputException {
+        throws ConflictException, InvalidEntryInternalException, InvalidInputException, IOException {
         insertTwoUsersOfSameInstitution();
 
         var validRequest = createListRequest(SOME_OTHER_INSTITUTION);
-        var response = sendRequestToHandler(validRequest);
+        var response = sendRequestToHandler(validRequest,UserList.class);
 
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
         UserList actualUserList = parseResponseBody(response);
@@ -98,14 +104,16 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    void shouldReturnBadRequestWheRequestParameterIsMissing() throws InvalidEntryInternalException {
-        var request = new APIGatewayProxyRequestEvent();
-        var response = listByInstitutionHandler.handleRequest(request, context);
+    void shouldReturnBadRequestWheRequestParameterIsMissing()
+        throws InvalidEntryInternalException, IOException {
+        var request = new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .build();
+        var response = sendRequestToHandler(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
-    private UserList parseResponseBody(APIGatewayProxyResponseEvent response) {
-        return UserList.fromJson(response.getBody());
+    private UserList parseResponseBody(GatewayResponse<UserList> response) throws JsonProcessingException {
+        return response.getBodyObject(UserList.class);
     }
 
     private UserList unexpectedUsers(UserList insertedUsers, UserList expectedUsers) {
@@ -141,9 +149,11 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         return users;
     }
 
-    private APIGatewayProxyResponseEvent sendRequestToHandler(APIGatewayProxyRequestEvent validRequest) {
+    private <T> GatewayResponse<T> sendRequestToHandler(InputStream validRequest, Class<T> responseBodyType)
+        throws IOException {
 
-        return listByInstitutionHandler.handleRequest(validRequest, context);
+        listByInstitutionHandler.handleRequest(validRequest, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseBodyType);
     }
 
     private void assertThatListsAreEquivalent(UserList expectedUsers, UserList actualUsers) {
@@ -159,8 +169,10 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         return users;
     }
 
-    private APIGatewayProxyRequestEvent createListRequest(URI institutionId) {
+    private InputStream createListRequest(URI institutionId) throws JsonProcessingException {
         Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString());
-        return new APIGatewayProxyRequestEvent().withQueryStringParameters(queryParams);
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withQueryParameters(queryParams)
+            .build();
     }
 }

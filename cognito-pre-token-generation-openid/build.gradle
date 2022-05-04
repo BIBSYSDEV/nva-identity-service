@@ -14,7 +14,7 @@ dependencies {
     implementation project(":user-access-public-model")
     implementation project(":user-creation")
 
-    implementation libs.nva.apigatewayv2
+    implementation libs.nva.apigateway
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection
     implementation libs.aws.lambda.java.core

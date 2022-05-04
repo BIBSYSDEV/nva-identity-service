@@ -2,15 +2,17 @@ package no.unit.nva.customer.update;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.UUID;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerHandler;
+import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
 public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
@@ -33,20 +35,20 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
      * @param customerService customerService
      */
     public UpdateCustomerHandler(CustomerService customerService) {
-        super();
+        super(CustomerDto.class);
         this.customerService = customerService;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, CustomerDto output) {
+    protected Integer getSuccessStatusCode(CustomerDto input, CustomerDto output) {
         return HttpURLConnection.HTTP_OK;
     }
 
     @Override
-    protected CustomerDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
+    protected CustomerDto processInput(CustomerDto input, RequestInfo requestInfo, Context context)
+        throws InputException, NotFoundException {
         UUID identifier = getIdentifier(requestInfo);
-        var parsedCustomer = parseInput(input);
-        return customerService.updateCustomer(identifier, parsedCustomer);
+        return customerService.updateCustomer(identifier, input);
     }
 
     @Override

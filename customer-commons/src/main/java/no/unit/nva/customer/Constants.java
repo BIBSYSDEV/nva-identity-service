@@ -5,7 +5,7 @@ import com.google.common.net.MediaType;
 import java.util.List;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import nva.commons.apigatewayv2.MediaTypes;
+import nva.commons.apigateway.MediaTypes;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 

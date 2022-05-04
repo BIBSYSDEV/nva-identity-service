@@ -25,28 +25,8 @@ public final class EntityUtils {
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
 
-    /**
-     * Creates a request for adding a user without a username. To be used with {@code handleRequest()} method.
-     *
-     * @return an RequestBuilder that can produce an {@link InputStream} that contains a request to be processed by a
-     *     {@link com.amazonaws.services.lambda.runtime.RequestStreamHandler}.
-     */
-    public static APIGatewayProxyRequestEvent createRequestBuilderWithUserWithoutUsername() {
 
-        var userWithoutUsername = createUserWithoutUsername();
-        var jsonString = attempt(() -> JsonConfig.writeValueAsString(userWithoutUsername)).orElseThrow();
-        return new APIGatewayProxyRequestEvent().withBody(jsonString);
-    }
 
-    /**
-     * Creates a request for adding a user without a username. To be used with {@code handleRequest()} method.
-     *
-     * @return an InputStream containing the ApiGateway request to be handled by a {@link
-     *     com.amazonaws.services.lambda.runtime.RequestStreamHandler}.
-     */
-    public static APIGatewayProxyRequestEvent createRequestWithUserWithoutUsername() {
-        return createRequestBuilderWithUserWithoutUsername();
-    }
 
     /**
      * Creates a user without a username. For testing output on invalid input.
@@ -61,15 +41,6 @@ public final class EntityUtils {
         return jsonMap;
     }
 
-    /**
-     * create user without roles.
-     *
-     * @return {@link UserDto}
-     * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user
-     */
-    public static UserDto createUserWithoutRoles() throws InvalidEntryInternalException {
-        return UserDto.newBuilder().withUsername(SOME_USERNAME).build();
-    }
 
     /**
      * Intention is to create a user with all fields filled.

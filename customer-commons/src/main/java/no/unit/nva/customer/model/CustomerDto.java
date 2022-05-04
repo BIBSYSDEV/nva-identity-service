@@ -15,7 +15,7 @@ import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 //Overriding setters and getters is necessary for Jackson-Jr
@@ -45,7 +45,7 @@ public class CustomerDto implements Context {
         this.vocabularies = Collections.emptyList();
     }
 
-    public static CustomerDto fromJson(String json) {
+    public static CustomerDto fromJson(String json) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(json, CustomerDto.class))
             .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }

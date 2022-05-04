@@ -3,21 +3,23 @@ package no.unit.nva.customer.service;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
+import nva.commons.apigateway.exceptions.NotFoundException;
 
 public interface CustomerService {
 
-    CustomerDto getCustomer(URI id);
+    CustomerDto getCustomer(URI id) throws NotFoundException;
 
-    CustomerDto getCustomer(UUID identifier);
+    CustomerDto getCustomer(UUID identifier) throws NotFoundException;
 
-    CustomerDto getCustomerByOrgDomain(String orgDomain);
+    CustomerDto getCustomerByOrgDomain(String orgDomain) throws NotFoundException;
 
     List<CustomerDto> getCustomers();
 
-    CustomerDto createCustomer(CustomerDto customer);
+    CustomerDto createCustomer(CustomerDto customer) throws NotFoundException;
 
-    CustomerDto updateCustomer(UUID identifier, CustomerDto customer);
+    CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws InputException, NotFoundException;
 
-    CustomerDto getCustomerByCristinId(URI cristinId);
+    CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException;
 }

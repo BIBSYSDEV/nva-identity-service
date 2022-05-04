@@ -2,6 +2,7 @@ package no.unit.nva.customer;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.util.Optional;
+import nva.commons.apigateway.RequestInfo;
 
 public final class RequestUtils {
 
@@ -9,9 +10,9 @@ public final class RequestUtils {
 
     }
 
-    public static Optional<String> getPathParameter(APIGatewayProxyRequestEvent requestInfo, String pathParameter) {
+    public static Optional<String> getPathParameter(RequestInfo requestInfo, String pathParameter) {
         return Optional.ofNullable(requestInfo)
-            .map(APIGatewayProxyRequestEvent::getPathParameters)
+            .map(RequestInfo::getPathParameters)
             .map(m -> m.get(pathParameter));
     }
 }

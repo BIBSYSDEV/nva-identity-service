@@ -18,7 +18,7 @@ import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
 import no.unit.nva.useraccessservice.model.UserDto.Builder;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 
@@ -66,7 +66,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
         return new Builder();
     }
 
-    public static UserDto fromJson(String input) {
+    public static UserDto fromJson(String input) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(input, UserDto.class))
             .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
     }
@@ -123,7 +123,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(String username) throws InvalidInputException {
         if (StringUtils.isBlank(username)) {
             throw new InvalidInputException(MISSING_FIELD_ERROR + "username");
         }
@@ -161,7 +161,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     }
 
     @Override
-    public void setType(String type) {
+    public void setType(String type) throws BadRequestException {
         Typed.super.setType(type);
     }
 
@@ -252,8 +252,12 @@ public class UserDto implements WithCopy<Builder>, Typed {
             userDto = new UserDto();
         }
 
-        public Builder withUsername(String username) {
-            userDto.setUsername(username);
+        public Builder withUsername(String username)  {
+            try {
+                userDto.setUsername(username);
+            } catch (InvalidInputException e) {
+                throw new RuntimeException(e);
+            }
             return this;
         }
 

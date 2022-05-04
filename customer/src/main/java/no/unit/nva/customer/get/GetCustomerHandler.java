@@ -8,8 +8,11 @@ import java.net.HttpURLConnection;
 import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerHandler;
+import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
 public class GetCustomerHandler extends CustomerHandler<Void> {
@@ -30,17 +33,18 @@ public class GetCustomerHandler extends CustomerHandler<Void> {
      * @param customerService customerService
      */
     public GetCustomerHandler(CustomerService customerService) {
-        super();
+        super(Void.class);
         this.customerService = customerService;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, CustomerDto output) {
+    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
         return HttpURLConnection.HTTP_OK;
     }
 
     @Override
-    protected CustomerDto processInput(String input, APIGatewayProxyRequestEvent requestInfo, Context context) {
+    protected CustomerDto processInput(Void input, RequestInfo requestInfo, Context context)
+        throws InputException, NotFoundException {
         return customerService.getCustomer(getIdentifier(requestInfo));
     }
 

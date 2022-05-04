@@ -14,7 +14,7 @@ import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
 import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessservice.interfaces.Typed;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 /**
@@ -43,12 +43,12 @@ public class ViewingScope implements Typed {
 
     }
 
-    public ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits) {
+    public ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits) throws BadRequestException {
 
         this(includedUnits, excludedUnits, VIEWING_SCOPE_TYPE);
     }
 
-    private ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits, String type) {
+    private ViewingScope(Set<URI> includedUnits, Set<URI> excludedUnits, String type) throws BadRequestException {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
         if (!VIEWING_SCOPE_TYPE.equals(type)) {
@@ -66,7 +66,7 @@ public class ViewingScope implements Typed {
         return pathIsNotExpectedPath(uri) || hostIsNotExpectedHost(uri);
     }
 
-    public static ViewingScope fromJson(String input) {
+    public static ViewingScope fromJson(String input) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(input, ViewingScope.class))
             .orElseThrow(fail -> new BadRequestException("Could not read viewing scope:" + input));
     }
@@ -137,7 +137,7 @@ public class ViewingScope implements Typed {
         return !ServiceConstants.API_HOST.equals(uri.getHost());
     }
 
-    private static Void validate(URI uri) {
+    private static Void validate(URI uri) throws BadRequestException {
         if (isNotValidOrganizationId(uri)) {
             throw new BadRequestException(INVALID_VIEWING_SCOPE_URI_ERROR + uri);
         }
@@ -145,7 +145,7 @@ public class ViewingScope implements Typed {
     }
 
     @JacocoGenerated
-    private void validate() {
+    private void validate() throws BadRequestException {
         if (includedUnits.isEmpty()) {
             throw new BadRequestException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
         }
@@ -154,7 +154,7 @@ public class ViewingScope implements Typed {
     }
 
     @JacocoGenerated
-    private void validate(Collection<URI> uris) {
+    private void validate(Collection<URI> uris) throws BadRequestException {
         for (URI uri : uris) {
             validate(uri);
         }

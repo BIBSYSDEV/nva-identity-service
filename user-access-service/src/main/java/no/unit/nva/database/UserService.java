@@ -14,8 +14,8 @@ import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.dao.UserDao;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.UserDto;
-import nva.commons.apigatewayv2.exceptions.ConflictException;
-import nva.commons.apigatewayv2.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,7 @@ public class UserService extends DatabaseSubService {
      * @return the DTO of the user in the database.
      * @throws NotFoundException when there is no use with that username
      */
-    public UserDto getUser(UserDto queryObject) {
+    public UserDto getUser(UserDto queryObject) throws NotFoundException {
         return getUserAsOptional(queryObject)
             .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }
@@ -86,7 +86,7 @@ public class UserService extends DatabaseSubService {
      * @return the user to be created
      * @throws ConflictException when the entry exists.
      */
-    public UserDto addUser(UserDto user) {
+    public UserDto addUser(UserDto user) throws ConflictException {
         logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
         checkUserDoesNotAlreadyExist(user);
         UserDao databaseEntryWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(user));
@@ -101,7 +101,7 @@ public class UserService extends DatabaseSubService {
      * @throws InvalidInputException when the input entry is invalid.
      * @throws NotFoundException     when there is no user with the same username in the database.
      */
-    public void updateUser(UserDto updateObject) {
+    public void updateUser(UserDto updateObject) throws NotFoundException {
 
         UserDto existingUser = getExistingUserOrSendNotFoundError(updateObject);
         UserDao updatedObjectWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(updateObject));
@@ -156,13 +156,13 @@ public class UserService extends DatabaseSubService {
             .build();
     }
 
-    private void checkUserDoesNotAlreadyExist(UserDto user) {
+    private void checkUserDoesNotAlreadyExist(UserDto user) throws ConflictException {
         if (userAlreadyExists(user)) {
             throw new ConflictException(USER_ALREADY_EXISTS_ERROR_MESSAGE + user.getUsername());
         }
     }
 
-    private UserDto getExistingUserOrSendNotFoundError(UserDto queryObject) {
+    private UserDto getExistingUserOrSendNotFoundError(UserDto queryObject) throws NotFoundException {
         return getUserAsOptional(queryObject)
             .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }

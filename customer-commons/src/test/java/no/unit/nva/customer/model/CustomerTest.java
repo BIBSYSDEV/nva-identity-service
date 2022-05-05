@@ -5,6 +5,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -72,16 +73,17 @@ class CustomerTest {
             .withIdentifier(UUID.randomUUID())
             .withName("Name")
             .withShortName("SN")
-            .withCreatedDate(now)
-            .withModifiedDate(now)
-            .withDisplayName("Display Name")
-            .withArchiveName("Archive Name")
-            .withCname("CNAME")
-            .withInstitutionDns("institution.dns")
-            .withFeideOrganizationDomain("123456789")
-            .withCristinId(randomCristinOrgId())
-            .withVocabularySettings(vocabularySettings)
-            .withRorId(randomUri())
+                   .withCreatedDate(now)
+                   .withModifiedDate(now)
+                   .withDisplayName("Display Name")
+                   .withArchiveName("Archive Name")
+                   .withCname("CNAME")
+                   .withInstitutionDns("institution.dns")
+                   .withFeideOrganizationDomain("123456789")
+                   .withCristinId(randomCristinOrgId())
+                   .withVocabularySettings(vocabularySettings)
+                   .withRorId(randomUri())
+                   .withPublicationWorkflow(randomPublicationWorkflow())
             .build();
     }
 

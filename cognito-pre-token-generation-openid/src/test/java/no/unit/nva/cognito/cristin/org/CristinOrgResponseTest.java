@@ -23,7 +23,7 @@ class CristinOrgResponseTest {
     @Test
     void shouldReturnFirstLevelPartOfIdAsTopLevelOrgWhenOrgIsExactlyUnderTopLevel() throws IOException {
         var input = IoUtils.stringFromResources(Path.of("cristin", "org", "one_level_under_top_level.json"));
-        var org = JsonConfig.readValue( input,CristinOrgResponse.class);
+        var org = JsonConfig.readValue(input, CristinOrgResponse.class);
         var topLevelOrgId = org.getPartOf().get(0).getOrgId();
         assertThat(org.extractInstitutionUri(), is(equalTo(topLevelOrgId)));
     }

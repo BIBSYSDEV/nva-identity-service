@@ -69,6 +69,11 @@ public class UpdateCustomerHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request,outputStream,context);
+        return GatewayResponse.fromOutputStream(outputStream,responseType);
+    }
+
     @Test
     void requestToHandlerReturnsCustomerUpdated() throws InputException, NotFoundException, IOException {
         UUID identifier = UUID.randomUUID();
@@ -114,10 +119,16 @@ public class UpdateCustomerHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
-    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType)
-        throws IOException {
-        handler.handleRequest(request, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
+
+    //TODO
+    @Test
+    void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() {
+    }
+
+    //TODO
+    @Test
+    void shouldReturnPublicationWorkflowWhenValueIsSet() {
+
     }
 
     private InputStream createInput(CustomerDto customer, Map<String, String> pathParameters)

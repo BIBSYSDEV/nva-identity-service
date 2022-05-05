@@ -1,6 +1,9 @@
 package no.unit.nva.customer.create;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -11,7 +14,6 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Map;
@@ -31,18 +33,17 @@ import org.zalando.problem.Problem;
 
 public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
 
-    private CustomerService customerServiceMock;
     private CreateCustomerHandler handler;
-    private ByteArrayOutputStream outputStream;
     private Context context;
+    private ByteArrayOutputStream outputSteam;
 
     @BeforeEach
     public void setUp() {
         super.setupDatabase();
-        customerServiceMock = new DynamoDBCustomerService(this.dynamoClient);
+        CustomerService customerServiceMock = new DynamoDBCustomerService(this.dynamoClient);
         handler = new CreateCustomerHandler(customerServiceMock);
-        outputStream = new ByteArrayOutputStream();
         context = new FakeContext();
+        outputSteam = new ByteArrayOutputStream();
     }
 
     @AfterEach
@@ -51,19 +52,9 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void requestToHandlerReturnsCustomerCreated() throws IOException, BadRequestException {
-        var inputRequest = CustomerDto.builder()
-            .withName("New Customer")
-            .withVocabularies(Collections.emptySet())
-            .build();
-        var requestBody = CreateCustomerRequest.fromCustomerDto(inputRequest);
-
-        var input = new HandlerRequestBuilder<CreateCustomerRequest>(dtoObjectMapper)
-            .withBody(requestBody)
-            .withHeaders(getRequestHeaders())
-            .build();
-
-        var response = sendRequest(input, CustomerDto.class);
+    void requestToHandlerReturnsCustomerCreated() throws BadRequestException, IOException {
+        var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
+        var response = executeRequest(requestBody, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
         assertThat(response.getHeaders(), is(equalTo(getResponseHeaders())));
@@ -74,13 +65,43 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldReturnBadRequestWhenInputIsNotAValidJson() throws IOException {
-        var input = new HandlerRequestBuilder<String>(dtoObjectMapper)
-            .withBody(randomString())
-            .withHeaders(getRequestHeaders())
+    void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() throws BadRequestException, IOException {
+        var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+        assertThat(actualResponseBody.getPublicationWorkflow(), is(equalTo(REGISTRATOR_PUBLISHES_METADATA_AND_FILES)));
+    }
+
+    @Test
+    void shouldReturnPublicationWorkflowWhenValueIsSet() throws BadRequestException, IOException {
+        var customerDto = CustomerDto.builder()
+            .withName("New Customer")
+            .withVocabularies(Collections.emptySet())
+            .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
             .build();
-        var response = sendRequest(input, Problem.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+        assertThat(actualResponseBody.getPublicationWorkflow(), is(equalTo(REGISTRATOR_PUBLISHES_METADATA_ONLY)));
+    }
+
+    @Test
+    void shouldReturnPublicationWorkflowErrorWhenValueIsWrong() throws BadRequestException, IOException {
+        var customerDto = CustomerDto.builder()
+            .withName("New Customer")
+            .withVocabularies(Collections.emptySet())
+            .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
+            .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto).toString()
+            .replace(REGISTRATOR_PUBLISHES_METADATA_ONLY.getValue(), "hello");
+        var response = executeRequest(requestBody, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenInputIsNotAValidJson() throws IOException {
+        var response = executeRequest(randomString(), Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
     }
 
     @Test
@@ -88,14 +109,25 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         var body = Map.of("type", randomString());
         var input = new HandlerRequestBuilder<String>(dtoObjectMapper)
             .withBody(attempt(() -> JsonConfig.writeValueAsString(body)).orElseThrow())
-            .withHeaders(getRequestHeaders())
-            .build();
-        var response = sendRequest(input, Problem.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+            .withHeaders(getRequestHeaders());
+        var response = executeRequest(input, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
     }
 
-    private <T> GatewayResponse<T> sendRequest(InputStream input, Class<T> responseType) throws IOException {
-        handler.handleRequest(input, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    private <I, O> GatewayResponse<O> executeRequest(I request, Class<O> responseType)
+        throws IOException {
+        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
+            .withBody(request)
+            .withHeaders(getRequestHeaders())
+            .build();
+        handler.handleRequest(input, outputSteam, context);
+        return GatewayResponse.fromOutputStream(outputSteam, responseType);
+    }
+
+    private CustomerDto validCustomerDto() {
+        return CustomerDto.builder()
+            .withName("New Customer")
+            .withVocabularies(Collections.emptySet())
+            .build();
     }
 }

@@ -38,12 +38,8 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
         return !(
-            userIsAuthorizedToEditInstUsers(requestInfo)
+            requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_USERS.toString())
             || requestInfo.isApplicationAdmin()
         );
-    }
-
-    private boolean userIsAuthorizedToEditInstUsers(RequestInfo requestInfo) {
-        return requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_USERS.toString());
     }
 }

@@ -1,3 +1,4 @@
+
 package no.unit.nva.handlers;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
@@ -24,6 +25,12 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     private final UserEntriesCreatorForPerson userCreator;
     private final IdentityService identityService;
     private static final Logger logger = LoggerFactory.getLogger(CreateUserHandler.class);
+
+    @JacocoGenerated
+    public CreateUserHandler() {
+        this(IdentityService.defaultIdentityService());
+    }
+
     @JacocoGenerated
     public CreateUserHandler(IdentityService identityService) {
         this(defaultUserCreator(identityService), identityService);

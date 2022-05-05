@@ -97,7 +97,6 @@ class CreateUserHandlerTest extends HandlerTest {
         outputStream = new ByteArrayOutputStream();
         request = createRequest(requestBody, EDIT_OWN_INSTITUTION_USERS);
         var response = sendRequest(request, UserDto.class);
-
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 

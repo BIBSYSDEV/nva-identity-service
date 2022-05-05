@@ -1,13 +1,19 @@
 package no.unit.nva.customer.create;
 
+import static no.unit.nva.customer.create.CreateCustomerRequest.TYPE_VALUE;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDto;
-import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
+@JsonTypeInfo(use = Id.NAME, property = "type")
+@JsonTypeName(TYPE_VALUE)
 public class CreateCustomerRequest {
 
     public static final String TYPE_VALUE = "Customer";
@@ -21,8 +27,9 @@ public class CreateCustomerRequest {
     private String feideOrganizationDomain;
     private URI cristinId;
     private List<VocabularyDto> vocabularies;
+    private PublicationWorkflow publicationWorkflow;
 
-    public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) throws BadRequestException {
+    public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
         var request = new CreateCustomerRequest();
         request.setName(customerDto.getName());
         request.setDisplayName(customerDto.getDisplayName());
@@ -31,7 +38,8 @@ public class CreateCustomerRequest {
         request.setInstitutionDns(customerDto.getInstitutionDns());
         request.setFeideOrganizationDomain(customerDto.getFeideOrganizationDomain());
         request.setVocabularies(customerDto.getVocabularies());
-        request.setType(customerDto.getType());
+
+        request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         return request;
     }
 
@@ -46,6 +54,7 @@ public class CreateCustomerRequest {
             .withFeideOrganizationDomain(getFeideOrganizationDomain())
             .withCristinId(getCristinId())
             .withVocabularies(vocabularies)
+            .withPublicationWorkflow(getPublicationWorkflow())
             .build();
     }
 
@@ -139,6 +148,14 @@ public class CreateCustomerRequest {
         this.vocabularies = vocabularies;
     }
 
+    public PublicationWorkflow getPublicationWorkflow() {
+        return publicationWorkflow;
+    }
+
+    public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+        this.publicationWorkflow = publicationWorkflow;
+    }
+
     @JacocoGenerated
     @Override
     public int hashCode() {
@@ -166,21 +183,5 @@ public class CreateCustomerRequest {
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies());
-    }
-
-    @JacocoGenerated
-    public String getType() {
-        return TYPE_VALUE;
-    }
-
-    public void setType(String type) throws BadRequestException {
-         validateType(type);
-    }
-
-    private String validateType(String type) throws BadRequestException {
-        if (!TYPE_VALUE.equals(type)) {
-            throw new BadRequestException("Input request is not of type 'Customer'");
-        }
-        return TYPE_VALUE;
     }
 }

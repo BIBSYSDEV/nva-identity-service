@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
 import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
 import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
 import static nva.commons.core.attempt.Try.attempt;
@@ -19,7 +20,7 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 //Overriding setters and getters is necessary for Jackson-Jr
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod"})
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields"})
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
@@ -39,6 +40,7 @@ public class CustomerDto implements Context {
     private URI cristinId;
     private List<VocabularyDto> vocabularies;
     private URI rorId;
+    private PublicationWorkflow publicationWorkflow;
 
     public CustomerDto() {
         super();
@@ -166,6 +168,14 @@ public class CustomerDto implements Context {
         this.rorId = rorId;
     }
 
+    public PublicationWorkflow getPublicationWorkflow() {
+        return publicationWorkflow;
+    }
+
+    public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+        this.publicationWorkflow = publicationWorkflow;
+    }
+
     @Override
     public URI getContext() {
         return context;
@@ -178,30 +188,22 @@ public class CustomerDto implements Context {
 
     public Builder copy() {
         return new Builder()
-                   .withVocabularies(getVocabularies())
-                   .withShortName(getShortName())
-                   .withInstitutionDns(getInstitutionDns())
-                   .withDisplayName(getDisplayName())
-                   .withCreatedDate(stringToInstant(getCreatedDate()))
-                   .withArchiveName(getArchiveName())
-                   .withIdentifier(getIdentifier())
-                   .withContext(getContext())
-                   .withCname(getCname())
-                   .withId(getId())
-                   .withCristinId(getCristinId())
-                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                   .withName(getName())
-                   .withModifiedDate(stringToInstant(getModifiedDate()))
-                   .withRorId(getRorId());
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(),
-                            getCristinId(), getVocabularies(), getContext(), getRorId());
+            .withVocabularies(getVocabularies())
+            .withShortName(getShortName())
+            .withInstitutionDns(getInstitutionDns())
+            .withDisplayName(getDisplayName())
+            .withCreatedDate(stringToInstant(getCreatedDate()))
+            .withArchiveName(getArchiveName())
+            .withIdentifier(getIdentifier())
+            .withContext(getContext())
+            .withCname(getCname())
+            .withId(getId())
+            .withCristinId(getCristinId())
+            .withFeideOrganizationDomain(getFeideOrganizationDomain())
+            .withName(getName())
+            .withModifiedDate(stringToInstant(getModifiedDate()))
+            .withRorId(getRorId())
+            .withPublicationWorkflow(getPublicationWorkflow());
     }
 
     @JacocoGenerated
@@ -214,7 +216,8 @@ public class CustomerDto implements Context {
             return false;
         }
         CustomerDto that = (CustomerDto) o;
-        return Objects.equals(getId(), that.getId())
+        return Objects.equals(getContext(), that.getContext())
+               && Objects.equals(getId(), that.getId())
                && Objects.equals(getIdentifier(), that.getIdentifier())
                && Objects.equals(getCreatedDate(), that.getCreatedDate())
                && Objects.equals(getModifiedDate(), that.getModifiedDate())
@@ -227,8 +230,17 @@ public class CustomerDto implements Context {
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getContext(), that.getContext())
-               && Objects.equals(getRorId(), that.getRorId());
+               && Objects.equals(getRorId(), that.getRorId())
+               && getPublicationWorkflow() == that.getPublicationWorkflow();
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
+                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getVocabularies(), getRorId(),
+                            getPublicationWorkflow());
     }
 
     @Override
@@ -315,7 +327,9 @@ public class CustomerDto implements Context {
         }
 
         public Builder withVocabularies(Collection<VocabularyDto> vocabularies) {
-            customerDto.setVocabularies(new ArrayList<>(vocabularies));
+            if (nonNull(vocabularies)) {
+                customerDto.setVocabularies(new ArrayList<>(vocabularies));
+            }
             return this;
         }
 
@@ -326,6 +340,11 @@ public class CustomerDto implements Context {
 
         public Builder withRorId(URI rorId) {
             customerDto.setRorId(rorId);
+            return this;
+        }
+
+        public Builder withPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+            customerDto.setPublicationWorkflow(publicationWorkflow);
             return this;
         }
 

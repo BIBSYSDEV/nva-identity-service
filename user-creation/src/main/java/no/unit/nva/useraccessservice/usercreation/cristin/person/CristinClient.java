@@ -27,6 +27,7 @@ public class CristinClient {
     private final URI getUserByNinUri;
     private final AuthorizedBackendClient httpClient;
     private static final Logger logger = LoggerFactory.getLogger(CristinClient.class);
+
     public CristinClient(URI cristinHost, AuthorizedBackendClient httpClient) {
         this.httpClient = httpClient;
         this.getUserByNinUri = formatUriForGettingUserByNin(cristinHost);

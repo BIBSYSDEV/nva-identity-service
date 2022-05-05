@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
+import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
@@ -43,6 +45,7 @@ public class CustomerDataGenerator {
                                    .withCreatedDate(randomInstant())
                                    .withVocabularies(randomVocabularyDtoSettings())
                                    .withRorId(randomUri())
+                                   .withPublicationWorkflow(randomPublicationWorkflow())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValues());
@@ -51,34 +54,32 @@ public class CustomerDataGenerator {
 
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
         VocabularyDao vocabulary = randomVocabularyDao();
-        return Set.of(vocabulary)
-            .stream()
-            .map(VocabularyDao::toVocabularySettingsDto)
-            .collect(Collectors.toSet());
+        return Stream.of(vocabulary)
+                   .map(VocabularyDao::toVocabularySettingsDto)
+                   .collect(Collectors.toSet());
     }
 
     public static CustomerDao createSampleCustomerDao() {
         VocabularyDao vocabulary = randomVocabularyDao();
         CustomerDao customer = CustomerDao.builder()
-            .withIdentifier(randomIdentifier())
-            .withName(randomString())
-            .withModifiedDate(randomInstant())
-            .withShortName(randomString())
-            .withCristinId(randomUri())
-            .withVocabularySettings(Set.of(vocabulary))
-            .withInstitutionDns(randomString())
-            .withFeideOrganizationDomain(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withCname(randomString())
-            .withArchiveName(randomString())
-            .withRorId(randomUri())
-            .build();
+                                   .withIdentifier(randomIdentifier())
+                                   .withName(randomString())
+                                   .withModifiedDate(randomInstant())
+                                   .withShortName(randomString())
+                                   .withCristinId(randomUri())
+                                   .withVocabularySettings(Set.of(vocabulary))
+                                   .withInstitutionDns(randomString())
+                                   .withFeideOrganizationDomain(randomString())
+                                   .withDisplayName(randomString())
+                                   .withCreatedDate(randomInstant())
+                                   .withCname(randomString())
+                                   .withArchiveName(randomString())
+                                   .withRorId(randomUri())
+                                   .withPublicationWorkflow(randomPublicationWorkflow())
+                                   .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
     }
-
-
 
     public static UUID randomIdentifier() {
         return UUID.randomUUID();
@@ -86,9 +87,9 @@ public class CustomerDataGenerator {
 
     public static URI randomCristinOrgId() {
         return new UriWrapper("https", API_HOST)
-            .addChild(CRISTIN_PATH)
-            .addChild(randomString())
-            .getUri();
+                   .addChild(CRISTIN_PATH)
+                   .addChild(randomString())
+                   .getUri();
     }
 
     public static VocabularyDao randomVocabularyDao() {
@@ -103,6 +104,10 @@ public class CustomerDataGenerator {
 
     public static List<VocabularyDto> randomVocabularies() {
         return List.of(randomVocabularyDto(), randomVocabularyDto(), randomVocabularyDto());
+    }
+
+    public static PublicationWorkflow randomPublicationWorkflow() {
+        return randomElement(PublicationWorkflow.values());
     }
 }
 

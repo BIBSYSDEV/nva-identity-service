@@ -1,10 +1,16 @@
 package no.unit.nva.useraccessservice.userceation.testing.cristin;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Arrays;
@@ -82,8 +88,8 @@ public class CristinServerMock {
     private void createOrganizationResponse(PersonAffiliation orgStructure) {
         cacheForInternalUse(orgStructure);
         setupWiremockPorts();
-        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo(organizationPath(orgStructure.getChild())))
-                             .willReturn(createInstitutionRegistryResponseForOrganization(orgStructure))
+        stubFor(get(urlEqualTo(organizationPath(orgStructure.getChild())))
+                    .willReturn(createInstitutionRegistryResponseForOrganization(orgStructure))
 
         );
     }
@@ -93,7 +99,7 @@ public class CristinServerMock {
     }
 
     private void setupWiremockPorts() {
-        WireMock.configureFor(serverUri.getScheme(), serverUri.getHost(), serverUri.getPort());
+        configureFor(serverUri.getScheme(), serverUri.getHost(), serverUri.getPort());
     }
 
     private CristinPersonResponse cristinPersonResponse(NationalIdentityNumber nin,
@@ -115,9 +121,9 @@ public class CristinServerMock {
 
     private void addResponseToRegistryServer(NationalIdentityNumber nin, CristinPersonResponse personCristinEntry) {
         setupWiremockPorts();
-        WireMock.stubFor(WireMock.post(PERSON_IDENTITY_NUMBER_PATH)
-                             .withRequestBody(WireMock.equalToJson(formatSearchByNinRequestBody(nin)))
-                             .willReturn(WireMock.aResponse().withBody(personCristinEntry.toString())));
+        stubFor(post(PERSON_IDENTITY_NUMBER_PATH)
+                    .withRequestBody(equalToJson(formatSearchByNinRequestBody(nin)))
+                    .willReturn(aResponse().withBody(personCristinEntry.toString())));
     }
 
     private URI randomPersonId() {
@@ -130,7 +136,7 @@ public class CristinServerMock {
 
     private ResponseDefinitionBuilder createInstitutionRegistryResponseForOrganization(
         PersonAffiliation employmentAffiliations) {
-        return WireMock.aResponse()
+        return aResponse()
             .withStatus(HttpURLConnection.HTTP_OK)
             .withBody(organizationBody(employmentAffiliations));
     }

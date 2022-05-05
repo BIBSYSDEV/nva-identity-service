@@ -4,9 +4,10 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import java.util.Optional;
 import no.unit.nva.useraccessservice.dao.RoleDb;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
-import nva.commons.apigatewayv2.exceptions.ConflictException;
-import nva.commons.apigatewayv2.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.attempt.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class RoleService extends DatabaseSubService {
      *
      * @param roleDto the role to be added.
      */
-    public void addRole(RoleDto roleDto) {
+    public void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException {
         logger.debug(ADD_ROLE_DEBUG_MESSAGE, convertToStringOrWriteErrorMessage(roleDto));
         validate(roleDto);
         checkRoleDoesNotExist(roleDto);
@@ -47,7 +48,7 @@ public class RoleService extends DatabaseSubService {
      * @param queryObject the query object containing the rolename.
      * @return the Role that corresponds to the given rolename.
      */
-    public RoleDto getRole(RoleDto queryObject) {
+    public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
         return getRoleAsOptional(queryObject)
             .orElseThrow(() -> handleRoleNotFound(queryObject));
     }
@@ -66,7 +67,7 @@ public class RoleService extends DatabaseSubService {
         return Optional.ofNullable(attemptFetchRole(queryObject));
     }
 
-    private void checkRoleDoesNotExist(RoleDto roleDto) {
+    private void checkRoleDoesNotExist(RoleDto roleDto) throws ConflictException {
         if (roleAlreadyExists(roleDto)) {
             throw new ConflictException(ROLE_ALREADY_EXISTS_ERROR_MESSAGE + roleDto.getRoleName());
         }

@@ -30,7 +30,7 @@ tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 
-    failFast = false
+    failFast = true
     testLogging {
         events('skipped', 'passed', 'failed')
     }

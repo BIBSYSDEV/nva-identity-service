@@ -1,5 +1,6 @@
 package no.unit.nva.customer.get;
 
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -9,7 +10,10 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Map;
@@ -18,6 +22,9 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +36,7 @@ class GetCustomerByOrgDomainHandlerTest {
     private CustomerService customerServiceMock;
     private GetCustomerByOrgDomainHandler handler;
     private Context context;
+    private ByteArrayOutputStream outputStream;
 
     /**
      * Setting up test environment.
@@ -38,10 +46,12 @@ class GetCustomerByOrgDomainHandlerTest {
         customerServiceMock = mock(CustomerService.class);
         handler = new GetCustomerByOrgDomainHandler(customerServiceMock);
         context = new FakeContext();
+        outputStream = new ByteArrayOutputStream();
     }
 
     @Test
-    void getCustomerByOrgDomainReturnsCustomerWhenInputIsExistingCustomerOrgDomain() {
+    void getCustomerByOrgDomainReturnsCustomerWhenInputIsExistingCustomerOrgDomain()
+        throws NotFoundException, IOException {
         UUID identifier = UUID.randomUUID();
         CustomerDao customerDb = new CustomerDao.Builder()
             .withIdentifier(identifier)
@@ -53,18 +63,19 @@ class GetCustomerByOrgDomainHandlerTest {
 
         var pathParameters = Map.of(GetCustomerByOrgDomainHandler.ORG_DOMAIN, SAMPLE_ORG_DOMAIN);
         var inputStream = createRequest(customerDto, pathParameters);
-        var response = handler.handleRequest(inputStream, context);
-
+        handler.handleRequest(inputStream, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, CustomerDto.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(response.getBody(), containsString(customerDto.getId().toString()));
         assertThat(response.getBody(), containsString(SAMPLE_CRISTIN_ID.toString()));
     }
 
-
-    private APIGatewayProxyRequestEvent createRequest(CustomerDto customerDto, Map<String, String> pathParameters) {
-        return new APIGatewayProxyRequestEvent()
-            .withBody(customerDto.toString())
+    private InputStream createRequest(CustomerDto customerDto, Map<String, String> pathParameters)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
+            .withBody(customerDto)
             .withPathParameters(pathParameters)
-            .withHeaders(getRequestHeaders());
+            .withHeaders(getRequestHeaders())
+            .build();
     }
 }

@@ -11,7 +11,7 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigatewayv2.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
@@ -55,13 +55,13 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomer(URI customerId) {
+    public CustomerDto getCustomer(URI customerId) throws NotFoundException {
         var customerIdentifier = UriWrapper.fromUri(customerId).getLastPathElement();
         return getCustomer(UUID.fromString(customerIdentifier));
     }
 
     @Override
-    public CustomerDto getCustomer(UUID identifier) {
+    public CustomerDto getCustomer(UUID identifier) throws NotFoundException {
         return Optional.of(CustomerDao.builder().withIdentifier(identifier).build())
             .map(table::getItem)
             .map(CustomerDao::toCustomerDto)
@@ -69,7 +69,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomerByOrgDomain(String orgDomain) {
+    public CustomerDto getCustomerByOrgDomain(String orgDomain) throws NotFoundException {
         CustomerDao query = createQueryForOrgDomain(orgDomain);
         return sendQueryToIndex(query, BY_ORG_DOMAIN_INDEX_NAME, CustomerDao::getFeideOrganizationDomain);
     }
@@ -84,7 +84,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto createCustomer(CustomerDto customer) {
+    public CustomerDto createCustomer(CustomerDto customer) throws NotFoundException {
         UUID identifier = UUID.randomUUID();
         Instant now = Instant.now();
         customer.setIdentifier(identifier);
@@ -95,7 +95,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto updateCustomer(UUID identifier, CustomerDto customer) {
+    public CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws InputException, NotFoundException {
         validateIdentifier(identifier, customer);
         customer.setModifiedDate(Instant.now().toString());
         table.putItem(CustomerDao.fromCustomerDto(customer));
@@ -103,7 +103,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomerByCristinId(URI cristinId) {
+    public CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException {
         CustomerDao queryObject = createQueryForCristinNumber(cristinId);
         return sendQueryToIndex(queryObject, BY_CRISTIN_ID_INDEX_NAME,
                                 customer -> customer.getCristinId().toString());
@@ -118,7 +118,7 @@ public class DynamoDBCustomerService implements CustomerService {
 
     private CustomerDto sendQueryToIndex(CustomerDao queryObject,
                                          String indexName,
-                                         Function<CustomerDao, String> indexPartitionValue) {
+                                         Function<CustomerDao, String> indexPartitionValue) throws NotFoundException {
         QueryEnhancedRequest query = createQuery(queryObject, indexPartitionValue);
         var results = table.index(indexName).query(query);
         return results
@@ -155,7 +155,7 @@ public class DynamoDBCustomerService implements CustomerService {
         }
     }
 
-    private void validateIdentifier(UUID identifier, CustomerDto customer) {
+    private void validateIdentifier(UUID identifier, CustomerDto customer) throws InputException {
         if (!identifier.equals(customer.getIdentifier())) {
             throw new InputException(String.format(IDENTIFIERS_NOT_EQUAL, identifier, customer.getIdentifier()), null);
         }

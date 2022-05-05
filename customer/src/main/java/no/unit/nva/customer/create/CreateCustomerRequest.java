@@ -1,16 +1,19 @@
 package no.unit.nva.customer.create;
 
-import static nva.commons.core.attempt.Try.attempt;
+import static no.unit.nva.customer.create.CreateCustomerRequest.TYPE_VALUE;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDto;
-import no.unit.nva.identityservice.json.JsonConfig;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
+@JsonTypeInfo(use = Id.NAME, property = "type")
+@JsonTypeName(TYPE_VALUE)
 public class CreateCustomerRequest {
 
     public static final String TYPE_VALUE = "Customer";
@@ -35,14 +38,9 @@ public class CreateCustomerRequest {
         request.setInstitutionDns(customerDto.getInstitutionDns());
         request.setFeideOrganizationDomain(customerDto.getFeideOrganizationDomain());
         request.setVocabularies(customerDto.getVocabularies());
-        request.setType(customerDto.getType());
+
         request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         return request;
-    }
-
-    public static CreateCustomerRequest fromJson(String json) {
-        return attempt(() -> JsonConfig.readValue(json, CreateCustomerRequest.class))
-            .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json));
     }
 
     public CustomerDto toCustomerDto() {
@@ -185,26 +183,5 @@ public class CreateCustomerRequest {
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getVocabularies(), that.getVocabularies());
-    }
-
-    @Override
-    public String toString() {
-        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
-    }
-
-    @JacocoGenerated
-    public String getType() {
-        return TYPE_VALUE;
-    }
-
-    public void setType(String type) {
-        validateType(type);
-    }
-
-    private String validateType(String type) {
-        if (!TYPE_VALUE.equals(type)) {
-            throw new BadRequestException("Input request is not of type 'Customer'");
-        }
-        return TYPE_VALUE;
     }
 }

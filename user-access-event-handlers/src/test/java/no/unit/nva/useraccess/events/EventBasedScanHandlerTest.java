@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeEventBridgeClient;
@@ -28,6 +28,8 @@ import no.unit.nva.useraccess.events.service.UserMigrationService;
 import no.unit.nva.useraccessservice.dao.UserDao;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.BeforeEach;
@@ -185,7 +187,7 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
         return scanAllUsersInDatabaseDirectly();
     }
 
-    private UserDto randomUser() {
+    private UserDto randomUser() throws ConflictException, NotFoundException {
         var user = UserDto.newBuilder().withUsername(randomString()).build();
         identityService.addUser(user);
         return identityService.getUser(user);

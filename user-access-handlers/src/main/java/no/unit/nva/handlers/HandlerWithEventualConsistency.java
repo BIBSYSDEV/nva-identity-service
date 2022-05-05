@@ -4,12 +4,12 @@ import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
+import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class HandlerWithEventualConsistency<I, O> extends ApiGatewayHandlerV2<I, O> {
+public abstract class HandlerWithEventualConsistency<I, O> extends ApiGatewayHandler<I, O> {
 
     public static final String FAILED_TO_FETCH_OBJECT = "Failed to fetch object.Effort %s/%s";
     public static final String INVALID_ENTRY_IN_DATABASE = "Saved invalid entry in database.";
@@ -18,8 +18,8 @@ public abstract class HandlerWithEventualConsistency<I, O> extends ApiGatewayHan
     protected static final long WAITING_TIME = 100;
     private static final Logger  logger = LoggerFactory.getLogger(HandlerWithEventualConsistency.class);
 
-    protected HandlerWithEventualConsistency() {
-        super();
+    protected HandlerWithEventualConsistency(Class<I> iClass) {
+        super(iClass);
     }
 
     protected Optional<O> getEventuallyConsistent(Callable<O> fetchEntry) {

@@ -14,7 +14,7 @@ dependencies {
 
     implementation libs.aws.java.sdk2.cognitoidp
     implementation libs.aws.sdk2.urlconnection
-    implementation libs.nva.apigatewayv2
+    implementation libs.nva.apigateway
     implementation libs.nva.core
     implementation libs.nva.lambdaauthorizer
     implementation libs.nva.secrets

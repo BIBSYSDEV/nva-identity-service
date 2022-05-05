@@ -1,7 +1,6 @@
 package no.unit.nva.useraccessservice.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import no.unit.nva.identityservice.json.JsonConfig;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.model.ViewingScope.defaultViewingScope;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -12,10 +11,11 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.util.Set;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import no.unit.nva.identityservice.json.JsonConfig;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 
-public class ViewingScopeTest {
+class ViewingScopeTest {
 
     @Test
     void viewingScopeIsSerializedWithType() throws BadRequestException, IOException {
@@ -32,7 +32,7 @@ public class ViewingScopeTest {
     }
 
     @Test
-    void shouldSerializeAndDeserialize() {
+    void shouldSerializeAndDeserialize() throws BadRequestException {
         ViewingScope viewingScope = randomViewingScope();
         var json = viewingScope.toString();
         var deserialized = ViewingScope.fromJson(json);
@@ -46,8 +46,7 @@ public class ViewingScopeTest {
         assertThat(exception.getMessage(), containsString(invalidJson));
     }
 
-    private ViewingScope randomViewingScope() {
-        return new ViewingScope(Set.of(randomCristinOrgId()), Set.of(
-            randomCristinOrgId()));
+    private ViewingScope randomViewingScope() throws BadRequestException {
+        return ViewingScope.create(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId()));
     }
 }

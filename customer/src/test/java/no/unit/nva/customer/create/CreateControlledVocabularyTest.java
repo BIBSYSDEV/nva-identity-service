@@ -14,10 +14,18 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
-import nva.commons.apigatewayv2.MediaTypes;
+import nva.commons.apigateway.MediaTypes;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
 
 class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySettingsTests {
+
+    @BeforeEach
+    public void init() throws NotFoundException {
+        super.init();
+    }
 
     @Test
     void handleRequestReturnsCreatedWhenCreatingVocabularyForExistingCustomer() throws IOException {
@@ -36,7 +44,7 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
 
     @Test
     void handleRequestSavesVocabularySettingsToDatabaseWhenCreatingSettingsForExistingCustomer()
-        throws IOException {
+        throws IOException, NotFoundException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
         var savedVocabularySettings =
             customerService.getCustomer(existingIdentifier()).getVocabularies();
@@ -51,10 +59,10 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
     }
 
     @Test
-    void handleRequestReturnsBadRequestWhenInputBodyIsNotValid() {
+    void handleRequestReturnsBadRequestWhenInputBodyIsNotValid() throws IOException {
         CustomerDto invalidBody = CustomerDataGenerator.createSampleCustomerDto();
         var request = createRequest(existingIdentifier(), invalidBody, MediaTypes.APPLICATION_JSON_LD);
-        var response = handler.handleRequest(request, CONTEXT);
+        var response = sendRequest(handler, request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
@@ -86,6 +94,7 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
     void handleRequestReturnsConflictWhenCustomerAlreadyHasVocabularySettings() throws IOException {
         assertThatExistingUserHasEmptyVocabularySettings();
         sendRequestAcceptingJsonLd(existingIdentifier());
+
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
 
         assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));

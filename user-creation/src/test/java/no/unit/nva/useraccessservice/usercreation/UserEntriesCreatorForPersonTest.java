@@ -2,6 +2,7 @@ package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
@@ -23,7 +24,10 @@ import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +52,7 @@ class UserEntriesCreatorForPersonTest {
         this.httpClient = AuthorizedBackendClient.prepareWithBearerToken(WiremockHttpClient.create(), randomString());
 
         setupPersonAndInstituttionRegistryClient();
-        userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient,identityService);
+        userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient, identityService);
     }
 
     @AfterEach
@@ -65,7 +69,8 @@ class UserEntriesCreatorForPersonTest {
                  + "and the the Institution is an NVA Customer"
                  + "and the Person has no other Affiliations active or inactive"
     )
-    void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleActiveAffiliation() {
+    void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleActiveAffiliation()
+        throws NotFoundException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var users = userCreator.createUsers(personInfo);
@@ -82,7 +87,8 @@ class UserEntriesCreatorForPersonTest {
                  + "and the the Institution is an NVA Customer"
                  + "and the Person has no other Affiliations active or inactive"
     )
-    void shouldNotCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleInactiveAffiliation() {
+    void shouldNotCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleInactiveAffiliation()
+        throws NotFoundException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneInactiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var users = userCreator.createUsers(personInfo);
@@ -102,7 +108,8 @@ class UserEntriesCreatorForPersonTest {
         var expectedCustomers =
             peopleAndInstitutions.getParentIntitutionsWithActiveAffiliations(person)
                 .stream()
-                .map(institution -> customerService.getCustomerByCristinId(institution))
+                .map(attempt(institution -> customerService.getCustomerByCristinId(institution)))
+                .map(Try::orElseThrow)
                 .map(CustomerDto::getId)
                 .collect(Collectors.toList());
         var users = userCreator.createUsers(personInfo);
@@ -117,7 +124,7 @@ class UserEntriesCreatorForPersonTest {
                  + "And there is already a User for the Person for the Institution"
                  + "Then the username of the existing User is maintained by all means"
     )
-    void shouldNotOverwriteUsernameOfExistingUsers() {
+    void shouldNotOverwriteUsernameOfExistingUsers() throws NotFoundException, ConflictException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var existingUser = peopleAndInstitutions.createNvaUserForPerson(person);
@@ -126,7 +133,7 @@ class UserEntriesCreatorForPersonTest {
     }
 
     @Test
-    void shouldAddFeideIdentifierWhenFeideIdentifierIsAvailable() {
+    void shouldAddFeideIdentifierWhenFeideIdentifierIsAvailable() throws NotFoundException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personFeideIdentifier = randomString();
         var personInfo = userCreator.collectPersonInformation(person, personFeideIdentifier, randomString());
@@ -143,7 +150,7 @@ class UserEntriesCreatorForPersonTest {
     }
 
     @Test
-    void createdUserShouldHaveTheCreatorRoleByDefault() {
+    void createdUserShouldHaveTheCreatorRoleByDefault() throws NotFoundException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var actualUser = userCreator.createUsers(personInfo).stream().collect(SingletonCollector.collect());
@@ -152,7 +159,8 @@ class UserEntriesCreatorForPersonTest {
     }
 
     @Test
-    void shouldUpdateLegacyFeideUserWithNecessaryDetailsWhenSuchUserExists() {
+    void shouldUpdateLegacyFeideUserWithNecessaryDetailsWhenSuchUserExists()
+        throws ConflictException, NotFoundException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var feideIdentifier = randomString();
         var existingUser = peopleAndInstitutions.createLegacyNvaUserForPerson(person, feideIdentifier);
@@ -169,7 +177,8 @@ class UserEntriesCreatorForPersonTest {
         var personInfo = userCreator.collectPersonInformation(person);
         var allCustomers = peopleAndInstitutions.getInstitutions(person)
             .stream()
-            .map(institution -> customerService.getCustomerByCristinId(institution))
+            .map(attempt(institution -> customerService.getCustomerByCristinId(institution)))
+            .map(Try::orElseThrow)
             .collect(Collectors.toList());
         assertThatWeHaveMoreThanOneCustomer(allCustomers);
         var selectedCustomer = allCustomers.stream().findAny().map(CustomerDto::getId).orElseThrow();

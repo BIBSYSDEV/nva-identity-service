@@ -1,9 +1,6 @@
 package no.unit.nva.customer.get;
 
-
-import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
-import no.unit.nva.identityservice.json.JsonConfig;
 
 public class CustomerIdentifiers {
 
@@ -23,8 +20,4 @@ public class CustomerIdentifiers {
         return cristinId;
     }
 
-    @Override
-    public String toString() {
-        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
-    }
 }

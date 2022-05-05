@@ -9,7 +9,6 @@ import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Arrays;
@@ -20,8 +19,9 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.useraccessservice.database.DatabaseConfig;
-import nva.commons.apigatewayv2.ApiGatewayHandlerV2;
-import nva.commons.apigatewayv2.exceptions.ForbiddenException;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResp
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
 
 @JacocoGenerated
-public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
+public class CustomerSelectionHandler extends ApiGatewayHandler<CustomerSelection, Void> {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String EMPTY_STRING = "";
@@ -54,20 +54,20 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
     public CustomerSelectionHandler(CognitoIdentityProviderClient cognito,
                                     CustomerService customerService,
                                     IdentityService identityService) {
-        super();
+        super(CustomerSelection.class);
         this.cognito = cognito;
         this.customerService = customerService;
         this.identityService = identityService;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String body, Void output) {
+    protected Integer getSuccessStatusCode(CustomerSelection body, Void output) {
         return HttpURLConnection.HTTP_OK;
     }
 
     @Override
-    protected Void processInput(String body, APIGatewayProxyRequestEvent event, Context context) {
-        var input = CustomerSelection.fromJson(body);
+    protected Void processInput(CustomerSelection input, RequestInfo event, Context context) throws ForbiddenException {
+
         var accessToken = extractAccessToken(event);
         var userAttributes = fetchUserInfo(accessToken).userAttributes();
         validateInput(userAttributes, input.getCustomerId());
@@ -153,7 +153,7 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
             .orElseThrow();
     }
 
-    private void validateInput(List<AttributeType> userAttributes, URI customerId) {
+    private void validateInput(List<AttributeType> userAttributes, URI customerId) throws ForbiddenException {
         var allowedCustomers = extractAllowedCustomers(userAttributes);
         var desiredCustomerIdString = customerId.toString().toLowerCase(Locale.getDefault());
         if (desiredCustomerIsNotAllowed(allowedCustomers, desiredCustomerIdString)) {
@@ -173,7 +173,7 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
             .orElse(fail -> EMPTY_STRING);
     }
 
-    private String extractAccessToken(APIGatewayProxyRequestEvent event) {
+    private String extractAccessToken(RequestInfo event) {
         var authorizationHeader = removeBearerTokenPrefix(event);
         return everythingAfterBearerTokenPrefix(authorizationHeader);
     }
@@ -182,7 +182,7 @@ public class CustomerSelectionHandler extends ApiGatewayHandlerV2<Void, Void> {
         return String.join("", authorizationHeader.subList(1, authorizationHeader.size()));
     }
 
-    private List<String> removeBearerTokenPrefix(APIGatewayProxyRequestEvent event) {
-        return Arrays.asList(event.getHeaders().get(AUTHORIZATION_HEADER).split(" "));
+    private List<String> removeBearerTokenPrefix(RequestInfo event) {
+        return Arrays.asList(event.getAuthHeader().split(" "));
     }
 }

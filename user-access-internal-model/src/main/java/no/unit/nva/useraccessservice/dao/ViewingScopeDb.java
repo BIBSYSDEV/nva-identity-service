@@ -11,7 +11,7 @@ import java.util.Set;
 import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.model.ViewingScope;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
@@ -41,7 +41,7 @@ public class ViewingScopeDb implements Typed {
     public ViewingScopeDb() {
     }
 
-    public ViewingScopeDb(Set<URI> includedUnits, Set<URI> excludedUnits) {
+    public ViewingScopeDb(Set<URI> includedUnits, Set<URI> excludedUnits) throws BadRequestException {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
         validate(includedUnits);
@@ -52,7 +52,7 @@ public class ViewingScopeDb implements Typed {
     }
 
     public ViewingScope toViewingScope() {
-        return attempt(() -> new ViewingScope(getIncludedUnits(), getExcludedUnits())).orElseThrow();
+        return attempt(() -> ViewingScope.create(getIncludedUnits(), getExcludedUnits())).orElseThrow();
     }
 
     @DynamoDbAttribute(INCLUDED_UNITS)
@@ -81,7 +81,7 @@ public class ViewingScopeDb implements Typed {
 
     @Override
     @JacocoGenerated
-    public void setType(String type) {
+    public void setType(String type) throws BadRequestException {
         Typed.super.setType(type);
     }
 
@@ -109,13 +109,13 @@ public class ViewingScopeDb implements Typed {
         var dao = new ViewingScopeDb();
         dao.setExcludedUnits(JacksonJrDoesNotSupportSets.toSet(dto.getExcludedUnits()));
         dao.setIncludedUnits(JacksonJrDoesNotSupportSets.toSet(dto.getIncludedUnits()));
-        attempt(() -> validate(dao.getIncludedUnits())).orElseThrow();
+        validate(dao.getIncludedUnits());
         return dao;
     }
 
-    private static Void validate(Set<URI> includedUnits)  {
+    private static Void validate(Set<URI> includedUnits) {
         if (isNull(includedUnits) || includedUnits.isEmpty()) {
-            throw new BadRequestException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
+            throw new IllegalArgumentException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
         }
         return null;
     }

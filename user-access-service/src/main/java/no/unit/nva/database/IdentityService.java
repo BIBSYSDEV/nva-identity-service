@@ -4,9 +4,12 @@ import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_C
 import java.net.URI;
 import java.util.List;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.internals.UserScanResult;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -25,17 +28,17 @@ public interface IdentityService {
         return new IdentityServiceImpl(dynamoDbClient);
     }
 
-    UserDto getUser(UserDto queryObject);
+    UserDto getUser(UserDto queryObject) throws NotFoundException;
 
     List<UserDto> listUsers(URI institutionId);
 
-    UserDto addUser(UserDto user);
+    UserDto addUser(UserDto user) throws ConflictException;
 
-    void addRole(RoleDto roleDto);
+    void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException;
 
-    void updateUser(UserDto user);
+    void updateUser(UserDto user) throws NotFoundException;
 
-    RoleDto getRole(RoleDto input);
+    RoleDto getRole(RoleDto input) throws NotFoundException;
 
     UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest);
 

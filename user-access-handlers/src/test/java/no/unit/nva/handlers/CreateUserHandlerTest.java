@@ -6,14 +6,20 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.List;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.handlers.models.CreateUserRequest;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import nva.commons.apigateway.GatewayResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,22 +27,31 @@ class CreateUserHandlerTest extends HandlerTest {
 
     private CreateUserHandler handler;
     private Context context;
+    private ByteArrayOutputStream outputStream;
 
     @BeforeEach
     public void init() {
         handler = new CreateUserHandler();
         context = new FakeContext();
+        outputStream = new ByteArrayOutputStream();
     }
 
     @Test
-    void shouldAcceptRequestContainingPersonCristinIdCustomerIdAndListOfRoles() {
+    void shouldAcceptRequestContainingPersonCristinIdCustomerIdAndListOfRoles() throws IOException {
         var requestBody = sampleRequest();
-        var request = new APIGatewayProxyRequestEvent().withBody(requestBody.toString());
-        var response = handler.handleRequest(request, context);
+        var request = createRequest(requestBody);
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, UserDto.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 
-        var actualUser = UserDto.fromJson(response.getBody());
+        var actualUser = response.getBodyObject(UserDto.class);
         assertThat(actualUser.getInstitution(), is(equalTo(requestBody.getCustomerId())));
+    }
+
+    private InputStream createRequest(CreateUserRequest requestBody) throws JsonProcessingException {
+        return new HandlerRequestBuilder<CreateUserRequest>(JsonUtils.dtoObjectMapper)
+            .withBody(requestBody)
+            .build();
     }
 
     private CreateUserRequest sampleRequest() {

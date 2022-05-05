@@ -5,6 +5,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import java.util.Optional;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.EmptyInputException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.interfaces.Validable;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.attempt.Try;
@@ -23,7 +24,7 @@ public class DatabaseSubService {
         this.client = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
     }
 
-    protected static void validate(Validable input) {
+    protected static void validate(Validable input) throws InvalidInputException {
         if (isNull(input)) {
             throw new EmptyInputException(EMPTY_INPUT_ERROR_MESSAGE);
         }

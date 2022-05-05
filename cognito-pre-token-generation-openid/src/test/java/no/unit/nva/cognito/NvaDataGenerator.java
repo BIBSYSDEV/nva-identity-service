@@ -3,6 +3,7 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 
 public class NvaDataGenerator {
@@ -37,7 +39,8 @@ public class NvaDataGenerator {
     public List<UserDto> createUsers(NationalIdentityNumber nin, boolean includeInactive) {
         HashSet<URI> topLevelAffiliations = calculateTopLevelAffilationsToCreateUsersFor(nin, includeInactive);
         var customers = topLevelAffiliations.stream()
-            .map(customerService::getCustomerByCristinId);
+            .map(attempt(customerService::getCustomerByCristinId))
+            .map(Try::orElseThrow);
         return customers.map(customer -> createUser(nin, customer)).collect(Collectors.toList());
     }
 

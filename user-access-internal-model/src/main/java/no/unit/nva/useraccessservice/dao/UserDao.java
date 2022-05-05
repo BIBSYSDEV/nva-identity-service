@@ -26,6 +26,7 @@ import no.unit.nva.useraccessservice.interfaces.WithCopy;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
@@ -305,7 +306,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     @Override
     @JacocoGenerated
-    public void setType(String type) {
+    public void setType(String type) throws BadRequestException {
         DynamoEntryWithRangeKey.super.setType(type);
     }
 

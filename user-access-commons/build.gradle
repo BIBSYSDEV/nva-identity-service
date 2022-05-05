@@ -8,7 +8,7 @@ dependencies {
     implementation project (":json-config")
     implementation libs.nva.core
 
-    implementation libs.nva.apigatewayv2
+    implementation libs.nva.apigateway
     implementation libs.bundles.jackson
 
     testImplementation libs.bundles.testing

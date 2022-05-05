@@ -1,8 +1,6 @@
 package no.unit.nva.customer.update;
 
-import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
-import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
-import static no.unit.nva.customer.testing.TestHeaders.getMultiValuedHeaders;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -15,27 +13,29 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.MediaType;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
-import no.unit.nva.customer.create.CreateCustomerRequest;
+import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
 
 public class UpdateCustomerHandlerTest {
-
-    public static final String WILDCARD = "*";
-    public static final String REQUEST_ID = "requestId";
 
     private CustomerService customerServiceMock;
     private UpdateCustomerHandler handler;
@@ -55,21 +55,27 @@ public class UpdateCustomerHandlerTest {
     }
 
     @Test
-    void shouldReturnOkForValidRequest() {
+    void shouldReturnOkForValidRequest() throws IOException, InputException, NotFoundException {
         CustomerDto customer = createCustomer(UUID.randomUUID());
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
 
-        var request = new APIGatewayProxyRequestEvent()
+        var request = new HandlerRequestBuilder<String>(dtoObjectMapper)
             .withPathParameters(Map.of("identifier", "b8c3e125-cadb-43d5-823a-2daa7768c3f9"))
-            .withBody(stringFromResources(Path.of("update_request.json")));
+            .withBody(stringFromResources(Path.of("update_request.json")))
+            .build();
 
-        var response = handler.handleRequest(request, context);
+        var response = sendRequest(request, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request,outputStream,context);
+        return GatewayResponse.fromOutputStream(outputStream,responseType);
+    }
+
     @Test
-    void requestToHandlerReturnsCustomerUpdated() {
+    void requestToHandlerReturnsCustomerUpdated() throws InputException, NotFoundException, IOException {
         UUID identifier = UUID.randomUUID();
         CustomerDto customer = createCustomer(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
@@ -77,21 +83,21 @@ public class UpdateCustomerHandlerTest {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var input = createInput(customer, pathParameters);
 
-        var response = handler.handleRequest(input, context);
+        var response = sendRequest(input, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE), is(equalTo(MediaType.JSON_UTF_8.toString())));
     }
 
     @Test
-    void requestToHandlerWithMalformedIdentifierReturnsBadRequest() {
+    void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws IOException {
         String malformedIdentifier = "for-testing";
         CustomerDto customer = createCustomer(UUID.randomUUID());
 
         Map<String, String> pathParameters = Map.of(IDENTIFIER, malformedIdentifier);
         var request = createInput(customer, pathParameters);
 
-        var response = handler.handleRequest(request, context);
+        var response = sendRequest(request, Problem.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
         assertThat(response.getBody(),
@@ -99,19 +105,20 @@ public class UpdateCustomerHandlerTest {
     }
 
     @Test
-    void shouldReturnBadRequestForMalformedObject() {
+    void shouldReturnBadRequestForMalformedObject() throws IOException {
 
         var pathParameters = Map.of(IDENTIFIER, UUID.randomUUID().toString());
-        var request = new APIGatewayProxyRequestEvent()
+        var request = new HandlerRequestBuilder<String>(dtoObjectMapper)
             .withBody(randomString())
             .withHeaders(getRequestHeaders())
-            .withMultiValueHeaders(getMultiValuedHeaders())
-            .withPathParameters(pathParameters);
+            .withPathParameters(pathParameters)
+            .build();
 
-        var response = handler.handleRequest(request, context);
+        var response = sendRequest(request, Problem.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
+
 
     //TODO
     @Test
@@ -124,12 +131,13 @@ public class UpdateCustomerHandlerTest {
 
     }
 
-    private APIGatewayProxyRequestEvent createInput(CustomerDto customer, Map<String, String> pathParameters) {
-        return new APIGatewayProxyRequestEvent()
-            .withBody(customer.toString())
+    private InputStream createInput(CustomerDto customer, Map<String, String> pathParameters)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
+            .withBody(customer)
             .withHeaders(getRequestHeaders())
-            .withMultiValueHeaders(getMultiValuedHeaders())
-            .withPathParameters(pathParameters);
+            .withPathParameters(pathParameters)
+            .build();
     }
 
     private CustomerDto createCustomer(UUID uuid) {

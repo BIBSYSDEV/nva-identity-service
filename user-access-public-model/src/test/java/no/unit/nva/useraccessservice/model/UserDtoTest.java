@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -161,8 +161,7 @@ class UserDtoTest extends DtoTest {
     @Test
     void userDtoContainsCristinUnitsToBeIncludedToCuratorsView() throws BadRequestException {
         URI cristinUnitIncludedInDefaultCuratorsView = randomCristinOrgId();
-        ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView),
-                                                     null);
+        ViewingScope viewingScope = ViewingScope.create(Set.of(cristinUnitIncludedInDefaultCuratorsView), null);
         UserDto userDto = UserDto.newBuilder().withUsername(randomString())
             .withViewingScope(viewingScope)
             .build();
@@ -174,8 +173,8 @@ class UserDtoTest extends DtoTest {
     void userDtoContainsCristinUnitsToBeExcludedToCuratorsView() throws BadRequestException {
         URI cristinUnitIncludedInDefaultCuratorsView = randomCristinOrgId();
         URI cristinUnitExcludedFromDefaultCuratorsView = randomCristinOrgId();
-        ViewingScope viewingScope = new ViewingScope(Set.of(cristinUnitIncludedInDefaultCuratorsView),
-                                                     Set.of(cristinUnitExcludedFromDefaultCuratorsView));
+        ViewingScope viewingScope = ViewingScope.create(Set.of(cristinUnitIncludedInDefaultCuratorsView),
+                                                        Set.of(cristinUnitExcludedFromDefaultCuratorsView));
         UserDto userDto = UserDto.newBuilder().withUsername(randomString())
             .withViewingScope(viewingScope)
             .build();
@@ -185,7 +184,7 @@ class UserDtoTest extends DtoTest {
     }
 
     @Test
-    void shouldSerializeAsJson() {
+    void shouldSerializeAsJson() throws BadRequestException {
         var sample = UserDto.newBuilder()
             .withUsername(randomString())
             .withFamilyName(randomString())

@@ -21,7 +21,7 @@ import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
 import no.unit.nva.useraccessservice.model.RoleDto.Builder;
 import no.unit.nva.useraccessservice.model.interfaces.Validable;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 public class RoleDto implements WithCopy<Builder>, Validable, Typed {
@@ -39,7 +39,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         accessRights = Collections.emptySet();
     }
 
-    public static RoleDto fromJson(String json) {
+    public static RoleDto fromJson(String json) throws BadRequestException, InvalidInputException {
         RoleDto roleDto = attempt(() -> JsonConfig.readValue(json, RoleDto.class))
             .orElseThrow(fail -> new BadRequestException("Could not parse role: " + json));
         if (roleDto.isInvalid()) {
@@ -119,7 +119,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     @Override
-    public void setType(String type) {
+    public void setType(String type) throws BadRequestException {
         Typed.super.setType(type);
     }
 

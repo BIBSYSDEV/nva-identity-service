@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
 import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
 import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
 import static nva.commons.core.attempt.Try.attempt;
@@ -15,7 +16,7 @@ import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 //Overriding setters and getters is necessary for Jackson-Jr
@@ -46,7 +47,7 @@ public class CustomerDto implements Context {
         this.vocabularies = Collections.emptyList();
     }
 
-    public static CustomerDto fromJson(String json) {
+    public static CustomerDto fromJson(String json) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(json, CustomerDto.class))
             .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
@@ -187,22 +188,22 @@ public class CustomerDto implements Context {
 
     public Builder copy() {
         return new Builder()
-                   .withVocabularies(getVocabularies())
-                   .withShortName(getShortName())
-                   .withInstitutionDns(getInstitutionDns())
-                   .withDisplayName(getDisplayName())
-                   .withCreatedDate(stringToInstant(getCreatedDate()))
-                   .withArchiveName(getArchiveName())
-                   .withIdentifier(getIdentifier())
-                   .withContext(getContext())
-                   .withCname(getCname())
-                   .withId(getId())
-                   .withCristinId(getCristinId())
-                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                   .withName(getName())
-                   .withModifiedDate(stringToInstant(getModifiedDate()))
-                   .withRorId(getRorId())
-                   .withPublicationWorkflow(getPublicationWorkflow());
+            .withVocabularies(getVocabularies())
+            .withShortName(getShortName())
+            .withInstitutionDns(getInstitutionDns())
+            .withDisplayName(getDisplayName())
+            .withCreatedDate(stringToInstant(getCreatedDate()))
+            .withArchiveName(getArchiveName())
+            .withIdentifier(getIdentifier())
+            .withContext(getContext())
+            .withCname(getCname())
+            .withId(getId())
+            .withCristinId(getCristinId())
+            .withFeideOrganizationDomain(getFeideOrganizationDomain())
+            .withName(getName())
+            .withModifiedDate(stringToInstant(getModifiedDate()))
+            .withRorId(getRorId())
+            .withPublicationWorkflow(getPublicationWorkflow());
     }
 
     @JacocoGenerated
@@ -326,7 +327,9 @@ public class CustomerDto implements Context {
         }
 
         public Builder withVocabularies(Collection<VocabularyDto> vocabularies) {
-            customerDto.setVocabularies(new ArrayList<>(vocabularies));
+            if (nonNull(vocabularies)) {
+                customerDto.setVocabularies(new ArrayList<>(vocabularies));
+            }
             return this;
         }
 
@@ -348,6 +351,5 @@ public class CustomerDto implements Context {
         public CustomerDto build() {
             return customerDto;
         }
-
     }
 }

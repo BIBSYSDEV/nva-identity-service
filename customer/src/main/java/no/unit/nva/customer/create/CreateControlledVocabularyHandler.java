@@ -6,7 +6,8 @@ import no.unit.nva.customer.WriteControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigatewayv2.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
 public class CreateControlledVocabularyHandler extends WriteControlledVocabularyHandler {
@@ -23,7 +24,8 @@ public class CreateControlledVocabularyHandler extends WriteControlledVocabulary
     }
 
     @Override
-    protected CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer) {
+    protected CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer)
+        throws ConflictException, NotFoundException {
         if (customer.getVocabularies().isEmpty()) {
             return customer.copy().withVocabularies(input.getVocabularies()).build();
         }
@@ -31,7 +33,7 @@ public class CreateControlledVocabularyHandler extends WriteControlledVocabulary
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, VocabularyList output) {
+    protected Integer getSuccessStatusCode(VocabularyList input, VocabularyList output) {
         return HttpURLConnection.HTTP_CREATED;
     }
 }

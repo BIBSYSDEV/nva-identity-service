@@ -14,6 +14,7 @@ import java.util.Set;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
@@ -110,7 +111,7 @@ public class VocabularyList implements Context, Typed {
     }
 
     @Override
-    public void setType(String type) {
+    public void setType(String type) throws BadRequestException {
         Typed.super.setType(type);
     }
 }

@@ -13,7 +13,7 @@ import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
-import nva.commons.apigatewayv2.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.ConflictException;
 
 public class HandlerTest extends LocalIdentityService {
 
@@ -23,9 +23,8 @@ public class HandlerTest extends LocalIdentityService {
     private static final String SPECIAL_CHARACTER = "@";
     private static final String ENCODED_SPECIAL_CHARACTER = "%40";
 
-
     protected UserDto insertSampleUserToDatabase(String username, URI institution)
-        throws InvalidEntryInternalException, ConflictException, InvalidInputException {
+        throws InvalidEntryInternalException, ConflictException {
         UserDto sampleUser = createSampleUserAndInsertUserRoles(username, institution);
         databaseService.addUser(sampleUser);
         return sampleUser;

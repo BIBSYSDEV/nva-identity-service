@@ -14,14 +14,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-import nva.commons.apigatewayv2.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
 class CustomerDtoTest {
 
     @Test
-    void dtoSerializesToJsonAndBack() {
+    void dtoSerializesToJsonAndBack() throws BadRequestException {
         CustomerDto customer = randomCustomer();
         assertThat(customer, doesNotHaveEmptyValues());
         var json = customer.toString();

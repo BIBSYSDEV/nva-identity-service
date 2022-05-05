@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessservice.exceptions;
 
 import javax.net.ssl.HttpsURLConnection;
-import nva.commons.apigatewayv2.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 
 public class InvalidInputException extends ApiGatewayException {
 

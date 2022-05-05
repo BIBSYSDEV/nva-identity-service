@@ -19,7 +19,7 @@ public class RandomUserDataGenerator {
     }
 
     public static ViewingScope randomViewingScope() {
-        return attempt(
-            () -> new ViewingScope(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId()))).orElseThrow();
+        return attempt(() -> ViewingScope.create(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId())))
+            .orElseThrow();
     }
 }

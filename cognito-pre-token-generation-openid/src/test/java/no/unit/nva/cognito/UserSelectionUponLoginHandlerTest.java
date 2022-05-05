@@ -1,6 +1,7 @@
 package no.unit.nva.cognito;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static no.unit.nva.auth.AuthorizedBackendClient.prepareWithBearerToken;
 import static no.unit.nva.cognito.AuthenticationInformation.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.AT;
@@ -43,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import no.unit.nva.FakeCognito;
-import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
@@ -56,6 +56,7 @@ import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
@@ -105,15 +106,15 @@ class UserSelectionUponLoginHandlerTest {
         setupIdentityService();
 
         var authorizedBackedClient =
-            AuthorizedBackendClient.prepareWithBearerToken(HTTP_CLIENT, "Bearer " + authServerMock.getJwtToken());
+            prepareWithBearerToken(HTTP_CLIENT, "Bearer " + authServerMock.getJwtToken());
 
         registeredPeople = new RegisteredPeopleInstance(httpServer, authServerMock, customerService, identityService);
         nvaDataGenerator = new NvaDataGenerator(registeredPeople, customerService);
 
         var cristinHost = this.serverUri;
+        var cristinClient = new CristinClient(cristinHost, authorizedBackedClient);
         handler = new UserSelectionUponLoginHandler(congitoClient,
-                                                    authorizedBackedClient,
-                                                    cristinHost,
+                                                    cristinClient,
                                                     customerService,
                                                     identityService);
     }

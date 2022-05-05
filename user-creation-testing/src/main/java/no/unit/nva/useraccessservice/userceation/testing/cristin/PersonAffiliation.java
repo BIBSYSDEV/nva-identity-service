@@ -1,4 +1,4 @@
-package no.unit.nva.useraccessservice.usercreation;
+package no.unit.nva.useraccessservice.userceation.testing.cristin;
 
 import java.net.URI;
 import java.util.Objects;
@@ -76,7 +76,7 @@ public class PersonAffiliation {
 
     public static class Builder {
 
-        private PersonAffiliation personEmployment;
+        private final PersonAffiliation personEmployment;
 
         private Builder() {
             this.personEmployment = new PersonAffiliation();

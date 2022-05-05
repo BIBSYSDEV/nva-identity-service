@@ -71,7 +71,8 @@ Globals:
     Tracing: Active
     Environment:
       Variables:
-        API_HOST: !Ref ApiDomain
+        API_HOST: !Ref ApiDomain #TODO: eliminate API_HOST
+        API_DOMAIN: !Ref ApiDomain
         CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
         BY_ORG_DOMAIN_INDEX_NAME: byOrgDomain
         BY_CRISTIN_ID_INDEX_NAME: byCristinId
@@ -350,9 +351,13 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
+          COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+          API_DOMAIN: !Ref ApiDomain
+          COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
+          COGNITO_ID_KEY: backendClientId
+          COGNITO_SECRET_KEY: backendClientSecret
+
+      Role: !Ref UpdateCognintoUserAttributesRole
       Events:
         ApiEvent:
           Type: Api

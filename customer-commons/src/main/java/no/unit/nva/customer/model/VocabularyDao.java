@@ -6,6 +6,7 @@ import java.util.Set;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.dynamo.converters.VocabularySetConverter;
 import no.unit.nva.customer.model.interfaces.Vocabulary;
+import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -65,22 +66,24 @@ public class VocabularyDao implements Vocabulary {
     }
 
     @Override
+    @JacocoGenerated
     public int hashCode() {
-        return Objects.hash(name, id, status);
+        return Objects.hash(getName(), getId(), getStatus());
     }
 
     @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof VocabularyDao)) {
             return false;
         }
         VocabularyDao that = (VocabularyDao) o;
-        return Objects.equals(name, that.name)
-               && Objects.equals(id, that.id)
-               && status == that.status;
+        return Objects.equals(getName(), that.getName())
+               && Objects.equals(getId(), that.getId())
+               && getStatus() == that.getStatus();
     }
 
     public VocabularyDto toVocabularySettingsDto() {

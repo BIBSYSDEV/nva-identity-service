@@ -1,5 +1,7 @@
 package no.unit.nva.customer.update;
 
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
 import static no.unit.nva.customer.testing.TestHeaders.getMultiValuedHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
@@ -18,8 +20,10 @@ import com.google.common.net.MediaType;
 import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
+import no.unit.nva.customer.create.CreateCustomerRequest;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -107,6 +111,17 @@ public class UpdateCustomerHandlerTest {
         var response = handler.handleRequest(request, context);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+    }
+
+    //TODO
+    @Test
+    void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() {
+    }
+
+    //TODO
+    @Test
+    void shouldReturnPublicationWorkflowWhenValueIsSet() {
+
     }
 
     private APIGatewayProxyRequestEvent createInput(CustomerDto customer, Map<String, String> pathParameters) {

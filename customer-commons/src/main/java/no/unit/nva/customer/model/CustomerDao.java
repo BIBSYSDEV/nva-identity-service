@@ -47,6 +47,7 @@ public class CustomerDao implements Typed {
     private URI cristinId;
     private Set<VocabularyDao> vocabularies;
     private URI rorId;
+    private PublicationWorkflow publicationWorkflow;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -70,6 +71,7 @@ public class CustomerDao implements Typed {
             .withVocabularySettings(extractVocabularySettings(dto))
             .withName(dto.getName())
             .withRorId(dto.getRorId())
+            .withPublicationWorkflow(dto.getPublicationWorkflow())
             .build();
     }
 
@@ -185,8 +187,17 @@ public class CustomerDao implements Typed {
         return rorId;
     }
 
-    @JacocoGenerated
+    public PublicationWorkflow getPublicationWorkflow() {
+        return nonNull(publicationWorkflow)
+                   ? publicationWorkflow : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+    }
+
+    public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+        this.publicationWorkflow = publicationWorkflow;
+    }
+
     @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -196,26 +207,28 @@ public class CustomerDao implements Typed {
         }
         CustomerDao that = (CustomerDao) o;
         return Objects.equals(getIdentifier(), that.getIdentifier())
-                && Objects.equals(getCreatedDate(), that.getCreatedDate())
-                && Objects.equals(getModifiedDate(), that.getModifiedDate())
-                && Objects.equals(getName(), that.getName())
-                && Objects.equals(getDisplayName(), that.getDisplayName())
-                && Objects.equals(getShortName(), that.getShortName())
-                && Objects.equals(getArchiveName(), that.getArchiveName())
-                && Objects.equals(getCname(), that.getCname())
-                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-                && Objects.equals(getCristinId(), that.getCristinId())
-                && Objects.equals(getVocabularies(), that.getVocabularies())
-                && Objects.equals(getRorId(), that.getRorId());
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getCname(), that.getCname())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getVocabularies(), that.getVocabularies())
+               && Objects.equals(getRorId(), that.getRorId())
+               && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
-    @JacocoGenerated
     @Override
+    @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(), getCristinId(), getVocabularies(), getRorId());
+                            getFeideOrganizationDomain(),
+                            getCristinId(), getVocabularies(), getRorId(), getPublicationWorkflow());
     }
 
     public CustomerDto toCustomerDto() {
@@ -233,6 +246,7 @@ public class CustomerDao implements Typed {
                                       .withFeideOrganizationDomain(getFeideOrganizationDomain())
                                       .withCristinId(getCristinId())
                                       .withRorId(getRorId())
+                                      .withPublicationWorkflow(getPublicationWorkflow())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -339,8 +353,14 @@ public class CustomerDao implements Typed {
             return this;
         }
 
+        public Builder withPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
+            customerDb.setPublicationWorkflow(publicationWorkflow);
+            return this;
+        }
+
         public CustomerDao build() {
             return customerDb;
         }
     }
+
 }

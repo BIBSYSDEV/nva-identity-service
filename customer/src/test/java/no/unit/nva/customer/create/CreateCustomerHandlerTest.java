@@ -1,5 +1,8 @@
 package no.unit.nva.customer.create;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -9,7 +12,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import java.io.ByteArrayOutputStream;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Map;
@@ -25,17 +28,14 @@ import org.junit.jupiter.api.Test;
 
 public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
 
-    private CustomerService customerServiceMock;
     private CreateCustomerHandler handler;
-    private ByteArrayOutputStream outputStream;
     private Context context;
 
     @BeforeEach
     public void setUp() {
         super.setupDatabase();
-        customerServiceMock = new DynamoDBCustomerService(this.dynamoClient);
+        CustomerService customerServiceMock = new DynamoDBCustomerService(this.dynamoClient);
         handler = new CreateCustomerHandler(customerServiceMock);
-        outputStream = new ByteArrayOutputStream();
         context = new FakeContext();
     }
 
@@ -46,32 +46,58 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void requestToHandlerReturnsCustomerCreated() {
-        var inputRequest = CustomerDto.builder()
-            .withName("New Customer")
-            .withVocabularies(Collections.emptySet())
-            .build();
-        var request = CreateCustomerRequest.fromCustomerDto(inputRequest);
-
-        var input = new APIGatewayProxyRequestEvent()
-            .withBody(request.toString())
-            .withHeaders(getRequestHeaders());
-        var response = handler.handleRequest(input, context);
+        var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
+        var response = executeRequest(requestBody);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
         assertThat(response.getHeaders(), is(equalTo(getResponseHeaders())));
 
         var actualBody = CustomerDto.fromJson(response.getBody());
         var expectedPersistedInformation = CreateCustomerRequest.fromCustomerDto(actualBody);
-        assertThat(expectedPersistedInformation, is(equalTo(request)));
+        assertThat(expectedPersistedInformation, is(equalTo(requestBody)));
+    }
+
+    @Test
+    void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() {
+        var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
+        var response = executeRequest(requestBody);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+        assertThat(actualResponseBody.getPublicationWorkflow(), is(equalTo(REGISTRATOR_PUBLISHES_METADATA_AND_FILES)));
+    }
+
+    @Test
+    void shouldReturnPublicationWorkflowWhenValueIsSet() {
+        var customerDto = CustomerDto.builder()
+                              .withName("New Customer")
+                              .withVocabularies(Collections.emptySet())
+                              .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
+                              .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+        assertThat(actualResponseBody.getPublicationWorkflow(), is(equalTo(REGISTRATOR_PUBLISHES_METADATA_ONLY)));
+    }
+
+    @Test
+    void shouldReturnPublicationWorkflowErrorWhenValueIsWrong() {
+        var customerDto = CustomerDto.builder()
+                              .withName("New Customer")
+                              .withVocabularies(Collections.emptySet())
+                              .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
+                              .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto).toString()
+                              .replace(REGISTRATOR_PUBLISHES_METADATA_ONLY.getValue(), "hello");
+        var response = executeRequest(requestBody);
+        assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
     }
 
     @Test
     void shouldReturnBadRequestWhenInputIsNotAValidJson() {
         var input = new APIGatewayProxyRequestEvent()
-            .withBody(randomString())
-            .withHeaders(getRequestHeaders());
+                        .withBody(randomString())
+                        .withHeaders(getRequestHeaders());
         var response = handler.handleRequest(input, context);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
     }
 
     @Test
@@ -81,6 +107,27 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
             .withBody(attempt(() -> JsonConfig.writeValueAsString(body)).orElseThrow())
             .withHeaders(getRequestHeaders());
         var response = handler.handleRequest(input, context);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+    }
+
+    private APIGatewayProxyResponseEvent executeRequest(CreateCustomerRequest request) {
+        var input = new APIGatewayProxyRequestEvent()
+                        .withBody(request.toString())
+                        .withHeaders(getRequestHeaders());
+        return handler.handleRequest(input, context);
+    }
+
+    private APIGatewayProxyResponseEvent executeRequest(String request) {
+        var input = new APIGatewayProxyRequestEvent()
+                        .withBody(request)
+                        .withHeaders(getRequestHeaders());
+        return handler.handleRequest(input, context);
+    }
+
+    private CustomerDto validCustomerDto() {
+        return CustomerDto.builder()
+                   .withName("New Customer")
+                   .withVocabularies(Collections.emptySet())
+                   .build();
     }
 }

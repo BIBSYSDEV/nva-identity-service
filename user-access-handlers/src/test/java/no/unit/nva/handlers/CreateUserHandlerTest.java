@@ -89,6 +89,19 @@ class CreateUserHandlerTest extends HandlerTest {
     }
 
     @Test
+    void shouldReturnOkWhenTryingToCreateExistingUser() throws IOException {
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles();
+
+        var request = createRequest(requestBody, EDIT_OWN_INSTITUTION_USERS);
+        sendRequest(request, UserDto.class);
+        outputStream = new ByteArrayOutputStream();
+        request = createRequest(requestBody, EDIT_OWN_INSTITUTION_USERS);
+        var response = sendRequest(request, UserDto.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    }
+
+    @Test
     void shouldDenyAccessToUsersThatAreDoNotHaveTheRightToCreateUsers() throws IOException {
         var requestBody = sampleRequest(randomPerson(), randomUri());
         var request = createRequestWithoutAccessRights(requestBody);

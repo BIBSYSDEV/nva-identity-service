@@ -1,10 +1,12 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.handlers.models.CreateUserRequest;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
@@ -14,12 +16,14 @@ import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUserRequest, UserDto> {
 
     private final UserEntriesCreatorForPerson userCreator;
     private final IdentityService identityService;
-
+    private static final Logger logger = LoggerFactory.getLogger(CreateUserHandler.class);
     @JacocoGenerated
     public CreateUserHandler(IdentityService identityService) {
         this(defaultUserCreator(identityService), identityService);
@@ -77,6 +81,8 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
+        var loggerInfoString = attempt(() -> JsonConfig.writeValueAsString(requestInfo)).orElseThrow();
+        logger.info(loggerInfoString);
         return !(
             requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_USERS.toString())
             || requestInfo.isApplicationAdmin()

@@ -11,10 +11,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 

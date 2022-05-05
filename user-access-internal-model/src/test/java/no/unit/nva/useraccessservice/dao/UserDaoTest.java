@@ -28,11 +28,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
 import nva.commons.logutils.LogUtils;
@@ -194,7 +194,7 @@ class UserDaoTest {
     @ParameterizedTest
     @NullAndEmptySource
     void toUserDbThrowsExceptionWhenUserDbContainsInvalidRole(String invalidRoleName)
-        throws InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException {
         RoleDto invalidRole = RoleDto.newBuilder().withRoleName(SOME_ROLENAME).build();
         invalidRole.setRoleName(invalidRoleName);
         List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);

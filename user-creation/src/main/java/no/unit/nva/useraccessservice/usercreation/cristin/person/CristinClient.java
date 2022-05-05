@@ -1,10 +1,10 @@
 package no.unit.nva.useraccessservice.usercreation.cristin.person;
 
 import static java.net.HttpURLConnection.HTTP_OK;
-import static no.unit.nva.useraccessservice.usercreation.CognitoUtils.COGNITO_CREDENTIALS_SECRET_NAME;
-import static no.unit.nva.useraccessservice.usercreation.CognitoUtils.COGNITO_HOST;
-import static no.unit.nva.useraccessservice.usercreation.CognitoUtils.COGNITO_ID_KEY;
-import static no.unit.nva.useraccessservice.usercreation.CognitoUtils.COGNITO_SECRET_KEY;
+import static no.unit.nva.useraccessservice.usercreation.CognitoConstants.COGNITO_CREDENTIALS_SECRET_NAME;
+import static no.unit.nva.useraccessservice.usercreation.CognitoConstants.COGNITO_HOST;
+import static no.unit.nva.useraccessservice.usercreation.CognitoConstants.COGNITO_ID_KEY;
+import static no.unit.nva.useraccessservice.usercreation.CognitoConstants.COGNITO_SECRET_KEY;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 import java.io.IOException;
 import java.net.URI;

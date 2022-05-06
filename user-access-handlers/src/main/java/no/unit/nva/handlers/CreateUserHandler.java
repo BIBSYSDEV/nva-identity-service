@@ -47,6 +47,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     protected UserDto processInput(CreateUserRequest input, RequestInfo requestInfo, Context context)
         throws ForbiddenException, NotFoundException {
         authorize(requestInfo);
+        logger.info("INput:" + attempt(() -> JsonConfig.writeValueAsString(input)).orElseThrow());
         var newUser = createNewUser(input);
 
         var userWithUpdatedRoles = addRolesToCreatedUser(input, newUser);
@@ -68,6 +69,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private UserDto createNewUser(CreateUserRequest input) {
         var personInformation = userCreator.collectPersonInformation(input.getNin());
+
         return userCreator.createUser(personInformation, input.getCustomerId())
             .stream()
             .collect(SingletonCollector.collect());

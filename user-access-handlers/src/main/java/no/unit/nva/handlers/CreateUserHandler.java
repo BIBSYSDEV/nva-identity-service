@@ -90,11 +90,11 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
-        var loggerInfoString = attempt(() -> JsonConfig.writeValueAsString(requestInfo)).orElseThrow();
-        logger.info(loggerInfoString);
         return !(
-            requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_USERS.toString())
+            requestInfo.clientIsInternalBackend()
+            || requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_USERS.toString())
             || requestInfo.userIsApplicationAdmin()
+
         );
     }
 }

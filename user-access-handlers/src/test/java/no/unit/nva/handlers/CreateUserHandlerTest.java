@@ -35,6 +35,7 @@ import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.RequestInfoConstants;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
@@ -121,11 +122,28 @@ class CreateUserHandlerTest extends HandlerTest {
     void shouldAllowAccessToApplicationAdministrators()
         throws IOException {
         var requestBody = sampleRequestForExistingPersonCustomerAndRoles();
-        ;
         var request = createRequest(requestBody, ADMINISTRATE_APPLICATION);
         var response = sendRequest(request, UserDto.class);
         var actualUser = response.getBodyObject(UserDto.class);
         assertThat(actualUser.getInstitution(), is(equalTo(requestBody.getCustomerId())));
+    }
+
+    @Test
+    void shouldAllowAccessToBackendServices()
+        throws IOException {
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles();
+        var request = createBackendRequest(requestBody);
+        var response = sendRequest(request, UserDto.class);
+        var actualUser = response.getBodyObject(UserDto.class);
+        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.getCustomerId())));
+    }
+
+    private InputStream createBackendRequest(CreateUserRequest requestBody)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
+            .withScope(RequestInfoConstants.BACKEND_SCOPE_AS_DEFINED_IN_IDENTITY_SERVICE)
+            .withBody(requestBody)
+            .build();
     }
 
     private CreateUserRequest sampleRequestForExistingPersonCustomerAndRoles() {

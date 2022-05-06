@@ -92,7 +92,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
         logger.info(loggerInfoString);
         return !(
             requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_USERS.toString())
-            || requestInfo.isApplicationAdmin()
+            || requestInfo.userIsApplicationAdmin()
         );
     }
 }

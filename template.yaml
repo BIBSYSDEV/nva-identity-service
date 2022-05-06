@@ -162,7 +162,7 @@ Resources:
                   - cognito-idp:DescribeUserPoolDomain
                 Resource: "*"
 
-  TriggerExecutionRole:
+  CreateUsersRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -348,7 +348,7 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.CreateUserHandler::handleRequest
-      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+      Role: !GetAtt CreateUsersRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -1322,7 +1322,7 @@ Resources:
     Properties:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.UserSelectionUponLoginHandler::handleRequest
-      Role: !GetAtt TriggerExecutionRole.Arn
+      Role: !GetAtt CreateUsersRole.Arn
       AutoPublishAlias: live
       Tracing: Active
       DeploymentPreference:

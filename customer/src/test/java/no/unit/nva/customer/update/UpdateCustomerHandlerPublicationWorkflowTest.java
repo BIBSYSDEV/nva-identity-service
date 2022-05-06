@@ -99,12 +99,12 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         assertThat(responseObject, is(equalTo(updateCustomer)));
     }
 
-    private void synchronizeModifiedDate(CustomerDto responseObject) {
-        responseObject.setModifiedDate(NOW.toString());
+    private void synchronizeModifiedDate(CustomerDto customerDto) {
+        customerDto.setModifiedDate(NOW.toString());
     }
 
-    private Map<String, String> getIdentifierPathParam(CustomerDto updateCustomer) {
-        return Map.of(IDENTIFIER, updateCustomer.getIdentifier().toString());
+    private Map<String, String> getIdentifierPathParam(CustomerDto customerDto) {
+        return Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
     }
 
     private CustomerDto changePublicationWorkflowFromCreateCustomer() {

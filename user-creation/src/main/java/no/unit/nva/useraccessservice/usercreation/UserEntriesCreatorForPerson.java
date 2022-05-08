@@ -46,7 +46,13 @@ public class UserEntriesCreatorForPerson {
 
     public List<UserDto> createUser(PersonInformation authenticationInfo, URI selectedCustomer) {
         createUserRole();
-        return createOrFetchUserEntriesForPerson(authenticationInfo, selectedCustomer::equals);
+        return createOrFetchUserEntriesForPerson(authenticationInfo,
+                                                 customerDto -> isSelectedCustomer(customerDto, selectedCustomer));
+    }
+
+    private boolean isSelectedCustomer(CustomerDto customerDto, URI selectedCustomerId) {
+        var x = customerDto.getId().equals(selectedCustomerId) || customerDto.getCristinId().equals(selectedCustomerId);
+        return x;
     }
 
     public PersonInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber) {
@@ -69,16 +75,16 @@ public class UserEntriesCreatorForPerson {
         return personInformation;
     }
 
-    private Predicate<URI> keepAll() {
+    private Predicate<CustomerDto> keepAll() {
         return customerDto -> true;
     }
 
     private List<UserDto> createOrFetchUserEntriesForPerson(PersonInformation personInformation,
-                                                            Predicate<URI> filterActiveCustomers) {
+                                                            Predicate<CustomerDto> filterActiveCustomers) {
 
         var customers = personInformation.getActiveCustomers();
         return customers.stream()
-            .filter(customerDto -> filterActiveCustomers.test(customerDto.getId()))
+            .filter(filterActiveCustomers::test)
             .map(customer -> createNewUserObject(customer, personInformation))
             .map(user -> getExistingUserOrCreateNew(user, personInformation))
             .collect(Collectors.toList());

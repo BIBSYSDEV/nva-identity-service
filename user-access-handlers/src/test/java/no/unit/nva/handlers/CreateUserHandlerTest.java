@@ -157,6 +157,7 @@ class CreateUserHandlerTest extends HandlerTest {
         var firstRoles = response.getBodyObject(UserDto.class).getRoles();
 
         outputStream = new ByteArrayOutputStream();
+        //sending a create user request for the same user but with different roles
         requestBody = new CreateUserRequest(person, customerId, randomRoles());
         request = createRequest(requestBody, EDIT_OWN_INSTITUTION_USERS);
         response = sendRequest(request, UserDto.class);

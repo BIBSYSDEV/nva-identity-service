@@ -105,14 +105,14 @@ class UserSelectionUponLoginHandlerTest {
         setupCustomerService();
         setupIdentityService();
 
-        var authorizedBackedClient =
+        var authorizedBackendClient =
             prepareWithBearerToken(HTTP_CLIENT, "Bearer " + authServerMock.getJwtToken());
 
         registeredPeople = new RegisteredPeopleInstance(httpServer, authServerMock, customerService, identityService);
         nvaDataGenerator = new NvaDataGenerator(registeredPeople, customerService);
 
         var cristinHost = this.serverUri;
-        var cristinClient = new CristinClient(cristinHost, authorizedBackedClient);
+        var cristinClient = new CristinClient(cristinHost, authorizedBackendClient);
         handler = new UserSelectionUponLoginHandler(congitoClient,
                                                     cristinClient,
                                                     customerService,

@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -544,7 +545,7 @@ class IdentityServiceTest extends LocalIdentityService {
         return identityService.getUser(userDto);
     }
 
-    private void addRolesIfTheyDoNotExist(List<RoleDto> roles) throws InvalidInputException, ConflictException {
+    private void addRolesIfTheyDoNotExist(Collection<RoleDto> roles) throws InvalidInputException, ConflictException {
         for (var role : roles) {
             var fetchRole = attempt(() -> identityService.getRole(role));
             if (fetchRole.isFailure()) {

@@ -21,6 +21,8 @@ import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UserEntriesCreatorForPerson {
 
@@ -31,6 +33,7 @@ public class UserEntriesCreatorForPerson {
     private final CustomerService customerService;
     private final CristinClient cristinClient;
     private final IdentityService identityService;
+    private static final Logger logger = LoggerFactory.getLogger(UserEntriesCreatorForPerson.class);
 
     public UserEntriesCreatorForPerson(CustomerService customerService,
                                        CristinClient cristinClient,
@@ -77,7 +80,9 @@ public class UserEntriesCreatorForPerson {
     private List<UserDto> createOrFetchUserEntriesForPerson(PersonInformation personInformation,
                                                             Predicate<URI> filterActiveCustomers) {
 
-        return personInformation.getActiveCustomers().stream()
+        var customers = personInformation.getActiveCustomers();
+        logger.info("Customers size:" + customers.size());
+        return customers.stream()
             .filter(customerDto -> filterActiveCustomers.test(customerDto.getId()))
             .map(customer -> createNewUserObject(customer, personInformation))
             .map(user -> getExistingUserOrCreateNew(user, personInformation))

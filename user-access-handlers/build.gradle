@@ -9,6 +9,7 @@ dependencies {
     implementation project(':user-access-public-model')
     implementation project(':user-access-service')
     implementation project(':user-creation')
+    implementation project(':customer-commons')
     implementation project(':json-config')
     implementation project(':user-creation')
 
@@ -32,6 +33,8 @@ dependencies {
 
     testImplementation project(':user-access-internal-model')
     testImplementation project(':user-access-testing')
+    testImplementation project(':customer-testing')
+    testImplementation project(':user-creation-testing')
 }
 
 test{
@@ -40,4 +43,6 @@ test{
     environment "API_KEY_SECRET_NAME", "ApiKeySecretName"
     environment "API_KEY_SECRET_KEY", "ApiKeySecretKey"
     environment "AWS_REGION", "eu-west-1"
+    environment "API_DOMAIN","example.com"
+    environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
 }

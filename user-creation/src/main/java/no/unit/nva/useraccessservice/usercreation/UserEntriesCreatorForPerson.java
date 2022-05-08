@@ -21,19 +21,15 @@ import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class UserEntriesCreatorForPerson {
 
     public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
         RoleDto.newBuilder().withRoleName("Creator").build();
     private static final String AT = "@";
-
     private final CustomerService customerService;
     private final CristinClient cristinClient;
     private final IdentityService identityService;
-    private static final Logger logger = LoggerFactory.getLogger(UserEntriesCreatorForPerson.class);
 
     public UserEntriesCreatorForPerson(CustomerService customerService,
                                        CristinClient cristinClient,
@@ -51,10 +47,6 @@ public class UserEntriesCreatorForPerson {
     public List<UserDto> createUser(PersonInformation authenticationInfo, URI selectedCustomer) {
         createUserRole();
         return createOrFetchUserEntriesForPerson(authenticationInfo, selectedCustomer::equals);
-    }
-
-    private Predicate<URI> keepAll() {
-        return customerDto -> true;
     }
 
     public PersonInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber) {
@@ -77,11 +69,14 @@ public class UserEntriesCreatorForPerson {
         return personInformation;
     }
 
+    private Predicate<URI> keepAll() {
+        return customerDto -> true;
+    }
+
     private List<UserDto> createOrFetchUserEntriesForPerson(PersonInformation personInformation,
                                                             Predicate<URI> filterActiveCustomers) {
 
         var customers = personInformation.getActiveCustomers();
-        logger.info("Customers size:" + customers.size());
         return customers.stream()
             .filter(customerDto -> filterActiveCustomers.test(customerDto.getId()))
             .map(customer -> createNewUserObject(customer, personInformation))
@@ -185,13 +180,12 @@ public class UserEntriesCreatorForPerson {
         var existingUser =
             identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(),
                                                                          user.getInstitutionCristinId());
-        return updateUserAffiliation(user, personInformation, existingUser);
+        return updateUserAffiliation(existingUser, personInformation);
     }
 
-    private UserDto updateUserAffiliation(UserDto user,
-                                          PersonInformation personInformation,
-                                          UserDto existingUser) throws NotFoundException {
-        var affiliation = personInformation.getOrganizationAffiliation(user.getInstitutionCristinId());
+    private UserDto updateUserAffiliation(UserDto existingUser,
+                                          PersonInformation personInformation) throws NotFoundException {
+        var affiliation = personInformation.getOrganizationAffiliation(existingUser.getInstitutionCristinId());
         var updatedUser = existingUser.copy().withAffiliation(affiliation).build();
         identityService.updateUser(updatedUser);
         return updatedUser;

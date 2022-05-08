@@ -51,8 +51,7 @@ public class UserEntriesCreatorForPerson {
     }
 
     private boolean isSelectedCustomer(CustomerDto customerDto, URI selectedCustomerId) {
-        var x = customerDto.getId().equals(selectedCustomerId) || customerDto.getCristinId().equals(selectedCustomerId);
-        return x;
+        return customerDto.getId().equals(selectedCustomerId) || customerDto.getCristinId().equals(selectedCustomerId);
     }
 
     public PersonInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber) {

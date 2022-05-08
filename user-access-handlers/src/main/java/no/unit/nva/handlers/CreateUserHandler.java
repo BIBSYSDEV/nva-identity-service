@@ -2,12 +2,15 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.handlers.models.CreateUserRequest;
-import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
@@ -17,14 +20,11 @@ import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUserRequest, UserDto> {
 
     private final UserEntriesCreatorForPerson userCreator;
     private final IdentityService identityService;
-    private static final Logger logger = LoggerFactory.getLogger(CreateUserHandler.class);
 
     @JacocoGenerated
     public CreateUserHandler() {
@@ -47,7 +47,6 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     protected UserDto processInput(CreateUserRequest input, RequestInfo requestInfo, Context context)
         throws ForbiddenException, NotFoundException {
         authorize(requestInfo);
-        logger.info("INput:" + attempt(() -> JsonConfig.writeValueAsString(input)).orElseThrow());
         var newUser = createNewUser(input);
 
         var userWithUpdatedRoles = addRolesToCreatedUser(input, newUser);
@@ -76,11 +75,18 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private UserDto addRolesToCreatedUser(CreateUserRequest input, UserDto newUser) {
+        var allRoles = createUnionOfRoleSets(input, newUser);
         return getEventuallyConsistent(() -> identityService.getUser(newUser))
             .map(UserDto::copy)
-            .map(user -> user.withRoles(input.getRoles()))
+            .map(user -> user.withRoles(allRoles))
             .map(UserDto.Builder::build)
             .orElseThrow();
+    }
+
+    private Set<RoleDto> createUnionOfRoleSets(CreateUserRequest input, UserDto newUser) {
+        return Stream.of(input.getRoles(), newUser.getRoles())
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
     }
 
     private void authorize(RequestInfo requestInfo) throws ForbiddenException {

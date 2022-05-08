@@ -9,6 +9,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsIterableContaining.hasItems;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
@@ -17,7 +18,10 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -37,6 +41,7 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.AfterEach;
@@ -75,7 +80,8 @@ class CreateUserHandlerTest extends HandlerTest {
     }
 
     @Test
-    void shouldAcceptRequestContainingPersonCristinIdCustomerIdAndListOfRoles() throws IOException {
+    void shouldCreateUserWithRequestedRolesWhenInputContainsNationalIdNumberNvaCustomerIdAndSetOfRoles()
+        throws IOException {
         var requestBody = sampleRequestForExistingPersonCustomerAndRoles();
 
         var request = createRequest(requestBody, EDIT_OWN_INSTITUTION_USERS);
@@ -84,9 +90,11 @@ class CreateUserHandlerTest extends HandlerTest {
         var actualUser = identityService.listUsers(requestBody.getCustomerId())
             .stream().collect(SingletonCollector.collect());
 
+        var expectedRoles = createExpectedRoleSet(requestBody);
+
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(actualUser.getInstitution(), is(equalTo(requestBody.getCustomerId())));
-        assertThat(actualUser.getRoles(), is(equalTo(requestBody.getRoles())));
+        assertThat(actualUser.getRoles(), is(equalTo(expectedRoles)));
     }
 
     @Test
@@ -103,7 +111,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
     @Test
     void shouldDenyAccessToUsersThatAreDoNotHaveTheRightToCreateUsers() throws IOException {
-        var requestBody = sampleRequest(randomPerson(), randomUri());
+        var requestBody = new CreateUserRequest(randomPerson(), randomUri(), randomRoles());
         var request = createRequestWithoutAccessRights(requestBody);
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
@@ -112,7 +120,7 @@ class CreateUserHandlerTest extends HandlerTest {
     @Test
     void shouldDenyAccessToUsersThatDoNotHaveTheRightToAddAnyUserAndTheyAreTryingToAddUsersForAnotherInstitution()
         throws IOException {
-        var requestBody = sampleRequest(randomPerson(), randomUri());
+        var requestBody = new CreateUserRequest(randomPerson(), randomUri(), randomRoles());
         var request = createRequest(requestBody);
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
@@ -138,6 +146,40 @@ class CreateUserHandlerTest extends HandlerTest {
         assertThat(actualUser.getInstitution(), is(equalTo(requestBody.getCustomerId())));
     }
 
+    @Test
+    void shouldNotOverwriteRolesOfExistingUsers() throws NotFoundException, IOException {
+        var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
+        var customerId = extractCustomerIdOfPersonAffiliation(person);
+        var requestBody = new CreateUserRequest(person, customerId, randomRoles());
+
+        var request = createRequest(requestBody, EDIT_OWN_INSTITUTION_USERS);
+        var response = sendRequest(request, UserDto.class);
+        var firstRoles = response.getBodyObject(UserDto.class).getRoles();
+
+        outputStream = new ByteArrayOutputStream();
+        requestBody = new CreateUserRequest(person, customerId, randomRoles());
+        request = createRequest(requestBody, EDIT_OWN_INSTITUTION_USERS);
+        response = sendRequest(request, UserDto.class);
+        var allRoles = response.getBodyObject(UserDto.class).getRoles();
+
+        assertThat(allRoles, hasItems(firstRoles.toArray(RoleDto[]::new)));
+    }
+
+    private Set<RoleDto> createExpectedRoleSet(CreateUserRequest requestBody) {
+        return Stream.of(requestBody.getRoles(),
+                         Set.of(UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+    }
+
+    private URI extractCustomerIdOfPersonAffiliation(NationalIdentityNumber person) {
+        return peopleAndInstitutions.getInstitutions(person).stream()
+            .map(attempt(uri -> customerService.getCustomerByCristinId(uri)))
+            .map(Try::orElseThrow)
+            .map(CustomerDto::getId)
+            .collect(SingletonCollector.collect());
+    }
+
     private InputStream createBackendRequest(CreateUserRequest requestBody)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
@@ -149,21 +191,7 @@ class CreateUserHandlerTest extends HandlerTest {
     private CreateUserRequest sampleRequestForExistingPersonCustomerAndRoles() {
         var person = peopleAndInstitutions.getPersonWithSomeActiveAndSomeInactiveAffiliations();
         var someCustomer = fetchSomeCustomerForThePerson(person);
-        var requestBody = sampleRequest(person, someCustomer);
-        addRolesToTheDatabaseBecauseRolesNeedToExistToBeAdded(requestBody);
-        return requestBody;
-    }
-
-    private void addRolesToTheDatabaseBecauseRolesNeedToExistToBeAdded(CreateUserRequest requestBody) {
-        requestBody.getRoles().forEach(this::addRole);
-    }
-
-    private void addRole(RoleDto role) {
-        try {
-            identityService.addRole(role);
-        } catch (ConflictException | InvalidInputException e) {
-            throw new RuntimeException(e);
-        }
+        return new CreateUserRequest(person, someCustomer, randomRoles());
     }
 
     private URI fetchSomeCustomerForThePerson(NationalIdentityNumber person) {
@@ -207,23 +235,27 @@ class CreateUserHandlerTest extends HandlerTest {
 
     private InputStream createRequest(CreateUserRequest requestBody, AccessRight... accessRights)
         throws JsonProcessingException {
-        var customerId = randomUri();
         var accessRightStrings = Arrays.stream(accessRights)
             .map(AccessRight::toString)
             .toArray(String[]::new);
         return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
-            .withCustomerId(customerId)
-            .withAccessRights(customerId, accessRightStrings)
+            .withCustomerId(requestBody.getCustomerId())
+            .withAccessRights(requestBody.getCustomerId(), accessRightStrings)
             .withBody(requestBody)
             .build();
     }
 
-    private CreateUserRequest sampleRequest(NationalIdentityNumber person, URI customerId) {
-        return new CreateUserRequest(person, customerId, randomRoles());
-    }
-
     private Set<RoleDto> randomRoles() {
         var role = RoleDto.newBuilder().withRoleName(randomString()).build();
+        addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
         return Set.of(role);
+    }
+
+    private void addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(RoleDto role) {
+        try {
+            identityService.addRole(role);
+        } catch (ConflictException | InvalidInputException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

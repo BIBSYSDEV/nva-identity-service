@@ -2,8 +2,10 @@ package no.unit.nva.useraccessservice.usercreation;
 
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -62,8 +64,8 @@ public class UserEntriesCreatorForPerson {
                                                       String personFeideIdentifier,
                                                       String orgFeideDomain) {
         var personInformation = new PersonInformationImpl(personFeideIdentifier, orgFeideDomain);
-        var cristinResponse = fetchPersonInformationFromCristin(nationalIdentityNumber);
-        personInformation.setCristinPersonResponse(cristinResponse);
+         fetchPersonInformationFromCristin(nationalIdentityNumber)
+             .ifPresent(personInformation::setCristinPersonResponse);
 
         var affiliationInformation = fetchParentInstitutionsForPersonAffiliations(personInformation);
         personInformation.setPersonAffiliations(affiliationInformation);
@@ -109,7 +111,9 @@ public class UserEntriesCreatorForPerson {
 
     private List<PersonAffiliation> fetchParentInstitutionsForPersonAffiliations(
         PersonInformation personInformation) {
-        return personInformation.getCristinPersonResponse().getAffiliations().stream()
+        return personInformation.getCristinPersonResponse().stream()
+            .map(CristinPersonResponse::getAffiliations)
+            .flatMap(Collection::stream)
             .filter(CristinAffiliation::isActive)
             .map(CristinAffiliation::getOrganizationUri)
             .map(this::fetchParentInstitutionCristinId)
@@ -122,13 +126,13 @@ public class UserEntriesCreatorForPerson {
             .orElseThrow();
     }
 
-    private CristinPersonResponse fetchPersonInformationFromCristin(NationalIdentityNumber nin) {
-        return attempt(() -> cristinClient.sendRequestToCristin(nin)).orElseThrow();
+    private Optional<CristinPersonResponse> fetchPersonInformationFromCristin(NationalIdentityNumber nin) {
+        return attempt(() -> cristinClient.sendRequestToCristin(nin)).toOptional();
     }
 
     private UserDto createNewUserObject(CustomerDto customer, PersonInformation personInformation) {
 
-        var cristinResponse = personInformation.getCristinPersonResponse();
+        var cristinResponse = personInformation.getCristinPersonResponse().orElseThrow();
         var affiliation = personInformation.getOrganizationAffiliation(customer.getCristinId());
         var feideIdentifier = personInformation.getPersonFeideIdentifier();
         var user = UserDto.newBuilder()

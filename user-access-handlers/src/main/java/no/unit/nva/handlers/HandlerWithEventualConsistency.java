@@ -16,10 +16,10 @@ public abstract class HandlerWithEventualConsistency<I, O> extends ApiGatewayHan
     protected static final int MAX_EFFORTS_FOR_FETCHING_OBJECT = 2;
     protected static final String INTERRUPTION_ERROR = "Interuption while waiting to get role.";
     protected static final long WAITING_TIME = 100;
-    private static final Logger  logger = LoggerFactory.getLogger(HandlerWithEventualConsistency.class);
+    private static final Logger logger = LoggerFactory.getLogger(HandlerWithEventualConsistency.class);
 
-    protected HandlerWithEventualConsistency(Class<I> iClass) {
-        super(iClass);
+    protected HandlerWithEventualConsistency(Class<I> iclass) {
+        super(iclass);
     }
 
     protected Optional<O> getEventuallyConsistent(Callable<O> fetchEntry) {

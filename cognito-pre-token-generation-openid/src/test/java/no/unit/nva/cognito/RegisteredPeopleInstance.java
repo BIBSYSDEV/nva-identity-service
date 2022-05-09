@@ -9,6 +9,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,7 +23,9 @@ import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinIdentifier;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 
 public class RegisteredPeopleInstance {
@@ -81,16 +84,23 @@ public class RegisteredPeopleInstance {
     }
 
     public Set<URI> getTopLevelOrgsForPerson(NationalIdentityNumber nin, boolean includeInactive) {
-        return cristinProxy.getCristinPersonRecord(nin).getAffiliations()
-            .stream()
+        return cristinProxy.getCristinPersonRecord(nin).stream()
+            .map(CristinPersonResponse::getAffiliations)
+            .flatMap(Collection::stream)
             .filter(org -> org.isActive() || includeInactive)
             .map(CristinAffiliation::getOrganizationUri)
             .map(cristinProxy::getParentInstitutionForOrganization)
             .collect(Collectors.toSet());
     }
 
+    public NationalIdentityNumber personThatIsNotRegisteredInPersonRegistry() {
+        return cristinProxy.getPersonThatInNotRegisteredInPersonRegistry();
+    }
+
     public URI getCristinPersonId(NationalIdentityNumber nin) {
-        return cristinProxy.getCristinPersonRecord(nin).getCristinId();
+        return cristinProxy.getCristinPersonRecord(nin).stream()
+            .map(CristinPersonResponse::getCristinId)
+            .collect(SingletonCollector.collect());
     }
 
     public CristinIdentifier getCristinPersonIdentifier(NationalIdentityNumber nin) {
@@ -114,8 +124,10 @@ public class RegisteredPeopleInstance {
     }
 
     public Set<URI> getTopLevelAffiliationsForUser(NationalIdentityNumber nin, boolean active) {
-        return cristinProxy.getCristinPersonRecord(nin).getAffiliations()
+        return cristinProxy.getCristinPersonRecord(nin)
             .stream()
+            .map(CristinPersonResponse::getAffiliations)
+            .flatMap(Collection::stream)
             .filter(aff -> aff.isActive() == active)
             .map(CristinAffiliation::getOrganizationUri)
             .map(cristinProxy::getParentInstitutionForOrganization)
@@ -130,8 +142,9 @@ public class RegisteredPeopleInstance {
     }
 
     public List<URI> getOrganizations(NationalIdentityNumber person) {
-        return cristinProxy.getCristinPersonRecord(person).getAffiliations()
-            .stream()
+        return cristinProxy.getCristinPersonRecord(person).stream()
+            .map(CristinPersonResponse::getAffiliations)
+            .flatMap(Collection::stream)
             .map(CristinAffiliation::getOrganizationUri)
             .collect(Collectors.toList());
     }

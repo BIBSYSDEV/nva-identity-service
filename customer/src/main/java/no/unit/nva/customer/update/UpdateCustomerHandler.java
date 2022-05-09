@@ -61,9 +61,13 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     }
 
     private void authorizePublicationWorkflowUpdate(RequestInfo requestInfo) throws ForbiddenException {
-        if (doesNotHaveRequiredRights(requestInfo) || requestInfo.isApplicationAdmin()) {
+        if (doesNotHaveRequiredRights(requestInfo) && isNotApplicationAdmin(requestInfo)) {
             throw new ForbiddenException();
         }
+    }
+
+    private boolean isNotApplicationAdmin(RequestInfo requestInfo) {
+        return !requestInfo.isApplicationAdmin();
     }
 
     private boolean doesNotHaveRequiredRights(RequestInfo requestInfo) {
@@ -75,7 +79,11 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
                                  .copy()
                                  .withPublicationWorkflow(input.getPublicationWorkflow())
                                  .build();
-        return Objects.equals(input, targetCustomer);
+        return Objects.equals(input, targetCustomer) && publicationWorkflowFieldIsChanged(input, currentCustomer);
+    }
+
+    private boolean publicationWorkflowFieldIsChanged(CustomerDto input, CustomerDto currentCustomer) {
+        return !input.getPublicationWorkflow().equals(currentCustomer.getPublicationWorkflow());
     }
 
     @Override

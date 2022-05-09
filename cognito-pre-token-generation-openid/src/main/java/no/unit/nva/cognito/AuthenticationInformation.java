@@ -31,11 +31,11 @@ public class AuthenticationInformation implements PersonInformation {
     }
 
     public String extractFirstName() {
-        return getCristinPersonResponse().extractFirstName();
+        return getCristinPersonResponse().map(CristinPersonResponse::extractFirstName).orElseThrow();
     }
 
     public String extractLastName() {
-        return getCristinPersonResponse().extractLastName();
+        return getCristinPersonResponse().map(CristinPersonResponse::extractLastName).orElseThrow();
     }
 
     public Optional<String> getCurrentCustomerId() {
@@ -43,7 +43,7 @@ public class AuthenticationInformation implements PersonInformation {
     }
 
     public URI getCristinPersonId() {
-        return getCristinPersonResponse().getCristinId();
+        return getCristinPersonResponse().map(CristinPersonResponse::getCristinId).orElseThrow();
     }
 
     public CustomerDto updateCurrentCustomer() {
@@ -84,7 +84,7 @@ public class AuthenticationInformation implements PersonInformation {
     }
 
     @Override
-    public CristinPersonResponse getCristinPersonResponse() {
+    public Optional<CristinPersonResponse> getCristinPersonResponse() {
         return personInformation.getCristinPersonResponse();
     }
 
@@ -106,6 +106,11 @@ public class AuthenticationInformation implements PersonInformation {
     @Override
     public void setPersonAffiliations(List<PersonAffiliation> affiliationInformation) {
         personInformation.setPersonAffiliations(affiliationInformation);
+    }
+
+    @Override
+    public boolean personExistsInPersonRegistry() {
+        return personInformation.personExistsInPersonRegistry();
     }
 
     private IllegalStateException handleUserNotFoundError() {

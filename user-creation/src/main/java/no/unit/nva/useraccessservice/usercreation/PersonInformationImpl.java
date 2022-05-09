@@ -2,6 +2,7 @@ package no.unit.nva.useraccessservice.usercreation;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
@@ -49,8 +50,8 @@ public class PersonInformationImpl implements PersonInformation {
 
     @JacocoGenerated
     @Override
-    public CristinPersonResponse getCristinPersonResponse() {
-        return this.cristinResponse;
+    public Optional<CristinPersonResponse> getCristinPersonResponse() {
+        return Optional.ofNullable(this.cristinResponse);
     }
 
     @JacocoGenerated
@@ -75,6 +76,11 @@ public class PersonInformationImpl implements PersonInformation {
     @JacocoGenerated
     public void setPersonAffiliations(List<PersonAffiliation> affiliationInformation) {
         this.personAffiliations = affiliationInformation;
+    }
+
+    @Override
+    public boolean personExistsInPersonRegistry() {
+        return getCristinPersonResponse().isPresent();
     }
 
     private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {

@@ -15,6 +15,7 @@ import com.github.tomakehurst.wiremock.matching.ContentPattern;
 import com.github.tomakehurst.wiremock.matching.EqualToJsonPattern;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -59,6 +61,7 @@ public class CristinProxyMock {
     private Set<URI> organizations;
     private Map<URI, URI> organizationToParentInstitutionMap;
     private URI parentInstitutionThatIsNotNvaCustomer;
+    private NationalIdentityNumber personThatInNotRegisteredInPersonRegistry;
 
     public CristinProxyMock(WireMockServer httpServer,
                             NvaAuthServerMock dataportenMock) {
@@ -75,8 +78,11 @@ public class CristinProxyMock {
         createPersonWithNoActiveAffiliations();
         createPersonWithActiveAndInactiveAffiliations();
         createPersonWithActiveAffiliationThatIsNotCustomer();
+        createPersonThatIsNotRegisteredInPersonRegistry();
         createPersonWithManyActiveAffiliations();
     }
+
+
 
     public NationalIdentityNumber getPersonWithOneActiveAffiliationAndNoInactiveAffiliations() {
         return personWithOneActiveAffiliationAndNoInactiveAffiliations;
@@ -90,8 +96,8 @@ public class CristinProxyMock {
         return personWithNoActiveAffiliations;
     }
 
-    public CristinPersonResponse getCristinPersonRecord(NationalIdentityNumber personLoggingIn) {
-        return this.cristinPersonRegistry.get(personLoggingIn);
+    public Optional<CristinPersonResponse> getCristinPersonRecord(NationalIdentityNumber personLoggingIn) {
+        return Optional.ofNullable(this.cristinPersonRegistry.get(personLoggingIn));
     }
 
     public URI randomOrgFromTheAffiliationsPool() {
@@ -118,6 +124,10 @@ public class CristinProxyMock {
         return personWithActiveAffiliationThatIsNotCustomer;
     }
 
+    public NationalIdentityNumber getPersonThatInNotRegisteredInPersonRegistry(){
+        return  personThatInNotRegisteredInPersonRegistry;
+    }
+
     private URI getParentInstitutionThatIsNotNvaCustomer() {
         return parentInstitutionThatIsNotNvaCustomer;
     }
@@ -130,6 +140,11 @@ public class CristinProxyMock {
             .build();
         createCristinRecord(personWithActiveAffiliationThatIsNotCustomer, List.of(affiliationThatIsNotCustomer));
         createStubResponseForPerson(personWithActiveAffiliationThatIsNotCustomer);
+    }
+
+    private void createPersonThatIsNotRegisteredInPersonRegistry() {
+        personThatInNotRegisteredInPersonRegistry = nextPerson();
+        createStubNotFoundResponseForPerson(personThatInNotRegisteredInPersonRegistry);
     }
 
     private URI createRandomOrgUriForTheImaginarySetup() {
@@ -267,6 +282,15 @@ public class CristinProxyMock {
                     .withHeader(CONTENT_TYPE, applicationJson())
                     .withRequestBody(cristinServiceRequestBody(person))
                     .willReturn(aResponse().withStatus(HTTP_OK).withBody(cristinResponseBody(person))));
+    }
+
+    private void createStubNotFoundResponseForPerson(NationalIdentityNumber person) {
+        stubFor(post("/person/identityNumber")
+                    .withHeader(AUTHORIZATION_HEADER,
+                                new EqualToPattern("Bearer " + dataporten.getJwtToken(), MATCH_CASE))
+                    .withHeader(CONTENT_TYPE, applicationJson())
+                    .withRequestBody(cristinServiceRequestBody(person))
+                    .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
     private ContentPattern<?> cristinServiceRequestBody(NationalIdentityNumber nin) {

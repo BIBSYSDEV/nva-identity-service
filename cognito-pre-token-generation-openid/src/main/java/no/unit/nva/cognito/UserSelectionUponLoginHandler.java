@@ -189,12 +189,14 @@ public class UserSelectionUponLoginHandler
 
         var allowedCustomersString = createAllowedCustomersString(authenticationInfo.getActiveCustomers());
         var claims = new ArrayList<AttributeType>();
-        claims.add(createAttribute("custom:firstName", authenticationInfo.extractFirstName()));
-        claims.add(createAttribute("custom:lastName", authenticationInfo.extractLastName()));
-        claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, accessRights)));
-        claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
-        claims.add(createAttribute(ALLOWED_CUSTOMER_CLAIM, allowedCustomersString));
-        claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, authenticationInfo.getCristinPersonId().toString()));
+        if (authenticationInfo.personExistsInPersonRegistry()) {
+            claims.add(createAttribute("custom:firstName", authenticationInfo.extractFirstName()));
+            claims.add(createAttribute("custom:lastName", authenticationInfo.extractLastName()));
+            claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, accessRights)));
+            claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
+            claims.add(createAttribute(ALLOWED_CUSTOMER_CLAIM, allowedCustomersString));
+            claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, authenticationInfo.getCristinPersonId().toString()));
+        }
 
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(authenticationInfo, claims);
 

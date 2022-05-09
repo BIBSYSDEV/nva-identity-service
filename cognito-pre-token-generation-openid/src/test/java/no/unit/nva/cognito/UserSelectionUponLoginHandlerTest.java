@@ -26,6 +26,7 @@ import static org.hamcrest.core.Every.everyItem;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsIterableContaining.hasItem;
+import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -560,6 +561,18 @@ class UserSelectionUponLoginHandlerTest {
             "USER" + AT + expectedCustomerId.toString();
 
         assertThat(groups, hasItem(expectedCognitoGroup));
+    }
+
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldAllowPeopleWhoAreNotRegisteredInPersonRegistryToLoginButNotGiveThemAnyRole(
+        LoginEventType loginEventType) {
+        var person = registeredPeople.personThatIsNotRegisteredInPersonRegistry();
+        var event = randomEvent(person,loginEventType);
+        var response = handler.handleRequest(event,context);
+        assertThat(response,is(not(nullValue())));
+
     }
 
     private void assertThatUserHasUserRoleAttached(UserDto user) {

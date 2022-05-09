@@ -2,6 +2,7 @@ package no.unit.nva.useraccessservice.usercreation;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
@@ -17,7 +18,7 @@ public interface PersonInformation {
 
     String getPersonFeideIdentifier();
 
-    CristinPersonResponse getCristinPersonResponse();
+    Optional<CristinPersonResponse> getCristinPersonResponse();
 
     void setCristinPersonResponse(CristinPersonResponse cristinResponse);
 
@@ -26,4 +27,8 @@ public interface PersonInformation {
     List<PersonAffiliation> getPersonAffiliations();
 
     void setPersonAffiliations(List<PersonAffiliation> affiliationInformation);
+
+    default boolean personExistsInPersonRegistry(){
+        return getCristinPersonResponse().isPresent();
+    }
 }

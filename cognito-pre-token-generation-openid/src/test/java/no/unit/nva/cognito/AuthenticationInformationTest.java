@@ -6,12 +6,17 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.mock;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.usercreation.PersonInformation;
 import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
@@ -19,23 +24,35 @@ import org.junit.jupiter.api.Test;
 
 class AuthenticationInformationTest {
 
+    public static final String METHOD_APPEARING_FOR_DEFAULT_INTERFACE_METHODS = "$jacocoInit";
+
     @Test
     void overridenMethodsCallDecoratedImplObject() throws InvocationTargetException, IllegalAccessException {
         var personInfo = new PersonInformationSpy();
         var authInfo = new AuthenticationInformation(personInfo);
-        var personInfoMethods = PersonInformation.class.getDeclaredMethods();
+        var personInfoMethods = collectMethodsDeclaredByTheInterfaceExcludingDefaultMethods();
         for (var method : personInfoMethods) {
             var parameters = method.getParameterTypes();
             var arguments = Arrays.stream(parameters).map(this::getMock).toArray();
             method.invoke(authInfo, arguments);
         }
-        assertThat(personInfo.getActivations(), is(equalTo(personInfoMethods.length)));
+
+        assertThat(personInfo.getActivations(), is(equalTo(personInfoMethods.size())));
+    }
+
+
+    private List<Method> collectMethodsDeclaredByTheInterfaceExcludingDefaultMethods() {
+        return Arrays.stream(PersonInformation.class.getDeclaredMethods())
+            .filter(this::isManuallyDeclaredMethod) // Default methods have strange types that cannot be mocked
+            .collect(Collectors.toList());
+    }
+
+    private boolean isManuallyDeclaredMethod(Method method) {
+        return !method.getName().equals(METHOD_APPEARING_FOR_DEFAULT_INTERFACE_METHODS);
     }
 
     private Object getMock(Class<?> type) {
-        return typeCanBeMocked(type)
-                   ? mock(type)
-                   : realExampleValue();
+        return typeCanBeMocked(type) ? mock(type) : realExampleValue();
     }
 
     private URI realExampleValue() {
@@ -46,7 +63,7 @@ class AuthenticationInformationTest {
         return !type.equals(URI.class);
     }
 
-    private class PersonInformationSpy implements PersonInformation {
+    private static class PersonInformationSpy implements PersonInformation {
 
         private final AtomicInteger activations = new AtomicInteger(0);
 
@@ -74,9 +91,9 @@ class AuthenticationInformationTest {
         }
 
         @Override
-        public CristinPersonResponse getCristinPersonResponse() {
+        public Optional<CristinPersonResponse> getCristinPersonResponse() {
             registerActivation();
-            return null;
+            return Optional.empty();
         }
 
         @Override

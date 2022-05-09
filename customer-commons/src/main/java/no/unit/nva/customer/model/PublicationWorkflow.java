@@ -1,14 +1,13 @@
 package no.unit.nva.customer.model;
 
+import static java.lang.String.format;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Failure;
-
-import static java.lang.String.format;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.joining;
 
 public enum PublicationWorkflow {
     @JsonProperty("RegistratorPublishesMetadataOnly")

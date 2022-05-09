@@ -1,8 +1,9 @@
-package no.unit.nva.useraccessservice.usercreation;
+package no.unit.nva.useraccessservice.userceation.testing.cristin;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -10,7 +11,6 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Arrays;
@@ -88,7 +88,7 @@ public class CristinServerMock {
     private void createOrganizationResponse(PersonAffiliation orgStructure) {
         cacheForInternalUse(orgStructure);
         setupWiremockPorts();
-        stubFor(WireMock.get(urlEqualTo(organizationPath(orgStructure.getChild())))
+        stubFor(get(urlEqualTo(organizationPath(orgStructure.getChild())))
                     .willReturn(createInstitutionRegistryResponseForOrganization(orgStructure))
 
         );

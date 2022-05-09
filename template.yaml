@@ -71,7 +71,8 @@ Globals:
     Tracing: Active
     Environment:
       Variables:
-        API_HOST: !Ref ApiDomain
+        API_HOST: !Ref ApiDomain #TODO: eliminate API_HOST
+        API_DOMAIN: !Ref ApiDomain
         CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
         BY_ORG_DOMAIN_INDEX_NAME: byOrgDomain
         BY_CRISTIN_ID_INDEX_NAME: byCristinId
@@ -161,7 +162,7 @@ Resources:
                   - cognito-idp:DescribeUserPoolDomain
                 Resource: "*"
 
-  TriggerExecutionRole:
+  CreateUsersRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -289,15 +290,17 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
-#      Auth:
-#        DefaultAuthorizer: CognitoAuthorizer
-#        Authorizers:
-#          CognitoAuthorizer:
-#            UserPoolArn: !GetAtt UserPool.Arn
-#            Identity:
-#              Header: Authorization
-#              ValidationExpression: Bearer.*
-#              ReauthorizeEvery: 10
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            AuthorizationScopes:
+              - 'https://api.nva.unit.no/scopes/backend'
+              - 'https://api.nva.unit.no/scopes/frontend'
+            UserPoolArn: !GetAtt UserPool.Arn
+            Identity:
+              Header: Authorization
+              ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
       DefinitionBody:
         'Fn::Transform':
@@ -347,12 +350,17 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.CreateUserHandler::handleRequest
+      Role: !GetAtt CreateUsersRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
+          COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+          API_DOMAIN: !Ref ApiDomain
+          COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
+          COGNITO_ID_KEY: backendClientId
+          COGNITO_SECRET_KEY: backendClientSecret
+          #TODO rename ID_NAMESPACE to CUSTOMER_ID_NAMESPACE
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Events:
         ApiEvent:
           Type: Api
@@ -1318,7 +1326,7 @@ Resources:
     Properties:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.UserSelectionUponLoginHandler::handleRequest
-      Role: !GetAtt TriggerExecutionRole.Arn
+      Role: !GetAtt CreateUsersRole.Arn
       AutoPublishAlias: live
       Tracing: Active
       DeploymentPreference:

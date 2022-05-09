@@ -98,6 +98,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
 
         var responseObject = response.getBodyObject(CustomerDto.class);
         synchronizeModifiedDate(responseObject);
+        synchronizeModifiedDate(updateCustomer);
 
         assertThat(responseObject, is(equalTo(updateCustomer)));
     }

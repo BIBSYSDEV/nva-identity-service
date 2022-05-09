@@ -4,12 +4,12 @@ import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.identityservice.json.JsonConfig;
@@ -43,7 +43,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     @JsonProperty(VIEWING_SCOPE_FIELD)
     private ViewingScope viewingScope;
     @JsonProperty(ROLES)
-    private List<RoleDto> roles;
+    private Set<RoleDto> roles;
     @JsonProperty("cristinId")
     private URI cristinId;
     @JsonProperty("feideIdentifier")
@@ -54,7 +54,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     private URI affiliation;
 
     public UserDto() {
-        roles = Collections.emptyList();
+        roles = Collections.emptySet();
     }
 
     /**
@@ -165,11 +165,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
         Typed.super.setType(type);
     }
 
-    public List<RoleDto> getRoles() {
+    public Set<RoleDto> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<RoleDto> roles) {
+    public void setRoles(Set<RoleDto> roles) {
         this.roles = roles;
     }
 
@@ -283,7 +283,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
         public Builder withRoles(Collection<RoleDto> roles) {
             if (nonNull(roles)) {
-                userDto.setRoles(new ArrayList<>(roles));
+                userDto.setRoles(new HashSet<>(roles));
             }
 
             return this;

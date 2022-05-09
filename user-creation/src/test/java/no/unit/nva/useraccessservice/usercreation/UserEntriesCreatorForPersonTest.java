@@ -22,6 +22,7 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.userceation.testing.cristin.PeopleAndInstitutions;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.apigateway.exceptions.ConflictException;

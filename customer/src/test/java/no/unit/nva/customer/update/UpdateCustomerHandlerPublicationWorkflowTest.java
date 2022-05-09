@@ -122,6 +122,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
                    .withPathParameters(pathParameters)
+                   .withCustomerId(updateCustomer.getId())
                    .withAccessRights(updateCustomer.getId(), AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
                    .withBody(updateCustomer)
                    .build();
@@ -138,7 +139,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
 
     private void createCustomerInLocalDb() throws IOException {
         var createCustomerBase = createCustomer(UUID.randomUUID());
-        final ByteArrayOutputStream createOutputStream = new ByteArrayOutputStream();
+        var createOutputStream = new ByteArrayOutputStream();
         createHandler.handleRequest(createCustomerInDbRequest(createCustomerBase),
                 createOutputStream,
                 new FakeContext());

@@ -290,15 +290,18 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
-#      Auth:
-#        DefaultAuthorizer: CognitoAuthorizer
-#        Authorizers:
-#          CognitoAuthorizer:
-#            UserPoolArn: !GetAtt UserPool.Arn
-#            Identity:
-#              Header: Authorization
-#              ValidationExpression: Bearer.*
-#              ReauthorizeEvery: 10
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            AuthorizationScopes:
+              - "https://api.nva.unit.no/scopes/backend"
+              - "https://api.nva.unit.no/scopes/frontend"
+            UserPoolArn: !GetAtt UserPool.Arn
+            Identity:
+              Header: Authorization
+              ValidationExpression: Bearer.*
+              ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
       DefinitionBody:
         'Fn::Transform':

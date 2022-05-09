@@ -82,8 +82,6 @@ public class CristinProxyMock {
         createPersonWithManyActiveAffiliations();
     }
 
-
-
     public NationalIdentityNumber getPersonWithOneActiveAffiliationAndNoInactiveAffiliations() {
         return personWithOneActiveAffiliationAndNoInactiveAffiliations;
     }
@@ -124,8 +122,8 @@ public class CristinProxyMock {
         return personWithActiveAffiliationThatIsNotCustomer;
     }
 
-    public NationalIdentityNumber getPersonThatInNotRegisteredInPersonRegistry(){
-        return  personThatInNotRegisteredInPersonRegistry;
+    public NationalIdentityNumber getPersonThatInNotRegisteredInPersonRegistry() {
+        return personThatInNotRegisteredInPersonRegistry;
     }
 
     private URI getParentInstitutionThatIsNotNvaCustomer() {

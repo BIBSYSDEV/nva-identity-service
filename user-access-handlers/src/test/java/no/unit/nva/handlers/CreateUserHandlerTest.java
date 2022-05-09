@@ -185,7 +185,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
         var request = createRequest(requestBody, customer, EDIT_OWN_INSTITUTION_USERS);
         var response = sendRequest(request, UserDto.class);
-        var firstRoles = response.getBodyObject(UserDto.class).getRoles();
+        final var firstRoles = response.getBodyObject(UserDto.class).getRoles();
 
         outputStream = new ByteArrayOutputStream();
         //sending a create user request for the same user but with different roles

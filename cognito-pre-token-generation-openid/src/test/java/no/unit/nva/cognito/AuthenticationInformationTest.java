@@ -14,17 +14,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.usercreation.PersonInformation;
 import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import org.junit.jupiter.api.Test;
 
 class AuthenticationInformationTest {
-
-    public static final String METHOD_APPEARING_FOR_DEFAULT_INTERFACE_METHODS = "$jacocoInit";
 
     @Test
     void overridenMethodsCallDecoratedImplObject() throws InvocationTargetException, IllegalAccessException {
@@ -43,12 +39,7 @@ class AuthenticationInformationTest {
 
     private List<Method> collectMethodsDeclaredByTheInterfaceExcludingDefaultMethods() {
         return Arrays.stream(PersonInformation.class.getDeclaredMethods())
-            .filter(this::isManuallyDeclaredMethod) // Default methods have strange types that cannot be mocked
             .collect(Collectors.toList());
-    }
-
-    private boolean isManuallyDeclaredMethod(Method method) {
-        return !method.getName().equals(METHOD_APPEARING_FOR_DEFAULT_INTERFACE_METHODS);
     }
 
     private Object getMock(Class<?> type) {

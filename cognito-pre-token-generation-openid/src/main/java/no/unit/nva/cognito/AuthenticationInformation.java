@@ -63,6 +63,10 @@ public class AuthenticationInformation implements PersonInformation {
         }
     }
 
+    public boolean personExistsInPersonRegistry() {
+        return getCristinPersonResponse().isPresent();
+    }
+
     @Override
     public Set<CustomerDto> getActiveCustomers() {
         return personInformation.getActiveCustomers();
@@ -106,11 +110,6 @@ public class AuthenticationInformation implements PersonInformation {
     @Override
     public void setPersonAffiliations(List<PersonAffiliation> affiliationInformation) {
         personInformation.setPersonAffiliations(affiliationInformation);
-    }
-
-    @Override
-    public boolean personExistsInPersonRegistry() {
-        return personInformation.personExistsInPersonRegistry();
     }
 
     private IllegalStateException handleUserNotFoundError() {

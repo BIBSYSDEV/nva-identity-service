@@ -28,7 +28,4 @@ public interface PersonInformation {
 
     void setPersonAffiliations(List<PersonAffiliation> affiliationInformation);
 
-    default boolean personExistsInPersonRegistry(){
-        return getCristinPersonResponse().isPresent();
-    }
 }

@@ -14,7 +14,6 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -60,7 +59,6 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     }
 
     @Test
-    //@Disabled
     void shouldUpdatePublicationWorkflowWhenAuthorized() throws IOException {
         createCustomerInLocalDb();
         var updateCustomer = changePublicationWorkflowFromCreateCustomer();
@@ -125,8 +123,8 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
                    .withPathParameters(pathParameters)
-                   .withAccessRights(updateCustomer.getId(),
-                                     AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
+                   .withCustomerId(updateCustomer.getId())
+                   .withAccessRights(updateCustomer.getId(), AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
                    .withBody(updateCustomer)
                    .build();
     }
@@ -142,7 +140,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
 
     private void createCustomerInLocalDb() throws IOException {
         var createCustomerBase = createCustomer(UUID.randomUUID());
-        final ByteArrayOutputStream createOutputStream = new ByteArrayOutputStream();
+        var createOutputStream = new ByteArrayOutputStream();
         createHandler.handleRequest(createCustomerInDbRequest(createCustomerBase),
                 createOutputStream,
                 new FakeContext());

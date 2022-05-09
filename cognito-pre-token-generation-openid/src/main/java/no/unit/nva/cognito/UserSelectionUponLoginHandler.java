@@ -188,6 +188,22 @@ public class UserSelectionUponLoginHandler
                                                               Collection<String> roles) {
 
         var allowedCustomersString = createAllowedCustomersString(authenticationInfo.getActiveCustomers());
+
+        if (authenticationInfo.personExistsInPersonRegistry()) {
+            return addClaimsForPeopleRegisteredInPersonRegistry(authenticationInfo,
+                                                                accessRights,
+                                                                roles,
+                                                                allowedCustomersString);
+        }
+        return Collections.emptyList();
+    }
+
+    private List<AttributeType> addClaimsForPeopleRegisteredInPersonRegistry(
+        AuthenticationInformation authenticationInfo,
+        Collection<String> accessRights,
+        Collection<String> roles,
+        String allowedCustomersString) {
+
         var claims = new ArrayList<AttributeType>();
         claims.add(createAttribute("custom:firstName", authenticationInfo.extractFirstName()));
         claims.add(createAttribute("custom:lastName", authenticationInfo.extractLastName()));
@@ -195,9 +211,7 @@ public class UserSelectionUponLoginHandler
         claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
         claims.add(createAttribute(ALLOWED_CUSTOMER_CLAIM, allowedCustomersString));
         claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, authenticationInfo.getCristinPersonId().toString()));
-
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(authenticationInfo, claims);
-
         return claims;
     }
 

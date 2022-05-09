@@ -562,6 +562,18 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(groups, hasItem(expectedCognitoGroup));
     }
 
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldAllowPeopleWhoAreNotRegisteredInPersonRegistryToLoginButNotGiveThemAnyRole(
+        LoginEventType loginEventType) {
+        var person = registeredPeople.personThatIsNotRegisteredInPersonRegistry();
+        var event = randomEvent(person, loginEventType);
+        var response = handler.handleRequest(event, context);
+        var accessRights = extractAccessRights(response);
+        assertThat(accessRights, is((empty())));
+    }
+
     private void assertThatUserHasUserRoleAttached(UserDto user) {
         var userRoles = user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toList());
         assertThat(userRoles, hasItem("Creator"));

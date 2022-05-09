@@ -36,7 +36,6 @@ class AuthenticationInformationTest {
         assertThat(personInfo.getActivations(), is(equalTo(personInfoMethods.size())));
     }
 
-
     private List<Method> collectMethodsDeclaredByTheInterfaceExcludingDefaultMethods() {
         return Arrays.stream(PersonInformation.class.getDeclaredMethods())
             .collect(Collectors.toList());

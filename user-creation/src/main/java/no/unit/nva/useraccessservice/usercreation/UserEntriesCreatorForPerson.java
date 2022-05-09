@@ -27,7 +27,6 @@ public class UserEntriesCreatorForPerson {
     public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
         RoleDto.newBuilder().withRoleName("Creator").build();
     private static final String AT = "@";
-
     private final CustomerService customerService;
     private final CristinClient cristinClient;
     private final IdentityService identityService;
@@ -47,11 +46,12 @@ public class UserEntriesCreatorForPerson {
 
     public List<UserDto> createUser(PersonInformation authenticationInfo, URI selectedCustomer) {
         createUserRole();
-        return createOrFetchUserEntriesForPerson(authenticationInfo, selectedCustomer::equals);
+        return createOrFetchUserEntriesForPerson(authenticationInfo,
+                                                 customerDto -> isSelectedCustomer(customerDto, selectedCustomer));
     }
 
-    private Predicate<URI> keepAll() {
-        return customerDto -> true;
+    private boolean isSelectedCustomer(CustomerDto customerDto, URI selectedCustomerId) {
+        return customerDto.getId().equals(selectedCustomerId) || customerDto.getCristinId().equals(selectedCustomerId);
     }
 
     public PersonInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber) {
@@ -74,11 +74,16 @@ public class UserEntriesCreatorForPerson {
         return personInformation;
     }
 
-    private List<UserDto> createOrFetchUserEntriesForPerson(PersonInformation personInformation,
-                                                            Predicate<URI> filterActiveCustomers) {
+    private Predicate<CustomerDto> keepAll() {
+        return customerDto -> true;
+    }
 
-        return personInformation.getActiveCustomers().stream()
-            .filter(customerDto -> filterActiveCustomers.test(customerDto.getId()))
+    private List<UserDto> createOrFetchUserEntriesForPerson(PersonInformation personInformation,
+                                                            Predicate<CustomerDto> filterActiveCustomers) {
+
+        var customers = personInformation.getActiveCustomers();
+        return customers.stream()
+            .filter(filterActiveCustomers::test)
             .map(customer -> createNewUserObject(customer, personInformation))
             .map(user -> getExistingUserOrCreateNew(user, personInformation))
             .collect(Collectors.toList());
@@ -180,13 +185,12 @@ public class UserEntriesCreatorForPerson {
         var existingUser =
             identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(),
                                                                          user.getInstitutionCristinId());
-        return updateUserAffiliation(user, personInformation, existingUser);
+        return updateUserAffiliation(existingUser, personInformation);
     }
 
-    private UserDto updateUserAffiliation(UserDto user,
-                                          PersonInformation personInformation,
-                                          UserDto existingUser) throws NotFoundException {
-        var affiliation = personInformation.getOrganizationAffiliation(user.getInstitutionCristinId());
+    private UserDto updateUserAffiliation(UserDto existingUser,
+                                          PersonInformation personInformation) throws NotFoundException {
+        var affiliation = personInformation.getOrganizationAffiliation(existingUser.getInstitutionCristinId());
         var updatedUser = existingUser.copy().withAffiliation(affiliation).build();
         identityService.updateUser(updatedUser);
         return updatedUser;

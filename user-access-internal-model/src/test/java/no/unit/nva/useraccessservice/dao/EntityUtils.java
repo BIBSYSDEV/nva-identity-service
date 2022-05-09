@@ -1,15 +1,14 @@
 package no.unit.nva.useraccessservice.dao;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.nva.useraccessservice.accessrights.AccessRight.APPROVE_DOI_REQUEST;
+import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-import no.unit.nva.useraccessservice.accessrights.AccessRight;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.AccessRight;
 
 public final class EntityUtils {
 
@@ -25,7 +24,7 @@ public final class EntityUtils {
     /**
      * Intention is to create a user with all fields filled.
      */
-    public static UserDto createUserWithRolesAndInstitution() throws InvalidInputException {
+    public static UserDto createUserWithRolesAndInstitution() {
         return createUserWithRoleWithoutInstitution().copy()
             .withInstitution(SOME_INSTITUTION)
             .build();
@@ -36,7 +35,7 @@ public final class EntityUtils {
      *
      * @return {@link UserDto}
      */
-    public static UserDto createUserWithRoleWithoutInstitution() throws InvalidInputException {
+    public static UserDto createUserWithRoleWithoutInstitution() {
         RoleDto sampleRole = createRole(SOME_ROLENAME);
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)
@@ -52,7 +51,7 @@ public final class EntityUtils {
      * @param someRole the role name.
      * @return the sample role.
      */
-    public static RoleDto createRole(String someRole) throws InvalidInputException {
+    public static RoleDto createRole(String someRole) {
         Set<String> accessRights = SAMPLE_ACCESS_RIGHTS
             .stream()
             .map(AccessRight::toString)

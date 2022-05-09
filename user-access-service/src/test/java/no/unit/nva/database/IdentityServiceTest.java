@@ -27,13 +27,13 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
-import no.unit.nva.useraccessservice.accessrights.AccessRight;
 import no.unit.nva.useraccessservice.constants.DatabaseIndexDetails;
 import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.dao.UserDao;
@@ -42,6 +42,7 @@ import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
@@ -544,7 +545,7 @@ class IdentityServiceTest extends LocalIdentityService {
         return identityService.getUser(userDto);
     }
 
-    private void addRolesIfTheyDoNotExist(List<RoleDto> roles) throws InvalidInputException, ConflictException {
+    private void addRolesIfTheyDoNotExist(Collection<RoleDto> roles) throws InvalidInputException, ConflictException {
         for (var role : roles) {
             var fetchRole = attempt(() -> identityService.getRole(role));
             if (fetchRole.isFailure()) {

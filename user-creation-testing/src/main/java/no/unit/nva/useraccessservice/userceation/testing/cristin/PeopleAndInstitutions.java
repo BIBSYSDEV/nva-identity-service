@@ -1,5 +1,6 @@
-package no.unit.nva.useraccessservice.usercreation;
+package no.unit.nva.useraccessservice.userceation.testing.cristin;
 
+import static no.unit.nva.auth.AuthorizedBackendClient.prepareWithBearerToken;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
@@ -11,9 +12,11 @@ import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
@@ -32,6 +35,11 @@ public class PeopleAndInstitutions {
         this.cristinServer = new CristinServerMock();
         this.customerService = customerService;
         this.identityService = identityService;
+    }
+
+    public CristinClient createCristinClient() {
+        var httpClient = prepareWithBearerToken(WiremockHttpClient.create(), randomString());
+        return new CristinClient(cristinServer.getServerUri(), httpClient);
     }
 
     public void shutdown() {

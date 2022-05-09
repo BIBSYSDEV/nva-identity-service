@@ -5,12 +5,15 @@ plugins {
 }
 
 dependencies {
+
+
     implementation project(":json-config")
     implementation project(":dynamo-client")
     implementation project (":customer-commons")
     implementation project (":user-access-commons")
     implementation project (":user-access-service")
     implementation project (":user-access-public-model")
+    implementation project(":user-creation")
 
     implementation libs.nva.apigateway
     implementation libs.nva.core
@@ -32,14 +35,13 @@ dependencies {
     implementation libs.aws.sdk2.secrets
 
 
-    testImplementation libs.slf4j
-    testImplementation libs.guava
-    testImplementation libs.nva.events
-
-    testImplementation project (":user-access-internal-model")
-    testImplementation project (":user-creation-testing")
-    testImplementation project (":customer-testing")
-    testImplementation project(':user-access-testing')
+    implementation libs.slf4j
+    implementation libs.guava
+    implementation libs.nva.events
+    implementation libs.bundles.testing
+    implementation project (":user-access-internal-model")
+    implementation project (":customer-testing")
+    implementation project(':user-access-testing')
 }
 
 test{

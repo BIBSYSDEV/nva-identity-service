@@ -12,12 +12,6 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
-import static no.unit.nva.cognito.NetworkingUtils.AWS_REGION;
-import static no.unit.nva.cognito.NetworkingUtils.COGNITO_CREDENTIALS_SECRET_NAME;
-import static no.unit.nva.cognito.NetworkingUtils.COGNITO_HOST;
-import static no.unit.nva.cognito.NetworkingUtils.COGNITO_ID_KEY;
-import static no.unit.nva.cognito.NetworkingUtils.COGNITO_SECRET_KEY;
-import static no.unit.nva.cognito.NetworkingUtils.CRISTIN_HOST;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
@@ -36,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import no.unit.nva.auth.AuthorizedBackendClient;
-import no.unit.nva.auth.CognitoCredentials;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -45,11 +37,12 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
-import nva.commons.secrets.SecretsReader;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
@@ -57,6 +50,9 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
+    public static final Environment ENVIRONMENT = new Environment();
+
+    public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideIdNin";
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideId";
@@ -70,18 +66,16 @@ public class UserSelectionUponLoginHandler
 
     @JacocoGenerated
     public UserSelectionUponLoginHandler() {
-        this(defaultCognitoClient(), defaultAuthorizedBackedClient(), CRISTIN_HOST,
+        this(defaultCognitoClient(), CristinClient.defaultClient(),
              defaultCustomerService(DEFAULT_DYNAMO_CLIENT), defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
     }
 
     public UserSelectionUponLoginHandler(CognitoIdentityProviderClient cognitoClient,
-                                         AuthorizedBackendClient httpClient,
-                                         URI cristinHost,
+                                         CristinClient cristinClient,
                                          CustomerService customerService,
                                          IdentityService identityService) {
         this.cognitoClient = cognitoClient;
         this.customerService = customerService;
-        var cristinClient = new CristinClient(cristinHost, httpClient);
         this.userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient, identityService);
     }
 
@@ -117,19 +111,6 @@ public class UserSelectionUponLoginHandler
 
     private static String extractFeideIdentifier(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(FEIDE_ID)).orElse(null);
-    }
-
-    @JacocoGenerated
-    private static AuthorizedBackendClient defaultAuthorizedBackedClient() {
-        return AuthorizedBackendClient.prepareWithCognitoCredentials(defaultCognitoCredentials());
-    }
-
-    @JacocoGenerated
-    private static CognitoCredentials defaultCognitoCredentials() {
-        var secretsReader = new SecretsReader(SecretsReader.defaultSecretsManagerClient());
-        var clientId = secretsReader.fetchSecret(COGNITO_CREDENTIALS_SECRET_NAME, COGNITO_ID_KEY);
-        var clientSecret = secretsReader.fetchSecret(COGNITO_CREDENTIALS_SECRET_NAME, COGNITO_SECRET_KEY);
-        return new CognitoCredentials(clientId, clientSecret, COGNITO_HOST);
     }
 
     @JacocoGenerated

@@ -4,8 +4,8 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
@@ -23,11 +23,11 @@ public class CreateUserRequest {
     @JsonProperty(CUSTOMER_ID_FIELD)
     private URI customerId;
     @JsonProperty(ROLES_FIELD)
-    private List<RoleDto> roles;
+    private Set<RoleDto> roles;
 
     public CreateUserRequest(NationalIdentityNumber nin,
                              URI customerId,
-                             List<RoleDto> roles) {
+                             Set<RoleDto> roles) {
         this.nin = nin;
         this.customerId = customerId;
         this.roles = roles;
@@ -37,6 +37,7 @@ public class CreateUserRequest {
     public CreateUserRequest() {
 
     }
+
     @JacocoGenerated
     public NationalIdentityNumber getNin() {
         return nin;
@@ -58,12 +59,12 @@ public class CreateUserRequest {
     }
 
     @JacocoGenerated
-    public List<RoleDto> getRoles() {
+    public Set<RoleDto> getRoles() {
         return roles;
     }
 
     @JacocoGenerated
-    public void setRoles(List<RoleDto> roles) {
+    public void setRoles(Set<RoleDto> roles) {
         this.roles = roles;
     }
 

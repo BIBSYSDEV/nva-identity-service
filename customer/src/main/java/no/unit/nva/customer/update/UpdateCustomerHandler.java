@@ -1,5 +1,6 @@
 package no.unit.nva.customer.update;
 
+import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
@@ -51,13 +52,18 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     protected CustomerDto processInput(CustomerDto input, RequestInfo requestInfo, Context context)
         throws InputException, NotFoundException, ForbiddenException {
 
-        var currentCustomer = customerService.getCustomer(input.getId());
-        if (isOnlyPublicationWorkflowUpdate(currentCustomer, input)) {
+        UUID identifier = getIdentifier(requestInfo);
+        var currentCustomer = customerService.getCustomer(identifier);
+        if (foundCustomerMatchingIdentifier(currentCustomer) && isOnlyPublicationWorkflowUpdate(currentCustomer,
+                                                                                                input)) {
             authorizePublicationWorkflowUpdate(requestInfo);
         }
 
-        UUID identifier = getIdentifier(requestInfo);
         return customerService.updateCustomer(identifier, input);
+    }
+
+    private boolean foundCustomerMatchingIdentifier(CustomerDto currentCustomer) {
+        return nonNull(currentCustomer);
     }
 
     private void authorizePublicationWorkflowUpdate(RequestInfo requestInfo) throws ForbiddenException {

@@ -14,6 +14,7 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -36,8 +37,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 
 public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerServiceDatabase {
 
-    private final Instant NOW = Instant.now();
-    private CustomerService customerServiceMock;
+    private static final Instant NOW = Instant.now();
     private UpdateCustomerHandler handler;
     private Context context;
     private ByteArrayOutputStream outputStream;
@@ -47,7 +47,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     @BeforeEach
     public void setUp() {
         super.setupDatabase();
-        customerServiceMock = new DynamoDBCustomerService(getDynamoClient());
+        CustomerService customerServiceMock = new DynamoDBCustomerService(getDynamoClient());
         handler = new UpdateCustomerHandler(customerServiceMock);
         createHandler = new CreateCustomerHandler(customerServiceMock);
         context = new FakeContext();
@@ -60,6 +60,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     }
 
     @Test
+    //@Disabled
     void shouldUpdatePublicationWorkflowWhenAuthorized() throws IOException {
         createCustomerInLocalDb();
         var updateCustomer = changePublicationWorkflowFromCreateCustomer();
@@ -100,6 +101,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         synchronizeModifiedDate(responseObject);
         synchronizeModifiedDate(updateCustomer);
 
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(responseObject, is(equalTo(updateCustomer)));
     }
 
@@ -123,7 +125,8 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
                    .withPathParameters(pathParameters)
-                   .withAccessRights(updateCustomer.getId(), AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
+                   .withAccessRights(updateCustomer.getId(),
+                                     AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
                    .withBody(updateCustomer)
                    .build();
     }

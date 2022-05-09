@@ -1,23 +1,7 @@
 package no.unit.nva.customer.update;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
-import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
-import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.time.Instant;
-import java.util.Map;
-import java.util.UUID;
 import no.unit.nva.customer.create.CreateCustomerHandler;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
@@ -32,6 +16,24 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
+import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+
 public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerServiceDatabase {
 
     private final Instant NOW = Instant.now();
@@ -40,15 +42,16 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     private Context context;
     private ByteArrayOutputStream outputStream;
     private CustomerDto createCustomer;
+    private CreateCustomerHandler createHandler;
 
     @BeforeEach
     public void setUp() {
         super.setupDatabase();
-        customerServiceMock = new DynamoDBCustomerService(this.dynamoClient);
+        customerServiceMock = new DynamoDBCustomerService(getDynamoClient());
         handler = new UpdateCustomerHandler(customerServiceMock);
+        createHandler = new CreateCustomerHandler(customerServiceMock);
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-        createCustomer = createCustomer(UUID.randomUUID());
     }
 
     @AfterEach
@@ -119,7 +122,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
                    .withPathParameters(pathParameters)
-                   .withAccessRights(updateCustomer.getId(), AccessRight.ADMINISTRATE_APPLICATION.toString())
+                   .withAccessRights(updateCustomer.getId(), AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
                    .withBody(updateCustomer)
                    .build();
     }
@@ -134,10 +137,14 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     }
 
     private void createCustomerInLocalDb() throws IOException {
-        var createHandler = new CreateCustomerHandler(customerServiceMock);
-        createHandler.handleRequest(createCustomerInDbRequest(createCustomer),
-                                    new ByteArrayOutputStream(),
-                                    new FakeContext());
+        var createCustomerBase = createCustomer(UUID.randomUUID());
+        final ByteArrayOutputStream createOutputStream = new ByteArrayOutputStream();
+        createHandler.handleRequest(createCustomerInDbRequest(createCustomerBase),
+                createOutputStream,
+                new FakeContext());
+
+        createCustomer = GatewayResponse.fromOutputStream(createOutputStream, CustomerDto.class)
+                .getBodyObject(CustomerDto.class);
     }
 
     private InputStream createCustomerInDbRequest(CustomerDto customer)

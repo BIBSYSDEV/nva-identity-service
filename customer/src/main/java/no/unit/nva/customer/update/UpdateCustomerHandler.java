@@ -67,11 +67,11 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     }
 
     private boolean isNotApplicationAdmin(RequestInfo requestInfo) {
-        return !requestInfo.isApplicationAdmin();
+        return !requestInfo.userIsApplicationAdmin();
     }
 
     private boolean doesNotHaveRequiredRights(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(AccessRight.ADMINISTRATE_APPLICATION.toString());
+        return !requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString());
     }
 
     private boolean isOnlyPublicationWorkflowUpdate(CustomerDto currentCustomer, CustomerDto input) {

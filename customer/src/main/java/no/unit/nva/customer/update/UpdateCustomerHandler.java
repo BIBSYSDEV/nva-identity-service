@@ -54,20 +54,22 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
 
         UUID identifier = getIdentifier(requestInfo);
         var currentCustomer = customerService.getCustomer(identifier);
-        if (foundCustomerMatchingIdentifier(currentCustomer) && isOnlyPublicationWorkflowUpdate(currentCustomer,
-                                                                                                input)) {
+        if (updatesPublicationWorkflow(currentCustomer, input)) {
             authorizePublicationWorkflowUpdate(requestInfo);
         }
 
         return customerService.updateCustomer(identifier, input);
     }
 
-    private boolean foundCustomerMatchingIdentifier(CustomerDto currentCustomer) {
-        return nonNull(currentCustomer);
+    private boolean updatesPublicationWorkflow(CustomerDto currentCustomer, CustomerDto input) {
+        if (nonNull(currentCustomer) && nonNull(input)) {
+            return !Objects.equals(currentCustomer.getPublicationWorkflow(), input.getPublicationWorkflow());
+        }
+        return false;
     }
 
     private void authorizePublicationWorkflowUpdate(RequestInfo requestInfo) throws ForbiddenException {
-        if (doesNotHaveRequiredRights(requestInfo) && isNotApplicationAdmin(requestInfo)) {
+        if (notAuthorizedToChangePublicationWorkflow(requestInfo) && isNotApplicationAdmin(requestInfo)) {
             throw new ForbiddenException();
         }
     }
@@ -76,20 +78,8 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
         return !requestInfo.userIsApplicationAdmin();
     }
 
-    private boolean doesNotHaveRequiredRights(RequestInfo requestInfo) {
+    private boolean notAuthorizedToChangePublicationWorkflow(RequestInfo requestInfo) {
         return !requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString());
-    }
-
-    private boolean isOnlyPublicationWorkflowUpdate(CustomerDto currentCustomer, CustomerDto input) {
-        var targetCustomer = currentCustomer
-                                 .copy()
-                                 .withPublicationWorkflow(input.getPublicationWorkflow())
-                                 .build();
-        return Objects.equals(input, targetCustomer) && publicationWorkflowFieldIsChanged(input, currentCustomer);
-    }
-
-    private boolean publicationWorkflowFieldIsChanged(CustomerDto input, CustomerDto currentCustomer) {
-        return !input.getPublicationWorkflow().equals(currentCustomer.getPublicationWorkflow());
     }
 
     @Override

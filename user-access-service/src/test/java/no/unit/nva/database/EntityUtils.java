@@ -2,7 +2,6 @@ package no.unit.nva.database;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.apigateway.AccessRight;
@@ -21,14 +20,10 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException when generated role is invalid.
      */
     public static RoleDto createRole(String someRole) throws InvalidEntryInternalException {
-        Set<String> sampleAccessRights = SAMPLE_ACCESS_RIGHTS
-            .stream()
-            .map(AccessRight::toString)
-            .collect(Collectors.toSet());
         return
             RoleDto.newBuilder()
                 .withRoleName(someRole)
-                .withAccessRights(sampleAccessRights)
+                .withAccessRights(SAMPLE_ACCESS_RIGHTS)
                 .build();
     }
 }

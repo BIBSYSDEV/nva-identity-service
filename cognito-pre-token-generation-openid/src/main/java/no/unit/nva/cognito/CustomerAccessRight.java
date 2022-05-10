@@ -61,7 +61,6 @@ public class CustomerAccessRight {
     private static List<CustomerAccessRight> createAccessRightsForExistingCustomer(UserDto user, CustomerDto customer) {
         return user.getAccessRights()
             .stream()
-            .map(AccessRight::fromString)
             .map(accessRight -> new CustomerAccessRight(customer, accessRight))
             .collect(Collectors.toList());
     }

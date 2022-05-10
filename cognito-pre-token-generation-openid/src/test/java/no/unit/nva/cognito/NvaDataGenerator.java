@@ -58,12 +58,12 @@ public class NvaDataGenerator {
             .build();
     }
 
-    private static Set<String> randomAccessRights() {
+    private static Set<AccessRight> randomAccessRights() {
         return new HashSet<>(List.of(randomAccessRight(), randomAccessRight(), randomAccessRight()));
     }
 
-    private static String randomAccessRight() {
-        return randomElement(AccessRight.values()).toString();
+    private static AccessRight randomAccessRight() {
+        return randomElement(AccessRight.values());
     }
 
     private HashSet<URI> calculateTopLevelAffilationsToCreateUsersFor(NationalIdentityNumber nin,

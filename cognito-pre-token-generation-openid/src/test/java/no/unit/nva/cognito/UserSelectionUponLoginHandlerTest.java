@@ -466,7 +466,7 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest(name = "should create role \"Creator\" when the role does not exist")
     @EnumSource(LoginEventType.class)
-    void shouldCreateRoleUserWhenRoleDoesNotExist(LoginEventType loginEventType) throws NotFoundException {
+    void shouldCreateRoleCreatorWhenRoleDoesNotExist(LoginEventType loginEventType) throws NotFoundException {
         var person = registeredPeople.personWithActiveAndInactiveAffiliations();
         var event = randomEvent(person, loginEventType);
         handler.handleRequest(event, context);

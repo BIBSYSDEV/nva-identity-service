@@ -5,7 +5,6 @@ import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
@@ -52,14 +51,9 @@ public final class EntityUtils {
      * @return the sample role.
      */
     public static RoleDto createRole(String someRole) {
-        Set<String> accessRights = SAMPLE_ACCESS_RIGHTS
-            .stream()
-            .map(AccessRight::toString)
-            .collect(Collectors.toSet());
-        return
-            RoleDto.newBuilder()
-                .withRoleName(someRole)
-                .withAccessRights(accessRights)
-                .build();
+        return RoleDto.newBuilder()
+            .withRoleName(someRole)
+            .withAccessRights(SAMPLE_ACCESS_RIGHTS)
+            .build();
     }
 }

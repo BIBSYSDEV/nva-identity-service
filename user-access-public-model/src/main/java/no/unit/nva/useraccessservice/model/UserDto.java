@@ -18,6 +18,7 @@ import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
 import no.unit.nva.useraccessservice.model.UserDto.Builder;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
@@ -108,14 +109,13 @@ public class UserDto implements WithCopy<Builder>, Typed {
     }
 
     @JsonProperty("accessRights")
-    public List<String> getAccessRights() {
+    public Set<AccessRight> getAccessRights() {
         return getRoles().stream()
             .flatMap(role -> role.getAccessRights().stream())
-            .distinct()
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
     }
 
-    public void setAccessRights(List<String> accessRights) {
+    public void setAccessRights(List<AccessRight> accessRights) {
         //Do nothing
     }
 

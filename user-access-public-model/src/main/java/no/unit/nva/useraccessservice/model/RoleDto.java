@@ -16,11 +16,11 @@ import java.util.Set;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
-import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
 import no.unit.nva.useraccessservice.model.RoleDto.Builder;
 import no.unit.nva.useraccessservice.model.interfaces.Validable;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
@@ -33,7 +33,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     @JsonProperty("rolename")
     private String roleName;
     @JsonProperty("accessRights")
-    private Set<String> accessRights;
+    private Set<AccessRight> accessRights;
 
     public RoleDto() {
         accessRights = Collections.emptySet();
@@ -73,11 +73,11 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         this.roleName = roleName;
     }
 
-    public List<String> getAccessRights() {
-        return nonNull(accessRights) ? new ArrayList<>(accessRights) : Collections.emptyList();
+    public Set<AccessRight> getAccessRights() {
+        return nonNull(accessRights) ? accessRights : Collections.emptySet();
     }
 
-    public void setAccessRights(List<String> accessRights) {
+    public void setAccessRights(List<AccessRight> accessRights) {
         this.accessRights = nonNull(accessRights) ? new HashSet<>(accessRights) : Collections.emptySet();
     }
 
@@ -109,7 +109,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         }
         RoleDto roleDto = (RoleDto) o;
         return Objects.equals(getRoleName(), roleDto.getRoleName())
-               && Objects.equals(accessRightsAsSet(), roleDto.accessRightsAsSet());
+               && Objects.equals(getAccessRights(), roleDto.getAccessRights());
     }
 
     @Override
@@ -123,10 +123,6 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         Typed.super.setType(type);
     }
 
-    // Access Rights are a Set but JacksonJr does not support sets.
-    private Set<String> accessRightsAsSet() {
-        return JacksonJrDoesNotSupportSets.toSet(accessRights);
-    }
 
     public static final class Builder {
 
@@ -144,7 +140,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
             return this;
         }
 
-        public Builder withAccessRights(Collection<String> accessRights) {
+        public Builder withAccessRights(Collection<AccessRight> accessRights) {
             roleDto.setAccessRights(new ArrayList<>(accessRights));
             return this;
         }

@@ -39,7 +39,9 @@ public class RoleService extends DatabaseSubService {
         logger.debug(ADD_ROLE_DEBUG_MESSAGE, convertToStringOrWriteErrorMessage(roleDto));
         validate(roleDto);
         checkRoleDoesNotExist(roleDto);
-        table.putItem(RoleDb.fromRoleDto(roleDto));
+        RoleDb x = RoleDb.fromRoleDto(roleDto);
+
+        table.putItem(x);
     }
 
     /**

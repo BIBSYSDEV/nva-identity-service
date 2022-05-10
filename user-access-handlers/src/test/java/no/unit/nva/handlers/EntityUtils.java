@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Collections;
@@ -10,6 +11,7 @@ import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.AccessRight;
 
 public final class EntityUtils {
 
@@ -18,13 +20,10 @@ public final class EntityUtils {
 
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final String EMPTY_STRING = "";
-    public static final Set<String> SAMPLE_ACCESS_RIGHTS =
-        Collections.singleton("APPROVE_DOI_REQUEST");
+    public static final Set<AccessRight> SAMPLE_ACCESS_RIGHTS =
+        Collections.singleton(APPROVE_DOI_REQUEST);
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
-
-
-
 
     /**
      * Creates a user without a username. For testing output on invalid input.

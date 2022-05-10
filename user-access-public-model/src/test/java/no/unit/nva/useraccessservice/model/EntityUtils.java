@@ -5,19 +5,21 @@ import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import static org.hamcrest.MatcherAssert.assertThat;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import nva.commons.apigateway.AccessRight;
 
 public final class EntityUtils {
 
     public static final String SOME_USERNAME = "SomeUsername";
     public static final String SOME_ROLENAME = "SomeRole";
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
-    public static final Set<String> SAMPLE_ACCESS_RIGHTS =
-        Collections.singleton("APPROVE_DOI_REQUEST");
+    public static final Set<AccessRight> SAMPLE_ACCESS_RIGHTS =
+        Collections.singleton(APPROVE_DOI_REQUEST);
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
 

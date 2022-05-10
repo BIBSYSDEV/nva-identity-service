@@ -58,7 +58,7 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
     }
 
     private Void addRole(RoleDto role) throws ConflictException, InvalidInputException {
-        logger.info("Adding role:{}", role.toString());
+        logger.info("Adding role:{}", role);
         identityService.addRole(role);
         return null;
     }

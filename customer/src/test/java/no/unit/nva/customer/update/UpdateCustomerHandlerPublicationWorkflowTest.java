@@ -1,7 +1,24 @@
 package no.unit.nva.customer.update;
 
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
+import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
 import no.unit.nva.customer.create.CreateCustomerHandler;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
@@ -15,24 +32,6 @@ import nva.commons.apigateway.GatewayResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.time.Instant;
-import java.util.Map;
-import java.util.UUID;
-
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
-import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
-import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
 
 public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerServiceDatabase {
 
@@ -86,25 +85,14 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     }
 
     @Test
-    void shouldAllowUpdateWhenPublicationWorkflowFieldIsNotChangedWithoutAlteringOtherData() throws IOException {
+    void shouldStillAllowUpdateOfOtherFieldsThanPublicationWorkflow() throws IOException {
         createCustomerInLocalDb();
-        var updateCustomer = createCustomer.copy().build();
+        var updateCustomer = createCustomer.copy().withDisplayName(randomString()).build();
         InputStream request = updateRequestWithoutCorrectAuthorization(updateCustomer,
                                                                        getIdentifierPathParam(updateCustomer));
         var response = sendUpdateRequest(request, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-
-        var responseObject = response.getBodyObject(CustomerDto.class);
-        synchronizeModifiedDate(responseObject);
-        synchronizeModifiedDate(updateCustomer);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(responseObject, is(equalTo(updateCustomer)));
-    }
-
-    private void synchronizeModifiedDate(CustomerDto customerDto) {
-        customerDto.setModifiedDate(NOW.toString());
     }
 
     private Map<String, String> getIdentifierPathParam(CustomerDto customerDto) {
@@ -124,7 +112,8 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
                    .withPathParameters(pathParameters)
                    .withCustomerId(updateCustomer.getId())
-                   .withAccessRights(updateCustomer.getId(), AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
+                   .withAccessRights(updateCustomer.getId(),
+                                     AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
                    .withBody(updateCustomer)
                    .build();
     }

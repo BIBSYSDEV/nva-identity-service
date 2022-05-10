@@ -7,19 +7,25 @@ import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
 import static nva.commons.apigateway.AccessRight.READ_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.REJECT_DOI_REQUEST;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.util.List;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.handlers.models.RoleList;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.ConflictException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList> {
 
     private final IdentityService identityService;
+    private static final Logger logger = LoggerFactory.getLogger(IdentityServiceInitHandler.class);
 
     public IdentityServiceInitHandler(IdentityService identityService) {
         super(Void.class);
@@ -30,9 +36,19 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
     protected RoleList processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         var defaultRoles = createDefaultRoles();
         for (var role : defaultRoles) {
-            identityService.addRole(role);
+            attempt(() -> addRole(role)).orElse(fail -> logError(fail.getException()));
         }
         return new RoleList(defaultRoles);
+    }
+
+    private Void logError(Exception exception) {
+        logger.warn(exception.getMessage());
+        return null;
+    }
+
+    private Void addRole(RoleDto role) throws ConflictException, InvalidInputException {
+        identityService.addRole(role);
+        return null;
     }
 
     @Override

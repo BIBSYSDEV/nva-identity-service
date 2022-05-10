@@ -19,13 +19,19 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList> {
 
-    private final IdentityService identityService;
     private static final Logger logger = LoggerFactory.getLogger(IdentityServiceInitHandler.class);
+    private final IdentityService identityService;
+
+    @JacocoGenerated
+    public IdentityServiceInitHandler() {
+        this(IdentityService.defaultIdentityService());
+    }
 
     public IdentityServiceInitHandler(IdentityService identityService) {
         super(Void.class);
@@ -41,6 +47,11 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
         return new RoleList(defaultRoles);
     }
 
+    @Override
+    protected Integer getSuccessStatusCode(Void input, RoleList output) {
+        return HttpURLConnection.HTTP_OK;
+    }
+
     private Void logError(Exception exception) {
         logger.warn(exception.getMessage());
         return null;
@@ -49,11 +60,6 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
     private Void addRole(RoleDto role) throws ConflictException, InvalidInputException {
         identityService.addRole(role);
         return null;
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(Void input, RoleList output) {
-        return HttpURLConnection.HTTP_OK;
     }
 
     private List<RoleDto> createDefaultRoles() {

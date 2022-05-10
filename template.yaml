@@ -291,6 +291,7 @@ Resources:
     Properties:
       StageName: Prod
       Auth:
+        AddDefaultAuthorizerToCorsPreflight: false
         DefaultAuthorizer: CognitoAuthorizer
         Authorizers:
           CognitoAuthorizer:

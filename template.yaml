@@ -467,9 +467,6 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
 
-
-
-
   UsersAndRolesApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
@@ -481,8 +478,6 @@ Resources:
       DomainName: !Ref ApiDomain
       RestApiId: !Ref UsersAndRolesApi
       Stage: !Ref UsersAndRolesApi.Stage
-
-
 
   ### Customer Service #################################################################################################
 

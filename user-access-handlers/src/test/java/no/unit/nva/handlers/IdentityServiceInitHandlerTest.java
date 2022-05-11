@@ -41,7 +41,7 @@ class IdentityServiceInitHandlerTest extends LocalIdentityService {
     }
 
     @Test
-    void shouldCreateTheDefaultRolesForTheService() throws IOException {
+    void createdDefaultRolesShouldCoverAllAccessRights() throws IOException {
         var handler = new IdentityServiceInitHandler(identityService);
         handler.handleRequest(createRequest(), output, context);
         var response = GatewayResponse.fromOutputStream(output, RoleList.class);

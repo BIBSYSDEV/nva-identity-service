@@ -46,5 +46,4 @@ test{
     environment "API_DOMAIN","example.com"
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
     environment "SIKT_CRISTIN_ID", "https://example.org/sikt/cristin/id"
-
 }

@@ -95,7 +95,7 @@ public class UserEntriesCreatorForPerson {
         try {
             identityService.addRole(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION);
         } catch (Exception ignored) {
-
+            // if role exists already, continue.
         }
     }
 

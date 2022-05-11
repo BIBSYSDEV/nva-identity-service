@@ -11,6 +11,8 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.handlers.models.RoleList;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -40,10 +42,13 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
 
     @Override
     protected RoleList processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        var defaultRoles = createDefaultRoles();
-        for (var role : defaultRoles) {
-            attempt(() -> addRole(role)).orElse(fail -> logError(fail.getException()));
-        }
+        var defaultRoles = createDefaultRoles()
+            .stream()
+            .map(attempt(this::addRole))
+            .map(attempt -> attempt.toOptional(fail -> logError(fail.getException())))
+            .flatMap(Optional::stream)
+            .collect(Collectors.toSet());
+
         return new RoleList(defaultRoles);
     }
 
@@ -52,15 +57,14 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
         return HttpURLConnection.HTTP_OK;
     }
 
-    private Void logError(Exception exception) {
+    private void logError(Exception exception) {
         logger.warn(exception.getMessage());
-        return null;
     }
 
-    private Void addRole(RoleDto role) throws ConflictException, InvalidInputException {
+    private RoleDto addRole(RoleDto role) throws ConflictException, InvalidInputException {
         logger.info("Adding role:{}", role);
         identityService.addRole(role);
-        return null;
+        return role;
     }
 
     private List<RoleDto> createDefaultRoles() {

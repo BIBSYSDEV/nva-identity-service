@@ -3,6 +3,7 @@ package no.unit.nva.handlers;
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PROJECTS;
+import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
 import static nva.commons.apigateway.AccessRight.READ_DOI_REQUEST;
@@ -82,6 +83,10 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
             .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
             .build();
 
-        return List.of(creator, curator, institutionAdmin, applicationAdmin);
+        var editor = RoleDto.newBuilder().withRoleName("Editor")
+            .withAccessRights(List.of(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW))
+            .build();
+
+        return List.of(creator, curator, institutionAdmin, applicationAdmin, editor);
     }
 }

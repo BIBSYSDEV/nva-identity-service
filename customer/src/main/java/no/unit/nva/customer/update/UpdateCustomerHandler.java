@@ -54,21 +54,21 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
 
         UUID identifier = getIdentifier(requestInfo);
         var currentCustomer = customerService.getCustomer(identifier);
-        if (updatesPublicationWorkflow(currentCustomer, input)) {
-            authorizePublicationWorkflowUpdate(requestInfo);
+        if (isPublicationWorkflowChange(currentCustomer, input)) {
+            authorizePublicationWorkflowChange(requestInfo);
         }
 
         return customerService.updateCustomer(identifier, input);
     }
 
-    private boolean updatesPublicationWorkflow(CustomerDto currentCustomer, CustomerDto input) {
+    private boolean isPublicationWorkflowChange(CustomerDto currentCustomer, CustomerDto input) {
         if (nonNull(currentCustomer) && nonNull(input)) {
             return !Objects.equals(currentCustomer.getPublicationWorkflow(), input.getPublicationWorkflow());
         }
         return false;
     }
 
-    private void authorizePublicationWorkflowUpdate(RequestInfo requestInfo) throws ForbiddenException {
+    private void authorizePublicationWorkflowChange(RequestInfo requestInfo) throws ForbiddenException {
         if (notAuthorizedToChangePublicationWorkflow(requestInfo) && isNotApplicationAdmin(requestInfo)) {
             throw new ForbiddenException();
         }

@@ -22,7 +22,6 @@ import java.util.UUID;
 import no.unit.nva.customer.create.CreateCustomerHandler;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
@@ -39,13 +38,13 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     private UpdateCustomerHandler handler;
     private Context context;
     private ByteArrayOutputStream outputStream;
-    private CustomerDto createCustomer;
+    private CustomerDto preExistingCustomer;
     private CreateCustomerHandler createHandler;
 
     @BeforeEach
     public void setUp() {
         super.setupDatabase();
-        CustomerService customerServiceMock = new DynamoDBCustomerService(getDynamoClient());
+        var customerServiceMock = new DynamoDBCustomerService(getDynamoClient());
         handler = new UpdateCustomerHandler(customerServiceMock);
         createHandler = new CreateCustomerHandler(customerServiceMock);
         context = new FakeContext();
@@ -60,12 +59,13 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     @Test
     void shouldUpdatePublicationWorkflowWhenAuthorized() throws IOException {
         createCustomerInLocalDb();
-        var updateCustomer = changePublicationWorkflowFromCreateCustomer();
+        var updateCustomer = changePublicationWorkflowFromPreExistingCustomer();
 
-        assertThat(updateCustomer.getPublicationWorkflow(), is(not(equalTo(createCustomer.getPublicationWorkflow()))));
+        assertThat(updateCustomer.getPublicationWorkflow(),
+                   is(not(equalTo(preExistingCustomer.getPublicationWorkflow()))));
 
-        InputStream request = updateRequestWithCorrectAuthorization(updateCustomer,
-                                                                    getIdentifierPathParam(updateCustomer));
+        var request = updateRequestWithCorrectAuthorization(updateCustomer,
+                                                            getIdentifierPathParam(updateCustomer));
         var response = sendUpdateRequest(request, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
@@ -76,7 +76,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     @Test
     void shouldThrowForbiddenWhenTryingToUpdatePublicationWorkflowWhenNotAuthorized() throws IOException {
         createCustomerInLocalDb();
-        var updateCustomer = changePublicationWorkflowFromCreateCustomer();
+        var updateCustomer = changePublicationWorkflowFromPreExistingCustomer();
         var request = updateRequestWithoutCorrectAuthorization(updateCustomer,
                                                                getIdentifierPathParam(updateCustomer));
         var response = sendUpdateRequest(request, CustomerDto.class);
@@ -87,9 +87,9 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     @Test
     void shouldStillAllowUpdateOfOtherFieldsThanPublicationWorkflow() throws IOException {
         createCustomerInLocalDb();
-        var updateCustomer = createCustomer.copy().withDisplayName(randomString()).build();
-        InputStream request = updateRequestWithoutCorrectAuthorization(updateCustomer,
-                                                                       getIdentifierPathParam(updateCustomer));
+        var updateCustomer = preExistingCustomer.copy().withDisplayName(randomString()).build();
+        var request = updateRequestWithoutCorrectAuthorization(updateCustomer,
+                                                               getIdentifierPathParam(updateCustomer));
         var response = sendUpdateRequest(request, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
@@ -99,8 +99,8 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         return Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
     }
 
-    private CustomerDto changePublicationWorkflowFromCreateCustomer() {
-        return createCustomer
+    private CustomerDto changePublicationWorkflowFromPreExistingCustomer() {
+        return preExistingCustomer
                    .copy()
                    .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
                    .build();
@@ -134,8 +134,8 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
                 createOutputStream,
                 new FakeContext());
 
-        createCustomer = GatewayResponse.fromOutputStream(createOutputStream, CustomerDto.class)
-                .getBodyObject(CustomerDto.class);
+        preExistingCustomer = GatewayResponse.fromOutputStream(createOutputStream, CustomerDto.class)
+                                  .getBodyObject(CustomerDto.class);
     }
 
     private InputStream createCustomerInDbRequest(CustomerDto customer)

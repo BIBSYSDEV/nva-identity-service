@@ -38,7 +38,7 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApplicationDomain
     Description: Domain-name for the frontend
-  SiktCristinIdId:
+  SiktCristinId:
     Type: String
     Default: https://api.dev.nva.aws.unit.no/cristin/organization/20754.0.0.0
     Description: The Cristin ID for SIKT
@@ -81,6 +81,7 @@ Globals:
         BY_ORG_DOMAIN_INDEX_NAME: byOrgDomain
         BY_CRISTIN_ID_INDEX_NAME: byCristinId
         USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+        SIKT_CRISTIN_ID: !Rer SiktCristinId
 
   Api:
     Cors:
@@ -209,9 +210,9 @@ Resources:
                 Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
               - Effect: Allow
                 Action:
-                 - cognito-idp:ListUserPools
-                 - cognito-idp:GetUser
-                 - cognito-idp:DescribeUserPoolDomain
+                  - cognito-idp:ListUserPools
+                  - cognito-idp:GetUser
+                  - cognito-idp:DescribeUserPoolDomain
                 Resource: "*"
         - PolicyName: DatabasePermissions
           PolicyDocument:
@@ -231,10 +232,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                   - secretsmanager:GetResourcePolicy
-                   - secretsmanager:GetSecretValue
-                   - secretsmanager:DescribeSecret
-                   - secretsmanager:ListSecretVersionIds
+                  - secretsmanager:GetResourcePolicy
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:ListSecretVersionIds
                 Resource:
                   - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials*'
               - Effect: Allow
@@ -1013,7 +1014,7 @@ Resources:
       Timestamp: '${BUILD_TIMESTAMP}'
       AuthorizerArn: !GetAtt UserPool.Arn
 
-### New Cognito ########################################################################################################
+  ### New Cognito ########################################################################################################
 
   UserPoolName:
     Type: AWS::SSM::Parameter
@@ -1153,10 +1154,10 @@ Resources:
     Properties:
       UserPoolId: !Ref UserPool
       AllowedOAuthFlows:
-          - client_credentials
+        - client_credentials
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
-         - https://api.nva.unit.no/scopes/backend
+        - https://api.nva.unit.no/scopes/backend
       ClientName: BackendApplicationClient
       CallbackURLs:
         - https://api.nva.unit.no/scopes # not necessary maybe.
@@ -1352,7 +1353,7 @@ Resources:
           COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
           USERPOOL_NAME: !GetAtt UserPoolName.Value
           API_DOMAIN: !Ref ApiDomain
-          COGNITO_CREDENTIALS_SECRET_NAME:  BackendCognitoClientCredentials
+          COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
           COGNITO_ID_KEY: backendClientId
           COGNITO_SECRET_KEY: backendClientSecret
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'

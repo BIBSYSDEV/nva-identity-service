@@ -4,12 +4,9 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import no.unit.nva.useraccessservice.dao.RoleDb.Builder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.interfaces.Typed;
@@ -19,15 +16,15 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Try;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
-@DynamoDbBean
+@DynamoDbBean(converterProviders = {AccessRightSetConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed {
 
     public static final String NAME_FIELD = "name";
@@ -60,14 +57,10 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
      * @return the dao
      */
     public static RoleDb fromRoleDto(RoleDto roleDto) {
-        Set<AccessRight> accessRights = roleDto.getAccessRights()
-            .stream()
-            .map(AccessRight::fromString)
-            .collect(Collectors.toSet());
 
         return RoleDb.newBuilder()
             .withName(roleDto.getRoleName())
-            .withAccessRights(accessRights)
+            .withAccessRights(roleDto.getAccessRights())
             .build();
     }
 
@@ -122,13 +115,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
     @DynamoDbAttribute(ACCESS_RIGHTS_FIELDS)
     @DynamoDbIgnoreNulls
     public Set<AccessRight> getAccessRights() {
-        return nonEmpty(accessRights) ? accessRights : null;
-    }
-
-    @DynamoDbIgnore
-    @JacocoGenerated
-    public Set<AccessRight> getAccessRightsNonNull() {
-        return nonNull(accessRights) ? accessRights : Collections.emptySet();
+        return nonEmpty(accessRights) ? accessRights : Collections.emptySet();
     }
 
     @SuppressWarnings("PMD.NullAssignment")
@@ -164,15 +151,10 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
     }
 
     public RoleDto toRoleDto() {
-        Set<String> accessRightsStrings =
-            Optional.ofNullable(this.getAccessRights())
-                .stream()
-                .flatMap(Collection::stream)
-                .map(AccessRight::toString)
-                .collect(Collectors.toSet());
+
         return Try.attempt(() -> RoleDto.newBuilder()
                 .withRoleName(this.getName())
-                .withAccessRights(accessRightsStrings)
+                .withAccessRights(getAccessRights())
                 .build())
             .orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));
     }

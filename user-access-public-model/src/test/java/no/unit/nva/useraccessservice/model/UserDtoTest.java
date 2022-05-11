@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.Disabled;
@@ -51,8 +52,8 @@ class UserDtoTest extends DtoTest {
     public static final String SOME_OTHER_ROLENAME = randomString();
     public static final int ROLE_PART = 0;
     protected static final String USER_TYPE_LITERAL = "User";
-    private static final String FIRST_ACCESS_RIGHT = "ApproveDoi";
-    private static final String SECOND_ACCESS_RIGHT = "RejectDoi";
+    private static final AccessRight FIRST_ACCESS_RIGHT = AccessRight.APPROVE_DOI_REQUEST;
+    private static final AccessRight SECOND_ACCESS_RIGHT = AccessRight.REJECT_DOI_REQUEST;
 
     @DisplayName("UserDto object contains type with value \"User\"")
     @Test
@@ -95,11 +96,11 @@ class UserDtoTest extends DtoTest {
     @Test
     void getAccessRightsReturnsAccessRightsWithoutDuplicates() {
         final UserDto user = createUserWithRoleWithoutInstitution();
-        final Set<String> expectedAccessRights = new HashSet<>(user.getAccessRights());
+        final var expectedAccessRights = new HashSet<>(user.getAccessRights());
         List<RoleDto> newRoles = duplicateRoles(user);
         UserDto newUser = user.copy().withRoles(newRoles).build();
 
-        HashSet<String> actualAccessRights = new HashSet<>(newUser.getAccessRights());
+        var actualAccessRights = new HashSet<>(newUser.getAccessRights());
         assertThat(actualAccessRights, is(equalTo(expectedAccessRights)));
     }
 
@@ -112,8 +113,8 @@ class UserDtoTest extends DtoTest {
         List<RoleDto> roles = List.of(firstRole, secondRole);
         UserDto user = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(roles).build();
 
-        Set<String> expectedAccessRights = Set.of(FIRST_ACCESS_RIGHT, SECOND_ACCESS_RIGHT);
-        assertThat(user.getAccessRights(), containsInAnyOrder(expectedAccessRights.toArray(String[]::new)));
+        var expectedAccessRights = Set.of(FIRST_ACCESS_RIGHT, SECOND_ACCESS_RIGHT);
+        assertThat(user.getAccessRights(), containsInAnyOrder(expectedAccessRights.toArray(AccessRight[]::new)));
     }
 
     @Test
@@ -237,9 +238,9 @@ class UserDtoTest extends DtoTest {
         }
     }
 
-    private RoleDto sampleRole(String approveDoiRequest, String someRolename)
+    private RoleDto sampleRole(AccessRight accessRight, String someRolename)
         throws InvalidEntryInternalException {
-        Set<String> accessRights = Collections.singleton(approveDoiRequest);
+        var accessRights = Collections.singleton(accessRight);
         return RoleDto.newBuilder()
             .withRoleName(someRolename)
             .withAccessRights(accessRights)

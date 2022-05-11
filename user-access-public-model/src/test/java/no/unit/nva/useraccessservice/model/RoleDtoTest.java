@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.model;
 
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.model.EntityUtils.SAMPLE_ACCESS_RIGHTS;
 import static no.unit.nva.useraccessservice.model.EntityUtils.SOME_ROLENAME;
@@ -24,6 +25,7 @@ import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto.Builder;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.hamcrest.core.IsSame;
 import org.hamcrest.core.StringContains;
@@ -59,7 +61,7 @@ class RoleDtoTest extends DtoTest {
             .withAccessRights(SAMPLE_ACCESS_RIGHTS)
             .build();
 
-        assertThat(sampleRole.getAccessRights(), containsInAnyOrder(SAMPLE_ACCESS_RIGHTS.toArray(String[]::new)));
+        assertThat(sampleRole.getAccessRights(), containsInAnyOrder(SAMPLE_ACCESS_RIGHTS.toArray(AccessRight[]::new)));
     }
 
     @ParameterizedTest(name = "builder should throw exception when rolename is:\"{0}\"")
@@ -78,7 +80,7 @@ class RoleDtoTest extends DtoTest {
 
     @Test
     void copyReturnsABuilderWithAllFieldsOfOriginalObjectPreserved()
-        throws InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException {
         RoleDto original = RoleDto
             .newBuilder()
             .withRoleName(SOME_ROLE_NAME)
@@ -150,7 +152,7 @@ class RoleDtoTest extends DtoTest {
 
     @Test
     void shouldSerializeAsJson() throws InvalidInputException, BadRequestException {
-        Set<String> randomAccessRights = Set.of(randomString(), randomString());
+        var randomAccessRights = Set.of(randomAccessRight(), randomAccessRight());
         var sample = RoleDto.newBuilder()
             .withRoleName(randomString())
             .withAccessRights(randomAccessRights)
@@ -159,6 +161,10 @@ class RoleDtoTest extends DtoTest {
         var json = sample.toString();
         var deserialized = RoleDto.fromJson(json);
         assertThat(deserialized, is(equalTo(sample)));
+    }
+
+    private AccessRight randomAccessRight() {
+        return randomElement(AccessRight.values());
     }
 
     @Test

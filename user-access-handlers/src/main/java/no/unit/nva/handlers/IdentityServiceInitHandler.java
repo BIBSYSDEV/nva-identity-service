@@ -77,8 +77,7 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
         var institutionAdmin = RoleDto.newBuilder().withRoleName("Institution-admin")
             .withAccessRights(List.of(EDIT_OWN_INSTITUTION_RESOURCES,
                                       EDIT_OWN_INSTITUTION_PROJECTS,
-                                      EDIT_OWN_INSTITUTION_USERS,
-                                      EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW))
+                                      EDIT_OWN_INSTITUTION_USERS))
             .build();
         var applicationAdmin = RoleDto.newBuilder().withRoleName("App-admin")
             .withAccessRights(List.of(ADMINISTRATE_APPLICATION))

@@ -460,7 +460,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
       Policies:
-        - DynamoDBReadPolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
 
   UsersAndRolesApiStaticUrl:

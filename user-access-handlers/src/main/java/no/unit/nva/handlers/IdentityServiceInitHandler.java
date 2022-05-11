@@ -34,6 +34,7 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
 
     private static final Logger logger = LoggerFactory.getLogger(IdentityServiceInitHandler.class);
     public static final URI SIKT_CRISTIN_ID = URI.create(new Environment().readEnv("SIKT_CRISTIN_ID"));
+    public static final String SIKT = "Sikt";
 
     private final IdentityService identityService;
     private final CustomerService customerService;
@@ -66,10 +67,10 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
     private void createSiktCustomer() {
         var customer = CustomerDto.builder().withCristinId(SIKT_CRISTIN_ID)
             .withFeideOrganizationDomain("sikt.no")
-            .withCname("Sikt")
-            .withName("Sikt")
-            .withDisplayName("Sikt")
-            .withShortName("Sikt")
+            .withCname(SIKT)
+            .withName(SIKT)
+            .withDisplayName(SIKT)
+            .withShortName(SIKT)
             .build();
         attempt(() -> customerService.createCustomer(customer)).orElseThrow();
     }

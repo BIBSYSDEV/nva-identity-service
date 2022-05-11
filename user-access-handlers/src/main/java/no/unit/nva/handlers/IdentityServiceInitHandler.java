@@ -84,6 +84,10 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
             .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
             .build();
 
-        return List.of(creator, curator, institutionAdmin, applicationAdmin);
+        var editor = RoleDto.newBuilder().withRoleName("Editor")
+            .withAccessRights(List.of(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW))
+            .build();
+
+        return List.of(creator, curator, institutionAdmin, applicationAdmin, editor);
     }
 }

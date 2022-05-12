@@ -33,7 +33,6 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApiDomain
     Description: Domain-name for the backend
-
   ApplicationDomain:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApplicationDomain
@@ -42,12 +41,10 @@ Parameters:
     Type: String
     Default: https://api.dev.nva.aws.unit.no/cristin/organization/20754.0.0.0
     Description: The Cristin ID for SIKT
-
   # Parameters from nva-user-access-service
   UsersAndRolesBasePath:
     Type: String
     Default: users-roles
-
   # Parameter from nva-customer-api
   CustomerDomainBasePath:
     Type: String

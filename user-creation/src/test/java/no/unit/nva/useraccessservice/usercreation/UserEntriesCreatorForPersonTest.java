@@ -25,8 +25,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.PeopleAndInstitutions;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.AfterEach;
@@ -71,7 +70,7 @@ class UserEntriesCreatorForPersonTest {
                  + "and the Person has no other Affiliations active or inactive"
     )
     void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleActiveAffiliation()
-        throws NotFoundException {
+        throws ApiGatewayException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var users = userCreator.createUsers(personInfo);
@@ -89,7 +88,7 @@ class UserEntriesCreatorForPersonTest {
                  + "and the Person has no other Affiliations active or inactive"
     )
     void shouldNotCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleInactiveAffiliation()
-        throws NotFoundException {
+        throws ApiGatewayException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneInactiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var users = userCreator.createUsers(personInfo);
@@ -125,7 +124,7 @@ class UserEntriesCreatorForPersonTest {
                  + "And there is already a User for the Person for the Institution"
                  + "Then the username of the existing User is maintained by all means"
     )
-    void shouldNotOverwriteUsernameOfExistingUsers() throws NotFoundException, ConflictException {
+    void shouldNotOverwriteUsernameOfExistingUsers() throws ApiGatewayException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var existingUser = peopleAndInstitutions.createNvaUserForPerson(person);
@@ -134,7 +133,7 @@ class UserEntriesCreatorForPersonTest {
     }
 
     @Test
-    void shouldAddFeideIdentifierWhenFeideIdentifierIsAvailable() throws NotFoundException {
+    void shouldAddFeideIdentifierWhenFeideIdentifierIsAvailable() throws ApiGatewayException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personFeideIdentifier = randomString();
         var personInfo = userCreator.collectPersonInformation(person, personFeideIdentifier, randomString());
@@ -151,7 +150,7 @@ class UserEntriesCreatorForPersonTest {
     }
 
     @Test
-    void createdUserShouldHaveTheCreatorRoleByDefault() throws NotFoundException {
+    void createdUserShouldHaveTheCreatorRoleByDefault() throws ApiGatewayException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var personInfo = userCreator.collectPersonInformation(person);
         var actualUser = userCreator.createUsers(personInfo).stream().collect(SingletonCollector.collect());
@@ -160,8 +159,7 @@ class UserEntriesCreatorForPersonTest {
     }
 
     @Test
-    void shouldUpdateLegacyFeideUserWithNecessaryDetailsWhenSuchUserExists()
-        throws ConflictException, NotFoundException {
+    void shouldUpdateLegacyFeideUserWithNecessaryDetailsWhenSuchUserExists() throws ApiGatewayException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var feideIdentifier = randomString();
         var existingUser = peopleAndInstitutions.createLegacyNvaUserForPerson(person, feideIdentifier);

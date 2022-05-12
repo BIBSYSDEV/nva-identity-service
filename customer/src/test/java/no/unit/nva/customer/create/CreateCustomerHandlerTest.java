@@ -7,6 +7,7 @@ import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISH
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -86,7 +87,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldReturnPublicationWorkflowErrorWhenValueIsWrong() throws BadRequestException, IOException {
+    void shouldReturnPublicationWorkflowErrorWhenValueIsWrong() throws IOException {
         var customerDto = CustomerDto.builder()
             .withName("New Customer")
             .withVocabularies(Collections.emptySet())
@@ -114,8 +115,22 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
     }
 
+    @Test
+    void shouldReturnConflictErrorWhenTryingToCreateCustomerForInstitutionThatIsAleadyCustomer() throws IOException {
+        var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
+        executeRequest(requestBody, CustomerDto.class);
+        var response = insertCustomerWithSameInstitutionId(requestBody);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+    }
+
+    private GatewayResponse<CustomerDto> insertCustomerWithSameInstitutionId(CreateCustomerRequest requestBody)
+        throws IOException {
+        return executeRequest(requestBody, CustomerDto.class);
+    }
+
     private <I, O> GatewayResponse<O> executeRequest(I request, Class<O> responseType)
         throws IOException {
+        outputSteam = new ByteArrayOutputStream();
         var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
             .withBody(request)
             .withHeaders(getRequestHeaders())
@@ -127,6 +142,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     private CustomerDto validCustomerDto() {
         return CustomerDto.builder()
             .withName("New Customer")
+            .withCristinId(randomUri())
             .withVocabularies(Collections.emptySet())
             .build();
     }

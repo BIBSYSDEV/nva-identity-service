@@ -23,7 +23,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 
 public abstract class CreateUpdateControlledVocabularySettingsTests extends LocalCustomerServiceDatabase {
 
@@ -33,11 +33,10 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     protected DynamoDBCustomerService customerService;
     protected ByteArrayOutputStream output;
 
-    public void init() throws NotFoundException {
+    public void init() throws ApiGatewayException {
         super.setupDatabase();
         customerService = new DynamoDBCustomerService(this.dynamoClient);
-        existingCustomer = createExistingCustomer();
-        customerService.createCustomer(existingCustomer);
+        existingCustomer = customerService.createCustomer(createExistingCustomer());
         handler = createHandler();
         output = new ByteArrayOutputStream();
     }

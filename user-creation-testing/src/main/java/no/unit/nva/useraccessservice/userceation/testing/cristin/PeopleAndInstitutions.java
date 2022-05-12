@@ -17,6 +17,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
@@ -46,14 +47,15 @@ public class PeopleAndInstitutions {
         cristinServer.shutDown();
     }
 
-    public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() throws NotFoundException {
+    public NationalIdentityNumber getPersonWithExactlyOneActiveAffiliation() throws ApiGatewayException {
         var person = newPerson();
         var affiliation = createAffiliation(ACTIVE);
         cristinServer.addPerson(person, affiliation);
         return person;
     }
 
-    public NationalIdentityNumber getPersonWithExactlyOneInactiveAffiliation() throws NotFoundException {
+    public NationalIdentityNumber getPersonWithExactlyOneInactiveAffiliation()
+        throws NotFoundException, ConflictException {
         var person = newPerson();
         var affiliation = createAffiliation(INACTIVE);
         cristinServer.addPerson(person, affiliation);
@@ -165,18 +167,18 @@ public class PeopleAndInstitutions {
         return cristinServer.randomOrgUri();
     }
 
-    private URI createNvaCustomerInstitution() throws NotFoundException {
+    private URI createNvaCustomerInstitution() throws NotFoundException, ConflictException {
         var parentInstitution = createOrganization();
         registerInstitutionAsNvaCustomer(parentInstitution);
         return parentInstitution;
     }
 
-    private void registerInstitutionAsNvaCustomer(URI institution) throws NotFoundException {
+    private void registerInstitutionAsNvaCustomer(URI institution) throws NotFoundException, ConflictException {
         var customer = CustomerDto.builder().withCristinId(institution).build();
         customerService.createCustomer(customer);
     }
 
-    private PersonAffiliation createAffiliation(boolean active) throws NotFoundException {
+    private PersonAffiliation createAffiliation(boolean active) throws NotFoundException, ConflictException {
         return PersonAffiliation.builder()
             .withChild(createOrganization())
             .withParent(createNvaCustomerInstitution())

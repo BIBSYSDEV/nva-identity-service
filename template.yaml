@@ -461,6 +461,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           SIKT_CRISTIN_ID: !Ref SiktCristinId
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings

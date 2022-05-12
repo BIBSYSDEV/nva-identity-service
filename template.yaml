@@ -466,6 +466,8 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
 
   UsersAndRolesApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping

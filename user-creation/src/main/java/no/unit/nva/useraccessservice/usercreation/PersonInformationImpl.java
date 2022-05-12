@@ -78,6 +78,11 @@ public class PersonInformationImpl implements PersonInformation {
         this.personAffiliations = affiliationInformation;
     }
 
+    @Override
+    public Optional<URI> getPersonRegistryId() {
+        return getCristinPersonResponse().map(CristinPersonResponse::getCristinId);
+    }
+
     private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {
         return this.personAffiliations.stream()
             .filter(affiliation -> affiliation.getParentInstitution().equals(parentInstitution))

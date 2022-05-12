@@ -63,7 +63,7 @@ public class CristinClient {
         var requestString = request.build().toString();
         logger.info("Request:{}", requestString);
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
-        assertThatResponseIsSuccessful(response);
+        assertThatResponseIsSuccessful(nin, response);
         return JsonConfig.readValue(response.body(), CristinPersonResponse.class);
     }
 
@@ -73,7 +73,7 @@ public class CristinClient {
             .GET();
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-        assertThatResponseIsSuccessful(response);
+        assertThatResponseIsSuccessful(orgUri, response);
 
         var responseObject = CristinOrgResponse.fromJson(response.body());
         return responseObject.extractInstitutionUri();
@@ -85,10 +85,20 @@ public class CristinClient {
             .getUri();
     }
 
-    private void assertThatResponseIsSuccessful(HttpResponse<String> response) throws BadGatewayException {
+    private <T> void assertThatResponseIsSuccessful(T entityIdentifier,
+                                                    HttpResponse<String> response) throws BadGatewayException {
         if (response.statusCode() != HTTP_OK) {
-            throw new BadGatewayException("Connection to Cristin failed." + response + " " + response.body());
+            var message = createWarningForFailedRequestToPersonRegistry(entityIdentifier, response);
+            logger.warn(message);
+            throw new BadGatewayException(message);
         }
+    }
+
+    private <T> String createWarningForFailedRequestToPersonRegistry(T entityIdentifier,
+                                                                     HttpResponse<String> response) {
+        return String.format("Connection to Cristin failed for %s. Response %s",
+                             entityIdentifier.toString(),
+                             response.body());
     }
 
     private String cristinRequestBody(NationalIdentityNumber nin) {

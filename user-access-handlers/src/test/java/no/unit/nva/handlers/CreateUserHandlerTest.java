@@ -40,8 +40,8 @@ import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.AfterEach;
@@ -102,7 +102,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
     @Test
     void shouldCreateUserWithRequestedRolesWhenInputContainsNationalIdNumberInstitutionIdAndSetOfRoles()
-        throws IOException, NotFoundException {
+        throws IOException, ApiGatewayException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var customer = fetchSomeCustomerForThePerson(person);
 
@@ -178,7 +178,7 @@ class CreateUserHandlerTest extends HandlerTest {
     }
 
     @Test
-    void shouldNotOverwriteRolesOfExistingUsers() throws NotFoundException, IOException {
+    void shouldNotOverwriteRolesOfExistingUsers() throws ApiGatewayException, IOException {
         var person = peopleAndInstitutions.getPersonWithExactlyOneActiveAffiliation();
         var customer = fetchSomeCustomerForThePerson(person);
         var requestBody = new CreateUserRequest(person, customer.getId(), randomRoles());
@@ -202,14 +202,6 @@ class CreateUserHandlerTest extends HandlerTest {
                          Set.of(UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
             .flatMap(Collection::stream)
             .collect(Collectors.toSet());
-    }
-
-    private URI extractCustomerIdOfPersonAffiliation(NationalIdentityNumber person) {
-        return peopleAndInstitutions.getInstitutions(person).stream()
-            .map(attempt(uri -> customerService.getCustomerByCristinId(uri)))
-            .map(Try::orElseThrow)
-            .map(CustomerDto::getId)
-            .collect(SingletonCollector.collect());
     }
 
     private InputStream createBackendRequest(CreateUserRequest requestBody)

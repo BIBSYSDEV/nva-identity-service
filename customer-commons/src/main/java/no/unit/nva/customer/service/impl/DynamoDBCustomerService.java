@@ -1,5 +1,6 @@
 package no.unit.nva.customer.service.impl;
 
+import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
@@ -11,6 +12,7 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
@@ -34,6 +36,7 @@ public class DynamoDBCustomerService implements CustomerService {
 
     public static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
                                                          + "DynamoDB connection";
+    public static final String CUSTOMER_ALREADY_EXISTS_ERROR = "Customer with Institution ID %s already exists.";
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
@@ -84,14 +87,11 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto createCustomer(CustomerDto customer) throws NotFoundException {
-        UUID identifier = UUID.randomUUID();
-        Instant now = Instant.now();
-        customer.setIdentifier(identifier);
-        customer.setCreatedDate(now.toString());
-        customer.setModifiedDate(now.toString());
-        table.putItem(CustomerDao.fromCustomerDto(customer));
-        return getCustomer(identifier);
+    public CustomerDto createCustomer(CustomerDto customer) throws NotFoundException, ConflictException {
+        checkForConflict(customer.getCristinId());
+        var newCustomer = addInternalDetails(customer);
+        table.putItem(CustomerDao.fromCustomerDto(newCustomer));
+        return getCustomer(newCustomer.getIdentifier());
     }
 
     @Override
@@ -114,6 +114,22 @@ public class DynamoDBCustomerService implements CustomerService {
             .dynamoDbClient(client)
             .build();
         return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
+    }
+
+    private CustomerDto addInternalDetails(CustomerDto customer) {
+        Instant now = Instant.now();
+        return customer.copy()
+            .withIdentifier(UUID.randomUUID())
+            .withCreatedDate(now)
+            .withModifiedDate(now)
+            .build();
+    }
+
+    private void checkForConflict(URI institutionId) throws ConflictException {
+        var customerExists = attempt(() -> getCustomerByCristinId(institutionId)).toOptional().isPresent();
+        if (customerExists) {
+            throw new ConflictException(String.format(CUSTOMER_ALREADY_EXISTS_ERROR, institutionId.toString()));
+        }
     }
 
     private CustomerDto sendQueryToIndex(CustomerDao queryObject,

@@ -38,7 +38,7 @@ public class CreateCustomerRequest {
         request.setInstitutionDns(customerDto.getInstitutionDns());
         request.setFeideOrganizationDomain(customerDto.getFeideOrganizationDomain());
         request.setVocabularies(customerDto.getVocabularies());
-
+        request.setCristinId(customerDto.getCristinId());
         request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         return request;
     }

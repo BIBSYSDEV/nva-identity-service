@@ -15,6 +15,7 @@ import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import nva.commons.apigateway.MediaTypes;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ import org.zalando.problem.Problem;
 class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySettingsTests {
 
     @BeforeEach
-    public void init() throws NotFoundException {
+    public void init() throws ApiGatewayException {
         super.init();
     }
 

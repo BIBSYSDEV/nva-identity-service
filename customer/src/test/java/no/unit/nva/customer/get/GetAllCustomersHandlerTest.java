@@ -25,7 +25,7 @@ import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +49,7 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void requestToHandlerReturnsCustomerList() throws IOException, NotFoundException {
+    void requestToHandlerReturnsCustomerList() throws IOException, ApiGatewayException {
 
         final var savedCustomer = insertRandomCustomer();
         var input = sampleRequest();
@@ -66,7 +66,7 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate()
-        throws IOException, NotFoundException {
+        throws IOException, ApiGatewayException {
         var existingCustomer = insertRandomCustomer();
         var input = sampleRequest();
         var response = sendRequest(input, CustomerList.class);
@@ -91,7 +91,7 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withHeaders(getRequestHeaders()).build();
     }
 
-    private CustomerDto insertRandomCustomer() throws NotFoundException {
+    private CustomerDto insertRandomCustomer() throws ApiGatewayException {
         var customer = CustomerDto.builder()
             .withDisplayName(randomString())
             .withCristinId(randomUri())

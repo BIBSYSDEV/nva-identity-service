@@ -18,6 +18,7 @@ import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTest
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.apigateway.MediaTypes;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
     public static final Context CONTEXT = new FakeContext();
 
     @BeforeEach
-    public void init() throws NotFoundException {
+    public void init() throws ApiGatewayException {
         super.init();
     }
 
@@ -94,18 +95,23 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
     }
 
     @Test
-    public void handleRequestReturnsConflictWhenCustomerAlreadyHasVocabularySettings()
-        throws IOException, NotFoundException {
-        CustomerDto customerWithoutVocabularySettings = CustomerDataGenerator
+    public void handleRequestReturnsBadRequestWhenCustomerAlreadyHasVocabularySettingsAndWeAttemptToEraseThem()
+        throws IOException, ApiGatewayException {
+        var customerWithoutVocabularySettings =
+            customerService.createCustomer(createCustomerWithoutVocabularySettings());
+        var response =
+            sendRequestAcceptingJsonLd(customerWithoutVocabularySettings.getIdentifier()).getResponse();
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        String responseBody = response.getBody();
+        assertThat(responseBody, containsString(VOCABULARY_SETTINGS_NOT_DEFINED_ERROR));
+    }
+
+    private CustomerDto createCustomerWithoutVocabularySettings() {
+        return CustomerDataGenerator
             .createSampleCustomerDto().copy()
             .withVocabularies(Collections.emptySet())
             .build();
-        customerService.createCustomer(customerWithoutVocabularySettings);
-        var response = sendRequestAcceptingJsonLd(customerWithoutVocabularySettings.getIdentifier()).getResponse();
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
-        String responseBody = response.getBody();
-        assertThat(responseBody, containsString(VOCABULARY_SETTINGS_NOT_DEFINED_ERROR));
     }
 
     @Override

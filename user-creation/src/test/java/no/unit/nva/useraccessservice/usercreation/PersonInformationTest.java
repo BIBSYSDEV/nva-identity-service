@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class PersonInformationTest {
 
+    //TODO: solve the coverage problem with inheritance?
     @Test
     void shouldReturnPersonRegistryIdWhenCristinResponseExists() {
         var personInformation = new PersonInformationImpl(randomString(), randomString());

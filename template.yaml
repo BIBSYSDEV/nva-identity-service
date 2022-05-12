@@ -38,6 +38,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApplicationDomain
     Description: Domain-name for the frontend
+  SiktCristinId:
+    Type: String
+    Default: https://api.dev.nva.aws.unit.no/cristin/organization/20754.0.0.0
+    Description: The Cristin ID for SIKT
 
   # Parameters from nva-user-access-service
   UsersAndRolesBasePath:
@@ -475,8 +479,6 @@ Resources:
       RestApiId: !Ref UsersAndRolesApi
       Stage: !Ref UsersAndRolesApi.Stage
 
-
-
   ### Customer Service #################################################################################################
 
   NvaCustomersTable:
@@ -717,6 +719,19 @@ Resources:
             Path: /{identifier}
             Method: put
             RestApiId: !Ref NvaCustomerApi
+
+  InitCustomerServiceHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.IdentityServiceInitHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          SIKT_CRISTIN_ID: !Ref SiktCristinId
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserRoleMappings
 
 
   NvaCustomerBasePathMapping:

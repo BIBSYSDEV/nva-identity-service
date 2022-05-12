@@ -80,6 +80,12 @@ public class PeopleAndInstitutions {
         return person;
     }
 
+    public NationalIdentityNumber getPersonThatIsNotRegisteredInPersonRegistry() {
+        var person = newPerson();
+        cristinServer.addNonExistentPerson(person);
+        return person;
+    }
+
     public URI getCristinId(NationalIdentityNumber person) {
         return cristinServer.getCristinId(person);
     }

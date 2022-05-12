@@ -7,6 +7,7 @@ import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsIterableContaining.hasItems;
@@ -42,6 +43,7 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import org.junit.jupiter.api.AfterEach;
@@ -195,6 +197,55 @@ class CreateUserHandlerTest extends HandlerTest {
         var allRoles = response.getBodyObject(UserDto.class).getRoles();
 
         assertThat(allRoles, hasItems(firstRoles.toArray(RoleDto[]::new)));
+    }
+
+    @Test
+    void shouldReturnConflictErrorWhenPersonHasNoActiveAffiliations()
+        throws ConflictException, NotFoundException, IOException {
+        var person = peopleAndInstitutions.getPersonWithExactlyOneInactiveAffiliation();
+        var customer = randomCustomer();
+        var requestBody = new CreateUserRequest(person, customer.getId(), randomRoles());
+        var request = createRequest(requestBody, customer, EDIT_OWN_INSTITUTION_USERS);
+        var response = sendRequest(request, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+        var message = response.getBodyObject(Problem.class).getDetail();
+        assertThat(message, matchesPattern(".*Person (.*) has no active affiliations with an institution.*"));
+    }
+
+    @Test
+    void shouldReturnConflictErrorWhenPersonHasActiveAffiliationsButNotWithAnExistingCustomer()
+        throws IOException {
+        var person = peopleAndInstitutions.getPersonAffiliatedWithNonNvaCustomerInstitution();
+        var customer = randomCustomer();
+        var requestBody = new CreateUserRequest(person, customer.getId(), randomRoles());
+        var request = createRequest(requestBody, customer, EDIT_OWN_INSTITUTION_USERS);
+        var response = sendRequest(request, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+        var message = response.getBodyObject(Problem.class).getDetail();
+        assertThat(message,
+                   matchesPattern(".*Person (.*) has no active affiliations with an Institution that"
+                                  + " is an NVA customer.*"));
+    }
+
+    @Test
+    void shouldReturnConflictErrorWhenPersonIsNotRegisteredInPersonRegistry()
+        throws IOException {
+        var person = peopleAndInstitutions.getPersonThatIsNotRegisteredInPersonRegistry();
+        var customer = randomCustomer();
+        var requestBody = new CreateUserRequest(person, customer.getId(), randomRoles());
+        var request = createRequest(requestBody, customer, EDIT_OWN_INSTITUTION_USERS);
+        var response = sendRequest(request, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+        var message = response.getBodyObject(Problem.class).getDetail();
+        assertThat(message,
+                   matchesPattern(".*Person (.*) is not registered in the Person Registry.*"));
+    }
+
+    private CustomerDto randomCustomer() {
+        return CustomerDto.builder()
+            .withId(randomUri())
+            .withCristinId(randomUri())
+            .build();
     }
 
     private Set<RoleDto> createExpectedRoleSet(CreateUserRequest requestBody) {

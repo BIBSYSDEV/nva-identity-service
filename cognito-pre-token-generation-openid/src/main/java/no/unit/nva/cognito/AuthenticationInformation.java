@@ -112,6 +112,11 @@ public class AuthenticationInformation implements PersonInformation {
         personInformation.setPersonAffiliations(affiliationInformation);
     }
 
+    @Override
+    public Optional<URI> getPersonRegistryId() {
+        return personInformation.getPersonRegistryId();
+    }
+
     private IllegalStateException handleUserNotFoundError() {
         return new IllegalStateException(COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR + currentCustomer.getId());
     }

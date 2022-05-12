@@ -108,6 +108,12 @@ class AuthenticationInformationTest {
             registerActivation();
         }
 
+        @Override
+        public Optional<URI> getPersonRegistryId() {
+            registerActivation();
+            return Optional.empty();
+        }
+
         public int getActivations() {
             return activations.get();
         }

@@ -5,6 +5,7 @@ import static no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPe
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
@@ -28,6 +29,7 @@ import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
+import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -185,6 +187,14 @@ class UserEntriesCreatorForPersonTest {
             .stream()
             .collect(SingletonCollector.collect());
         assertThat(actualUser.getInstitution(), is(equalTo(selectedCustomer)));
+    }
+
+    @Test
+    void shouldLogWarningWhenCristinResponseIsNotOk() {
+        var logger = LogUtils.getTestingAppenderForRootLogger();
+        var person = peopleAndInstitutions.getPersonThatIsNotRegisteredInPersonRegistry();
+        userCreator.collectPersonInformation(person);
+        assertThat(logger.getMessages(), matchesPattern(".*Connection to Cristin failed for.*"));
     }
 
     private void assertThatWeHaveMoreThanOneCustomer(List<CustomerDto> allCustomers) {

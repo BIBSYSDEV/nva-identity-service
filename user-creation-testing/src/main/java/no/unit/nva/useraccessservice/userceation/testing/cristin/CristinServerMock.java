@@ -58,6 +58,10 @@ public class CristinServerMock {
         addResponseToRegistryServer(nin, personCristinEntry);
     }
 
+    public void addNonExistentPerson(NationalIdentityNumber nin) {
+        addNotFoundResponseToRegistryServer(nin);
+    }
+
     public URI randomOrgUri() {
         return UriWrapper.fromUri(serverUri).addChild(ORGANIZATION_PATH).addChild(randomString()).getUri();
     }
@@ -123,7 +127,16 @@ public class CristinServerMock {
         setupWiremockPorts();
         stubFor(post(PERSON_IDENTITY_NUMBER_PATH)
                     .withRequestBody(equalToJson(formatSearchByNinRequestBody(nin)))
-                    .willReturn(aResponse().withBody(personCristinEntry.toString())));
+                    .willReturn(aResponse()
+                                    .withBody(personCristinEntry.toString())
+                                    .withStatus(HttpURLConnection.HTTP_OK)));
+    }
+
+    private void addNotFoundResponseToRegistryServer(NationalIdentityNumber nin) {
+        setupWiremockPorts();
+        stubFor(post(PERSON_IDENTITY_NUMBER_PATH)
+                    .withRequestBody(equalToJson(formatSearchByNinRequestBody(nin)))
+                    .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
     private URI randomPersonId() {

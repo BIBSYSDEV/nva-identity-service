@@ -28,4 +28,5 @@ public interface PersonInformation {
 
     void setPersonAffiliations(List<PersonAffiliation> affiliationInformation);
 
+    Optional<URI> getPersonRegistryId();
 }

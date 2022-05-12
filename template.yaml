@@ -460,6 +460,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+          SIKT_CRISTIN_ID: !Ref SiktCristinId
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
@@ -718,20 +719,6 @@ Resources:
             Path: /{identifier}
             Method: put
             RestApiId: !Ref NvaCustomerApi
-
-  InitCustomerServiceHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.IdentityServiceInitHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          SIKT_CRISTIN_ID: !Ref SiktCristinId
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
-
 
   NvaCustomerBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping

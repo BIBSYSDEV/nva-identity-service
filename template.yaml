@@ -299,6 +299,7 @@ Resources:
             AuthorizationScopes:
               - 'https://api.nva.unit.no/scopes/backend'
               - 'https://api.nva.unit.no/scopes/frontend'
+              - 'aws.cognito.signin.user.admin'
             UserPoolArn: !GetAtt UserPool.Arn
             Identity:
               Header: Authorization

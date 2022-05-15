@@ -1032,7 +1032,7 @@ Resources:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"
       LambdaConfig:
-        PreTokenGeneration: !Sub '${PreTokenGenerationnHandler.Arn}:live'
+        PreTokenGeneration: !Sub '${PreTokenGenerationHandler.Arn}'
       Schema:
         - Name: nin
           AttributeDataType: String
@@ -1333,25 +1333,25 @@ Resources:
         - custom:topOrgCristinId
         - custom:personAffiliation
 
-  PreTokenGenerationnHandler:
+  PreTokenGenerationHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.UserSelectionUponLoginHandler::handleRequest
       Role: !GetAtt CreateUsersRole.Arn
-      AutoPublishAlias: live
-      Tracing: Active
-      DeploymentPreference:
-        Enabled: true
-        Type: AllAtOnce
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
+      #      AutoPublishAlias: live
+      #      Tracing: Active
+      #      DeploymentPreference:
+      #        Enabled: true
+      #        Type: AllAtOnce
+      #      ProvisionedConcurrencyConfig:
+      #        ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
           COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
           USERPOOL_NAME: !GetAtt UserPoolName.Value
           API_DOMAIN: !Ref ApiDomain
-          COGNITO_CREDENTIALS_SECRET_NAME:  BackendCognitoClientCredentials
+          COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
           COGNITO_ID_KEY: backendClientId
           COGNITO_SECRET_KEY: backendClientSecret
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
@@ -1359,37 +1359,37 @@ Resources:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Timeout: 20
 
-  PreTokenGenerationnHandlerScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Properties:
-      MaxCapacity: 10
-      MinCapacity: 1
-      ResourceId: !Sub function:${PreTokenGenerationnHandler}:live
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-      ScalableDimension: lambda:function:ProvisionedConcurrency
-      ServiceNamespace: lambda
-    DependsOn: PreTokenGenerationnHandlerAliaslive
-
-  PreTokenGenerationnHandlerScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: PpeTokenGenerationnHandlerScalingPolicy
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref PreTokenGenerationnHandlerScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 0.70
-        PredefinedMetricSpecification:
-          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
-
-  PreTokenGenerationnHandlerTriggerPermission:
-    DependsOn:
-      - PreTokenGenerationnHandlerScalingPolicy
-      - PreTokenGenerationnHandlerScalableTarget
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Sub '${PreTokenGenerationnHandler.Arn}:live'
-      Principal: cognito-idp.amazonaws.com
+#  PreTokenGenerationHandlerScalableTarget:
+#    Type: AWS::ApplicationAutoScaling::ScalableTarget
+#    Properties:
+#      MaxCapacity: 10
+#      MinCapacity: 1
+#      ResourceId: !Sub function:${PreTokenGenerationHandler}:live
+#      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+#      ScalableDimension: lambda:function:ProvisionedConcurrency
+#      ServiceNamespace: lambda
+#    DependsOn: PreTokenGenerationHandlerAliaslive
+#
+#  PreTokenGenerationHandlerScalingPolicy:
+#    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+#    Properties:
+#      PolicyName: PpeTokenGenerationnHandlerScalingPolicy
+#      PolicyType: TargetTrackingScaling
+#      ScalingTargetId: !Ref PreTokenGenerationHandlerScalableTarget
+#      TargetTrackingScalingPolicyConfiguration:
+#        TargetValue: 0.70
+#        PredefinedMetricSpecification:
+#          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+#
+#  PreTokenGenerationHandlerTriggerPermission:
+#    DependsOn:
+#      - PreTokenGenerationHandlerScalingPolicy
+#      - PreTokenGenerationHandlerScalableTarget
+#    Type: AWS::Lambda::Permission
+#    Properties:
+#      Action: lambda:InvokeFunction
+#      FunctionName: !Sub '${PreTokenGenerationHandler.Arn}:live'
+#      Principal: cognito-idp.amazonaws.com
 
 
 ### Outputs ############################################################################################################

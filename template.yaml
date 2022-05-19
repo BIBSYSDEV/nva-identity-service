@@ -1032,6 +1032,7 @@ Resources:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"
       LambdaConfig:
+        #PreTokenGeneration: !Sub '${PreTokenGenerationHandler.Arn}:live'
         PreTokenGeneration: !Sub '${PreTokenGenerationHandler.Arn}'
       Schema:
         - Name: nin
@@ -1382,7 +1383,7 @@ Resources:
   #          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   PreTokenGenerationHandlerTriggerPermission:
-    DependsOn:
+#    DependsOn:
     #      - PreTokenGenerationHandlerScalingPolicy
     #      - PreTokenGenerationHandlerScalableTarget
     Type: AWS::Lambda::Permission

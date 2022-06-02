@@ -67,7 +67,6 @@ public class CustomerSelectionHandler extends ApiGatewayHandler<CustomerSelectio
 
     @Override
     protected Void processInput(CustomerSelection input, RequestInfo event, Context context) throws ForbiddenException {
-
         var accessToken = extractAccessToken(event);
         var userAttributes = fetchUserInfo(accessToken).userAttributes();
         validateInput(userAttributes, input.getCustomerId());

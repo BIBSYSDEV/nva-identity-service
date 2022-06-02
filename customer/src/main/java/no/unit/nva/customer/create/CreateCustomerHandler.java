@@ -9,6 +9,7 @@ import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
@@ -43,9 +44,10 @@ public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest
     @Override
     protected CustomerDto processInput(CreateCustomerRequest input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
-
         return customerService.createCustomer(input.toCustomerDto());
     }
+
+
 
     @Override
     protected List<MediaType> listSupportedMediaTypes() {

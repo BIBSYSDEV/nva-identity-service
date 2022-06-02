@@ -574,6 +574,16 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(accessRights, is((empty())));
     }
 
+    @ParameterizedTest
+    @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
+    void shouldNotSelectCurrentCustomerWhenMutlipleCustomersHaveTheSameFeideDomainAndUserLogsInThroughFeide(
+        LoginEventType loginEventType) {
+
+        var person = registeredPeople.personWithTwoActiveAffiliationsThatShareTheSameFeideDomain();
+
+
+    }
+
     private void assertThatUserHasUserRoleAttached(UserDto user) {
         var userRoles = user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toList());
         assertThat(userRoles, hasItem("Creator"));

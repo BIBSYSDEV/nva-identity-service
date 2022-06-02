@@ -123,6 +123,10 @@ public class RegisteredPeopleInstance {
         return cristinProxy.getPersonWithManyActiveAffiliations();
     }
 
+    public NationalIdentityNumber personWithTwoActiveAffiliationsThatShareTheSameFeideDomain() {
+        return cristinProxy.getPersonWithTwoActiveAffiliationThatShareTheSameFeideDomain();
+    }
+
     public Set<URI> getTopLevelAffiliationsForUser(NationalIdentityNumber nin, boolean active) {
         return cristinProxy.getCristinPersonRecord(nin)
             .stream()
@@ -152,6 +156,7 @@ public class RegisteredPeopleInstance {
     public CristinProxyMock getCristinProxy() {
         return this.cristinProxy;
     }
+
 
     private void nvaHasDefinedRolesForTheNvaUsers() {
         availableNvaRoles = insertSomeRolesInNva();

@@ -1102,6 +1102,83 @@ Resources:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value
 
+  NewUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      MfaConfiguration: "OFF"
+      LambdaConfig:
+        PreTokenGeneration: !Sub '${PreTokenGenerationHandler.Arn}:live'
+      Schema:
+        - Name: nin
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: feideId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: feidememberrole
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: feideIdNin
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: orgFeideDomain
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: given_name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: family_name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: accessRights
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: customerId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: allowedCustomers
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: roles
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: nvaUsername
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: cristinId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: topOrgCristinId
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: personAffiliation
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+      UsernameConfiguration:
+        CaseSensitive: true
+      UserPoolName: !GetAtt UserPoolName.Value
+
   CongitoAuthUri:
     Type: AWS::SSM::Parameter
     Properties:
@@ -1217,8 +1294,8 @@ Resources:
         - custom:feideIdNin
         - custom:feidememberrole
         - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
+        - given_name
+        - family_name
         - custom:accessRights
         - custom:customerId
         - custom:allowedCustomers
@@ -1243,8 +1320,8 @@ Resources:
         - custom:feidememberrole
         - custom:feideIdNin
         - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
+        - given_name
+        - family_name
         - custom:accessRights
         - custom:customerId
         - custom:allowedCustomers
@@ -1296,8 +1373,8 @@ Resources:
         - custom:feideIdNin
         - custom:feidememberrole
         - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
+        - given_name
+        - family_name
         - custom:accessRights
         - custom:customerId
         - custom:allowedCustomers
@@ -1322,8 +1399,8 @@ Resources:
         - custom:feidememberrole
         - custom:feideIdNin
         - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
+        - given_name
+        - family_name
         - custom:accessRights
         - custom:customerId
         - custom:allowedCustomers

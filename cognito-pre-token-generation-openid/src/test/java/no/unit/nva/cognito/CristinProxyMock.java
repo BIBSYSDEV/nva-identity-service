@@ -57,11 +57,13 @@ public class CristinProxyMock {
     private NationalIdentityNumber personWithActiveAndInactiveAffiliations;
     private NationalIdentityNumber personWithManyActiveAffiliations;
     private NationalIdentityNumber personWithActiveAffiliationThatIsNotCustomer;
+    private NationalIdentityNumber personWithTwoActiveAffiliationThatShareTheSameFeideDomain;
     private List<URI> parentInstitutionsThatAreNvaCustomers;
     private Set<URI> organizations;
     private Map<URI, URI> organizationToParentInstitutionMap;
     private URI parentInstitutionThatIsNotNvaCustomer;
     private NationalIdentityNumber personThatInNotRegisteredInPersonRegistry;
+
 
     public CristinProxyMock(WireMockServer httpServer,
                             NvaAuthServerMock dataportenMock) {
@@ -79,8 +81,11 @@ public class CristinProxyMock {
         createPersonWithActiveAndInactiveAffiliations();
         createPersonWithActiveAffiliationThatIsNotCustomer();
         createPersonThatIsNotRegisteredInPersonRegistry();
+        createPersonWithTwoActiveAffiliationThatShareTheSameFeideDomain();
         createPersonWithManyActiveAffiliations();
     }
+
+
 
     public NationalIdentityNumber getPersonWithOneActiveAffiliationAndNoInactiveAffiliations() {
         return personWithOneActiveAffiliationAndNoInactiveAffiliations;
@@ -126,6 +131,10 @@ public class CristinProxyMock {
         return personThatInNotRegisteredInPersonRegistry;
     }
 
+    public NationalIdentityNumber getPersonWithTwoActiveAffiliationThatShareTheSameFeideDomain() {
+        return personWithTwoActiveAffiliationThatShareTheSameFeideDomain;
+    }
+
     private URI getParentInstitutionThatIsNotNvaCustomer() {
         return parentInstitutionThatIsNotNvaCustomer;
     }
@@ -142,7 +151,16 @@ public class CristinProxyMock {
 
     private void createPersonThatIsNotRegisteredInPersonRegistry() {
         personThatInNotRegisteredInPersonRegistry = nextPerson();
+
         createStubNotFoundResponseForPerson(personThatInNotRegisteredInPersonRegistry);
+    }
+
+    private void createPersonWithTwoActiveAffiliationThatShareTheSameFeideDomain() {
+        personWithTwoActiveAffiliationThatShareTheSameFeideDomain = nextPerson();
+        List<CristinAffiliation> affiliations = List.of(randomAffiliation(ACTIVE),randomAffiliation(ACTIVE));
+        createCristinRecord(personWithTwoActiveAffiliationThatShareTheSameFeideDomain, affiliations);
+        createStubResponseForPerson(personWithTwoActiveAffiliationThatShareTheSameFeideDomain);
+
     }
 
     private URI createRandomOrgUriForTheImaginarySetup() {

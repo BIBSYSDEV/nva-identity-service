@@ -34,7 +34,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequ
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
 
-@JacocoGenerated
 public class CustomerSelectionHandler extends ApiGatewayHandler<CustomerSelection, Void> {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
@@ -44,6 +43,7 @@ public class CustomerSelectionHandler extends ApiGatewayHandler<CustomerSelectio
     private final CustomerService customerService;
     private final IdentityService identityService;
 
+    @JacocoGenerated
     public CustomerSelectionHandler() {
         this(defaultCognitoClient(),
              defaultCustomerService(DatabaseConfig.DEFAULT_DYNAMO_CLIENT),
@@ -170,7 +170,7 @@ public class CustomerSelectionHandler extends ApiGatewayHandler<CustomerSelectio
             .filter(attribute -> ALLOWED_CUSTOMERS_CLAIM.equals(attribute.name()))
             .collect(SingletonCollector.tryCollect())
             .map(AttributeType::value)
-            .orElse(fail -> EMPTY_STRING);
+            .orElseThrow();
     }
 
     private String extractAccessToken(RequestInfo event) {

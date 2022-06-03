@@ -914,7 +914,7 @@ Resources:
   CognitoUserPoolIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Value: !Ref UserPool
+      Value: !Ref NewUserPool
       Description: Identifier of the UserPool in Cognito
       Name: !Sub '${ParameterNamePrefix}CognitoUserPoolId'
       Type: String

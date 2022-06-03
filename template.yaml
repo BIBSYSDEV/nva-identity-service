@@ -95,7 +95,7 @@ Resources:
       AllowUnauthenticatedIdentities: True
       CognitoIdentityProviders:
         - ClientId: !Ref ApplicationClient
-          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${NewUserPool}'
 
 
 
@@ -300,7 +300,7 @@ Resources:
               - 'https://api.nva.unit.no/scopes/backend'
               - 'https://api.nva.unit.no/scopes/frontend'
               - 'aws.cognito.signin.user.admin'
-            UserPoolArn: !GetAtt UserPool.Arn
+            UserPoolArn: !GetAtt NewUserPool.Arn
             Identity:
               Header: Authorization
               ReauthorizeEvery: 10
@@ -529,7 +529,7 @@ Resources:
       Auth:
         Authorizers:
           CognitoAuthorizer:
-            UserPoolArn: !GetAtt UserPool.Arn
+            UserPoolArn: !GetAtt NewUserPool.Arn
             Identity:
               Header: Authorization
               ValidationExpression: Bearer.*
@@ -901,7 +901,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}CognitoAuthorizerArn'
       Description: ARN Identifier of the UserPool
       Type: String
-      Value: !GetAtt UserPool.Arn
+      Value: !GetAtt NewUserPool.Arn
 
   CognitoIdentityPoolIdParameter:
     Type: AWS::SSM::Parameter
@@ -933,7 +933,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}CognitoURN'
       Description: URN of the cognito login to use in Feide
       Type: String
-      Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
+      Value: !Sub 'urn:amazon:cognito:sp:${NewUserPool}'
 
   #============================ Deploy API ============================================================================#
   # This solves the problem described here:
@@ -1002,7 +1002,7 @@ Resources:
       RestApiId: !Ref UsersAndRolesApi
       StageName: !Ref UsersAndRolesApi.Stage
       Timestamp: '${BUILD_TIMESTAMP}'
-      AuthorizerArn: !GetAtt UserPool.Arn
+      AuthorizerArn: !GetAtt NewUserPool.Arn
   CustomerApiGatewayCreateDeploymentCustomResource:
     Type: AWS::CloudFormation::CustomResource
     Properties:
@@ -1010,7 +1010,7 @@ Resources:
       RestApiId: !Ref NvaCustomerApi
       StageName: !Ref NvaCustomerApi.Stage
       Timestamp: '${BUILD_TIMESTAMP}'
-      AuthorizerArn: !GetAtt UserPool.Arn
+      AuthorizerArn: !GetAtt NewUserPool.Arn
 
 ### New Cognito ########################################################################################################
 
@@ -1031,8 +1031,6 @@ Resources:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"
-      LambdaConfig:
-        PreTokenGeneration: !Sub '${PreTokenGenerationHandler.Arn}:live'
       Schema:
         - Name: nin
           AttributeDataType: String
@@ -1100,7 +1098,7 @@ Resources:
           Required: false
       UsernameConfiguration:
         CaseSensitive: true
-      UserPoolName: !GetAtt UserPoolName.Value
+      UserPoolName: !Sub 'Old-${UserPoolName.Value}'
 
   NewUserPool:
     Type: AWS::Cognito::UserPool
@@ -1209,7 +1207,7 @@ Resources:
         authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
       ProviderName: Dataporten
       ProviderType: OIDC
-      UserPoolId: !Ref UserPool
+      UserPoolId: !Ref NewUserPool
 
   ResourceServerScopes:
     Type: AWS::Cognito::UserPoolResourceServer
@@ -1221,13 +1219,13 @@ Resources:
           ScopeName: backend
         - ScopeDescription: Frontend scope
           ScopeName: frontend
-      UserPoolId: !Ref UserPool
+      UserPoolId: !Ref NewUserPool
 
   BackendApplicationClient:
     DependsOn: ResourceServerScopes
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      UserPoolId: !Ref UserPool
+      UserPoolId: !Ref NewUserPool
       AllowedOAuthFlows:
           - client_credentials
       AllowedOAuthFlowsUserPoolClient: true
@@ -1313,7 +1311,7 @@ Resources:
         RefreshToken: hours
       SupportedIdentityProviders:
         - !Ref ConnectionToDataporten
-      UserPoolId: !Ref UserPool
+      UserPoolId: !Ref NewUserPool
       WriteAttributes:
         - custom:feideId
         - custom:nin
@@ -1333,7 +1331,7 @@ Resources:
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      UserPoolId: !Ref UserPool
+      UserPoolId: !Ref NewUserPool
       Domain: !Ref AuthenticationDomainPrefix
 
   TestingApplicationClient:
@@ -1392,7 +1390,7 @@ Resources:
         RefreshToken: hours
       SupportedIdentityProviders:
         - COGNITO
-      UserPoolId: !Ref UserPool
+      UserPoolId: !Ref NewUserPool
       WriteAttributes:
         - custom:feideId
         - custom:nin
@@ -1477,4 +1475,4 @@ Outputs:
     Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
   CognitoURN:
     Description: Amazon Cognito URN.
-    Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
+    Value: !Sub 'urn:amazon:cognito:sp:${NewUserPool}'

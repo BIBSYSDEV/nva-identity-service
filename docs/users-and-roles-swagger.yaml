@@ -69,7 +69,21 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetRoleHandler.Arn}/invocations
-        responses: {}
+        responses: { }
+        httpMethod: POST
+        type: aws_proxy
+  /userinfo:
+    get:
+      summary: Selects Customer for User
+      security:
+        - CognitoUserPool: [ 'aws.cognito.signin.user.admin' ]
+      responses:
+        '200':
+          description: Return OpenID user info for testing clients that do not have openid scope
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CognitoUserInfoHandler.Arn}/invocations
+        responses: { }
         httpMethod: POST
         type: aws_proxy
   /users:

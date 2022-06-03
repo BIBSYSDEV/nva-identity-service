@@ -1,5 +1,6 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CognitoCommunicationHandler.AUTHORIZATION_HEADER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -27,7 +28,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResp
 class CognitoUserInfoEndpointTest {
 
     public static final FakeContext CONTEXT = new FakeContext();
-    public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final Path DEMO_COGNITO_USER_INFO = Path.of("cognito", "cognito_user_info_response.json");
     private CognitoUserInfoEndpoint handler;
     private ByteArrayOutputStream outputStream;

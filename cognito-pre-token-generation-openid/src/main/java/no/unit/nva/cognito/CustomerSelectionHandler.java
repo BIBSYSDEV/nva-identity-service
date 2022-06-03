@@ -11,7 +11,6 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import no.unit.nva.customer.service.CustomerService;
@@ -19,26 +18,18 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.useraccessservice.database.DatabaseConfig;
-import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ForbiddenException;
-import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
 
-public class CustomerSelectionHandler extends ApiGatewayHandler<CustomerSelection, Void> {
+public class CustomerSelectionHandler extends CognitoCommunicationHandler<CustomerSelection, Void> {
 
-    public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String EMPTY_STRING = "";
-    private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
     private final CognitoIdentityProviderClient cognito;
     private final CustomerService customerService;
     private final IdentityService identityService;
@@ -61,11 +52,6 @@ public class CustomerSelectionHandler extends ApiGatewayHandler<CustomerSelectio
     }
 
     @Override
-    protected Integer getSuccessStatusCode(CustomerSelection body, Void output) {
-        return HttpURLConnection.HTTP_OK;
-    }
-
-    @Override
     protected Void processInput(CustomerSelection input, RequestInfo event, Context context) throws ForbiddenException {
 
         var accessToken = extractAccessToken(event);
@@ -75,13 +61,9 @@ public class CustomerSelectionHandler extends ApiGatewayHandler<CustomerSelectio
         return null;
     }
 
-    @JacocoGenerated
-    private static CognitoIdentityProviderClient defaultCognitoClient() {
-        return CognitoIdentityProviderClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .httpClient(UrlConnectionHttpClient.create())
-            .region(Region.of(AWS_REGION))
-            .build();
+    @Override
+    protected Integer getSuccessStatusCode(CustomerSelection body, Void output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     private URI extractCristinPersonId(List<AttributeType> userAttributes) {
@@ -171,18 +153,5 @@ public class CustomerSelectionHandler extends ApiGatewayHandler<CustomerSelectio
             .collect(SingletonCollector.tryCollect())
             .map(AttributeType::value)
             .orElseThrow();
-    }
-
-    private String extractAccessToken(RequestInfo event) {
-        var authorizationHeader = removeBearerTokenPrefix(event);
-        return everythingAfterBearerTokenPrefix(authorizationHeader);
-    }
-
-    private String everythingAfterBearerTokenPrefix(List<String> authorizationHeader) {
-        return String.join("", authorizationHeader.subList(1, authorizationHeader.size()));
-    }
-
-    private List<String> removeBearerTokenPrefix(RequestInfo event) {
-        return Arrays.asList(event.getAuthHeader().split(" "));
     }
 }

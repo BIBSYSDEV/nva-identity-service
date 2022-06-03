@@ -1,7 +1,10 @@
 package no.unit.nva.identityservice.json;
 
 import static java.util.Objects.nonNull;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -20,6 +23,14 @@ public final class JsonConfig {
         return objectMapper.readValue(source, type);
     }
 
+    public static <T> T readValue(String source, TypeReference<T> type) throws IOException {
+        return objectMapper.readValue(source, type);
+    }
+
+    public static <T> T readValue(String source, JavaType type) throws IOException {
+        return objectMapper.readValue(source, type);
+    }
+
     public static <T> String writeValueAsString(T object) throws IOException {
         return objectMapper.writeValueAsString(object);
     }
@@ -32,6 +43,10 @@ public final class JsonConfig {
     public static <T> List<T> listOfFrom(Class<T> type, String source) throws IOException {
         var listType = objectMapper.getTypeFactory().constructCollectionType(List.class, type);
         return objectMapper.readValue(source, listType);
+    }
+
+    public static TypeFactory getTypeFactory() {
+        return objectMapper.getTypeFactory();
     }
 
     @Deprecated(since = "We rolled back to using normal jackson")

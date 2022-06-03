@@ -3,6 +3,7 @@ package no.unit.nva.handlers;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
+import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PROJECTS;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
@@ -94,7 +95,11 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
         var creator = RoleDto.newBuilder().withRoleName("Creator").build();
         var curator = RoleDto.newBuilder().withRoleName("Curator")
             .withAccessRights(
-                List.of(APPROVE_DOI_REQUEST, REJECT_DOI_REQUEST, READ_DOI_REQUEST, EDIT_OWN_INSTITUTION_RESOURCES))
+                List.of(APPROVE_DOI_REQUEST,
+                        REJECT_DOI_REQUEST,
+                        READ_DOI_REQUEST,
+                        EDIT_OWN_INSTITUTION_RESOURCES,
+                        APPROVE_PUBLISH_REQUEST))
             .build();
         var institutionAdmin = RoleDto.newBuilder().withRoleName("Institution-admin")
             .withAccessRights(List.of(EDIT_OWN_INSTITUTION_RESOURCES,

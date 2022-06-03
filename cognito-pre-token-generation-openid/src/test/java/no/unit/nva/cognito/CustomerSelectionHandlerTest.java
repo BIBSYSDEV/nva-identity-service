@@ -128,7 +128,7 @@ class CustomerSelectionHandlerTest {
     }
 
     @Test
-    void shouldUpdateCustomerCristinIfWhenSelectingCustomer() throws IOException, NotFoundException {
+    void shouldUpdateCustomerCristinWhenSelectingCustomer() throws IOException, NotFoundException {
         var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
         var input = createRequest(selectedCustomer);
         sendRequest(input, Void.class);
@@ -177,7 +177,7 @@ class CustomerSelectionHandlerTest {
     private void addUserEntriesInIdentityService(URI personId, Set<URI> allowedCustomers) {
         allowedCustomers.stream()
             .map(customerId -> createUserEntryInIdentityService(customerId, personId))
-            .forEach(user -> addUser(user));
+            .forEach(this::addUser);
     }
 
     private UserDto addUser(UserDto user) {

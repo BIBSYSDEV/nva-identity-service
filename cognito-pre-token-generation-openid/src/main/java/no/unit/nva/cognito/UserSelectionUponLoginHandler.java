@@ -93,9 +93,9 @@ public class UserSelectionUponLoginHandler
         authenticationInfo.updateCurrentCustomer();
         authenticationInfo.updateCurrentUser(usersForPerson);
 
-        final var cognitoGroups = createCognitoGroupsEntry(usersForPerson);
-        updateCognitoUserAttributes(input, authenticationInfo, cognitoGroups, roles);
-        injectAccessRightsToEventResponse(input, cognitoGroups);
+        final var accessRights = createAccessRights(usersForPerson);
+        updateCognitoUserAttributes(input, authenticationInfo, accessRights, roles);
+        injectAccessRightsToEventResponse(input, accessRights);
         return input;
     }
 
@@ -131,7 +131,7 @@ public class UserSelectionUponLoginHandler
             .orElseThrow();
     }
 
-    private List<String> createCognitoGroupsEntry(List<UserDto> usersForPerson) {
+    private List<String> createAccessRights(List<UserDto> usersForPerson) {
         final var accessRights = new ArrayList<>(accessRightsPerCustomer(usersForPerson));
         final var injectedCustomerIdInAccessRights =
             injectCustomerIdInCognitoGroupsToFacilitateOnlineTests(usersForPerson);
@@ -259,10 +259,9 @@ public class UserSelectionUponLoginHandler
 
     private List<String> accessRightsPerCustomer(List<UserDto> personsUsers) {
         return personsUsers.stream()
-            .map(user -> CustomerAccessRight.fromUser(user, customerService))
+            .map(user -> UserAccessRightForCustomer.fromUser(user, customerService))
             .flatMap(Collection::stream)
-            .map(CustomerAccessRight::asStrings)
-            .flatMap(Collection::stream)
+            .map(UserAccessRightForCustomer::toString)
             .collect(Collectors.toList());
     }
 

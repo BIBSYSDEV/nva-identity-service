@@ -194,28 +194,6 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualUsernames, containsInAnyOrder(expectedUsernames.toArray(String[]::new)));
     }
 
-    @ParameterizedTest(name = "should return access rights as user groups for user concatenated with customer cristin "
-                              + "identifier for user's active top orgs")
-    @EnumSource(LoginEventType.class)
-    void shouldReturnAccessRightsForUserConcatenatedWithCustomerCristinIdentifierForUsersActiveTopOrgs(
-        LoginEventType eventType) {
-        var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
-        var users = createUsersForAffiliations(personLoggingIn, INCLUDE_INACTIVE);
-        var expectedUsers = users.stream()
-            .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
-            .collect(Collectors.toSet());
-
-        var expectedAccessRightsWithCristinIdentifiers = expectedUsers.stream()
-            .map(this::createAccessRightsCristinIdVersion)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
-
-        var response = handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
-
-        var actualAccessRights = extractAccessRights(response);
-        assertThat(expectedAccessRightsWithCristinIdentifiers, everyItem(in(actualAccessRights)));
-    }
-
     @ParameterizedTest(name = "should return access rights as user groups for user concatenated with customer NVA "
                               + "identifier for user's active top orgs")
     @EnumSource(LoginEventType.class)
@@ -561,7 +539,6 @@ class UserSelectionUponLoginHandlerTest {
 
         assertThat(groups, hasItem(expectedCognitoGroup));
     }
-
 
     @ParameterizedTest
     @EnumSource(LoginEventType.class)

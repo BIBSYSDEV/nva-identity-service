@@ -13,7 +13,9 @@ public enum PublicationWorkflow {
     @JsonProperty("RegistratorPublishesMetadataOnly")
     REGISTRATOR_PUBLISHES_METADATA_ONLY("RegistratorPublishesMetadataOnly"),
     @JsonProperty("RegistratorPublishesMetadataAndFiles")
-    REGISTRATOR_PUBLISHES_METADATA_AND_FILES("RegistratorPublishesMetadataAndFiles");
+    REGISTRATOR_PUBLISHES_METADATA_AND_FILES("RegistratorPublishesMetadataAndFiles"),
+    @JsonProperty("RegistratorRequiresApprovalForMetadataAndFiles")
+    REGISTRATOR_REQUIRES_APPROVAL_FOR_METADATA_AND_FILES("RegistratorRequiresApprovalForMetadataAndFiles");
 
     public static final String ERROR_MESSAGE_TEMPLATE = "%s not a valid PublicationWorkflow, expected one of: %s";
     public static final String DELIMITER = ", ";

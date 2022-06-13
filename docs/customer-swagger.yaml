@@ -622,6 +622,9 @@ components:
             $ref: '#/components/schemas/Vocabulary'
         '@context':
           type: object
+        publicationWorkflow:
+          type: string
+          enum: [RegistratorPublishesMetadataOnly, RegistratorPublishesMetadataAndFiles, RegistratorRequiresApprovalForMetadataAndFiles]
     VocabularyList:
       type: object
       properties:
@@ -692,6 +695,7 @@ components:
             type: 'Vocabulary'
             name: 'Example VOC'
             active: 'default'
+        publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
     CustomerListExample:
       value:
         '@context': 'https://bibsysdev.github.io/src/customer-api.json'
@@ -716,6 +720,7 @@ components:
                 type: 'Vocabulary'
                 name: 'Example VOC'
                 active: 'default'
+            publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
     VocabularyListExample:
       value:
         '@context': 'https://bibsysdev.github.io/src/customer-api.json'

@@ -624,7 +624,7 @@ components:
           type: object
         publicationWorkflow:
           type: string
-          enum: [RegistratorPublishesMetadataOnly, RegistratorPublishesMetadataAndFiles, RegistratorCannotPublish]
+          enum: [RegistratorPublishesMetadataOnly, RegistratorPublishesMetadataAndFiles, RegistratorRequiresApprovalForMetadataAndFiles]
     VocabularyList:
       type: object
       properties:

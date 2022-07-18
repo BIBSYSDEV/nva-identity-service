@@ -40,6 +40,8 @@ import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -64,6 +66,8 @@ public class UserSelectionUponLoginHandler
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
+
     @JacocoGenerated
     public UserSelectionUponLoginHandler() {
         this(defaultCognitoClient(), CristinClient.defaultClient(),
@@ -82,6 +86,7 @@ public class UserSelectionUponLoginHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
+       logger.info("in pretokengenerator with client id {} ", input.getCallerContext().getClientId());
         var nin = extractNin(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());

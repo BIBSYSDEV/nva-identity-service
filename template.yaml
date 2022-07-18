@@ -97,6 +97,8 @@ Resources:
       CognitoIdentityProviders:
         - ClientId: !Ref ApplicationClient
           ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+        - ClientId: !Ref DLRApplicationClient
+          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
 
 
 
@@ -1276,6 +1278,80 @@ Resources:
     Properties:
       UserPoolId: !Ref UserPool
       Domain: !Ref AuthenticationDomainPrefix
+
+  DlrApplicationClient:
+    DependsOn: ResourceServerScopes
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - aws.cognito.signin.user.admin
+        - openid
+        - email
+        - phone
+        - profile # it seems to be necessary for the custom attributes to appear
+        - https://api.nva.unit.no/scopes/frontend
+      CallbackURLs:
+        - 'http://localhost:3000'
+        - !Sub 'https://${ApplicationDomain}'
+      LogoutURLs:
+        - 'http://localhost:3000/logout'
+        - !Sub 'https://${ApplicationDomain}/logout'
+      ClientName: DLRApplicationClient
+      DefaultRedirectURI: 'http://localhost:3000'
+      EnableTokenRevocation: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: LEGACY
+      ReadAttributes:
+        - custom:feideId
+        - custom:nin
+        - custom:feideIdNin
+        - custom:feidememberrole
+        - custom:orgFeideDomain
+        - custom:firstName
+        - custom:lastName
+        - custom:accessRights
+        - custom:customerId
+        - custom:allowedCustomers
+        - custom:roles
+        - custom:nvaUsername
+        - custom:cristinId
+        - custom:topOrgCristinId
+        - custom:personAffiliation
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      RefreshTokenValidity: 2
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: hours
+      SupportedIdentityProviders:
+        - !Ref ConnectionToDataporten
+      UserPoolId: !Ref UserPool
+      WriteAttributes:
+        - custom:feideId
+        - custom:nin
+        - custom:feidememberrole
+        - custom:feideIdNin
+        - custom:orgFeideDomain
+        - custom:firstName
+        - custom:lastName
+        - custom:accessRights
+        - custom:customerId
+        - custom:allowedCustomers
+        - custom:roles
+        - custom:nvaUsername
+        - custom:cristinId
+        - custom:topOrgCristinId
+        - custom:personAffiliation
+
 
   TestingApplicationClient:
     DependsOn: ResourceServerScopes

@@ -1279,7 +1279,7 @@ Resources:
       UserPoolId: !Ref UserPool
       Domain: !Ref AuthenticationDomainPrefix
 
-  DlrApplicationClient:
+  DLRApplicationClient:
     DependsOn: ResourceServerScopes
     Type: AWS::Cognito::UserPoolClient
     Properties:

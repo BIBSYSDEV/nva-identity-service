@@ -1321,9 +1321,6 @@ Resources:
         - custom:customerId
         - custom:allowedCustomers
         - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
         - custom:personAffiliation
       AccessTokenValidity: 1
       IdTokenValidity: 1
@@ -1347,11 +1344,7 @@ Resources:
         - custom:customerId
         - custom:allowedCustomers
         - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
         - custom:personAffiliation
-
 
   TestingApplicationClient:
     DependsOn: ResourceServerScopes

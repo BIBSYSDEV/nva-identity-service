@@ -23,7 +23,6 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.GroupConfiguration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Response;
 import java.net.URI;
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,7 +49,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUserPoolClientResponse;
 
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
@@ -89,37 +87,42 @@ public class UserSelectionUponLoginHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
-
-        final Clock start = Clock.systemUTC();
-        final DescribeUserPoolClientResponse response =
-            cognitoClient.describeUserPoolClient(DescribeUserPoolClientRequest.builder().clientId(input.getCallerContext().getClientId()).build());
-
-        logger.info("Application client name in use: {} ({} ms)", response.userPoolClient().clientName(),
-                    Clock.systemUTC().millis() - start.millis());
-
+    
+        final var start = System.currentTimeMillis();
+        final var response =
+            cognitoClient.describeUserPoolClient(
+                DescribeUserPoolClientRequest.builder().clientId(input.getCallerContext().getClientId()).build());
+        var clientName = response.userPoolClient().clientName();
+        final long end = System.currentTimeMillis();
+        logger.info("Application client name in use: {} ({} ms)", clientName, end - start);
+    
+        loginToNva(input);
+        return input;
+    }
+    
+    private void loginToNva(CognitoUserPoolPreTokenGenerationEvent input) {
         var nin = extractNin(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
-
+        
         var authenticationInfo = collectAuthenticationInformation(nin, orgFeideDomain, personFeideIdentifier);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
-
+        
         final var roles = rolesPerCustomer(usersForPerson);
         authenticationInfo.updateCurrentCustomer();
         authenticationInfo.updateCurrentUser(usersForPerson);
-
+        
         final var accessRights = createAccessRights(usersForPerson);
         updateCognitoUserAttributes(input, authenticationInfo, accessRights, roles);
         injectAccessRightsToEventResponse(input, accessRights);
-        return input;
     }
-
+    
     private static String extractNin(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
             .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
             .orElseThrow();
     }
-
+    
     private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(ORG_FEIDE_DOMAIN)).orElse(null);
     }

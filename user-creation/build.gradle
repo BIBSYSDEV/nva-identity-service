@@ -48,4 +48,7 @@ test{
     environment "API_DOMAIN", "example.com"
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
+    environment "COGNITO_CREDENTIALS_SECRET_NAME", "someSecret"
+    environment "COGNITO_SECRET_KEY", "someSecret"
+    environment "COGNITO_ID_KEY","someKey"
 }

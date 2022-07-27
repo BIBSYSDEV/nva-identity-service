@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CristinClient {
-
+    
     public static final String CRISTIN_PATH_FOR_GETTING_USER_BY_NIN = "person/identityNumber";
     public static final String REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE =
         "{\"type\":\"NationalIdentificationNumber\",\"value\":\"%s\"}";
@@ -38,23 +38,44 @@ public class CristinClient {
     private static final Logger logger = LoggerFactory.getLogger(CristinClient.class);
     private final URI getUserByNinUri;
     private final AuthorizedBackendClient httpClient;
-
+    
     public CristinClient(URI cristinHost, AuthorizedBackendClient httpClient) {
         this.httpClient = httpClient;
         this.getUserByNinUri = formatUriForGettingUserByNin(cristinHost);
     }
-
+    
     @JacocoGenerated
     public static CristinClient defaultClient() {
-        var secretsReader = new SecretsReader();
-        var appClientId = secretsReader.fetchSecret(COGNITO_CREDENTIALS_SECRET_NAME, COGNITO_ID_KEY);
-        var appClientSecret = secretsReader.fetchSecret(COGNITO_CREDENTIALS_SECRET_NAME, COGNITO_SECRET_KEY);
-        var cognitoCredentials = new CognitoCredentials(appClientId, appClientSecret, COGNITO_HOST);
+        return defaultClient(new SecretsReader());
+    }
+    
+    public URI fetchTopLevelOrgUri(URI orgUri) throws IOException, InterruptedException, BadGatewayException {
+        var request = HttpRequest.newBuilder(orgUri)
+            .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+            .GET();
+        var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
+        
+        assertThatResponseIsSuccessful(orgUri, response);
+        
+        var responseObject = CristinOrgResponse.fromJson(response.body());
+        return responseObject.extractInstitutionUri();
+    }
+    
+    protected static CristinClient defaultClient(SecretsReader secretsReader) {
+        var cognitoCredentials = new CognitoCredentials(
+            () -> fetchLatestValueOfAppClientIdForHotInstance(secretsReader),
+            () -> fetchLatestValueOfAppClientSecretForHotInstance(secretsReader),
+            COGNITO_HOST);
         var httpClient =
             AuthorizedBackendClient.prepareWithCognitoCredentials(cognitoCredentials);
         return new CristinClient(CRISTIN_HOST, httpClient);
     }
-
+    
+    @JacocoGenerated
+    private static String fetchLatestValueOfAppClientSecretForHotInstance(SecretsReader secretsReader) {
+        return secretsReader.fetchSecret(COGNITO_CREDENTIALS_SECRET_NAME, COGNITO_SECRET_KEY);
+    }
+    
     public CristinPersonResponse sendRequestToCristin(NationalIdentityNumber nin)
         throws IOException, InterruptedException, BadGatewayException {
         var request = HttpRequest.newBuilder(getUserByNinUri)
@@ -66,25 +87,18 @@ public class CristinClient {
         assertThatResponseIsSuccessful(nin, response);
         return JsonConfig.readValue(response.body(), CristinPersonResponse.class);
     }
-
-    public URI fetchTopLevelOrgUri(URI orgUri) throws IOException, InterruptedException, BadGatewayException {
-        var request = HttpRequest.newBuilder(orgUri)
-            .setHeader(CONTENT_TYPE, APPLICATION_JSON)
-            .GET();
-        var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-        assertThatResponseIsSuccessful(orgUri, response);
-
-        var responseObject = CristinOrgResponse.fromJson(response.body());
-        return responseObject.extractInstitutionUri();
+    
+    @JacocoGenerated
+    private static String fetchLatestValueOfAppClientIdForHotInstance(SecretsReader secretsReader) {
+        return secretsReader.fetchSecret(COGNITO_CREDENTIALS_SECRET_NAME, COGNITO_ID_KEY);
     }
-
+    
     private URI formatUriForGettingUserByNin(URI cristinHost) {
         return UriWrapper.fromUri(cristinHost)
             .addChild(CRISTIN_PATH_FOR_GETTING_USER_BY_NIN)
             .getUri();
     }
-
+    
     private <T> void assertThatResponseIsSuccessful(T entityIdentifier,
                                                     HttpResponse<String> response) throws BadGatewayException {
         if (response.statusCode() != HTTP_OK) {
@@ -93,14 +107,14 @@ public class CristinClient {
             throw new BadGatewayException(message);
         }
     }
-
+    
     private <T> String createWarningForFailedRequestToPersonRegistry(T entityIdentifier,
                                                                      HttpResponse<String> response) {
         return String.format("Connection to Cristin failed for %s. Response %s",
-                             entityIdentifier.toString(),
-                             response.body());
+            entityIdentifier.toString(),
+            response.body());
     }
-
+    
     private String cristinRequestBody(NationalIdentityNumber nin) {
         return String.format(REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE, nin.getNin());
     }

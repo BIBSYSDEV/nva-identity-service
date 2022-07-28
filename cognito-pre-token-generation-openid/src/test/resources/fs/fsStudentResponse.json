@@ -1,0 +1,155 @@
+{
+  "href": "https://api.fellesstudentsystem.no/personer",
+  "rel": [
+    "collection"
+  ],
+  "page": 1,
+  "limit": 0,
+  "size": 1,
+  "first": {
+    "href": "https://api.fellesstudentsystem.no/personer?personnummer0=48571&dbId=true&fodselsdato0=041270&fields=*&page=1&limit=0",
+    "rel": [
+      "collection"
+    ]
+  },
+  "last": {
+    "href": "https://api.fellesstudentsystem.no/personer?personnummer0=48571&dbId=true&fodselsdato0=041270&fields=*&page=1&limit=0",
+    "rel": [
+      "collection"
+    ]
+  },
+  "items": [
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/personer/194",
+        "personlopenummer": 194
+      },
+      "fodselsdato": 41270,
+      "personnummer": 48571,
+      "fodselsdato0": "041270",
+      "personnummer0": "48571",
+      "brukernavn": "oves",
+      "fornavn": "Øystein",
+      "etternavn": "Vestre",
+      "forkortetNavn": "Ø.Vestre",
+      "kjonn": "M",
+      "epost": {
+        "adresse": "oves@oslomet.no"
+      },
+      "eposter": [
+        {
+          "adresse": "oves@oslomet.no"
+        }
+      ],
+      "telefoner": [
+        {
+          "type": "ARB",
+          "landnummer": "47",
+          "nummer": "67238563",
+          "merknad": "Alterativt nr: 70270111"
+        },
+        {
+          "type": "SEM",
+          "landnummer": "47",
+          "nummer": "22106208"
+        },
+        {
+          "type": "HJEM",
+          "landnummer": "47",
+          "nummer": "22106208"
+        }
+      ],
+      "adresser": [
+        {
+          "type": "PRIVAT",
+          "co": "Tiriltunga 178",
+          "gate": "Tiriltunga 178",
+          "sted": "OSLO",
+          "postnummer": "1259"
+        }
+      ],
+      "studentgrunnlag": {
+        "kode": "UKJENT",
+        "navn": "Ukjent - tildelt pga studweb",
+        "aktiv": true,
+        "girGrad": true,
+        "semesteravgiftsFritak": false,
+        "kanBenytteStudentWeb": true,
+        "skalHaStudentkort": true,
+        "skalHaKarakterutskrift": true,
+        "rapporteresLanekassen": true,
+        "felles": false
+      },
+      "kommuner": [
+        {
+          "type": "HJEM",
+          "nummer": 1,
+          "navn": "Oslo kommune",
+          "felles": true,
+          "fylke": {
+            "nummer": 3,
+            "navn": "OSLO",
+            "felles": true
+          }
+        },
+        {
+          "type": "FØRSTEGANGSREGISTR",
+          "nummer": 7,
+          "navn": "Ålesund",
+          "felles": true,
+          "fylke": {
+            "nummer": 15,
+            "navn": "MØRE OG ROMSDAL",
+            "felles": true
+          }
+        }
+      ],
+      "land": [
+        {
+          "href": "https://api.fellesstudentsystem.no/land/0",
+          "type": "HJEM"
+        }
+      ],
+      "datoFodt": "1970-12-04",
+      "sprak": [
+        {
+          "href": "https://api.fellesstudentsystem.no/sprak/BOKM%C3%85L",
+          "type": "MÅLFORM"
+        }
+      ],
+      "student": {
+        "studentnummer": 999875,
+        "adresser": [
+          {
+            "type": "SEMESTER",
+            "gate": "Tante Ulrikkesvei 20 A",
+            "sted": "OSLO",
+            "postnummer": "984"
+          },
+          {
+            "type": "ARBEID",
+            "co": "Kjell Vestre",
+            "gate": "Sjøholt",
+            "sted": "ØRSKOG",
+            "postnummer": "6240"
+          }
+        ],
+        "lantakerId": "OMET999875"
+      },
+      "fagperson": {
+        "aktiv": true,
+        "permisjon": false,
+        "organisasjonsenhet": {
+          "href": "https://api.fellesstudentsystem.no/organisasjonsenheter/215,16,0,0",
+          "type": "ANSATT"
+        },
+        "stillingstitler": [
+          {
+            "lang": "no",
+            "value": "h.lektor"
+          }
+        ]
+      }
+    }
+  ]
+}

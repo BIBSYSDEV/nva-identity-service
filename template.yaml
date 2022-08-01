@@ -54,10 +54,7 @@ Parameters:
     Type: String
     Default: ''
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
-  FS_HOST:
-    Type: String
-    Default: "api.fellesstudentsystem.no"
-    Description: base url for fs api used for collecting student courses.
+
 
 Mappings:
   Constants:

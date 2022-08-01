@@ -29,7 +29,6 @@ public class FsApiTest {
 
     public static final String FODSELSDATO_IDENTIFIER = "fodselsdato0";
     public static final String PERSONNUMMER_IDENTIFIER = "personnummer0";
-    public static final String FS_HOST = "api.fellesstudentsystem.no";
     private static final String PERSON_PATH = "/personer";
     private static final String STUDENTUNDERVISNING_PATH = "/studentundervisning";
     private static final String UNDERVISNING_SEMESTER_AR_PATH = "undervisning.semester.ar";

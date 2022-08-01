@@ -1,4 +1,4 @@
-package no.unit.identityservice.fsproxy;
+package no.unit.identityservice.fsproxy.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -8,19 +8,23 @@ import java.util.Objects;
 
 public class FsIdNumber {
 
-    private final int identifier;
+    private final Integer identifier;
 
 
     @JsonCreator
-    public FsIdNumber(int identifier) {
+    public FsIdNumber(Integer identifier) {
         this.identifier = identifier;
     }
 
     @JacocoGenerated
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         FsIdNumber that = (FsIdNumber) o;
         return Objects.equals(identifier, that.identifier);
     }
@@ -30,6 +34,7 @@ public class FsIdNumber {
     public int hashCode() {
         return Objects.hash(identifier);
     }
+
     @JsonValue
     @Override
     public String toString() {

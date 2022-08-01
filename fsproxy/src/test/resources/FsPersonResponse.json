@@ -1,0 +1,29 @@
+{
+  "href": "https://api.fellesstudentsystem.no/personer",
+  "rel": [
+    "collection"
+  ],
+  "page": 1,
+  "limit": 0,
+  "size": 1,
+  "first": {
+    "href": "https://api.fellesstudentsystem.no/personer?personnummer0=47298&dbId=true&fodselsdato0=190477&page=1&limit=0",
+    "rel": [
+      "collection"
+    ]
+  },
+  "last": {
+    "href": "https://api.fellesstudentsystem.no/personer?personnummer0=47298&dbId=true&fodselsdato0=190477&page=1&limit=0",
+    "rel": [
+      "collection"
+    ]
+  },
+  "items": [
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/personer/33637",
+        "personlopenummer": 33637
+      }
+    }
+  ]
+}

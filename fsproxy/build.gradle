@@ -8,7 +8,8 @@ dependencies {
 
     implementation libs.nva.core
     implementation libs.nva.json
-
     implementation libs.bundles.jackson
+    implementation 'joda-time:joda-time:2.10.14'
+    implementation libs.nva.apigateway
 
 }

@@ -1,0 +1,287 @@
+{
+  "href": "https://api.fellesstudentsystem.no/studentundervisning",
+  "rel": [
+    "collection"
+  ],
+  "page": 1,
+  "limit": 0,
+  "size": 11,
+  "first": {
+    "href": "https://api.fellesstudentsystem.no/studentundervisning?dbId=true&person.personlopenummer=33637&page=1&limit=0",
+    "rel": [
+      "collection"
+    ]
+  },
+  "last": {
+    "href": "https://api.fellesstudentsystem.no/studentundervisning?dbId=true&person.personlopenummer=33637&page=1&limit=0",
+    "rel": [
+      "collection"
+    ]
+  },
+  "items": [
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,ABIO6000,1,2021,H%C3%98ST,1,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,ABIO6000,1,2021,H%C3%98ST,1",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,ABIO6000,1",
+            "institusjon": 215,
+            "kode": "ABIO6000",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2021,H%C3%98ST",
+            "ar": 2021,
+            "termin": "HØST"
+          },
+          "terminnummer": 1
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,ABIO6050,1,2022,V%C3%85R,1,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,ABIO6050,1,2022,V%C3%85R,1",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,ABIO6050,1",
+            "institusjon": 215,
+            "kode": "ABIO6050",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2022,V%C3%85R",
+            "ar": 2022,
+            "termin": "VÅR"
+          },
+          "terminnummer": 1
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,ABIO6100,1,2022,V%C3%85R,1,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,ABIO6100,1,2022,V%C3%85R,1",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,ABIO6100,1",
+            "institusjon": 215,
+            "kode": "ABIO6100",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2022,V%C3%85R",
+            "ar": 2022,
+            "termin": "VÅR"
+          },
+          "terminnummer": 1
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,OPERA6000,1,2022,V%C3%85R,1,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,OPERA6000,1,2022,V%C3%85R,1",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,OPERA6000,1",
+            "institusjon": 215,
+            "kode": "OPERA6000",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2022,V%C3%85R",
+            "ar": 2022,
+            "termin": "VÅR"
+          },
+          "terminnummer": 1
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,OPERA6000,1,2022,H%C3%98ST,2,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,OPERA6000,1,2022,H%C3%98ST,2",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,OPERA6000,1",
+            "institusjon": 215,
+            "kode": "OPERA6000",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2022,H%C3%98ST",
+            "ar": 2022,
+            "termin": "HØST"
+          },
+          "terminnummer": 2
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,OPERA6100,1,2021,H%C3%98ST,1,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,OPERA6100,1,2021,H%C3%98ST,1",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,OPERA6100,1",
+            "institusjon": 215,
+            "kode": "OPERA6100",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2021,H%C3%98ST",
+            "ar": 2021,
+            "termin": "HØST"
+          },
+          "terminnummer": 1
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,OPERA6100,1,2022,V%C3%85R,2,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,OPERA6100,1,2022,V%C3%85R,2",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,OPERA6100,1",
+            "institusjon": 215,
+            "kode": "OPERA6100",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2022,V%C3%85R",
+            "ar": 2022,
+            "termin": "VÅR"
+          },
+          "terminnummer": 2
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,OPERA6100,1,2022,H%C3%98ST,3,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,OPERA6100,1,2022,H%C3%98ST,3",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,OPERA6100,1",
+            "institusjon": 215,
+            "kode": "OPERA6100",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2022,H%C3%98ST",
+            "ar": 2022,
+            "termin": "HØST"
+          },
+          "terminnummer": 3
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,OPERAPRA10,1,2021,H%C3%98ST,1,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,OPERAPRA10,1,2021,H%C3%98ST,1",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,OPERAPRA10,1",
+            "institusjon": 215,
+            "kode": "OPERAPRA10",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2021,H%C3%98ST",
+            "ar": 2021,
+            "termin": "HØST"
+          },
+          "terminnummer": 1
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,OPERAPRA20,1,2022,V%C3%85R,1,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,OPERAPRA20,1,2022,V%C3%85R,1",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,OPERAPRA20,1",
+            "institusjon": 215,
+            "kode": "OPERAPRA20",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2022,V%C3%85R",
+            "ar": 2022,
+            "termin": "VÅR"
+          },
+          "terminnummer": 1
+        }
+      }
+    },
+    {
+      "id": {
+        "href": "https://api.fellesstudentsystem.no/studentundervisning/215,OPERAPRA3,1,2022,H%C3%98ST,1,33637",
+        "person": {
+          "href": "https://api.fellesstudentsystem.no/personer/33637",
+          "personlopenummer": 33637
+        },
+        "undervisning": {
+          "href": "https://api.fellesstudentsystem.no/undervisning/215,OPERAPRA3,1,2022,H%C3%98ST,1",
+          "emne": {
+            "href": "https://api.fellesstudentsystem.no/emner/215,OPERAPRA3,1",
+            "institusjon": 215,
+            "kode": "OPERAPRA3",
+            "versjon": "1"
+          },
+          "semester": {
+            "href": "https://api.fellesstudentsystem.no/semestre/2022,H%C3%98ST",
+            "ar": 2022,
+            "termin": "HØST"
+          },
+          "terminnummer": 1
+        }
+      }
+    }
+  ]
+}

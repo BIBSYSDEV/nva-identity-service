@@ -38,7 +38,6 @@ dependencies {
     testImplementation project(":user-access-internal-model")
     testImplementation project(":customer-testing")
     testImplementation project(':user-access-testing')
-    testImplementation group: 'com.github.tomakehurst', name: 'wiremock', version: '2.27.2'
 }
 
 test {

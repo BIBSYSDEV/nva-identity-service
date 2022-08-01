@@ -5,13 +5,11 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 
 public class FsApiTest {
 
@@ -61,7 +59,7 @@ public class FsApiTest {
     @Test
     void shouldReturnCoursesOfCurrentYearWhenInputIsNinOfStudent() throws IOException, InterruptedException {
         var nin = new FsNin("19047747298");
-        List<FsCourseData> expectedCourses = new ArrayList<FsCourseData>();
+        List<FsCourseData> expectedCourses = new ArrayList<>();
         expectedCourses.add(TEST_COURSE_1);
         expectedCourses.add(TEST_COURSE_2);
         expectedCourses.add(TEST_COURSE_3);
@@ -72,20 +70,21 @@ public class FsApiTest {
         expectedCourses.add(TEST_COURSE_8);
         var expectedCoursesEmner = expectedCourses.stream()
                 .map(item -> item.getFsCourse().getUndervisning().getEmne().getCode())
-                .collect(Collectors.toList());
+                .toList();
         FsApi fsApi = new FsApi();
         var actualCoursesEmner = fsApi.getCourses(nin)
                 .stream()
                 .map(item -> item.getFsCourse().getUndervisning().getEmne().getCode())
-                .collect(Collectors.toList());
+                .toList();
 
         assertTrue(actualCoursesEmner.containsAll(expectedCoursesEmner));
     }
 
     @Test
-    void shouldReturnSameAmountOfCoursesOfCurrentYearWhenInputIsNinOfStudent() throws IOException, InterruptedException {
+    void shouldReturnSameAmountOfCoursesOfCurrentYearWhenInputIsNinOfStudent()
+            throws IOException, InterruptedException {
         var nin = new FsNin("19047747298");
-        List<FsCourseData> expectedCourses = new ArrayList<FsCourseData>();
+        List<FsCourseData> expectedCourses = new ArrayList<>();
         expectedCourses.add(TEST_COURSE_1);
         expectedCourses.add(TEST_COURSE_2);
         expectedCourses.add(TEST_COURSE_3);
@@ -113,13 +112,13 @@ public class FsApiTest {
         var courses = fsApi.getCourses(nin);
         var actualFsUndervisningYears = courses.stream()
                 .map(item -> item.getFsCourse().getUndervisning().getSemester().getYear())
-                .collect(Collectors.toList());
+                .toList();
         var actualFsUndervisningTermins = courses.stream()
                 .map(item -> item.getFsCourse().getUndervisning().getSemester().getTermin())
-                .collect(Collectors.toList());
+                .toList();
         var actualFsUndervisningTerminNumbers = courses.stream()
                 .map(item -> item.getFsCourse().getUndervisning().getTerminNumber())
-                .collect(Collectors.toList());
+                .toList();
 
         assertTrue(actualFsUndervisningYears.contains(expectedFsYear));
         assertTrue(actualFsUndervisningTermins.contains(expectedFsTermin));

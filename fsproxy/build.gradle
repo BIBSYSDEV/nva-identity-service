@@ -13,3 +13,9 @@ dependencies {
     implementation libs.nva.apigateway
 
 }
+
+test {
+    environment "FS_USERNAME", "someUserName"
+    environment "FS_PASSWORD", "somePassword"
+    environment "FS_HOST", "https://localhost:63535"
+}

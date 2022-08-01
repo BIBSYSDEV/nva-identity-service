@@ -61,7 +61,7 @@ public class FsApiTest {
     @Test
     void shouldReturnCoursesOfCurrentYearWhenInputIsNinOfStudent() throws IOException, InterruptedException {
         var nin = new FsNin("19047747298");
-        List<FsCourseData> expectedCourses = new ArrayList<>();
+        List<FsCourseData> expectedCourses = new ArrayList<FsCourseData>();
         expectedCourses.add(TEST_COURSE_1);
         expectedCourses.add(TEST_COURSE_2);
         expectedCourses.add(TEST_COURSE_3);
@@ -71,12 +71,13 @@ public class FsApiTest {
         expectedCourses.add(TEST_COURSE_7);
         expectedCourses.add(TEST_COURSE_8);
         var expectedCoursesEmner = expectedCourses.stream()
-                .toList();
+                .map(item -> item.getFsCourse().getUndervisning().getEmne().getCode())
+                .collect(Collectors.toList());
         FsApi fsApi = new FsApi();
         var actualCoursesEmner = fsApi.getCourses(nin)
                 .stream()
                 .map(item -> item.getFsCourse().getUndervisning().getEmne().getCode())
-                .toList();
+                .collect(Collectors.toList());
 
         assertTrue(actualCoursesEmner.containsAll(expectedCoursesEmner));
     }

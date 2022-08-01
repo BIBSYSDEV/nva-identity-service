@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.Is.is;
@@ -70,12 +72,12 @@ public class FsApiTest {
         expectedCourses.add(TEST_COURSE_8);
         var expectedCoursesEmner = expectedCourses.stream()
                 .map(item -> item.getFsCourse().getUndervisning().getEmne().getCode())
-                .toList();
+                .collect(Collectors.toList());
         FsApi fsApi = new FsApi();
         var actualCoursesEmner = fsApi.getCourses(nin)
                 .stream()
                 .map(item -> item.getFsCourse().getUndervisning().getEmne().getCode())
-                .toList();
+                .collect(Collectors.toList());
 
         assertTrue(actualCoursesEmner.containsAll(expectedCoursesEmner));
     }
@@ -112,13 +114,13 @@ public class FsApiTest {
         var courses = fsApi.getCourses(nin);
         var actualFsUndervisningYears = courses.stream()
                 .map(item -> item.getFsCourse().getUndervisning().getSemester().getYear())
-                .toList();
+                .collect(Collectors.toList());
         var actualFsUndervisningTermins = courses.stream()
                 .map(item -> item.getFsCourse().getUndervisning().getSemester().getTermin())
-                .toList();
+                .collect(Collectors.toList());
         var actualFsUndervisningTerminNumbers = courses.stream()
                 .map(item -> item.getFsCourse().getUndervisning().getTerminNumber())
-                .toList();
+                .collect(Collectors.toList());
 
         assertTrue(actualFsUndervisningYears.contains(expectedFsYear));
         assertTrue(actualFsUndervisningTermins.contains(expectedFsTermin));

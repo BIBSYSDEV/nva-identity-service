@@ -45,6 +45,7 @@ public class FsApi {
         this(HttpClient.newBuilder().build(), new Environment().readEnv("FS_HOST") );
     }
 
+
     public FsIdNumber getFsId(FsNin nationalIdentityNumber) throws IOException, InterruptedException {
         var httpClient = HttpClient.newBuilder().build();
         var httpRequest = HttpRequest.newBuilder(createSearchPersonUri(nationalIdentityNumber))
@@ -57,9 +58,9 @@ public class FsApi {
         return fsIdSearchResult.getSearchResults().get(0).getFsPerson().getFsIdNumber();
     }
 
-    public List<FsCourseData> getCourses(FsNin nationalIdentityNumber) throws IOException, InterruptedException {
+    public List<FsCourseData> getCourses(FsIdNumber fsIdNumber) throws IOException, InterruptedException {
         var httpClient = HttpClient.newBuilder().build();
-        var httpRequest = HttpRequest.newBuilder(createSearchCourseUri(nationalIdentityNumber))
+        var httpRequest = HttpRequest.newBuilder(createSearchCourseUri(fsIdNumber))
                 .header("Authorization", getBasicAuthenticationHeader())
                 .GET().build();
 
@@ -70,7 +71,7 @@ public class FsApi {
     }
 
     private URI createSearchPersonUri(FsNin nin) {
-        return UriWrapper.fromHost(baseFsHostUrl)
+        return UriWrapper.fromUri(baseFsHostUrl)
                 .addChild(PERSON_PATH)
                 .addQueryParameter(DB_IDENTIFIER, "true")
                 .addQueryParameter(LIMIT_IDENTIFIER, "0")
@@ -80,15 +81,13 @@ public class FsApi {
 
     }
 
-    private URI createSearchCourseUri(FsNin nin) throws IOException, InterruptedException {
+    private URI createSearchCourseUri(FsIdNumber FsIdNumber) throws IOException, InterruptedException {
         final String year = String.valueOf(new DateTime().getYear());
-        final String lopenummer = getFsId(nin).toString();
-
-        return UriWrapper.fromHost(baseFsHostUrl)
+        return UriWrapper.fromUri(baseFsHostUrl)
                 .addChild(STUDENTUNDERVISNING_PATH)
                 .addQueryParameter(DB_IDENTIFIER, "true")
                 .addQueryParameter(LIMIT_IDENTIFIER, "0")
-                .addQueryParameter(PERSON_PERSONLOPENUMMER_PATH, lopenummer)
+                .addQueryParameter(PERSON_PERSONLOPENUMMER_PATH, FsIdNumber.toString())
                 .addQueryParameter(UNDERVISNING_SEMESTER_AR_PATH, year)
                 .getUri();
     }

@@ -18,6 +18,7 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 import org.joda.time.DateTime;
 
+@SuppressWarnings("PMD")
 
 public class FsApi {
 
@@ -81,7 +82,7 @@ public class FsApi {
 
     }
 
-    private URI createSearchCourseUri(FsIdNumber FsIdNumber) throws IOException, InterruptedException {
+    private URI createSearchCourseUri(FsIdNumber FsIdNumber) {
         final String year = String.valueOf(new DateTime().getYear());
         return UriWrapper.fromUri(baseFsHostUrl)
                 .addChild(STUDENTUNDERVISNING_PATH)

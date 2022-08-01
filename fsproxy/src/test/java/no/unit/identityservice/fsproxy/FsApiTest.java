@@ -9,7 +9,6 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,8 +16,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -32,7 +31,7 @@ public class FsApiTest {
     public static final String PERSONNUMMER_IDENTIFIER = "personnummer0";
     public static final String FS_HOST = "api.fellesstudentsystem.no";
     private static final String PERSON_PATH = "/personer";
-    private static final String STUDENTUNDERVISNING_PATH = "studentundervisning";
+    private static final String STUDENTUNDERVISNING_PATH = "/studentundervisning";
     private static final String UNDERVISNING_SEMESTER_AR_PATH = "undervisning.semester.ar";
     private static final String PERSON_PERSONLOPENUMMER_PATH = "person.personlopenummer";
     private static final String DB_IDENTIFIER = "dbId";
@@ -97,7 +96,6 @@ public class FsApiTest {
 
     @Test
     void shouldReturnCoursesOfCurrentYearWhenInputIsNinOfStudent() throws IOException, InterruptedException {
-        var fsIdNumber = new FsIdNumber(33637);
         List<FsCourseData> expectedCourses = new ArrayList<>();
         expectedCourses.add(TEST_COURSE_1);
         expectedCourses.add(TEST_COURSE_2);
@@ -111,7 +109,7 @@ public class FsApiTest {
                                        .map(item -> item.getFsCourse().getUndervisning().getEmne().getCode())
                                        .collect(Collectors.toList());
 
-
+        var fsIdNumber = new FsIdNumber(33637);
         String response = IoUtils.stringFromResources(Path.of("CoursesToStudent.json"));
         createTestStubForGetCoursesToFsStudent(fsIdNumber.toString(), response);
 
@@ -126,7 +124,6 @@ public class FsApiTest {
     @Test
     void shouldReturnSameAmountOfCoursesOfCurrentYearWhenInputIsNinOfStudent()
         throws IOException, InterruptedException {
-        var fsIdNumber = new FsIdNumber(33637);
         List<FsCourseData> expectedCourses = new ArrayList<>();
         expectedCourses.add(TEST_COURSE_1);
         expectedCourses.add(TEST_COURSE_2);
@@ -137,6 +134,7 @@ public class FsApiTest {
         expectedCourses.add(TEST_COURSE_7);
         expectedCourses.add(TEST_COURSE_8);
 
+        var fsIdNumber = new FsIdNumber(33637);
         String response = IoUtils.stringFromResources(Path.of("CoursesToStudent.json"));
         createTestStubForGetCoursesToFsStudent(fsIdNumber.toString(), response);
         var actualCourses = fsApi.getCourses(fsIdNumber);
@@ -146,14 +144,14 @@ public class FsApiTest {
 
     @Test
     void shouldReturnUndervisningDataWhenJsonIsDeserialized() throws IOException, InterruptedException {
-        var fsIdNumber = new FsIdNumber(33637);
-        String expectedFsYear = new FsUndervisning(new FsEmne("ABIO6050"), 1,
+        final String expectedFsYear = new FsUndervisning(new FsEmne("ABIO6050"), 1,
                                                    new FsSemester("2022", "VÅR")).getSemester().getYear();
-        String expectedFsTermin = new FsUndervisning(new FsEmne("ABIO6050"), 1,
+        final String expectedFsTermin = new FsUndervisning(new FsEmne("ABIO6050"), 1,
                                                      new FsSemester("2022", "VÅR")).getSemester().getTermin();
-        int expectedFsTerminNumber = new FsUndervisning(new FsEmne("ABIO6050"), 1,
+        final int expectedFsTerminNumber = new FsUndervisning(new FsEmne("ABIO6050"), 1,
                                                         new FsSemester("2022", "VÅR")).getTerminNumber();
 
+        var fsIdNumber = new FsIdNumber(33637);
         String response = IoUtils.stringFromResources(Path.of("CoursesToStudent.json"));
         createTestStubForGetCoursesToFsStudent(fsIdNumber.toString(), response);
         var courses = fsApi.getCourses(fsIdNumber);
@@ -204,6 +202,7 @@ public class FsApiTest {
                         .withQueryParam(PERSON_PERSONLOPENUMMER_PATH, WireMock.equalTo(lopenummer))
                         .withQueryParam(UNDERVISNING_SEMESTER_AR_PATH, WireMock.equalTo(year))
                         .willReturn(
-                                ok().withHeader("Content-Type", "application/json").withBody(responseBody)));
+                                ok().withHeader("Content-Type", "application/json")
+                                        .withBody(responseBody)));
     }
 }

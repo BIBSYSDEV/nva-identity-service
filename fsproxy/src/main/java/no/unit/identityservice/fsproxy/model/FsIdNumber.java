@@ -3,7 +3,6 @@ package no.unit.identityservice.fsproxy.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import nva.commons.core.JacocoGenerated;
-
 import java.util.Objects;
 
 public class FsIdNumber {

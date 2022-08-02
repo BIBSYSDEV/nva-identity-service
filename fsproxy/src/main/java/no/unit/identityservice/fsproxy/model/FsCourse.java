@@ -16,6 +16,4 @@ public class FsCourse {
     public FsUndervisning getUndervisning() {
         return undervisning;
     }
-
-
 }

@@ -1,11 +1,9 @@
 package no.unit.identityservice.fsproxy.model;
 
+import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
-import java.util.Objects;
-
 public class FsNin {
-
 
     public static final int FIRST_DIGIT_OF_PERSONAL_NUMBER = 6;
     public static final int BEGINNING = 0;
@@ -13,6 +11,12 @@ public class FsNin {
 
     public FsNin(String identifier) {
         this.identifier = identifier;
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier);
     }
 
     @JacocoGenerated
@@ -26,12 +30,6 @@ public class FsNin {
         }
         FsNin that = (FsNin) o;
         return identifier.equals(that.identifier);
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(identifier);
     }
 
     public String getBirthDate() {

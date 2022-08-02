@@ -2,17 +2,22 @@ package no.unit.identityservice.fsproxy.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import nva.commons.core.JacocoGenerated;
 import java.util.Objects;
+import nva.commons.core.JacocoGenerated;
 
 public class FsIdNumber {
 
     private final Integer identifier;
 
-
     @JsonCreator
     public FsIdNumber(Integer identifier) {
         this.identifier = identifier;
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier);
     }
 
     @JacocoGenerated
@@ -26,12 +31,6 @@ public class FsIdNumber {
         }
         FsIdNumber that = (FsIdNumber) o;
         return Objects.equals(identifier, that.identifier);
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(identifier);
     }
 
     @JsonValue

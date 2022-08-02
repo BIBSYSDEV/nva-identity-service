@@ -24,5 +24,4 @@ public class FsSemester {
     public String getTermin() {
         return termin;
     }
-
 }

@@ -18,8 +18,8 @@ public class FsUndervisning {
 
     @JsonCreator
     public FsUndervisning(@JsonProperty("emne") FsEmne emne,
-             @JsonProperty("terminnummer") int terminNumber,
-             @JsonProperty("semester") FsSemester semester) {
+                          @JsonProperty("terminnummer") int terminNumber,
+                          @JsonProperty("semester") FsSemester semester) {
         this.emne = emne;
         this.terminNumber = terminNumber;
         this.semester = semester;

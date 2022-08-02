@@ -2,10 +2,28 @@ package no.unit.identityservice.fsproxy.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 
 @SuppressWarnings("PMD")
 
 public class FsUndervisning {
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        FsUndervisning that = (FsUndervisning) o;
+        return terminNumber == that.terminNumber && emne.equals(that.emne) && semester.equals(that.semester);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(emne, terminNumber, semester);
+    }
 
     @JsonProperty("emne")
     final FsEmne emne;

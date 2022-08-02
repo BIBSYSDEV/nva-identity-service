@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -111,33 +112,10 @@ public class FsApiTest {
         List<FsCourseData> expectedCourses = courseGenerator.getFsCoursesSearchResult().getFsCourseData();
         var fsIdNumber = new FsIdNumber(randomInteger());
 
-        final String expectedFsYear = expectedCourses.get(0).getFsCourse().getUndervisning().getSemester().getYear();
-        final String expectedFsTermin = expectedCourses.get(0)
-                                            .getFsCourse()
-                                            .getUndervisning()
-                                            .getSemester()
-                                            .getTermin();
-        final int expectedFsTerminNumber = expectedCourses.get(0).getFsCourse().getUndervisning().getTerminNumber();
-
         createTestStubForGetCoursesToFsStudent(fsIdNumber.toString(), courseGenerator.convertToJson());
-        var courses = fsApi.getCourses(fsIdNumber);
+        var actualCourses = fsApi.getCourses(fsIdNumber);
 
-        var actualFsUndervisningYears = courses.stream()
-                                            .map(item -> item.getFsCourse().getUndervisning().getSemester().getYear())
-                                            .collect(Collectors.toList());
-        var actualFsUndervisningTermins = courses.stream()
-                                              .map(item -> item.getFsCourse()
-                                                               .getUndervisning()
-                                                               .getSemester()
-                                                               .getTermin())
-                                              .collect(Collectors.toList());
-        var actualFsUndervisningTerminNumbers = courses.stream()
-                                                    .map(item -> item.getFsCourse().getUndervisning().getTerminNumber())
-                                                    .collect(Collectors.toList());
-
-        assertTrue(actualFsUndervisningYears.contains(expectedFsYear));
-        assertTrue(actualFsUndervisningTermins.contains(expectedFsTermin));
-        assertTrue(actualFsUndervisningTerminNumbers.contains(expectedFsTerminNumber));
+        assertThat(actualCourses, containsInAnyOrder(expectedCourses.toArray()));
     }
 
     private void startWiremockServer() {

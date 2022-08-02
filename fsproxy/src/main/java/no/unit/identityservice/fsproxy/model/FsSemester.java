@@ -3,7 +3,6 @@ package no.unit.identityservice.fsproxy.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
 public class FsSemester {
 
     @JsonProperty("ar")

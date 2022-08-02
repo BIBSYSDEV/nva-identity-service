@@ -3,6 +3,7 @@ package no.unit.identityservice.fsproxy.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
+import nva.commons.core.JacocoGenerated;
 
 public class FsEmne {
 
@@ -14,10 +15,14 @@ public class FsEmne {
         this.code = code;
     }
 
+    @JacocoGenerated
+
     @Override
     public int hashCode() {
         return Objects.hash(code);
     }
+
+    @JacocoGenerated
 
     @Override
     public boolean equals(Object o) {

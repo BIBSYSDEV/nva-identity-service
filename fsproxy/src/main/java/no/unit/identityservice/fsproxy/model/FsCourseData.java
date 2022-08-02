@@ -22,7 +22,6 @@ public class FsCourseData {
     }
 
     @JacocoGenerated
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

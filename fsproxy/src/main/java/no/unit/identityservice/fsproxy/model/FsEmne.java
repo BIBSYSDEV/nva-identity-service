@@ -16,14 +16,12 @@ public class FsEmne {
     }
 
     @JacocoGenerated
-
     @Override
     public int hashCode() {
         return Objects.hash(code);
     }
 
     @JacocoGenerated
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

@@ -3,11 +3,13 @@ package no.unit.identityservice.fsproxy.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
+import nva.commons.core.JacocoGenerated;
 
 @SuppressWarnings("PMD")
 
 public class FsUndervisning {
 
+    @JacocoGenerated
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -20,6 +22,7 @@ public class FsUndervisning {
         return terminNumber == that.terminNumber && emne.equals(that.emne) && semester.equals(that.semester);
     }
 
+    @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(emne, terminNumber, semester);

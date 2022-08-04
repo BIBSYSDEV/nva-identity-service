@@ -17,8 +17,8 @@ import no.unit.identityservice.fsproxy.model.fagperson.FsRolesToPersonSearchResu
 import no.unit.identityservice.fsproxy.model.fagperson.FsUriToCourseActivity;
 import no.unit.identityservice.fsproxy.model.fagperson.FsUriToCourseActivityContainer;
 import no.unit.identityservice.fsproxy.model.person.FsIdNumber;
-import no.unit.identityservice.fsproxy.model.person.Nin;
 import no.unit.identityservice.fsproxy.model.person.FsPersonSearchResponse;
+import no.unit.identityservice.fsproxy.model.person.Nin;
 import no.unit.nva.commons.json.JsonUtils;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -97,7 +97,7 @@ public class FsApi {
         var responseBody = response.body();
         var fsCoursesSearchResult = JsonUtils.dtoObjectMapper
             .readValue(responseBody, FsCoursesSearchResult.class);
-        return fsCoursesSearchResult.getFsCourseData();
+        return fsCoursesSearchResult.getItems();
     }
     
     public List<FsCourse> getAllCoursesToStaffPerson(FsIdNumber fsIdNumber)

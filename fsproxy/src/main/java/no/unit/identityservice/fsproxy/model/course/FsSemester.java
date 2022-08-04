@@ -8,39 +8,39 @@ import nva.commons.core.JacocoGenerated;
 public class FsSemester {
 
     @JsonProperty("ar")
-    private final String year;
+    private final int year;
     @JsonProperty("termin")
     private final String term;
-
+    
     @JsonCreator
-    public FsSemester(@JsonProperty("ar") String year, @JsonProperty("termin") String term) {
+    public FsSemester(@JsonProperty("ar") int year, @JsonProperty("termin") String term) {
         this.year = year;
         this.term = term;
     }
-
-    @JacocoGenerated
+    
     @Override
+    @JacocoGenerated
     public int hashCode() {
-        return Objects.hash(year, term);
+        return Objects.hash(getYear(), getTerm());
     }
-
-    @JacocoGenerated
+    
     @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof FsSemester)) {
             return false;
         }
         FsSemester that = (FsSemester) o;
-        return year.equals(that.year) && term.equals(that.term);
+        return getYear() == that.getYear() && Objects.equals(getTerm(), that.getTerm());
     }
-
-    public String getYear() {
+    
+    public int getYear() {
         return year;
     }
-
+    
     public String getTerm() {
         return term;
     }

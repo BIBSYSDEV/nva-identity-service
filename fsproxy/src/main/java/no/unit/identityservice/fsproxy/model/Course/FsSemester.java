@@ -1,4 +1,4 @@
-package no.unit.identityservice.fsproxy.model;
+package no.unit.identityservice.fsproxy.model.Course;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,18 +10,18 @@ public class FsSemester {
     @JsonProperty("ar")
     private final String year;
     @JsonProperty("termin")
-    private final String termin;
+    private final String term;
 
     @JsonCreator
-    public FsSemester(@JsonProperty("ar") String year, @JsonProperty("termin") String termin) {
+    public FsSemester(@JsonProperty("ar") String year, @JsonProperty("termin") String term) {
         this.year = year;
-        this.termin = termin;
+        this.term = term;
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(year, termin);
+        return Objects.hash(year, term);
     }
 
     @JacocoGenerated
@@ -34,14 +34,14 @@ public class FsSemester {
             return false;
         }
         FsSemester that = (FsSemester) o;
-        return year.equals(that.year) && termin.equals(that.termin);
+        return year.equals(that.year) && term.equals(that.term);
     }
 
     public String getYear() {
         return year;
     }
 
-    public String getTermin() {
-        return termin;
+    public String getTerm() {
+        return term;
     }
 }

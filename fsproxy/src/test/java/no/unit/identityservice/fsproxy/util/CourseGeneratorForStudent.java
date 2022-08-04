@@ -7,21 +7,23 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.unit.identityservice.fsproxy.model.FsCourse;
-import no.unit.identityservice.fsproxy.model.FsCourseData;
-import no.unit.identityservice.fsproxy.model.FsCoursesSearchResult;
-import no.unit.identityservice.fsproxy.model.FsEmne;
-import no.unit.identityservice.fsproxy.model.FsSemester;
-import no.unit.identityservice.fsproxy.model.FsUndervisning;
+import no.unit.identityservice.fsproxy.model.Course.FsCourseContainer;
+import no.unit.identityservice.fsproxy.model.Course.FsCourseItemContainingCourseContainer;
+import no.unit.identityservice.fsproxy.model.Course.FsCoursesSearchResult;
+import no.unit.identityservice.fsproxy.model.Course.FsSubject;
+import no.unit.identityservice.fsproxy.model.Course.FsSemester;
+import no.unit.identityservice.fsproxy.model.Course.FsCourse;
 import no.unit.nva.commons.json.JsonUtils;
 
-public class CourseGenerator {
+public class CourseGeneratorForStudent {
 
     private final FsCoursesSearchResult fsCoursesSearchResult;
 
-    public CourseGenerator() {
+
+    public CourseGeneratorForStudent() {
         fsCoursesSearchResult = new FsCoursesSearchResult(generateRandomFsCourseDataList());
     }
+
 
     public String convertToJson() {
         try {
@@ -35,7 +37,7 @@ public class CourseGenerator {
         return fsCoursesSearchResult;
     }
 
-    private List<FsCourseData> generateRandomFsCourseDataList() {
+    private List<FsCourseItemContainingCourseContainer> generateRandomFsCourseDataList() {
         var maxNumberOfCourses = 10;
         return IntStream.range(0, randomInteger(maxNumberOfCourses))
                    .boxed()
@@ -43,16 +45,16 @@ public class CourseGenerator {
                    .collect(Collectors.toList());
     }
 
-    private FsCourseData createRandomFsCourseData() {
-        return new FsCourseData(generateRandomFsCourse());
+    private FsCourseItemContainingCourseContainer createRandomFsCourseData() {
+        return new FsCourseItemContainingCourseContainer(generateRandomFsCourse());
     }
 
-    private FsCourse generateRandomFsCourse() {
-        return new FsCourse(generateFsUndervisning());
+    private FsCourseContainer generateRandomFsCourse() {
+        return new FsCourseContainer(generateFsUndervisning());
     }
 
-    private FsUndervisning generateFsUndervisning() {
-        return new FsUndervisning(createRandomFsEmne(), randomTermin(), randomSemester());
+    public FsCourse generateFsUndervisning() {
+        return new FsCourse(createRandomFsEmne(), randomTermin(), randomSemester());
     }
 
     private FsSemester randomSemester() {
@@ -73,8 +75,8 @@ public class CourseGenerator {
         return randomInteger(maxTermin) + minTermin;
     }
 
-    private FsEmne createRandomFsEmne() {
-        return new FsEmne(randomString());
+    private FsSubject createRandomFsEmne() {
+        return new FsSubject(randomString());
     }
 
     @SuppressWarnings("ant:checkstyle")

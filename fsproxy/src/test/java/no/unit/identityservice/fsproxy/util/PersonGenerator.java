@@ -1,68 +1,53 @@
 package no.unit.identityservice.fsproxy.util;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.unit.identityservice.fsproxy.model.FsIdNumber;
-import no.unit.identityservice.fsproxy.model.FsIdSearchResult;
-import no.unit.identityservice.fsproxy.model.FsNin;
-import no.unit.identityservice.fsproxy.model.FsPerson;
-import no.unit.identityservice.fsproxy.model.FsPersonSearchResponse;
+import no.unit.identityservice.fsproxy.model.Fagperson.FsRoleToStaffPerson;
+import no.unit.identityservice.fsproxy.model.Fagperson.FsRolesToPersonSearchResult;
+import no.unit.identityservice.fsproxy.model.Person.FsIdNumber;
 import no.unit.nva.commons.json.JsonUtils;
 
 public class PersonGenerator {
 
-    private final FsPersonSearchResponse fsPersonSearchResponse;
-    private final int numberOfPersons;
+    private final FsRolesToPersonSearchResult fsRolesToPersonSearchResult;
 
     public PersonGenerator() {
-        numberOfPersons = 1;
-        fsPersonSearchResponse = generateRandomFsPersonSearchResponse();
+        fsRolesToPersonSearchResult = generateRandomFagperson();
     }
 
-    public PersonGenerator(int specifiedNumberOfPersons) {
-        numberOfPersons = specifiedNumberOfPersons;
-        fsPersonSearchResponse = generateRandomFsPersonSearchResponse();
+    public FsRolesToPersonSearchResult getFsRolesToFagpersonSearchResult() {
+        return fsRolesToPersonSearchResult;
     }
 
     public String convertToJson() {
         try {
-            return JsonUtils.dtoObjectMapper.writeValueAsString(fsPersonSearchResponse);
+            return JsonUtils.dtoObjectMapper.writeValueAsString(fsRolesToPersonSearchResult);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public FsPersonSearchResponse getPersonGenerator() {
-        return fsPersonSearchResponse;
+    private FsRolesToPersonSearchResult generateRandomFagperson() {
+        return new FsRolesToPersonSearchResult(generateRandomRolesList());
     }
 
-    public FsNin generateNin() {
-        return new FsNin(randomInteger().toString());
+    private List<FsRoleToStaffPerson> generateRandomRolesList() {
+        var maxNumberOfRoles = 10;
+        return IntStream.range(0, randomInteger(maxNumberOfRoles))
+                   .boxed()
+                   .map(index -> generateRandomRole())
+                   .collect(Collectors.toList());
+    }
+    private FsRoleToStaffPerson generateRandomRole() {
+        return new FsRoleToStaffPerson(randomString());
     }
 
-    private FsPersonSearchResponse generateRandomFsPersonSearchResponse() {
-        return numberOfPersons > 0
-                   ?
-                   new FsPersonSearchResponse(IntStream.range(0, 1)
-                                                  .boxed()
-                                                  .map(index -> generateRandomFsIdSearchResult())
-                                                  .collect(
-                                                      Collectors.toList())) :
-                                                                                new FsPersonSearchResponse(List.of());
-    }
-
-    private FsIdSearchResult generateRandomFsIdSearchResult() {
-        return new FsIdSearchResult(generateRandomFsPerson());
-    }
-
-    private FsPerson generateRandomFsPerson() {
-        return new FsPerson(generateRandomFsIdNumber());
-    }
-
-    private FsIdNumber generateRandomFsIdNumber() {
+    public FsIdNumber generateIdNumber() {
         return new FsIdNumber(randomInteger());
     }
+
 }

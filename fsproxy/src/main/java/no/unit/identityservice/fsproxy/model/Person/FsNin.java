@@ -1,4 +1,4 @@
-package no.unit.identityservice.fsproxy.model;
+package no.unit.identityservice.fsproxy.model.Person;
 
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;

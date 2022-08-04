@@ -1,24 +1,24 @@
-package no.unit.identityservice.fsproxy.model;
+package no.unit.identityservice.fsproxy.model.Course;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
-public class FsCourseData {
+public class FsCourseContainer {
 
-    @JsonProperty("id")
-    private final FsCourse fsCourse;
+    @JsonProperty("undervisning")
+    private final FsCourse course;
 
     @JsonCreator
-    public FsCourseData(@JsonProperty("id") FsCourse fsCourse) {
-        this.fsCourse = fsCourse;
+    public FsCourseContainer(@JsonProperty("undervisning") FsCourse course) {
+        this.course = course;
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(fsCourse);
+        return Objects.hash(course);
     }
 
     @JacocoGenerated
@@ -30,11 +30,11 @@ public class FsCourseData {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        FsCourseData that = (FsCourseData) o;
-        return fsCourse.equals(that.fsCourse);
+        FsCourseContainer fsCourseContainer = (FsCourseContainer) o;
+        return course.equals(fsCourseContainer.course);
     }
 
-    public FsCourse getFsCourse() {
-        return fsCourse;
+    public FsCourse getCourse() {
+        return course;
     }
 }

@@ -1,4 +1,4 @@
-package no.unit.identityservice.fsproxy.model;
+package no.unit.identityservice.fsproxy.model.Person;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -34,7 +34,6 @@ public class FsIdNumber {
     }
 
     @JsonValue
-    @Override
     public String toString() {
         return Integer.toString(identifier);
     }

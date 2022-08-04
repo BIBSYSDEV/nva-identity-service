@@ -1,24 +1,24 @@
-package no.unit.identityservice.fsproxy.model;
+package no.unit.identityservice.fsproxy.model.Fagperson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
-public class FsEmne {
+public class FsRoleToStaffPerson {
 
-    @JsonProperty("kode")
-    private final String code;
+    @JsonProperty("href")
+    private String hrefToRole;
 
     @JsonCreator
-    public FsEmne(@JsonProperty("kode") String code) {
-        this.code = code;
+    public FsRoleToStaffPerson(@JsonProperty("href") String hrefToRole) {
+        this.hrefToRole = hrefToRole;
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(code);
+        return Objects.hash(hrefToRole);
     }
 
     @JacocoGenerated
@@ -30,11 +30,14 @@ public class FsEmne {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        FsEmne fsEmne = (FsEmne) o;
-        return code.equals(fsEmne.code);
+        FsRoleToStaffPerson that = (FsRoleToStaffPerson) o;
+        return Objects.equals(hrefToRole, that.hrefToRole);
     }
 
-    public String getCode() {
-        return code;
+    public String getUriToRole() {
+        return hrefToRole;
     }
 }
+
+
+

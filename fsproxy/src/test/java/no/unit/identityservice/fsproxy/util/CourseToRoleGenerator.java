@@ -6,8 +6,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.unit.identityservice.fsproxy.model.Fagperson.FsUriToCourseActivityContainer;
-import no.unit.identityservice.fsproxy.model.Fagperson.FsUriToCourseActivity;
+import no.unit.identityservice.fsproxy.model.fagperson.FsUriToCourseActivityContainer;
+import no.unit.identityservice.fsproxy.model.fagperson.FsUriToCourseActivity;
 import no.unit.nva.commons.json.JsonUtils;
 
 public class CourseToRoleGenerator {

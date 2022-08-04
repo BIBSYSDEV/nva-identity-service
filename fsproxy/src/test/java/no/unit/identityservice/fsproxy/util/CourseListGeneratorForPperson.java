@@ -4,7 +4,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.unit.identityservice.fsproxy.model.Course.FsCourse;
+import no.unit.identityservice.fsproxy.model.course.FsCourse;
 
 public class CourseListGeneratorForPperson extends CourseGeneratorForPperson {
 

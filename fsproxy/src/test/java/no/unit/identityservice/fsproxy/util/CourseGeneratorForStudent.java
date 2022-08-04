@@ -7,12 +7,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.unit.identityservice.fsproxy.model.Course.FsCourseContainer;
-import no.unit.identityservice.fsproxy.model.Course.FsCourseItemContainingCourseContainer;
-import no.unit.identityservice.fsproxy.model.Course.FsCoursesSearchResult;
-import no.unit.identityservice.fsproxy.model.Course.FsSubject;
-import no.unit.identityservice.fsproxy.model.Course.FsSemester;
-import no.unit.identityservice.fsproxy.model.Course.FsCourse;
+import no.unit.identityservice.fsproxy.model.course.FsCourseContainer;
+import no.unit.identityservice.fsproxy.model.course.FsCourseItemContainingCourseContainer;
+import no.unit.identityservice.fsproxy.model.course.FsCoursesSearchResult;
+import no.unit.identityservice.fsproxy.model.course.FsSubject;
+import no.unit.identityservice.fsproxy.model.course.FsSemester;
+import no.unit.identityservice.fsproxy.model.course.FsCourse;
 import no.unit.nva.commons.json.JsonUtils;
 
 public class CourseGeneratorForStudent {

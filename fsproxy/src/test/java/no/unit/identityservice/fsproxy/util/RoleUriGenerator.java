@@ -2,7 +2,7 @@ package no.unit.identityservice.fsproxy.util;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import no.unit.identityservice.fsproxy.model.Fagperson.FsRoleToStaffPerson;
+import no.unit.identityservice.fsproxy.model.fagperson.FsRoleToStaffPerson;
 import no.unit.nva.commons.json.JsonUtils;
 
 public class RoleUriGenerator {

@@ -1,15 +1,15 @@
-package no.unit.identityservice.fsproxy.model.Person;
+package no.unit.identityservice.fsproxy.model.person;
 
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
-public class FsNin {
+public class Nin {
 
     public static final int FIRST_DIGIT_OF_PERSONAL_NUMBER = 6;
     public static final int BEGINNING = 0;
     private final String identifier;
 
-    public FsNin(String identifier) {
+    public Nin(String identifier) {
         this.identifier = identifier;
     }
 
@@ -28,7 +28,7 @@ public class FsNin {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        FsNin that = (FsNin) o;
+        Nin that = (Nin) o;
         return identifier.equals(that.identifier);
     }
 

@@ -4,9 +4,9 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static no.unit.nva.testutils.RandomDataGenerator.randomLocalDate;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import no.unit.identityservice.fsproxy.model.Course.FsSubject;
-import no.unit.identityservice.fsproxy.model.Course.FsSemester;
-import no.unit.identityservice.fsproxy.model.Course.FsCourse;
+import no.unit.identityservice.fsproxy.model.course.FsSubject;
+import no.unit.identityservice.fsproxy.model.course.FsSemester;
+import no.unit.identityservice.fsproxy.model.course.FsCourse;
 import no.unit.nva.commons.json.JsonUtils;
 
 public class CourseGeneratorForPperson {

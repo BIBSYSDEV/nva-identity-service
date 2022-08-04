@@ -1,9 +1,9 @@
-package no.unit.identityservice.fsproxy.model.Fagperson;
+package no.unit.identityservice.fsproxy.model.fagperson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
-import no.unit.identityservice.fsproxy.model.Course.FsCourse;
+import no.unit.identityservice.fsproxy.model.course.FsCourse;
 import nva.commons.core.JacocoGenerated;
 
 public class FsCourseActivityForPerson {

@@ -2,16 +2,17 @@ package no.unit.identityservice.fsproxy.util;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import no.unit.identityservice.fsproxy.model.Fagperson.FsPossibleStaffPerson;
-import no.unit.identityservice.fsproxy.model.Person.FsIdNumber;
-import no.unit.identityservice.fsproxy.model.Person.FsIdSearchResult;
-import no.unit.identityservice.fsproxy.model.Person.FsNin;
-import no.unit.identityservice.fsproxy.model.Person.FsPerson;
-import no.unit.identityservice.fsproxy.model.Person.FsPersonSearchResponse;
+import no.unit.identityservice.fsproxy.model.fagperson.FsPossibleStaffPerson;
+import no.unit.identityservice.fsproxy.model.person.FsIdNumber;
+import no.unit.identityservice.fsproxy.model.person.FsIdSearchResult;
+import no.unit.identityservice.fsproxy.model.person.Nin;
+import no.unit.identityservice.fsproxy.model.person.FsPerson;
+import no.unit.identityservice.fsproxy.model.person.FsPersonSearchResponse;
 import no.unit.nva.commons.json.JsonUtils;
 
 public class StudentGenerator {
@@ -41,8 +42,8 @@ public class StudentGenerator {
         return fsPersonSearchResponse;
     }
 
-    public FsNin generateNin() {
-        return new FsNin(randomInteger().toString());
+    public Nin generateNin() {
+        return new Nin(randomInteger().toString());
     }
 
     private FsPersonSearchResponse generateRandomFsPersonSearchResponse() {
@@ -61,7 +62,7 @@ public class StudentGenerator {
     }
 
     private FsPerson generateRandomFsPerson() {
-        return new FsPerson(generateRandomFsIdNumber(), generateRandomFagperson());
+        return new FsPerson(generateRandomFsIdNumber(), generateRandomFagperson(),randomString(),randomString());
     }
 
     private FsIdNumber generateRandomFsIdNumber() {

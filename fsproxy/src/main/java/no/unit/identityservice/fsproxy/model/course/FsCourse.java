@@ -54,4 +54,5 @@ public class FsCourse {
     public FsSemester getSemester() {
         return semester;
     }
+
 }

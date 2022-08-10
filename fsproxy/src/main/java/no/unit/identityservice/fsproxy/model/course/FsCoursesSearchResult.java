@@ -20,7 +20,8 @@ public class FsCoursesSearchResult implements JsonSerializable {
     public List<FsCourseItemContainingCourseContainer> getItems() {
         return fsCourseItemContainingCourseData;
     }
-    
+
+    @Override
     @JacocoGenerated
     public String toString() {
         return toJsonString();

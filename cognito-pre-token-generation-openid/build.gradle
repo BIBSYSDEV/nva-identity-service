@@ -24,7 +24,6 @@ dependencies {
     implementation libs.nva.auth
     implementation libs.aws.lambda.events
     implementation libs.zalando.problem
-    implementation group: 'com.google.code.gson', name: 'gson', version: '2.9.0'
 
 
     implementation libs.aws.sdk2.dynamodbenhanced

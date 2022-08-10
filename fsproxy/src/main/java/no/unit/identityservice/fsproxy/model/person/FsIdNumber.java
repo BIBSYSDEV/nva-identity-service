@@ -33,6 +33,7 @@ public class FsIdNumber {
         return Objects.equals(identifier, that.identifier);
     }
 
+    @Override
     @JsonValue
     public String toString() {
         return Integer.toString(identifier);

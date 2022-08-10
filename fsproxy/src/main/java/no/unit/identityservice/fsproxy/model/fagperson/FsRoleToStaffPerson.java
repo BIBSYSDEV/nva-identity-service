@@ -1,6 +1,7 @@
 package no.unit.identityservice.fsproxy.model.fagperson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
@@ -8,7 +9,7 @@ import nva.commons.core.JacocoGenerated;
 public class FsRoleToStaffPerson {
 
     @JsonProperty("href")
-    private String hrefToRole;
+    private final String hrefToRole;
 
     @JsonCreator
     public FsRoleToStaffPerson(@JsonProperty("href") String hrefToRole) {
@@ -34,6 +35,7 @@ public class FsRoleToStaffPerson {
         return Objects.equals(hrefToRole, that.hrefToRole);
     }
 
+    @JsonIgnore
     public String getUriToRole() {
         return hrefToRole;
     }

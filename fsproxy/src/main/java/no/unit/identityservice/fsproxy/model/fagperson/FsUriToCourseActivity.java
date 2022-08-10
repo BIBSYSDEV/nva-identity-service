@@ -8,7 +8,7 @@ import nva.commons.core.JacocoGenerated;
 public class FsUriToCourseActivity {
 
     @JsonProperty("href")
-    private String uriToCourse;
+    private final String uriToCourse;
 
     @JsonCreator
     public FsUriToCourseActivity(@JsonProperty("href") String uriToCourse) {

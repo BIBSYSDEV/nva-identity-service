@@ -1,18 +1,20 @@
 package no.unit.identityservice.fsproxy.model.fagperson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 import no.unit.identityservice.fsproxy.model.course.FsCourse;
+import no.unit.nva.commons.json.JsonSerializable;
 import nva.commons.core.JacocoGenerated;
 
-public class FsCourseActivityForPerson {
+public class FsCourseActivity implements JsonSerializable {
 
     @JsonProperty("undervisning")
     private final FsCourse course;
 
     @JsonCreator
-    public FsCourseActivityForPerson(@JsonProperty("undervisning") FsCourse course) {
+    public FsCourseActivity(@JsonProperty("undervisning") FsCourse course) {
         this.course = course;
     }
 
@@ -31,11 +33,19 @@ public class FsCourseActivityForPerson {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        FsCourseActivityForPerson that = (FsCourseActivityForPerson) o;
+        FsCourseActivity that = (FsCourseActivity) o;
         return Objects.equals(course, that.course);
     }
 
+    @JacocoGenerated
+    @JsonIgnore
     public FsCourse getCourse() {
         return course;
+    }
+
+    @Override
+    @JacocoGenerated
+    public String toString() {
+        return toJsonString();
     }
 }

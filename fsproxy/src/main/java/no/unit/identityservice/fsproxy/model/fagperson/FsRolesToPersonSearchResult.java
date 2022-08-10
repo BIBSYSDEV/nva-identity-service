@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Objects;
+import no.unit.nva.commons.json.JsonSerializable;
 import nva.commons.core.JacocoGenerated;
 
-public class FsRolesToPersonSearchResult {
+public class FsRolesToPersonSearchResult implements JsonSerializable {
 
     @JsonProperty("items")
-    private List<FsRoleToStaffPerson> items;
+    private final List<FsRoleToStaffPerson> items;
 
     @JsonCreator
     public FsRolesToPersonSearchResult(@JsonProperty("items") List<FsRoleToStaffPerson> items) {
@@ -37,5 +38,11 @@ public class FsRolesToPersonSearchResult {
     @Override
     public int hashCode() {
         return Objects.hash(items);
+    }
+
+    @Override
+    @JacocoGenerated
+    public String toString() {
+        return toJsonString();
     }
 }

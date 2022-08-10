@@ -3,13 +3,13 @@ package no.unit.identityservice.fsproxy.model.person;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
-public class Nin {
+public class NationalIdentityNumber {
 
     public static final int FIRST_DIGIT_OF_PERSONAL_NUMBER = 6;
     public static final int BEGINNING = 0;
     private final String identifier;
 
-    public Nin(String identifier) {
+    public NationalIdentityNumber(String identifier) {
         this.identifier = identifier;
     }
 
@@ -28,7 +28,7 @@ public class Nin {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Nin that = (Nin) o;
+        NationalIdentityNumber that = (NationalIdentityNumber) o;
         return identifier.equals(that.identifier);
     }
 

@@ -6,6 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
+import java.time.Year;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,7 +25,6 @@ import no.unit.nva.commons.json.JsonUtils;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
-import org.joda.time.LocalDate;
 
 public class FsApi {
 
@@ -168,7 +168,7 @@ public class FsApi {
 
     @SuppressWarnings("PMD")
     private URI createSearchCourseUri(FsIdNumber FsIdNumber) {
-        final String year = String.valueOf(new LocalDate().getYear());
+        final String year = Year.now().toString();
 
         return UriWrapper.fromUri(baseFsHostUrl)
                    .addChild(STUDENTUNDERVISNING_PATH)
@@ -180,7 +180,7 @@ public class FsApi {
     }
 
     private URI createSearchRolesToStaffPersonUri(FsIdNumber fsIdNumber) {
-        final String year = String.valueOf(new LocalDate().getYear());
+        final String year = Year.now().toString();
 
         return UriWrapper.fromUri(baseFsHostUrl)
                    .addChild(PERSONROLLER_PATH)

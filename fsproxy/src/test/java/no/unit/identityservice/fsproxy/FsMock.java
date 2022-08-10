@@ -11,6 +11,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.time.Year;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,6 @@ import no.unit.identityservice.fsproxy.model.person.FsPerson;
 import no.unit.identityservice.fsproxy.model.person.FsPersonSearchResponse;
 import no.unit.identityservice.fsproxy.model.person.NationalIdentityNumber;
 import no.unit.nva.stubs.WiremockHttpClient;
-import org.joda.time.LocalDate;
 
 public class FsMock {
 
@@ -45,7 +45,7 @@ public class FsMock {
     public static final String SEMESTER_AR_PATH = "semester.ar";
     public static final String UNDERVISNINGSAKTIVITETER_PATH = "/undervisningsaktiviteter";
     public static final String EMPTY_FAG_PERSON = null;
-    public static final Integer CURRENT_YEAR = new LocalDate().getYear();
+    public static final Integer CURRENT_YEAR = Year.now().getValue();
     public static final Integer NEXT_YEAR = CURRENT_YEAR + 1;
     private static final String PERSON_PATH = "personer";
     private static final String STUDENTUNDERVISNING_PATH = "/studentundervisning";
@@ -138,7 +138,7 @@ public class FsMock {
         addPersonToFsInstance(nin);
         coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, CURRENT_YEAR));
         coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, NEXT_YEAR));
-        addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), LocalDate.now().getYear());
+        addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), Year.now().getValue());
         roles.forEach(this::addResponseForGettingCourseUriToRole);
         uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
 
@@ -176,7 +176,7 @@ public class FsMock {
                              .collect(Collectors.toList());
 
         personRoles.put(person.getFsIdNumber(), rolesEntry);
-        addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), LocalDate.now().getYear());
+        addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), Year.now().getValue());
         return person.getFsIdNumber();
     }
 
@@ -193,7 +193,7 @@ public class FsMock {
     public List<FsCourse> getStudentCourses(NationalIdentityNumber nin) {
         return this.coursesForStudents.get(nin)
                    .stream()
-                   .filter(c -> c.getSemester().getYear() == LocalDate.now().getYear())
+                   .filter(c -> c.getSemester().getYear() == Year.now().getValue())
                    .collect(Collectors.toList());
     }
 

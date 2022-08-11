@@ -98,10 +98,8 @@ public class FsApi {
         var response = getResponse(createSearchCourseUri(fsIdNumber));
         var responseBody = response.body();
         var fsCoursesSearchResult = JsonUtils.dtoObjectMapper.readValue(responseBody, FsCoursesSearchResult.class);
-        return fsCoursesSearchResult.getItems()
-                          .stream()
-                          .map(c -> c.getId().getCourse())
-                          .collect(Collectors.toList());
+
+        return fsCoursesSearchResult.getItems().stream().map(c -> c.getId().getCourse()).collect(Collectors.toList());
     }
 
     public Boolean getFsPersonStatus(NationalIdentityNumber nin) throws IOException, InterruptedException {
@@ -198,6 +196,7 @@ public class FsApi {
 
     private String getBasicAuthenticationHeader() {
         final String valueToEncode = this.username + ":" + this.password;
+
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
     }
 }

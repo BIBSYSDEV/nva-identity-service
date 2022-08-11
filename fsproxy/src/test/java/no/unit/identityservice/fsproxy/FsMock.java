@@ -120,7 +120,8 @@ public class FsMock {
         personRoles.put(person.getFsIdNumber(), roles);
 
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
-                                                                .map(this::createUriToCourseActivity).collect(Collectors.toList());
+                                                                .map(this::createUriToCourseActivity)
+                                                                .collect(Collectors.toList());
         for (FsRoleToStaffPerson role : roles) {
             for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
                 coursesToRoles.put(role, uriToCourseActivity);
@@ -128,7 +129,8 @@ public class FsMock {
         }
 
         List<FsCourseActivity> coursesToStaffPerson = uriToCourseActivities.stream()
-                                                          .map(this::createCourseActivity).collect(Collectors.toList());
+                                                          .map(this::createCourseActivity)
+                                                          .collect(Collectors.toList());
         for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
             for (FsCourseActivity toStaffPerson : coursesToStaffPerson) {
                 courseActivities.put(uriToCourseActivity, toStaffPerson);

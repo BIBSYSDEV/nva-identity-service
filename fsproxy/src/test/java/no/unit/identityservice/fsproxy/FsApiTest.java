@@ -35,12 +35,14 @@ public class FsApiTest {
         var somePerson = fsMock.createExistingPersonWithoutEmployment();
         var personEntry = fsMock.getPersonEntry(somePerson);
         var actualIdNumber = fsApi.getFsId(somePerson);
+
         assertThat(actualIdNumber, is(equalTo(personEntry.getFsIdNumber())));
     }
 
     @Test
     void shouldThrowExceptionWhenPersonIsNotFoundInFs() {
         var personNotInFs = fsMock.createResponseForPersonNotInFs();
+
         assertThrows(UserPrincipalNotFoundException.class, () -> fsApi.getFsId(personNotInFs));
     }
 
@@ -48,9 +50,7 @@ public class FsApiTest {
     void shouldReturnStudentCoursesOfCurrentYearWhenInputIsNinOfStudent() throws IOException, InterruptedException {
         var student = fsMock.createStudent();
         var fsIdNumber = fsMock.getPersonEntry(student).getFsIdNumber();
-        var currentYear = FsMock.CURRENT_YEAR;
         var expectedCoursesCodes = fsMock.getStudentCourses(student);
-
         var actualCoursesCodes = fsApi.getCoursesToStudent(fsIdNumber);
 
         assertThat(actualCoursesCodes, containsInAnyOrder(expectedCoursesCodes.toArray()));
@@ -66,18 +66,20 @@ public class FsApiTest {
     }
 
     @Test
-    void shouldReturnHrefRolesToPerson() throws IOException, InterruptedException {
+    void shouldReturnUriRolesToPerson() throws IOException, InterruptedException {
         var somePerson = fsMock.createPersonWithRoles();
         var roleEntries = fsMock.getRoles(somePerson);
         var actualRoles = fsApi.getRolesToStaffPerson(somePerson);
+
         assertThat(actualRoles, containsInAnyOrder(roleEntries.toArray()));
     }
 
     @Test
-    void shouldReturnCourseUriToRole() throws IOException, InterruptedException {
+    void shouldReturnCourseUriGivenRole() throws IOException, InterruptedException {
         var role = fsMock.createRole();
         var expectedCourseUri = fsMock.createUriToCourseActivity(role);
         var actualCourseUri = fsApi.getCourseUriToGivenRole(role);
+
         assertThat(actualCourseUri, is(equalTo(expectedCourseUri)));
     }
 
@@ -87,6 +89,7 @@ public class FsApiTest {
         var courseUri = fsMock.createUriToCourseActivity(role);
         var expectedCourse = fsMock.createCourseActivity(courseUri).getCourse();
         var actualCourse = fsApi.getCourseToStaffPersonGivenUriToCourse(courseUri);
+
         assertThat(actualCourse, is(equalTo(expectedCourse)));
     }
 
@@ -98,7 +101,7 @@ public class FsApiTest {
         var expectedCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream())
                                   .collect(Collectors.toList());
         var actualCourses = fsApi.getCourses(somePerson);
+
         assertThat(actualCourses, is(equalTo(expectedCourses)));
     }
-
 }

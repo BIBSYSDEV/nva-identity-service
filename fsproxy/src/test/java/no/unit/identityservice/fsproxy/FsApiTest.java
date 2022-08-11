@@ -46,7 +46,7 @@ public class FsApiTest {
 
     @Test
     void shouldReturnStudentCoursesOfCurrentYearWhenInputIsNinOfStudent() throws IOException, InterruptedException {
-        var student = fsMock.createPerson();
+        var student = fsMock.createStudent();
         var fsIdNumber = fsMock.getPersonEntry(student).getFsIdNumber();
         var currentYear = FsMock.CURRENT_YEAR;
         var expectedCoursesCodes = fsMock.getStudentCourses(student);

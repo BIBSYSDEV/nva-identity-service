@@ -95,7 +95,7 @@ public class FsMock {
         server.stop();
     }
 
-    public NationalIdentityNumber createPerson() {
+    public NationalIdentityNumber createStudent() {
         var nin = randomNin();
         var person = new FsPerson(randomFsIdNumber(), EMPTY_FAG_PERSON, randomString(), randomString());
         personEntries.put(nin, person);

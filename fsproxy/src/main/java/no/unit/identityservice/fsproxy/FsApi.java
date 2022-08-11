@@ -81,7 +81,7 @@ public class FsApi {
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }).toList();
+        }).collect(Collectors.toList());
 
         var coursesIfStaff = courseUri.stream().map(uri -> {
             try {
@@ -89,7 +89,7 @@ public class FsApi {
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }).toList();
+        }).collect(Collectors.toList());
 
         return Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream()).collect(Collectors.toList());
     }

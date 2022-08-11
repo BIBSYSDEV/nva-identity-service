@@ -65,7 +65,6 @@ public class FsApi {
         if (fsIdSearchResult.getSearchResults().size() == 0) {
             throw new UserPrincipalNotFoundException(nin.toString());
         } else {
-
             return fsIdSearchResult.getSearchResults().get(0).getFsPerson().getFsIdNumber();
         }
     }
@@ -75,7 +74,7 @@ public class FsApi {
         var fsId = getFsId(nin);
         var coursesIfStudent = getCoursesToStudent(fsId);
         var roles = getRolesToStaffPerson(fsId);
-        var courseUri = roles.stream().map(role -> {
+        var coursesUri = roles.stream().map(role -> {
             try {
                 return getCourseUriToGivenRole(role);
             } catch (IOException | InterruptedException e) {
@@ -83,7 +82,7 @@ public class FsApi {
             }
         }).collect(Collectors.toList());
 
-        var coursesIfStaff = courseUri.stream().map(uri -> {
+        var coursesIfStaff = coursesUri.stream().map(uri -> {
             try {
                 return getCourseToStaffPersonGivenUriToCourse(uri);
             } catch (IOException | InterruptedException e) {

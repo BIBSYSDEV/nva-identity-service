@@ -25,16 +25,16 @@ import no.unit.identityservice.fsproxy.model.course.FsCourseItemContainingCourse
 import no.unit.identityservice.fsproxy.model.course.FsCoursesSearchResult;
 import no.unit.identityservice.fsproxy.model.course.FsSemester;
 import no.unit.identityservice.fsproxy.model.course.FsSubject;
-import no.unit.identityservice.fsproxy.model.staffperson.FsCourseActivity;
-import no.unit.identityservice.fsproxy.model.staffperson.FsRoleToStaffPerson;
-import no.unit.identityservice.fsproxy.model.staffperson.FsRolesToPersonSearchResult;
-import no.unit.identityservice.fsproxy.model.staffperson.FsUriToCourseActivity;
-import no.unit.identityservice.fsproxy.model.staffperson.FsUriToCourseActivityContainer;
 import no.unit.identityservice.fsproxy.model.person.FsIdNumber;
 import no.unit.identityservice.fsproxy.model.person.FsIdSearchResult;
 import no.unit.identityservice.fsproxy.model.person.FsPerson;
 import no.unit.identityservice.fsproxy.model.person.FsPersonSearchResponse;
 import no.unit.identityservice.fsproxy.model.person.NationalIdentityNumber;
+import no.unit.identityservice.fsproxy.model.staffperson.FsCourseActivity;
+import no.unit.identityservice.fsproxy.model.staffperson.FsRoleToStaffPerson;
+import no.unit.identityservice.fsproxy.model.staffperson.FsRolesToPersonSearchResult;
+import no.unit.identityservice.fsproxy.model.staffperson.FsUriToCourseActivity;
+import no.unit.identityservice.fsproxy.model.staffperson.FsUriToCourseActivityContainer;
 import no.unit.nva.stubs.WiremockHttpClient;
 
 public class FsMock {
@@ -240,7 +240,6 @@ public class FsMock {
     private String fsPersonNotFoundResponse() {
         return new FsPersonSearchResponse(Collections.emptyList()).toString();
     }
-
 
     private String fsPersonSearchResponse(FsPerson fsPerson) {
         FsIdSearchResult searchResult = new FsIdSearchResult(fsPerson);

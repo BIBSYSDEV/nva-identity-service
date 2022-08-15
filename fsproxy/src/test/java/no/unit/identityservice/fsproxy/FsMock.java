@@ -25,11 +25,11 @@ import no.unit.identityservice.fsproxy.model.course.FsCourseItemContainingCourse
 import no.unit.identityservice.fsproxy.model.course.FsCoursesSearchResult;
 import no.unit.identityservice.fsproxy.model.course.FsSemester;
 import no.unit.identityservice.fsproxy.model.course.FsSubject;
-import no.unit.identityservice.fsproxy.model.fagperson.FsCourseActivity;
-import no.unit.identityservice.fsproxy.model.fagperson.FsRoleToStaffPerson;
-import no.unit.identityservice.fsproxy.model.fagperson.FsRolesToPersonSearchResult;
-import no.unit.identityservice.fsproxy.model.fagperson.FsUriToCourseActivity;
-import no.unit.identityservice.fsproxy.model.fagperson.FsUriToCourseActivityContainer;
+import no.unit.identityservice.fsproxy.model.staffperson.FsCourseActivity;
+import no.unit.identityservice.fsproxy.model.staffperson.FsRoleToStaffPerson;
+import no.unit.identityservice.fsproxy.model.staffperson.FsRolesToPersonSearchResult;
+import no.unit.identityservice.fsproxy.model.staffperson.FsUriToCourseActivity;
+import no.unit.identityservice.fsproxy.model.staffperson.FsUriToCourseActivityContainer;
 import no.unit.identityservice.fsproxy.model.person.FsIdNumber;
 import no.unit.identityservice.fsproxy.model.person.FsIdSearchResult;
 import no.unit.identityservice.fsproxy.model.person.FsPerson;
@@ -44,7 +44,6 @@ public class FsMock {
     public static final String PERSONROLLER = "/personroller";
     public static final String SEMESTER_AR_PATH = "semester.ar";
     public static final String UNDERVISNINGSAKTIVITETER_PATH = "/undervisningsaktiviteter";
-    public static final String EMPTY_FAG_PERSON = null;
     public static final Integer CURRENT_YEAR = Year.now().getValue();
     public static final Integer NEXT_YEAR = CURRENT_YEAR + 1;
     private static final String PERSON_PATH = "personer";
@@ -87,25 +86,8 @@ public class FsMock {
         return fsHostUri;
     }
 
-    public FsPerson getPersonEntry(NationalIdentityNumber nin) {
-        return personEntries.get(nin);
-    }
-
     public void shutDown() {
         server.stop();
-    }
-
-    public NationalIdentityNumber createStudent() {
-        var nin = randomNin();
-        var person = new FsPerson(randomFsIdNumber(), EMPTY_FAG_PERSON, randomString(), randomString());
-        personEntries.put(nin, person);
-        List<FsCourse> courses = createCourses();
-        coursesForStudents.put(nin, courses);
-
-        addResponseWhenSearchingByNin(nin);
-        addResponseForGettingCoursesStudentByFsIdNumber(nin, CURRENT_YEAR);
-        addResponseForGettingCoursesStudentByFsIdNumber(nin, NEXT_YEAR);
-        return nin;
     }
 
     public NationalIdentityNumber createRandomPerson() {
@@ -149,41 +131,6 @@ public class FsMock {
 
     public List<FsCourse> getCoursesToStaffPerson() {
         return courseActivities.values().stream().map(FsCourseActivity::getCourse).collect(Collectors.toList());
-    }
-
-    public NationalIdentityNumber createExistingPersonWithoutEmployment() {
-        var person = randomNin();
-        var personEntry = new FsPerson(randomFsIdNumber(), EMPTY_FAG_PERSON, person.getBirthDate(),
-                                       person.getPersonalNumber());
-        personEntries.put(person, personEntry);
-        addPersonToFsInstance(person);
-        return person;
-    }
-
-    public NationalIdentityNumber createExistingPersonWithEmployment() {
-        var person = randomNin();
-        var personEntry = new FsPerson(randomFsIdNumber(), randomString(), person.getBirthDate(),
-                                       person.getPersonalNumber());
-        personEntries.put(person, personEntry);
-        addPersonToFsInstance(person);
-        return person;
-    }
-
-    public FsIdNumber createPersonWithRoles() {
-        var person = new FsPerson(randomFsIdNumber(), randomString(), randomString(), randomString());
-
-        var rolesEntry = IntStream.range(0, smallNumber())
-                             .boxed()
-                             .map(index -> createRole())
-                             .collect(Collectors.toList());
-
-        personRoles.put(person.getFsIdNumber(), rolesEntry);
-        addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), Year.now().getValue());
-        return person.getFsIdNumber();
-    }
-
-    public List<FsRoleToStaffPerson> getRoles(FsIdNumber fsIdNumber) {
-        return personRoles.get(fsIdNumber);
     }
 
     public NationalIdentityNumber createResponseForPersonNotInFs() {
@@ -294,6 +241,12 @@ public class FsMock {
         return new FsPersonSearchResponse(Collections.emptyList()).toString();
     }
 
+
+    private String fsPersonSearchResponse(FsPerson fsPerson) {
+        FsIdSearchResult searchResult = new FsIdSearchResult(fsPerson);
+        return new FsPersonSearchResponse(List.of(searchResult)).toString();
+    }
+
     private void addResponseWhenSearchingByNin(NationalIdentityNumber nin) {
         var fsPerson = personEntries.get(nin);
         server.stubFor(get(urlPathEqualTo("/" + PERSON_PATH)).withQueryParam(DB_IDENTIFIER, equalTo("true"))
@@ -350,10 +303,5 @@ public class FsMock {
     private void addResponseForGettingCourseToStaffPerson(FsUriToCourseActivity uri) {
         server.stubFor(get(urlPathEqualTo(UNDERVISNINGSAKTIVITETER_PATH + "/" + uri.getUri())).willReturn(
             ok().withHeader("Content-type", "application/json").withBody(createCourseActivityResponseBody(uri))));
-    }
-
-    private String fsPersonSearchResponse(FsPerson fsPerson) {
-        FsIdSearchResult searchResult = new FsIdSearchResult(fsPerson);
-        return new FsPersonSearchResponse(List.of(searchResult)).toString();
     }
 }

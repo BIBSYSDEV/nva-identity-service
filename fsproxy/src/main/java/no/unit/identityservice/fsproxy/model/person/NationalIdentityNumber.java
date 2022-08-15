@@ -5,8 +5,8 @@ import nva.commons.core.JacocoGenerated;
 
 public class NationalIdentityNumber {
 
-    public static final int FIRST_DIGIT_OF_PERSONAL_NUMBER = 6;
-    public static final int BEGINNING = 0;
+    private static final int FIRST_DIGIT_OF_PERSONAL_NUMBER = 6;
+    private static final int BEGINNING = 0;
     private final String identifier;
 
     public NationalIdentityNumber(String identifier) {

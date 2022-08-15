@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import no.unit.nva.commons.json.JsonSerializable;
 
 public class FsPersonSearchResponse implements JsonSerializable {
@@ -16,9 +17,12 @@ public class FsPersonSearchResponse implements JsonSerializable {
     public FsPersonSearchResponse(@JsonProperty("items") List<FsIdSearchResult> searchResult) {
         this.searchResults = nonNull(searchResult) ? searchResult : Collections.emptyList();
     }
-    
-    public List<FsIdSearchResult> getSearchResults() {
-        return searchResults;
+
+    public Optional<FsIdSearchResult> getSearchResult() {
+        if (searchResults.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(searchResults.get(0));
     }
     
     @Override

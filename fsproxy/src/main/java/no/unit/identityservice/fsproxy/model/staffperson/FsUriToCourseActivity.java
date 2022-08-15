@@ -1,4 +1,4 @@
-package no.unit.identityservice.fsproxy.model.fagperson;
+package no.unit.identityservice.fsproxy.model.staffperson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

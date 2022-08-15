@@ -65,7 +65,8 @@ public class FsApi {
         var coursesIfStudent = getCoursesToStudent(fsId);
         var roles = getRolesToStaffPerson(fsId);
 
-        var coursesUri = roles.stream().map(attempt(this::getCourseUriToGivenRole)).map(Try::orElseThrow).toList();
+        var coursesUri = roles.stream().map(attempt(this::getCourseUriToGivenRole)).map(Try::orElseThrow).collect(
+            Collectors.toList());
 
         var coursesIfStaff = coursesUri.stream()
                                  .map(attempt(this::getCourseToStaffPersonGivenUriToCourse))

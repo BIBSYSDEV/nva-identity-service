@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
+import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDao;
@@ -317,12 +318,17 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withInstitutionDns(randomString())
                            .withFeideOrganizationDomain(randomString())
                            .withCristinId(randomCristinOrgId())
+                           .withCustomerOf(randomApplicationDomain())
                            .withVocabularies(randomVocabularySet())
                            .withRorId(randomUri())
                            .withPublicationWorkflow(randomPublicationWorkflow())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context")));
         return customer;
+    }
+
+    private ApplicationDomain randomApplicationDomain() {
+        return ApplicationDomain.NVA;
     }
 
     private Set<VocabularyDto> randomVocabularySet() {

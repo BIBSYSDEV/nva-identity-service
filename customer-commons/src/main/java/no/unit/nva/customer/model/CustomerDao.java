@@ -24,7 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
-@SuppressWarnings("PMD.ExcessivePublicCount")
+@SuppressWarnings({"PMD.ExcessivePublicCount","PMD.GodClass"})
 public class CustomerDao implements Typed {
 
     public static final String IDENTIFIER = "identifier";
@@ -45,6 +45,7 @@ public class CustomerDao implements Typed {
     private String institutionDns;
     private String feideOrganizationDomain;
     private URI cristinId;
+    private URI customerOf;
     private Set<VocabularyDao> vocabularies;
     private URI rorId;
     private PublicationWorkflow publicationWorkflow;
@@ -59,24 +60,25 @@ public class CustomerDao implements Typed {
 
     public static CustomerDao fromCustomerDto(CustomerDto dto) {
         return builder().withArchiveName(dto.getArchiveName())
-            .withCname(dto.getCname())
-            .withCreatedDate(Instant.parse(dto.getCreatedDate()))
-            .withCristinId(dto.getCristinId())
-            .withDisplayName(dto.getDisplayName())
-            .withIdentifier(dto.getIdentifier())
-            .withInstitutionDns(dto.getInstitutionDns())
-            .withShortName(dto.getShortName())
-            .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
-            .withModifiedDate(Instant.parse(dto.getModifiedDate()))
-            .withVocabularySettings(extractVocabularySettings(dto))
-            .withName(dto.getName())
-            .withRorId(dto.getRorId())
-            .withPublicationWorkflow(dto.getPublicationWorkflow())
-            .build();
+                   .withCname(dto.getCname())
+                   .withCreatedDate(Instant.parse(dto.getCreatedDate()))
+                   .withCristinId(dto.getCristinId())
+                   .withCustomerOf(URI.create(dto.getCustomerOf().toString()))
+                   .withDisplayName(dto.getDisplayName())
+                   .withIdentifier(dto.getIdentifier())
+                   .withInstitutionDns(dto.getInstitutionDns())
+                   .withShortName(dto.getShortName())
+                   .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
+                   .withModifiedDate(Instant.parse(dto.getModifiedDate()))
+                   .withVocabularySettings(extractVocabularySettings(dto))
+                   .withName(dto.getName())
+                   .withRorId(dto.getRorId())
+                   .withPublicationWorkflow(dto.getPublicationWorkflow())
+                   .build();
     }
 
-    @DynamoDbPartitionKey
     @DynamoDbAttribute(IDENTIFIER)
+    @DynamoDbPartitionKey
     public UUID getIdentifier() {
         return identifier;
     }
@@ -169,6 +171,14 @@ public class CustomerDao implements Typed {
         this.cristinId = cristinId;
     }
 
+    public URI getCustomerOf() {
+        return customerOf;
+    }
+
+    public void setCustomerOf(URI customerOf) {
+        this.customerOf = customerOf;
+    }
+
     @DynamoDbIgnoreNulls
     @DynamoDbAttribute(VOCABULARIES_FIELD)
     public Set<VocabularyDao> getVocabularies() {
@@ -179,21 +189,30 @@ public class CustomerDao implements Typed {
         this.vocabularies = nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
-    public void setRorId(URI rorId) {
-        this.rorId = rorId;
-    }
-
     public URI getRorId() {
         return rorId;
     }
 
+    public void setRorId(URI rorId) {
+        this.rorId = rorId;
+    }
+
     public PublicationWorkflow getPublicationWorkflow() {
-        return nonNull(publicationWorkflow)
-                   ? publicationWorkflow : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+        return nonNull(publicationWorkflow) ? publicationWorkflow
+                   : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
         this.publicationWorkflow = publicationWorkflow;
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                            getRorId(), getPublicationWorkflow());
     }
 
     @Override
@@ -217,18 +236,10 @@ public class CustomerDao implements Typed {
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getCustomerOf(), that.getCustomerOf())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getRorId(), that.getRorId())
                && getPublicationWorkflow() == that.getPublicationWorkflow();
-    }
-
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(),
-                            getCristinId(), getVocabularies(), getRorId(), getPublicationWorkflow());
     }
 
     public CustomerDto toCustomerDto() {
@@ -245,6 +256,7 @@ public class CustomerDao implements Typed {
                                       .withModifiedDate(Optional.ofNullable(getModifiedDate()).orElse(null))
                                       .withFeideOrganizationDomain(getFeideOrganizationDomain())
                                       .withCristinId(getCristinId())
+                                      .withCustomerOf(this.toCustomerDto().getCustomerOf())
                                       .withRorId(getRorId())
                                       .withPublicationWorkflow(getPublicationWorkflow())
                                       .build();
@@ -266,18 +278,18 @@ public class CustomerDao implements Typed {
 
     private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {
         return Optional.ofNullable(dto.getVocabularies())
-            .stream()
-            .flatMap(Collection::stream)
-            .map(VocabularyDao::fromVocabularySettingsDto)
-            .collect(Collectors.toSet());
+                   .stream()
+                   .flatMap(Collection::stream)
+                   .map(VocabularyDao::fromVocabularySettingsDto)
+                   .collect(Collectors.toSet());
     }
 
     private Set<VocabularyDto> extractVocabularySettings() {
         return Optional.ofNullable(this.getVocabularies())
-            .stream()
-            .flatMap(Collection::stream)
-            .map(VocabularyDao::toVocabularySettingsDto)
-            .collect(Collectors.toSet());
+                   .stream()
+                   .flatMap(Collection::stream)
+                   .map(VocabularyDao::toVocabularySettingsDto)
+                   .collect(Collectors.toSet());
     }
 
     public static final class Builder {
@@ -343,6 +355,11 @@ public class CustomerDao implements Typed {
             return this;
         }
 
+        public Builder withCustomerOf(URI customerOf) {
+            customerDb.setCustomerOf(customerOf);
+            return this;
+        }
+
         public Builder withVocabularySettings(Set<VocabularyDao> vocabularySettings) {
             customerDb.setVocabularies(vocabularySettings);
             return this;
@@ -362,5 +379,4 @@ public class CustomerDao implements Typed {
             return customerDb;
         }
     }
-
 }

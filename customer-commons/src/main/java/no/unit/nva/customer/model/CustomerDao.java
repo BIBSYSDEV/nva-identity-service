@@ -24,7 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
-@SuppressWarnings({"PMD.ExcessivePublicCount","PMD.GodClass"})
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass"})
 public class CustomerDao implements Typed {
 
     public static final String IDENTIFIER = "identifier";

@@ -1,6 +1,7 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
 import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
@@ -256,7 +257,7 @@ public class CustomerDao implements Typed {
                                       .withModifiedDate(Optional.ofNullable(getModifiedDate()).orElse(null))
                                       .withFeideOrganizationDomain(getFeideOrganizationDomain())
                                       .withCristinId(getCristinId())
-                                      .withCustomerOf(this.toCustomerDto().getCustomerOf())
+                                      .withCustomerOf(fromUri(getCustomerOf()))
                                       .withRorId(getRorId())
                                       .withPublicationWorkflow(getPublicationWorkflow())
                                       .build();

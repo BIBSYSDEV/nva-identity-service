@@ -52,9 +52,9 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeUse
 
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
-    
+
     public static final Environment ENVIRONMENT = new Environment();
-    
+
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideIdNin";
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
@@ -67,162 +67,153 @@ public class UserSelectionUponLoginHandler
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
-    
+
     @JacocoGenerated
     public UserSelectionUponLoginHandler() {
-        this(defaultCognitoClient(), CristinClient.defaultClient(),
-            defaultCustomerService(DEFAULT_DYNAMO_CLIENT), defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
+        this(defaultCognitoClient(), CristinClient.defaultClient(), defaultCustomerService(DEFAULT_DYNAMO_CLIENT),
+             defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
     }
-    
-    public UserSelectionUponLoginHandler(CognitoIdentityProviderClient cognitoClient,
-                                         CristinClient cristinClient,
-                                         CustomerService customerService,
-                                         IdentityService identityService) {
+
+    public UserSelectionUponLoginHandler(CognitoIdentityProviderClient cognitoClient, CristinClient cristinClient,
+                                         CustomerService customerService, IdentityService identityService) {
         this.cognitoClient = cognitoClient;
         this.customerService = customerService;
         this.userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient, identityService);
     }
-    
+
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
-        
-        final var start = System.currentTimeMillis();
+
         var request = DescribeUserPoolClientRequest.builder()
-            .userPoolId(input.getUserPoolId())
-            .clientId(input.getCallerContext().getClientId())
-            .build();
+                          .userPoolId(input.getUserPoolId())
+                          .clientId(input.getCallerContext().getClientId())
+                          .build();
         final var response = cognitoClient.describeUserPoolClient(request);
-        var clientName = response.userPoolClient().clientName();
-        final long end = System.currentTimeMillis();
-        logger.info("Application client name in use: {} ({} ms)", clientName, end - start);
-        
         loginToNva(input);
+
         return input;
     }
-    
+
     private static String extractNin(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
-            .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
-            .orElseThrow();
+                   .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
+                   .orElseThrow();
     }
-    
+
     private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(ORG_FEIDE_DOMAIN)).orElse(null);
     }
-    
+
     private static String extractFeideIdentifier(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(FEIDE_ID)).orElse(null);
     }
-    
+
     @JacocoGenerated
     private static CognitoIdentityProviderClient defaultCognitoClient() {
         return CognitoIdentityProviderClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .httpClient(UrlConnectionHttpClient.create())
-            .region(AWS_REGION)
-            .build();
+                   .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                   .httpClient(UrlConnectionHttpClient.create())
+                   .region(AWS_REGION)
+                   .build();
     }
-    
+
+    private void benchmarkResponseTime(CognitoUserPoolPreTokenGenerationEvent input, Context context) {
+        final var start = System.currentTimeMillis();
+        var request = DescribeUserPoolClientRequest.builder()
+                          .userPoolId(input.getUserPoolId())
+                          .clientId(input.getCallerContext().getClientId())
+                          .build();
+        final var response = cognitoClient.describeUserPoolClient(request);
+        final long end = System.currentTimeMillis();
+        logger.info("Application client name in use: {} ({} ms)", end - start);
+    }
+
     private void loginToNva(CognitoUserPoolPreTokenGenerationEvent input) {
         var nin = extractNin(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
-        
+
         var authenticationInfo = collectAuthenticationInformation(nin, orgFeideDomain, personFeideIdentifier);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
-        
+
         final var roles = rolesPerCustomer(usersForPerson);
         authenticationInfo.updateCurrentCustomer();
         authenticationInfo.updateCurrentUser(usersForPerson);
-        
+
         final var accessRights = createAccessRights(usersForPerson);
         updateCognitoUserAttributes(input, authenticationInfo, accessRights, roles);
         injectAccessRightsToEventResponse(input, accessRights);
     }
-    
-    private AuthenticationInformation collectAuthenticationInformation(String nin,
-                                                                       String orgFeideDomain,
+
+    private AuthenticationInformation collectAuthenticationInformation(String nin, String orgFeideDomain,
                                                                        String personFeideIdentifier) {
-        return attempt(() -> new NationalIdentityNumber(nin))
-            .map(idNumber -> userCreator.collectPersonInformation(idNumber, personFeideIdentifier, orgFeideDomain))
-            .map(AuthenticationInformation::new)
-            .orElseThrow();
+        return attempt(() -> new NationalIdentityNumber(nin)).map(
+                idNumber -> userCreator.collectPersonInformation(idNumber, personFeideIdentifier, orgFeideDomain))
+                   .map(AuthenticationInformation::new)
+                   .orElseThrow();
     }
-    
+
     private List<String> createAccessRights(List<UserDto> usersForPerson) {
         final var accessRights = new ArrayList<>(accessRightsPerCustomer(usersForPerson));
-        final var injectedCustomerIdInAccessRights =
-            injectCustomerIdInCognitoGroupsToFacilitateOnlineTests(usersForPerson);
+        final var injectedCustomerIdInAccessRights = injectCustomerIdInCognitoGroupsToFacilitateOnlineTests(
+            usersForPerson);
         accessRights.addAll(injectedCustomerIdInAccessRights);
         return accessRights;
     }
-    
+
     private List<String> injectCustomerIdInCognitoGroupsToFacilitateOnlineTests(List<UserDto> usersForPerson) {
-        return (usersForPerson.size() == SINGLE_ITEM_LIST)
-                   ? createVirtualAccessRightForCustomerIdForUseInTests(usersForPerson)
-                   : Collections.emptyList();
+        return (usersForPerson.size() == SINGLE_ITEM_LIST) ? createVirtualAccessRightForCustomerIdForUseInTests(
+            usersForPerson) : Collections.emptyList();
     }
-    
+
     private List<String> createVirtualAccessRightForCustomerIdForUseInTests(List<UserDto> usersForPerson) {
         var user = usersForPerson.get(SINGLE_ITEM);
         var accessRight = INJECTED_ACCESS_RIGHT_TO_SINGLE_CUSTOMER_ID_IN_COGNITO_GROUPS + AT + user.getInstitution()
-            .toString();
+                                                                                                   .toString();
         return List.of(accessRight);
     }
-    
+
     private Collection<String> rolesPerCustomer(List<UserDto> usersForPerson) {
-        return usersForPerson.stream()
-            .flatMap(UserDto::generateRoleClaims)
-            .collect(Collectors.toSet());
+        return usersForPerson.stream().flatMap(UserDto::generateRoleClaims).collect(Collectors.toSet());
     }
-    
-    private void updateCognitoUserAttributes(
-        CognitoUserPoolPreTokenGenerationEvent input,
-        AuthenticationInformation authenticationInfo,
-        Collection<String> accessRights,
-        Collection<String> roles) {
-        
-        cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(input,
-            authenticationInfo,
-            accessRights,
-            roles));
+
+    private void updateCognitoUserAttributes(CognitoUserPoolPreTokenGenerationEvent input,
+                                             AuthenticationInformation authenticationInfo,
+                                             Collection<String> accessRights, Collection<String> roles) {
+
+        cognitoClient.adminUpdateUserAttributes(
+            createUpdateUserAttributesRequest(input, authenticationInfo, accessRights, roles));
     }
-    
+
     private AdminUpdateUserAttributesRequest createUpdateUserAttributesRequest(
-        CognitoUserPoolPreTokenGenerationEvent input,
-        AuthenticationInformation authenticationInfo,
-        Collection<String> accessRights,
-        Collection<String> roles) {
-        
+        CognitoUserPoolPreTokenGenerationEvent input, AuthenticationInformation authenticationInfo,
+        Collection<String> accessRights, Collection<String> roles) {
+
         return AdminUpdateUserAttributesRequest.builder()
-            .userPoolId(input.getUserPoolId())
-            .username(input.getUserName())
-            .userAttributes(updatedPersonAttributes(authenticationInfo, accessRights, roles))
-            .build();
+                   .userPoolId(input.getUserPoolId())
+                   .username(input.getUserName())
+                   .userAttributes(updatedPersonAttributes(authenticationInfo, accessRights, roles))
+                   .build();
     }
-    
+
     private Collection<AttributeType> updatedPersonAttributes(AuthenticationInformation authenticationInfo,
                                                               Collection<String> accessRights,
                                                               Collection<String> roles) {
-        
+
         var allowedCustomersString = createAllowedCustomersString(authenticationInfo.getActiveCustomers());
-        
+
         if (authenticationInfo.personExistsInPersonRegistry()) {
-            return addClaimsForPeopleRegisteredInPersonRegistry(authenticationInfo,
-                accessRights,
-                roles,
-                allowedCustomersString);
+            return addClaimsForPeopleRegisteredInPersonRegistry(authenticationInfo, accessRights, roles,
+                                                                allowedCustomersString);
         }
         return Collections.emptyList();
     }
-    
+
     private List<AttributeType> addClaimsForPeopleRegisteredInPersonRegistry(
-        AuthenticationInformation authenticationInfo,
-        Collection<String> accessRights,
-        Collection<String> roles,
+        AuthenticationInformation authenticationInfo, Collection<String> accessRights, Collection<String> roles,
         String allowedCustomersString) {
-        
+
         var claims = new ArrayList<AttributeType>();
         claims.add(createAttribute("custom:firstName", authenticationInfo.extractFirstName()));
         claims.add(createAttribute("custom:lastName", authenticationInfo.extractLastName()));
@@ -233,64 +224,57 @@ public class UserSelectionUponLoginHandler
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(authenticationInfo, claims);
         return claims;
     }
-    
+
     private void addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(
-        AuthenticationInformation authenticationInfo,
-        List<AttributeType> claims) {
-        
+        AuthenticationInformation authenticationInfo, List<AttributeType> claims) {
+
         authenticationInfo.getCurrentCustomerId()
             .ifPresent(customerId -> claims.addAll(customerSelectionClaims(authenticationInfo, customerId)));
     }
-    
+
     private List<AttributeType> customerSelectionClaims(AuthenticationInformation authenticationInfo,
                                                         String customerId) {
-        
+
         var currentCustomerClaim = createAttribute(CURRENT_CUSTOMER_CLAIM, customerId);
-        var currentTopLevelOrgClaim =
-            createAttribute(TOP_ORG_CRISTIN_ID, authenticationInfo.getCurrentCustomer().getCristinId().toString());
+        var currentTopLevelOrgClaim = createAttribute(TOP_ORG_CRISTIN_ID, authenticationInfo.getCurrentCustomer()
+                                                                              .getCristinId()
+                                                                              .toString());
         var usernameClaim = createAttribute(NVA_USERNAME_CLAIM, authenticationInfo.getCurrentUser().getUsername());
-        var personAffiliationClaim =
-            createAttribute(PERSON_AFFILIATION_CLAIM, authenticationInfo.getCurrentUser().getAffiliation().toString());
+        var personAffiliationClaim = createAttribute(PERSON_AFFILIATION_CLAIM,
+                                                     authenticationInfo.getCurrentUser().getAffiliation().toString());
         return List.of(currentCustomerClaim, currentTopLevelOrgClaim, usernameClaim, personAffiliationClaim);
     }
-    
+
     private String createAllowedCustomersString(Collection<CustomerDto> allowedCustomers) {
-        var result = allowedCustomers
-            .stream()
-            .map(CustomerDto::getId)
-            .map(URI::toString)
-            .collect(Collectors.joining(ELEMENTS_DELIMITER));
-        return StringUtils.isNotBlank(result)
-                   ? result
-                   : EMPTY_ALLOWED_CUSTOMERS;
+        var result = allowedCustomers.stream()
+                         .map(CustomerDto::getId)
+                         .map(URI::toString)
+                         .collect(Collectors.joining(ELEMENTS_DELIMITER));
+        return StringUtils.isNotBlank(result) ? result : EMPTY_ALLOWED_CUSTOMERS;
     }
-    
+
     private AttributeType createAttribute(String name, String value) {
         return AttributeType.builder().name(name).value(value).build();
     }
-    
+
     private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
                                                    List<String> accessRights) {
-        input.setResponse(Response.builder()
-            .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
-            .build());
+        input.setResponse(Response.builder().withClaimsOverrideDetails(buildOverrideClaims(accessRights)).build());
     }
-    
+
     private List<String> accessRightsPerCustomer(List<UserDto> personsUsers) {
         return personsUsers.stream()
-            .map(user -> UserAccessRightForCustomer.fromUser(user, customerService))
-            .flatMap(Collection::stream)
-            .map(UserAccessRightForCustomer::toString)
-            .collect(Collectors.toList());
+                   .map(user -> UserAccessRightForCustomer.fromUser(user, customerService))
+                   .flatMap(Collection::stream)
+                   .map(UserAccessRightForCustomer::toString)
+                   .collect(Collectors.toList());
     }
-    
+
     private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride) {
-        var groups = GroupConfiguration.builder()
-            .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
-            .build();
+        var groups = GroupConfiguration.builder().withGroupsToOverride(groupsToOverride.toArray(String[]::new)).build();
         return ClaimsOverrideDetails.builder()
-            .withGroupOverrideDetails(groups)
-            .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
-            .build();
+                   .withGroupOverrideDetails(groups)
+                   .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
+                   .build();
     }
 }

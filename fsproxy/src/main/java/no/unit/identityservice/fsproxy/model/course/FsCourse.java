@@ -11,23 +11,20 @@ public class FsCourse {
 
     @JsonProperty("emne")
     final FsSubject subject;
-    @JsonProperty("terminnummer")
-    final int termNumber;
     @JsonProperty("semester")
     final FsSemester semester;
 
     @JsonCreator
-    public FsCourse(@JsonProperty("emne") FsSubject subject, @JsonProperty("terminnummer") int termNumber,
+    public FsCourse(@JsonProperty("emne") FsSubject subject,
                     @JsonProperty("semester") FsSemester semester) {
         this.subject = subject;
-        this.termNumber = termNumber;
         this.semester = semester;
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(subject, termNumber, semester);
+        return Objects.hash(subject, semester);
     }
 
     @JacocoGenerated
@@ -40,15 +37,11 @@ public class FsCourse {
             return false;
         }
         FsCourse that = (FsCourse) o;
-        return termNumber == that.termNumber && subject.equals(that.subject) && semester.equals(that.semester);
+        return subject.equals(that.subject) && semester.equals(that.semester);
     }
 
     public FsSubject getSubject() {
         return subject;
-    }
-
-    public int getTermNumber() {
-        return termNumber;
     }
 
     public FsSemester getSemester() {

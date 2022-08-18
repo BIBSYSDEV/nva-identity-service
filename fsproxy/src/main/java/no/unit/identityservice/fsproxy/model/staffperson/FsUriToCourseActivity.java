@@ -2,16 +2,17 @@ package no.unit.identityservice.fsproxy.model.staffperson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
 public class FsUriToCourseActivity {
 
     @JsonProperty("href")
-    private final String uriToCourse;
+    private final URI uriToCourse;
 
     @JsonCreator
-    public FsUriToCourseActivity(@JsonProperty("href") String uriToCourse) {
+    public FsUriToCourseActivity(@JsonProperty("href") URI uriToCourse) {
         this.uriToCourse = uriToCourse;
     }
 
@@ -34,7 +35,7 @@ public class FsUriToCourseActivity {
         return Objects.hash(uriToCourse);
     }
 
-    public String getUri() {
+    public URI getUri() {
         return uriToCourse;
     }
 }

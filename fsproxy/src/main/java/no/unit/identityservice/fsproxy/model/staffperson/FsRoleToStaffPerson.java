@@ -3,23 +3,24 @@ package no.unit.identityservice.fsproxy.model.staffperson;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
 public class FsRoleToStaffPerson {
 
     @JsonProperty("href")
-    private final String hrefToRole;
+    private final URI uriToRole;
 
     @JsonCreator
-    public FsRoleToStaffPerson(@JsonProperty("href") String hrefToRole) {
-        this.hrefToRole = hrefToRole;
+    public FsRoleToStaffPerson(@JsonProperty("href") URI uriToRole) {
+        this.uriToRole = uriToRole;
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(hrefToRole);
+        return Objects.hash(uriToRole);
     }
 
     @JacocoGenerated
@@ -32,12 +33,12 @@ public class FsRoleToStaffPerson {
             return false;
         }
         FsRoleToStaffPerson that = (FsRoleToStaffPerson) o;
-        return Objects.equals(hrefToRole, that.hrefToRole);
+        return Objects.equals(uriToRole, that.uriToRole);
     }
 
     @JsonIgnore
-    public String getUriToRole() {
-        return hrefToRole;
+    public URI getUriToRole() {
+        return uriToRole;
     }
 }
 

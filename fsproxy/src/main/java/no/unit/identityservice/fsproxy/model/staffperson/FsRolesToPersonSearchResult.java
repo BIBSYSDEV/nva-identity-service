@@ -2,9 +2,11 @@ package no.unit.identityservice.fsproxy.model.staffperson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.Objects;
 import no.unit.nva.commons.json.JsonSerializable;
+import no.unit.nva.commons.json.JsonUtils;
 import nva.commons.core.JacocoGenerated;
 
 public class FsRolesToPersonSearchResult implements JsonSerializable {
@@ -17,8 +19,18 @@ public class FsRolesToPersonSearchResult implements JsonSerializable {
         this.items = items;
     }
 
+    public static FsRolesToPersonSearchResult fromJson(String responseBody) throws JsonProcessingException {
+        return JsonUtils.dtoObjectMapper.readValue(responseBody, FsRolesToPersonSearchResult.class);
+    }
+
     public List<FsRoleToStaffPerson> getItems() {
         return items;
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(items);
     }
 
     @JacocoGenerated
@@ -32,12 +44,6 @@ public class FsRolesToPersonSearchResult implements JsonSerializable {
         }
         FsRolesToPersonSearchResult that = (FsRolesToPersonSearchResult) o;
         return Objects.equals(items, that.items);
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(items);
     }
 
     @Override

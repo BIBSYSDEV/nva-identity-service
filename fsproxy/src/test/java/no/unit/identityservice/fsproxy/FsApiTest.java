@@ -29,59 +29,13 @@ public class FsApiTest {
         fsApi = new FsApi(fsMock.getHttpClient(), fsMock.getFsHostUri());
     }
 
-//    @Test
-//    void shouldReturnFsIdNumberWhenInputIsNin() throws IOException, InterruptedException {
-//        var somePerson = fsMock.createRandomPerson();
-//        var personEntry = fsMock.getPersonEntry(somePerson);
-//        var actualIdNumber = fsApi.getFsId(somePerson);
-//
-//        assertThat(actualIdNumber, is(equalTo(personEntry.getFsIdNumber())));
-//    }
-//
     @Test
-    void shouldThrowExceptionWhenPersonIsNotFoundInFs() {
-        var personNotInFs = fsMock.createResponseForPersonNotInFs();
-
-        assertThrows(UserPrincipalNotFoundException.class, () -> fsApi.getCourses(personNotInFs));
+    void shouldReturnCoursesIfPersonIsStaffPersonOnly() throws IOException, InterruptedException {
+        var staffPerson = fsMock.createStaffPerson();
+        var expectedCourses = fsMock.getCoursesToStaffPerson();
+        var actualCourses = fsApi.getCourses(staffPerson);
+        assertThat(actualCourses, is(equalTo(expectedCourses)));
     }
-//
-//    @Test
-//    void shouldReturnStudentCoursesOfCurrentYearWhenInputIsNinOfStudent() throws IOException, InterruptedException {
-//        var student = fsMock.createRandomPerson();
-//        var fsIdNumber = fsMock.getPersonEntry(student).getFsIdNumber();
-//        var expectedCoursesCodes = fsMock.getStudentCourses(student);
-//        var actualCoursesCodes = fsApi.getCoursesToStudent(fsIdNumber);
-//
-//        assertThat(actualCoursesCodes, containsInAnyOrder(expectedCoursesCodes.toArray()));
-//    }
-//
-//    @Test
-//    void shouldReturnUriRolesToPerson() throws IOException, InterruptedException {
-//        var somePerson = fsMock.createPersonWithRoles();
-//        var roleEntries = fsMock.getRoles(somePerson);
-//        var actualRoles = fsApi.getRolesToStaffPerson(somePerson);
-//
-//        assertThat(actualRoles, containsInAnyOrder(roleEntries.toArray()));
-//    }
-//
-//    @Test
-//    void shouldReturnCourseActivityUriGivenRole() throws IOException, InterruptedException {
-//        var role = fsMock.createRole();
-//        var expectedCourseUri = fsMock.createUriToCourseActivity(role);
-//        var actualCourseUri = fsApi.getCourseActivityUriToGivenRole(role);
-//
-//        assertThat(actualCourseUri, is(equalTo(expectedCourseUri)));
-//    }
-//
-//    @Test
-//    void shouldReturnCourseToStaffPersonGivenCourseUri() throws IOException, InterruptedException {
-//        var role = fsMock.createRole();
-//        var courseUri = fsMock.createUriToCourseActivity(role);
-//        var expectedCourse = fsMock.createCourseActivity(courseUri).getCourse();
-//        var actualCourse = fsApi.getCourseToStaffPersonGivenUriToCourse(courseUri);
-//
-//        assertThat(actualCourse, is(equalTo(expectedCourse)));
-//    }
 
     @Test
     void shouldReturnEmptyCourseListWhenPersonIsNotSignedUpToAnyCourses() throws IOException, InterruptedException {
@@ -104,14 +58,6 @@ public class FsApiTest {
     }
 
     @Test
-    void shouldReturnCoursesIfPersonIsStaffPersonOnly() throws IOException, InterruptedException {
-        var staffPerson = fsMock.createStaffPerson();
-        var expectedCourses = fsMock.getCoursesToStaffPerson();
-        var actualCourses = fsApi.getCourses(staffPerson);
-        assertThat(actualCourses, is(equalTo(expectedCourses)));
-    }
-
-    @Test
     void shouldReturnAllCoursesToPersonWhenPersonIsBothStudentAndStaffPerson() throws IOException,
                                                                                       InterruptedException {
         var somePerson = fsMock.createPersonWhichIsStudentAndStaffPerson();
@@ -124,5 +70,10 @@ public class FsApiTest {
         assertThat(actualCourses, is(equalTo(expectedCourses)));
     }
 
+    @Test
+    void shouldThrowExceptionWhenPersonIsNotFoundInFs() {
+        var personNotInFs = fsMock.createResponseForPersonNotInFs();
 
+        assertThrows(UserPrincipalNotFoundException.class, () -> fsApi.getCourses(personNotInFs));
+    }
 }

@@ -106,6 +106,9 @@ public class FsApi {
         var responseBody = getResponse(createSearchCourseUri(fsIdNumber)).body();
         var fsCoursesSearchResult = FsCoursesSearchResult.fromJson(responseBody);
 
+        if(fsCoursesSearchResult.getItems() == null) {
+            return Collections.emptyList();
+        }
         return fsCoursesSearchResult.getItems().stream().map(c -> c.getId().getCourse()).collect(Collectors.toList());
     }
 
@@ -113,7 +116,7 @@ public class FsApi {
         var responseBody = getResponse(createSearchRolesToStaffPersonUri(fsIdNumber)).body();
         var fsRolesSearchResult = FsRolesToPersonSearchResult.fromJson(responseBody);
 
-        if(fsRolesSearchResult.getItems().isEmpty()) {
+        if(fsRolesSearchResult.getItems() == null) {
             return Collections.emptyList();
         }
         return fsRolesSearchResult.getItems();

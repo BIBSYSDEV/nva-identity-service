@@ -30,10 +30,25 @@ public class FsApiTest {
     }
 
     @Test
+    void shouldThrowExceptionWhenPersonIsNotFoundInFs() {
+        var personNotInFs = fsMock.createResponseForPersonNotInFs();
+
+        assertThrows(UserPrincipalNotFoundException.class, () -> fsApi.getCourses(personNotInFs));
+    }
+
+    @Test
     void shouldReturnCoursesIfPersonIsStaffPersonOnly() throws IOException, InterruptedException {
         var staffPerson = fsMock.createStaffPerson();
         var expectedCourses = fsMock.getCoursesToStaffPerson();
         var actualCourses = fsApi.getCourses(staffPerson);
+        assertThat(actualCourses, is(equalTo(expectedCourses)));
+    }
+
+    @Test
+    void shouldReturnCoursesIfPersonIsStudentOnly() throws IOException, InterruptedException {
+        var student = fsMock.createStudent();
+        var expectedCourses = fsMock.getStudentCourses(student);
+        var actualCourses = fsApi.getCourses(student);
         assertThat(actualCourses, is(equalTo(expectedCourses)));
     }
 
@@ -50,16 +65,8 @@ public class FsApiTest {
     }
 
     @Test
-    void shouldReturnCoursesIfPersonIsStudentOnly() throws IOException, InterruptedException {
-        var student = fsMock.createStudent();
-        var expectedCourses = fsMock.getStudentCourses(student);
-        var actualCourses = fsApi.getCourses(student);
-        assertThat(actualCourses, is(equalTo(expectedCourses)));
-    }
-
-    @Test
-    void shouldReturnAllCoursesToPersonWhenPersonIsBothStudentAndStaffPerson() throws IOException,
-                                                                                      InterruptedException {
+    void shouldReturnAllCoursesToPersonWhenPersonIsBothStudentAndStaffPerson()
+        throws IOException, InterruptedException {
         var somePerson = fsMock.createPersonWhichIsStudentAndStaffPerson();
         var coursesIfStudent = fsMock.getStudentCourses(somePerson);
         var coursesIfStaff = fsMock.getCoursesToStaffPerson();
@@ -68,12 +75,5 @@ public class FsApiTest {
         var actualCourses = fsApi.getCourses(somePerson);
 
         assertThat(actualCourses, is(equalTo(expectedCourses)));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenPersonIsNotFoundInFs() {
-        var personNotInFs = fsMock.createResponseForPersonNotInFs();
-
-        assertThrows(UserPrincipalNotFoundException.class, () -> fsApi.getCourses(personNotInFs));
     }
 }

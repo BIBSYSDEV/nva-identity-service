@@ -46,7 +46,7 @@ public class FsMock {
     public static final String SEMESTER_YEAR_PATH = "semester.ar";
     public static final Integer CURRENT_YEAR = Year.now().getValue();
     public static final Integer NEXT_YEAR = CURRENT_YEAR + 1;
-    private static final String PERSON_PATH = "personer";
+    private static final String PERSON_PATH = "/personer";
     private static final String STUDENT_TEACHING_PATH = "/studentundervisning";
     private static final String TEACHING_SEMESTER_AR_PATH = "undervisning.semester.ar";
     private static final String FS_PERSON_ID_NUMBER_PATH = "person.personlopenummer";
@@ -120,8 +120,8 @@ public class FsMock {
         }
 
         addPersonToFsInstance(nin);
-        coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, CURRENT_YEAR));
-        coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, NEXT_YEAR));
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR);
         addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), Year.now().getValue());
         roles.forEach(this::addResponseForGettingCourseActivityToRoleUri);
         uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
@@ -129,7 +129,7 @@ public class FsMock {
         return nin;
     }
 
-    public NationalIdentityNumber createPersonWithoutCourses(){
+    public NationalIdentityNumber createPersonWithoutCourses() {
         var nin = randomNin();
         var person = new FsPerson(randomFsIdNumber(), randomString(), randomString(), randomString());
         personEntries.put(nin, person);
@@ -159,8 +159,8 @@ public class FsMock {
         }
 
         addPersonToFsInstance(nin);
-        coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, CURRENT_YEAR));
-        coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, NEXT_YEAR));
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR);
         addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), Year.now().getValue());
         roles.forEach(this::addResponseForGettingCourseActivityToRoleUri);
         uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
@@ -198,8 +198,8 @@ public class FsMock {
         }
 
         addPersonToFsInstance(nin);
-        coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, CURRENT_YEAR));
-        coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, NEXT_YEAR));
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR);
         addResponseForGettingRolesToStaffPerson(student.getFsIdNumber(), Year.now().getValue());
         roles.forEach(this::addResponseForGettingCourseActivityToRoleUri);
         uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
@@ -208,14 +208,14 @@ public class FsMock {
 
     public NationalIdentityNumber createStaffPerson() {
         var nin = randomNin();
-        var student = new FsPerson(randomFsIdNumber(), randomString(), randomString(), randomString());
-        personEntries.put(nin, student);
+        var staffPerson = new FsPerson(randomFsIdNumber(), randomString(), randomString(), randomString());
+        personEntries.put(nin, staffPerson);
 
         List<FsCourse> coursesToStudent = new ArrayList<>();
         coursesForStudents.put(nin, coursesToStudent);
 
         List<FsRoleToStaffPerson> roles = createRoles();
-        personRoles.put(student.getFsIdNumber(), roles);
+        personRoles.put(staffPerson.getFsIdNumber(), roles);
 
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
                                                                 .map(this::createUriToCourseActivity)
@@ -235,12 +235,29 @@ public class FsMock {
             }
         }
 
-        addPersonToFsInstance(nin);
-        coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, CURRENT_YEAR));
-        coursesToStudent.forEach(course -> addResponseForGettingCoursesStudentByFsIdNumber(nin, NEXT_YEAR));
-        addResponseForGettingRolesToStaffPerson(student.getFsIdNumber(), Year.now().getValue());
+        addResponseForGettingRolesToStaffPerson(staffPerson.getFsIdNumber(), Year.now().getValue());
         roles.forEach(this::addResponseForGettingCourseActivityToRoleUri);
         uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR);
+        addPersonToFsInstance(nin);
+
+        return nin;
+    }
+
+    public NationalIdentityNumber createStudentWithoutCourses() {
+        var nin = randomNin();
+        var student = new FsPerson(randomFsIdNumber(), randomString(), randomString(), randomString());
+        personEntries.put(nin, student);
+
+        List<FsCourse> coursesToStudent = new ArrayList<>();
+        coursesForStudents.put(nin, coursesToStudent);
+
+        addPersonToFsInstance(nin);
+        addResponseForGettingRolesToStaffPerson(student.getFsIdNumber(), Year.now().getValue());
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
+        coursesToStudent.forEach(course -> addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR));
+
         return nin;
     }
 
@@ -286,22 +303,11 @@ public class FsMock {
         return coursesToRoles.get(role);
     }
 
-
-
-    private URI randomUri() {
-        return URI.create(server.baseUrl() + "/"+ randomString());
-
-    }
-
     public FsCourseActivity createCourseActivity(FsUriToCourseActivity uri) {
         var courseActivity = new FsCourseActivity(randomCourse());
         courseActivities.put(uri, courseActivity);
         addResponseForGettingCourseToStaffPerson(uri);
         return courseActivity;
-    }
-
-    private String createUriToCourseActivityResponseBody(FsRoleToStaffPerson role) {
-        return new FsUriToCourseActivityContainer(getUriToCourseActivity(role)).toString();
     }
 
     public FsIdNumber createPersonWithRoles() {
@@ -323,6 +329,14 @@ public class FsMock {
 
     public FsPerson getPersonEntry(NationalIdentityNumber somePerson) {
         return personEntries.get(somePerson);
+    }
+
+    private URI randomUri() {
+        return URI.create(server.baseUrl() + "/" + randomString());
+    }
+
+    private String createUriToCourseActivityResponseBody(FsRoleToStaffPerson role) {
+        return new FsUriToCourseActivityContainer(getUriToCourseActivity(role)).toString();
     }
 
     private String createRolesResponseBody(FsIdNumber fsIdNumber) {
@@ -360,14 +374,11 @@ public class FsMock {
     }
 
     private FsCourse randomCourse() {
-        return new FsCourse(new FsSubject(randomString()),
-                            new FsSemester(randomInteger(),
-                                           randomString()));
+        return new FsCourse(new FsSubject(randomString()), new FsSemester(randomInteger(), randomString()));
     }
 
     private FsCourse randomCourse(int year) {
-        return new FsCourse(new FsSubject(randomString()),
-                            new FsSemester(year, randomString()));
+        return new FsCourse(new FsSubject(randomString()), new FsSemester(year, randomString()));
     }
 
     private Stream<FsCourse> createCoursesForYear(Integer nextYear) {
@@ -392,7 +403,7 @@ public class FsMock {
 
     private void addResponseWhenSearchingByNin(NationalIdentityNumber nin) {
         var fsPerson = personEntries.get(nin);
-        server.stubFor(get(urlPathEqualTo("/" + PERSON_PATH)).withQueryParam(DB_IDENTIFIER, equalTo("true"))
+        server.stubFor(get(urlPathEqualTo(PERSON_PATH)).withQueryParam(DB_IDENTIFIER, equalTo("true"))
                            .withQueryParam(LIMIT_IDENTIFIER, equalTo(LIMIT_VALUE))
                            .withQueryParam(BIRTHDATE_IDENTIFIER, equalTo(nin.getBirthDate()))
                            .withQueryParam(PERSONAL_NUMBER_IDENTIFIER, equalTo(nin.getPersonalNumber()))
@@ -412,7 +423,7 @@ public class FsMock {
     }
 
     private void addResponseWhenForPersonNotRegisteredInFs(NationalIdentityNumber nin) {
-        server.stubFor(get(urlPathEqualTo("/" + PERSON_PATH)).withQueryParam(DB_IDENTIFIER, equalTo("true"))
+        server.stubFor(get(urlPathEqualTo(PERSON_PATH)).withQueryParam(DB_IDENTIFIER, equalTo("true"))
                            .withQueryParam(LIMIT_IDENTIFIER, equalTo(LIMIT_VALUE))
                            .withQueryParam(BIRTHDATE_IDENTIFIER, equalTo(nin.getBirthDate()))
                            .withQueryParam(PERSONAL_NUMBER_IDENTIFIER, equalTo(nin.getPersonalNumber()))
@@ -420,7 +431,7 @@ public class FsMock {
                                            .withBody(fsPersonNotFoundResponse())));
     }
 
-    private void addResponseForGettingCoursesStudentByFsIdNumber(NationalIdentityNumber nin, Integer year) {
+    private void addResponseForGettingStudentCoursesByFsIdNumber(NationalIdentityNumber nin, Integer year) {
         server.stubFor(get(urlPathEqualTo(STUDENT_TEACHING_PATH)).withQueryParam(DB_IDENTIFIER, equalTo("true"))
                            .withQueryParam(LIMIT_IDENTIFIER, equalTo(LIMIT_VALUE))
                            .withQueryParam(FS_PERSON_ID_NUMBER_PATH,

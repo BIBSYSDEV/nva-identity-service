@@ -7,9 +7,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
-import java.sql.Array;
 import java.time.Year;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +61,7 @@ public class FsApi {
     @JacocoGenerated
     public List<FsCourse> getCourses(NationalIdentityNumber nin) throws IOException, InterruptedException {
         var fsId = getFsId(nin);
-        var coursesIfStudent = getCoursesToStudent(fsId);
+
         var roles = getRolesToStaffPerson(fsId);
 
         var coursesUri = roles.stream()
@@ -76,9 +74,12 @@ public class FsApi {
                                  .map(Try::orElseThrow)
                                  .collect(Collectors.toList());
 
-        var allCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream()).collect(Collectors.toList());
+        var coursesIfStudent = getCoursesToStudent(fsId);
 
-        if(allCourses == null) {
+        var allCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream())
+                             .collect(Collectors.toList());
+
+        if (allCourses == null) {
             return Collections.emptyList();
         }
         return allCourses;
@@ -106,17 +107,18 @@ public class FsApi {
         var responseBody = getResponse(createSearchCourseUri(fsIdNumber)).body();
         var fsCoursesSearchResult = FsCoursesSearchResult.fromJson(responseBody);
 
-        if(fsCoursesSearchResult.getItems() == null) {
+        if (fsCoursesSearchResult.getItems() == null) {
             return Collections.emptyList();
         }
         return fsCoursesSearchResult.getItems().stream().map(c -> c.getId().getCourse()).collect(Collectors.toList());
     }
 
-    public List<FsRoleToStaffPerson> getRolesToStaffPerson(FsIdNumber fsIdNumber) throws IOException, InterruptedException {
+    public List<FsRoleToStaffPerson> getRolesToStaffPerson(FsIdNumber fsIdNumber)
+        throws IOException, InterruptedException {
         var responseBody = getResponse(createSearchRolesToStaffPersonUri(fsIdNumber)).body();
         var fsRolesSearchResult = FsRolesToPersonSearchResult.fromJson(responseBody);
 
-        if(fsRolesSearchResult.getItems() == null) {
+        if (fsRolesSearchResult.getItems() == null) {
             return Collections.emptyList();
         }
         return fsRolesSearchResult.getItems();

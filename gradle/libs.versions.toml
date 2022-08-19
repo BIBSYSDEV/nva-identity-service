@@ -1,5 +1,5 @@
 [versions]
-nvaCommons = { strictly = '1.25.0' }
+nvaCommons = { strictly = '1.25.2' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.17.191' }
@@ -82,7 +82,7 @@ dynamoDbLocal = { group = 'com.amazonaws', name = 'DynamoDBLocal', version.ref =
 nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nvaCommons' }
 hamcrest-jackson = { group = 'com.spotify', name = 'hamcrest-jackson', version.ref = 'hamcrestJackson' }
 
-wiremock = { group = 'com.github.tomakehurst', name = 'wiremock-jre-standalone', version.ref = 'wiremock' }
+wiremock = { group = 'com.github.tomakehurst', name = 'wiremock-jre8', version.ref = 'wiremock' }
 
 apiguardian-api = { group = 'org.apiguardian', name = 'apiguardian-api', version.ref = 'apiGuardian' }
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }

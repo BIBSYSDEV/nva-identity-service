@@ -51,6 +51,7 @@ class CustomerDtoTest {
                    .withName(randomString())
                    .withFeideOrganizationDomain(randomString())
                    .withCristinId(randomUri())
+                   .withCustomerOf(randomApplicationDomain())
                    .withCreatedDate(randomInstant())
                    .withModifiedDate(randomInstant())
                    .withVocabularies(randomVocabularies())
@@ -61,5 +62,9 @@ class CustomerDtoTest {
 
     private Collection<VocabularyDto> randomVocabularies() {
         return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
+    }
+
+    private ApplicationDomain randomApplicationDomain() {
+        return ApplicationDomain.NVA;
     }
 }

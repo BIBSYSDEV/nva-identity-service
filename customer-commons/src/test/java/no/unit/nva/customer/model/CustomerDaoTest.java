@@ -81,6 +81,7 @@ class CustomerDaoTest {
         CustomerDto customer = CustomerDto.builder()
                                    .withName(randomString())
                                    .withCristinId(randomUri())
+                                   .withCustomerOf(randomApplicationDomain())
                                    .withFeideOrganizationDomain(randomString())
                                    .withModifiedDate(randomInstant())
                                    .withIdentifier(identifier)
@@ -99,6 +100,10 @@ class CustomerDaoTest {
 
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
+    }
+
+    private ApplicationDomain randomApplicationDomain() {
+        return ApplicationDomain.NVA;
     }
 
     private Set<VocabularyDto> randomVocabularyDtoSettings() {

@@ -17,6 +17,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -32,25 +33,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList> {
-
+    
     private static final Logger logger = LoggerFactory.getLogger(IdentityServiceInitHandler.class);
     public static final URI SIKT_CRISTIN_ID = URI.create(new Environment().readEnv("SIKT_CRISTIN_ID"));
     public static final String SIKT = "Sikt";
-
+    
     private final IdentityService identityService;
     private final CustomerService customerService;
-
+    
     @JacocoGenerated
     public IdentityServiceInitHandler() {
         this(IdentityService.defaultIdentityService(), defaultCustomerService());
     }
-
+    
     public IdentityServiceInitHandler(IdentityService identityService, CustomerService customerService) {
         super(Void.class);
         this.identityService = identityService;
         this.customerService = customerService;
     }
-
+    
     @Override
     protected RoleList processInput(Void input, RequestInfo requestInfo, Context context) {
         var defaultRoles = createDefaultRoles()
@@ -59,61 +60,62 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
             .map(attempt -> attempt.toOptional(fail -> logError(fail.getException())))
             .flatMap(Optional::stream)
             .collect(Collectors.toSet());
-
+        
         createSiktCustomer();
-
+        
         return new RoleList(defaultRoles);
     }
-
+    
     private void createSiktCustomer() {
         var customer = CustomerDto.builder().withCristinId(SIKT_CRISTIN_ID)
-            .withFeideOrganizationDomain("sikt.no")
-            .withCname(SIKT)
-            .withName(SIKT)
-            .withDisplayName(SIKT)
-            .withShortName(SIKT)
+                           .withFeideOrganizationDomain("sikt.no")
+                           .withCname(SIKT)
+                           .withName(SIKT)
+                           .withDisplayName(SIKT)
+                           .withShortName(SIKT)
+                           .withCustomerOf(ApplicationDomain.NVA)
             .build();
         attempt(() -> customerService.createCustomer(customer)).orElseThrow();
     }
-
+    
     @Override
     protected Integer getSuccessStatusCode(Void input, RoleList output) {
         return HttpURLConnection.HTTP_OK;
     }
-
+    
     private void logError(Exception exception) {
         logger.warn(exception.getMessage());
     }
-
+    
     private RoleDto addRole(RoleDto role) throws ConflictException, InvalidInputException {
         logger.info("Adding role:{}", role);
         identityService.addRole(role);
         return role;
     }
-
+    
     private List<RoleDto> createDefaultRoles() {
         var creator = RoleDto.newBuilder().withRoleName("Creator").build();
         var curator = RoleDto.newBuilder().withRoleName("Curator")
             .withAccessRights(
                 List.of(APPROVE_DOI_REQUEST,
-                        REJECT_DOI_REQUEST,
-                        READ_DOI_REQUEST,
-                        EDIT_OWN_INSTITUTION_RESOURCES,
-                        APPROVE_PUBLISH_REQUEST))
+                    REJECT_DOI_REQUEST,
+                    READ_DOI_REQUEST,
+                    EDIT_OWN_INSTITUTION_RESOURCES,
+                    APPROVE_PUBLISH_REQUEST))
             .build();
         var institutionAdmin = RoleDto.newBuilder().withRoleName("Institution-admin")
             .withAccessRights(List.of(EDIT_OWN_INSTITUTION_RESOURCES,
-                                      EDIT_OWN_INSTITUTION_PROJECTS,
-                                      EDIT_OWN_INSTITUTION_USERS))
+                EDIT_OWN_INSTITUTION_PROJECTS,
+                EDIT_OWN_INSTITUTION_USERS))
             .build();
         var applicationAdmin = RoleDto.newBuilder().withRoleName("App-admin")
             .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
             .build();
-
+        
         var editor = RoleDto.newBuilder().withRoleName("Editor")
             .withAccessRights(List.of(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW))
             .build();
-
+        
         return List.of(creator, curator, institutionAdmin, applicationAdmin, editor);
     }
 }

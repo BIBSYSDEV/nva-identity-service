@@ -16,19 +16,19 @@ public enum ApplicationDomain {
     ApplicationDomain(URI uri) {
         this.uri = uri;
     }
-    
+
     public static ApplicationDomain fromUri(URI candidate) {
         return Arrays.stream(ApplicationDomain.values())
                    .filter(applicationDomain -> applicationDomain.getUri().equals(candidate))
                    .collect(SingletonCollector.collect());
     }
-    
+
     @JsonValue
     @Override
     public String toString() {
         return this.uri.toString();
     }
-    
+
     public URI getUri() {
         return this.uri;
     }

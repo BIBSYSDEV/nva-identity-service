@@ -37,109 +37,107 @@ import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
 public class UpdateCustomerHandlerTest {
-    
+
     private CustomerService customerServiceMock;
     private UpdateCustomerHandler handler;
     private ByteArrayOutputStream outputStream;
     private Context context;
-    
+
     /**
      * Setting up test environment.
      */
     @BeforeEach
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
-    
+
         handler = new UpdateCustomerHandler(customerServiceMock);
         outputStream = new ByteArrayOutputStream();
         context = new FakeContext();
     }
-    
+
     @Test
     void shouldReturnOkForValidRequest() throws IOException, InputException, NotFoundException {
         CustomerDto customer = createCustomer(UUID.randomUUID());
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
-        
-        var request = new HandlerRequestBuilder<String>(dtoObjectMapper)
-                          .withPathParameters(Map.of("identifier", "b8c3e125-cadb-43d5-823a-2daa7768c3f9"))
+
+        var request = new HandlerRequestBuilder<String>(dtoObjectMapper).withPathParameters(
+                Map.of("identifier", "b8c3e125-cadb-43d5-823a-2daa7768c3f9"))
                           .withBody(stringFromResources(Path.of("update_request.json")))
                           .build();
-        
+
         var response = sendRequest(request, CustomerDto.class);
-        
+
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
-    
+
     @Test
     void requestToHandlerReturnsCustomerUpdated() throws InputException, NotFoundException, IOException {
         UUID identifier = UUID.randomUUID();
         CustomerDto customer = createCustomer(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
-        
+
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var input = createInput(customer, pathParameters);
-        
+
         var response = sendRequest(input, CustomerDto.class);
-        
+
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE), is(equalTo(MediaType.JSON_UTF_8.toString())));
     }
-    
+
     @Test
     void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws IOException {
         String malformedIdentifier = "for-testing";
         CustomerDto customer = createCustomer(UUID.randomUUID());
-        
+
         Map<String, String> pathParameters = Map.of(IDENTIFIER, malformedIdentifier);
         var request = createInput(customer, pathParameters);
-        
+
         var response = sendRequest(request, Problem.class);
-        
+
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
         assertThat(response.getBody(),
-            containsString(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID + malformedIdentifier));
+                   containsString(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID + malformedIdentifier));
     }
-    
+
     @Test
     void shouldReturnBadRequestForMalformedObject() throws IOException {
-        
+
         var pathParameters = Map.of(IDENTIFIER, UUID.randomUUID().toString());
-        var request = new HandlerRequestBuilder<String>(dtoObjectMapper)
-                          .withBody(randomString())
+        var request = new HandlerRequestBuilder<String>(dtoObjectMapper).withBody(randomString())
                           .withHeaders(getRequestHeaders())
                           .withPathParameters(pathParameters)
                           .build();
-        
+
         var response = sendRequest(request, Problem.class);
-        
+
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
-    
+
     //TODO
     @Test
     void shouldReturnPublicationWorkflowWhenValueIsSet() {
-    
+
     }
-    
+
     //TODO
     @Test
     void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() {
     }
-    
+
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, context);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
-    
+
     private InputStream createInput(CustomerDto customer, Map<String, String> pathParameters)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
-                   .withBody(customer)
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
                    .withHeaders(getRequestHeaders())
                    .withPathParameters(pathParameters)
                    .build();
     }
-    
+
     private CustomerDto createCustomer(UUID uuid) {
         return CustomerDto.builder()
                    .withIdentifier(uuid)

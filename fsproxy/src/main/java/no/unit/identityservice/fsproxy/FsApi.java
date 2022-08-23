@@ -53,11 +53,11 @@ public class FsApi {
         this.httpClient = httpClient;
     }
 
+    @JacocoGenerated
     public FsApi() {
         this(HttpClient.newBuilder().build(), FS_HOST);
     }
 
-    @JacocoGenerated
     public List<FsCourse> fetchCoursesForPerson(NationalIdentityNumber nin) throws IOException, InterruptedException {
         var fsId = getFsId(nin);
         var coursesIfStaff = fetchCoursesForTeachingEmployees(fsId);

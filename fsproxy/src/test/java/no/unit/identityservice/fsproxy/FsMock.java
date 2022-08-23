@@ -104,27 +104,14 @@ public class FsMock {
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
                                                                 .map(this::createUriToCourseActivity)
                                                                 .collect(Collectors.toList());
-        for (FsRoleToStaffPerson role : roles) {
-            for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
-                coursesToRoles.put(role, uriToCourseActivity);
-            }
-        }
+        mapRolesToUri(roles, uriToCourseActivities);
 
         List<FsCourseActivity> coursesToStaffPerson = uriToCourseActivities.stream()
                                                           .map(this::createCourseActivity)
                                                           .collect(Collectors.toList());
-        for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
-            for (FsCourseActivity toStaffPerson : coursesToStaffPerson) {
-                courseActivities.put(uriToCourseActivity, toStaffPerson);
-            }
-        }
+        mapCoursesToUri(uriToCourseActivities, coursesToStaffPerson);
 
-        addPersonToFsInstance(nin);
-        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
-        addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR);
-        addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), Year.now().getValue());
-        roles.forEach(this::addResponseForGettingCourseActivityToRoleUri);
-        uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
+        addAllResponsesToCreatePerson(nin, person, roles, uriToCourseActivities);
 
         return nin;
     }
@@ -143,27 +130,14 @@ public class FsMock {
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
                                                                 .map(this::createUriToCourseActivity)
                                                                 .collect(Collectors.toList());
-        for (FsRoleToStaffPerson role : roles) {
-            for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
-                coursesToRoles.put(role, uriToCourseActivity);
-            }
-        }
+        mapRolesToUri(roles, uriToCourseActivities);
 
         List<FsCourseActivity> coursesToStaffPerson = uriToCourseActivities.stream()
                                                           .map(this::createCourseActivity)
                                                           .collect(Collectors.toList());
-        for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
-            for (FsCourseActivity toStaffPerson : coursesToStaffPerson) {
-                courseActivities.put(uriToCourseActivity, toStaffPerson);
-            }
-        }
+        mapCoursesToUri(uriToCourseActivities, coursesToStaffPerson);
 
-        addPersonToFsInstance(nin);
-        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
-        addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR);
-        addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), Year.now().getValue());
-        roles.forEach(this::addResponseForGettingCourseActivityToRoleUri);
-        uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
+        addAllResponsesToCreatePerson(nin, person, roles, uriToCourseActivities);
 
         return nin;
     }
@@ -182,27 +156,15 @@ public class FsMock {
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
                                                                 .map(this::createUriToCourseActivity)
                                                                 .collect(Collectors.toList());
-        for (FsRoleToStaffPerson role : roles) {
-            for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
-                coursesToRoles.put(role, uriToCourseActivity);
-            }
-        }
+        mapRolesToUri(roles, uriToCourseActivities);
 
         List<FsCourseActivity> coursesToStaffPerson = uriToCourseActivities.stream()
                                                           .map(this::createCourseActivity)
                                                           .collect(Collectors.toList());
-        for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
-            for (FsCourseActivity toStaffPerson : coursesToStaffPerson) {
-                courseActivities.put(uriToCourseActivity, toStaffPerson);
-            }
-        }
+        mapCoursesToUri(uriToCourseActivities, coursesToStaffPerson);
 
-        addPersonToFsInstance(nin);
-        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
-        addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR);
-        addResponseForGettingRolesToStaffPerson(student.getFsIdNumber(), Year.now().getValue());
-        roles.forEach(this::addResponseForGettingCourseActivityToRoleUri);
-        uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
+        addAllResponsesToCreatePerson(nin, student, roles, uriToCourseActivities);
+
         return nin;
     }
 
@@ -220,43 +182,14 @@ public class FsMock {
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
                                                                 .map(this::createUriToCourseActivity)
                                                                 .collect(Collectors.toList());
-        for (FsRoleToStaffPerson role : roles) {
-            for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
-                coursesToRoles.put(role, uriToCourseActivity);
-            }
-        }
+        mapRolesToUri(roles, uriToCourseActivities);
 
         List<FsCourseActivity> coursesToStaffPerson = uriToCourseActivities.stream()
                                                           .map(this::createCourseActivity)
                                                           .collect(Collectors.toList());
-        for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
-            for (FsCourseActivity toStaffPerson : coursesToStaffPerson) {
-                courseActivities.put(uriToCourseActivity, toStaffPerson);
-            }
-        }
+        mapCoursesToUri(uriToCourseActivities, coursesToStaffPerson);
 
-        addResponseForGettingRolesToStaffPerson(staffPerson.getFsIdNumber(), Year.now().getValue());
-        roles.forEach(this::addResponseForGettingCourseActivityToRoleUri);
-        uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
-        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
-        addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR);
-        addPersonToFsInstance(nin);
-
-        return nin;
-    }
-
-    public NationalIdentityNumber createStudentWithoutCourses() {
-        var nin = randomNin();
-        var student = new FsPerson(randomFsIdNumber(), randomString(), randomString(), randomString());
-        personEntries.put(nin, student);
-
-        List<FsCourse> coursesToStudent = new ArrayList<>();
-        coursesForStudents.put(nin, coursesToStudent);
-
-        addPersonToFsInstance(nin);
-        addResponseForGettingRolesToStaffPerson(student.getFsIdNumber(), Year.now().getValue());
-        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
-        coursesToStudent.forEach(course -> addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR));
+        addAllResponsesToCreatePerson(nin, staffPerson, roles, uriToCourseActivities);
 
         return nin;
     }
@@ -310,25 +243,32 @@ public class FsMock {
         return courseActivity;
     }
 
-    public FsIdNumber createPersonWithRoles() {
-        var person = new FsPerson(randomFsIdNumber(), randomString(), randomString(), randomString());
-
-        var rolesEntry = IntStream.range(0, smallNumber())
-                             .boxed()
-                             .map(index -> createRole())
-                             .collect(Collectors.toList());
-
-        personRoles.put(person.getFsIdNumber(), rolesEntry);
-        addResponseForGettingRolesToStaffPerson(person.getFsIdNumber(), Year.now().getValue());
-        return person.getFsIdNumber();
+    private void mapCoursesToUri(List<FsUriToCourseActivity> uriToCourseActivities,
+                                 List<FsCourseActivity> coursesToStaffPerson) {
+        for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
+            for (FsCourseActivity toStaffPerson : coursesToStaffPerson) {
+                courseActivities.put(uriToCourseActivity, toStaffPerson);
+            }
+        }
     }
 
-    public List<FsRoleToStaffPerson> getRoles(FsIdNumber fsIdNumber) {
-        return personRoles.get(fsIdNumber);
+    private void mapRolesToUri(List<FsRoleToStaffPerson> roles, List<FsUriToCourseActivity> uriToCourseActivities) {
+        for (FsRoleToStaffPerson role : roles) {
+            for (FsUriToCourseActivity uriToCourseActivity : uriToCourseActivities) {
+                coursesToRoles.put(role, uriToCourseActivity);
+            }
+        }
     }
 
-    public FsPerson getPersonEntry(NationalIdentityNumber somePerson) {
-        return personEntries.get(somePerson);
+    private void addAllResponsesToCreatePerson(NationalIdentityNumber nin, FsPerson student,
+                                               List<FsRoleToStaffPerson> roles,
+                                               List<FsUriToCourseActivity> uriToCourseActivities) {
+        addPersonToFsInstance(nin);
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
+        addResponseForGettingStudentCoursesByFsIdNumber(nin, NEXT_YEAR);
+        addResponseForGettingRolesToStaffPerson(student.getFsIdNumber(), Year.now().getValue());
+        roles.forEach(this::addResponseForGettingCourseActivityToRoleUri);
+        uriToCourseActivities.forEach(this::addResponseForGettingCourseToStaffPerson);
     }
 
     private URI randomUri() {
@@ -353,10 +293,6 @@ public class FsMock {
 
     private int smallNumber() {
         return 2 + randomInteger(10);
-    }
-
-    private int randomSemesterNumber() {
-        return 1 + randomInteger(4);
     }
 
     private NationalIdentityNumber randomNin() {

@@ -8,8 +8,11 @@ import nva.commons.core.JacocoGenerated;
 
 public class FsCourse {
 
+    @SuppressWarnings("PMD")
     @JsonProperty("emne")
     private FsSubject subject;
+
+    @SuppressWarnings("PMD")
     @JsonProperty("semester")
     private FsSemester semester;
 

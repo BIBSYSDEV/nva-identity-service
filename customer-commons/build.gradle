@@ -15,7 +15,6 @@ dependencies {
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.urlconnection
 
-    testImplementation 'io.github.ganadist.sqlite4java:libsqlite4java-osx-aarch64:1.0.392'
     testImplementation project (":customer-testing")
 }
 

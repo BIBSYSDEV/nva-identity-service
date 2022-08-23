@@ -1032,6 +1032,25 @@ Resources:
       Timestamp: '${BUILD_TIMESTAMP}'
       AuthorizerArn: !GetAtt UserPool.Arn
 
+  NvApplicationDomainHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Handler: no.unit.nva.customer.NvaApplicationDomainHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserRoleMappings
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /roles
+            Method: post
+            RestApiId: !Ref UsersAndRolesApi
+
 ### New Cognito ########################################################################################################
 
   UserPoolName:

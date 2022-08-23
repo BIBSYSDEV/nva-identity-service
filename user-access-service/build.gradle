@@ -24,7 +24,6 @@ dependencies {
     implementation libs.slf4j
     implementation libs.bundles.aws.lambda
 
-    testImplementation group: 'io.github.ganadist.sqlite4java', name: 'libsqlite4java-osx-aarch64', version: '1.0.392'
     testImplementation project(':user-access-testing')
 
 }

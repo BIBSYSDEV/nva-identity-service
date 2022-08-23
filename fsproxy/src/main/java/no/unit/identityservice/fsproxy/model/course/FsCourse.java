@@ -5,18 +5,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
 
-@SuppressWarnings("PMD")
 
 public class FsCourse {
 
     @JsonProperty("emne")
-    final FsSubject subject;
+    private FsSubject subject;
     @JsonProperty("semester")
-    final FsSemester semester;
+    private FsSemester semester;
 
     @JsonCreator
-    public FsCourse(@JsonProperty("emne") FsSubject subject,
-                    @JsonProperty("semester") FsSemester semester) {
+    public FsCourse(@JsonProperty("emne") FsSubject subject, @JsonProperty("semester") FsSemester semester) {
         this.subject = subject;
         this.semester = semester;
     }
@@ -47,5 +45,4 @@ public class FsCourse {
     public FsSemester getSemester() {
         return semester;
     }
-
 }

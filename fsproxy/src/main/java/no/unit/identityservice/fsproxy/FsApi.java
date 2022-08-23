@@ -53,36 +53,16 @@ public class FsApi {
         this.httpClient = httpClient;
     }
 
-    @JacocoGenerated
     public FsApi() {
         this(HttpClient.newBuilder().build(), FS_HOST);
     }
 
     @JacocoGenerated
-    public List<FsCourse> getCourses(NationalIdentityNumber nin) throws IOException, InterruptedException {
+    public List<FsCourse> fetchCoursesForPerson(NationalIdentityNumber nin) throws IOException, InterruptedException {
         var fsId = getFsId(nin);
-
-        var roles = getRolesToStaffPerson(fsId);
-
-        var coursesUri = roles.stream()
-                             .map(attempt(this::getCourseActivityUriToGivenRole))
-                             .map(Try::orElseThrow)
-                             .collect(Collectors.toList());
-
-        var coursesIfStaff = coursesUri.stream()
-                                 .map(attempt(this::getCourseToStaffPersonGivenUriToCourse))
-                                 .map(Try::orElseThrow)
-                                 .collect(Collectors.toList());
-
+        var coursesIfStaff = fetchCoursesForTeachingEmployees(fsId);
         var coursesIfStudent = getCoursesToStudent(fsId);
-
-        var allCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream())
-                             .collect(Collectors.toList());
-
-        if (allCourses == null) {
-            return Collections.emptyList();
-        }
-        return allCourses;
+        return Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream()).collect(Collectors.toList());
     }
 
     public FsCourse getCourseToStaffPersonGivenUriToCourse(FsUriToCourseActivity course)
@@ -106,11 +86,10 @@ public class FsApi {
     public List<FsCourse> getCoursesToStudent(FsIdNumber fsIdNumber) throws IOException, InterruptedException {
         var responseBody = getResponse(createSearchCourseUri(fsIdNumber)).body();
         var fsCoursesSearchResult = FsCoursesSearchResult.fromJson(responseBody);
-
-        if (fsCoursesSearchResult.getItems() == null) {
-            return Collections.emptyList();
-        }
-        return fsCoursesSearchResult.getItems().stream().map(c -> c.getId().getCourse()).collect(Collectors.toList());
+        return fsCoursesSearchResult.getItems() == null ? Collections.emptyList() : fsCoursesSearchResult.getItems()
+                                                                             .stream()
+                                                                             .map(c -> c.getId().getCourse())
+                                                                             .collect(Collectors.toList());
     }
 
     public List<FsRoleToStaffPerson> getRolesToStaffPerson(FsIdNumber fsIdNumber)
@@ -118,10 +97,7 @@ public class FsApi {
         var responseBody = getResponse(createSearchRolesToStaffPersonUri(fsIdNumber)).body();
         var fsRolesSearchResult = FsRolesToPersonSearchResult.fromJson(responseBody);
 
-        if (fsRolesSearchResult.getItems() == null) {
-            return Collections.emptyList();
-        }
-        return fsRolesSearchResult.getItems();
+        return fsRolesSearchResult == null ? Collections.emptyList() : fsRolesSearchResult.getItems();
     }
 
     public FsUriToCourseActivity getCourseActivityUriToGivenRole(FsRoleToStaffPerson role)
@@ -135,6 +111,25 @@ public class FsApi {
     private static URI readFsHost() {
         var hostUriString = ENVIRONMENT.readEnv("FS_HOST");
         return URI.create(hostUriString);
+    }
+
+    private List<FsCourse> fetchCoursesForTeachingEmployees(FsIdNumber fsId) throws IOException, InterruptedException {
+        var roles = getRolesToStaffPerson(fsId);
+        var coursesUri = fetchAllCourseUrisBasedOnRolesOfEmployee(roles);
+        return fetchCourseDetails(coursesUri);
+    }
+
+    private List<FsCourse> fetchCourseDetails(Stream<FsUriToCourseActivity> coursesUri) {
+        return coursesUri.map(attempt(this::getCourseToStaffPersonGivenUriToCourse))
+                   .map(Try::orElseThrow)
+                   .collect(Collectors.toList());
+    }
+
+    private Stream<FsUriToCourseActivity> fetchAllCourseUrisBasedOnRolesOfEmployee(List<FsRoleToStaffPerson> roles) {
+        if (roles == null) {
+            return Stream.empty();
+        }
+        return roles.stream().map(attempt(this::getCourseActivityUriToGivenRole)).map(Try::orElseThrow);
     }
 
     private HttpResponse<String> getResponse(URI uri) throws IOException, InterruptedException {

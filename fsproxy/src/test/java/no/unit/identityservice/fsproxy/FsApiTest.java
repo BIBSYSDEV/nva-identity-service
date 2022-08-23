@@ -33,14 +33,14 @@ public class FsApiTest {
     void shouldThrowExceptionWhenPersonIsNotFoundInFs() {
         var personNotInFs = fsMock.createResponseForPersonNotInFs();
 
-        assertThrows(UserPrincipalNotFoundException.class, () -> fsApi.getCourses(personNotInFs));
+        assertThrows(UserPrincipalNotFoundException.class, () -> fsApi.fetchCoursesForPerson(personNotInFs));
     }
 
     @Test
     void shouldReturnCoursesIfPersonIsStaffPersonOnly() throws IOException, InterruptedException {
         var staffPerson = fsMock.createStaffPerson();
         var expectedCourses = fsMock.getCoursesToStaffPerson();
-        var actualCourses = fsApi.getCourses(staffPerson);
+        var actualCourses = fsApi.fetchCoursesForPerson(staffPerson);
         assertThat(actualCourses, is(equalTo(expectedCourses)));
     }
 
@@ -48,7 +48,7 @@ public class FsApiTest {
     void shouldReturnCoursesIfPersonIsStudentOnly() throws IOException, InterruptedException {
         var student = fsMock.createStudent();
         var expectedCourses = fsMock.getStudentCourses(student);
-        var actualCourses = fsApi.getCourses(student);
+        var actualCourses = fsApi.fetchCoursesForPerson(student);
         assertThat(actualCourses, is(equalTo(expectedCourses)));
     }
 
@@ -59,7 +59,7 @@ public class FsApiTest {
         var coursesIfStaff = fsMock.getCoursesToStaffPerson();
         var expectedCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream())
                                   .collect(Collectors.toList());
-        var actualCourses = fsApi.getCourses(somePerson);
+        var actualCourses = fsApi.fetchCoursesForPerson(somePerson);
 
         assertThat(actualCourses, is(equalTo(expectedCourses)));
     }
@@ -72,7 +72,7 @@ public class FsApiTest {
         var coursesIfStaff = fsMock.getCoursesToStaffPerson();
         var expectedCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream())
                                   .collect(Collectors.toList());
-        var actualCourses = fsApi.getCourses(somePerson);
+        var actualCourses = fsApi.fetchCoursesForPerson(somePerson);
 
         assertThat(actualCourses, is(equalTo(expectedCourses)));
     }

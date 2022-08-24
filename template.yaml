@@ -1032,24 +1032,24 @@ Resources:
       Timestamp: '${BUILD_TIMESTAMP}'
       AuthorizerArn: !GetAtt UserPool.Arn
 
-  NvaApplicationDomainHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.NvaApplicationDomainHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /{identifier}
-            Method: put
-            RestApiId: !Ref NvaCustomerApi
+#  NvaApplicationDomainHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.NvaApplicationDomainHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path:
+#            Method: put
+#            RestApiId: !Ref NvaCustomerApi
 
 ### New Cognito ########################################################################################################
 

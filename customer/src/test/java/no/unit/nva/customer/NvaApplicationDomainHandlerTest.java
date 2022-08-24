@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 
 public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabase {
 
-    private DynamoDBCustomerService customerService;
     private NvaApplicationDomainHandler handler;
     private Context context;
     private Void input;
@@ -18,7 +17,8 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
 
     @BeforeEach
     public void setUp() {
-        customerService = new DynamoDBCustomerService(this.dynamoClient);
+        super.setupDatabase();
+        var customerService = new DynamoDBCustomerService(this.dynamoClient);
         handler = new NvaApplicationDomainHandler(customerService);
         context = new FakeContext();
 

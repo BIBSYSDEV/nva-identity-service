@@ -41,10 +41,6 @@ public class FsCourse {
         return subject.equals(that.subject) && semester.equals(that.semester);
     }
 
-    public FsSubject getSubject() {
-        return subject;
-    }
-
     public FsSemester getSemester() {
         return semester;
     }

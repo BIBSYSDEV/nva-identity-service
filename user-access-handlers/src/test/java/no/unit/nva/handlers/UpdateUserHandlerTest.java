@@ -38,7 +38,6 @@ import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,151 +45,144 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.zalando.problem.Problem;
 
 public class UpdateUserHandlerTest extends HandlerTest {
-
+    
     public static final String SAMPLE_ROLE = "someRole";
     public static final String SAMPLE_USERNAME = "some@somewhere";
     public static final URI SAMPLE_INSTITUTION = randomCristinOrgId();
-
+    
     public static final String ANOTHER_ROLE = "ANOTHER_ROLE";
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
     private IdentityServiceImpl databaseService;
     private Context context;
     private ByteArrayOutputStream outputStream;
-
+    
     @BeforeEach
     public void init() {
         databaseService = new IdentityServiceImpl(initializeTestDatabase());
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }
-
-    @DisplayName("handleRequest() returns Location header with the URI to updated user when path contains "
-                 + "an existing user id, and the body contains a valid UserDto and path id is the same as the body id ")
-    @Test
-    void handleRequestReturnsUpdatedUserWhenPathAndBodyContainTheSameUserIdAndTheIdExistsAndBodyIsValid()
-        throws ApiGatewayException, IOException {
-
-        UserDto userUpdate = createUserUpdateOnExistingUser();
-        var gatewayResponse = sendUpdateRequest(userUpdate.getUsername(), userUpdate, UserDto.class);
-        Map<String, String> responseHeaders = gatewayResponse.getHeaders();
-
-        assertThat(responseHeaders, hasKey(LOCATION_HEADER));
-        String expectedLocationPath = UpdateUserHandler.USERS_RELATIVE_PATH + userUpdate.getUsername();
-        assertThat(responseHeaders.get(LOCATION_HEADER), is(equalTo(expectedLocationPath)));
-    }
-
-    @DisplayName("handleRequest() can process URL encoded usernames")
-    @Test
-    void handleRequestCanProcessUrlEncodedUsernames()
-        throws ApiGatewayException, IOException {
-
-        UserDto userUpdate = createUserUpdateOnExistingUser();
-
-        String encodedUsername = encodeString(userUpdate.getUsername());
-        var gatewayResponse = sendUpdateRequest(encodedUsername, userUpdate, UserDto.class);
-        Map<String, String> responseHeaders = gatewayResponse.getHeaders();
-
-        assertThat(responseHeaders, hasKey(LOCATION_HEADER));
-
-        String expectedLocationPath = UpdateUserHandler.USERS_RELATIVE_PATH + userUpdate.getUsername();
-        assertThat(responseHeaders.get(LOCATION_HEADER), is(equalTo(expectedLocationPath)));
-    }
-
+    
     @DisplayName("handleRequest() returns 202 (Accepted)  when path contains "
                  + "an existing user id, and the body contains a valid UserDto and path id is the same as the body id ")
     @Test
     public void processInputReturnsAcceptedWhenPathAndBodyContainTheSameUserIdAndTheIdExistsAndBodyIsValid()
         throws ApiGatewayException, IOException {
-
+        
         UserDto userUpdate = createUserUpdateOnExistingUser();
-
+        
         var gatewayResponse = sendUpdateRequest(userUpdate.getUsername(), userUpdate, UserDto.class);
-
+        
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_ACCEPTED)));
     }
-
+    
     @DisplayName("handleRequest() returns BadRequest  when path contains an Id that is different from the Id"
                  + "of the input Object")
     @Test
     public void processInputReturnsBadRequestWhenPathContainsIdDifferentFromIdOfInputObject()
         throws ApiGatewayException, IOException {
-
+        
         UserDto userUpdate = userUpdateOnExistingUser();
         UserDto anotherExistingUser = anotherUserInDatabase();
         String falseUsername = anotherExistingUser.getUsername();
         var gatewayResponse = sendUpdateRequest(falseUsername, userUpdate, Problem.class);
-
+        
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
         assertThat(gatewayResponse.getBody(), containsString(INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR));
     }
-
-    @DisplayName("handleRequest() returns BadRequest when input object is invalid")
-    @Test
-    void processInputReturnsBadRequestWhenInputObjectIsInvalid()
-        throws ApiGatewayException, IOException {
-
-        var existingUser = storeUserInDatabase(sampleUser());
-        var userUpdate = createUserWithoutUsername();
-        var gatewayResponse = sendUpdateRequest(existingUser.getUsername(), userUpdate,Problem.class);
-
-        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
-        assertThat(gatewayResponse.getBody(), containsString(UserDto.USERNAME_FIELD));
-    }
-
-    @DisplayName("handleRequest() returns InternalServerError when handler is called without path parameter")
-    @Test
-    void processInputReturnsInternalServerErrorWhenHandlerIsCalledWithoutPathParameter()
-        throws ApiGatewayException, IOException {
-
-        UserDto userUpdate = createUserUpdateOnExistingUser();
-
-        var gatewayResponse = sendUpdateRequestWithoutPathParameters(userUpdate);
-
-        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_INTERNAL_SERVER_ERROR)));
-        assertThat(gatewayResponse.getBody(),
-                   containsString(MESSAGE_FOR_RUNTIME_EXCEPTIONS_HIDING_IMPLEMENTATION_DETAILS_TO_API_CLIENTS));
-    }
-
+    
     @DisplayName("handleRequest() returns NotFound when trying to update non existing user")
     @Test
     public void processInputReturnsNotFoundWhenHandlerWhenTryingToUpdateNonExistingUser()
         throws IOException {
-
+        
         UserDto nonExistingUser = sampleUser();
         var gatewayResponse =
-            sendUpdateRequest(nonExistingUser.getUsername(), nonExistingUser,Problem.class);
+            sendUpdateRequest(nonExistingUser.getUsername(), nonExistingUser, Problem.class);
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_NOT_FOUND)));
         assertThat(gatewayResponse.getBody(), containsString(USER_NOT_FOUND_MESSAGE));
     }
-
+    
+    @DisplayName("handleRequest() returns Location header with the URI to updated user when path contains "
+                 + "an existing user id, and the body contains a valid UserDto and path id is the same as the body id ")
     @Test
-    @Disabled("Jackson Jr does not give us this possibility for now (2.13.1)")
-    public void handleRequestReturnsBadRequestWhenInputUserHasNoType()
-        throws InvalidEntryInternalException {
-
+    void handleRequestReturnsUpdatedUserWhenPathAndBodyContainTheSameUserIdAndTheIdExistsAndBodyIsValid()
+        throws ApiGatewayException, IOException {
+        
+        UserDto userUpdate = createUserUpdateOnExistingUser();
+        var gatewayResponse = sendUpdateRequest(userUpdate.getUsername(), userUpdate, UserDto.class);
+        Map<String, String> responseHeaders = gatewayResponse.getHeaders();
+        
+        assertThat(responseHeaders, hasKey(LOCATION_HEADER));
+        String expectedLocationPath = UpdateUserHandler.USERS_RELATIVE_PATH + userUpdate.getUsername();
+        assertThat(responseHeaders.get(LOCATION_HEADER), is(equalTo(expectedLocationPath)));
     }
-
+    
+    @DisplayName("handleRequest() can process URL encoded usernames")
+    @Test
+    void handleRequestCanProcessUrlEncodedUsernames()
+        throws ApiGatewayException, IOException {
+        
+        UserDto userUpdate = createUserUpdateOnExistingUser();
+        
+        String encodedUsername = encodeString(userUpdate.getUsername());
+        var gatewayResponse = sendUpdateRequest(encodedUsername, userUpdate, UserDto.class);
+        Map<String, String> responseHeaders = gatewayResponse.getHeaders();
+        
+        assertThat(responseHeaders, hasKey(LOCATION_HEADER));
+        
+        String expectedLocationPath = UpdateUserHandler.USERS_RELATIVE_PATH + userUpdate.getUsername();
+        assertThat(responseHeaders.get(LOCATION_HEADER), is(equalTo(expectedLocationPath)));
+    }
+    
+    @DisplayName("handleRequest() returns BadRequest when input object is invalid")
+    @Test
+    void processInputReturnsBadRequestWhenInputObjectIsInvalid()
+        throws ApiGatewayException, IOException {
+        
+        var existingUser = storeUserInDatabase(sampleUser());
+        var userUpdate = createUserWithoutUsername();
+        var gatewayResponse = sendUpdateRequest(existingUser.getUsername(), userUpdate, Problem.class);
+        
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
+        assertThat(gatewayResponse.getBody(), containsString(UserDto.USERNAME_FIELD));
+    }
+    
+    @DisplayName("handleRequest() returns InternalServerError when handler is called without path parameter")
+    @Test
+    void processInputReturnsInternalServerErrorWhenHandlerIsCalledWithoutPathParameter()
+        throws ApiGatewayException, IOException {
+        
+        UserDto userUpdate = createUserUpdateOnExistingUser();
+        
+        var gatewayResponse = sendUpdateRequestWithoutPathParameters(userUpdate);
+        
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_INTERNAL_SERVER_ERROR)));
+        assertThat(gatewayResponse.getBody(),
+            containsString(MESSAGE_FOR_RUNTIME_EXCEPTIONS_HIDING_IMPLEMENTATION_DETAILS_TO_API_CLIENTS));
+    }
+    
     @ParameterizedTest
     @ValueSource(strings = {"##some?malformed?uri"})
     void shouldReturnBadRequestWhenInputViewingScopeContainsMalformedUris(String illegalUri)
         throws IOException {
         var userDto = sampleUser();
         var userJson = injectInvalidUriToViewingScope(illegalUri, userDto);
-        var response = sendUpdateRequest(userDto.getUsername(), userJson,Problem.class);
+        var response = sendUpdateRequest(userDto.getUsername(), userJson, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
-
+        
         assertThat(response.getBody(), containsString(illegalUri));
     }
-
+    
     private Map<String, Object> injectInvalidUriToViewingScope(String illegalUri, UserDto userDto)
         throws IOException {
         var userMap = JsonConfig.mapFrom(userDto.toString());
         HashMap<Object, Object> viewingScope = creteViewingScopeNodeWithIllegalUri(illegalUri);
         userMap.put(VIEWING_SCOPE_FIELD, viewingScope);
-
+        
         return userMap;
     }
-
+    
     private HashMap<Object, Object> creteViewingScopeNodeWithIllegalUri(String illegalUri) {
         var includedUnits = new ArrayList<String>();
         includedUnits.add(illegalUri);
@@ -198,32 +190,32 @@ public class UpdateUserHandlerTest extends HandlerTest {
         viewingScope.put(INCLUDED_UNITS, includedUnits);
         return viewingScope;
     }
-
+    
     private UserDto anotherUserInDatabase()
         throws InvalidEntryInternalException, ConflictException, NotFoundException {
         UserDto anotherExistingUser = sampleUser().copy().withUsername(SOME_OTHER_USERNAME).build();
         storeUserInDatabase(anotherExistingUser);
         return anotherExistingUser;
     }
-
+    
     private UserDto userUpdateOnExistingUser()
         throws ConflictException, InvalidEntryInternalException, NotFoundException {
         UserDto existingUser = storeUserInDatabase(sampleUser());
         return createUserUpdate(existingUser);
     }
-
+    
     private UserDto createUserUpdateOnExistingUser()
         throws ConflictException, InvalidEntryInternalException, NotFoundException {
         UserDto existingUser = storeUserInDatabase(sampleUser());
         return createUserUpdate(existingUser);
     }
-
+    
     private UserDto storeUserInDatabase(UserDto userDto)
         throws ConflictException, InvalidEntryInternalException, NotFoundException {
         databaseService.addUser(userDto);
         return databaseService.getUser(userDto);
     }
-
+    
     private <I, O> GatewayResponse<O> sendUpdateRequest(String userId, I userUpdate, Class<O> responseType)
         throws IOException {
         var updateUserHandler = new UpdateUserHandler(databaseService);
@@ -234,18 +226,18 @@ public class UpdateUserHandlerTest extends HandlerTest {
         updateUserHandler.handleRequest(input, outputStream, context);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
-
+    
     private GatewayResponse<Problem> sendUpdateRequestWithoutPathParameters(UserDto userUpdate)
         throws IOException {
         var updateUserHandler = new UpdateUserHandler(databaseService);
         var input = new HandlerRequestBuilder<UserDto>(dtoObjectMapper)
             .withBody(userUpdate)
             .build();
-
+        
         updateUserHandler.handleRequest(input, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream,Problem.class);
+        return GatewayResponse.fromOutputStream(outputStream, Problem.class);
     }
-
+    
     private UserDto sampleUser() throws InvalidEntryInternalException {
         RoleDto someRole = RoleDto.newBuilder().withRoleName(SAMPLE_ROLE).build();
         return UserDto.newBuilder()
@@ -255,13 +247,13 @@ public class UpdateUserHandlerTest extends HandlerTest {
             .withViewingScope(randomViewingScope())
             .build();
     }
-
+    
     private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {
         RoleDto someOtherRole = RoleDto.newBuilder().withRoleName(ANOTHER_ROLE).build();
-        return updateRoleList(userDto, someOtherRole);
+        return userDto.copy()
+            .withRoles(Collections.singletonList(someOtherRole))
+            .withViewingScope(randomViewingScope())
+            .build();
     }
-
-    private UserDto updateRoleList(UserDto userDto, RoleDto someOtherRole) throws InvalidEntryInternalException {
-        return userDto.copy().withRoles(Collections.singletonList(someOtherRole)).build();
-    }
+    
 }

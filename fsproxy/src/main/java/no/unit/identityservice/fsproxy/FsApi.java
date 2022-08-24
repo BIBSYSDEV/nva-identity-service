@@ -59,13 +59,13 @@ public class FsApi {
     }
 
     public List<FsCourse> fetchCoursesForPerson(NationalIdentityNumber nin) throws IOException, InterruptedException {
-        var fsId = getFsId(nin);
-        var coursesIfStaff = fetchCoursesForTeachingEmployees(fsId);
-        var coursesIfStudent = getCoursesToStudent(fsId);
+        var fsId = fetchFsId(nin);
+        var coursesIfStaff = fetchCoursesForStaffPerson(fsId);
+        var coursesIfStudent = fetchCoursesToStudent(fsId);
         return Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream()).collect(Collectors.toList());
     }
 
-    public FsCourse getCourseToStaffPersonGivenUriToCourse(FsUriToCourseActivity course)
+    public FsCourse fetchCourseToStaffPersonGivenUriToCourse(FsUriToCourseActivity course)
         throws IOException, InterruptedException {
         var responseBody = getResponse(createSearchCourseForStaffPersonUri(course)).body();
         var fsCourse = FsCourseActivity.fromJson(responseBody);
@@ -73,7 +73,7 @@ public class FsApi {
         return fsCourse.getCourse();
     }
 
-    public FsIdNumber getFsId(NationalIdentityNumber nin) throws IOException, InterruptedException {
+    public FsIdNumber fetchFsId(NationalIdentityNumber nin) throws IOException, InterruptedException {
         var responseBody = getResponse(createSearchPersonUri(nin)).body();
         var fsIdSearchResult = FsPersonSearchResponse.fromJson(responseBody);
 
@@ -83,16 +83,16 @@ public class FsApi {
                    .getFsIdNumber();
     }
 
-    public List<FsCourse> getCoursesToStudent(FsIdNumber fsIdNumber) throws IOException, InterruptedException {
+    public List<FsCourse> fetchCoursesToStudent(FsIdNumber fsIdNumber) throws IOException, InterruptedException {
         var responseBody = getResponse(createSearchCourseUri(fsIdNumber)).body();
         var fsCoursesSearchResult = FsCoursesSearchResult.fromJson(responseBody);
         return fsCoursesSearchResult.getItems() == null ? Collections.emptyList() : fsCoursesSearchResult.getItems()
-                                                                             .stream()
-                                                                             .map(c -> c.getId().getCourse())
-                                                                             .collect(Collectors.toList());
+                                                                                        .stream()
+                                                                                        .map(c -> c.getId().getCourse())
+                                                                                        .collect(Collectors.toList());
     }
 
-    public List<FsRoleToStaffPerson> getRolesToStaffPerson(FsIdNumber fsIdNumber)
+    public List<FsRoleToStaffPerson> fetchRolesToStaffPerson(FsIdNumber fsIdNumber)
         throws IOException, InterruptedException {
         var responseBody = getResponse(createSearchRolesToStaffPersonUri(fsIdNumber)).body();
         var fsRolesSearchResult = FsRolesToPersonSearchResult.fromJson(responseBody);
@@ -100,7 +100,7 @@ public class FsApi {
         return fsRolesSearchResult == null ? Collections.emptyList() : fsRolesSearchResult.getItems();
     }
 
-    public FsUriToCourseActivity getCourseActivityUriToGivenRole(FsRoleToStaffPerson role)
+    public FsUriToCourseActivity fetchCourseActivityUriToGivenRole(FsRoleToStaffPerson role)
         throws IOException, InterruptedException {
         var responseBody = getResponse(createSearchCourseToRoleUri(role)).body();
         var fsCourse = FsUriToCourseActivityContainer.fromJson(responseBody);
@@ -108,28 +108,23 @@ public class FsApi {
         return fsCourse.getCourseUri();
     }
 
-    private static URI readFsHost() {
-        var hostUriString = ENVIRONMENT.readEnv("FS_HOST");
-        return URI.create(hostUriString);
-    }
-
-    private List<FsCourse> fetchCoursesForTeachingEmployees(FsIdNumber fsId) throws IOException, InterruptedException {
-        var roles = getRolesToStaffPerson(fsId);
-        var coursesUri = fetchAllCourseUrisBasedOnRolesOfEmployee(roles);
+    private List<FsCourse> fetchCoursesForStaffPerson(FsIdNumber fsId) throws IOException, InterruptedException {
+        var roles = fetchRolesToStaffPerson(fsId);
+        var coursesUri = fetchAllCourseUrisBasedOnRolesOfStaffPerson(roles);
         return fetchCourseDetails(coursesUri);
     }
 
     private List<FsCourse> fetchCourseDetails(Stream<FsUriToCourseActivity> coursesUri) {
-        return coursesUri.map(attempt(this::getCourseToStaffPersonGivenUriToCourse))
+        return coursesUri.map(attempt(this::fetchCourseToStaffPersonGivenUriToCourse))
                    .map(Try::orElseThrow)
                    .collect(Collectors.toList());
     }
 
-    private Stream<FsUriToCourseActivity> fetchAllCourseUrisBasedOnRolesOfEmployee(List<FsRoleToStaffPerson> roles) {
+    private Stream<FsUriToCourseActivity> fetchAllCourseUrisBasedOnRolesOfStaffPerson(List<FsRoleToStaffPerson> roles) {
         if (roles == null) {
             return Stream.empty();
         }
-        return roles.stream().map(attempt(this::getCourseActivityUriToGivenRole)).map(Try::orElseThrow);
+        return roles.stream().map(attempt(this::fetchCourseActivityUriToGivenRole)).map(Try::orElseThrow);
     }
 
     private HttpResponse<String> getResponse(URI uri) throws IOException, InterruptedException {
@@ -185,5 +180,10 @@ public class FsApi {
         final String valueToEncode = this.username + ":" + this.password;
 
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+    }
+
+    private static URI readFsHost() {
+        var hostUriString = ENVIRONMENT.readEnv("FS_HOST");
+        return URI.create(hostUriString);
     }
 }

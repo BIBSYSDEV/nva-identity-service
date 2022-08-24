@@ -741,6 +741,26 @@ Resources:
             Path: /{identifier}
             Method: put
             RestApiId: !Ref NvaCustomerApi
+#  NvaUpdateCustomerApplicationDomainFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.NvaApplicationDomainHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path:
+#            Method:
+#            RestApiId: !Ref NvaCustomerApi
 
   NvaCustomerBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
@@ -1032,24 +1052,6 @@ Resources:
       Timestamp: '${BUILD_TIMESTAMP}'
       AuthorizerArn: !GetAtt UserPool.Arn
 
-#  NvaApplicationDomainHandler:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      CodeUri: customer
-#      Handler: no.unit.nva.customer.NvaApplicationDomainHandler::handleRequest
-#      Environment:
-#        Variables:
-#          ALLOWED_ORIGIN: '*'
-#      Policies:
-#        - DynamoDBCrudPolicy:
-#            TableName: !Ref NvaCustomersTable
-#      Events:
-#        ApiEvent:
-#          Type: Api
-#          Properties:
-#            Path:
-#            Method: put
-#            RestApiId: !Ref NvaCustomerApi
 
 ### New Cognito ########################################################################################################
 

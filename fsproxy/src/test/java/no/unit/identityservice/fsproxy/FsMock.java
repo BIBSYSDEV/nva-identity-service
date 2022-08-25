@@ -69,6 +69,7 @@ public class FsMock {
         coursesForStudents = new ConcurrentHashMap<>();
         coursesToRoles = new ConcurrentHashMap<>();
         courseActivities = new ConcurrentHashMap<>();
+        this.initialize();
     }
 
     public void initialize() {
@@ -260,8 +261,7 @@ public class FsMock {
         }
     }
 
-    private void addAllResponsesToCreatePerson(NationalIdentityNumber nin, FsPerson student,
-                                               List<FsRoleToStaffPerson> roles,
+    private void addAllResponsesToCreatePerson(NationalIdentityNumber nin, FsPerson student, List<FsRoleToStaffPerson> roles,
                                                List<FsUriToCourseActivity> uriToCourseActivities) {
         addPersonToFsInstance(nin);
         addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);

@@ -10,6 +10,8 @@ dependencies {
     implementation libs.nva.json
     implementation libs.bundles.jackson
     implementation libs.nva.apigateway
+    implementation libs.bundles.logging
+
 
 }
 

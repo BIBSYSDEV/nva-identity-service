@@ -25,7 +25,6 @@ public class FsApiTest {
     @BeforeEach
     void init() {
         fsMock = new FsMock();
-        fsMock.initialize();
         fsApi = new FsApi(fsMock.getHttpClient(), fsMock.getFsHostUri());
     }
 

@@ -27,6 +27,8 @@ import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FsApi {
 
@@ -43,10 +45,16 @@ public class FsApi {
     public static final String LIMIT_VALUE = "0";
     private static final Environment ENVIRONMENT = new Environment();
     public static final URI FS_HOST = readFsHost();
+    public static final String FETCH_FS_USER_EXCEPTION_MESSAGE = "Not possible to fetch fs id-number to user "
+                                                                 + "with following national number: ";
+    public static final String COURSES_FETCHED_SUCCESSFULLY = "Courses fetched successfully to user with"
+                                                              + " id-number ";
     private final String username = ENVIRONMENT.readEnv("FS_USERNAME");
     private final String password = ENVIRONMENT.readEnv("FS_PASSWORD");
     private final URI baseFsHostUrl;
     private final HttpClient httpClient;
+
+    private final Logger logger = LoggerFactory.getLogger(FsApi.class);
 
     public FsApi(HttpClient httpClient, URI baseFsHostUrl) {
         this.baseFsHostUrl = baseFsHostUrl;
@@ -62,6 +70,8 @@ public class FsApi {
         var fsId = fetchFsId(nin);
         var coursesIfStaff = fetchCoursesForStaffPerson(fsId);
         var coursesIfStudent = fetchCoursesToStudent(fsId);
+        logger.info(COURSES_FETCHED_SUCCESSFULLY + fsId);
+
         return Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream()).collect(Collectors.toList());
     }
 
@@ -78,7 +88,7 @@ public class FsApi {
         var fsIdSearchResult = FsPersonSearchResponse.fromJson(responseBody);
 
         return fsIdSearchResult.getSearchResult()
-                   .orElseThrow(() -> new UserPrincipalNotFoundException(nin.toString()))
+                   .orElseThrow(() -> new UserPrincipalNotFoundException(FETCH_FS_USER_EXCEPTION_MESSAGE + nin))
                    .getFsPerson()
                    .getFsIdNumber();
     }
@@ -86,6 +96,7 @@ public class FsApi {
     public List<FsCourse> fetchCoursesToStudent(FsIdNumber fsIdNumber) throws IOException, InterruptedException {
         var responseBody = getResponse(createSearchCourseUri(fsIdNumber)).body();
         var fsCoursesSearchResult = FsCoursesSearchResult.fromJson(responseBody);
+
         return fsCoursesSearchResult.getItems() == null ? Collections.emptyList() : fsCoursesSearchResult.getItems()
                                                                                         .stream()
                                                                                         .map(c -> c.getId().getCourse())
@@ -111,6 +122,7 @@ public class FsApi {
     private List<FsCourse> fetchCoursesForStaffPerson(FsIdNumber fsId) throws IOException, InterruptedException {
         var roles = fetchRolesToStaffPerson(fsId);
         var coursesUri = fetchAllCourseUrisBasedOnRolesOfStaffPerson(roles);
+
         return fetchCourseDetails(coursesUri);
     }
 

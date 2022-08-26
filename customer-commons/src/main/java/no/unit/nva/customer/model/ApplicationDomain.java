@@ -27,7 +27,7 @@ public enum ApplicationDomain {
     @JsonValue
     @Override
     public String toString() {
-        return this.uri.toString();
+        return uri.toString();
     }
 
     public URI getUri() {

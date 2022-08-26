@@ -110,7 +110,7 @@ public class DynamoDBCustomerService implements CustomerService {
         return sendQueryToIndex(queryObject, BY_CRISTIN_ID_INDEX_NAME, customer -> customer.getCristinId().toString());
     }
 
-    public List<CustomerDto> addCustomerOfNvaAttribute() {
+    public List<CustomerDto> updateCustomersWithNvaAttribute() {
         return table.scan()
                    .items()
                    .stream()

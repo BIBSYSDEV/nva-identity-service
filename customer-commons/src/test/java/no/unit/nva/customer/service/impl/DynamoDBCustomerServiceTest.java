@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.IntStream;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
@@ -271,16 +270,16 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldAddCustomerOffAttributeToExistingNvaCustomers() throws ConflictException, NotFoundException {
+    void shouldUpdateCustomerOfAttributeToExistingNvaCustomers() throws ConflictException, NotFoundException {
         var existingCustomer = createCustomerWithSingleVocabularyEntry();
         var expectedCustomer = addCustomerOfNvaAttribute(existingCustomer);
-        var actualCustomer = service.addCustomerOfNvaAttribute().get(0);
+        var actualCustomer = service.updateCustomersWithNvaAttribute().get(0);
 
         assertThat(expectedCustomer.getCustomerOf(), is(equalTo(actualCustomer.getCustomerOf())));
     }
 
     private CustomerDto addCustomerOfNvaAttribute(CustomerDto customerDto) {
-        customerDto.setCustomerOf(ApplicationDomain.NVA);
+        customerDto.setCustomerOf(randomElement(List.of(ApplicationDomain.values())));
         return customerDto;
     }
 

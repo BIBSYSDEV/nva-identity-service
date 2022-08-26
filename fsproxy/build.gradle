@@ -1,0 +1,22 @@
+plugins {
+    id 'nva.identity.service.java-application-conventions'
+    id 'nva.identity.service.dynamodblocal'
+
+}
+
+dependencies {
+
+    implementation libs.nva.core
+    implementation libs.nva.json
+    implementation libs.bundles.jackson
+    implementation libs.nva.apigateway
+    implementation libs.bundles.logging
+
+
+}
+
+test {
+    environment "FS_USERNAME", "someUserName"
+    environment "FS_PASSWORD", "somePassword"
+    environment "FS_HOST", "https://localhost:63535"
+}

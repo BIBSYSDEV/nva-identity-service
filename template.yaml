@@ -55,6 +55,7 @@ Parameters:
     Default: ''
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
 
+
 Mappings:
   Constants:
     Cognito:

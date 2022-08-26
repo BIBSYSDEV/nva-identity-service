@@ -55,7 +55,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
 
         var actualCustomersAppDomains = handler.handleRequest(input, context)
                                             .stream()
-                                            .map(customer -> customer.getCustomerOf())
+                                            .map(CustomerDto::getCustomerOf)
                                             .collect(Collectors.toList());
 
         assertThat(expectedCustomersAppDomains, is(equalTo(actualCustomersAppDomains)));

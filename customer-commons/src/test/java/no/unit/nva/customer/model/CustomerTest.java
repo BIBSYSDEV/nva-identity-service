@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomApplicationDomainUri;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -81,6 +82,7 @@ class CustomerTest {
                    .withInstitutionDns("institution.dns")
                    .withFeideOrganizationDomain("123456789")
                    .withCristinId(randomCristinOrgId())
+                   .withCustomerOf(randomApplicationDomainUri())
                    .withVocabularySettings(vocabularySettings)
                    .withRorId(randomUri())
                    .withPublicationWorkflow(randomPublicationWorkflow())

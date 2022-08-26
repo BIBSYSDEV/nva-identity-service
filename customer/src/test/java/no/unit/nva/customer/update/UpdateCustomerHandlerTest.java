@@ -3,6 +3,7 @@ package no.unit.nva.customer.update;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.ioutils.IoUtils.stringFromResources;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,7 +24,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.CustomerDao;
+import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.stubs.FakeContext;
@@ -59,19 +60,14 @@ public class UpdateCustomerHandlerTest {
         CustomerDto customer = createCustomer(UUID.randomUUID());
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
 
-        var request = new HandlerRequestBuilder<String>(dtoObjectMapper)
-            .withPathParameters(Map.of("identifier", "b8c3e125-cadb-43d5-823a-2daa7768c3f9"))
-            .withBody(stringFromResources(Path.of("update_request.json")))
-            .build();
+        var request = new HandlerRequestBuilder<String>(dtoObjectMapper).withPathParameters(
+                Map.of("identifier", "b8c3e125-cadb-43d5-823a-2daa7768c3f9"))
+                          .withBody(stringFromResources(Path.of("update_request.json")))
+                          .build();
 
         var response = sendRequest(request, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-    }
-
-    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
-        handler.handleRequest(request,outputStream,context);
-        return GatewayResponse.fromOutputStream(outputStream,responseType);
     }
 
     @Test
@@ -108,21 +104,14 @@ public class UpdateCustomerHandlerTest {
     void shouldReturnBadRequestForMalformedObject() throws IOException {
 
         var pathParameters = Map.of(IDENTIFIER, UUID.randomUUID().toString());
-        var request = new HandlerRequestBuilder<String>(dtoObjectMapper)
-            .withBody(randomString())
-            .withHeaders(getRequestHeaders())
-            .withPathParameters(pathParameters)
-            .build();
+        var request = new HandlerRequestBuilder<String>(dtoObjectMapper).withBody(randomString())
+                          .withHeaders(getRequestHeaders())
+                          .withPathParameters(pathParameters)
+                          .build();
 
         var response = sendRequest(request, Problem.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
-    }
-
-
-    //TODO
-    @Test
-    void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() {
     }
 
     //TODO
@@ -131,20 +120,29 @@ public class UpdateCustomerHandlerTest {
 
     }
 
+    //TODO
+    @Test
+    void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() {
+    }
+
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
     private InputStream createInput(CustomerDto customer, Map<String, String> pathParameters)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
-            .withBody(customer)
-            .withHeaders(getRequestHeaders())
-            .withPathParameters(pathParameters)
-            .build();
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
+                   .withHeaders(getRequestHeaders())
+                   .withPathParameters(pathParameters)
+                   .build();
     }
 
     private CustomerDto createCustomer(UUID uuid) {
-        return new CustomerDao.Builder()
-            .withIdentifier(uuid)
-            .withName("New Customer")
-            .build()
-            .toCustomerDto();
+        return CustomerDto.builder()
+                   .withIdentifier(uuid)
+                   .withName("New Customer")
+                   .withCustomerOf(randomElement(ApplicationDomain.values()))
+                   .build();
     }
 }

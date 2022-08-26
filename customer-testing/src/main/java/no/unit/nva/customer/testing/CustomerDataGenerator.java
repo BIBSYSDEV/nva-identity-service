@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
@@ -32,6 +33,7 @@ public class CustomerDataGenerator {
         CustomerDto customer = CustomerDto.builder()
                                    .withName(randomString())
                                    .withCristinId(randomUri())
+                                   .withCustomerOf(randomApplicationDomain())
                                    .withFeideOrganizationDomain(randomString())
                                    .withModifiedDate(randomInstant())
                                    .withIdentifier(identifier)
@@ -67,6 +69,7 @@ public class CustomerDataGenerator {
                                    .withModifiedDate(randomInstant())
                                    .withShortName(randomString())
                                    .withCristinId(randomUri())
+                                   .withCustomerOf(randomApplicationDomainUri())
                                    .withVocabularySettings(Set.of(vocabulary))
                                    .withInstitutionDns(randomString())
                                    .withFeideOrganizationDomain(randomString())
@@ -79,6 +82,14 @@ public class CustomerDataGenerator {
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
+    }
+
+    private static ApplicationDomain randomApplicationDomain() {
+        return ApplicationDomain.NVA;
+    }
+
+    public static URI randomApplicationDomainUri() {
+        return URI.create(ApplicationDomain.NVA.toString());
     }
 
     public static UUID randomIdentifier() {

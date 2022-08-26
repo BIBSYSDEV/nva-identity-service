@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
+import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDao;
@@ -267,6 +269,20 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         assertThrows(ConflictException.class, action);
     }
 
+    @Test
+    void shouldUpdateCustomerOfAttributeToExistingNvaCustomers() throws ConflictException, NotFoundException {
+        var existingCustomer = createCustomerWithSingleVocabularyEntry();
+        var expectedCustomer = addCustomerOfNvaAttribute(existingCustomer);
+        var actualCustomer = service.updateCustomersWithNvaAttribute().get(0);
+
+        assertThat(expectedCustomer.getCustomerOf(), is(equalTo(actualCustomer.getCustomerOf())));
+    }
+
+    private CustomerDto addCustomerOfNvaAttribute(CustomerDto customerDto) {
+        customerDto.setCustomerOf(randomElement(List.of(ApplicationDomain.values())));
+        return customerDto;
+    }
+
     private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
         Map<String, AttributeValue> updatedEntry) {
         return updatedEntry.get(CustomerDao.VOCABULARIES_FIELD).l().get(SINGLE_VOCABULARY)
@@ -304,6 +320,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         return "AlLoWed";
     }
 
+
     private CustomerDto newCustomerDto() {
         var oneMinuteInThePast = Instant.now().minusSeconds(60L);
         var customer = CustomerDto.builder()
@@ -317,6 +334,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withInstitutionDns(randomString())
                            .withFeideOrganizationDomain(randomString())
                            .withCristinId(randomCristinOrgId())
+                           .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
                            .withVocabularies(randomVocabularySet())
                            .withRorId(randomUri())
                            .withPublicationWorkflow(randomPublicationWorkflow())

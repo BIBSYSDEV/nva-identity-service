@@ -81,6 +81,7 @@ class CustomerDaoTest {
         CustomerDto customer = CustomerDto.builder()
                                    .withName(randomString())
                                    .withCristinId(randomUri())
+                                   .withCustomerOf(randomApplicationDomain())
                                    .withFeideOrganizationDomain(randomString())
                                    .withModifiedDate(randomInstant())
                                    .withIdentifier(identifier)
@@ -101,9 +102,12 @@ class CustomerDaoTest {
         return customer;
     }
 
+    private ApplicationDomain randomApplicationDomain() {
+        return ApplicationDomain.NVA;
+    }
+
     private Set<VocabularyDto> randomVocabularyDtoSettings() {
-        return randomVocabularySettings()
-                   .stream()
+        return randomVocabularySettings().stream()
                    .map(VocabularyDao::toVocabularySettingsDto)
                    .collect(Collectors.toSet());
     }
@@ -115,9 +119,6 @@ class CustomerDaoTest {
     }
 
     private CustomerDao sampleCustomerDao() {
-        return CustomerDao.builder()
-                   .withArchiveName("someName")
-                   .withIdentifier(UUID.randomUUID())
-                   .build();
+        return CustomerDao.builder().withArchiveName("someName").withIdentifier(UUID.randomUUID()).build();
     }
 }

@@ -3,6 +3,7 @@ package no.unit.nva.customer.model;
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -51,6 +52,7 @@ class CustomerDtoTest {
                    .withName(randomString())
                    .withFeideOrganizationDomain(randomString())
                    .withCristinId(randomUri())
+                   .withCustomerOf(randomApplicationDomain())
                    .withCreatedDate(randomInstant())
                    .withModifiedDate(randomInstant())
                    .withVocabularies(randomVocabularies())
@@ -61,5 +63,9 @@ class CustomerDtoTest {
 
     private Collection<VocabularyDto> randomVocabularies() {
         return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
+    }
+
+    private ApplicationDomain randomApplicationDomain() {
+       return randomElement(List.of(ApplicationDomain.values()));
     }
 }

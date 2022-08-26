@@ -38,6 +38,7 @@ public class CustomerDto implements Context {
     private String institutionDns;
     private String feideOrganizationDomain;
     private URI cristinId;
+    private ApplicationDomain customerOf;
     private List<VocabularyDto> vocabularies;
     private URI rorId;
     private PublicationWorkflow publicationWorkflow;
@@ -48,8 +49,8 @@ public class CustomerDto implements Context {
     }
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
-        return attempt(() -> JsonConfig.readValue(json, CustomerDto.class))
-            .orElseThrow(fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
+        return attempt(() -> JsonConfig.readValue(json, CustomerDto.class)).orElseThrow(
+            fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
     public static Builder builder() {
@@ -152,6 +153,14 @@ public class CustomerDto implements Context {
         this.cristinId = cristinId;
     }
 
+    public ApplicationDomain getCustomerOf() {
+        return customerOf;
+    }
+
+    public void setCustomerOf(ApplicationDomain customerOf) {
+        this.customerOf = customerOf;
+    }
+
     public List<VocabularyDto> getVocabularies() {
         return vocabularies;
     }
@@ -187,23 +196,32 @@ public class CustomerDto implements Context {
     }
 
     public Builder copy() {
-        return new Builder()
-            .withVocabularies(getVocabularies())
-            .withShortName(getShortName())
-            .withInstitutionDns(getInstitutionDns())
-            .withDisplayName(getDisplayName())
-            .withCreatedDate(stringToInstant(getCreatedDate()))
-            .withArchiveName(getArchiveName())
-            .withIdentifier(getIdentifier())
-            .withContext(getContext())
-            .withCname(getCname())
-            .withId(getId())
-            .withCristinId(getCristinId())
-            .withFeideOrganizationDomain(getFeideOrganizationDomain())
-            .withName(getName())
-            .withModifiedDate(stringToInstant(getModifiedDate()))
-            .withRorId(getRorId())
-            .withPublicationWorkflow(getPublicationWorkflow());
+        return new Builder().withVocabularies(getVocabularies())
+                   .withShortName(getShortName())
+                   .withInstitutionDns(getInstitutionDns())
+                   .withDisplayName(getDisplayName())
+                   .withCreatedDate(stringToInstant(getCreatedDate()))
+                   .withArchiveName(getArchiveName())
+                   .withIdentifier(getIdentifier())
+                   .withContext(getContext())
+                   .withCname(getCname())
+                   .withId(getId())
+                   .withCristinId(getCristinId())
+                   .withCustomerOf(getCustomerOf())
+                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                   .withName(getName())
+                   .withModifiedDate(stringToInstant(getModifiedDate()))
+                   .withRorId(getRorId())
+                   .withPublicationWorkflow(getPublicationWorkflow());
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
+                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                            getRorId(), getPublicationWorkflow());
     }
 
     @JacocoGenerated
@@ -229,18 +247,10 @@ public class CustomerDto implements Context {
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getCustomerOf(), that.getCustomerOf())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getRorId(), that.getRorId())
                && getPublicationWorkflow() == that.getPublicationWorkflow();
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
-                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(), getCristinId(), getVocabularies(), getRorId(),
-                            getPublicationWorkflow());
     }
 
     @Override
@@ -323,6 +333,11 @@ public class CustomerDto implements Context {
 
         public Builder withCristinId(URI cristinId) {
             customerDto.setCristinId(cristinId);
+            return this;
+        }
+
+        public Builder withCustomerOf(ApplicationDomain customerOf) {
+            customerDto.setCustomerOf(customerOf);
             return this;
         }
 

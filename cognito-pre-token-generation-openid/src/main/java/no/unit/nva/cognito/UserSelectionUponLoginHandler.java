@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -85,6 +86,15 @@ public class UserSelectionUponLoginHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
+    
+        String json = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(input))
+                          .orElse(fail -> "could not parse");
+        logger.info("Json:{}", json);
+        var userAttributesJson =
+            attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(input.getRequest().getUserAttributes()))
+                .orElse(fail -> "could not parse");
+        logger.info("userAttributesJson:{}", userAttributesJson);
+        logger.info(input.getRequest().getUserAttributes().toString());
         logger.info(input.toString());
         return input;
     }

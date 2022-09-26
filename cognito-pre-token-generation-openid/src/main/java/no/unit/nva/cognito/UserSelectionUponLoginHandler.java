@@ -40,6 +40,8 @@ import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -63,13 +65,14 @@ public class UserSelectionUponLoginHandler
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
-
+    private static final Logger logger = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
+    
     @JacocoGenerated
     public UserSelectionUponLoginHandler() {
         this(defaultCognitoClient(), CristinClient.defaultClient(),
-             defaultCustomerService(DEFAULT_DYNAMO_CLIENT), defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
+            defaultCustomerService(DEFAULT_DYNAMO_CLIENT), defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
     }
-
+    
     public UserSelectionUponLoginHandler(CognitoIdentityProviderClient cognitoClient,
                                          CristinClient cristinClient,
                                          CustomerService customerService,
@@ -78,17 +81,24 @@ public class UserSelectionUponLoginHandler
         this.customerService = customerService;
         this.userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient, identityService);
     }
-
+    
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
+        logger.info(input.toString());
+        return input;
+    }
+    
+    @SuppressWarnings("unused")
+    public CognitoUserPoolPreTokenGenerationEvent handleRequest2(CognitoUserPoolPreTokenGenerationEvent input,
+                                                                 Context context) {
         var nin = extractNin(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
-
+        
         var authenticationInfo = collectAuthenticationInformation(nin, orgFeideDomain, personFeideIdentifier);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
-
+        
         final var roles = rolesPerCustomer(usersForPerson);
         authenticationInfo.updateCurrentCustomer();
         authenticationInfo.updateCurrentUser(usersForPerson);

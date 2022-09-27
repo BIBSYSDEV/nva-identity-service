@@ -3,7 +3,10 @@ package no.unit.nva.cognito;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.PERSON_REGISTRY_HOST;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.mock;
@@ -16,8 +19,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import no.unit.nva.FakeCognito;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.auth.CognitoCredentials;
@@ -25,13 +28,18 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.LocalIdentityService;
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -59,36 +67,86 @@ class UserSelectionUponLoginHandlerTest {
     private RegisteredPeopleInstance registeredPeople;
     private NvaDataGenerator nvaDataGenerator;
     private FakeCognito congitoClient;
-    private ConcurrentHashMap<String, Object> buffer;
     private String protectedServiceResponseBody;
     private MockPersonRegistry mockPersonRegistry;
+    private LocalIdentityService identityServiceDb;
+    private ImaginarySetup imaginarySetup;
     
     @BeforeEach
     public void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
         var authServerMock = new NvaAuthServerMock();
         var backendAccessToken = authServerMock.setupCognitoMockResponse();
-        mockPersonRegistry = new MockPersonRegistry(backendAccessToken);
         
-        var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
+        identityService = initializeIdentityService();
+        customerService = initializeCustomerService();
+        
+        mockPersonRegistry = new MockPersonRegistry(backendAccessToken, wiremockUri, customerService);
         var environment = setupEnvironment(wiremockUri);
-        
         var cognitoCredentials =
             new CognitoCredentials(authServerMock::getClientId, authServerMock::getClientSecret, wiremockUri);
+        
         var httpClient =
             AuthorizedBackendClient.prepareWithCognitoCredentials(WiremockHttpClient.create(), cognitoCredentials);
-        this.buffer = new ConcurrentHashMap<>();
-        handler = new UserSelectionUponLoginHandler(environment, buffer, httpClient);
+        
+        imaginarySetup = new ImaginarySetup(mockPersonRegistry, customerService);
+        congitoClient = new FakeCognito(randomString());
+        handler = new UserSelectionUponLoginHandler(environment, congitoClient, httpClient, customerService,
+            identityService);
     }
     
-    @ParameterizedTest
+    @AfterEach
+    public void tearDown() {
+        identityServiceDb.closeDB();
+    }
+    
+    @ParameterizedTest(name = "Login event type: {0}")
+    @DisplayName("should create user for the person's institution (top org) when person has not" +
+                 "logged in before and has one active affiliation")
     @EnumSource(LoginEventType.class)
-    void shouldLookUpPersonAtPersonRegistryWhenInputIsEventContainingNIN(LoginEventType loginEventType) {
-        var person = mockPersonRegistry.newPerson();
-        var loginEvent = newLoginEvent(person, loginEventType);
-        var response = handler.handleRequest(loginEvent, context);
-        var actualPersonRegistryResponse = (CristinPersonResponse) buffer.get("cristin");
-        var expectedPersonRegistryResponse = mockPersonRegistry.getPerson(person);
-        assertThat(actualPersonRegistryResponse, is(equalTo(expectedPersonRegistryResponse)));
+    void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOneActiveAffiliation(
+        LoginEventType loginEventType) throws ConflictException, NotFoundException {
+        var personLoggingIn = imaginarySetup.personWithExactlyOneActiveEmployment();
+        var event = newLoginEvent(personLoggingIn, loginEventType);
+        handler.handleRequest(event, context);
+        List<UserDto> allUsers = scanAllUsers();
+        var actualUser = allUsers.get(0);
+        assertThat(allUsers, hasSize(1));
+        var expectedAffiliation = mockPersonRegistry.fetchTopLevelOrgsForPerson(personLoggingIn);
+        assertThat(actualUser.getInstitutionCristinId(), is(equalTo(expectedAffiliation)));
+    }
+    
+    //TODO: is it possible to not have an active employment and be able to login through FEIDE and what should happen
+    // then?
+    @ParameterizedTest(name = "should not create user for the person's institution (top org) when person has not "
+                              + "logged in before and has only inactive affiliations")
+    @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"})
+    void shouldNotCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOnlyInactiveAffiliations(
+        LoginEventType loginEventType) throws ConflictException, NotFoundException {
+        
+        var personLoggingIn = imaginarySetup.personWithExactlyOneInactiveEmployment();
+        var event = newLoginEvent(personLoggingIn, loginEventType);
+        handler.handleRequest(event, context);
+        var actualUsers = scanAllUsers();
+        assertThat(actualUsers, is(empty()));
+    }
+    
+    @ParameterizedTest(name = "should not create user for institutions (top orgs) that the user has inactive "
+                              + "affiliations with "
+                              + "when person has not logged int and has active and inactive affiliations")
+    @EnumSource(LoginEventType.class)
+    void shouldNotCreateUsersForPersonsTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
+        LoginEventType loginEventType) {
+        
+        var personLoggingIn = imaginarySetup.personWithOneActiveAndOneInactiveEmployment();
+        var event = newLoginEvent(personLoggingIn, loginEventType);
+        
+        handler.handleRequest(event, context);
+        
+        var cristinPersonId = registeredPeople.getCristinPersonId(personLoggingIn);
+        var expectedCustomers = registeredPeople.getTopLevelOrgsForPerson(personLoggingIn, ONLY_ACTIVE);
+        
+        var actualUsers = scanAllUsers();
     }
     
     private static Environment setupEnvironment(URI wiremockUri) {
@@ -116,6 +174,23 @@ class UserSelectionUponLoginHandlerTest {
         return loginEvent;
     }
     
+    private DynamoDBCustomerService initializeCustomerService() {
+        var localDatabase = new LocalCustomerServiceDatabase();
+        localDatabase.setupDatabase();
+        return new DynamoDBCustomerService(localDatabase.getDynamoClient());
+    }
+    
+    private IdentityService initializeIdentityService() {
+        identityServiceDb = new LocalIdentityService();
+        var client = identityServiceDb.initializeTestDatabase();
+        return IdentityService.defaultIdentityService(client);
+    }
+    
+    private List<UserDto> scanAllUsers() {
+        var request = new ScanDatabaseRequestV2(randomString(), 100, null);
+        return identityService.fetchOnePageOfUsers(request).getRetrievedUsers();
+    }
+    
     private CognitoUserPoolPreTokenGenerationEvent newLoginEvent(NationalIdentityNumber person,
                                                                  LoginEventType loginEventType) {
         return LoginEventType.FEIDE.equals(loginEventType)
@@ -123,62 +198,8 @@ class UserSelectionUponLoginHandlerTest {
                    : nonFeideLogin(person);
     }
     
-    //    @Disabled
-    //    @ParameterizedTest(name = "should create user for the person's institution (top org) when person has not
-    //    logged "
-    //                              + "in before and has one active affiliation")
-    //    @EnumSource(LoginEventType.class)
-    //    void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOneActiveAffiliation(
-    //        LoginEventType loginEventType) {
     //
-    //        var personLoggingIn = registeredPeople.personWithExactlyOneActiveAffiliation();
-    //        var event = randomEvent(personLoggingIn, loginEventType);
-    //        handler.handleRequest(event, context);
-    //        List<UserDto> allUsers = scanAllUsers();
-    //        assertThatUserIsSearchableByCristinCredentials(personLoggingIn, allUsers);
-    //    }
-    //
-    //    @Disabled
-    //    @ParameterizedTest(name = "should not create user for the person's institution (top org) when person has not "
-    //                              + "logged in before and has only inactive affiliations")
-    //    @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"})
-    //    void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOnlyInactiveAffiliations(
-    //        LoginEventType loginEventType) {
-    //
-    //        var personLoggingIn = registeredPeople.personWithOnlyInactiveAffiliations();
-    //        var event = randomEvent(personLoggingIn, loginEventType);
-    //        handler.handleRequest(event, context);
-    //
-    //        var expectedUsers = Collections.<String>emptyList();
-    //        var actualUsers = scanAllUsers();
-    //        assertThat(actualUsers, containsInAnyOrder(expectedUsers.toArray()));
-    //    }
-    //
-    //    @Disabled
-    //    @ParameterizedTest(name = "should not create user for institutions (top orgs) that the user has inactive "
-    //                              + "affiliations with "
-    //                              + "when person has not logged int and has active and inactive affiliations")
-    //    @EnumSource(LoginEventType.class)
-    //    void shouldNotCreateUsersForPersonsTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
-    //        LoginEventType loginEventType) {
-    //
-    //        var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
-    //        var event = randomEvent(personLoggingIn, loginEventType);
-    //
-    //        handler.handleRequest(event, context);
-    //
-    //        var cristinPersonId = registeredPeople.getCristinPersonId(personLoggingIn);
-    //        var expectedCustomers = registeredPeople.getTopLevelOrgsForPerson(personLoggingIn, ONLY_ACTIVE);
-    //        var expectedUsers = expectedCustomers
-    //                                .stream()
-    //                                .map(customerCristinId -> fetchUserFromDatabase(cristinPersonId,
-    //                                customerCristinId))
-    //                                .toArray(UserDto[]::new);
-    //        var actualUsers = scanAllUsers();
-    //
-    //        assertThat(expectedUsers.length, is(equalTo(expectedCustomers.size())));
-    //        assertThat(actualUsers, containsInAnyOrder(expectedUsers));
-    //    }
+    
     //
     //    @Disabled
     //    @ParameterizedTest(name = " should not alter user names for institutions (top orgs) that the user has "

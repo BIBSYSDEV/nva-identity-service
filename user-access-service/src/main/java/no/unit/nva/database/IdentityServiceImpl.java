@@ -90,7 +90,7 @@ public class IdentityServiceImpl implements IdentityService {
     public UserDto getUserByPersonCristinIdAndCustomerCristinId(URI cristinPersonId, URI cristinOrgId) {
         return userService.getUsersByByCristinIdAndCristinOrgId(cristinPersonId, cristinOrgId);
     }
-
+    
     private boolean thereAreMoreEntries(ScanResponse result) {
         return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty();
     }

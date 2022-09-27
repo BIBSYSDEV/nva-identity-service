@@ -127,7 +127,7 @@ public class UserEntriesCreatorForPerson {
     }
 
     private Optional<CristinPersonResponse> fetchPersonInformationFromCristin(NationalIdentityNumber nin) {
-        return attempt(() -> cristinClient.sendRequestToCristin(nin)).toOptional();
+        return attempt(() -> cristinClient.fetchPersonInformation(nin)).toOptional();
     }
 
     private UserDto createNewUserObject(CustomerDto customer, PersonInformation personInformation) {

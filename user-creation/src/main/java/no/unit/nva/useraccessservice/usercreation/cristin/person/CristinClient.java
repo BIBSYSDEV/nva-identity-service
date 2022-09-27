@@ -76,11 +76,11 @@ public class CristinClient {
         return secretsReader.fetchSecret(COGNITO_CREDENTIALS_SECRET_NAME, COGNITO_SECRET_KEY);
     }
     
-    public CristinPersonResponse sendRequestToCristin(NationalIdentityNumber nin)
+    public CristinPersonResponse fetchPersonInformation(NationalIdentityNumber nin)
         throws IOException, InterruptedException, BadGatewayException {
         var request = HttpRequest.newBuilder(getUserByNinUri)
-            .setHeader(CONTENT_TYPE, APPLICATION_JSON)
-            .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8));
+                          .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+                          .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8));
         var requestString = request.build().toString();
         logger.info("Request:{}", requestString);
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));

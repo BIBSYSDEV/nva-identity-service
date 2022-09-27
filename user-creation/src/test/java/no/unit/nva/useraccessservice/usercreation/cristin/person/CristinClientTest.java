@@ -35,7 +35,7 @@ class CristinClientTest {
     }
     
     private void performPossiblyFailingActionDueToNotBeingConnectedToRealServer(CristinClient client) {
-        attempt(() -> client.sendRequestToCristin(new NationalIdentityNumber(randomString())));
+        attempt(() -> client.fetchPersonInformation(new NationalIdentityNumber(randomString())));
     }
     
     private class FakeSecretsReader extends SecretsReader {

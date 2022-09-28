@@ -45,4 +45,8 @@ test {
     environment "API_DOMAIN", "example.com"
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
+    environment "ID_NAMESPACE", "https://www.example.org/namespace/"
+    environment "ALLOWED_ORIGIN", "*"
+
 }
+

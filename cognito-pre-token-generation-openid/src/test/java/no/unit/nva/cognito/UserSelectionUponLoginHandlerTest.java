@@ -1,14 +1,22 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CristinProxyMock.INACTIVE;
+import static no.unit.nva.cognito.MockPersonRegistry.ACTIVE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.PERSON_REGISTRY_HOST;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -21,9 +29,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import no.unit.nva.FakeCognito;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.auth.CognitoCredentials;
+import no.unit.nva.cognito.MockPersonRegistry.EmploymentInformation;
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.database.IdentityService;
@@ -33,9 +45,12 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
+import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
+import nva.commons.core.SingletonCollector;
 import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +68,7 @@ class UserSelectionUponLoginHandlerTest {
     public static final RoleDto ROLE_FOR_USERS_WITH_ACTIVE_AFFILIATION = RoleDto.newBuilder()
                                                                              .withRoleName("Creator")
                                                                              .build();
-    private static final boolean ACTIVE = true;
+    public static final int SINGLE_EXPECTED_USER = 1;
     private static final URI NOT_EXISTING_URI_IN_LEGACY_ENTRIES = null;
     private final Context context = new FakeContext();
     private UserSelectionUponLoginHandler handler;
@@ -80,8 +95,8 @@ class UserSelectionUponLoginHandlerTest {
         
         identityService = initializeIdentityService();
         customerService = initializeCustomerService();
-        
-        mockPersonRegistry = new MockPersonRegistry(backendAccessToken, wiremockUri, customerService);
+    
+        mockPersonRegistry = new MockPersonRegistry(backendAccessToken, wiremockUri);
         var environment = setupEnvironment(wiremockUri);
         var cognitoCredentials =
             new CognitoCredentials(authServerMock::getClientId, authServerMock::getClientSecret, wiremockUri);
@@ -111,8 +126,11 @@ class UserSelectionUponLoginHandlerTest {
         handler.handleRequest(event, context);
         List<UserDto> allUsers = scanAllUsers();
         var actualUser = allUsers.get(0);
-        assertThat(allUsers, hasSize(1));
-        var expectedAffiliation = mockPersonRegistry.fetchTopLevelOrgsForPerson(personLoggingIn);
+        assertThat(allUsers, hasSize(SINGLE_EXPECTED_USER));
+        var expectedAffiliation = mockPersonRegistry.fetchTopOrgEmploymentInformation(personLoggingIn)
+                                      .stream()
+                                      .map(EmploymentInformation::getTopLevelOrg)
+                                      .collect(SingletonCollector.collect());
         assertThat(actualUser.getInstitutionCristinId(), is(equalTo(expectedAffiliation)));
     }
     
@@ -131,22 +149,73 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualUsers, is(empty()));
     }
     
-    @ParameterizedTest(name = "should not create user for institutions (top orgs) that the user has inactive "
+    @ParameterizedTest(name = "should not create user for institutions (top orgs) that the user has only inactive "
                               + "affiliations with "
-                              + "when person has not logged int and has active and inactive affiliations")
+                              + "when person has not logged in and has active and inactive affiliations in "
+                              + "different institutions")
     @EnumSource(LoginEventType.class)
     void shouldNotCreateUsersForPersonsTopOrgsWhenPersonHasNotLoggedInBeforeAndHasActiveAndInactiveAffiliations(
         LoginEventType loginEventType) {
         
-        var personLoggingIn = imaginarySetup.personWithOneActiveAndOneInactiveEmployment();
+        var personLoggingIn = imaginarySetup.personWithOneActiveAndOneInactiveEmploymentInDifferentTopLevelOrgs();
         var event = newLoginEvent(personLoggingIn, loginEventType);
-        
         handler.handleRequest(event, context);
+        var activeEmployments = fetchTopLevelOrgEmployments(personLoggingIn, ACTIVE);
+        var inactiveEmployments = fetchTopLevelOrgEmployments(personLoggingIn, INACTIVE);
+        var allUsers = scanAllUsers();
+        var topLevelOrgsForCreatedUsers =
+            allUsers.stream().map(UserDto::getInstitutionCristinId).collect(Collectors.toSet());
+        assertThat(topLevelOrgsForCreatedUsers, containsInAnyOrder(activeEmployments.toArray(URI[]::new)));
+        assertThat(inactiveEmployments, everyItem(not(in(topLevelOrgsForCreatedUsers))));
+    }
+    
+    @ParameterizedTest(name = "should create user for institution (top org) when the user has both active and "
+                              + "inactive employment with that institution")
+    @EnumSource(LoginEventType.class)
+    void shouldCreateUserForInstitutionWhenTheUserHasBothActiveAndInactiveEmploymentWithThatInstitution(
+        LoginEventType loginEventType) {
         
-        var cristinPersonId = registeredPeople.getCristinPersonId(personLoggingIn);
-        var expectedCustomers = registeredPeople.getTopLevelOrgsForPerson(personLoggingIn, ONLY_ACTIVE);
-        
-        var actualUsers = scanAllUsers();
+        var personLoggingIn = imaginarySetup.personWithOneActiveAndOneInactiveEmploymentInSameTopLevelOrg();
+        var event = newLoginEvent(personLoggingIn, loginEventType);
+        handler.handleRequest(event, context);
+        var activeEmployments = fetchTopLevelOrgEmployments(personLoggingIn, ACTIVE);
+        var inactiveEmployments = fetchTopLevelOrgEmployments(personLoggingIn, INACTIVE);
+        var allUsers = scanAllUsers();
+        var topLevelOrgsForCreatedUsers =
+            allUsers.stream().map(UserDto::getInstitutionCristinId).collect(Collectors.toSet());
+        assertThat(allUsers, hasSize(SINGLE_EXPECTED_USER));
+        assertThatEmployeeWithInactiveAndActiveEmploymentInSameTopLevelOrgGetsAUser(topLevelOrgsForCreatedUsers,
+            activeEmployments, inactiveEmployments);
+    }
+    
+    @ParameterizedTest(name = " should not alter user names for institutions (top orgs) that the user has "
+                              + "already logged in for both active and inactive affiliations")
+    @EnumSource(LoginEventType.class)
+    void shouldMaintainPreexistingUserEntriesForBothActiveAndInactiveAffiliations(LoginEventType eventType) {
+        var personLoggingIn = imaginarySetup.personWithOneActiveAndOneInactiveEmploymentInDifferentTopLevelOrgs();
+        var preExistingUsers = createUsersForAllAffiliations(personLoggingIn);
+        var expectedUsernames = preExistingUsers.stream().map(UserDto::getUsername).collect(Collectors.toList());
+        var event = newLoginEvent(personLoggingIn, eventType);
+        handler.handleRequest(event, context);
+        var users = scanAllUsers();
+        var actualUsernames = users.stream().map(UserDto::getUsername).collect(Collectors.toList());
+        assertThat(actualUsernames, containsInAnyOrder(expectedUsernames.toArray(String[]::new)));
+    }
+    
+    @ParameterizedTest(name = "should return access rights as user groups for user concatenated with customer"
+                              + "NVA identifier for user's active top orgs")
+    @EnumSource(LoginEventType.class)
+    void shouldReturnAccessRightsForUserConcatenatedWithCustomerNvaIdentifierForUsersActiveTopOrgs(
+        LoginEventType eventType) {
+        fail();
+    }
+    
+    private static void assertThatEmployeeWithInactiveAndActiveEmploymentInSameTopLevelOrgGetsAUser(
+        Set<URI> topLevelOrgsForCreatedUsers,
+        Set<URI> activeEmployments,
+        Set<URI> inactiveEmployments) {
+        assertThat(topLevelOrgsForCreatedUsers, containsInAnyOrder(activeEmployments.toArray(URI[]::new)));
+        assertThat(topLevelOrgsForCreatedUsers, containsInAnyOrder(inactiveEmployments.toArray(URI[]::new)));
     }
     
     private static Environment setupEnvironment(URI wiremockUri) {
@@ -174,6 +243,40 @@ class UserSelectionUponLoginHandlerTest {
         return loginEvent;
     }
     
+    private List<UserDto> createUsersForAllAffiliations(NationalIdentityNumber personLoggingIn) {
+        var person = imaginarySetup.getPerson(personLoggingIn);
+        var affiliations = person.getAffiliations();
+        return affiliations.stream()
+                   .map(affiliation -> createUserForAffiliation(person, affiliation))
+                   .collect(Collectors.toList());
+    }
+    
+    private UserDto createUserForAffiliation(CristinPersonResponse person, CristinAffiliation affiliation) {
+        var topLevelOrgCristinId = imaginarySetup.getTopLevelOrgForNonTopLevelOrg(affiliation.getOrganizationUri());
+        var customerId = attempt(() -> customerService.getCustomerByCristinId(topLevelOrgCristinId))
+                             .map(CustomerDto::getId)
+                             .orElseThrow();
+        var user = UserDto.newBuilder()
+                       .withAffiliation(affiliation.getOrganizationUri())
+                       .withCristinId(person.getCristinId())
+                       .withUsername(randomString())
+                       .withFamilyName(randomString())
+                       .withGivenName(randomString())
+                       .withFeideIdentifier(randomString())
+                       .withInstitution(customerId)
+                       .withInstitutionCristinId(topLevelOrgCristinId)
+                       .build();
+        return attempt(() -> identityService.addUser(user)).orElseThrow();
+    }
+    
+    private Set<URI> fetchTopLevelOrgEmployments(NationalIdentityNumber personLoggingIn, boolean active) {
+        return imaginarySetup.fetchTopOrgEmploymentInformation(personLoggingIn)
+                   .stream()
+                   .filter(employmentInformation -> employmentInformation.isActive() == active)
+                   .map(EmploymentInformation::getTopLevelOrg)
+                   .collect(Collectors.toSet());
+    }
+    
     private DynamoDBCustomerService initializeCustomerService() {
         var localDatabase = new LocalCustomerServiceDatabase();
         localDatabase.setupDatabase();
@@ -199,45 +302,8 @@ class UserSelectionUponLoginHandlerTest {
     }
     
     //
+    //    @Disabled
     
-    //
-    //    @Disabled
-    //    @ParameterizedTest(name = " should not alter user names for institutions (top orgs) that the user has "
-    //                              + "already logged in for both valid and invalid affiliations")
-    //    @EnumSource(LoginEventType.class)
-    //    void shouldMaintainPreexistingUserEntriesForBothValidAndInvalidAffiliations(LoginEventType eventType) {
-    //        var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
-    //        var alreadyExistingUsers = createUsersForAffiliations(personLoggingIn, INCLUDE_INACTIVE);
-    //        var expectedUsernames =
-    //            alreadyExistingUsers.stream().map(UserDto::getUsername).collect(Collectors.toList());
-    //        handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
-    //        var actualUsernames =
-    //            scanAllUsers().stream().map(UserDto::getUsername).collect(Collectors.toList());
-    //        assertThat(actualUsernames, containsInAnyOrder(expectedUsernames.toArray(String[]::new)));
-    //    }
-    //
-    //    @Disabled
-    //    @ParameterizedTest(name = "should return access rights as user groups for user concatenated with customer
-    //    NVA "
-    //                              + "identifier for user's active top orgs")
-    //    @EnumSource(LoginEventType.class)
-    //    void shouldReturnAccessRightsForUserConcatenatedWithCustomerNvaIdentifierForUsersActiveTopOrgs(
-    //        LoginEventType eventType) {
-    //        var personLoggingIn = registeredPeople.personWithActiveAndInactiveAffiliations();
-    //        var preExistingUsers = createUsersForAffiliations(personLoggingIn, INCLUDE_INACTIVE);
-    //        var expectedUsers = preExistingUsers.stream()
-    //                                .filter(user -> userHasActiveAffiliationWithCustomer(user, personLoggingIn))
-    //                                .collect(Collectors.toSet());
-    //
-    //        var expectedAccessRightsWithNvaIdentifiers = expectedUsers.stream()
-    //                                                         .map(this::createAccessRightsNvaVersion)
-    //                                                         .flatMap(Collection::stream)
-    //                                                         .collect(Collectors.toList());
-    //
-    //        var response = handler.handleRequest(randomEvent(personLoggingIn, eventType), context);
-    //        var actualAccessRights = extractAccessRights(response);
-    //        assertThat(expectedAccessRightsWithNvaIdentifiers, everyItem(in(actualAccessRights)));
-    //    }
     //
     //    @Disabled
     //    @Test

@@ -6,7 +6,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
-import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
@@ -17,6 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
@@ -25,15 +25,16 @@ import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliat
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
 public class MockPersonRegistry {
     
     public static final boolean IGNORE_ARRAY_ORDER = true;
-    private static final Boolean IGNORE_EXTRA_ELEMENTS = true;
     public static final boolean ACTIVE = true;
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_JSON = "application/json";
+    private static final Boolean IGNORE_EXTRA_ELEMENTS = true;
     private static final boolean INACTIVE = false;
     
     private final String accessToken;
@@ -41,23 +42,17 @@ public class MockPersonRegistry {
     
     private Map<NationalIdentityNumber, CristinPersonResponse> people;
     private Map<NationalIdentityNumber, List<CristinOrgResponse>> employments;
-    private Map<NationalIdentityNumber, List<URI>> topLevelOrgs;
+    private Map<NationalIdentityNumber, List<EmploymentInformation>> topLevelOrgs;
+    private Map<URI, URI> nonTopLevelOrgToTopLevelOrg;
     
     //TODO: remove customer service from MockPersonRegistry and re-organize data generation
     public MockPersonRegistry(String accessToken, URI hostUri) {
         people = new ConcurrentHashMap<>();
         employments = new ConcurrentHashMap<>();
         topLevelOrgs = new ConcurrentHashMap<>();
+        nonTopLevelOrgToTopLevelOrg = new ConcurrentHashMap<>();
         this.accessToken = accessToken;
         this.hostUri = hostUri;
-    }
-    
-    public NationalIdentityNumber newPerson() {
-        var nin = newNin();
-        var person = createPerson(nin);
-        people.put(nin, person);
-        createStubForPerson(nin);
-        return nin;
     }
     
     public CristinPersonResponse getPerson(NationalIdentityNumber nin) {
@@ -65,35 +60,34 @@ public class MockPersonRegistry {
     }
     
     public NationalIdentityNumber personWithExactlyOneActiveEmployment() throws ConflictException, NotFoundException {
-        var nin = newNin();
+        var nin = new NationalIdentityNumber(randomString());
         var topLeveLOrganization = createTopLevelOrganization();
         var notTopLevelOrganization = createNonTopLevelOrganization(topLeveLOrganization);
         var person = createPersonWithExactlyOneEmployment(nin, notTopLevelOrganization, ACTIVE);
-        people.put(nin, person);
         employments.put(nin, List.of(notTopLevelOrganization));
-        topLevelOrgs.put(nin, List.of(topLeveLOrganization));
-        createStubForPerson(nin);
+        topLevelOrgs.put(nin, List.of(new EmploymentInformation(topLeveLOrganization, ACTIVE)));
+        nonTopLevelOrgToTopLevelOrg.put(notTopLevelOrganization.getOrgId(), topLeveLOrganization);
         return nin;
     }
     
-    public List<URI> fetchTopLevelOrgsForPerson(NationalIdentityNumber nin) {
+    public List<EmploymentInformation> fetchTopOrgEmploymentInformation(NationalIdentityNumber nin) {
         return topLevelOrgs.get(nin);
     }
     
     public NationalIdentityNumber personWithExactlyOneInactiveEmployment() {
-        var nin = newNin();
+        var nin = new NationalIdentityNumber(randomString());
         var topLeveLOrganization = createTopLevelOrganization();
         var notTopLevelOrganization = createNonTopLevelOrganization(topLeveLOrganization);
         var person = createPersonWithExactlyOneEmployment(nin, notTopLevelOrganization, INACTIVE);
-        people.put(nin, person);
+    
         employments.put(nin, List.of(notTopLevelOrganization));
-        topLevelOrgs.put(nin, List.of(topLeveLOrganization));
-        createStubForPerson(nin);
+        topLevelOrgs.put(nin, List.of(new EmploymentInformation(topLeveLOrganization, INACTIVE)));
+        nonTopLevelOrgToTopLevelOrg.put(notTopLevelOrganization.getOrgId(), topLeveLOrganization);
         return nin;
     }
     
-    public NationalIdentityNumber personWithOneActiveAndOneInactiveEmployment() {
-        var nin = newNin();
+    public NationalIdentityNumber personWithOneActiveAndOneInactiveEmploymentInDifferentOrgs() {
+        var nin = new NationalIdentityNumber(randomString());
         var activeEmploymentTopLevelOrg = createTopLevelOrganization();
         var activeEmploymentNonTopLevelOrg = createNonTopLevelOrganization(activeEmploymentTopLevelOrg);
         var inactiveEmploymentTopLevelOrg = createTopLevelOrganization();
@@ -103,25 +97,72 @@ public class MockPersonRegistry {
             activeEmploymentNonTopLevelOrg,
             inactiveEmploymentNonTopLevelOrg
         );
-        people.put(nin, person);
+        
         employments.put(nin, List.of(activeEmploymentNonTopLevelOrg, inactiveEmploymentNonTopLevelOrg));
-        topLevelOrgs.put(nin, List.of(activeEmploymentTopLevelOrg, inactiveEmploymentTopLevelOrg));
+        topLevelOrgs.put(nin, List.of(
+            new EmploymentInformation(activeEmploymentTopLevelOrg, ACTIVE),
+            new EmploymentInformation(inactiveEmploymentTopLevelOrg, INACTIVE)
+        ));
+        nonTopLevelOrgToTopLevelOrg.put(activeEmploymentNonTopLevelOrg.getOrgId(), activeEmploymentTopLevelOrg);
+        nonTopLevelOrgToTopLevelOrg.put(inactiveEmploymentNonTopLevelOrg.getOrgId(), inactiveEmploymentTopLevelOrg);
         assertThat(person, doesNotHaveEmptyValues());
         return nin;
+    }
+    
+    public NationalIdentityNumber personWithOneActiveAndOneInactiveEmploymentInSameOrg() {
+        var nin = new NationalIdentityNumber(randomString());
+        var topLevelOrg = createTopLevelOrganization();
+        var activeEmploymentNonTopLevelOrg = createNonTopLevelOrganization(topLevelOrg);
+        var inactiveEmploymentNonTopLevelOrg = createNonTopLevelOrganization(topLevelOrg);
+        var person = createPersonWithOneActiveAndOneInactiveEmployment(
+            nin,
+            activeEmploymentNonTopLevelOrg,
+            inactiveEmploymentNonTopLevelOrg
+        );
+        
+        employments.put(nin, List.of(activeEmploymentNonTopLevelOrg, inactiveEmploymentNonTopLevelOrg));
+        topLevelOrgs.put(nin, List.of(
+            new EmploymentInformation(topLevelOrg, ACTIVE),
+            new EmploymentInformation(topLevelOrg, INACTIVE)
+        ));
+        
+        nonTopLevelOrgToTopLevelOrg.put(activeEmploymentNonTopLevelOrg.getOrgId(), topLevelOrg);
+        nonTopLevelOrgToTopLevelOrg.put(activeEmploymentNonTopLevelOrg.getOrgId(), topLevelOrg);
+        
+        assertThat(person, doesNotHaveEmptyValues());
+        return nin;
+    }
+    
+    public URI getTopLevelOrgForNonTopLevelOrg(URI organizationUri) {
+        return nonTopLevelOrgToTopLevelOrg.get(organizationUri);
+    }
+    
+    private static ObjectNode createRequestBody(NationalIdentityNumber nin) {
+        var requestBody = JsonUtils.dtoObjectMapper.createObjectNode();
+        requestBody.put("type", "NationalIdentificationNumber");
+        requestBody.put("value", nin.getNin());
+        return requestBody;
     }
     
     private CristinPersonResponse createPersonWithOneActiveAndOneInactiveEmployment(NationalIdentityNumber nin,
                                                                                     CristinOrgResponse activeEmploymentNonTopLevelOrg,
                                                                                     CristinOrgResponse inactiveEmploymentNonTopLevelOrg) {
-        return CristinPersonResponse.builder()
-                   .withNin(nin)
-                   .withAffiliations(List.of(
-                       createAffiliation(activeEmploymentNonTopLevelOrg, ACTIVE),
-                       createAffiliation(inactiveEmploymentNonTopLevelOrg, INACTIVE)))
-                   .withCristinId(randomUri())
-                   .withFirstName(randomString())
-                   .withLastName(randomString())
-                   .build();
+        var response = CristinPersonResponse.builder()
+                           .withNin(nin)
+                           .withAffiliations(List.of(
+                               createAffiliation(activeEmploymentNonTopLevelOrg, ACTIVE),
+                               createAffiliation(inactiveEmploymentNonTopLevelOrg, INACTIVE)))
+                           .withCristinId(randomUri())
+                           .withFirstName(randomString())
+                           .withLastName(randomString())
+                           .build();
+        return updateBuffersAndStubs(nin, response);
+    }
+    
+    private CristinPersonResponse updateBuffersAndStubs(NationalIdentityNumber nin, CristinPersonResponse response) {
+        people.put(nin, response);
+        createStubForPerson(nin);
+        return people.get(nin);
     }
     
     private CristinOrgResponse createNonTopLevelOrganization(URI topLevelOrg) {
@@ -157,7 +198,7 @@ public class MockPersonRegistry {
                          .build();
         
         assertThat(person, doesNotHaveEmptyValues());
-        return person;
+        return updateBuffersAndStubs(nin, person);
     }
     
     private CristinAffiliation createAffiliation(CristinOrgResponse employment, boolean active) {
@@ -167,21 +208,10 @@ public class MockPersonRegistry {
                    .build();
     }
     
-    private static ObjectNode createRequestBody(NationalIdentityNumber nin) {
-        var requestBody = JsonUtils.dtoObjectMapper.createObjectNode();
-        requestBody.put("type", "NationalIdentificationNumber");
-        requestBody.put("value", nin.getNin());
-        return requestBody;
-    }
-    
-    private static NationalIdentityNumber newNin() {
-        return new NationalIdentityNumber(randomString());
-    }
-    
     private void createStubForPerson(NationalIdentityNumber nin) {
         var requestBody = createRequestBody(nin);
         var response = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(people.get(nin))).orElseThrow();
-        
+    
         stubFor(post("/cristin/person/identityNumber")
                     .withHeader("Authorization", equalTo("Bearer " + accessToken))
                     .withHeader(CONTENT_TYPE, equalTo(APPLICATION_JSON))
@@ -189,21 +219,41 @@ public class MockPersonRegistry {
                     .willReturn(aResponse().withBody(response).withStatus(HttpURLConnection.HTTP_OK)));
     }
     
-    private CristinPersonResponse createPerson(NationalIdentityNumber nin) {
-        return CristinPersonResponse.builder()
-                   .withNin(nin)
-                   .withFirstName(randomString())
-                   .withLastName(randomString())
-                   .withCristinId(randomUri())
-                   .withAffiliations(List.of(randomAffiliation()))
-                   .build();
-    }
-    
-    private CristinAffiliation randomAffiliation() {
-        return randomAffiliation(randomBoolean());
-    }
-    
-    private CristinAffiliation randomAffiliation(boolean active) {
-        return CristinAffiliation.builder().withActive(active).withOrganization(randomUri()).build();
+    public static class EmploymentInformation {
+        
+        private final URI topLevelOrg;
+        private final boolean active;
+        
+        public EmploymentInformation(URI topLevelOrg, boolean active) {
+            this.topLevelOrg = topLevelOrg;
+            this.active = active;
+        }
+        
+        public URI getTopLevelOrg() {
+            return topLevelOrg;
+        }
+        
+        public boolean isActive() {
+            return active;
+        }
+        
+        @Override
+        @JacocoGenerated
+        public int hashCode() {
+            return Objects.hash(getTopLevelOrg(), isActive());
+        }
+        
+        @Override
+        @JacocoGenerated
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof EmploymentInformation)) {
+                return false;
+            }
+            EmploymentInformation that = (EmploymentInformation) o;
+            return isActive() == that.isActive() && Objects.equals(getTopLevelOrg(), that.getTopLevelOrg());
+        }
     }
 }

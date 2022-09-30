@@ -23,8 +23,6 @@ import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber
 import no.unit.nva.useraccessservice.usercreation.cristin.org.CristinOrgResponse;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
@@ -40,12 +38,11 @@ public class MockPersonRegistry {
     private final String accessToken;
     private final URI hostUri;
     
-    private Map<NationalIdentityNumber, CristinPersonResponse> people;
-    private Map<NationalIdentityNumber, List<CristinOrgResponse>> employments;
-    private Map<NationalIdentityNumber, List<EmploymentInformation>> topLevelOrgs;
-    private Map<URI, URI> nonTopLevelOrgToTopLevelOrg;
+    private final Map<NationalIdentityNumber, CristinPersonResponse> people;
+    private final Map<NationalIdentityNumber, List<CristinOrgResponse>> employments;
+    private final Map<NationalIdentityNumber, List<EmploymentInformation>> topLevelOrgs;
+    private final Map<URI, URI> nonTopLevelOrgToTopLevelOrg;
     
-    //TODO: remove customer service from MockPersonRegistry and re-organize data generation
     public MockPersonRegistry(String accessToken, URI hostUri) {
         people = new ConcurrentHashMap<>();
         employments = new ConcurrentHashMap<>();
@@ -59,26 +56,22 @@ public class MockPersonRegistry {
         return people.get(nin);
     }
     
-    public NationalIdentityNumber personWithExactlyOneActiveEmployment() throws ConflictException, NotFoundException {
+    public NationalIdentityNumber personWithExactlyOneActiveEmployment() {
         var nin = new NationalIdentityNumber(randomString());
         var topLeveLOrganization = createTopLevelOrganization();
         var notTopLevelOrganization = createNonTopLevelOrganization(topLeveLOrganization);
-        var person = createPersonWithExactlyOneEmployment(nin, notTopLevelOrganization, ACTIVE);
+        createPersonWithExactlyOneEmployment(nin, notTopLevelOrganization, ACTIVE);
         employments.put(nin, List.of(notTopLevelOrganization));
         topLevelOrgs.put(nin, List.of(new EmploymentInformation(topLeveLOrganization, ACTIVE)));
         nonTopLevelOrgToTopLevelOrg.put(notTopLevelOrganization.getOrgId(), topLeveLOrganization);
         return nin;
     }
     
-    public List<EmploymentInformation> fetchTopOrgEmploymentInformation(NationalIdentityNumber nin) {
-        return topLevelOrgs.get(nin);
-    }
-    
     public NationalIdentityNumber personWithExactlyOneInactiveEmployment() {
         var nin = new NationalIdentityNumber(randomString());
         var topLeveLOrganization = createTopLevelOrganization();
         var notTopLevelOrganization = createNonTopLevelOrganization(topLeveLOrganization);
-        var person = createPersonWithExactlyOneEmployment(nin, notTopLevelOrganization, INACTIVE);
+        createPersonWithExactlyOneEmployment(nin, notTopLevelOrganization, INACTIVE);
     
         employments.put(nin, List.of(notTopLevelOrganization));
         topLevelOrgs.put(nin, List.of(new EmploymentInformation(topLeveLOrganization, INACTIVE)));
@@ -125,12 +118,16 @@ public class MockPersonRegistry {
             new EmploymentInformation(topLevelOrg, ACTIVE),
             new EmploymentInformation(topLevelOrg, INACTIVE)
         ));
-        
+    
         nonTopLevelOrgToTopLevelOrg.put(activeEmploymentNonTopLevelOrg.getOrgId(), topLevelOrg);
         nonTopLevelOrgToTopLevelOrg.put(activeEmploymentNonTopLevelOrg.getOrgId(), topLevelOrg);
-        
+    
         assertThat(person, doesNotHaveEmptyValues());
         return nin;
+    }
+    
+    public List<EmploymentInformation> fetchTopOrgEmploymentInformation(NationalIdentityNumber nin) {
+        return topLevelOrgs.get(nin);
     }
     
     public URI getTopLevelOrgForNonTopLevelOrg(URI organizationUri) {
@@ -167,9 +164,9 @@ public class MockPersonRegistry {
     
     private CristinOrgResponse createNonTopLevelOrganization(URI topLevelOrg) {
         var leaf = randomOrgUri();
-        var path = leaf.getPath();
         var organization = CristinOrgResponse.create(leaf, randomOrgUri(), randomOrgUri(), topLevelOrg);
         var orgJsonString = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(organization)).orElseThrow();
+        var path = leaf.getPath();
         stubFor(get(path)
                     .withHeader(CONTENT_TYPE, equalTo(APPLICATION_JSON))
                     .willReturn(aResponse()

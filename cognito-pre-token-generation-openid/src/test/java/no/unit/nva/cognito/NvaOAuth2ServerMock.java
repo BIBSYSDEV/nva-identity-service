@@ -9,7 +9,7 @@ import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import java.net.HttpURLConnection;
 import no.unit.nva.commons.json.JsonUtils;
 
-public final class NvaAuthServerMock {
+public final class NvaOAuth2ServerMock {
     
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
@@ -17,7 +17,7 @@ public final class NvaAuthServerMock {
     private final String clientId;
     private final String clientSecret;
     
-    public NvaAuthServerMock() {
+    public NvaOAuth2ServerMock() {
         this.clientId = randomString();
         this.clientSecret = randomString();
     }

@@ -63,7 +63,7 @@ public class ImaginarySetup {
         return personRegistry.getTopLevelOrgForNonTopLevelOrg(organizationUri);
     }
     
-    public List<CustomerDto> fetchCustomerForPerson(NationalIdentityNumber nin) {
+    public List<CustomerDto> fetchCustomersForPerson(NationalIdentityNumber nin) {
         return personToCustomers.get(nin);
     }
     

@@ -50,5 +50,7 @@ test{
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "COGNITO_CREDENTIALS_SECRET_NAME", "someSecret"
     environment "COGNITO_SECRET_KEY", "someSecret"
-    environment "COGNITO_ID_KEY","someKey"
+    environment "COGNITO_ID_KEY", "someKey"
+    environment "ID_NAMESPACE", "https://www.example.org/namespace/"
+    environment "ALLOWED_ORIGIN", "*"
 }

@@ -48,7 +48,7 @@ public class CristinProxyMock {
     private static final Boolean MATCH_CASE = false;
     private static final boolean ACTIVE = true;
     private final Set<NationalIdentityNumber> peopleMatchedToSomeScenario;
-    private final NvaAuthServerMock dataporten;
+    private final NvaOAuth2ServerMock dataporten;
     private final URI cristinPersonHost;
     private final Map<NationalIdentityNumber, CristinPersonResponse> cristinPersonRegistry;
     private Set<NationalIdentityNumber> people;
@@ -62,9 +62,9 @@ public class CristinProxyMock {
     private Map<URI, URI> organizationToParentInstitutionMap;
     private URI parentInstitutionThatIsNotNvaCustomer;
     private NationalIdentityNumber personThatInNotRegisteredInPersonRegistry;
-
+    
     public CristinProxyMock(WireMockServer httpServer,
-                            NvaAuthServerMock dataportenMock) {
+                            NvaOAuth2ServerMock dataportenMock) {
         this.cristinPersonRegistry = new ConcurrentHashMap<>();
         peopleMatchedToSomeScenario = new HashSet<>();
         this.dataporten = dataportenMock;

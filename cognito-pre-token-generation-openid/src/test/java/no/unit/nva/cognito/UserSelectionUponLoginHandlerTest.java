@@ -1,22 +1,27 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CristinProxyMock.INACTIVE;
 import static no.unit.nva.cognito.MockPersonRegistry.ACTIVE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FON_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.PERSON_REGISTRY_HOST;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessservice.model.UserDto.AT;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -27,6 +32,9 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,11 +50,13 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
@@ -57,6 +67,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
 @WireMockTest(httpsEnabled = true)
 class UserSelectionUponLoginHandlerTest {
@@ -83,30 +95,32 @@ class UserSelectionUponLoginHandlerTest {
     private NvaDataGenerator nvaDataGenerator;
     private FakeCognito congitoClient;
     private String protectedServiceResponseBody;
-    private MockPersonRegistry mockPersonRegistry;
+    private MockPersonRegistry personRegistry;
     private LocalIdentityService identityServiceDb;
     private ImaginarySetup imaginarySetup;
+    private String backendAccessToken;
     
     @BeforeEach
     public void init(WireMockRuntimeInfo wireMockRuntimeInfo) {
-        var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
-        var authServerMock = new NvaAuthServerMock();
-        var backendAccessToken = authServerMock.setupCognitoMockResponse();
-        
         identityService = initializeIdentityService();
         customerService = initializeCustomerService();
     
-        mockPersonRegistry = new MockPersonRegistry(backendAccessToken, wiremockUri);
-        var environment = setupEnvironment(wiremockUri);
+        var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
+        var oauth2ServerMock = new NvaOAuth2ServerMock();
+        backendAccessToken = oauth2ServerMock.setupCognitoMockResponse();
+    
+        personRegistry = new MockPersonRegistry(backendAccessToken, wiremockUri);
+    
         var cognitoCredentials =
-            new CognitoCredentials(authServerMock::getClientId, authServerMock::getClientSecret, wiremockUri);
-        
-        var httpClient =
+            new CognitoCredentials(oauth2ServerMock::getClientId, oauth2ServerMock::getClientSecret, wiremockUri);
+    
+        var authorizedHttpClient =
             AuthorizedBackendClient.prepareWithCognitoCredentials(WiremockHttpClient.create(), cognitoCredentials);
-        
-        imaginarySetup = new ImaginarySetup(mockPersonRegistry, customerService);
+    
+        imaginarySetup = new ImaginarySetup(personRegistry, customerService);
         congitoClient = new FakeCognito(randomString());
-        handler = new UserSelectionUponLoginHandler(environment, congitoClient, httpClient, customerService,
+        var environment = setupEnvironment(wiremockUri);
+        handler = new UserSelectionUponLoginHandler(environment, congitoClient, authorizedHttpClient, customerService,
             identityService);
     }
     
@@ -127,7 +141,7 @@ class UserSelectionUponLoginHandlerTest {
         List<UserDto> allUsers = scanAllUsers();
         var actualUser = allUsers.get(0);
         assertThat(allUsers, hasSize(SINGLE_EXPECTED_USER));
-        var expectedAffiliation = mockPersonRegistry.fetchTopOrgEmploymentInformation(personLoggingIn)
+        var expectedAffiliation = personRegistry.fetchTopOrgEmploymentInformation(personLoggingIn)
                                       .stream()
                                       .map(EmploymentInformation::getTopLevelOrg)
                                       .collect(SingletonCollector.collect());
@@ -140,7 +154,7 @@ class UserSelectionUponLoginHandlerTest {
                               + "logged in before and has only inactive affiliations")
     @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"})
     void shouldNotCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOnlyInactiveAffiliations(
-        LoginEventType loginEventType) throws ConflictException, NotFoundException {
+        LoginEventType loginEventType) {
         
         var personLoggingIn = imaginarySetup.personWithExactlyOneInactiveEmployment();
         var event = newLoginEvent(personLoggingIn, loginEventType);
@@ -191,7 +205,7 @@ class UserSelectionUponLoginHandlerTest {
     @ParameterizedTest(name = " should not alter user names for institutions (top orgs) that the user has "
                               + "already logged in for both active and inactive affiliations")
     @EnumSource(LoginEventType.class)
-    void shouldMaintainPreexistingUserEntriesForBothActiveAndInactiveAffiliations(LoginEventType eventType) {
+    void shouldMaintainUsernameInPreexistingUserEntriesForBothActiveAndInactiveEmployments(LoginEventType eventType) {
         var personLoggingIn = imaginarySetup.personWithOneActiveAndOneInactiveEmploymentInDifferentTopLevelOrgs();
         var preExistingUsers = createUsersForAllAffiliations(personLoggingIn);
         var expectedUsernames = preExistingUsers.stream().map(UserDto::getUsername).collect(Collectors.toList());
@@ -206,8 +220,60 @@ class UserSelectionUponLoginHandlerTest {
                               + "NVA identifier for user's active top orgs")
     @EnumSource(LoginEventType.class)
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerNvaIdentifierForUsersActiveTopOrgs(
-        LoginEventType eventType) {
-        fail();
+        LoginEventType eventType) throws ConflictException, NotFoundException, InvalidInputException {
+        var personLoggingIn = imaginarySetup.personWithExactlyOneActiveEmployment();
+        var existingUserInitiallyWithoutRoles = createUsersForAllAffiliations(personLoggingIn)
+                                                    .stream().collect(SingletonCollector.collect());
+        var assignedAccessRights = randomAccessRights();
+        var role = persistRoleToDatabase(assignedAccessRights);
+        assignExistingRoleToUser(existingUserInitiallyWithoutRoles, role);
+        var event = newLoginEvent(personLoggingIn, eventType);
+        var response = handler.handleRequest(event, context);
+        assertThatResponseContainsAssignedAccessRights(existingUserInitiallyWithoutRoles,
+            assignedAccessRights,
+            response);
+        
+        assertThatAccessRightsArePersistedInCognitoEntry(existingUserInitiallyWithoutRoles, assignedAccessRights);
+    }
+    
+    //    @ParameterizedTest(name = "should add customer id as current-customer-id when user logs in and has only one "
+    //                              + "active employment")
+    //    @EnumSource(LoginEventType.class)
+    //    void shouldAddCustomerIdAsChosenCustomerIdWhenUserLogsInAndHasOnlyOneActiveEmployment(
+    //        LoginEventType loginEventType) throws NotFoundException, ConflictException {
+    //        var person = imaginarySetup.personWithExactlyOneActiveEmployment();
+    //        var expectedCustomerId = imaginarySetup.fetchCustomersForPerson(person)
+    //                                     .stream().collect(SingletonCollector.collect())
+    //                                     .getId();
+    //
+    //        var event = newLoginEvent(person, loginEventType);
+    //        handler.handleRequest(event, context);
+    //
+    //        var actualCustomerId = fetchCurrentCustomClaimForCongitoUserUpdate();
+    //        assertThat(actualCustomerId, is(equalTo(expectedCurrentCustomerId.toString())));
+    //    }
+    
+    private static List<String> constructExpectedAccessRights(UserDto existingUserInitiallyWithoutRoles,
+                                                              Set<AccessRight> assignedAccessRights) {
+        return assignedAccessRights.stream()
+                   .map(accessRight -> accessRight
+                                       + AT
+                                       + existingUserInitiallyWithoutRoles.getInstitution()
+                                             .toString())
+                   .collect(Collectors.toList());
+    }
+    
+    private static HashSet<AccessRight> randomAccessRights() {
+        return new HashSet<>(List.of(randomElement(AccessRight.values()), randomElement(AccessRight.values())));
+    }
+    
+    private static void assertThatResponseContainsAssignedAccessRights(UserDto existingUser,
+                                                                       Set<AccessRight> assignedAccessRights,
+                                                                       CognitoUserPoolPreTokenGenerationEvent response) {
+        var groups = response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
+        var groupsList = Arrays.asList(groups);
+        var expectedAccessRight = constructExpectedAccessRights(existingUser, assignedAccessRights);
+        assertThat(groupsList, hasItems(expectedAccessRight.toArray(String[]::new)));
     }
     
     private static void assertThatEmployeeWithInactiveAndActiveEmploymentInSameTopLevelOrgGetsAUser(
@@ -241,6 +307,44 @@ class UserSelectionUponLoginHandlerTest {
         var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
         loginEvent.setRequest(request);
         return loginEvent;
+    }
+    
+    private void assertThatAccessRightsArePersistedInCognitoEntry(UserDto existingUserInitiallyWithoutRoles,
+                                                                  HashSet<AccessRight> assignedAccessRights) {
+        var accessRightsPersistedInCognito = extractAccessRightFromCognitoEntry();
+        var expectedAccessRights = constructExpectedAccessRights(existingUserInitiallyWithoutRoles,
+            assignedAccessRights);
+        for (var expectedAccessRight : expectedAccessRights) {
+            assertThat(accessRightsPersistedInCognito, containsString(expectedAccessRight));
+        }
+    }
+    
+    private String extractAccessRightFromCognitoEntry() {
+        return fetchCognitoEntryUpdateRequestSentByHandler()
+                   .userAttributes()
+                   .stream()
+                   .filter(userAttribute -> ACCESS_RIGHTS_CLAIM.equals(userAttribute.name()))
+                   .map(AttributeType::value)
+                   .collect(SingletonCollector.collect());
+    }
+    
+    private AdminUpdateUserAttributesRequest fetchCognitoEntryUpdateRequestSentByHandler() {
+        return congitoClient.getAdminUpdateUserRequest();
+    }
+    
+    private void assignExistingRoleToUser(UserDto existingUser, RoleDto role) throws NotFoundException {
+        existingUser.setRoles(Set.of(role));
+        identityService.updateUser(existingUser);
+    }
+    
+    private RoleDto persistRoleToDatabase(Collection<AccessRight> accessRights) throws InvalidInputException,
+                                                                                       ConflictException,
+                                                                                       NotFoundException {
+        var role = RoleDto.newBuilder().withRoleName(randomString())
+                       .withAccessRights(accessRights)
+                       .build();
+        identityService.addRole(role);
+        return identityService.getRole(role);
     }
     
     private List<UserDto> createUsersForAllAffiliations(NationalIdentityNumber personLoggingIn) {
@@ -301,45 +405,21 @@ class UserSelectionUponLoginHandlerTest {
                    : nonFeideLogin(person);
     }
     
+    private String fetchCurrentCustomClaimForCongitoUserUpdate() {
+        var request = fetchCognitoEntryUpdateRequestSentByHandler();
+        return request.userAttributes()
+                   .stream()
+                   .filter(a -> a.name().equals(CURRENT_CUSTOMER_CLAIM))
+                   .map(AttributeType::value)
+                   .collect(SingletonCollector.collectOrElse(null));
+    }
+    
     //
     //    @Disabled
     
     //
-    //    @Disabled
-    //    @Test
-    //    void shouldMaintainFeideIdAsUsernameForLegacyEntriesAndUpdateAllExternalIdentifierFields()
-    //        throws NotFoundException {
-    //        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-    //        final String orgFeideDomain = feideDomainOfUsersInstitution(person);
-    //        var personsFeideIdentifier = randomString() + AT + orgFeideDomain;
-    //        var preExistingUser = legacyUserWithFeideIdentifierAsUsername(person, personsFeideIdentifier);
+    
     //
-    //        var loginEvent =
-    //            randomEventOfFeideUser(person, personsFeideIdentifier, orgFeideDomain);
-    //        handler.handleRequest(loginEvent, context);
-    //
-    //        var updatedUser = identityService.getUser(preExistingUser);
-    //
-    //        assertThatNewFieldsAreUpdatedForLegacyUserEntries(person, personsFeideIdentifier, updatedUser);
-    //    }
-    //
-    //    @Disabled
-    //    @ParameterizedTest(name = "should add customer id as current-customer-id when user logs in and has only one "
-    //                              + "active affiliation")
-    //    @EnumSource(LoginEventType.class)
-    //    void shouldAddCustomerIdAsChosenCustomerIdWhenUserLogsInAndHasOnlyOneActiveAffiliation(
-    //        LoginEventType loginEventType) throws NotFoundException {
-    //        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-    //        var expectedCustomerCristinId = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
-    //                                            .stream().collect(SingletonCollector.collect());
-    //
-    //        var event = randomEvent(person, loginEventType);
-    //        handler.handleRequest(event, context);
-    //        var expectedCurrentCustomerId = customerService.getCustomerByCristinId(expectedCustomerCristinId).getId();
-    //
-    //        var actualCustomerId = fetchCurrentCustomClaimForCongitoUserUpdate();
-    //        assertThat(actualCustomerId, is(equalTo(expectedCurrentCustomerId.toString())));
-    //    }
     //
     //    @Disabled
     //    @ParameterizedTest(name = "should add Feide specified customer id as current customer id when user logs in
@@ -698,14 +778,7 @@ class UserSelectionUponLoginHandlerTest {
     //                   .collect(SingletonCollector.collectOrElse(null));
     //    }
     //
-    //    private String fetchCurrentCustomClaimForCongitoUserUpdate() {
-    //        var request = congitoClient.getAdminUpdateUserRequest();
-    //        return request.userAttributes()
-    //                   .stream()
-    //                   .filter(a -> a.name().equals(CURRENT_CUSTOMER_CLAIM))
-    //                   .map(AttributeType::value)
-    //                   .collect(SingletonCollector.collectOrElse(null));
-    //    }
+    
     //
     //    private void assertThatNewFieldsAreUpdatedForLegacyUserEntries(NationalIdentityNumber person,
     //                                                                   String personsFeideIdentifier,

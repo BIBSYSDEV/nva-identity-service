@@ -29,6 +29,6 @@ dependencies {
 }
 
 test{
-    environment "API_HOST", "api.dev.aws.nva.unit.no"
+    environment "API_DOMAIN", "localhost"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
 }

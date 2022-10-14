@@ -38,12 +38,11 @@ dependencies {
 }
 
 test{
-    environment "API_HOST", "api.dev.aws.unit.no"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "API_KEY_SECRET_NAME", "ApiKeySecretName"
     environment "API_KEY_SECRET_KEY", "ApiKeySecretKey"
     environment "AWS_REGION", "eu-west-1"
-    environment "API_DOMAIN","example.com"
+    environment "API_DOMAIN", "localhost"
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
     environment "SIKT_CRISTIN_ID", "https://example.org/sikt/cristin/id"
 }

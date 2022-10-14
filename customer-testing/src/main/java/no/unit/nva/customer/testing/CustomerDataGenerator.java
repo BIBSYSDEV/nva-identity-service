@@ -20,13 +20,14 @@ import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
+import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 
 public class CustomerDataGenerator {
-
-    private static final String API_HOST = "api.dev.aws.nva.unit.no";
+    
+    private static final String API_DOMAIN = new Environment().readEnv("API_DOMAIN");
     private static final String CRISTIN_PATH = "/cristin/organization";
-
+    
     public static CustomerDto createSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
@@ -97,7 +98,7 @@ public class CustomerDataGenerator {
     }
 
     public static URI randomCristinOrgId() {
-        return new UriWrapper("https", API_HOST)
+        return new UriWrapper("https", API_DOMAIN)
                    .addChild(CRISTIN_PATH)
                    .addChild(randomString())
                    .getUri();

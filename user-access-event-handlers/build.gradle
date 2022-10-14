@@ -33,7 +33,7 @@ dependencies {
 
 
 test {
-    environment "API_HOST", "localhost"
+    environment "API_DOMAIN", "localhost"
     environment "AWS_REGION", "eu-west-1"
     environment "EVENT_BUS", "eventBus"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"

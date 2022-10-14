@@ -8,12 +8,10 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
-import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
@@ -29,19 +27,18 @@ import nva.commons.core.JacocoGenerated;
 
 public class ViewingScope implements Typed {
     
-    public static final String EXCLUDED_UNIS = "excludedUnis";
+    public static final String EXCLUDED_UNITS = "excludedUnits";
     public static final String INCLUDED_UNITS = "includedUnits";
     public static final String VIEWING_SCOPE_TYPE = "ViewingScope";
-    public static final String INVALID_VIEWING_SCOPE_URI_ERROR = "Invalid Viewing Scope URI:";
     
     @JsonProperty(INCLUDED_UNITS)
     private final Set<URI> includedUnits;
-    @JsonProperty(EXCLUDED_UNIS)
+    @JsonProperty(EXCLUDED_UNITS)
     private final Set<URI> excludedUnits;
     
     @JsonCreator
     public ViewingScope(@JsonProperty(INCLUDED_UNITS) Set<URI> includedUnits,
-                        @JsonProperty(EXCLUDED_UNIS) Set<URI> excludedUnits,
+                        @JsonProperty(EXCLUDED_UNITS) Set<URI> excludedUnits,
                         @JsonProperty(TYPE_FIELD) String type
     ) throws BadRequestException {
         
@@ -63,18 +60,14 @@ public class ViewingScope implements Typed {
         return new ViewingScope(toSet(includedUnits), toSet(excludedUnits), VIEWING_SCOPE_TYPE);
     }
     
-    public static boolean isNotValidOrganizationId(URI uri) {
-        return pathIsNotExpectedPath(uri) || hostIsNotExpectedHost(uri);
-    }
-    
     public static ViewingScope fromJson(String input) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(input, ViewingScope.class))
-            .orElseThrow(fail -> new BadRequestException("Could not read viewing scope:" + input));
+                   .orElseThrow(fail -> new BadRequestException("Could not read viewing scope:" + input));
     }
     
     @JacocoGenerated
-    public List<URI> getIncludedUnits() {
-        return JacksonJrDoesNotSupportSets.toList(includedUnits);
+    public Set<URI> getIncludedUnits() {
+        return includedUnits;
     }
     
     @JacocoGenerated
@@ -129,12 +122,15 @@ public class ViewingScope implements Typed {
     }
     
     private static boolean hostIsNotExpectedHost(URI uri) {
-        return !ServiceConstants.API_HOST.equals(uri.getHost());
+        return !ServiceConstants.API_DOMAIN.equals(uri.getHost());
     }
     
     private static Void validate(URI uri) throws BadRequestException {
-        if (isNotValidOrganizationId(uri)) {
-            throw new BadRequestException(INVALID_VIEWING_SCOPE_URI_ERROR + uri);
+        if (pathIsNotExpectedPath(uri)) {
+            throw new BadRequestException("Unexpected path in Viewing Scope URI:" + uri);
+        }
+        if (hostIsNotExpectedHost(uri)) {
+            throw new BadRequestException("Unexpected host in Viewing Scope URI:" + uri);
         }
         return null;
     }

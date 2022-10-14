@@ -9,6 +9,7 @@ import static java.util.function.Predicate.not;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.CRISTIN_PATH;
 import static no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient.REQUEST_TO_CRISTIN_SERVICE_JSON_TEMPLATE;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
@@ -146,7 +147,10 @@ public class CristinProxyMock {
     }
 
     private URI createRandomOrgUriForTheImaginarySetup() {
-        return UriWrapper.fromUri(cristinPersonHost).addChild("organization").addChild(randomString()).getUri();
+        return UriWrapper.fromUri(cristinPersonHost)
+                   .addChild(CRISTIN_PATH)
+                   .addChild(randomString())
+                   .getUri();
     }
 
     private void createImaginaryOrganizationStructure() {

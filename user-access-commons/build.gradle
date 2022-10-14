@@ -16,5 +16,5 @@ dependencies {
 }
 
 test{
-    environment "API_HOST", "api.dev.aws.unit.no"
+
 }

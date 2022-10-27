@@ -42,12 +42,11 @@ public class UserEntriesCreatorForPerson {
     }
 
     public List<UserDto> createUsers(PersonInformation authenticationInfo) {
-        createUserRole();
+    
         return createOrFetchUserEntriesForPerson(authenticationInfo, keepAll());
     }
 
     public List<UserDto> createUser(PersonInformation authenticationInfo, URI selectedCustomer) {
-        createUserRole();
         return createOrFetchUserEntriesForPerson(authenticationInfo,
                                                  customerDto -> isSelectedCustomer(customerDto, selectedCustomer));
     }
@@ -90,15 +89,7 @@ public class UserEntriesCreatorForPerson {
             .map(user -> getExistingUserOrCreateNew(user, personInformation))
             .collect(Collectors.toList());
     }
-
-    private void createUserRole() {
-        try {
-            identityService.addRole(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION);
-        } catch (Exception ignored) {
-            // if role exists already, continue.
-        }
-    }
-
+    
     private Set<CustomerDto> fetchCustomersForActiveAffiliations(PersonInformation personInformation) {
 
         return personInformation.getPersonAffiliations()
@@ -142,7 +133,6 @@ public class UserEntriesCreatorForPerson {
             .withInstitution(customer.getId())
             .withGivenName(cristinResponse.extractFirstName())
             .withFamilyName(cristinResponse.extractLastName())
-            .withCristinId(cristinResponse.getCristinId())
             .withCristinId(cristinResponse.getCristinId())
             .withInstitutionCristinId(customer.getCristinId())
             .withAffiliation(affiliation);

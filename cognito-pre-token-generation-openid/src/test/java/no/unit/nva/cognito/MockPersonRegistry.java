@@ -72,7 +72,7 @@ public class MockPersonRegistry {
         var topLeveLOrganization = createTopLevelOrganization();
         var notTopLevelOrganization = createNonTopLevelOrganization(topLeveLOrganization);
         createPersonWithExactlyOneEmployment(nin, notTopLevelOrganization, INACTIVE);
-    
+        
         employments.put(nin, List.of(notTopLevelOrganization));
         topLevelOrgs.put(nin, List.of(new EmploymentInformation(topLeveLOrganization, INACTIVE)));
         nonTopLevelOrgToTopLevelOrg.put(notTopLevelOrganization.getOrgId(), topLeveLOrganization);
@@ -118,13 +118,38 @@ public class MockPersonRegistry {
             new EmploymentInformation(topLevelOrg, ACTIVE),
             new EmploymentInformation(topLevelOrg, INACTIVE)
         ));
-    
+        
         nonTopLevelOrgToTopLevelOrg.put(activeEmploymentNonTopLevelOrg.getOrgId(), topLevelOrg);
         nonTopLevelOrgToTopLevelOrg.put(activeEmploymentNonTopLevelOrg.getOrgId(), topLevelOrg);
-    
+        
         assertThat(person, doesNotHaveEmptyValues());
         return nin;
     }
+    
+    public NationalIdentityNumber personWithTwoActiveEmploymentsInDifferentTopLevelOrgs() {
+        var nin = new NationalIdentityNumber(randomString());
+    
+        var firstTopLevelOrg = createTopLevelOrganization();
+        var secondTopLevelOrg = createTopLevelOrganization();
+        var firstNonTopLevelOrg = createNonTopLevelOrganization(firstTopLevelOrg);
+        var secondNonTopLevelOrg = createNonTopLevelOrganization(secondTopLevelOrg);
+        var person = createPersonWithManyActiveEmployments(nin, firstNonTopLevelOrg.getOrgId(),
+            secondNonTopLevelOrg.getOrgId());
+        assertThat(person, doesNotHaveEmptyValues());
+        
+        employments.put(nin, List.of(firstNonTopLevelOrg, secondNonTopLevelOrg));
+        topLevelOrgs.put(nin, List.of(
+            new EmploymentInformation(firstTopLevelOrg, ACTIVE),
+            new EmploymentInformation(secondTopLevelOrg, ACTIVE)
+        ));
+        nonTopLevelOrgToTopLevelOrg.put(firstNonTopLevelOrg.getOrgId(), firstTopLevelOrg);
+        nonTopLevelOrgToTopLevelOrg.put(secondNonTopLevelOrg.getOrgId(), secondTopLevelOrg);
+        
+        return nin;
+        
+    }
+    
+   
     
     public List<EmploymentInformation> fetchTopOrgEmploymentInformation(NationalIdentityNumber nin) {
         return topLevelOrgs.get(nin);
@@ -134,11 +159,36 @@ public class MockPersonRegistry {
         return nonTopLevelOrgToTopLevelOrg.get(organizationUri);
     }
     
+   
+    
     private static ObjectNode createRequestBody(NationalIdentityNumber nin) {
         var requestBody = JsonUtils.dtoObjectMapper.createObjectNode();
         requestBody.put("type", "NationalIdentificationNumber");
         requestBody.put("value", nin.getNin());
         return requestBody;
+    }
+    
+    private CristinPersonResponse createPersonWithManyActiveEmployments(NationalIdentityNumber nin,
+                                                                        URI firstNonTopLevelOrg,
+                                                                        URI secondNonTopLevelOrg) {
+        var firstAffiliation = CristinAffiliation.builder()
+                                   .withActive(ACTIVE)
+                                   .withOrganization(firstNonTopLevelOrg)
+                                   .build();
+        var secondAffiliation = CristinAffiliation.builder()
+                                    .withActive(ACTIVE)
+                                    .withOrganization(secondNonTopLevelOrg)
+                                    .build();
+        List<CristinAffiliation> affiliations = List.of(firstAffiliation, secondAffiliation);
+        
+        var response = CristinPersonResponse.builder()
+                           .withAffiliations(affiliations)
+                           .withLastName(randomString())
+                           .withFirstName(randomString())
+                           .withNin(nin)
+                           .withCristinId(randomOrgUri())
+                           .build();
+        return updateBuffersAndStubs(nin, response);
     }
     
     private CristinPersonResponse createPersonWithOneActiveAndOneInactiveEmployment(NationalIdentityNumber nin,
@@ -208,7 +258,7 @@ public class MockPersonRegistry {
     private void createStubForPerson(NationalIdentityNumber nin) {
         var requestBody = createRequestBody(nin);
         var response = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(people.get(nin))).orElseThrow();
-    
+        
         stubFor(post("/cristin/person/identityNumber")
                     .withHeader("Authorization", equalTo("Bearer " + accessToken))
                     .withHeader(CONTENT_TYPE, equalTo(APPLICATION_JSON))

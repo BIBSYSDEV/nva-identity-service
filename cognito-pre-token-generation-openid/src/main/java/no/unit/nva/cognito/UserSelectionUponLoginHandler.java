@@ -64,18 +64,10 @@ public class UserSelectionUponLoginHandler
     
     @JacocoGenerated
     public UserSelectionUponLoginHandler() {
-        this(defaultCognitoClient(), CristinClient.defaultClient(),
-            defaultCustomerService(DEFAULT_DYNAMO_CLIENT), defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
-    }
-    
-    public UserSelectionUponLoginHandler(
-        CognitoIdentityProviderClient cognitoClient,
-        CristinClient cristinClient,
-        CustomerService customerService,
-        IdentityService identityService) {
-        this.cognitoClient = cognitoClient;
-        this.customerService = customerService;
-        this.userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient, identityService);
+        this.cognitoClient = defaultCognitoClient();
+        this.customerService = defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
+        this.userCreator = new UserEntriesCreatorForPerson(customerService, CristinClient.defaultClient(),
+            defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
     }
     
     public UserSelectionUponLoginHandler(

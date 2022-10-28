@@ -1,8 +1,8 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import java.util.Optional;
+import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -27,7 +27,7 @@ public class RoleService extends DatabaseSubService {
 
     protected RoleService(DynamoDbClient client) {
         super(client);
-        this.table = this.client.table(USERS_AND_ROLES_TABLE, RoleDb.TABLE_SCHEMA);
+        this.table = this.client.table(Constants.USERS_AND_ROLES_TABLE, RoleDb.TABLE_SCHEMA);
     }
 
     /**

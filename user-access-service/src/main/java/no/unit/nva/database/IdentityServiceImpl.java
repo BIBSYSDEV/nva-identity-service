@@ -118,7 +118,7 @@ public class IdentityServiceImpl implements IdentityService {
 
     private ScanRequest createScanDynamoRequest(ScanDatabaseRequestV2 input) {
         return ScanRequest.builder()
-            .tableName(USERS_AND_ROLES_TABLE)
+                   .tableName(Constants.USERS_AND_ROLES_TABLE)
             .limit(input.getPageSize())
             .exclusiveStartKey(input.toDynamoScanMarker())
             .build();

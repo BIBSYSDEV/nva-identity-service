@@ -1,7 +1,6 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
@@ -16,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
 import java.util.ArrayList;
 import java.util.List;
+import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.database.interfaces.WithEnvironment;
 import org.junit.jupiter.api.AfterEach;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -59,8 +59,8 @@ public class LocalIdentityService implements WithEnvironment {
     public DynamoDbClient initializeTestDatabase() {
 
         localDynamo = createLocalDynamoDbMock();
-
-        String tableName = USERS_AND_ROLES_TABLE;
+    
+        String tableName = Constants.USERS_AND_ROLES_TABLE;
         CreateTableResponse createTableResult = createTable(localDynamo, tableName);
         TableDescription tableDescription = createTableResult.tableDescription();
         assertEquals(tableName, tableDescription.tableName());

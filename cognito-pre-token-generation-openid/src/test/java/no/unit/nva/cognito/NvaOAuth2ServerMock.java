@@ -44,10 +44,6 @@ public final class NvaOAuth2ServerMock {
         return accessToken;
     }
     
-    public String getJwtToken() {
-        return null;
-    }
-    
     private static EqualToPattern wwwFormUrlEncoded() {
         return new EqualToPattern(APPLICATION_X_WWW_FORM_URLENCODED, MATCH_CASE);
     }

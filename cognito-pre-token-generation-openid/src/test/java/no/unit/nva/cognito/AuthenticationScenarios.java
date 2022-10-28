@@ -20,15 +20,15 @@ import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber
 import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 
-public class ImaginarySetup {
+public class AuthenticationScenarios {
     
     private final MockPersonRegistry personRegistry;
     private final CustomerService customerService;
     private final Map<NationalIdentityNumber, List<CustomerDto>> personToCustomers;
     
-    public ImaginarySetup(MockPersonRegistry personRegistry,
-                          CustomerService customerService,
-                          IdentityService identityService) throws InvalidInputException, ConflictException {
+    public AuthenticationScenarios(MockPersonRegistry personRegistry,
+                                   CustomerService customerService,
+                                   IdentityService identityService) throws InvalidInputException, ConflictException {
         this.personRegistry = personRegistry;
         this.customerService = customerService;
         this.personToCustomers = new ConcurrentHashMap<>();

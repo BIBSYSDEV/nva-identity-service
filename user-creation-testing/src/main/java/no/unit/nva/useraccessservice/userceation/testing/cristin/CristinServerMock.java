@@ -27,7 +27,7 @@ import nva.commons.core.paths.UriWrapper;
 
 public class CristinServerMock {
 
-    public static final String ORGANIZATION_PATH = "organization";
+    public static final String ORGANIZATION_PATH = "cristin/organization";
     public static final String PERSON_IDENTITY_NUMBER_PATH = "/person/identityNumber";
     public static final String PERSON_PATH = "person";
     private final Map<NationalIdentityNumber, CristinPersonResponse> people;

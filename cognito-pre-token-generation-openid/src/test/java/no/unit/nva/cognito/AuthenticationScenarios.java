@@ -1,6 +1,8 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Collections;
@@ -75,7 +77,8 @@ public class AuthenticationScenarios {
     
     private void addCreatorRoleToIdentityService(IdentityService identityService)
         throws InvalidInputException, ConflictException {
-        var creatorRole = RoleDto.newBuilder().withRoleName("Creator").build();
+        var creatorRole = RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
+                              .build();
         identityService.addRole(creatorRole);
     }
     

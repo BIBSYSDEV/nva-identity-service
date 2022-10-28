@@ -3,6 +3,7 @@ package no.unit.nva.useraccess.events.client;
 import static com.google.common.net.HttpHeaders.AUTHORIZATION;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.API_DOMAIN;
 import static nva.commons.core.attempt.Try.attempt;
 import static software.amazon.awssdk.services.eventbridge.model.ApiDestinationHttpMethod.DELETE;
 import com.google.common.net.HttpHeaders;
@@ -26,14 +27,14 @@ public class BareProxyClientImpl implements BareProxyClient {
     public static final String ERROR_READING_SECRETS_ERROR =
             "Could not read secrets for internal communication with Bare Proxy";
     public static final String RESPONSE_STATUS_BODY = "Response status=%s, body=%s";
-    public static final String CREATING_REQUEST_TO = "Creating request to: ";
+    public static final String CREATING_REQUEST_TO = "Creating request to: {}";
     public static final String HTTPS_SCHEME = "https";
     public static final Environment ENVIRONMENT = new Environment();
     public static final String BARE_PROXY_SECRET_NAME = ENVIRONMENT
             .readEnv("BARE_PROXY_SECRET_NAME");
     public static final String BARE_PROXY_SECRET_KEY = ENVIRONMENT
             .readEnv("BARE_PROXY_SECRET_KEY");
-    public static final String API_HOST = ENVIRONMENT.readEnv("API_HOST");
+    
     public static final String PERSON_INTERNAL_SERVICE_PATH = "person-internal";
     public static final String PERSON_SERVICE_PATH = "person";
     public static final String FEIDE_ID_QUERY_PARAM = "feideid";
@@ -106,32 +107,32 @@ public class BareProxyClientImpl implements BareProxyClient {
     }
 
     private HttpRequest createAuthorityDeleteHttpRequest(String systemControlNumber, URI organizationId) {
-        URI uri = new UriWrapper(HTTPS_SCHEME, API_HOST)
-                .addChild(PERSON_INTERNAL_SERVICE_PATH)
-                .addChild(systemControlNumber)
-                .addChild("identifiers")
-                .addChild("orgunitid")
-                .addChild("delete")
-                .getUri();
-        logger.info(CREATING_REQUEST_TO + uri);
+        URI uri = new UriWrapper(HTTPS_SCHEME, API_DOMAIN)
+                      .addChild(PERSON_INTERNAL_SERVICE_PATH)
+                      .addChild(systemControlNumber)
+                      .addChild("identifiers")
+                      .addChild("orgunitid")
+                      .addChild("delete")
+                      .getUri();
+        logger.info(CREATING_REQUEST_TO, uri);
         DeleteIdentifierRequest body = new DeleteIdentifierRequest(organizationId);
         return HttpRequest.newBuilder()
-                .uri(uri)
-                .headers(HttpHeaders.ACCEPT, JSON_UTF_8.toString(), AUTHORIZATION, bareProxySecret)
-                .method(DELETE.name(), HttpRequest.BodyPublishers.ofString(body.toJson()))
-                .build();
+                   .uri(uri)
+                   .headers(HttpHeaders.ACCEPT, JSON_UTF_8.toString(), AUTHORIZATION, bareProxySecret)
+                   .method(DELETE.name(), HttpRequest.BodyPublishers.ofString(body.toJson()))
+                   .build();
     }
 
     private HttpRequest createAuthorityGetHttpRequest(String feideId) {
-        URI uri = new UriWrapper(HTTPS_SCHEME, API_HOST)
-                .addChild(PERSON_SERVICE_PATH)
-                .addQueryParameter(FEIDE_ID_QUERY_PARAM, feideId)
-                .getUri();
-        logger.info(CREATING_REQUEST_TO + uri);
+        URI uri = new UriWrapper(HTTPS_SCHEME, API_DOMAIN)
+                      .addChild(PERSON_SERVICE_PATH)
+                      .addQueryParameter(FEIDE_ID_QUERY_PARAM, feideId)
+                      .getUri();
+        logger.info(CREATING_REQUEST_TO, uri);
         return HttpRequest.newBuilder()
-                .uri(uri)
-                .headers(HttpHeaders.ACCEPT, JSON_UTF_8.toString())
-                .GET()
-                .build();
+                   .uri(uri)
+                   .headers(HttpHeaders.ACCEPT, JSON_UTF_8.toString())
+                   .GET()
+                   .build();
     }
 }

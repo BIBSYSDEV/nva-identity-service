@@ -24,5 +24,6 @@ dependencies {
 }
 
 test {
-    environment "API_HOST", "api.dev.aws.nva.unit.no"
+    environment "API_DOMAIN", "localhost"
+
 }

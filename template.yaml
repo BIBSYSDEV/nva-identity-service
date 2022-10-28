@@ -73,7 +73,6 @@ Globals:
     Tracing: Active
     Environment:
       Variables:
-        API_HOST: !Ref ApiDomain #TODO: eliminate API_HOST
         API_DOMAIN: !Ref ApiDomain
         CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
         BY_ORG_DOMAIN_INDEX_NAME: byOrgDomain

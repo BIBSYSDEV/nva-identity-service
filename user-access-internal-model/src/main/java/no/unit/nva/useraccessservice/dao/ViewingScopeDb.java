@@ -3,12 +3,10 @@ package no.unit.nva.useraccessservice.dao;
 import static java.util.Objects.isNull;
 import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import no.unit.nva.useraccessservice.interfaces.JacksonJrDoesNotSupportSets;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -28,52 +26,50 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 
 @DynamoDbBean
 public class ViewingScopeDb implements Typed {
-
-    public static final String EXCLUDED_UNIS = "excludedUnis";
+    
+    public static final String EXCLUDED_UNITS = "excludedUnits";
     public static final String INCLUDED_UNITS = "includedUnits";
     public static final String VIEWING_SCOPE_TYPE = "ViewingScope";
-
-    @JsonProperty(INCLUDED_UNITS)
+    
     private Set<URI> includedUnits;
-    @JsonProperty(EXCLUDED_UNIS)
     private Set<URI> excludedUnits;
-
+    
     public ViewingScopeDb() {
     }
-
-    public ViewingScopeDb(Set<URI> includedUnits, Set<URI> excludedUnits) throws BadRequestException {
+    
+    public ViewingScopeDb(Set<URI> includedUnits, Set<URI> excludedUnits) {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
         validate(includedUnits);
     }
-
+    
     public static ViewingScopeDb fromViewingScope(ViewingScope dto) {
         return Optional.ofNullable(dto).map(ViewingScopeDb::fromDto).orElse(null);
     }
-
+    
     public ViewingScope toViewingScope() {
         return attempt(() -> ViewingScope.create(getIncludedUnits(), getExcludedUnits())).orElseThrow();
     }
-
+    
     @DynamoDbAttribute(INCLUDED_UNITS)
     @DynamoDbIgnoreNulls
     public Set<URI> getIncludedUnits() {
         return nonEmptyOrDefault(includedUnits);
     }
-
+    
     public void setIncludedUnits(Set<URI> includedUnits) {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
     }
-
-    @DynamoDbAttribute(EXCLUDED_UNIS)
+    
+    @DynamoDbAttribute(EXCLUDED_UNITS)
     public Set<URI> getExcludedUnits() {
         return nonEmptyOrDefault(excludedUnits);
     }
-
+    
     public void setExcludedUnits(Set<URI> excludedUnits) {
         this.excludedUnits = excludedUnits;
     }
-
+    
     @Override
     public String getType() {
         return VIEWING_SCOPE_TYPE;
@@ -107,8 +103,8 @@ public class ViewingScopeDb implements Typed {
 
     private static ViewingScopeDb fromDto(ViewingScope dto) {
         var dao = new ViewingScopeDb();
-        dao.setExcludedUnits(JacksonJrDoesNotSupportSets.toSet(dto.getExcludedUnits()));
-        dao.setIncludedUnits(JacksonJrDoesNotSupportSets.toSet(dto.getIncludedUnits()));
+        dao.setExcludedUnits(dto.getExcludedUnits());
+        dao.setIncludedUnits(dto.getIncludedUnits());
         validate(dao.getIncludedUnits());
         return dao;
     }

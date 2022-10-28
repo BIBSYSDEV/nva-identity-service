@@ -11,6 +11,8 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.API_DOMAIN;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.CRISTIN_PATH;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIn.in;
@@ -46,6 +48,7 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
+import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -216,9 +219,13 @@ class CustomerSelectionHandlerTest {
     private CustomerDto createRandomCustomer() {
         return CustomerDto.builder()
                    .withIdentifier(UUID.randomUUID())
-                   .withCristinId(randomUri())
+                   .withCristinId(randomOrgUri())
                    .withCustomerOf(randomElement(ApplicationDomain.values()))
                    .build();
+    }
+    
+    private URI randomOrgUri() {
+        return UriWrapper.fromHost(API_DOMAIN).addChild(CRISTIN_PATH).addChild(randomString()).getUri();
     }
     
     private String constructExpectedUserName(URI selectedCustomer) throws NotFoundException {

@@ -15,6 +15,7 @@ import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FON_NON_FEID
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.PERSON_REGISTRY_HOST;
+import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -469,7 +470,7 @@ class UserSelectionUponLoginHandlerTest {
         var users = scanAllUsers();
         for (var user : users) {
             var rolenames = user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
-            assertThat(rolenames, hasItem("Creator"));
+            assertThat(rolenames, hasItem(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT));
         }
     }
     

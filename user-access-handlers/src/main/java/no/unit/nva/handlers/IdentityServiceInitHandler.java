@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
@@ -94,7 +95,8 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
     }
     
     private List<RoleDto> createDefaultRoles() {
-        var creator = RoleDto.newBuilder().withRoleName("Creator").build();
+        var creator = RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
+                          .build();
         var curator = RoleDto.newBuilder().withRoleName("Curator")
             .withAccessRights(
                 List.of(APPROVE_DOI_REQUEST,

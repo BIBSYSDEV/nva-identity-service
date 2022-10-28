@@ -69,6 +69,10 @@ public class ImaginarySetup {
         return person;
     }
     
+    public NationalIdentityNumber personThatIsNotRegisteredInPersonRegistry() {
+        return personRegistry.mockResponseForPersonNotFound();
+    }
+    
     private void addCreatorRoleToIdentityService(IdentityService identityService)
         throws InvalidInputException, ConflictException {
         var creatorRole = RoleDto.newBuilder().withRoleName("Creator").build();
@@ -79,7 +83,7 @@ public class ImaginarySetup {
         return personRegistry.fetchTopOrgEmploymentInformation(person);
     }
     
-    public CristinPersonResponse getPerson(NationalIdentityNumber person) {
+    public CristinPersonResponse getPersonRegistryEntry(NationalIdentityNumber person) {
         return personRegistry.getPerson(person);
     }
     

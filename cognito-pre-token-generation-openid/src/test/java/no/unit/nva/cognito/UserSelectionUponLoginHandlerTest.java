@@ -6,6 +6,7 @@ import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
@@ -370,7 +371,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldStorePersonCristinIdInCognitoUserAttributes(LoginEventType loginEventType) {
         var person = imaginarySetup.personWithExactlyOneActiveEmployment();
-        var expectedCristinId = imaginarySetup.getPerson(person).getCristinId();
+        var expectedCristinId = imaginarySetup.getPersonRegistryEntry(person).getCristinId();
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var actualCristinPersonId = extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM);
@@ -488,7 +489,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldAddUserAffiliationToNewUserEntryWhenUserEntryDoesNotPreexist(LoginEventType loginEventType) {
         var person = imaginarySetup.personWithExactlyOneActiveEmployment();
-        var employment = imaginarySetup.getPerson(person).getAffiliations()
+        var employment = imaginarySetup.getPersonRegistryEntry(person).getAffiliations()
                              .stream()
                              .map(CristinAffiliation::getOrganizationUri)
                              .collect(SingletonCollector.collect());
@@ -542,12 +543,28 @@ class UserSelectionUponLoginHandlerTest {
         return environment;
     }
     
-    private List<UserDto> createUsersForAllAffiliations(NationalIdentityNumber personLoggingIn) {
-        var person = imaginarySetup.getPerson(personLoggingIn);
-        var affiliations = person.getAffiliations();
-        return affiliations.stream()
-                   .map(affiliation -> createUserForAffiliation(person, affiliation))
-                   .collect(Collectors.toList());
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldAddUserEmploymentMentionedInPersonRegistryToExistingUserDatabaseEntryWhenUserEntryPreexists(
+        LoginEventType loginEventType)
+        throws NotFoundException {
+        var person = imaginarySetup.personWithExactlyOneActiveEmployment();
+        var existingUser = createUsersForAllAffiliations(person)
+                               .stream().collect(SingletonCollector.collect());
+        removeEmployment(existingUser);
+        var userBeforeLogIn = identityService.getUser(existingUser);
+        assertThat(userBeforeLogIn.getAffiliation(), is(nullValue()));
+        
+        var event = newLoginEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var userAfterLogin = identityService.getUser(existingUser);
+        var affiliation = imaginarySetup.getPersonRegistryEntry(person)
+                              .getAffiliations()
+                              .stream()
+                              .map(CristinAffiliation::getOrganizationUri)
+                              .collect(SingletonCollector.collect());
+        
+        assertThat(userAfterLogin.getAffiliation(), is(equalTo(affiliation)));
     }
     
     private static CognitoUserPoolPreTokenGenerationEvent nonFeideLogin(NationalIdentityNumber nin) {
@@ -705,281 +722,55 @@ class UserSelectionUponLoginHandlerTest {
                    .collect(SingletonCollector.collect());
     }
     
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType) {
+        var person = imaginarySetup.personWithExactlyOneActiveEmployment();
+        var event = newLoginEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+        var expectedAffiliation = imaginarySetup.getPersonRegistryEntry(person)
+                                      .getAffiliations()
+                                      .stream()
+                                      .map(CristinAffiliation::getOrganizationUri)
+                                      .collect(SingletonCollector.collect());
+        var cognitoAttribute = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
+        assertThat(cognitoAttribute, is(equalTo(expectedAffiliation.toString())));
+    }
+    
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldAllowPeopleWhoAreNotRegisteredInPersonRegistryToLoginButNotGiveThemAnyRole(
+        LoginEventType loginEventType) {
+        var person = imaginarySetup.personThatIsNotRegisteredInPersonRegistry();
+        var event = newLoginEvent(person, loginEventType);
+        var response = handler.handleRequest(event, context);
+        var accessRights = extractAccessRights(response);
+        assertThat(accessRights, is((empty())));
+    }
+    
+    private List<UserDto> createUsersForAllAffiliations(NationalIdentityNumber personLoggingIn) {
+        var person = imaginarySetup.getPersonRegistryEntry(personLoggingIn);
+        var affiliations = person.getAffiliations();
+        return affiliations.stream()
+                   .map(affiliation -> createUserForAffiliation(person, affiliation))
+                   .collect(Collectors.toList());
+    }
+    
     private String constructExpectedUsername(NationalIdentityNumber person, CustomerDto currentCustomer) {
-        String personIdentifier = imaginarySetup.getPerson(person).getPersonsCristinIdentifier().getValue();
+        String personIdentifier = imaginarySetup.getPersonRegistryEntry(person)
+                                      .getPersonsCristinIdentifier()
+                                      .getValue();
         String topOrgCristinIdentifier = UriWrapper.fromUri(currentCustomer.getCristinId()).getLastPathElement();
         return String.join(AT, personIdentifier, topOrgCristinIdentifier);
     }
     
-    //
-    //    @Disabled
-    //    @ParameterizedTest
-    //    @EnumSource(LoginEventType.class)
-    //    void shouldAddUserAffiliationToExistingUserEntryWhenUserEntryPreexists(LoginEventType loginEventType)
-    //        throws NotFoundException {
-    //        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-    //        var existingUser = createUsersForAffiliations(person, ONLY_ACTIVE)
-    //                               .stream().collect(SingletonCollector.collect());
-    //        var event = randomEvent(person, loginEventType);
-    //        handler.handleRequest(event, context);
-    //        var updateUser = identityService.getUser(existingUser);
-    //        var affiliation = registeredPeople.getOrganizations(person)
-    //                              .stream().collect(SingletonCollector.collect());
-    //        assertThat(updateUser.getAffiliation(), is(equalTo(affiliation)));
-    //    }
-    //
-    //    @Disabled
-    //    @ParameterizedTest
-    //    @EnumSource(LoginEventType.class)
-    //    void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType)
-    //        throws NotFoundException {
-    //        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-    //        var existingUser = createUsersForAffiliations(person, ONLY_ACTIVE)
-    //                               .stream().collect(SingletonCollector.collect());
-    //        var event = randomEvent(person, loginEventType);
-    //        handler.handleRequest(event, context);
-    //        var updateUser = identityService.getUser(existingUser);
-    //        var affiliation = registeredPeople.getOrganizations(person)
-    //                              .stream().collect(SingletonCollector.collect());
-    //        var cognitoAttribute = getUpdatedClaimFromCognito(PERSON_AFFILIATION_CLAIM);
-    //        assertThat(cognitoAttribute, is(equalTo(affiliation.toString())));
-    //    }
-    //
-    //    @Disabled
-    //    @ParameterizedTest
-    //    @EnumSource(LoginEventType.class)
-    //    void shouldUpdateCognitoGroupsToIncludeCustomerIdWhenUserHasExactlyOneActiveAffiliation(
-    //        LoginEventType loginEventType) {
-    //        var person = registeredPeople.personWithExactlyOneActiveAffiliation();
-    //        var event = randomEvent(person, loginEventType);
-    //        var response = handler.handleRequest(event, context);
-    //        var groups = extractAccessRights(response);
-    //        var expectedCustomerId = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE).stream()
-    //                                     .map(attempt(id -> customerService.getCustomerByCristinId(id)))
-    //                                     .map(Try::orElseThrow)
-    //                                     .map(CustomerDto::getId)
-    //                                     .collect(SingletonCollector.collect());
-    //
-    //        var expectedCognitoGroup =
-    //            "USER" + AT + expectedCustomerId.toString();
-    //
-    //        assertThat(groups, hasItem(expectedCognitoGroup));
-    //    }
-    //
-    //    @Disabled
-    //    @ParameterizedTest
-    //    @EnumSource(LoginEventType.class)
-    //    void shouldAllowPeopleWhoAreNotRegisteredInPersonRegistryToLoginButNotGiveThemAnyRole(
-    //        LoginEventType loginEventType) {
-    //        var person = registeredPeople.personThatIsNotRegisteredInPersonRegistry();
-    //        var event = randomEvent(person, loginEventType);
-    //        var response = handler.handleRequest(event, context);
-    //        var accessRights = extractAccessRights(response);
-    //        assertThat(accessRights, is((empty())));
-    //    }
-    //
-    //    private void assertThatUserHasUserRoleAttached(UserDto user) {
-    //        var userRoles = user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toList());
-    //        assertThat(userRoles, hasItem("Creator"));
-    //    }
-    //
-    //    private String getUpdatedClaimFromCognito(String attributeName) {
-    //        return congitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-    //                   .filter(attribute -> attributeName.equals(attribute.name()))
-    //                   .map(AttributeType::value)
-    //                   .collect(SingletonCollector.collect());
-    //    }
-    //
-    //    private List<String> createRoleStrings(UserDto user) {
-    //        return user.getRoles().stream()
-    //                   .map(RoleDto::getRoleName)
-    //                   .map(rolename -> rolename + AT + user.getInstitution().toString())
-    //                   .collect(Collectors.toList());
-    //    }
-    //
+    private void removeEmployment(UserDto existingUser) throws NotFoundException {
+        existingUser.setAffiliation(null);
+        identityService.updateUser(existingUser);
+    }
+    
     private List<String> extractAccessRights(CognitoUserPoolPreTokenGenerationEvent response) {
         return Arrays.asList(
             response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
     }
-    
-    //        private CustomerDto fetchCustomerBasedOnFeideDomain(String customersFeideDomain) {
-    //            return customerService.getCustomers().stream()
-    //                       .filter(customer -> customersFeideDomain.equals(customer.getFeideOrganizationDomain()))
-    //                       .collect(SingletonCollector.collectOrElse(null));
-    //        }
-    //
-    
-    //
-    //    private void assertThatNewFieldsAreUpdatedForLegacyUserEntries(NationalIdentityNumber person,
-    //                                                                   String personsFeideIdentifier,
-    //                                                                   UserDto updatedUser) {
-    //        assertThat(updatedUser.getCristinId(), is(equalTo(registeredPeople.getCristinPersonId(person))));
-    //        assertThat(updatedUser.getFeideIdentifier(), is(equalTo(personsFeideIdentifier)));
-    //        var expectedTopLevelOrgId = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
-    //                                        .stream().collect(SingletonCollector.collect());
-    //        assertThat(updatedUser.getInstitutionCristinId(), is(equalTo(expectedTopLevelOrgId)));
-    //    }
-    //
-    //    private UserDto legacyUserWithFeideIdentifierAsUsername(NationalIdentityNumber person,
-    //                                                            String personsFeideIdentifier) {
-    //        try {
-    //            var preExistingUser = nvaDataGenerator.createUsers(person, ONLY_ACTIVE)
-    //                                      .stream().collect(SingletonCollector.collect());
-    //            preExistingUser.setUsername(personsFeideIdentifier);
-    //            preExistingUser.setFeideIdentifier(NOT_EXISTING_VALUE_IN_LEGACY_ENTRIES);
-    //            preExistingUser.setInstitutionCristinId(NOT_EXISTING_URI_IN_LEGACY_ENTRIES);
-    //            preExistingUser.setCristinId(NOT_EXISTING_URI_IN_LEGACY_ENTRIES);
-    //            identityService.addUser(preExistingUser);
-    //            return preExistingUser;
-    //        } catch (InvalidInputException | ConflictException e) {
-    //            throw new RuntimeException(e);
-    //        }
-    //    }
-    //
-    //    private String feideDomainOfUsersInstitution(NationalIdentityNumber person) throws NotFoundException {
-    //        var topLeveOrg = registeredPeople.getTopLevelOrgsForPerson(person, ONLY_ACTIVE)
-    //                             .stream()
-    //                             .collect(SingletonCollector.collect());
-    //        return customerService.getCustomerByCristinId(topLeveOrg).getFeideOrganizationDomain();
-    //    }
-    //
-    //    private UserDto fetchUserFromDatabase(URI cristinPersonId, URI customerCristinId) {
-    //        return identityService.getUserByPersonCristinIdAndCustomerCristinId(cristinPersonId, customerCristinId);
-    //    }
-    //
-    //    private void assertThatUserIsSearchableByCristinCredentials(NationalIdentityNumber personLoggingIn,
-    //                                                                List<UserDto> allUsers) {
-    //        assertThatUsersCristinIsPersonsCristinId(personLoggingIn, allUsers);
-    //        assertThatUsersInstitutionCristinIdIsCustomersCristinId(personLoggingIn, allUsers);
-    //    }
-    //
-    //    private void assertThatUsersInstitutionCristinIdIsCustomersCristinId(NationalIdentityNumber personLoggingIn,
-    //                                                                         List<UserDto> allUsers) {
-    //        var expectedCustomerCristinIds = constructExpectedCustomersFromMockData(personLoggingIn);
-    //        var actualCustomerCristinIds = allUsers.stream()
-    //                                           .map(UserDto::getInstitutionCristinId)
-    //                                           .collect(Collectors.toList());
-    //        assertThat(actualCustomerCristinIds, containsInAnyOrder(expectedCustomerCristinIds.toArray(URI[]::new)));
-    //    }
-    //
-    //    private void assertThatUsersCristinIsPersonsCristinId(NationalIdentityNumber personLoggingIn,
-    //                                                          List<UserDto> allUsers) {
-    //        var cristinPersonId = registeredPeople.getCristinPersonId(personLoggingIn);
-    //        for (var user : allUsers) {
-    //            assertThat(user.getCristinId(), is(equalTo(cristinPersonId)));
-    //        }
-    //    }
-    //
-    //    private List<UserDto> createUsersForAffiliations(NationalIdentityNumber personLoggingIn, boolean
-    //    includeInactive) {
-    //        return nvaDataGenerator.createUsers(personLoggingIn, includeInactive)
-    //                   .stream()
-    //                   .map(attempt(user -> identityService.addUser(user)))
-    //                   .map(attempt -> attempt.map(user -> identityService.getUser(user)))
-    //                   .map(Try::orElseThrow)
-    //                   .collect(Collectors.toList());
-    //    }
-    //
-    //    private List<String> createAccessRightsNvaVersion(UserDto user) {
-    //        var customerId = attempt(() -> customerService.getCustomer(user.getInstitution()))
-    //                             .map(CustomerDto::getId)
-    //                             .map(URI::toString)
-    //                             .orElseThrow();
-    //
-    //        return user.getAccessRights().stream()
-    //                   .map(accessRight -> accessRight + AT + customerId)
-    //                   .collect(Collectors.toList());
-    //    }
-    //
-    //    private List<String> createAccessRightsCristinIdVersion(UserDto user) {
-    //        var customerCristinId =
-    //            attempt(() -> customerService.getCustomer(user.getInstitution()).getCristinId()).orElseThrow();
-    //        return user.getAccessRights().stream()
-    //                   .map(accessRight -> accessRight + AT + customerCristinId)
-    //                   .collect(Collectors.toList());
-    //    }
-    //
-    //    private boolean userHasActiveAffiliationWithCustomer(UserDto user, NationalIdentityNumber personsNin) {
-    //        var customersForActiveAffiliations = registeredPeople
-    //                                                 .getCustomersWithActiveAffiliations(personsNin)
-    //                                                 .map(CustomerDto::getId).collect(Collectors.toSet());
-    //        return customersForActiveAffiliations.contains(user.getInstitution());
-    //    }
-    //
-    //    private List<UserDto> scanAllUsers() {
-    //        ScanDatabaseRequestV2 scanRequest = new ScanDatabaseRequestV2();
-    //        var scanResult = identityService.fetchOnePageOfUsers(scanRequest);
-    //
-    //        var allUsers = new ArrayList<>(scanResult.getRetrievedUsers());
-    //        while (scanResult.thereAreMoreEntries()) {
-    //            Map<String, AttributeValue> nextStartMarker = scanResult.getStartMarkerForNextScan();
-    //            scanResult = identityService.fetchOnePageOfUsers(scanRequest.newScanDatabaseRequest(nextStartMarker));
-    //            allUsers.addAll(scanResult.getRetrievedUsers());
-    //        }
-    //        return allUsers;
-    //    }
-    //
-    //    private List<URI> constructExpectedCustomersFromMockData(NationalIdentityNumber personLoggingIn) {
-    //        return registeredPeople.getTopLevelOrgsForPerson(personLoggingIn, ONLY_ACTIVE)
-    //                   .stream()
-    //                   .map(attempt(cristinId -> customerService.getCustomerByCristinId(cristinId)))
-    //                   .map(Try::orElseThrow)
-    //                   .map(CustomerDto::getCristinId)
-    //                   .collect(Collectors.toList());
-    //    }
-    //
-    //    private CognitoUserPoolPreTokenGenerationEvent randomEvent(NationalIdentityNumber nin,
-    //                                                               LoginEventType loginEventType) {
-    //        if (LoginEventType.FEIDE == loginEventType) {
-    //            String feideId = registeredPeople.getFeideIdentifierForPerson();
-    //            String orgFeideDomain = registeredPeople.getSomeFeideOrgIdentifierForPerson(nin);
-    //            return randomEventOfFeideUser(nin, feideId, orgFeideDomain);
-    //        }
-    //        return randomEventOfNonFeideUser(nin);
-    //    }
-    //
-    //    private CognitoUserPoolPreTokenGenerationEvent randomEventOfFeideUser(NationalIdentityNumber nin,
-    //                                                                          String feideId,
-    //                                                                          String orgFeideDomain) {
-    //
-    //        Map<String, String> userAttributes = Map.of(FEIDE_ID, feideId,
-    //            NIN_FOR_FEIDE_USERS, nin.getNin(),
-    //            ORG_FEIDE_DOMAIN, orgFeideDomain);
-    //        return CognitoUserPoolPreTokenGenerationEvent.builder()
-    //                   .withUserPoolId(randomString())
-    //                   .withUserName(randomString())
-    //                   .withRequest(Request.builder().withUserAttributes(userAttributes).build())
-    //                   .withCallerContext(CallerContext.builder().withClientId(authServerMock.getClientId()).build())
-    //                   .build();
-    //    }
-    //
-    //    private CognitoUserPoolPreTokenGenerationEvent randomEventOfNonFeideUser(NationalIdentityNumber nin) {
-    //        Map<String, String> userAttributes = Map.of(NIN_FON_NON_FEIDE_USERS, nin.toString());
-    //        return CognitoUserPoolPreTokenGenerationEvent.builder()
-    //                   .withUserPoolId(randomString())
-    //                   .withUserName(randomString())
-    //                   .withRequest(Request.builder().withUserAttributes(userAttributes).build())
-    //                   .withCallerContext(CallerContext.builder().withClientId(authServerMock.getClientId()).build())
-    //                   .build();
-    //    }
-    //
-    //    private void setupIdentityService() {
-    //        this.userAccessDynamoDbLocal = new LocalIdentityService() {
-    //        };
-    //        userAccessDynamoDbLocal.initializeTestDatabase();
-    //        this.identityService = new IdentityServiceImpl(userAccessDynamoDbLocal.getDynamoDbClient());
-    //    }
-    //
-    //    private void setupCustomerService() {
-    //        this.customerDynamoDbLocal = new LocalCustomerServiceDatabase();
-    //        customerDynamoDbLocal.setupDatabase();
-    //        var localCustomerClient = customerDynamoDbLocal.getDynamoClient();
-    //        this.customerService = new DynamoDBCustomerService(localCustomerClient);
-    //    }
-    //
-    //    private void setUpWiremock() {
-    //        httpServer = new WireMockServer(options().dynamicHttpsPort());
-    //        httpServer.start();
-    //        serverUri = URI.create(httpServer.baseUrl());
-    //    }
 }

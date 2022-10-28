@@ -44,7 +44,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
     }
 
     @Test
-    void shouldUpdateCustomerOfAttribute() {
+    void shouldUpdateAttributeCustomerOf() {
         var expectedCustomersAppDomains = IntStream.of(1, randomInteger(10))
                                               .boxed()
                                               .map(i -> newCustomerDto())
@@ -52,7 +52,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                                               .map(Try::orElseThrow)
                                               .map(customer -> updateCustomerOfNvaAttribute(customer).getCustomerOf())
                                               .collect(Collectors.toList());
-
+    
         var actualCustomersAppDomains = handler.handleRequest(input, context)
                                             .stream()
                                             .map(CustomerDto::getCustomerOf)

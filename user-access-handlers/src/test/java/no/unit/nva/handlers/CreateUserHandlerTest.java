@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
@@ -61,13 +62,13 @@ class CreateUserHandlerTest extends HandlerTest {
     private IdentityServiceImpl identityService;
     private CustomerService customerService;
     private PeopleAndInstitutions peopleAndInstitutions;
-
+    
     @BeforeEach
-    public void init() {
+    public void init() throws InvalidInputException, ConflictException {
         setupCustomerService();
         setupIdentityService();
         peopleAndInstitutions = new PeopleAndInstitutions(customerService, identityService);
-
+        
         var cristinClient = peopleAndInstitutions.createCristinClient();
         var userCreator = new UserEntriesCreatorForPerson(customerService, cristinClient, identityService);
         handler = new CreateUserHandler(userCreator, identityService);
@@ -280,10 +281,13 @@ class CreateUserHandlerTest extends HandlerTest {
     private NationalIdentityNumber randomPerson() {
         return new NationalIdentityNumber(randomString());
     }
-
-    private void setupIdentityService() {
+    
+    private void setupIdentityService() throws InvalidInputException, ConflictException {
         identityServiceDatabase = new LocalIdentityService();
         identityService = identityServiceDatabase.createDatabaseServiceUsingLocalStorage();
+        identityService.addRole(RoleDto.newBuilder()
+                                    .withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
+                                    .build());
     }
 
     private void setupCustomerService() {

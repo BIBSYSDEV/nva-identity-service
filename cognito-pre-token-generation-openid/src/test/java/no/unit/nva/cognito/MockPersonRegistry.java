@@ -146,10 +146,7 @@ public class MockPersonRegistry {
         nonTopLevelOrgToTopLevelOrg.put(secondNonTopLevelOrg.getOrgId(), secondTopLevelOrg);
         
         return nin;
-        
     }
-    
-   
     
     public List<EmploymentInformation> fetchTopOrgEmploymentInformation(NationalIdentityNumber nin) {
         return topLevelOrgs.get(nin);
@@ -159,7 +156,11 @@ public class MockPersonRegistry {
         return nonTopLevelOrgToTopLevelOrg.get(organizationUri);
     }
     
-   
+    public NationalIdentityNumber mockResponseForPersonNotFound() {
+        var nin = new NationalIdentityNumber(randomString());
+        mockPersonNotFound(nin);
+        return nin;
+    }
     
     private static ObjectNode createRequestBody(NationalIdentityNumber nin) {
         var requestBody = JsonUtils.dtoObjectMapper.createObjectNode();
@@ -258,12 +259,21 @@ public class MockPersonRegistry {
     private void createStubForPerson(NationalIdentityNumber nin) {
         var requestBody = createRequestBody(nin);
         var response = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(people.get(nin))).orElseThrow();
-        
+    
         stubFor(post("/cristin/person/identityNumber")
                     .withHeader("Authorization", equalTo("Bearer " + accessToken))
                     .withHeader(CONTENT_TYPE, equalTo(APPLICATION_JSON))
                     .withRequestBody(new EqualToJsonPattern(requestBody, IGNORE_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS))
                     .willReturn(aResponse().withBody(response).withStatus(HttpURLConnection.HTTP_OK)));
+    }
+    
+    private void mockPersonNotFound(NationalIdentityNumber nin) {
+        var requestBody = createRequestBody(nin);
+        stubFor(post("/cristin/person/identityNumber")
+                    .withHeader("Authorization", equalTo("Bearer " + accessToken))
+                    .withHeader(CONTENT_TYPE, equalTo(APPLICATION_JSON))
+                    .withRequestBody(new EqualToJsonPattern(requestBody, IGNORE_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS))
+                    .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_NOT_FOUND)));
     }
     
     public static class EmploymentInformation {

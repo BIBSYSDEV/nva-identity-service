@@ -2,7 +2,6 @@ package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.AT;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
@@ -58,9 +57,6 @@ public class UserSelectionUponLoginHandler
     public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideId";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
-    public static final String INJECTED_ACCESS_RIGHT_TO_SINGLE_CUSTOMER_ID_IN_COGNITO_GROUPS = "USER";
-    public static final int SINGLE_ITEM_LIST = 1;
-    private static final int SINGLE_ITEM = 0;
     public static final String PERSON_REGISTRY_HOST = "PERSON_REGISTRY_HOST";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
@@ -101,15 +97,15 @@ public class UserSelectionUponLoginHandler
         var nin = extractNin(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
-        
+    
         var authenticationInfo = collectAuthenticationInformation(nin, orgFeideDomain, personFeideIdentifier);
         final var usersForPerson = userCreator.createUsers(authenticationInfo);
-        
+    
         final var roles = rolesPerCustomer(usersForPerson);
         authenticationInfo.updateCurrentCustomer();
         authenticationInfo.updateCurrentUser(usersForPerson);
-        
-        final var accessRights = createAccessRights(usersForPerson);
+    
+        final var accessRights = createAccessRightsPerCustomer(usersForPerson);
         updateCognitoUserAttributes(input, authenticationInfo, accessRights, roles);
         injectAccessRightsToEventResponse(input, accessRights);
         return input;
@@ -146,27 +142,6 @@ public class UserSelectionUponLoginHandler
                        orgFeideDomain))
                    .map(AuthenticationInformation::new)
                    .orElseThrow();
-    }
-    
-    private List<String> createAccessRights(List<UserDto> usersForPerson) {
-        final var accessRights = new ArrayList<>(accessRightsPerCustomer(usersForPerson));
-        final var injectedCustomerIdInAccessRights =
-            injectCustomerIdInCognitoGroupsToFacilitateOnlineTests(usersForPerson);
-        accessRights.addAll(injectedCustomerIdInAccessRights);
-        return accessRights;
-    }
-    
-    private List<String> injectCustomerIdInCognitoGroupsToFacilitateOnlineTests(List<UserDto> usersForPerson) {
-        return (usersForPerson.size() == SINGLE_ITEM_LIST)
-                   ? createVirtualAccessRightForCustomerIdForUseInTests(usersForPerson)
-                   : Collections.emptyList();
-    }
-    
-    private List<String> createVirtualAccessRightForCustomerIdForUseInTests(List<UserDto> usersForPerson) {
-        var user = usersForPerson.get(SINGLE_ITEM);
-        var accessRight = INJECTED_ACCESS_RIGHT_TO_SINGLE_CUSTOMER_ID_IN_COGNITO_GROUPS + AT + user.getInstitution()
-                                                                                                   .toString();
-        return List.of(accessRight);
     }
     
     private Collection<String> rolesPerCustomer(List<UserDto> usersForPerson) {
@@ -274,7 +249,7 @@ public class UserSelectionUponLoginHandler
                               .build());
     }
     
-    private List<String> accessRightsPerCustomer(List<UserDto> personsUsers) {
+    private List<String> createAccessRightsPerCustomer(List<UserDto> personsUsers) {
         return personsUsers.stream()
                    .map(user -> UserAccessRightForCustomer.fromUser(user, customerService))
                    .flatMap(Collection::stream)

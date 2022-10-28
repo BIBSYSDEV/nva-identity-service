@@ -35,14 +35,19 @@ public interface IdentityService {
     UserDto addUser(UserDto user) throws ConflictException;
 
     void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException;
-
+    
     void updateUser(UserDto user) throws NotFoundException;
-
+    
     RoleDto getRole(RoleDto input) throws NotFoundException;
-
+    
     UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest);
-
+    
     List<UserDto> getUsersByCristinId(URI cristinPersonId);
-
+    
     UserDto getUserByPersonCristinIdAndCustomerCristinId(URI cristinPersonId, URI cristinOrgId);
+    
+    class Constants {
+        
+        public static final String ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT = "Creator";
+    }
 }

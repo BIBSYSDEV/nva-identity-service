@@ -1439,13 +1439,13 @@ Resources:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.UserSelectionUponLoginHandler::handleRequest
       Role: !GetAtt CreateUsersRole.Arn
-      #      Tracing: Active
-      #      AutoPublishAlias: live
-      #      DeploymentPreference:
-      #        Enabled: true
-      #        Type: AllAtOnce
-      #      ProvisionedConcurrencyConfig:
-      #        ProvisionedConcurrentExecutions: 1
+      Tracing: Active
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Enabled: true
+        Type: AllAtOnce
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
           USERPOOL_NAME: !GetAtt UserPoolName.Value
@@ -1459,32 +1459,32 @@ Resources:
           PERSON_REGISTRY_HOST: !Sub '${ApiDomain}/cristin'
       Timeout: 20
 
-  #  PreTokenGenerationHandlerScalableTarget:
-  #    Type: AWS::ApplicationAutoScaling::ScalableTarget
-  #    Properties:
-  #      MaxCapacity: 10
-  #      MinCapacity: 1
-  #      ResourceId: !Sub function:${PreTokenGenerationHandler}:live
-  #      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-  #      ScalableDimension: lambda:function:ProvisionedConcurrency
-  #      ServiceNamespace: lambda
-  #    DependsOn: PreTokenGenerationHandlerAliaslive
-  #
-  #  PreTokenGenerationHandlerScalingPolicy:
-  #    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-  #    Properties:
-  #      PolicyName: PpeTokenGenerationnHandlerScalingPolicy
-  #      PolicyType: TargetTrackingScaling
-  #      ScalingTargetId: !Ref PreTokenGenerationHandlerScalableTarget
-  #      TargetTrackingScalingPolicyConfiguration:
-  #        TargetValue: 0.70
-  #        PredefinedMetricSpecification:
-  #          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+  PreTokenGenerationHandlerScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 10
+      MinCapacity: 1
+      ResourceId: !Sub function:${PreTokenGenerationHandler}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: PreTokenGenerationHandlerAliaslive
+
+  PreTokenGenerationHandlerScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: PpeTokenGenerationnHandlerScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref PreTokenGenerationHandlerScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   PreTokenGenerationHandlerTriggerPermission:
-#    DependsOn:
-    #      - PreTokenGenerationHandlerScalingPolicy
-    #      - PreTokenGenerationHandlerScalableTarget
+    DependsOn:
+      - PreTokenGenerationHandlerScalingPolicy
+      - PreTokenGenerationHandlerScalableTarget
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction

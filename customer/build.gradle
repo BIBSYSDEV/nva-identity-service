@@ -22,4 +22,6 @@ dependencies {
 test {
     environment "API_DOMAIN", "localhost"
     environment "CUSTOMERS_TABLE_NAME", "nva_customers"
+    environment "ID_NAMESPACE", "https://localhost"
+    environment "ALLOWED_ORIGIN", "*"
 }

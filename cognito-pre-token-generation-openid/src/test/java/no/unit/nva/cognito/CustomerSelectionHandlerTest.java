@@ -184,8 +184,8 @@ class CustomerSelectionHandlerTest {
             .forEach(this::addUser);
     }
     
-    private UserDto addUser(UserDto user) {
-        return attempt(() -> identityService.addUser(user)).orElseThrow();
+    private void addUser(UserDto user) {
+        attempt(() -> identityService.addUser(user)).orElseThrow();
     }
     
     private UserDto createUserEntryInIdentityService(URI selectedCustomer, URI personId) {

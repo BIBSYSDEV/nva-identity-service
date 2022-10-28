@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.dao.UserDao;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -43,7 +44,7 @@ public class UserService extends DatabaseSubService {
     public UserService(DynamoDbClient client, RoleService roleService) {
         super(client);
         this.roleService = roleService;
-        this.table = this.client.table(IdentityService.USERS_AND_ROLES_TABLE, UserDao.TABLE_SCHEMA);
+        this.table = this.client.table(Constants.USERS_AND_ROLES_TABLE, UserDao.TABLE_SCHEMA);
         this.institutionsIndex = this.table.index(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME);
         this.cristinCredentialsIndex = this.table.index(SEARCH_USERS_BY_CRISTIN_IDENTIFIERS);
     }

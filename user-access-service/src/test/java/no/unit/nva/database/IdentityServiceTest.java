@@ -5,7 +5,6 @@ import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.database.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.database.EntityUtils.createRole;
-import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import static no.unit.nva.database.RoleService.ROLE_ALREADY_EXISTS_ERROR_MESSAGE;
 import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
 import static no.unit.nva.database.UserService.USER_ALREADY_EXISTS_ERROR_MESSAGE;
@@ -33,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccessservice.constants.DatabaseIndexDetails;
 import no.unit.nva.useraccessservice.dao.RoleDb;
@@ -82,8 +82,8 @@ class IdentityServiceTest extends LocalIdentityService {
     public void init() {
         identityService = createDatabaseServiceUsingLocalStorage();
         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(localDynamo).build();
-        rolesTable = enhancedClient.table(IdentityService.USERS_AND_ROLES_TABLE, RoleDb.TABLE_SCHEMA);
-        usersTable = enhancedClient.table(IdentityService.USERS_AND_ROLES_TABLE, UserDao.TABLE_SCHEMA);
+        rolesTable = enhancedClient.table(Constants.USERS_AND_ROLES_TABLE, RoleDb.TABLE_SCHEMA);
+        usersTable = enhancedClient.table(Constants.USERS_AND_ROLES_TABLE, UserDao.TABLE_SCHEMA);
     }
     
     @DisplayName("getRole() throws NotFoundException when the role-name does not exist in the database")
@@ -457,7 +457,7 @@ class IdentityServiceTest extends LocalIdentityService {
     }
     
     private List<UserDto> scanDatabaseDirectlyAndGetAllUsersInExpectedOrderIgnoringRoleEntries(int pageSize) {
-        return localDynamo.scan(ScanRequest.builder().tableName(USERS_AND_ROLES_TABLE).scanFilter(
+        return localDynamo.scan(ScanRequest.builder().tableName(Constants.USERS_AND_ROLES_TABLE).scanFilter(
                 filterOutNonUserEntries()).limit(pageSize).build())
                    .items()
                    .stream()

@@ -42,7 +42,9 @@ test{
     environment "API_KEY_SECRET_NAME", "ApiKeySecretName"
     environment "API_KEY_SECRET_KEY", "ApiKeySecretKey"
     environment "AWS_REGION", "eu-west-1"
-    environment "API_DOMAIN", "localhost"
+    environment "API_DOMAIN", "localhost" //necessary to be localhost because of wiremock
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
     environment "SIKT_CRISTIN_ID", "https://example.org/sikt/cristin/id"
+    environment "ID_NAMESPACE", "https://www.example.org/namespace/"
+    environment "ALLOWED_ORIGIN", "*"
 }

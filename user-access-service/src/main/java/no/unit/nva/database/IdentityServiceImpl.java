@@ -90,7 +90,7 @@ public class IdentityServiceImpl implements IdentityService {
     public UserDto getUserByPersonCristinIdAndCustomerCristinId(URI cristinPersonId, URI cristinOrgId) {
         return userService.getUsersByByCristinIdAndCristinOrgId(cristinPersonId, cristinOrgId);
     }
-
+    
     private boolean thereAreMoreEntries(ScanResponse result) {
         return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty();
     }
@@ -118,7 +118,7 @@ public class IdentityServiceImpl implements IdentityService {
 
     private ScanRequest createScanDynamoRequest(ScanDatabaseRequestV2 input) {
         return ScanRequest.builder()
-            .tableName(USERS_AND_ROLES_TABLE)
+                   .tableName(Constants.USERS_AND_ROLES_TABLE)
             .limit(input.getPageSize())
             .exclusiveStartKey(input.toDynamoScanMarker())
             .build();

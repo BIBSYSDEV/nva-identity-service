@@ -1,6 +1,5 @@
 package no.unit.nva.useraccess.events;
 
-import static no.unit.nva.database.IdentityService.USERS_AND_ROLES_TABLE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
 import static nva.commons.core.attempt.Try.attempt;
@@ -17,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
@@ -110,13 +110,13 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
     }
 
     private List<UserDto> scanAllUsersInDatabaseDirectly() {
-        return localDynamo.scanPaginator(ScanRequest.builder().tableName(USERS_AND_ROLES_TABLE).build())
-            .stream()
-            .flatMap(page -> page.items().stream())
-            .filter(this::isUser)
-            .map(UserDao.TABLE_SCHEMA::mapToItem)
-            .map(UserDao::toUserDto)
-            .collect(Collectors.toList());
+        return localDynamo.scanPaginator(ScanRequest.builder().tableName(Constants.USERS_AND_ROLES_TABLE).build())
+                   .stream()
+                   .flatMap(page -> page.items().stream())
+                   .filter(this::isUser)
+                   .map(UserDao.TABLE_SCHEMA::mapToItem)
+                   .map(UserDao::toUserDto)
+                   .collect(Collectors.toList());
     }
 
     private boolean isUser(Map<String, AttributeValue> entry) {
@@ -156,7 +156,7 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
 
     private GetItemRequest createGetItemRequest(Map<String, AttributeValue> startMarker) {
         return GetItemRequest.builder()
-            .tableName(USERS_AND_ROLES_TABLE)
+                   .tableName(Constants.USERS_AND_ROLES_TABLE)
             .key(startMarker)
             .build();
     }

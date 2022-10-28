@@ -15,34 +15,43 @@ import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public interface IdentityService {
-
-    String USERS_AND_ROLES_TABLE = new Environment().readEnv("USERS_AND_ROLES_TABLE");
-
+    
     @JacocoGenerated
     static IdentityService defaultIdentityService() {
         return defaultIdentityService(DEFAULT_DYNAMO_CLIENT);
     }
-
+    
     @JacocoGenerated
     static IdentityService defaultIdentityService(DynamoDbClient dynamoDbClient) {
         return new IdentityServiceImpl(dynamoDbClient);
     }
-
+    
     UserDto getUser(UserDto queryObject) throws NotFoundException;
-
+    
     List<UserDto> listUsers(URI institutionId);
-
+    
     UserDto addUser(UserDto user) throws ConflictException;
-
+    
     void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException;
-
+    
     void updateUser(UserDto user) throws NotFoundException;
-
+    
     RoleDto getRole(RoleDto input) throws NotFoundException;
-
+    
     UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest);
-
+    
     List<UserDto> getUsersByCristinId(URI cristinPersonId);
-
+    
     UserDto getUserByPersonCristinIdAndCustomerCristinId(URI cristinPersonId, URI cristinOrgId);
+    
+    class Constants {
+        
+        public static final String ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT = "Creator";
+        public static final String USERS_AND_ROLES_TABLE =
+            new Environment().readEnv("USERS_AND_ROLES_TABLE");
+        
+        private Constants() {
+        
+        }
+    }
 }

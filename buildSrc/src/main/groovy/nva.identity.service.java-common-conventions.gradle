@@ -37,10 +37,6 @@ tasks.named('test') {
     finalizedBy jacocoTestReport
 }
 
-test {
-    environment "ID_NAMESPACE", "https://www.example.org/namespace/"
-    environment "ALLOWED_ORIGIN", "*"
-}
 
 pmd {
     ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')

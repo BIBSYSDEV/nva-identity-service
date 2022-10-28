@@ -2,6 +2,7 @@ package no.unit.nva.useraccessservice.model;
 
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.util.Collection;
@@ -49,7 +50,8 @@ public class UserDto implements WithCopy<Builder>, Typed {
     private URI cristinId;
     @JsonProperty("feideIdentifier")
     private String feideIdentifier;
-    @JsonProperty("insitutionCristinId")
+    @JsonAlias("insitutionCristinId")
+    @JsonProperty("institutionCristinId")
     private URI institutionCristinId;
     @JsonProperty("affiliation")
     private URI affiliation;

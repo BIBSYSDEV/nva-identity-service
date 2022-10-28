@@ -1457,6 +1457,7 @@ Resources:
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+          PERSON_REGISTRY_HOST: !Sub '${ApiDomain}/cristin'
       Timeout: 20
 
   #  PreTokenGenerationHandlerScalableTarget:

@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import no.unit.nva.auth.AuthorizedBackendClient;
@@ -171,7 +172,8 @@ public class UserSelectionUponLoginHandler
                                                               Collection<String> accessRights,
                                                               Collection<String> roles) {
         
-        var allowedCustomersString = createAllowedCustomersString(authenticationInfo.getActiveCustomers());
+        var allowedCustomersString = createAllowedCustomersString(authenticationInfo.getActiveCustomers(),
+                                                                  authenticationInfo.getOrgFeideDomain());
         
         if (authenticationInfo.personExistsInPersonRegistry()) {
             return addClaimsForPeopleRegisteredInPersonRegistry(authenticationInfo,
@@ -219,9 +221,11 @@ public class UserSelectionUponLoginHandler
         return List.of(currentCustomerClaim, currentTopLevelOrgClaim, usernameClaim, personAffiliationClaim);
     }
     
-    private String createAllowedCustomersString(Collection<CustomerDto> allowedCustomers) {
+    private String createAllowedCustomersString(Collection<CustomerDto> allowedCustomers, String feideDomain) {
         var result = allowedCustomers
                          .stream()
+                         .filter(customer -> !Objects.nonNull(feideDomain) || customer.getFeideOrganizationDomain()
+                                                                                  .equals(feideDomain))
                          .map(CustomerDto::getId)
                          .map(URI::toString)
                          .collect(Collectors.joining(ELEMENTS_DELIMITER));

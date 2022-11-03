@@ -148,6 +148,8 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withCristinId(randomUri())
                    .withVocabularies(Collections.emptySet())
                    .withCustomerOf(randomElement(ApplicationDomain.values()))
+                   .withDoiPreFix("10.1000")
+                   .withDoiName(randomString())
             .build();
     }
 }

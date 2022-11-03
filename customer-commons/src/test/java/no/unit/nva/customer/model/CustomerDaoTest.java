@@ -96,6 +96,8 @@ class CustomerDaoTest {
                                    .withVocabularies(randomVocabularyDtoSettings())
                                    .withRorId(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
+                                   .withDoiPreFix("10.1000")
+                                   .withDoiName("doi-agency-" + randomString())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValues());

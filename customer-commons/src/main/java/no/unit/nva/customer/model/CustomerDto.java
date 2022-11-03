@@ -37,6 +37,8 @@ public class CustomerDto implements Context {
     private String cname;
     private String institutionDns;
     private String feideOrganizationDomain;
+    private String doiPrefix;
+    private String doiAgencyName;
     private URI cristinId;
     private ApplicationDomain customerOf;
     private List<VocabularyDto> vocabularies;
@@ -145,6 +147,21 @@ public class CustomerDto implements Context {
         this.feideOrganizationDomain = feideOrganizationDomain;
     }
 
+    public String getDoiPrefix() {
+        return doiPrefix;
+    }
+
+    public void setDoiPrefix(String doiPrefix) {
+        this.doiPrefix = doiPrefix;
+    }
+
+    public String getDoiAgencyName() {
+        return doiAgencyName;
+    }
+
+    public void setDoiAgencyName(String doiAgencyName) {
+        this.doiAgencyName = doiAgencyName;
+    }
     public URI getCristinId() {
         return cristinId;
     }
@@ -209,6 +226,8 @@ public class CustomerDto implements Context {
                    .withCristinId(getCristinId())
                    .withCustomerOf(getCustomerOf())
                    .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                   .withDoiPreFix(getDoiPrefix())
+                   .withDoiName(getDoiAgencyName())
                    .withName(getName())
                    .withModifiedDate(stringToInstant(getModifiedDate()))
                    .withRorId(getRorId())
@@ -221,7 +240,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow());
+                            getRorId(), getPublicationWorkflow(),getDoiPrefix(),getDoiAgencyName());
     }
 
     @JacocoGenerated
@@ -246,6 +265,8 @@ public class CustomerDto implements Context {
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getDoiAgencyName(), that.getDoiAgencyName())
+               && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getCustomerOf(), that.getCustomerOf())
                && Objects.equals(getVocabularies(), that.getVocabularies())
@@ -363,8 +384,20 @@ public class CustomerDto implements Context {
             return this;
         }
 
+        public Builder withDoiPreFix(String doiPrefix) {
+            customerDto.setDoiPrefix(doiPrefix);
+            return this;
+        }
+
+        public Builder withDoiName(String doiName) {
+            customerDto.setDoiAgencyName(doiName);
+            return this;
+        }
+
         public CustomerDto build() {
             return customerDto;
         }
+
     }
+
 }

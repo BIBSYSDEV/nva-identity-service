@@ -1,27 +1,9 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
-import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID;
-import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Map;
-import java.util.UUID;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
@@ -35,6 +17,25 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Map;
+import java.util.UUID;
+
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
+import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID;
+import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class GetCustomerHandlerTest {
     
@@ -88,6 +89,7 @@ class GetCustomerHandlerTest {
         CustomerDto actualCustomerDto = CustomerDto.fromJson(response.getBody());
         assertThat(actualCustomerDto.getId(), notNullValue());
         assertThat(actualCustomerDto.getContext(), notNullValue());
+        assertThat(actualCustomerDto.getDoiPrefix(), notNullValue());
         assertThat(actualCustomerDto, equalTo(customerDto));
     }
     
@@ -140,6 +142,8 @@ class GetCustomerHandlerTest {
         CustomerDao customerDb = new CustomerDao.Builder()
                                      .withIdentifier(identifier)
                                      .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
+                                     .withDoiPreFix("10.1000")
+                                     .withDoiName(randomString())
                                      .build();
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);

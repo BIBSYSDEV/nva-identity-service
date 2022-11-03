@@ -58,6 +58,8 @@ class CustomerDtoTest {
                    .withVocabularies(randomVocabularies())
                    .withRorId(randomUri())
                    .withPublicationWorkflow(randomPublicationWorkflow())
+                   .withDoiPreFix("10.1000")
+                   .withDoiName("doi-agency-" + randomString())
                    .build();
     }
 

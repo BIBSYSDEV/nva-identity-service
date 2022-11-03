@@ -45,6 +45,8 @@ public class CustomerDao implements Typed {
     private String cname;
     private String institutionDns;
     private String feideOrganizationDomain;
+    private String doiPrefix;
+    private String doiAgencyName;
     private URI cristinId;
     private URI customerOf;
     private Set<VocabularyDao> vocabularies;
@@ -75,6 +77,8 @@ public class CustomerDao implements Typed {
                    .withName(dto.getName())
                    .withRorId(dto.getRorId())
                    .withPublicationWorkflow(dto.getPublicationWorkflow())
+                   .withDoiPreFix(dto.getDoiPrefix())
+                   .withDoiName(dto.getDoiAgencyName())
                    .build();
     }
     
@@ -84,7 +88,7 @@ public class CustomerDao implements Typed {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
             getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-            getRorId(), getPublicationWorkflow());
+            getRorId(), getPublicationWorkflow(), getDoiPrefix(),getDoiAgencyName());
     }
     
     @DynamoDbAttribute(IDENTIFIER)
@@ -170,7 +174,23 @@ public class CustomerDao implements Typed {
     public void setFeideOrganizationDomain(String feideOrganizationDomain) {
         this.feideOrganizationDomain = feideOrganizationDomain;
     }
-    
+
+    public String getDoiPrefix() {
+        return doiPrefix;
+    }
+
+    public void setDoiPrefix(String doiPrefix) {
+        this.doiPrefix = doiPrefix;
+    }
+
+    public String getDoiAgencyName() {
+        return doiAgencyName;
+    }
+
+    public void setDoiAgencyName(String doiAgencyName) {
+        this.doiAgencyName = doiAgencyName;
+    }
+
     @DynamoDbSecondaryPartitionKey(indexNames = {BY_CRISTIN_ID_INDEX_NAME})
     @DynamoDbAttribute(CRISTIN_ID)
     public URI getCristinId() {
@@ -233,6 +253,8 @@ public class CustomerDao implements Typed {
                                       .withCustomerOf(fromUri(getCustomerOf()))
                                       .withRorId(getRorId())
                                       .withPublicationWorkflow(getPublicationWorkflow())
+                                      .withDoiName(this.getDoiAgencyName())
+                                      .withDoiPreFix(this.getDoiPrefix())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -257,6 +279,8 @@ public class CustomerDao implements Typed {
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
+               && Objects.equals(getDoiAgencyName(), that.getDoiAgencyName())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getCustomerOf(), that.getCustomerOf())
                && Objects.equals(getVocabularies(), that.getVocabularies())
@@ -383,7 +407,17 @@ public class CustomerDao implements Typed {
             customerDb.setPublicationWorkflow(publicationWorkflow);
             return this;
         }
-        
+
+        public Builder withDoiPreFix(String doiPrefix) {
+            customerDb.setDoiPrefix(doiPrefix);
+            return this;
+        }
+
+        public Builder withDoiName(String doiAgencyName) {
+            customerDb.setDoiAgencyName(doiAgencyName);
+            return this;
+        }
+
         public CustomerDao build() {
             return customerDb;
         }

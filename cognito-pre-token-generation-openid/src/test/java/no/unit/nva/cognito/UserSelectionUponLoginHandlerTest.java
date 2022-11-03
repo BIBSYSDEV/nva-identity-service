@@ -441,8 +441,10 @@ class UserSelectionUponLoginHandlerTest {
 
     private static void assertThatResponseContainsAssignedAccessRights(UserDto existingUser,
                                                                        Set<AccessRight> assignedAccessRights,
-                                                                       CognitoUserPoolPreTokenGenerationEvent response) {
-        var groups = response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
+                                                                       CognitoUserPoolPreTokenGenerationEvent response)
+    {
+        var groups =
+            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
         var groupsList = Arrays.asList(groups);
         var expectedAccessRight = constructExpectedAccessRights(existingUser, assignedAccessRights);
         assertThat(groupsList, hasItems(expectedAccessRight.toArray(String[]::new)));

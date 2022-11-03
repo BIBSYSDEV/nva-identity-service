@@ -20,7 +20,7 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
 //Overriding setters and getters is necessary for Jackson-Jr
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields"})
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields", "PMD.GodClass"})
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
@@ -162,6 +162,7 @@ public class CustomerDto implements Context {
     public void setDoiAgencyName(String doiAgencyName) {
         this.doiAgencyName = doiAgencyName;
     }
+
     public URI getCristinId() {
         return cristinId;
     }

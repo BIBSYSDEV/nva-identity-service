@@ -68,6 +68,6 @@ class CustomerDtoTest {
     }
 
     private ApplicationDomain randomApplicationDomain() {
-       return randomElement(List.of(ApplicationDomain.values()));
+        return randomElement(List.of(ApplicationDomain.values()));
     }
 }

@@ -253,8 +253,8 @@ public class CustomerDao implements Typed {
                                       .withCustomerOf(fromUri(getCustomerOf()))
                                       .withRorId(getRorId())
                                       .withPublicationWorkflow(getPublicationWorkflow())
-                                      .withDoiName(this.getDoiAgencyName())
-                                      .withDoiPreFix(this.getDoiPrefix())
+                                      .withDoiName(getDoiAgencyName())
+                                      .withDoiPreFix(getDoiPrefix())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }

@@ -89,7 +89,7 @@ class GetCustomerHandlerTest {
         CustomerDto actualCustomerDto = CustomerDto.fromJson(response.getBody());
         assertThat(actualCustomerDto.getId(), notNullValue());
         assertThat(actualCustomerDto.getContext(), notNullValue());
-        assertThat(actualCustomerDto.getDoiPrefix(), notNullValue());
+        assertThat(actualCustomerDto.getDoi(), notNullValue());
         assertThat(actualCustomerDto, equalTo(customerDto));
     }
     
@@ -142,8 +142,7 @@ class GetCustomerHandlerTest {
         CustomerDao customerDb = new CustomerDao.Builder()
                                      .withIdentifier(identifier)
                                      .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
-                                     .withDoiPreFix("10.1000")
-                                     .withDoiName(randomString())
+                                     .withDoi("10.1000", randomString())
                                      .build();
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);

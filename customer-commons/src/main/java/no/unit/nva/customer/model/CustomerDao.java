@@ -5,6 +5,7 @@ import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
 import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
@@ -13,7 +14,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.model.CustomerDto.Builder;
+import no.unit.nva.customer.model.CustomerDto.DoiDto;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
+import no.unit.nva.customer.model.interfaces.Doi;
 import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
@@ -45,13 +49,12 @@ public class CustomerDao implements Typed {
     private String cname;
     private String institutionDns;
     private String feideOrganizationDomain;
-    private String doiPrefix;
-    private String doiAgencyName;
     private URI cristinId;
     private URI customerOf;
     private Set<VocabularyDao> vocabularies;
     private URI rorId;
     private PublicationWorkflow publicationWorkflow;
+    private DoiDao doi;
     
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -77,8 +80,7 @@ public class CustomerDao implements Typed {
                    .withName(dto.getName())
                    .withRorId(dto.getRorId())
                    .withPublicationWorkflow(dto.getPublicationWorkflow())
-                   .withDoiPreFix(dto.getDoiPrefix())
-                   .withDoiName(dto.getDoiAgencyName())
+                   .withDoi(dto.getDoi())
                    .build();
     }
     
@@ -88,7 +90,7 @@ public class CustomerDao implements Typed {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
             getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-            getRorId(), getPublicationWorkflow(), getDoiPrefix(),getDoiAgencyName());
+            getRorId(), getPublicationWorkflow(), getDoi());
     }
     
     @DynamoDbAttribute(IDENTIFIER)
@@ -175,22 +177,6 @@ public class CustomerDao implements Typed {
         this.feideOrganizationDomain = feideOrganizationDomain;
     }
 
-    public String getDoiPrefix() {
-        return doiPrefix;
-    }
-
-    public void setDoiPrefix(String doiPrefix) {
-        this.doiPrefix = doiPrefix;
-    }
-
-    public String getDoiAgencyName() {
-        return doiAgencyName;
-    }
-
-    public void setDoiAgencyName(String doiAgencyName) {
-        this.doiAgencyName = doiAgencyName;
-    }
-
     @DynamoDbSecondaryPartitionKey(indexNames = {BY_CRISTIN_ID_INDEX_NAME})
     @DynamoDbAttribute(CRISTIN_ID)
     public URI getCristinId() {
@@ -235,26 +221,34 @@ public class CustomerDao implements Typed {
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
         this.publicationWorkflow = publicationWorkflow;
     }
-    
+
+    @JsonInclude()
+    public DoiDao getDoi() {
+        return doi;
+    }
+
+    public void setDoi(DoiDao doi) {
+        this.doi = doi;
+    }
+
     public CustomerDto toCustomerDto() {
         CustomerDto customerDto = CustomerDto.builder()
-                                      .withCname(this.getCname())
+                                      .withCname(getCname())
                                       .withName(getName())
-                                      .withIdentifier(this.getIdentifier())
-                                      .withArchiveName(this.getArchiveName())
-                                      .withCreatedDate(Optional.ofNullable(this.getCreatedDate()).orElse(null))
-                                      .withDisplayName(this.getDisplayName())
-                                      .withInstitutionDns(this.getInstitutionDns())
-                                      .withShortName(this.getShortName())
+                                      .withIdentifier(getIdentifier())
+                                      .withArchiveName(getArchiveName())
+                                      .withCreatedDate(getCreatedDate())
+                                      .withDisplayName(getDisplayName())
+                                      .withInstitutionDns(getInstitutionDns())
+                                      .withShortName(getShortName())
                                       .withVocabularies(extractVocabularySettings())
-                                      .withModifiedDate(Optional.ofNullable(getModifiedDate()).orElse(null))
+                                      .withModifiedDate(getModifiedDate())
                                       .withFeideOrganizationDomain(getFeideOrganizationDomain())
                                       .withCristinId(getCristinId())
                                       .withCustomerOf(fromUri(getCustomerOf()))
                                       .withRorId(getRorId())
                                       .withPublicationWorkflow(getPublicationWorkflow())
-                                      .withDoiName(getDoiAgencyName())
-                                      .withDoiPreFix(getDoiPrefix())
+                                      .withDoi(getDoi())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -279,8 +273,7 @@ public class CustomerDao implements Typed {
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
-               && Objects.equals(getDoiAgencyName(), that.getDoiAgencyName())
+               && Objects.equals(getDoi(), that.getDoi())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getCustomerOf(), that.getCustomerOf())
                && Objects.equals(getVocabularies(), that.getVocabularies())
@@ -408,18 +401,68 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withDoiPreFix(String doiPrefix) {
-            customerDb.setDoiPrefix(doiPrefix);
+        public Builder withDoi(Doi doi) {
+            customerDb.setDoi(doi!= null ? new DoiDao(doi): null);
             return this;
         }
 
-        public Builder withDoiName(String doiAgencyName) {
-            customerDb.setDoiAgencyName(doiAgencyName);
+        public Builder withDoi(String prefix, String agencyName) {
+            customerDb.setDoi(new DoiDao(prefix, agencyName));
             return this;
         }
 
         public CustomerDao build() {
             return customerDb;
         }
+    }
+
+    @DynamoDbBean
+    public static class DoiDao implements Doi {
+        private String prefix;
+        private String agencyName;
+
+        public DoiDao() {
+        }
+
+        public DoiDao(Doi doi) {
+            this.prefix = doi.getPrefix();
+            this.agencyName = doi.getAgencyName();
+        }
+
+        public DoiDao(String prefix, String agencyName) {
+            this.prefix = prefix;
+            this.agencyName = agencyName;
+        }
+
+        @Override
+        public String getPrefix() {
+            return prefix;
+        }
+
+        @Override
+        public String getAgencyName() {
+            return agencyName;
+        }
+
+        @Override
+        @JacocoGenerated
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            DoiDao doiDto = (DoiDao) o;
+            return Objects.equals(prefix, doiDto.getPrefix())
+                   && Objects.equals(agencyName, doiDto.getAgencyName());
+        }
+
+        @Override
+        @JacocoGenerated
+        public int hashCode() {
+            return Objects.hash(prefix, agencyName);
+        }
+
     }
 }

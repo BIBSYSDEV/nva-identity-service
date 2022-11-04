@@ -11,8 +11,7 @@ public final class CognitoClaims {
     public static final String NVA_USERNAME_CLAIM = "custom:nvaUsername";
     public static final String TOP_ORG_CRISTIN_ID = "custom:topOrgCristinId";
     public static final String PERSON_CRISTIN_ID_CLAIM = "custom:cristinId";
-    public static final String EMPTY_CLAIM_VALUE = "null";
-    public static final String ALLOWED_CUSTOMER_CLAIM = "custom:allowedCustomers";
+    public static final String EMPTY_CLAIM = "null";
     public static final String ROLES_CLAIM = "custom:roles";
     public static final String ACCESS_RIGHTS_CLAIM = "custom:accessRights";
     public static final String PERSON_AFFILIATION_CLAIM = "custom:personAffiliation";

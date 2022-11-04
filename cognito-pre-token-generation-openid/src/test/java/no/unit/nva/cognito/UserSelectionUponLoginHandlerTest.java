@@ -3,9 +3,9 @@ package no.unit.nva.cognito;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.AuthenticationInformation.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM_VALUE;
+import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
@@ -290,10 +290,10 @@ class UserSelectionUponLoginHandlerTest {
         var nvaUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
         var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
 
-        assertThat(customerId, is(equalTo(EMPTY_CLAIM_VALUE)));
-        assertThat(topOrgCristinId, is(equalTo(EMPTY_CLAIM_VALUE)));
-        assertThat(nvaUsername, is(equalTo(EMPTY_CLAIM_VALUE)));
-        assertThat(personAffiliation, is(equalTo(EMPTY_CLAIM_VALUE)));
+        assertThat(customerId, is(equalTo(EMPTY_CLAIM)));
+        assertThat(topOrgCristinId, is(equalTo(EMPTY_CLAIM)));
+        assertThat(nvaUsername, is(equalTo(EMPTY_CLAIM)));
+        assertThat(personAffiliation, is(equalTo(EMPTY_CLAIM)));
     }
 
     @ParameterizedTest(name = "should not assign access rights for active employment when institution (top-level "
@@ -727,7 +727,7 @@ class UserSelectionUponLoginHandlerTest {
     private List<URI> extractAllowedCustomersFromCongitoUpdateRequest() {
         return cognitoClient.getAdminUpdateUserRequest()
                    .userAttributes().stream()
-                   .filter(attribute -> attribute.name().equals(ALLOWED_CUSTOMER_CLAIM))
+                   .filter(attribute -> attribute.name().equals(ALLOWED_CUSTOMERS_CLAIM))
                    .map(AttributeType::value)
                    .map(concatenatedUris -> concatenatedUris.split(","))
                    .flatMap(Arrays::stream)

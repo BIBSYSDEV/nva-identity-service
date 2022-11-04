@@ -3,11 +3,11 @@ package no.unit.nva.cognito;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
-import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM_VALUE;
+import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
@@ -203,7 +203,7 @@ public class UserSelectionUponLoginHandler
         claims.add(createAttribute("custom:lastName", authenticationInfo.extractLastName()));
         claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, accessRights)));
         claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
-        claims.add(createAttribute(ALLOWED_CUSTOMER_CLAIM, allowedCustomersString));
+        claims.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString));
         claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, authenticationInfo.getCristinPersonId().toString()));
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(authenticationInfo, claims);
         return claims;
@@ -219,7 +219,7 @@ public class UserSelectionUponLoginHandler
     }
 
     private Runnable clearCustomerSelectionClaimsWhenCustomerIsAmbiguous(List<AttributeType> claims) {
-        return () -> claims.addAll(emptyCustomerSelectionClaims());
+        return () -> claims.addAll(overwriteCustomerSelectionClaimsWithNullString());
     }
 
     private Consumer<String> generateCustomerSelectionClaimsFromAuthentication(
@@ -229,11 +229,11 @@ public class UserSelectionUponLoginHandler
         return customerId -> claims.addAll(customerSelectionClaims(authenticationInfo, customerId));
     }
 
-    private List<AttributeType> emptyCustomerSelectionClaims() {
-        return generateCustomerSelectionClaims(EMPTY_CLAIM_VALUE,
-                                               EMPTY_CLAIM_VALUE,
-                                               EMPTY_CLAIM_VALUE,
-                                               EMPTY_CLAIM_VALUE);
+    private List<AttributeType> overwriteCustomerSelectionClaimsWithNullString() {
+        return generateCustomerSelectionClaims(EMPTY_CLAIM,
+                                               EMPTY_CLAIM,
+                                               EMPTY_CLAIM,
+                                               EMPTY_CLAIM);
     }
 
     private List<AttributeType> customerSelectionClaims(AuthenticationInformation authenticationInfo,
@@ -266,7 +266,7 @@ public class UserSelectionUponLoginHandler
                          .collect(Collectors.joining(ELEMENTS_DELIMITER));
         return StringUtils.isNotBlank(result)
                    ? result
-                   : EMPTY_CLAIM_VALUE;
+                   : EMPTY_CLAIM;
     }
 
     private Predicate<CustomerDto> isNotFeideRequestOrIsFeideRequestForCustomer(String feideDomain) {

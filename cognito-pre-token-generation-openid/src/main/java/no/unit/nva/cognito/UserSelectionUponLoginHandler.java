@@ -7,7 +7,7 @@ import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
-import static no.unit.nva.cognito.CognitoClaims.EMPTY_ALLOWED_CUSTOMERS;
+import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM_VALUE;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import no.unit.nva.auth.AuthorizedBackendClient;
@@ -219,19 +220,46 @@ public class UserSelectionUponLoginHandler
         List<AttributeType> claims) {
 
         authenticationInfo.getCurrentCustomerId()
-            .ifPresent(customerId -> claims.addAll(customerSelectionClaims(authenticationInfo, customerId)));
+            .ifPresentOrElse(generateCustomerSelectionClaimsFromAuthentication(authenticationInfo, claims),
+                             clearCustomerSelectionClaimsWhenCustomerIsAmbiguous(claims));
+    }
+
+    private Runnable clearCustomerSelectionClaimsWhenCustomerIsAmbiguous(List<AttributeType> claims) {
+        return () -> claims.addAll(emptyCustomerSelectionClaims());
+    }
+
+    private Consumer<String> generateCustomerSelectionClaimsFromAuthentication(
+        AuthenticationInformation authenticationInfo,
+        List<AttributeType> claims) {
+        
+        return customerId -> claims.addAll(customerSelectionClaims(authenticationInfo, customerId));
+    }
+
+    private List<AttributeType> emptyCustomerSelectionClaims() {
+        return generateCustomerSelectionClaims(EMPTY_CLAIM_VALUE,
+                                               EMPTY_CLAIM_VALUE,
+                                               EMPTY_CLAIM_VALUE,
+                                               EMPTY_CLAIM_VALUE);
     }
 
     private List<AttributeType> customerSelectionClaims(AuthenticationInformation authenticationInfo,
                                                         String customerId) {
+        return generateCustomerSelectionClaims(customerId,
+                                               authenticationInfo.getCurrentCustomer().getCristinId().toString(),
+                                               authenticationInfo.getCurrentUser().getUsername(),
+                                               authenticationInfo.getCurrentUser().getAffiliation().toString());
+    }
+
+    private List<AttributeType> generateCustomerSelectionClaims(String customerId,
+                                                                String topOrgCristinId,
+                                                                String username,
+                                                                String personAffiliation) {
 
         var currentCustomerClaim = createAttribute(CURRENT_CUSTOMER_CLAIM, customerId);
-        var currentTopLevelOrgClaim =
-            createAttribute(TOP_ORG_CRISTIN_ID, authenticationInfo.getCurrentCustomer().getCristinId().toString());
-        var usernameClaim =
-            createAttribute(NVA_USERNAME_CLAIM, authenticationInfo.getCurrentUser().getUsername());
-        var personAffiliationClaim =
-            createAttribute(PERSON_AFFILIATION_CLAIM, authenticationInfo.getCurrentUser().getAffiliation().toString());
+        var currentTopLevelOrgClaim = createAttribute(TOP_ORG_CRISTIN_ID, topOrgCristinId);
+        var usernameClaim = createAttribute(NVA_USERNAME_CLAIM, username);
+        var personAffiliationClaim = createAttribute(PERSON_AFFILIATION_CLAIM, personAffiliation);
+
         return List.of(currentCustomerClaim, currentTopLevelOrgClaim, usernameClaim, personAffiliationClaim);
     }
 
@@ -244,13 +272,13 @@ public class UserSelectionUponLoginHandler
                          .collect(Collectors.joining(ELEMENTS_DELIMITER));
         return StringUtils.isNotBlank(result)
                    ? result
-                   : EMPTY_ALLOWED_CUSTOMERS;
+                   : EMPTY_CLAIM_VALUE;
     }
 
     private Predicate<CustomerDto> isNotFeideRequestOrIsFeideRequestForCustomer(String feideDomain) {
         return customer -> isNull(feideDomain)
                            || nonNull(customer.getFeideOrganizationDomain())
-                           && customer.getFeideOrganizationDomain().equals(feideDomain);
+                              && customer.getFeideOrganizationDomain().equals(feideDomain);
     }
 
     private AttributeType createAttribute(String name, String value) {

@@ -5,6 +5,7 @@ import static no.unit.nva.cognito.AuthenticationInformation.COULD_NOT_FIND_USER_
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM_VALUE;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
@@ -256,7 +257,7 @@ class UserSelectionUponLoginHandlerTest {
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
 
-        var actualCustomerId = fetchCurrentCustomClaimForCognitoUserUpdate();
+        var actualCustomerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
         assertThat(actualCustomerId, is(equalTo(expectedCustomerId.toString())));
     }
 
@@ -270,24 +271,29 @@ class UserSelectionUponLoginHandlerTest {
         var customerFeideDomain = extractFeideDomainFromInputEvent(event);
         var expectedCustomerId = customerService.getCustomerByOrgDomain(customerFeideDomain).getId();
         handler.handleRequest(event, context);
-        var actualCustomerId = fetchCurrentCustomClaimForCognitoUserUpdate();
+        var actualCustomerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
         assertThat(actualCustomerId, is(equalTo(expectedCustomerId.toString())));
     }
 
-    //TODO: This test is connected to issue https://unit.atlassian.net/browse/NP-9126.
-    // Talk with frontend, tech-lead, team-leader, project manager to establish the current expectations.
-    @ParameterizedTest(name = "should not update customerId when user has many affiliations and logs in with"
+    @ParameterizedTest(name = "should clear customer selection claims when user has many affiliations and logs in with"
                               + "personal number")
     @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"}, mode = Mode.INCLUDE)
-    void shouldNotUpdateCurrentCustomerIdWenUserHasManyAffiliationsAndLogsInWithPersonalNumber(
+    void shouldClearCustomerSelectionClaimsIdWenUserHasManyAffiliationsAndLogsInWithPersonalNumber(
         LoginEventType loginEventType) {
         var person = authenticationScenarios.personWithTwoActiveEmployments();
         var event = newLoginEvent(person, loginEventType);
 
         handler.handleRequest(event, context);
 
-        var actualCustomerId = fetchCurrentCustomClaimForCognitoUserUpdate();
-        assertThat(actualCustomerId, is(nullValue()));
+        var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        var topOrgCristinId = extractClaimFromCognitoUpdateRequest(TOP_ORG_CRISTIN_ID);
+        var nvaUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
+        var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
+
+        assertThat(customerId, is(equalTo(EMPTY_CLAIM_VALUE)));
+        assertThat(topOrgCristinId, is(equalTo(EMPTY_CLAIM_VALUE)));
+        assertThat(nvaUsername, is(equalTo(EMPTY_CLAIM_VALUE)));
+        assertThat(personAffiliation, is(equalTo(EMPTY_CLAIM_VALUE)));
     }
 
     @ParameterizedTest(name = "should not assign access rights for active employment when institution (top-level "
@@ -431,6 +437,7 @@ class UserSelectionUponLoginHandlerTest {
         var expectedTopLevelOrgUri = currentCustomer.getCristinId();
 
         handler.handleRequest(event, context);
+
         var actualTopOrgCristinId = extractClaimFromCognitoUpdateRequest(TOP_ORG_CRISTIN_ID);
         assertThat(actualTopOrgCristinId, is(equalTo(expectedTopLevelOrgUri.toString())));
     }
@@ -640,15 +647,6 @@ class UserSelectionUponLoginHandlerTest {
         var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
         loginEvent.setRequest(request);
         return loginEvent;
-    }
-
-    private String fetchCurrentCustomClaimForCognitoUserUpdate() {
-        var request = fetchCognitoEntryUpdateRequestSentByHandler();
-        return request.userAttributes()
-                   .stream()
-                   .filter(a -> a.name().equals(CURRENT_CUSTOMER_CLAIM))
-                   .map(AttributeType::value)
-                   .collect(SingletonCollector.collectOrElse(null));
     }
 
     private String extractAccessRightFromCognitoEntry() {

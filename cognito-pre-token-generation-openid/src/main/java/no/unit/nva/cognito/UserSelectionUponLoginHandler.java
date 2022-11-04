@@ -44,8 +44,6 @@ import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -55,8 +53,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
 
     public static final Environment ENVIRONMENT = new Environment();
 
@@ -172,8 +168,6 @@ public class UserSelectionUponLoginHandler
         Collection<String> roles) {
 
         Collection<AttributeType> userAttributes = updatedPersonAttributes(authenticationInfo, accessRights, roles);
-
-        LOGGER.info("Updating user attributes: {}", userAttributes);
 
         return AdminUpdateUserAttributesRequest.builder()
                    .userPoolId(input.getUserPoolId())

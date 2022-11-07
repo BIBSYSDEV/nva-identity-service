@@ -11,8 +11,10 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.Typed;
@@ -21,11 +23,13 @@ import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvide
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
-@DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
+@DynamoDbBean(converterProviders = {VocabularyConverterProvider.class,
+      DefaultAttributeConverterProvider.class})
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
 public class CustomerDao implements Typed {
     
@@ -219,6 +223,7 @@ public class CustomerDao implements Typed {
         this.publicationWorkflow = publicationWorkflow;
     }
 
+    @DynamoDbConvertedBy(DoiAgentConverter.class)
     public DoiAgentDao getDoiAgent() {
         return doiAgent;
     }
@@ -410,14 +415,14 @@ public class CustomerDao implements Typed {
     @DynamoDbBean
     public static class DoiAgentDao implements DoiAgent {
         private String prefix;
-        private String agencyName;
+        private String name;
 
         public DoiAgentDao() {
         }
 
         public DoiAgentDao(DoiAgent doiAgent) {
             this.prefix = doiAgent.getPrefix();
-            this.agencyName = doiAgent.getName();
+            this.name = doiAgent.getName();
         }
 
         @Override
@@ -427,7 +432,15 @@ public class CustomerDao implements Typed {
 
         @Override
         public String getName() {
-            return agencyName;
+            return name;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
 
         @Override
@@ -441,13 +454,21 @@ public class CustomerDao implements Typed {
             }
             DoiAgentDao doiDto = (DoiAgentDao) o;
             return Objects.equals(prefix, doiDto.getPrefix())
-                   && Objects.equals(agencyName, doiDto.getName());
+                   && Objects.equals(name, doiDto.getName());
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(prefix, agencyName);
+            return Objects.hash(prefix, name);
+        }
+
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", DoiAgentDao.class.getSimpleName() + "[", "]")
+                       .add("prefix='" + prefix + "'")
+                       .add("agencyName='" + name + "'")
+                       .toString();
         }
 
     }

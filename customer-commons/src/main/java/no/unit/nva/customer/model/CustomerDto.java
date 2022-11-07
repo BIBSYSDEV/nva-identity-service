@@ -397,15 +397,9 @@ public class CustomerDto implements Context {
        public DoiAgentDto() {
        }
 
-       @Nonnull
        public DoiAgentDto(DoiAgent doiAgent) {
            this.prefix = doiAgent.getPrefix();
            this.agencyName = doiAgent.getName();
-       }
-
-       public DoiAgentDto(String prefix, String agencyName) {
-           this.prefix = prefix;
-           this.agencyName = agencyName;
        }
 
        @Override
@@ -438,6 +432,11 @@ public class CustomerDto implements Context {
            return Objects.hash(prefix, agencyName);
        }
 
+       @Override
+       @JacocoGenerated
+       public String toString() {
+           return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
+       }
    }
 }
 

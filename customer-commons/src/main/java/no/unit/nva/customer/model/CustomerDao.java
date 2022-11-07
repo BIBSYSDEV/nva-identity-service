@@ -464,6 +464,7 @@ public class CustomerDao implements Typed {
         }
 
         @Override
+        @JacocoGenerated
         public String toString() {
             return new StringJoiner(", ", DoiAgentDao.class.getSimpleName() + "[", "]")
                        .add("prefix='" + prefix + "'")

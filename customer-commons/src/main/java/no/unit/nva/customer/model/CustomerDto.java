@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import javax.annotation.Nonnull;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.Typed;
@@ -388,18 +387,18 @@ public class CustomerDto implements Context {
 
     }
 
-   @DynamoDbBean
+
    public static class DoiAgentDto implements DoiAgent {
 
        private String prefix;
-       private String agencyName;
+       private String name;
 
        public DoiAgentDto() {
        }
 
        public DoiAgentDto(DoiAgent doiAgent) {
            this.prefix = doiAgent.getPrefix();
-           this.agencyName = doiAgent.getName();
+           this.name = doiAgent.getName();
        }
 
        @Override
@@ -409,7 +408,7 @@ public class CustomerDto implements Context {
 
        @Override
        public String getName() {
-           return agencyName;
+           return name;
        }
 
        @Override
@@ -423,13 +422,13 @@ public class CustomerDto implements Context {
            }
            DoiAgentDto doiDto = (DoiAgentDto) o;
            return Objects.equals(prefix, doiDto.getPrefix())
-                  && Objects.equals(agencyName, doiDto.getName());
+                  && Objects.equals(name, doiDto.getName());
        }
 
        @Override
        @JacocoGenerated
        public int hashCode() {
-           return Objects.hash(prefix, agencyName);
+           return Objects.hash(prefix, name);
        }
 
        @Override

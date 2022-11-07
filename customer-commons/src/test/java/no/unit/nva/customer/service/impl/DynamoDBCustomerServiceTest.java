@@ -1,6 +1,7 @@
 package no.unit.nva.customer.service.impl;
 
 import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
+import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
@@ -338,7 +339,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withVocabularies(randomVocabularySet())
                            .withRorId(randomUri())
                            .withPublicationWorkflow(randomPublicationWorkflow())
-                           .withDoi("10.1000",randomString())
+                           .withDoiAgent(randomDoiAgent(randomString()))
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context")));
         return customer;

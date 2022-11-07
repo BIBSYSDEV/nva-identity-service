@@ -5,7 +5,6 @@ import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
 import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,9 +14,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import javax.annotation.Nonnull;
-import no.unit.nva.customer.model.CustomerDao.DoiDao;
 import no.unit.nva.customer.model.interfaces.Context;
-import no.unit.nva.customer.model.interfaces.Doi;
+import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -47,7 +45,7 @@ public class CustomerDto implements Context {
     private List<VocabularyDto> vocabularies;
     private URI rorId;
     private PublicationWorkflow publicationWorkflow;
-    private DoiDto doi;
+    private DoiAgentDto doiAgent;
 
     public CustomerDto() {
         super();
@@ -151,12 +149,12 @@ public class CustomerDto implements Context {
         this.feideOrganizationDomain = feideOrganizationDomain;
     }
 
-    public DoiDto getDoi() {
-        return doi;
+    public DoiAgentDto getDoiAgent() {
+        return doiAgent;
     }
 
-    public void setDoi(DoiDto doi) {
-        this.doi = doi;
+    public void setDoiAgent(DoiAgentDto doi) {
+        this.doiAgent = doi;
     }
 
     public URI getCristinId() {
@@ -223,7 +221,7 @@ public class CustomerDto implements Context {
                    .withCristinId(getCristinId())
                    .withCustomerOf(getCustomerOf())
                    .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                   .withDoi(getDoi())
+                   .withDoiAgent(getDoiAgent())
                    .withName(getName())
                    .withModifiedDate(stringToInstant(getModifiedDate()))
                    .withRorId(getRorId())
@@ -236,7 +234,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(),getDoi());
+                            getRorId(), getPublicationWorkflow(), getDoiAgent());
     }
 
     @JacocoGenerated
@@ -261,7 +259,7 @@ public class CustomerDto implements Context {
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getDoi(), that.getDoi())
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getCustomerOf(), that.getCustomerOf())
                && Objects.equals(getVocabularies(), that.getVocabularies())
@@ -379,13 +377,8 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withDoi(Doi doi) {
-            customerDto.setDoi( doi!= null ? new DoiDto(doi): null);
-            return this;
-        }
-
-        public Builder withDoi(String prefix, String agencyName) {
-            customerDto.setDoi(new DoiDto(prefix, agencyName));
+        public Builder withDoiAgent(DoiAgent doiAgent) {
+            customerDto.setDoiAgent(doiAgent != null ? new DoiAgentDto(doiAgent): null);
             return this;
         }
 
@@ -396,21 +389,21 @@ public class CustomerDto implements Context {
     }
 
    @DynamoDbBean
-   public static class DoiDto implements Doi{
+   public static class DoiAgentDto implements DoiAgent {
 
        private String prefix;
        private String agencyName;
 
-       public DoiDto() {
+       public DoiAgentDto() {
        }
 
        @Nonnull
-       public DoiDto(Doi doi) {
-           this.prefix = doi.getPrefix();
-           this.agencyName = doi.getAgencyName();
+       public DoiAgentDto(DoiAgent doiAgent) {
+           this.prefix = doiAgent.getPrefix();
+           this.agencyName = doiAgent.getName();
        }
 
-       public DoiDto(String prefix, String agencyName) {
+       public DoiAgentDto(String prefix, String agencyName) {
            this.prefix = prefix;
            this.agencyName = agencyName;
        }
@@ -421,7 +414,7 @@ public class CustomerDto implements Context {
        }
 
        @Override
-       public String getAgencyName() {
+       public String getName() {
            return agencyName;
        }
 
@@ -434,9 +427,9 @@ public class CustomerDto implements Context {
            if (o == null || getClass() != o.getClass()) {
                return false;
            }
-           DoiDto doiDto = (DoiDto) o;
+           DoiAgentDto doiDto = (DoiAgentDto) o;
            return Objects.equals(prefix, doiDto.getPrefix())
-                  && Objects.equals(agencyName, doiDto.getAgencyName());
+                  && Objects.equals(agencyName, doiDto.getName());
        }
 
        @Override

@@ -28,6 +28,7 @@ import java.util.UUID;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
 import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID;
+import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -89,7 +90,7 @@ class GetCustomerHandlerTest {
         CustomerDto actualCustomerDto = CustomerDto.fromJson(response.getBody());
         assertThat(actualCustomerDto.getId(), notNullValue());
         assertThat(actualCustomerDto.getContext(), notNullValue());
-        assertThat(actualCustomerDto.getDoi(), notNullValue());
+        assertThat(actualCustomerDto.getDoiAgent(), notNullValue());
         assertThat(actualCustomerDto, equalTo(customerDto));
     }
     
@@ -142,7 +143,7 @@ class GetCustomerHandlerTest {
         CustomerDao customerDb = new CustomerDao.Builder()
                                      .withIdentifier(identifier)
                                      .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
-                                     .withDoi("10.1000", randomString())
+                                     .withDoiAgent(randomDoiAgent(randomString()))
                                      .build();
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);

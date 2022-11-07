@@ -1,6 +1,7 @@
 package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
+import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -58,7 +59,7 @@ class CustomerDtoTest {
                    .withVocabularies(randomVocabularies())
                    .withRorId(randomUri())
                    .withPublicationWorkflow(randomPublicationWorkflow())
-                   .withDoi("10.1000","doi-agency-" + randomString())
+                   .withDoiAgent(randomDoiAgent(randomString()))
                    .build();
     }
 

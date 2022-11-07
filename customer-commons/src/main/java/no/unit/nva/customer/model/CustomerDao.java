@@ -5,7 +5,6 @@ import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
 import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
@@ -14,10 +13,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import no.unit.nva.customer.model.CustomerDto.Builder;
-import no.unit.nva.customer.model.CustomerDto.DoiDto;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
-import no.unit.nva.customer.model.interfaces.Doi;
+import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
@@ -54,7 +51,7 @@ public class CustomerDao implements Typed {
     private Set<VocabularyDao> vocabularies;
     private URI rorId;
     private PublicationWorkflow publicationWorkflow;
-    private DoiDao doi;
+    private DoiAgentDao doiAgent;
     
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -80,7 +77,7 @@ public class CustomerDao implements Typed {
                    .withName(dto.getName())
                    .withRorId(dto.getRorId())
                    .withPublicationWorkflow(dto.getPublicationWorkflow())
-                   .withDoi(dto.getDoi())
+                   .withDoiAgent(dto.getDoiAgent())
                    .build();
     }
     
@@ -88,9 +85,9 @@ public class CustomerDao implements Typed {
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-            getRorId(), getPublicationWorkflow(), getDoi());
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                            getRorId(), getPublicationWorkflow(), getDoiAgent());
     }
     
     @DynamoDbAttribute(IDENTIFIER)
@@ -222,13 +219,12 @@ public class CustomerDao implements Typed {
         this.publicationWorkflow = publicationWorkflow;
     }
 
-    @JsonInclude()
-    public DoiDao getDoi() {
-        return doi;
+    public DoiAgentDao getDoiAgent() {
+        return doiAgent;
     }
 
-    public void setDoi(DoiDao doi) {
-        this.doi = doi;
+    public void setDoiAgent(DoiAgentDao doi) {
+        this.doiAgent = doi;
     }
 
     public CustomerDto toCustomerDto() {
@@ -248,7 +244,7 @@ public class CustomerDao implements Typed {
                                       .withCustomerOf(fromUri(getCustomerOf()))
                                       .withRorId(getRorId())
                                       .withPublicationWorkflow(getPublicationWorkflow())
-                                      .withDoi(getDoi())
+                                      .withDoiAgent(getDoiAgent())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -273,7 +269,7 @@ public class CustomerDao implements Typed {
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getDoi(), that.getDoi())
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getCustomerOf(), that.getCustomerOf())
                && Objects.equals(getVocabularies(), that.getVocabularies())
@@ -401,13 +397,8 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withDoi(Doi doi) {
-            customerDb.setDoi(doi!= null ? new DoiDao(doi): null);
-            return this;
-        }
-
-        public Builder withDoi(String prefix, String agencyName) {
-            customerDb.setDoi(new DoiDao(prefix, agencyName));
+        public Builder withDoiAgent(DoiAgent doiAgent) {
+            customerDb.setDoiAgent(doiAgent != null ? new DoiAgentDao(doiAgent): null);
             return this;
         }
 
@@ -417,21 +408,16 @@ public class CustomerDao implements Typed {
     }
 
     @DynamoDbBean
-    public static class DoiDao implements Doi {
+    public static class DoiAgentDao implements DoiAgent {
         private String prefix;
         private String agencyName;
 
-        public DoiDao() {
+        public DoiAgentDao() {
         }
 
-        public DoiDao(Doi doi) {
-            this.prefix = doi.getPrefix();
-            this.agencyName = doi.getAgencyName();
-        }
-
-        public DoiDao(String prefix, String agencyName) {
-            this.prefix = prefix;
-            this.agencyName = agencyName;
+        public DoiAgentDao(DoiAgent doiAgent) {
+            this.prefix = doiAgent.getPrefix();
+            this.agencyName = doiAgent.getName();
         }
 
         @Override
@@ -440,7 +426,7 @@ public class CustomerDao implements Typed {
         }
 
         @Override
-        public String getAgencyName() {
+        public String getName() {
             return agencyName;
         }
 
@@ -453,9 +439,9 @@ public class CustomerDao implements Typed {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            DoiDao doiDto = (DoiDao) o;
+            DoiAgentDao doiDto = (DoiAgentDao) o;
             return Objects.equals(prefix, doiDto.getPrefix())
-                   && Objects.equals(agencyName, doiDto.getAgencyName());
+                   && Objects.equals(agencyName, doiDto.getName());
         }
 
         @Override

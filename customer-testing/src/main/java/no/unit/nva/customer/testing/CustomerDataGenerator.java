@@ -1,5 +1,6 @@
 package no.unit.nva.customer.testing;
 
+import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
@@ -49,7 +50,7 @@ public class CustomerDataGenerator {
                                    .withVocabularies(randomVocabularyDtoSettings())
                                    .withRorId(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
-                                   .withDoi("10.1000",randomString())
+                                   .withDoiAgent(randomDoiAgent(randomString()))
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValues());
@@ -81,7 +82,7 @@ public class CustomerDataGenerator {
                                    .withArchiveName(randomString())
                                    .withRorId(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
-                                   .withDoi("10.1000",randomString())
+                                   .withDoiAgent(randomDoiAgent(randomString()))
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;

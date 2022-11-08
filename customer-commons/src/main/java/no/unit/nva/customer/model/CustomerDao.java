@@ -28,9 +28,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
-@DynamoDbBean(converterProviders = {VocabularyConverterProvider.class,
-      DefaultAttributeConverterProvider.class})
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
+@DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass"})
 public class CustomerDao implements Typed {
 
     public static final String IDENTIFIER = "identifier";
@@ -251,34 +250,35 @@ public class CustomerDao implements Typed {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof CustomerDao)) {
             return false;
         }
         CustomerDao that = (CustomerDao) o;
-        return Objects.equals(identifier, that.identifier)
-               && Objects.equals(createdDate, that.createdDate)
-               && Objects.equals(modifiedDate, that.modifiedDate)
-               && Objects.equals(name, that.name)
-               && Objects.equals(displayName, that.displayName)
-               && Objects.equals(shortName, that.shortName)
-               && Objects.equals(archiveName, that.archiveName)
-               && Objects.equals(cname, that.cname)
-               && Objects.equals(institutionDns, that.institutionDns)
-               && Objects.equals(feideOrganizationDomain, that.feideOrganizationDomain)
-               && Objects.equals(cristinId, that.cristinId)
-               && Objects.equals(customerOf, that.customerOf)
-               && Objects.equals(vocabularies, that.vocabularies)
-               && Objects.equals(rorId, that.rorId)
-               && publicationWorkflow == that.publicationWorkflow
-               && Objects.equals(doiAgent, that.doiAgent);
+        return Objects.equals(getIdentifier(), that.getIdentifier())
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getCname(), that.getCname())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getCustomerOf(), that.getCustomerOf())
+               && Objects.equals(getVocabularies(), that.getVocabularies())
+               && Objects.equals(getRorId(), that.getRorId())
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
+               && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
-        return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
-                            institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
-                            publicationWorkflow, doiAgent);
+        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                            getRorId(), getPublicationWorkflow(), getDoiAgent());
     }
 
     private static URI extractCustomerOf(CustomerDto dto) {
@@ -463,11 +463,10 @@ public class CustomerDao implements Typed {
         }
 
         @Override
-        @JacocoGenerated
         public String toString() {
             return new StringJoiner(", ", DoiAgentDao.class.getSimpleName() + "[", "]")
-                       .add("prefix='" + getPrefix() + "'")
-                       .add("agencyName='" + getName() + "'")
+                       .add("prefix='" + prefix + "'")
+                       .add("name='" + name + "'")
                        .toString();
         }
     }

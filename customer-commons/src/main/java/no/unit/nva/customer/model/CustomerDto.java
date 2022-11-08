@@ -224,42 +224,43 @@ public class CustomerDto implements Context {
                    .withPublicationWorkflow(getPublicationWorkflow());
     }
 
-    @JacocoGenerated
     @Override
-    public int hashCode() {
-        return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
-                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(), getDoiAgent());
-    }
-
     @JacocoGenerated
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CustomerDto that)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return Objects.equals(getContext(), that.getContext())
-               && Objects.equals(getId(), that.getId())
-               && Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getArchiveName(), that.getArchiveName())
-               && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getDoiAgent(), that.getDoiAgent())
-               && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getCustomerOf(), that.getCustomerOf())
-               && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getRorId(), that.getRorId())
-               && getPublicationWorkflow() == that.getPublicationWorkflow();
+        CustomerDto that = (CustomerDto) o;
+        return Objects.equals(context, that.context)
+               && Objects.equals(id, that.id)
+               && Objects.equals(identifier, that.identifier)
+               && Objects.equals(createdDate, that.createdDate)
+               && Objects.equals(modifiedDate, that.modifiedDate)
+               && Objects.equals(name, that.name)
+               && Objects.equals(displayName, that.displayName)
+               && Objects.equals(shortName, that.shortName)
+               && Objects.equals(archiveName, that.archiveName)
+               && Objects.equals(cname, that.cname)
+               && Objects.equals(institutionDns, that.institutionDns)
+               && Objects.equals(feideOrganizationDomain, that.feideOrganizationDomain)
+               && Objects.equals(cristinId, that.cristinId)
+               && customerOf == that.customerOf
+               && Objects.equals(vocabularies, that.vocabularies)
+               && Objects.equals(rorId, that.rorId)
+               && publicationWorkflow == that.publicationWorkflow
+               && Objects.equals(doiAgent, that.doiAgent);
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(context, id, identifier, createdDate, modifiedDate, name, displayName, shortName,
+                            archiveName,
+                            cname, institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
+                            publicationWorkflow, doiAgent);
     }
 
     @Override
@@ -411,17 +412,17 @@ public class CustomerDto implements Context {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof DoiAgentDto that)) {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            return Objects.equals(getPrefix(), that.getPrefix())
-                   && Objects.equals(getName(), that.getName());
+            DoiAgentDto that = (DoiAgentDto) o;
+            return Objects.equals(prefix, that.prefix) && Objects.equals(name, that.name);
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(getPrefix(), getName());
+            return Objects.hash(prefix, name);
         }
 
         @Override

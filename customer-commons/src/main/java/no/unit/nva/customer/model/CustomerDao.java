@@ -32,7 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
       DefaultAttributeConverterProvider.class})
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
 public class CustomerDao implements Typed {
-    
+
     public static final String IDENTIFIER = "identifier";
     public static final String ORG_DOMAIN = "feideOrganizationDomain";
     public static final String CRISTIN_ID = "cristinId";
@@ -56,15 +56,15 @@ public class CustomerDao implements Typed {
     private URI rorId;
     private PublicationWorkflow publicationWorkflow;
     private DoiAgentDao doiAgent;
-    
+
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
-    
+
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static CustomerDao fromCustomerDto(CustomerDto dto) {
         return builder().withArchiveName(dto.getArchiveName())
                    .withCname(dto.getCname())
@@ -84,7 +84,7 @@ public class CustomerDao implements Typed {
                    .withDoiAgent(dto.getDoiAgent())
                    .build();
     }
-    
+
     @Override
     @JacocoGenerated
     public int hashCode() {
@@ -93,87 +93,87 @@ public class CustomerDao implements Typed {
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
                             getRorId(), getPublicationWorkflow(), getDoiAgent());
     }
-    
+
     @DynamoDbAttribute(IDENTIFIER)
     @DynamoDbPartitionKey
     public UUID getIdentifier() {
         return identifier;
     }
-    
+
     public void setIdentifier(UUID identifier) {
         this.identifier = identifier;
     }
-    
+
     public Instant getCreatedDate() {
         return createdDate;
     }
-    
+
     public void setCreatedDate(Instant createdDate) {
         this.createdDate = createdDate;
     }
-    
+
     public Instant getModifiedDate() {
         return modifiedDate;
     }
-    
+
     public void setModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getDisplayName() {
         return displayName;
     }
-    
+
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
-    
+
     public String getShortName() {
         return shortName;
     }
-    
+
     public void setShortName(String shortName) {
         this.shortName = shortName;
     }
-    
+
     public String getArchiveName() {
         return archiveName;
     }
-    
+
     public void setArchiveName(String archiveName) {
         this.archiveName = archiveName;
     }
-    
+
     public String getCname() {
         return cname;
     }
-    
+
     public void setCname(String cname) {
         this.cname = cname;
     }
-    
+
     public String getInstitutionDns() {
         return institutionDns;
     }
-    
+
     public void setInstitutionDns(String institutionDns) {
         this.institutionDns = institutionDns;
     }
-    
+
     @DynamoDbSecondaryPartitionKey(indexNames = {BY_ORG_DOMAIN_INDEX_NAME})
     @DynamoDbAttribute(ORG_DOMAIN)
     public String getFeideOrganizationDomain() {
         return feideOrganizationDomain;
     }
-    
+
     public void setFeideOrganizationDomain(String feideOrganizationDomain) {
         this.feideOrganizationDomain = feideOrganizationDomain;
     }
@@ -183,42 +183,42 @@ public class CustomerDao implements Typed {
     public URI getCristinId() {
         return cristinId;
     }
-    
+
     public void setCristinId(URI cristinId) {
         this.cristinId = cristinId;
     }
-    
+
     public URI getCustomerOf() {
         return customerOf;
     }
-    
+
     public void setCustomerOf(URI customerOf) {
         this.customerOf = customerOf;
     }
-    
+
     @DynamoDbIgnoreNulls
     @DynamoDbAttribute(VOCABULARIES_FIELD)
     public Set<VocabularyDao> getVocabularies() {
         return nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
-    
+
     public void setVocabularies(Set<VocabularyDao> vocabularies) {
         this.vocabularies = nonEmpty(vocabularies) ? vocabularies : EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
-    
+
     public URI getRorId() {
         return rorId;
     }
-    
+
     public void setRorId(URI rorId) {
         this.rorId = rorId;
     }
-    
+
     public PublicationWorkflow getPublicationWorkflow() {
         return nonNull(publicationWorkflow) ? publicationWorkflow
                    : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
-    
+
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
         this.publicationWorkflow = publicationWorkflow;
     }
@@ -253,7 +253,7 @@ public class CustomerDao implements Typed {
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
-    
+
     @Override
     @JacocoGenerated
     public boolean equals(Object o) {
@@ -280,7 +280,7 @@ public class CustomerDao implements Typed {
                && Objects.equals(getRorId(), that.getRorId())
                && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
-    
+
     private static URI extractCustomerOf(CustomerDto dto) {
         return Optional.ofNullable(dto)
                    .map(CustomerDto::getCustomerOf)
@@ -288,12 +288,12 @@ public class CustomerDao implements Typed {
                    .map(URI::create)
                    .orElse(null);
     }
-    
+
     @Override
     public String getType() {
         return TYPE;
     }
-    
+
     @JacocoGenerated
     @Override
     public void setType(String type) {
@@ -301,7 +301,7 @@ public class CustomerDao implements Typed {
             throw new IllegalStateException("Wrong type for Customer:" + type);
         }
     }
-    
+
     private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {
         return Optional.ofNullable(dto.getVocabularies())
                    .stream()
@@ -309,7 +309,7 @@ public class CustomerDao implements Typed {
                    .map(VocabularyDao::fromVocabularySettingsDto)
                    .collect(Collectors.toSet());
     }
-    
+
     private Set<VocabularyDto> extractVocabularySettings() {
         return Optional.ofNullable(this.getVocabularies())
                    .stream()
@@ -317,92 +317,92 @@ public class CustomerDao implements Typed {
                    .map(VocabularyDao::toVocabularySettingsDto)
                    .collect(Collectors.toSet());
     }
-    
+
     public static final class Builder {
-        
+
         private final CustomerDao customerDb;
-        
+
         public Builder() {
             customerDb = new CustomerDao();
         }
-        
+
         public Builder withIdentifier(UUID identifier) {
             customerDb.setIdentifier(identifier);
             return this;
         }
-        
+
         public Builder withCreatedDate(Instant createdDate) {
             customerDb.setCreatedDate(createdDate);
             return this;
         }
-        
+
         public Builder withModifiedDate(Instant modifiedDate) {
             customerDb.setModifiedDate(modifiedDate);
             return this;
         }
-        
+
         public Builder withName(String name) {
             customerDb.setName(name);
             return this;
         }
-        
+
         public Builder withDisplayName(String displayName) {
             customerDb.setDisplayName(displayName);
             return this;
         }
-        
+
         public Builder withShortName(String shortName) {
             customerDb.setShortName(shortName);
             return this;
         }
-        
+
         public Builder withArchiveName(String archiveName) {
             customerDb.setArchiveName(archiveName);
             return this;
         }
-        
+
         public Builder withCname(String cname) {
             customerDb.setCname(cname);
             return this;
         }
-        
+
         public Builder withInstitutionDns(String institutionDns) {
             customerDb.setInstitutionDns(institutionDns);
             return this;
         }
-        
+
         public Builder withFeideOrganizationDomain(String feideOrganizationDomain) {
             customerDb.setFeideOrganizationDomain(feideOrganizationDomain);
             return this;
         }
-        
+
         public Builder withCristinId(URI cristinId) {
             customerDb.setCristinId(cristinId);
             return this;
         }
-        
+
         public Builder withCustomerOf(URI customerOf) {
             customerDb.setCustomerOf(customerOf);
             return this;
         }
-        
+
         public Builder withVocabularySettings(Set<VocabularyDao> vocabularySettings) {
             customerDb.setVocabularies(vocabularySettings);
             return this;
         }
-        
+
         public Builder withRorId(URI rorId) {
             customerDb.setRorId(rorId);
             return this;
         }
-        
+
         public Builder withPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
             customerDb.setPublicationWorkflow(publicationWorkflow);
             return this;
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            customerDb.setDoiAgent(doiAgent != null ? new DoiAgentDao(doiAgent): null);
+            customerDb.setDoiAgent(doiAgent != null ? new DoiAgentDao(doiAgent) : null);
             return this;
         }
 
@@ -413,6 +413,7 @@ public class CustomerDao implements Typed {
 
     @DynamoDbBean
     public static class DoiAgentDao implements DoiAgent {
+
         private String prefix;
         private String name;
 
@@ -461,7 +462,6 @@ public class CustomerDao implements Typed {
             return Objects.hash(getPrefix(), getName());
         }
 
-
         @Override
         @JacocoGenerated
         public String toString() {
@@ -470,6 +470,5 @@ public class CustomerDao implements Typed {
                        .add("agencyName='" + getName() + "'")
                        .toString();
         }
-
     }
 }

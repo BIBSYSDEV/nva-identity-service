@@ -74,7 +74,7 @@ public class CustomerDto implements Context {
     }
 
     public String getCreatedDate() {
-        return (createdDate == null) ? null: createdDate.toString();
+        return (createdDate == null) ? null : createdDate.toString();
     }
 
     public void setCreatedDate(String createdDate) {
@@ -82,7 +82,7 @@ public class CustomerDto implements Context {
     }
 
     public String getModifiedDate() {
-        return (modifiedDate == null) ? null: modifiedDate.toString();
+        return (modifiedDate == null) ? null : modifiedDate.toString();
     }
 
     public void setModifiedDate(String modifiedDate) {
@@ -373,64 +373,62 @@ public class CustomerDto implements Context {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            customerDto.setDoiAgent(doiAgent != null ? new DoiAgentDto(doiAgent): null);
+            customerDto.setDoiAgent(doiAgent != null ? new DoiAgentDto(doiAgent) : null);
             return this;
         }
 
         public CustomerDto build() {
             return customerDto;
         }
-
     }
 
+    public static class DoiAgentDto implements DoiAgent {
 
-   public static class DoiAgentDto implements DoiAgent {
+        private String prefix;
+        private String name;
 
-       private String prefix;
-       private String name;
+        public DoiAgentDto() {
+        }
 
-       public DoiAgentDto() {
-       }
+        public DoiAgentDto(DoiAgent doiAgent) {
+            this.prefix = doiAgent.getPrefix();
+            this.name = doiAgent.getName();
+        }
 
-       public DoiAgentDto(DoiAgent doiAgent) {
-           this.prefix = doiAgent.getPrefix();
-           this.name = doiAgent.getName();
-       }
+        @Override
+        public String getPrefix() {
+            return prefix;
+        }
 
-       @Override
-       public String getPrefix() {
-           return prefix;
-       }
+        @Override
+        public String getName() {
+            return name;
+        }
 
-       @Override
-       public String getName() {
-           return name;
-       }
+        @Override
+        @JacocoGenerated
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof DoiAgentDto that)) {
+                return false;
+            }
+            return Objects.equals(getPrefix(), that.getPrefix())
+                   && Objects.equals(getName(), that.getName());
+        }
 
-       @Override
-       @JacocoGenerated
-       public boolean equals(Object o) {
-           if (this == o) {
-               return true;
-           }
-           if (!(o instanceof DoiAgentDto that)) {
-               return false;
-           }
-           return Objects.equals(getPrefix(), that.getPrefix())
-                  && Objects.equals(getName(), that.getName());
-       }
+        @Override
+        @JacocoGenerated
+        public int hashCode() {
+            return Objects.hash(getPrefix(), getName());
+        }
 
-       @Override
-       @JacocoGenerated
-       public int hashCode() {
-           return Objects.hash(getPrefix(), getName());
-       }
-
-       @Override
-       @JacocoGenerated
-       public String toString() {
-           return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
-       }
-   }
+        @Override
+        @JacocoGenerated
+        public String toString() {
+            return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
+        }
+    }
 }
 

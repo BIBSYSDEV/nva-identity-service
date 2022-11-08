@@ -49,7 +49,7 @@ public class CustomerDataGenerator {
                                    .withVocabularies(randomVocabularyDtoSettings())
                                    .withRorId(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
-                                   .withDoiName(randomString())
+                                   .withDoiAgencyName(randomString())
                                    .withDoiPreFix("10.1000")
                                    .build();
 
@@ -82,7 +82,7 @@ public class CustomerDataGenerator {
                                    .withArchiveName(randomString())
                                    .withRorId(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
-                                   .withDoiName(randomString())
+                                   .withDoiAgencyName(randomString())
                                    .withDoiPreFix("10.1000")
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());

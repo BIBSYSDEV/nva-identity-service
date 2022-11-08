@@ -143,7 +143,7 @@ class GetCustomerHandlerTest {
                                      .withIdentifier(identifier)
                                      .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
                                      .withDoiPreFix("10.1000")
-                                     .withDoiName(randomString())
+                                     .withDoiAgencyName(randomString())
                                      .build();
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);

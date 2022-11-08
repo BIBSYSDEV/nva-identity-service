@@ -78,7 +78,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withVocabularies(randomVocabularySet())
                            .withRorId(randomUri())
                            .withPublicationWorkflow(randomPublicationWorkflow())
-                           .withDoiName(randomString())
+                           .withDoiAgencyName(randomString())
                            .withDoiPreFix("10-1000")
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context")));

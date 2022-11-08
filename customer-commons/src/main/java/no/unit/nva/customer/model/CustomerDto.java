@@ -228,7 +228,7 @@ public class CustomerDto implements Context {
                    .withCustomerOf(getCustomerOf())
                    .withFeideOrganizationDomain(getFeideOrganizationDomain())
                    .withDoiPreFix(getDoiPrefix())
-                   .withDoiName(getDoiAgencyName())
+                   .withDoiAgencyName(getDoiAgencyName())
                    .withName(getName())
                    .withModifiedDate(stringToInstant(getModifiedDate()))
                    .withRorId(getRorId())
@@ -241,7 +241,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(),getDoiPrefix(),getDoiAgencyName());
+                            getRorId(), getPublicationWorkflow(), getDoiPrefix(), getDoiAgencyName());
     }
 
     @JacocoGenerated
@@ -390,7 +390,7 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withDoiName(String doiName) {
+        public Builder withDoiAgencyName(String doiName) {
             customerDto.setDoiAgencyName(doiName);
             return this;
         }
@@ -398,7 +398,5 @@ public class CustomerDto implements Context {
         public CustomerDto build() {
             return customerDto;
         }
-
     }
-
 }

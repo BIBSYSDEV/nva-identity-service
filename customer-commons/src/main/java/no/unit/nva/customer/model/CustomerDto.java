@@ -1,8 +1,6 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
-import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -76,19 +74,19 @@ public class CustomerDto implements Context {
     }
 
     public String getCreatedDate() {
-        return instantToString(createdDate);
+        return (createdDate == null) ? null: createdDate.toString();
     }
 
     public void setCreatedDate(String createdDate) {
-        this.createdDate = stringToInstant(createdDate);
+        this.createdDate = Instant.parse(createdDate);
     }
 
     public String getModifiedDate() {
-        return instantToString(modifiedDate);
+        return (modifiedDate == null) ? null: modifiedDate.toString();
     }
 
     public void setModifiedDate(String modifiedDate) {
-        this.modifiedDate = stringToInstant(modifiedDate);
+        this.modifiedDate = Instant.parse(modifiedDate);
     }
 
     public String getName() {
@@ -210,7 +208,7 @@ public class CustomerDto implements Context {
                    .withShortName(getShortName())
                    .withInstitutionDns(getInstitutionDns())
                    .withDisplayName(getDisplayName())
-                   .withCreatedDate(stringToInstant(getCreatedDate()))
+                   .withCreatedDate(Instant.parse(getCreatedDate()))
                    .withArchiveName(getArchiveName())
                    .withIdentifier(getIdentifier())
                    .withContext(getContext())
@@ -221,7 +219,7 @@ public class CustomerDto implements Context {
                    .withFeideOrganizationDomain(getFeideOrganizationDomain())
                    .withDoiAgent(getDoiAgent())
                    .withName(getName())
-                   .withModifiedDate(stringToInstant(getModifiedDate()))
+                   .withModifiedDate(Instant.parse(getModifiedDate()))
                    .withRorId(getRorId())
                    .withPublicationWorkflow(getPublicationWorkflow());
     }
@@ -298,12 +296,12 @@ public class CustomerDto implements Context {
         }
 
         public Builder withCreatedDate(Instant createdDate) {
-            customerDto.setCreatedDate(instantToString(createdDate));
+            customerDto.setCreatedDate(createdDate.toString());
             return this;
         }
 
         public Builder withModifiedDate(Instant modifiedDate) {
-            customerDto.setModifiedDate(instantToString(modifiedDate));
+            customerDto.setModifiedDate(modifiedDate.toString());
             return this;
         }
 

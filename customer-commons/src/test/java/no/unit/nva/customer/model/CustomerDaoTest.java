@@ -12,6 +12,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
@@ -38,6 +41,16 @@ class CustomerDaoTest {
         assertThat(customerDto, doesNotHaveEmptyValues());
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
+        assertEquals(actual, actual);
+        assertNotEquals(null, actual);
+
+        var doi = actual.getDoiAgent();
+        assertThat(doi.toString(),doesNotHaveEmptyValues());
+        assertEquals(doi,actual.getDoiAgent());
+        assertEquals(doi.hashCode(),actual.getDoiAgent().hashCode());
+        assertNotEquals(null, doi);
+
+        assertThrows(IllegalStateException.class,() -> actual.setType("NOT A TYPE"));
     }
 
     @Test

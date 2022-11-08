@@ -12,6 +12,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +32,14 @@ class CustomerDtoTest {
         var deserialized = CustomerDto.fromJson(json);
         assertThat(deserialized, is(equalTo(customer)));
         assertThat(deserialized, doesNotHaveEmptyValues());
+        assertEquals(deserialized.hashCode(),customer.hashCode());
+        assertNotEquals(null, deserialized);
+
+        var doi = deserialized.getDoiAgent();
+        assertThat(doi.toString(),doesNotHaveEmptyValues());
+        assertEquals(doi,deserialized.getDoiAgent());
+        assertEquals(doi.hashCode(),deserialized.getDoiAgent().hashCode());
+        assertNotEquals(null, doi);
     }
 
     @Test

@@ -19,7 +19,6 @@ import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 //Overriding setters and getters is necessary for Jackson-Jr
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields", "PMD.GodClass"})
@@ -242,10 +241,9 @@ public class CustomerDto implements Context {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CustomerDto)) {
+        if (!(o instanceof CustomerDto that)) {
             return false;
         }
-        CustomerDto that = (CustomerDto) o;
         return Objects.equals(getContext(), that.getContext())
                && Objects.equals(getId(), that.getId())
                && Objects.equals(getIdentifier(), that.getIdentifier())
@@ -417,18 +415,17 @@ public class CustomerDto implements Context {
            if (this == o) {
                return true;
            }
-           if (o == null || getClass() != o.getClass()) {
+           if (!(o instanceof DoiAgentDto that)) {
                return false;
            }
-           DoiAgentDto doiDto = (DoiAgentDto) o;
-           return Objects.equals(prefix, doiDto.getPrefix())
-                  && Objects.equals(name, doiDto.getName());
+           return Objects.equals(getPrefix(), that.getPrefix())
+                  && Objects.equals(getName(), that.getName());
        }
 
        @Override
        @JacocoGenerated
        public int hashCode() {
-           return Objects.hash(prefix, name);
+           return Objects.hash(getPrefix(), getName());
        }
 
        @Override

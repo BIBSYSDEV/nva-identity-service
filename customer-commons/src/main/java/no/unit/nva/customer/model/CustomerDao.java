@@ -260,10 +260,9 @@ public class CustomerDao implements Typed {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CustomerDao)) {
+        if (!(o instanceof CustomerDao that)) {
             return false;
         }
-        CustomerDao that = (CustomerDao) o;
         return Objects.equals(getIdentifier(), that.getIdentifier())
                && Objects.equals(getCreatedDate(), that.getCreatedDate())
                && Objects.equals(getModifiedDate(), that.getModifiedDate())
@@ -449,26 +448,26 @@ public class CustomerDao implements Typed {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (!(o instanceof DoiAgentDao that)) {
                 return false;
             }
-            DoiAgentDao doiDto = (DoiAgentDao) o;
-            return Objects.equals(prefix, doiDto.getPrefix())
-                   && Objects.equals(name, doiDto.getName());
+            return Objects.equals(getPrefix(), that.getPrefix())
+                   && Objects.equals(getName(), that.getName());
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(prefix, name);
+            return Objects.hash(getPrefix(), getName());
         }
+
 
         @Override
         @JacocoGenerated
         public String toString() {
             return new StringJoiner(", ", DoiAgentDao.class.getSimpleName() + "[", "]")
-                       .add("prefix='" + prefix + "'")
-                       .add("agencyName='" + name + "'")
+                       .add("prefix='" + getPrefix() + "'")
+                       .add("agencyName='" + getName() + "'")
                        .toString();
         }
 

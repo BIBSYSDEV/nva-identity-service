@@ -95,6 +95,7 @@ public class UserSelectionUponLoginHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
+        LOGGER.info("Handling {}", input);
         var nin = extractNin(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
@@ -112,6 +113,8 @@ public class UserSelectionUponLoginHandler
         final var accessRights = createAccessRightsPerCustomer(usersForPerson);
         updateCognitoUserAttributes(input, authenticationInfo, accessRights, roles);
         injectAccessRightsToEventResponse(input, accessRights);
+
+        LOGGER.info("Returning {}", input);
         return input;
     }
 

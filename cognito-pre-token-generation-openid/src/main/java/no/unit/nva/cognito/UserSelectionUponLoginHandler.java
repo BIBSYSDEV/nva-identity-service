@@ -44,7 +44,10 @@ import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -53,6 +56,8 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
 
     public static final Environment ENVIRONMENT = new Environment();
 
@@ -155,10 +160,21 @@ public class UserSelectionUponLoginHandler
         Collection<String> accessRights,
         Collection<String> roles) {
 
-        cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(input,
-                                                                                  authenticationInfo,
-                                                                                  accessRights,
-                                                                                  roles));
+        var request = createUpdateUserAttributesRequest(
+            input,
+            authenticationInfo,
+            accessRights,
+            roles);
+
+        try {
+            LOGGER.info("Updating user attributes in cognito: {}", request);
+
+            var response = cognitoClient.adminUpdateUserAttributes(request);
+
+            LOGGER.info("Successfully updated user attributes in cognito: {}", response);
+        } catch (SdkException e) {
+            LOGGER.error("Failed to update user attributes in cognito!", e);
+        }
     }
 
     private AdminUpdateUserAttributesRequest createUpdateUserAttributesRequest(
@@ -225,7 +241,7 @@ public class UserSelectionUponLoginHandler
     private Consumer<String> generateCustomerSelectionClaimsFromAuthentication(
         AuthenticationInformation authenticationInfo,
         List<AttributeType> claims) {
-        
+
         return customerId -> claims.addAll(customerSelectionClaims(authenticationInfo, customerId));
     }
 

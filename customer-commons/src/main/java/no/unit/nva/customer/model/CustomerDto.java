@@ -46,6 +46,7 @@ public class CustomerDto implements Context {
     public CustomerDto() {
         super();
         this.vocabularies = Collections.emptyList();
+        this.publicationWorkflow = PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
@@ -78,7 +79,7 @@ public class CustomerDto implements Context {
     }
 
     public void setCreatedDate(String createdDate) {
-        this.createdDate = Instant.parse(createdDate);
+        this.createdDate = (createdDate == null) ? null : Instant.parse(createdDate);
     }
 
     public String getModifiedDate() {
@@ -86,7 +87,7 @@ public class CustomerDto implements Context {
     }
 
     public void setModifiedDate(String modifiedDate) {
-        this.modifiedDate = Instant.parse(modifiedDate);
+        this.modifiedDate = (modifiedDate == null) ? null : Instant.parse(modifiedDate);
     }
 
     public String getName() {
@@ -208,7 +209,7 @@ public class CustomerDto implements Context {
                    .withShortName(getShortName())
                    .withInstitutionDns(getInstitutionDns())
                    .withDisplayName(getDisplayName())
-                   .withCreatedDate(Instant.parse(getCreatedDate()))
+                   .withCreatedDate(getCreatedDate())
                    .withArchiveName(getArchiveName())
                    .withIdentifier(getIdentifier())
                    .withContext(getContext())
@@ -219,7 +220,7 @@ public class CustomerDto implements Context {
                    .withFeideOrganizationDomain(getFeideOrganizationDomain())
                    .withDoiAgent(getDoiAgent())
                    .withName(getName())
-                   .withModifiedDate(Instant.parse(getModifiedDate()))
+                   .withModifiedDate(getModifiedDate())
                    .withRorId(getRorId())
                    .withPublicationWorkflow(getPublicationWorkflow());
     }
@@ -297,12 +298,22 @@ public class CustomerDto implements Context {
         }
 
         public Builder withCreatedDate(Instant createdDate) {
-            customerDto.setCreatedDate(createdDate.toString());
+            customerDto.createdDate = createdDate;
+            return this;
+        }
+
+        public Builder withCreatedDate(String createdDate) {
+            customerDto.setCreatedDate(createdDate);
             return this;
         }
 
         public Builder withModifiedDate(Instant modifiedDate) {
-            customerDto.setModifiedDate(modifiedDate.toString());
+            customerDto.modifiedDate = modifiedDate;
+            return this;
+        }
+
+        public Builder withModifiedDate(String modifiedDate) {
+            customerDto.setModifiedDate(modifiedDate);
             return this;
         }
 
@@ -374,7 +385,7 @@ public class CustomerDto implements Context {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            customerDto.setDoiAgent(doiAgent != null ? new DoiAgentDto(doiAgent) : null);
+            customerDto.setDoiAgent(doiAgent == null ? null : new DoiAgentDto(doiAgent));
             return this;
         }
 
@@ -432,4 +443,3 @@ public class CustomerDto implements Context {
         }
     }
 }
-

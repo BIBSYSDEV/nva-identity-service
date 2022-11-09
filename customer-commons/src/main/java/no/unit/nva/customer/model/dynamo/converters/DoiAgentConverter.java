@@ -1,12 +1,14 @@
 package no.unit.nva.customer.model.dynamo.converters;
 
 import no.unit.nva.customer.model.CustomerDao.DoiAgentDao;
+import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@JacocoGenerated
 public class DoiAgentConverter implements AttributeConverter<DoiAgentDao> {
 
     public static final TableSchema<DoiAgentDao> TABLE_SCHEMA = TableSchema.fromBean(DoiAgentDao.class);

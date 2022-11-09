@@ -29,7 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass"})
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
 public class CustomerDao implements Typed {
 
     public static final String IDENTIFIER = "identifier";
@@ -58,6 +58,7 @@ public class CustomerDao implements Typed {
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+        publicationWorkflow = PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public static Builder builder() {
@@ -65,9 +66,10 @@ public class CustomerDao implements Typed {
     }
 
     public static CustomerDao fromCustomerDto(CustomerDto dto) {
-        return builder().withArchiveName(dto.getArchiveName())
+        return builder()
+                   .withArchiveName(dto.getArchiveName())
                    .withCname(dto.getCname())
-                   .withCreatedDate(Instant.parse(dto.getCreatedDate()))
+                   .withCreatedDate(dto.getCreatedDate())
                    .withCristinId(dto.getCristinId())
                    .withCustomerOf(extractCustomerOf(dto))
                    .withDisplayName(dto.getDisplayName())
@@ -75,7 +77,7 @@ public class CustomerDao implements Typed {
                    .withInstitutionDns(dto.getInstitutionDns())
                    .withShortName(dto.getShortName())
                    .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
-                   .withModifiedDate(Instant.parse(dto.getModifiedDate()))
+                   .withModifiedDate(dto.getModifiedDate())
                    .withVocabularySettings(extractVocabularySettings(dto))
                    .withName(dto.getName())
                    .withRorId(dto.getRorId())
@@ -205,8 +207,7 @@ public class CustomerDao implements Typed {
     }
 
     public PublicationWorkflow getPublicationWorkflow() {
-        return nonNull(publicationWorkflow) ? publicationWorkflow
-                   : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+        return publicationWorkflow;
     }
 
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
@@ -223,24 +224,25 @@ public class CustomerDao implements Typed {
     }
 
     public CustomerDto toCustomerDto() {
-        CustomerDto customerDto = CustomerDto.builder()
-                                      .withCname(getCname())
-                                      .withName(getName())
-                                      .withIdentifier(getIdentifier())
-                                      .withArchiveName(getArchiveName())
-                                      .withCreatedDate(getCreatedDate())
-                                      .withDisplayName(getDisplayName())
-                                      .withInstitutionDns(getInstitutionDns())
-                                      .withShortName(getShortName())
-                                      .withVocabularies(extractVocabularySettings())
-                                      .withModifiedDate(getModifiedDate())
-                                      .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                                      .withCristinId(getCristinId())
-                                      .withCustomerOf(fromUri(getCustomerOf()))
-                                      .withRorId(getRorId())
-                                      .withPublicationWorkflow(getPublicationWorkflow())
-                                      .withDoiAgent(getDoiAgent())
-                                      .build();
+        CustomerDto customerDto =
+            CustomerDto.builder()
+                .withCname(getCname())
+                .withName(getName())
+                .withIdentifier(getIdentifier())
+                .withArchiveName(getArchiveName())
+                .withCreatedDate(getCreatedDate())
+                .withDisplayName(getDisplayName())
+                .withInstitutionDns(getInstitutionDns())
+                .withShortName(getShortName())
+                .withVocabularies(extractVocabularySettings())
+                .withModifiedDate(getModifiedDate())
+                .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                .withCristinId(getCristinId())
+                .withCustomerOf(fromUri(getCustomerOf()))
+                .withRorId(getRorId())
+                .withPublicationWorkflow(getPublicationWorkflow())
+                .withDoiAgent(getDoiAgent())
+                .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
 
@@ -250,35 +252,34 @@ public class CustomerDao implements Typed {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CustomerDao)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         CustomerDao that = (CustomerDao) o;
-        return Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getArchiveName(), that.getArchiveName())
-               && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getCustomerOf(), that.getCustomerOf())
-               && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getRorId(), that.getRorId())
-               && Objects.equals(getDoiAgent(), that.getDoiAgent())
-               && getPublicationWorkflow() == that.getPublicationWorkflow();
+        return Objects.equals(identifier, that.identifier)
+               && Objects.equals(createdDate, that.createdDate)
+               && Objects.equals(modifiedDate, that.modifiedDate)
+               && Objects.equals(name, that.name)
+               && Objects.equals(displayName, that.displayName)
+               && Objects.equals(shortName, that.shortName)
+               && Objects.equals(archiveName, that.archiveName)
+               && Objects.equals(cname, that.cname)
+               && Objects.equals(institutionDns, that.institutionDns)
+               && Objects.equals(feideOrganizationDomain, that.feideOrganizationDomain)
+               && Objects.equals(cristinId, that.cristinId)
+               && Objects.equals(customerOf, that.customerOf)
+               && Objects.equals(vocabularies, that.vocabularies)
+               && Objects.equals(rorId, that.rorId)
+               && publicationWorkflow == that.publicationWorkflow
+               && Objects.equals(doiAgent, that.doiAgent);
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
-        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(), getDoiAgent());
+        return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
+                            institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
+                            publicationWorkflow, doiAgent);
     }
 
     private static URI extractCustomerOf(CustomerDto dto) {
@@ -336,8 +337,18 @@ public class CustomerDao implements Typed {
             return this;
         }
 
+        public Builder withCreatedDate(String createdDate) {
+            customerDb.setCreatedDate((createdDate == null) ? null : Instant.parse(createdDate));
+            return this;
+        }
+
         public Builder withModifiedDate(Instant modifiedDate) {
             customerDb.setModifiedDate(modifiedDate);
+            return this;
+        }
+
+        public Builder withModifiedDate(String modifiedDate) {
+            customerDb.setModifiedDate((modifiedDate == null) ? null : Instant.parse(modifiedDate));
             return this;
         }
 
@@ -402,7 +413,7 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            customerDb.setDoiAgent(doiAgent != null ? new DoiAgentDao(doiAgent) : null);
+            customerDb.setDoiAgent(doiAgent == null ? null : new DoiAgentDao(doiAgent));
             return this;
         }
 

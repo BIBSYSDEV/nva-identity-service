@@ -12,6 +12,8 @@ public interface CustomerService {
 
     CustomerDto getCustomer(URI id) throws NotFoundException;
 
+    CustomerDto getCustomerWithSecret(URI id) throws NotFoundException;
+
     CustomerDto getCustomer(UUID identifier) throws NotFoundException;
 
     CustomerDto getCustomerByOrgDomain(String orgDomain) throws NotFoundException;

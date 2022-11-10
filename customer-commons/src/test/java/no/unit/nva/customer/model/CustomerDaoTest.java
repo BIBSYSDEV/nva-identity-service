@@ -54,6 +54,29 @@ class CustomerDaoTest {
     }
 
     @Test
+    void toCustomerDtoReturnsDtoWithLossOfSecret() {
+        CustomerDao expected = CustomerDataGenerator.createSampleCustomerDao();
+        CustomerDto customerDto = expected.toCustomerDto();
+        customerDto.getDoiAgent().addLink("secret",randomUri().toString());
+
+        CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
+        Diff diff = JAVERS.compare(expected, actual);
+        assertThat(customerDto, doesNotHaveEmptyValues());
+        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
+        assertThat(actual, is(equalTo(expected)));
+        assertEquals(actual, actual);
+        assertNotEquals(null, actual);
+
+        var doi = actual.getDoiAgent();
+        assertThat(doi.toString(),doesNotHaveEmptyValues());
+        assertEquals(doi,actual.getDoiAgent());
+        assertEquals(doi.hashCode(),actual.getDoiAgent().hashCode());
+        assertNotEquals(null, doi);
+
+        assertThrows(IllegalStateException.class,() -> actual.setType("NOT A TYPE"));
+    }
+
+    @Test
     void fromCustomerDbReturnsDbWithoutLossOfInformation() {
         CustomerDto expected = createSampleCustomerDto();
         CustomerDao customerDb = CustomerDao.fromCustomerDto(expected);

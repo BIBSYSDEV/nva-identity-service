@@ -12,13 +12,16 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
+import nva.commons.secrets.SecretsReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -42,6 +45,7 @@ public class DynamoDBCustomerService implements CustomerService {
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
+    private static final String DOI_SECRET_IDENTITY_NAME = "DoiSecretName";
     private final DynamoDbTable<CustomerDao> table;
 
     /**
@@ -63,6 +67,15 @@ public class DynamoDBCustomerService implements CustomerService {
     public CustomerDto getCustomer(URI customerId) throws NotFoundException {
         var customerIdentifier = UriWrapper.fromUri(customerId).getLastPathElement();
         return getCustomer(UUID.fromString(customerIdentifier));
+    }
+
+    @Override
+    public CustomerDto getCustomerWithSecret(URI customerId) throws NotFoundException {
+        var customer = getCustomer(customerId);
+        customer.setDoiAgent(
+            populateSecret(
+                customer.getDoiAgent()));
+        return customer;
     }
 
     @Override
@@ -181,6 +194,23 @@ public class DynamoDBCustomerService implements CustomerService {
         if (!identifier.equals(customer.getIdentifier())) {
             throw new InputException(String.format(IDENTIFIERS_NOT_EQUAL, identifier, customer.getIdentifier()), null);
         }
+    }
+
+    private DoiAgentDto populateSecret(DoiAgentDto doiAgentDto) {
+        var secretsReader = new SecretsReader();
+        var secret = secretsReader.fetchSecret(
+            DOI_SECRET_IDENTITY_NAME,
+            doiAgentDto.getPrefix());
+        return doiAgentDto.addLink("secret", "https://eksample.org/10.000/" +secret);
+    }
+
+    @JacocoGenerated
+    private void persistSecret(DoiAgentDto doiAgentDto) {
+        var secretsReader = new SecretsReader();
+        var secret = secretsReader.fetchSecret(
+            DOI_SECRET_IDENTITY_NAME,
+            doiAgentDto.getPrefix());
+         // TODO persist secret here...
     }
 
     private NotFoundException notFoundException(String queryValue) {

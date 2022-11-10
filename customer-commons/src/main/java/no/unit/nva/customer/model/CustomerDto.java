@@ -3,12 +3,15 @@ package no.unit.nva.customer.model;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Context;
@@ -374,7 +377,10 @@ public class CustomerDto implements Context {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            customerDto.setDoiAgent(doiAgent != null ? new DoiAgentDto(doiAgent) : null);
+            customerDto.setDoiAgent(
+                doiAgent == null
+                ? null
+                : new DoiAgentDto(doiAgent));
             return this;
         }
 
@@ -387,6 +393,7 @@ public class CustomerDto implements Context {
 
         private String prefix;
         private String name;
+        private final Map<String, Link> _links = new HashMap<>(3);
 
         public DoiAgentDto() {
         }
@@ -394,6 +401,9 @@ public class CustomerDto implements Context {
         public DoiAgentDto(DoiAgent doiAgent) {
             this.prefix = doiAgent.getPrefix();
             this.name = doiAgent.getName();
+                this.addLink("self","https://example.org/doi/10.000")
+                    .addLink("createDoi","https://example.org/doi/10.000/new")
+                    .addLink("secret","https://example.org/doi/10.000/secret");
         }
 
         @Override
@@ -404,6 +414,19 @@ public class CustomerDto implements Context {
         @Override
         public String getName() {
             return name;
+        }
+
+        public Map<String, Link> get_links() {
+            return _links;
+        }
+
+        public DoiAgentDto addLink(String name, String url) {
+            try {
+                _links.put(name, Link.newLink(url));
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+            return this;
         }
 
         @Override
@@ -430,6 +453,7 @@ public class CustomerDto implements Context {
         public String toString() {
             return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
         }
+
     }
 }
 

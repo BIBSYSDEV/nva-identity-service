@@ -67,10 +67,12 @@ Conditions:
 
 Globals:
   Function:
-    MemorySize: 1769
+    MemorySize: 1769  # 2 vCPU
     Timeout: 10
     Runtime: java11
     Tracing: Active
+    Architectures:
+      - arm64
     Environment:
       Variables:
         API_DOMAIN: !Ref ApiDomain

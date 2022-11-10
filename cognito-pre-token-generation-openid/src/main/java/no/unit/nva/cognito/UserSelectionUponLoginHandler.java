@@ -188,6 +188,12 @@ public class UserSelectionUponLoginHandler
 
         Collection<AttributeType> userAttributes = updatedPersonAttributes(authenticationInfo, accessRights, roles);
 
+        LOGGER.info("Updating user attribute: {}", userAttributes.stream().
+                                                       map(attributeType -> String.format("%s - %s",
+                                                                                          attributeType.name(),
+                                                                                          attributeType.value()))
+                                                       .collect(Collectors.toList()));
+
         return AdminUpdateUserAttributesRequest.builder()
                    .userPoolId(input.getUserPoolId())
                    .username(input.getUserName())
@@ -314,6 +320,7 @@ public class UserSelectionUponLoginHandler
     }
 
     private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride) {
+        LOGGER.info("Override claims return in response from handler: {}", groupsToOverride);
         var groups = GroupConfiguration.builder()
                          .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
                          .build();

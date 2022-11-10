@@ -338,7 +338,9 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withCreatedDate(String createdDate) {
-            customerDb.setCreatedDate((createdDate == null) ? null : Instant.parse(createdDate));
+            customerDb.setCreatedDate(
+                (createdDate == null) ? null : Instant.parse(createdDate)
+            );
             return this;
         }
 
@@ -348,7 +350,9 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withModifiedDate(String modifiedDate) {
-            customerDb.setModifiedDate((modifiedDate == null) ? null : Instant.parse(modifiedDate));
+            customerDb.setModifiedDate(
+                (modifiedDate == null) ? null : Instant.parse(modifiedDate)
+            );
             return this;
         }
 

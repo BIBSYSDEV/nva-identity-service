@@ -14,6 +14,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import no.unit.nva.auth.AuthorizedBackendClient;
 import no.unit.nva.auth.CognitoCredentials;
 import no.unit.nva.identityservice.json.JsonConfig;
@@ -51,8 +52,11 @@ public class CristinClient {
         var request = HttpRequest.newBuilder(orgUri)
             .setHeader(CONTENT_TYPE, APPLICATION_JSON)
             .GET();
+
+        var start = Instant.now();
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
-        
+        logger.info("Called {} and got response in {} ms.", orgUri, Instant.now().toEpochMilli() - start.toEpochMilli());
+
         assertThatResponseIsSuccessful(orgUri, response);
         
         var responseObject = CristinOrgResponse.fromJson(response.body());
@@ -79,9 +83,11 @@ public class CristinClient {
         var request = HttpRequest.newBuilder(getUserByNinUri)
                           .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                           .POST(BodyPublishers.ofString(cristinRequestBody(nin), StandardCharsets.UTF_8));
-        var requestString = request.build().toString();
-        logger.info("Request:{}", requestString);
+
+        var start = Instant.now();
         var response = httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
+        logger.info("Called {} and got response in {} ms.", getUserByNinUri, Instant.now().toEpochMilli() - start.toEpochMilli());
+
         assertThatResponseIsSuccessful(nin, response);
         return JsonConfig.readValue(response.body(), CristinPersonResponse.class);
     }

@@ -1,14 +1,18 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Context;
@@ -46,7 +50,6 @@ public class CustomerDto implements Context {
     public CustomerDto() {
         super();
         this.vocabularies = Collections.emptyList();
-        this.publicationWorkflow = PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
@@ -205,24 +208,34 @@ public class CustomerDto implements Context {
     }
 
     public Builder copy() {
-        return new Builder().withVocabularies(getVocabularies())
-                   .withShortName(getShortName())
-                   .withInstitutionDns(getInstitutionDns())
-                   .withDisplayName(getDisplayName())
-                   .withCreatedDate(getCreatedDate())
-                   .withArchiveName(getArchiveName())
+        return new Builder()
                    .withIdentifier(getIdentifier())
-                   .withContext(getContext())
-                   .withCname(getCname())
                    .withId(getId())
+                   .withArchiveName(getArchiveName())
+                   .withCname(getCname())
+                   .withContext(getContext())
+                   .withCreatedDate(getCreatedDate())
                    .withCristinId(getCristinId())
                    .withCustomerOf(getCustomerOf())
-                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                   .withDisplayName(getDisplayName())
                    .withDoiAgent(getDoiAgent())
-                   .withName(getName())
+                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                   .withInstitutionDns(getInstitutionDns())
                    .withModifiedDate(getModifiedDate())
+                   .withName(getName())
+                   .withPublicationWorkflow(getPublicationWorkflow())
                    .withRorId(getRorId())
-                   .withPublicationWorkflow(getPublicationWorkflow());
+                   .withShortName(getShortName())
+                   .withVocabularies(getVocabularies());
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
+                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                            getRorId(), getPublicationWorkflow());
     }
 
     @Override
@@ -235,33 +248,23 @@ public class CustomerDto implements Context {
             return false;
         }
         CustomerDto that = (CustomerDto) o;
-        return Objects.equals(context, that.context)
-               && Objects.equals(id, that.id)
-               && Objects.equals(identifier, that.identifier)
-               && Objects.equals(createdDate, that.createdDate)
-               && Objects.equals(modifiedDate, that.modifiedDate)
-               && Objects.equals(name, that.name)
-               && Objects.equals(displayName, that.displayName)
-               && Objects.equals(shortName, that.shortName)
-               && Objects.equals(archiveName, that.archiveName)
-               && Objects.equals(cname, that.cname)
-               && Objects.equals(institutionDns, that.institutionDns)
-               && Objects.equals(feideOrganizationDomain, that.feideOrganizationDomain)
-               && Objects.equals(cristinId, that.cristinId)
-               && customerOf == that.customerOf
-               && Objects.equals(vocabularies, that.vocabularies)
-               && Objects.equals(rorId, that.rorId)
-               && publicationWorkflow == that.publicationWorkflow
-               && Objects.equals(doiAgent, that.doiAgent);
-    }
-
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(context, id, identifier, createdDate, modifiedDate, name, displayName, shortName,
-                            archiveName,
-                            cname, institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
-                            publicationWorkflow, doiAgent);
+        return Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getContext(), that.getContext())
+               && Objects.equals(getCname(), that.getCname())
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getCustomerOf(), that.getCustomerOf())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getId(), that.getId())
+               && Objects.equals(getIdentifier(), that.getIdentifier())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getRorId(), that.getRorId())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getVocabularies(), that.getVocabularies())
+               && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
     @Override
@@ -385,7 +388,14 @@ public class CustomerDto implements Context {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            customerDto.setDoiAgent(doiAgent == null ? null : new DoiAgentDto(doiAgent));
+            var urlId = toId(customerDto.identifier);
+            var agent = doiAgent == null
+                            ? null
+                            : new DoiAgentDto(doiAgent)
+                                  .addLink("self",urlId + "/doiAgent")
+                                  .addLink("doi",urlId + "/doiAgent/doi")
+                                  .addLink("secret",urlId + "/doiAgent/secret");
+            customerDto.setDoiAgent(agent);
             return this;
         }
 
@@ -398,6 +408,7 @@ public class CustomerDto implements Context {
 
         private String prefix;
         private String name;
+        private final Map<String, LinkItem> links = new HashMap<>(3);
 
         public DoiAgentDto() {
         }
@@ -417,6 +428,21 @@ public class CustomerDto implements Context {
             return name;
         }
 
+        public Map<String, LinkItem> getLinks() {
+            return links;
+        }
+
+        public DoiAgentDto addLink(String name, String url) {
+            try {
+                if (!links.containsKey(name)) {
+                    links.put(name, LinkItem.newLink(url));
+                }
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+            return this;
+        }
+
         @Override
         @JacocoGenerated
         public boolean equals(Object o) {
@@ -427,13 +453,15 @@ public class CustomerDto implements Context {
                 return false;
             }
             DoiAgentDto that = (DoiAgentDto) o;
-            return Objects.equals(prefix, that.prefix) && Objects.equals(name, that.name);
+            return Objects.equals(getPrefix(), that.getPrefix())
+                   && Objects.equals(getName(), that.getName())
+                   && Objects.equals(getLinks(), that.getLinks());
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(prefix, name);
+            return Objects.hash(getPrefix(), getName(), getLinks());
         }
 
         @Override

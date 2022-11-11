@@ -5,19 +5,20 @@ import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
 import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
+import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.Typed;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -58,7 +59,6 @@ public class CustomerDao implements Typed {
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
-        publicationWorkflow = PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public static Builder builder() {
@@ -207,7 +207,8 @@ public class CustomerDao implements Typed {
     }
 
     public PublicationWorkflow getPublicationWorkflow() {
-        return publicationWorkflow;
+        return nonNull(publicationWorkflow) ? publicationWorkflow
+                   : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
@@ -256,30 +257,22 @@ public class CustomerDao implements Typed {
             return false;
         }
         CustomerDao that = (CustomerDao) o;
-        return Objects.equals(identifier, that.identifier)
-               && Objects.equals(createdDate, that.createdDate)
-               && Objects.equals(modifiedDate, that.modifiedDate)
-               && Objects.equals(name, that.name)
-               && Objects.equals(displayName, that.displayName)
-               && Objects.equals(shortName, that.shortName)
-               && Objects.equals(archiveName, that.archiveName)
-               && Objects.equals(cname, that.cname)
-               && Objects.equals(institutionDns, that.institutionDns)
-               && Objects.equals(feideOrganizationDomain, that.feideOrganizationDomain)
-               && Objects.equals(cristinId, that.cristinId)
-               && Objects.equals(customerOf, that.customerOf)
-               && Objects.equals(vocabularies, that.vocabularies)
-               && Objects.equals(rorId, that.rorId)
-               && publicationWorkflow == that.publicationWorkflow
-               && Objects.equals(doiAgent, that.doiAgent);
-    }
-
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
-                            institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
-                            publicationWorkflow, doiAgent);
+        return Objects.equals(getIdentifier(), that.getIdentifier())
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getCname(), that.getCname())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getCustomerOf(), that.getCustomerOf())
+               && Objects.equals(getVocabularies(), that.getVocabularies())
+               && Objects.equals(getRorId(), that.getRorId())
+               && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
     private static URI extractCustomerOf(CustomerDto dto) {
@@ -417,7 +410,10 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            customerDb.setDoiAgent(doiAgent == null ? null : new DoiAgentDao(doiAgent));
+            customerDb.setDoiAgent(
+                doiAgent == null
+                    ? null
+                    : new DoiAgentDao(doiAgent));
             return this;
         }
 
@@ -450,6 +446,7 @@ public class CustomerDao implements Typed {
             return name;
         }
 
+
         public void setPrefix(String prefix) {
             this.prefix = prefix;
         }
@@ -468,21 +465,19 @@ public class CustomerDao implements Typed {
                 return false;
             }
             DoiAgentDao that = (DoiAgentDao) o;
-            return Objects.equals(prefix, that.prefix) && Objects.equals(name, that.name);
+            return Objects.equals(getPrefix(), that.getPrefix()) && Objects.equals(getName(), that.getName());
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(prefix, name);
+            return Objects.hash(getPrefix(), getName());
         }
 
         @Override
+        @JacocoGenerated
         public String toString() {
-            return new StringJoiner(", ", DoiAgentDao.class.getSimpleName() + "[", "]")
-                       .add("prefix='" + prefix + "'")
-                       .add("name='" + name + "'")
-                       .toString();
+            return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
         }
     }
 }

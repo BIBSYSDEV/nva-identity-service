@@ -208,25 +208,24 @@ public class CustomerDto implements Context {
     }
 
     public Builder copy() {
-        return new Builder()
-                   .withIdentifier(getIdentifier())
-                   .withId(getId())
-                   .withArchiveName(getArchiveName())
-                   .withCname(getCname())
-                   .withContext(getContext())
+        return new Builder().withVocabularies(getVocabularies())
+                   .withShortName(getShortName())
+                   .withInstitutionDns(getInstitutionDns())
+                   .withDisplayName(getDisplayName())
                    .withCreatedDate(getCreatedDate())
+                   .withArchiveName(getArchiveName())
+                   .withIdentifier(getIdentifier())
+                   .withContext(getContext())
+                   .withCname(getCname())
+                   .withId(getId())
                    .withCristinId(getCristinId())
                    .withCustomerOf(getCustomerOf())
-                   .withDisplayName(getDisplayName())
-                   .withDoiAgent(getDoiAgent())
                    .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                   .withInstitutionDns(getInstitutionDns())
-                   .withModifiedDate(getModifiedDate())
+                   .withDoiAgent(getDoiAgent())
                    .withName(getName())
-                   .withPublicationWorkflow(getPublicationWorkflow())
+                   .withModifiedDate(getModifiedDate())
                    .withRorId(getRorId())
-                   .withShortName(getShortName())
-                   .withVocabularies(getVocabularies());
+                   .withPublicationWorkflow(getPublicationWorkflow());
     }
 
     @Override
@@ -388,14 +387,19 @@ public class CustomerDto implements Context {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            var urlId = toId(customerDto.identifier);
             var agent = doiAgent == null
                             ? null
-                            : new DoiAgentDto(doiAgent)
-                                  .addLink("self",urlId + "/doiAgent")
-                                  .addLink("doi",urlId + "/doiAgent/doi")
-                                  .addLink("secret",urlId + "/doiAgent/secret");
+                            : new DoiAgentDto(doiAgent);
+            var urlId = (customerDto.identifier == null)
+                                    ?  URI.create("https://example.org/cutommer/xxx")
+                                    : toId(customerDto.identifier);
+
+            agent.addLink("self",urlId + "/doiAgent")
+                 .addLink("doi",urlId + "/doiAgent/doi")
+                 .addLink("secret",urlId + "/doiAgent/secret");
+
             customerDto.setDoiAgent(agent);
+
             return this;
         }
 

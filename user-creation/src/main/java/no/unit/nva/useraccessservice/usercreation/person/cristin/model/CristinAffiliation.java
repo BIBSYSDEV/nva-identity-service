@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CristinAffiliation {
@@ -11,6 +12,7 @@ public class CristinAffiliation {
     @JsonProperty("active")
     private final boolean active;
 
+    @JsonCreator
     public CristinAffiliation(@JsonProperty("institution") CristinAffiliationInstitution institution,
                               @JsonProperty("unit") CristinAffiliationUnit unit,
                               @JsonProperty("active") boolean active) {

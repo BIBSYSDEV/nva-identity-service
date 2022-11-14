@@ -1,12 +1,12 @@
-package no.unit.nva.useraccessservice.usercreation.person.cristin;
+package no.unit.nva.useraccessservice.usercreation.person;
 
-public class PersonAuthorityException extends RuntimeException {
+public class PersonRegistryException extends RuntimeException {
 
-    public PersonAuthorityException(String message) {
+    public PersonRegistryException(String message) {
         super(message);
     }
 
-    public PersonAuthorityException(String message, Throwable cause) {
+    public PersonRegistryException(String message, Throwable cause) {
         super(message, cause);
     }
 }

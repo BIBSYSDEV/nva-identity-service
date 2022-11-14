@@ -22,6 +22,7 @@ import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitution;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
@@ -62,7 +63,7 @@ public class CristinPersonRegistry implements PersonRegistry {
         try {
             return JsonUtils.dtoObjectMapper.readValue(responseAsString, CristinPerson.class);
         } catch (JsonProcessingException e) {
-            throw new PersonAuthorityException("Failed to parse response!", e);
+            throw new PersonRegistryException("Failed to parse response!", e);
         }
     }
 
@@ -77,7 +78,7 @@ public class CristinPersonRegistry implements PersonRegistry {
         try {
             return JsonUtils.dtoObjectMapper.readValue(responseAsString, CristinInstitution.class);
         } catch (JsonProcessingException e) {
-            throw new PersonAuthorityException("Failed to parse response!", e);
+            throw new PersonRegistryException("Failed to parse response!", e);
         }
     }
 
@@ -120,7 +121,7 @@ public class CristinPersonRegistry implements PersonRegistry {
             var resultItems = JsonUtils.dtoObjectMapper.readValue(responseAsString, PersonSearchResultItem[].class);
             return Arrays.stream(resultItems).findFirst();
         } catch (JsonProcessingException e) {
-            throw new PersonAuthorityException("Failed to parse response!", e);
+            throw new PersonRegistryException("Failed to parse response!", e);
         }
     }
 
@@ -130,7 +131,7 @@ public class CristinPersonRegistry implements PersonRegistry {
         try {
             response = this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (IOException | InterruptedException e) {
-            throw new PersonAuthorityException("Cristin is unavailable", e);
+            throw new PersonRegistryException("Cristin is unavailable", e);
         } finally {
             LOGGER.info("Called {} and got response in {} ms.", request.uri(),
                         Instant.now().toEpochMilli() - start.toEpochMilli());
@@ -144,7 +145,7 @@ public class CristinPersonRegistry implements PersonRegistry {
     private void assertOkResponse(HttpRequest request, HttpResponse<String> response) {
         if (response.statusCode() != HttpURLConnection.HTTP_OK) {
             var message = generateErrorMessageForResponse(request, response);
-            throw new PersonAuthorityException(message);
+            throw new PersonRegistryException(message);
         }
     }
 

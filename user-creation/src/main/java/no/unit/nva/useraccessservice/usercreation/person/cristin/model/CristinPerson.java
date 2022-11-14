@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
@@ -14,6 +15,7 @@ public class CristinPerson {
     @JsonProperty("affiliations")
     private final List<CristinAffiliation> affiliations;
 
+    @JsonCreator
     public CristinPerson(@JsonProperty("cristin_person_id") String id,
                          @JsonProperty("first_name") String firstname,
                          @JsonProperty("surname") String surname,

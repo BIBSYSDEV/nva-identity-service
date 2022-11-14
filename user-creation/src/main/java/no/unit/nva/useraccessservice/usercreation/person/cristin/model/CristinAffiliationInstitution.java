@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CristinAffiliationInstitution {
@@ -8,6 +9,7 @@ public class CristinAffiliationInstitution {
     @JsonProperty("url")
     private final String url;
 
+    @JsonCreator
     public CristinAffiliationInstitution(@JsonProperty("cristin_institution_id") String id,
                                          @JsonProperty("url") String url) {
         this.id = id;

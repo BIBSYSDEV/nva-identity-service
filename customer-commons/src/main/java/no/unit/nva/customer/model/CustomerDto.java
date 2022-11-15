@@ -387,6 +387,10 @@ public class CustomerDto implements Context {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
+            customerDto.setDoiAgent(
+                doiAgent == null
+                ? null
+                : new DoiAgentDto(doiAgent));
             var agent = doiAgent == null
                             ? null
                             : new DoiAgentDto(doiAgent);
@@ -420,6 +424,8 @@ public class CustomerDto implements Context {
         public DoiAgentDto(DoiAgent doiAgent) {
             this.prefix = doiAgent.getPrefix();
             this.name = doiAgent.getName();
+                this.addLink("self","https://example.org/124323453120581/doiagent")
+                    .addLink("fetchDoi","https://example.org/124323453120581/doiagent/doi");
         }
 
         @Override

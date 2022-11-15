@@ -258,6 +258,174 @@ paths:
               examples:
                 BadGatewatExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
+  /{identifier}/doiagent:
+    get:
+      security:
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/CustomerExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/CustomerExample'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerVocabulariesFunction.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+    post:
+      summary: Create vocabulary definition for customer
+      security:
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer to update
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VocabularyList'
+            examples:
+              VocabulaaryListExample:
+                $ref: '#/components/examples/VocabularyListExample'
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/VocabularyList'
+            examples:
+              VocabulaaryListExample:
+                $ref: '#/components/examples/VocabularyListExample'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateCustomerVocabulariesFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
+        '502':
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
+    put:
+      summary: Update Vocabularies
+      security:
+        - CognitoUserPool: []
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer to update
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VocabularyList'
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/VocabularyList'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerVocabulariesFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/VocabularyList'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/VocabularyListExample'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/NotFoundProblemExample'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
+        '502':
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
   /{identifier}/vocabularies:
     get:
       security:

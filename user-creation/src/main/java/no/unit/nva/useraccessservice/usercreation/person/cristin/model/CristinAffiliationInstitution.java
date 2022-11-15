@@ -3,6 +3,8 @@ package no.unit.nva.useraccessservice.usercreation.person.cristin.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.net.URI;
+
 public class CristinAffiliationInstitution {
     @JsonProperty("cristin_institution_id")
     private final String id;
@@ -20,7 +22,7 @@ public class CristinAffiliationInstitution {
         return id;
     }
 
-    public String getUrl() {
-        return url;
+    public URI getUri() {
+        return URI.create(url);
     }
 }

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.net.URI;
 
+import static java.util.Objects.nonNull;
+
 public final class PersonSearchResultItem {
 
     @JsonProperty("cristin_person_id")
@@ -23,6 +25,6 @@ public final class PersonSearchResultItem {
     }
 
     public URI getUrl() {
-        return URI.create(url);
+        return nonNull(url) ? URI.create(url) : null;
     }
 }

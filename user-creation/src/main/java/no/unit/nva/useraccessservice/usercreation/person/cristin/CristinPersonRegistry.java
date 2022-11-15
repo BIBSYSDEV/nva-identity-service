@@ -56,12 +56,12 @@ public class CristinPersonRegistry implements PersonRegistry {
 
     private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem) {
         var request = createRequest(personSearchResultItem.getUrl());
-        return executeRequestReturningObject(request, CristinPerson.class);
+        return executeRequest(request, CristinPerson.class);
     }
 
     private CristinInstitution fetchInstitutionFromCristin(URI institutionUri) {
         var request = createRequest(institutionUri);
-        return executeRequestReturningObject(request, CristinInstitution.class);
+        return executeRequest(request, CristinInstitution.class);
     }
 
     private HttpRequest createRequest(URI uri) {
@@ -100,7 +100,7 @@ public class CristinPersonRegistry implements PersonRegistry {
 
     private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(String nin) {
 
-        var responseAsString = executeRequestReturningObject(createPersonByNationalIdentityNumberQueryRequest(nin), PersonSearchResultItem[].class);
+        var responseAsString = executeRequest(createPersonByNationalIdentityNumberQueryRequest(nin), PersonSearchResultItem[].class);
 
         return Arrays.stream(responseAsString).findFirst();
     }
@@ -119,13 +119,13 @@ public class CristinPersonRegistry implements PersonRegistry {
                 .getUri();
     }
 
-    private <T> T executeRequestReturningObject(HttpRequest request, Class<T> type) {
+    private <T> T executeRequest(HttpRequest request, Class<T> type) {
         final HttpResponse<String> response;
         var start = Instant.now();
         try {
             response = this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (IOException | InterruptedException e) {
-            Thread.currentThread().interrupt();
+            conditionallyInterrupt(e);
             throw new PersonRegistryException("Cristin is unavailable", e);
         } finally {
             LOGGER.info("Called {} and got response in {} ms.", request.uri(),
@@ -135,6 +135,12 @@ public class CristinPersonRegistry implements PersonRegistry {
         assertOkResponse(request, response);
 
         return fromJson(response.body(), type);
+    }
+
+    private static void conditionallyInterrupt(Exception e) {
+        if (e instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void assertOkResponse(HttpRequest request, HttpResponse<String> response) {

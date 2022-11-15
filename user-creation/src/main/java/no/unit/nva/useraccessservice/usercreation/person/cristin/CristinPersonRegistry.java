@@ -56,12 +56,12 @@ public class CristinPersonRegistry implements PersonRegistry {
 
     private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem) {
         var request = createRequest(personSearchResultItem.getUrl());
-        return doRequestReturningString(request, CristinPerson.class);
+        return executeRequestReturningObject(request, CristinPerson.class);
     }
 
     private CristinInstitution fetchInstitutionFromCristin(URI institutionUri) {
         var request = createRequest(institutionUri);
-        return doRequestReturningString(request, CristinInstitution.class);
+        return executeRequestReturningObject(request, CristinInstitution.class);
     }
 
     private HttpRequest createRequest(URI uri) {
@@ -100,7 +100,7 @@ public class CristinPersonRegistry implements PersonRegistry {
 
     private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(String nin) {
 
-        var responseAsString = doRequestReturningString(createPersonByNationalIdentityNumberQueryRequest(nin), PersonSearchResultItem[].class);
+        var responseAsString = executeRequestReturningObject(createPersonByNationalIdentityNumberQueryRequest(nin), PersonSearchResultItem[].class);
 
         return Arrays.stream(responseAsString).findFirst();
     }
@@ -119,7 +119,7 @@ public class CristinPersonRegistry implements PersonRegistry {
                 .getUri();
     }
 
-    private <T> T doRequestReturningString(HttpRequest request, Class<T> type) {
+    private <T> T executeRequestReturningObject(HttpRequest request, Class<T> type) {
         final HttpResponse<String> response;
         var start = Instant.now();
         try {
@@ -159,6 +159,7 @@ public class CristinPersonRegistry implements PersonRegistry {
     }
 
     private static class Pair {
+        // This is simply convenience, there is probably a way to get around this
         private final String left;
         private final String right;
 

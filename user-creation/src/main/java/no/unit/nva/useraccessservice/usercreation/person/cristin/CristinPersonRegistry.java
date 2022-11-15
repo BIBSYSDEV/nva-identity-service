@@ -78,8 +78,9 @@ public class CristinPersonRegistry implements PersonRegistry {
 
     private Person asPerson(CristinPerson cristinPerson) {
 
+        // This may not actually work, but you see the point?
         var personAffiliations = cristinPerson.getAffiliations().stream()
-            .filter(CristinAffiliation::isActive)
+                .filter(CristinAffiliation::isActive)
                 .map(this::collectAffiliation)
                 .collect(Collectors.groupingBy(Pair::getLeft, mapping(Pair::getRight, toList())))
                 .entrySet().stream()

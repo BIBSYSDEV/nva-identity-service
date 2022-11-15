@@ -1,7 +1,9 @@
 package no.unit.nva.customer.service.impl;
 
 import static nva.commons.core.attempt.Try.attempt;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -17,12 +19,10 @@ import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
-import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -71,15 +71,6 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public CustomerDto getCustomerWithSecret(URI customerId) throws NotFoundException {
-        var customer = getCustomer(customerId);
-        customer.setDoiAgent(
-            populateSecret(
-                customer.getDoiAgent()));
-        return customer;
-    }
-
-    @Override
     public CustomerDto getCustomer(UUID identifier) throws NotFoundException {
         return Optional.of(CustomerDao.builder().withIdentifier(identifier).build())
                    .map(table::getItem)
@@ -125,33 +116,28 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     @Override
-    public String getCustomerSecret(UUID identifier) throws NotFoundException {
-        var doi = getCustomer(identifier).getDoiAgent();
-        SecretsReader  sr = new SecretsReader();
-        return sr.fetchSecret("NAME",doi.getPrefix());
+    public DoiAgentDto getCustomerDoiAgentSecret(UUID identifier) throws NotFoundException {
+        var doiAgentDto = getCustomer(identifier).getDoiAgent();
+        SecretsReader  secretsReader = new SecretsReader();
+        var secret = secretsReader.fetchSecret(DOI_SECRET_IDENTITY_NAME,doiAgentDto.getPrefix());
+        return doiAgentDto.addSecret(secret);
     }
 
     @Override
-    public String updateCustomerSecret(UUID identifier, String secret) throws NotFoundException {
-        var doi = getCustomer(identifier).getDoiAgent();
-        /*
-            fetch customer
-            find secret
-            update secret
-            return new secret
-        */
-        return "null";
+    public DoiAgentDto updateCustomerDoiAgentSecret(UUID identifier, DoiAgentDto doiAgent)
+        throws NotFoundException, InputException {
+
+        var customer = getCustomer(identifier);
+        customer.setDoiAgent(doiAgent);
+        /// TODO set secret in secret manager.
+        return updateCustomer(identifier,customer).getDoiAgent();
     }
 
     @Override
-    public String createCustomerDoi(UUID identifier) throws NotFoundException {
-        var doiSecret = getCustomerSecret(identifier);
-        /*
-            fetch doi secret
-            request new doi with secret
-            return new doi
-        */
-        return "null";
+    public URL createCustomerDoi(UUID identifier) throws NotFoundException, MalformedURLException {
+        var doiAgent = getCustomerDoiAgentSecret(identifier);
+        /// TODO  fetch doi secret / request new doi with secret / return new doi
+        return URI.create("https://example-org/doi/324234").toURL();
     }
 
     public List<CustomerDto> updateCustomersWithNvaAttribute() {
@@ -225,23 +211,6 @@ public class DynamoDBCustomerService implements CustomerService {
         if (!identifier.equals(customer.getIdentifier())) {
             throw new InputException(String.format(IDENTIFIERS_NOT_EQUAL, identifier, customer.getIdentifier()), null);
         }
-    }
-
-    private DoiAgentDto populateSecret(DoiAgentDto doiAgentDto) {
-        var secretsReader = new SecretsReader();
-        var secret = secretsReader.fetchSecret(
-            DOI_SECRET_IDENTITY_NAME,
-            doiAgentDto.getPrefix());
-        return doiAgentDto.addLink("secret", "https://eksample.org/10.000/" +secret);
-    }
-
-    @JacocoGenerated
-    private void persistSecret(DoiAgentDto doiAgentDto) {
-        var secretsReader = new SecretsReader();
-        var secret = secretsReader.fetchSecret(
-            DOI_SECRET_IDENTITY_NAME,
-            doiAgentDto.getPrefix());
-         // TODO persist secret here...
     }
 
     private NotFoundException notFoundException(String queryValue) {

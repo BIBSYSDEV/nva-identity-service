@@ -387,23 +387,20 @@ public class CustomerDto implements Context {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            customerDto.setDoiAgent(
-                doiAgent == null
-                ? null
-                : new DoiAgentDto(doiAgent));
             var agent = doiAgent == null
                             ? null
                             : new DoiAgentDto(doiAgent);
-            var urlId = (customerDto.identifier == null)
-                                    ?  URI.create("https://example.org/cutommer/xxx")
-                                    : toId(customerDto.identifier);
+            if (agent != null) {
+                var urlId = (customerDto.identifier == null)
+                                ? URI.create("https://example.org/cutommer/null")
+                                : toId(customerDto.identifier);
 
-            agent.addLink("self",urlId + "/doiAgent")
-                 .addLink("doi",urlId + "/doiAgent/doi")
-                 .addLink("secret",urlId + "/doiAgent/secret");
+                agent
+                    .addLink("self", urlId + "/doiAgent")
+                    .addLink("fetchdoi", urlId + "/doi");
+            }
 
             customerDto.setDoiAgent(agent);
-
             return this;
         }
 
@@ -416,16 +413,16 @@ public class CustomerDto implements Context {
 
         private String prefix;
         private String name;
+        private String secret;
         private final Map<String, LinkItem> links = new HashMap<>(3);
 
+        @SuppressWarnings("unused")
         public DoiAgentDto() {
         }
 
         public DoiAgentDto(DoiAgent doiAgent) {
             this.prefix = doiAgent.getPrefix();
             this.name = doiAgent.getName();
-                this.addLink("self","https://example.org/124323453120581/doiagent")
-                    .addLink("fetchDoi","https://example.org/124323453120581/doiagent/doi");
         }
 
         @Override
@@ -433,9 +430,30 @@ public class CustomerDto implements Context {
             return prefix;
         }
 
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
         @Override
         public String getName() {
             return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getSecret() {
+            return secret;
+        }
+
+        public void setSecret(String secret) {
+            this.secret = secret;
+        }
+
+        public DoiAgentDto addSecret(String secret) {
+            this.secret = secret;
+            return this;
         }
 
         public Map<String, LinkItem> getLinks() {
@@ -465,13 +483,14 @@ public class CustomerDto implements Context {
             DoiAgentDto that = (DoiAgentDto) o;
             return Objects.equals(getPrefix(), that.getPrefix())
                    && Objects.equals(getName(), that.getName())
+                   && Objects.equals(getSecret(), that.getSecret())
                    && Objects.equals(getLinks(), that.getLinks());
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(getPrefix(), getName(), getLinks());
+            return Objects.hash(getPrefix(), getName(), getLinks(),getSecret());
         }
 
         @Override
@@ -479,5 +498,6 @@ public class CustomerDto implements Context {
         public String toString() {
             return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
         }
+
     }
 }

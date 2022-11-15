@@ -21,6 +21,7 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
      * Default Constructor for GetCustomerHandler.
      */
     @JacocoGenerated
+    @SuppressWarnings("unused")
     public GetCustomerDoiHandler() {
         this(defaultCustomerService());
     }
@@ -38,7 +39,7 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
     @Override
     protected String processInput(Void input, RequestInfo requestInfo, Context context)
         throws InputException, NotFoundException {
-        return customerService.getCustomerSecret(getIdentifier(requestInfo));
+        return customerService.getCustomerDoiAgentSecret(getIdentifier(requestInfo)).toString();
     }
 
     @Override

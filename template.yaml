@@ -100,8 +100,6 @@ Resources:
         - ClientId: !Ref DLRApplicationClient
           ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
 
-
-
   UpdateCognintoUserAttributesRole:
     Type: AWS::IAM::Role
     Properties:
@@ -351,6 +349,7 @@ Resources:
             Path: /roles/{role}
             Method: get
             RestApiId: !Ref UsersAndRolesApi
+
   CreateUserHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -373,7 +372,6 @@ Resources:
             Path: /users
             Method: post
             RestApiId: !Ref UsersAndRolesApi
-
 
   UpdateUserHandler:
     Type: AWS::Serverless::Function
@@ -412,7 +410,6 @@ Resources:
             Path: /users/{username}
             Method: get
             RestApiId: !Ref UsersAndRolesApi
-
 
   CustomerSelectionHandler:
     Type: AWS::Serverless::Function
@@ -600,6 +597,66 @@ Resources:
           Properties:
             Path: /{identifier}
             Method: get
+            RestApiId: !Ref NvaCustomerApi
+  NvaFetchCustomerDoiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Handler: no.unit.nva.customer.get.CreateCustomerDoiHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        GetCustomerEvent:
+          Type: Api
+          Properties:
+            Path: /{identifier}/doi
+            Method: get
+            RestApiId: !Ref NvaCustomerApi
+  NvaGetCustomerDoiAgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Handler: no.unit.nva.customer.create.GetCustomerDoiHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        GetCustomerEvent:
+          Type: Api
+          Properties:
+            Path: /{identifier}/doiagent
+            Method: get
+            RestApiId: !Ref NvaCustomerApi
+  NvaUpdateCustomerDoiAgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Handler: no.unit.nva.customer.create.UpdateCustomerDoiHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        GetCustomerEvent:
+          Type: Api
+          Properties:
+            Path: /{identifier}/doiagent
+            Method: post
             RestApiId: !Ref NvaCustomerApi
   NvaGetCustomerVocabulariesFunction:
     Type: AWS::Serverless::Function

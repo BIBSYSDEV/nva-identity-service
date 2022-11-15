@@ -3,17 +3,17 @@ package no.unit.nva.customer.update;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.UUID;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerDoiHandler;
+import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 
-public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
+public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
 
     private final CustomerService customerService;
 
@@ -21,6 +21,7 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
      * Default Constructor for UpdateCustomerHandler.
      */
     @JacocoGenerated
+    @SuppressWarnings("unused")
     public UpdateCustomerDoiHandler() {
         this(defaultCustomerService());
     }
@@ -31,7 +32,7 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
      * @param customerService customerService
      */
     public UpdateCustomerDoiHandler(CustomerService customerService) {
-        super(String.class);
+        super(DoiAgentDto.class);
         this.customerService = customerService;
     }
 
@@ -41,13 +42,14 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
     }
 
     @Override
-    protected String processInput(String input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+    protected String processInput(DoiAgentDto input, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
         UUID identifier = getIdentifier(requestInfo);
-        return  customerService.updateCustomerSecret(identifier,input);
+        return customerService.updateCustomerDoiAgentSecret(identifier, input).toString();
     }
 
     @Override
-    protected Integer getSuccessStatusCode(String input, String output) {
-        return HttpURLConnection.HTTP_OK;
+    protected Integer getSuccessStatusCode(DoiAgentDto input, String output) {
+        return null;
     }
 }

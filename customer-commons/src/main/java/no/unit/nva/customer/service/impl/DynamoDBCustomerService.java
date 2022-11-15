@@ -19,6 +19,8 @@ import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
+import nva.commons.secrets.SecretsReader;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -108,6 +110,36 @@ public class DynamoDBCustomerService implements CustomerService {
     public CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException {
         CustomerDao queryObject = createQueryForCristinNumber(cristinId);
         return sendQueryToIndex(queryObject, BY_CRISTIN_ID_INDEX_NAME, customer -> customer.getCristinId().toString());
+    }
+
+    @Override
+    public String getCustomerSecret(UUID identifier) throws NotFoundException {
+        var doi = getCustomer(identifier).getDoiAgent();
+        SecretsReader  sr = new SecretsReader();
+        return sr.fetchSecret("NAME",doi.getPrefix());
+    }
+
+    @Override
+    public String updateCustomerSecret(UUID identifier, String secret) throws NotFoundException {
+        var doi = getCustomer(identifier).getDoiAgent();
+        /*
+            fetch customer
+            find secret
+            update secret
+            return new secret
+        */
+        return "null";
+    }
+
+    @Override
+    public String createCustomerDoi(UUID identifier) throws NotFoundException {
+        var doiSecret = getCustomerSecret(identifier);
+        /*
+            fetch doi secret
+            request new doi with secret
+            return new doi
+        */
+        return "null";
     }
 
     public List<CustomerDto> updateCustomersWithNvaAttribute() {

@@ -23,4 +23,10 @@ public interface CustomerService {
     CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws InputException, NotFoundException;
 
     CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException;
+
+    String getCustomerSecret(UUID identifier) throws NotFoundException;
+
+    String updateCustomerSecret(UUID identifier, String secret) throws NotFoundException;
+
+    String createCustomerDoi(UUID identifier) throws NotFoundException;
 }

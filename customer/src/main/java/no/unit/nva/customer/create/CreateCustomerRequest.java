@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Objects;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDto;
+import no.unit.nva.customer.model.interfaces.DoiAgent;
 import nva.commons.core.JacocoGenerated;
 
 @JsonTypeInfo(use = Id.NAME, property = "type")
@@ -30,6 +32,7 @@ public class CreateCustomerRequest {
     private List<VocabularyDto> vocabularies;
     private PublicationWorkflow publicationWorkflow;
     private ApplicationDomain customerOf;
+    private DoiAgentDto doiAgent;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
         var request = new CreateCustomerRequest();
@@ -43,8 +46,11 @@ public class CreateCustomerRequest {
         request.setCristinId(customerDto.getCristinId());
         request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         request.setCustomerOf(customerDto.getCustomerOf());
+        request.setDoiAgent(customerDto.getDoiAgent());
         return request;
     }
+
+
 
     public ApplicationDomain getCustomerOf() {
         return customerOf;
@@ -67,8 +73,10 @@ public class CreateCustomerRequest {
                    .withVocabularies(vocabularies)
                    .withPublicationWorkflow(getPublicationWorkflow())
                    .withCustomerOf(getCustomerOf())
+                   .withDoiAgent(getDoiAgent())
                    .build();
     }
+
 
     @JacocoGenerated
     public String getName() {
@@ -170,10 +178,21 @@ public class CreateCustomerRequest {
     }
 
     @JacocoGenerated
+    private DoiAgentDto getDoiAgent() {
+        return this.doiAgent;
+    }
+
+    @JacocoGenerated
+    private void setDoiAgent(DoiAgentDto doiAgent) {
+        this.doiAgent = doiAgent;
+    }
+
+    @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
-                            getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies());
+                            getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
+                            getDoiAgent());
     }
 
     @JacocoGenerated
@@ -194,6 +213,7 @@ public class CreateCustomerRequest {
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getVocabularies(), that.getVocabularies());
     }
 }

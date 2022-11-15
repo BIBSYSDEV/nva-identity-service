@@ -401,9 +401,8 @@ public class CustomerDto implements Context {
         public DoiAgentDto(DoiAgent doiAgent) {
             this.prefix = doiAgent.getPrefix();
             this.name = doiAgent.getName();
-                this.addLink("self","https://example.org/doi/10.000")
-                    .addLink("createDoi","https://example.org/doi/10.000/new")
-                    .addLink("secret","https://example.org/doi/10.000/secret");
+                this.addLink("self","https://example.org/124323453120581/doiagent")
+                    .addLink("fetchDoi","https://example.org/124323453120581/doiagent/doi");
         }
 
         @Override

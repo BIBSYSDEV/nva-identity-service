@@ -78,19 +78,19 @@ public class CustomerDto implements Context {
     }
 
     public String getCreatedDate() {
-        return (createdDate == null) ? null : createdDate.toString();
+        return nonNull(createdDate) ? createdDate.toString() : null;
     }
 
     public void setCreatedDate(String createdDate) {
-        this.createdDate = (createdDate == null) ? null : Instant.parse(createdDate);
+        this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) :null;
     }
 
     public String getModifiedDate() {
-        return (modifiedDate == null) ? null : modifiedDate.toString();
+        return nonNull(modifiedDate) ? modifiedDate.toString() : null;
     }
 
     public void setModifiedDate(String modifiedDate) {
-        this.modifiedDate = (modifiedDate == null) ? null : Instant.parse(modifiedDate);
+        this.modifiedDate = nonNull(modifiedDate) ? Instant.parse(modifiedDate) : null;
     }
 
     public String getName() {
@@ -153,8 +153,8 @@ public class CustomerDto implements Context {
         return doiAgent;
     }
 
-    public void setDoiAgent(DoiAgentDto doi) {
-        this.doiAgent = doi;
+    public void setDoiAgent(DoiAgentDto doiAgent) {
+        this.doiAgent = doiAgent;
     }
 
     public URI getCristinId() {
@@ -234,7 +234,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow());
+                            getRorId(), getPublicationWorkflow(), getDoiAgent());
     }
 
     @Override
@@ -263,6 +263,7 @@ public class CustomerDto implements Context {
                && Objects.equals(getRorId(), that.getRorId())
                && Objects.equals(getShortName(), that.getShortName())
                && Objects.equals(getVocabularies(), that.getVocabularies())
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
@@ -387,21 +388,21 @@ public class CustomerDto implements Context {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            var agent = doiAgent == null
-                            ? null
-                            : new DoiAgentDto(doiAgent);
-            if (agent != null) {
-                var urlId = (customerDto.identifier == null)
-                                ? URI.create("https://example.org/cutommer/null")
-                                : toId(customerDto.identifier);
-
-                agent
-                    .addLink("self", urlId + "/doiAgent")
-                    .addLink("fetchdoi", urlId + "/doi");
-            }
-
-            customerDto.setDoiAgent(agent);
+            customerDto.setDoiAgent(buildDoiAgentDto(doiAgent));
             return this;
+        }
+
+        private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
+            if (nonNull(doiAgent)) {
+                var urlId = nonNull(customerDto.identifier)
+                                ? toId(customerDto.identifier)
+                                : URI.create("https://example.org/custommer/null");
+                return new DoiAgentDto(doiAgent)
+                           .addLink("self", urlId + "/doiAgent")
+                           .addLink("fetchdoi", urlId + "/doi")
+                           .addSecret("*****");
+            }
+            return null;
         }
 
         public CustomerDto build() {
@@ -414,7 +415,7 @@ public class CustomerDto implements Context {
         private String prefix;
         private String name;
         private String secret;
-        private final Map<String, LinkItem> links = new HashMap<>(3);
+        private final Map<String, LinkItem> links = new HashMap<>(2);
 
         @SuppressWarnings("unused")
         public DoiAgentDto() {
@@ -430,10 +431,6 @@ public class CustomerDto implements Context {
             return prefix;
         }
 
-        public void setPrefix(String prefix) {
-            this.prefix = prefix;
-        }
-
         @Override
         public String getName() {
             return name;
@@ -447,10 +444,6 @@ public class CustomerDto implements Context {
             return secret;
         }
 
-        public void setSecret(String secret) {
-            this.secret = secret;
-        }
-
         public DoiAgentDto addSecret(String secret) {
             this.secret = secret;
             return this;
@@ -460,15 +453,32 @@ public class CustomerDto implements Context {
             return links;
         }
 
+
         public DoiAgentDto addLink(String name, String url) {
             try {
-                if (!links.containsKey(name)) {
-                    links.put(name, LinkItem.newLink(url));
-                }
+                links.putIfAbsent(name, LinkItem.fromString(url));
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }
             return this;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
+        public void setSecret(String secret) {
+            this.secret = secret;
+        }
+
+        public DoiAgentDto copy() {
+            var copy = new DoiAgentDto();
+            copy.setPrefix(getPrefix());
+            copy.setName(getName());
+            copy.setSecret(getSecret());
+            getLinks().forEach((k,v) -> copy.addLink(k, v.getHref()));
+
+            return copy;
         }
 
         @Override
@@ -483,14 +493,13 @@ public class CustomerDto implements Context {
             DoiAgentDto that = (DoiAgentDto) o;
             return Objects.equals(getPrefix(), that.getPrefix())
                    && Objects.equals(getName(), that.getName())
-                   && Objects.equals(getSecret(), that.getSecret())
-                   && Objects.equals(getLinks(), that.getLinks());
+                   && Objects.equals(getSecret(), that.getSecret());
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(getPrefix(), getName(), getLinks(),getSecret());
+            return Objects.hash(getPrefix(), getName(), getSecret());
         }
 
         @Override

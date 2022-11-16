@@ -65,7 +65,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         
         var actualBody = CustomerDto.fromJson(response.getBody());
         var expectedPersistedInformation = CreateCustomerRequest.fromCustomerDto(actualBody);
-        assertThat(expectedPersistedInformation, is(equalTo(requestBody)));
+         assertThat(expectedPersistedInformation, is(equalTo(requestBody)));
     }
     
     @Test

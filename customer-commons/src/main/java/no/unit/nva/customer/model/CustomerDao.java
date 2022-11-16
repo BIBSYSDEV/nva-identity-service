@@ -331,9 +331,7 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withCreatedDate(String createdDate) {
-            customerDb.setCreatedDate(
-                (createdDate == null) ? null : Instant.parse(createdDate)
-            );
+            customerDb.setCreatedDate(nonNull(createdDate) ? Instant.parse(createdDate) : null);
             return this;
         }
 
@@ -343,9 +341,7 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withModifiedDate(String modifiedDate) {
-            customerDb.setModifiedDate(
-                (modifiedDate == null) ? null : Instant.parse(modifiedDate)
-            );
+            customerDb.setModifiedDate(nonNull(modifiedDate) ? Instant.parse(modifiedDate) : null);
             return this;
         }
 
@@ -410,10 +406,7 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withDoiAgent(DoiAgent doiAgent) {
-            customerDb.setDoiAgent(
-                doiAgent == null
-                    ? null
-                    : new DoiAgentDao(doiAgent));
+            customerDb.setDoiAgent(nonNull(doiAgent) ? new DoiAgentDao(doiAgent) : null);
             return this;
         }
 

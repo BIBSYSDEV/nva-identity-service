@@ -2,6 +2,7 @@ package no.unit.nva.customer.create;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.create.CreateCustomerRequest.TYPE_VALUE;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -13,7 +14,7 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDto;
-import no.unit.nva.customer.model.interfaces.DoiAgent;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
 
 @JsonTypeInfo(use = Id.NAME, property = "type")
@@ -46,7 +47,7 @@ public class CreateCustomerRequest {
         request.setCristinId(customerDto.getCristinId());
         request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         request.setCustomerOf(customerDto.getCustomerOf());
-        request.setDoiAgent(customerDto.getDoiAgent());
+        request.setDoiAgent(customerDto.getDoiAgent().copy());
         return request;
     }
 
@@ -73,7 +74,7 @@ public class CreateCustomerRequest {
                    .withVocabularies(vocabularies)
                    .withPublicationWorkflow(getPublicationWorkflow())
                    .withCustomerOf(getCustomerOf())
-                   .withDoiAgent(getDoiAgent())
+                   .withDoiAgent(getDoiAgent().copy())
                    .build();
     }
 
@@ -215,5 +216,11 @@ public class CreateCustomerRequest {
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getVocabularies(), that.getVocabularies());
+    }
+
+    @Override
+    @JacocoGenerated
+    public String toString() {
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 }

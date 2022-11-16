@@ -22,12 +22,12 @@ public class LinkItem {
         return href;
     }
 
-    static LinkItem newLink(URL url) {
+    public static LinkItem fromUrl(URL url) {
         return new LinkItem(url.toString());
     }
 
-    public static LinkItem newLink(String url) throws MalformedURLException {
-        return newLink(URI.create(url).toURL());
+    public static LinkItem fromString(String url) throws MalformedURLException {
+        return fromUrl(URI.create(url).toURL());
     }
 
     @Override

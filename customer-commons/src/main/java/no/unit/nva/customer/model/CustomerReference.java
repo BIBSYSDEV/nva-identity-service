@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
@@ -36,11 +37,11 @@ public class CustomerReference {
     }
 
     public String getCreatedDate() {
-        return (createdDate == null) ? null : createdDate.toString();
+        return nonNull(createdDate) ? createdDate.toString() : null;
     }
 
     public void setCreatedDate(String createdDate) {
-        this.createdDate =  (createdDate == null) ? null : Instant.parse(createdDate);
+        this.createdDate =  nonNull(createdDate) ? Instant.parse(createdDate) : null;
     }
 
     @JacocoGenerated

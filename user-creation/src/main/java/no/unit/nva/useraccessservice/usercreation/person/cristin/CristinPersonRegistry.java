@@ -1,6 +1,5 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -10,14 +9,12 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
@@ -31,10 +28,15 @@ import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import static nva.commons.core.attempt.Try.attempt;
+
 public class CristinPersonRegistry implements PersonRegistry {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CristinPersonRegistry.class);
     private static final String ERROR_MESSAGE_FORMAT = "Request %s %s failed with response code %d: %s";
+    public static final String AUTHORIZATION = "Authorization";
     private final HttpClient httpClient;
     private final URI cristinBaseUri;
     private final Supplier<CristinCredentials> cristinCredentialsSupplier;
@@ -53,84 +55,77 @@ public class CristinPersonRegistry implements PersonRegistry {
     }
 
     private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem) {
-        var request = HttpRequest.newBuilder(URI.create(personSearchResultItem.getUrl()))
-                          .GET()
-                          .header("Authorization", generateBasicAuthorization())
-                          .build();
-
-        var responseAsString = doRequestReturningString(request);
-
-        try {
-            return JsonUtils.dtoObjectMapper.readValue(responseAsString, CristinPerson.class);
-        } catch (JsonProcessingException e) {
-            throw new PersonRegistryException("Failed to parse response!", e);
-        }
+        var request = createRequest(personSearchResultItem.getUrl());
+        return executeRequest(request, CristinPerson.class);
     }
 
     private CristinInstitution fetchInstitutionFromCristin(URI institutionUri) {
-        var request = HttpRequest.newBuilder(institutionUri)
-                          .GET()
-                          .header("Authorization", generateBasicAuthorization())
-                          .build();
+        var request = createRequest(institutionUri);
+        return executeRequest(request, CristinInstitution.class);
+    }
 
-        var responseAsString = doRequestReturningString(request);
+    private HttpRequest createRequest(URI uri) {
+        return HttpRequest.newBuilder(uri)
+                .GET()
+                .header(AUTHORIZATION, generateBasicAuthorization())
+                .build();
+    }
 
-        try {
-            return JsonUtils.dtoObjectMapper.readValue(responseAsString, CristinInstitution.class);
-        } catch (JsonProcessingException e) {
-            throw new PersonRegistryException("Failed to parse response!", e);
-        }
+    private static <T> T fromJson(String responseAsString, Class<T> type) {
+        return attempt(() -> JsonUtils.dtoObjectMapper.readValue(responseAsString, type))
+                .orElseThrow(failure -> new PersonRegistryException("Failed to parse response!", failure.getException()));
     }
 
     private Person asPerson(CristinPerson cristinPerson) {
-        Map<String, List<String>> affiliations = new ConcurrentHashMap<>();
-        cristinPerson.getAffiliations().stream()
-            .filter(CristinAffiliation::isActive)
-            .forEach(cristinAffiliation -> collectAffiliation(affiliations, cristinAffiliation));
 
-        List<Affiliation> personAffiliations = new ArrayList<>();
-        affiliations.forEach((key, value) -> personAffiliations.add(new Affiliation(key, value)));
+        // This may not actually work, but you see the point?
+        var personAffiliations = cristinPerson.getAffiliations().stream()
+                .filter(CristinAffiliation::isActive)
+                .map(this::collectAffiliation)
+                .collect(Collectors.groupingBy(Pair::getLeft, mapping(Pair::getRight, toList())))
+                .entrySet().stream()
+                .map(a -> new Affiliation(a.getKey(), a.getValue()))
+                .collect(Collectors.toList());
 
         return new Person(cristinPerson.getId(), cristinPerson.getFirstname(), cristinPerson.getSurname(),
                           personAffiliations);
     }
 
-    private void collectAffiliation(Map<String, List<String>> affiliations,
-                                    CristinAffiliation cristinAffiliation) {
-        URI institutionUri = URI.create(cristinAffiliation.getInstitution().getUrl());
+    private Pair collectAffiliation(CristinAffiliation cristinAffiliation) {
+        var institutionUri = cristinAffiliation.getInstitution().getUri();
         var cristinInstitution = fetchInstitutionFromCristin(institutionUri);
-
         var institutionId = cristinInstitution.getCorrespondingUnit().getId();
-        affiliations.computeIfAbsent(institutionId, s -> new ArrayList<>()).add(cristinAffiliation.getUnit().getId());
+        return new Pair(institutionId, cristinAffiliation.getUnit().getId());
     }
 
     private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(String nin) {
-        var requestUri = UriWrapper.fromUri(cristinBaseUri)
-                             .addChild("persons")
-                             .addQueryParameter("national_id", nin)
-                             .getUri();
 
-        var request = HttpRequest.newBuilder(requestUri)
-                          .GET()
-                          .header("Authorization", generateBasicAuthorization())
-                          .build();
+        var responseAsString = executeRequest(createPersonByNationalIdentityNumberQueryRequest(nin), PersonSearchResultItem[].class);
 
-        var responseAsString = doRequestReturningString(request);
-
-        try {
-            var resultItems = JsonUtils.dtoObjectMapper.readValue(responseAsString, PersonSearchResultItem[].class);
-            return Arrays.stream(resultItems).findFirst();
-        } catch (JsonProcessingException e) {
-            throw new PersonRegistryException("Failed to parse response!", e);
-        }
+        return Arrays.stream(responseAsString).findFirst();
     }
 
-    private String doRequestReturningString(HttpRequest request) {
+    private HttpRequest createPersonByNationalIdentityNumberQueryRequest(String nin) {
+        return HttpRequest.newBuilder(createPersonByNationalIdentityNumberQueryUri(nin))
+                .GET()
+                .header(AUTHORIZATION, generateBasicAuthorization())
+                .build();
+    }
+
+    private URI createPersonByNationalIdentityNumberQueryUri(String nin) {
+        return UriWrapper.fromUri(cristinBaseUri)
+                .addChild("persons")
+                .addQueryParameter("national_id", nin)
+                .getUri();
+    }
+
+    private <T> T executeRequest(HttpRequest request, Class<T> type) {
         final HttpResponse<String> response;
         var start = Instant.now();
         try {
             response = this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (IOException | InterruptedException e) {
+            conditionallyInterrupt(e);
             throw new PersonRegistryException("Cristin is unavailable", e);
         } finally {
             LOGGER.info("Called {} and got response in {} ms.", request.uri(),
@@ -139,7 +134,13 @@ public class CristinPersonRegistry implements PersonRegistry {
 
         assertOkResponse(request, response);
 
-        return response.body();
+        return fromJson(response.body(), type);
+    }
+
+    private static void conditionallyInterrupt(Exception e) {
+        if (e instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void assertOkResponse(HttpRequest request, HttpResponse<String> response) {
@@ -161,5 +162,24 @@ public class CristinPersonRegistry implements PersonRegistry {
         var cristinCredentials = this.cristinCredentialsSupplier.get();
         var toBeEncoded = (cristinCredentials.getUsername() + ":" + cristinCredentials.getPassword()).getBytes();
         return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);
+    }
+
+    private static class Pair {
+        // This is simply convenience, there is probably a way to get around this
+        private final String left;
+        private final String right;
+
+        public Pair(String left, String right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        public String getLeft() {
+            return left;
+        }
+
+        public String getRight() {
+            return right;
+        }
     }
 }

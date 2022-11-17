@@ -208,24 +208,25 @@ public class CustomerDto implements Context {
     }
 
     public Builder copy() {
-        return new Builder().withVocabularies(getVocabularies())
-                   .withShortName(getShortName())
-                   .withInstitutionDns(getInstitutionDns())
-                   .withDisplayName(getDisplayName())
-                   .withCreatedDate(getCreatedDate())
+        return new Builder()
                    .withArchiveName(getArchiveName())
-                   .withIdentifier(getIdentifier())
-                   .withContext(getContext())
                    .withCname(getCname())
-                   .withId(getId())
+                   .withContext(getContext())
+                   .withCreatedDate(getCreatedDate())
                    .withCristinId(getCristinId())
                    .withCustomerOf(getCustomerOf())
+                   .withDisplayName(getDisplayName())
                    .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                   .withDoiAgent(getDoiAgent())
-                   .withName(getName())
+                   .withId(getId())
+                   .withIdentifier(getIdentifier())
+                   .withInstitutionDns(getInstitutionDns())
                    .withModifiedDate(getModifiedDate())
+                   .withName(getName())
+                   .withPublicationWorkflow(getPublicationWorkflow())
                    .withRorId(getRorId())
-                   .withPublicationWorkflow(getPublicationWorkflow());
+                   .withShortName(getShortName())
+                   .withDoiAgent(getDoiAgent())
+                   .withVocabularies(getVocabularies());
     }
 
     @Override
@@ -411,9 +412,8 @@ public class CustomerDto implements Context {
     }
 
     public static class DoiAgentDto implements DoiAgent {
-
-        private String prefix;
         private String name;
+        private String prefix;
         private String secret;
         private final Map<String, LinkItem> links = new HashMap<>(2);
 
@@ -436,23 +436,18 @@ public class CustomerDto implements Context {
             return name;
         }
 
-        public void setName(String name) {
-            this.name = name;
-        }
-
         public String getSecret() {
             return secret;
-        }
-
-        public DoiAgentDto addSecret(String secret) {
-            this.secret = secret;
-            return this;
         }
 
         public Map<String, LinkItem> getLinks() {
             return links;
         }
 
+        public DoiAgentDto addSecret(String secretString) {
+            secret = secretString;
+            return this;
+        }
 
         public DoiAgentDto addLink(String name, String url) {
             try {
@@ -463,22 +458,16 @@ public class CustomerDto implements Context {
             return this;
         }
 
+        public void setName(String name) {
+            this.name = name;
+        }
+
         public void setPrefix(String prefix) {
             this.prefix = prefix;
         }
 
         public void setSecret(String secret) {
             this.secret = secret;
-        }
-
-        public DoiAgentDto copy() {
-            var copy = new DoiAgentDto();
-            copy.setPrefix(getPrefix());
-            copy.setName(getName());
-            copy.setSecret(getSecret());
-            getLinks().forEach((k,v) -> copy.addLink(k, v.getHref()));
-
-            return copy;
         }
 
         @Override

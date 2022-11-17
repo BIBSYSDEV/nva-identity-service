@@ -73,15 +73,15 @@ public class CustomerDao implements Typed {
                    .withCristinId(dto.getCristinId())
                    .withCustomerOf(extractCustomerOf(dto))
                    .withDisplayName(dto.getDisplayName())
+                   .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
                    .withIdentifier(dto.getIdentifier())
                    .withInstitutionDns(dto.getInstitutionDns())
-                   .withShortName(dto.getShortName())
-                   .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
                    .withModifiedDate(dto.getModifiedDate())
-                   .withVocabularySettings(extractVocabularySettings(dto))
                    .withName(dto.getName())
-                   .withRorId(dto.getRorId())
                    .withPublicationWorkflow(dto.getPublicationWorkflow())
+                   .withRorId(dto.getRorId())
+                   .withShortName(dto.getShortName())
+                   .withVocabularySettings(extractVocabularySettings(dto))
                    .withDoiAgent(dto.getDoiAgent())
                    .build();
     }
@@ -417,9 +417,8 @@ public class CustomerDao implements Typed {
 
     @DynamoDbBean
     public static class DoiAgentDao implements DoiAgent {
-
-        private String prefix;
         private String name;
+        private String prefix;
 
         public DoiAgentDao() {
         }
@@ -429,23 +428,23 @@ public class CustomerDao implements Typed {
             this.name = doiAgent.getName();
         }
 
-        @Override
-        public String getPrefix() {
-            return prefix;
-        }
 
         @Override
         public String getName() {
             return name;
         }
 
-
-        public void setPrefix(String prefix) {
-            this.prefix = prefix;
+        @Override
+        public String getPrefix() {
+            return prefix;
         }
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
         }
 
         @Override

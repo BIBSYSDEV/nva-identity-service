@@ -7,6 +7,7 @@ import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomApplicationDomainUri;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,6 +18,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import no.unit.nva.customer.model.interfaces.DoiAgent;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
@@ -86,6 +88,7 @@ class CustomerTest {
                    .withVocabularySettings(vocabularySettings)
                    .withRorId(randomUri())
                    .withPublicationWorkflow(randomPublicationWorkflow())
+                   .withDoiAgent(DoiAgent.randomDoiAgent(randomString()))
             .build();
     }
 

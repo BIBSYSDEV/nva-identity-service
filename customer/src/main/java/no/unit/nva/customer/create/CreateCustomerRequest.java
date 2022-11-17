@@ -1,6 +1,5 @@
 package no.unit.nva.customer.create;
 
-import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.create.CreateCustomerRequest.TYPE_VALUE;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -39,6 +38,7 @@ public class CreateCustomerRequest {
         var request = new CreateCustomerRequest();
         request.setName(customerDto.getName());
         request.setDisplayName(customerDto.getDisplayName());
+        request.setShortName(customerDto.getShortName());
         request.setArchiveName(customerDto.getArchiveName());
         request.setCname(customerDto.getCname());
         request.setInstitutionDns(customerDto.getInstitutionDns());
@@ -47,18 +47,8 @@ public class CreateCustomerRequest {
         request.setCristinId(customerDto.getCristinId());
         request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         request.setCustomerOf(customerDto.getCustomerOf());
-        request.setDoiAgent(customerDto.getDoiAgent().copy());
+        request.setDoiAgent(customerDto.getDoiAgent());
         return request;
-    }
-
-
-
-    public ApplicationDomain getCustomerOf() {
-        return customerOf;
-    }
-
-    public void setCustomerOf(ApplicationDomain customerOf) {
-        this.customerOf = customerOf;
     }
 
     public CustomerDto toCustomerDto() {
@@ -74,117 +64,103 @@ public class CreateCustomerRequest {
                    .withVocabularies(vocabularies)
                    .withPublicationWorkflow(getPublicationWorkflow())
                    .withCustomerOf(getCustomerOf())
-                   .withDoiAgent(getDoiAgent().copy())
+                   .withDoiAgent(getDoiAgent())
                    .build();
     }
 
-
-    @JacocoGenerated
     public String getName() {
         return name;
     }
 
-    @JacocoGenerated
     public void setName(String name) {
         this.name = name;
     }
 
-    @JacocoGenerated
     public String getDisplayName() {
         return displayName;
     }
 
-    @JacocoGenerated
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
-    @JacocoGenerated
     public String getShortName() {
         return shortName;
     }
 
-    @JacocoGenerated
     public void setShortName(String shortName) {
         this.shortName = shortName;
     }
 
-    @JacocoGenerated
     public String getArchiveName() {
         return archiveName;
     }
 
-    @JacocoGenerated
     public void setArchiveName(String archiveName) {
         this.archiveName = archiveName;
     }
 
-    @JacocoGenerated
     public String getCname() {
         return cname;
     }
 
-    @JacocoGenerated
     public void setCname(String cname) {
         this.cname = cname;
     }
 
-    @JacocoGenerated
     public String getInstitutionDns() {
         return institutionDns;
     }
 
-    @JacocoGenerated
     public void setInstitutionDns(String institutionDns) {
         this.institutionDns = institutionDns;
     }
 
-    @JacocoGenerated
     public String getFeideOrganizationDomain() {
         return feideOrganizationDomain;
     }
 
-    @JacocoGenerated
     public void setFeideOrganizationDomain(String feideOrganizationDomain) {
         this.feideOrganizationDomain = feideOrganizationDomain;
     }
 
-    @JacocoGenerated
     public URI getCristinId() {
         return cristinId;
     }
 
-    @JacocoGenerated
     public void setCristinId(URI cristinId) {
         this.cristinId = cristinId;
     }
 
-    @JacocoGenerated
     public List<VocabularyDto> getVocabularies() {
         return vocabularies;
     }
 
-    @JacocoGenerated
     public void setVocabularies(List<VocabularyDto> vocabularies) {
         this.vocabularies = vocabularies;
     }
 
     public PublicationWorkflow getPublicationWorkflow() {
-        return nonNull(publicationWorkflow) ? publicationWorkflow
-                   : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+        return publicationWorkflow;
     }
 
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
         this.publicationWorkflow = publicationWorkflow;
     }
 
-    @JacocoGenerated
-    private DoiAgentDto getDoiAgent() {
-        return this.doiAgent;
+    public ApplicationDomain getCustomerOf() {
+        return customerOf;
     }
 
-    @JacocoGenerated
-    private void setDoiAgent(DoiAgentDto doiAgent) {
+    public void setCustomerOf(ApplicationDomain customerOf) {
+        this.customerOf = customerOf;
+    }
+
+    public DoiAgentDto getDoiAgent() {
+        return doiAgent;
+    }
+
+    public void setDoiAgent(DoiAgentDto doiAgent) {
         this.doiAgent = doiAgent;
     }
 

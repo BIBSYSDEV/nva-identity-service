@@ -57,7 +57,7 @@ class CustomerDaoTest {
     void toCustomerDtoReturnsDtoWithLossOfSecret() {
         CustomerDao expected = CustomerDataGenerator.createSampleCustomerDao();
         CustomerDto customerDto = expected.toCustomerDto();
-        customerDto.getDoiAgent().addLink("secret",randomUri().toString());
+        customerDto.getDoiAgent().addSecret(randomString());
 
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);

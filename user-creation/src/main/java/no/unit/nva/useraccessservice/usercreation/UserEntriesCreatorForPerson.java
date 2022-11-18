@@ -3,166 +3,109 @@ package no.unit.nva.useraccessservice.usercreation;
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
-import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinAffiliation;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinClient;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UserEntriesCreatorForPerson {
-    
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserEntriesCreatorForPerson.class);
     public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
         RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT).build();
     private static final String AT = "@";
-    private final CustomerService customerService;
-    private final CristinClient cristinClient;
     private final IdentityService identityService;
-    
-    public UserEntriesCreatorForPerson(CustomerService customerService,
-                                       CristinClient cristinClient,
-                                       IdentityService identityService) {
-        this.customerService = customerService;
-        this.cristinClient = cristinClient;
+
+    public UserEntriesCreatorForPerson(IdentityService identityService) {
         this.identityService = identityService;
     }
-    
-    public List<UserDto> createUsers(PersonInformation authenticationInfo) {
-        
-        return createOrFetchUserEntriesForPerson(authenticationInfo, keepAll());
+
+    public List<UserDto> createUsers(PersonInformation personInformation, Set<CustomerDto> customers) {
+
+        return createOrFetchUserEntriesForPerson(personInformation, customers, keepAll());
     }
-    
-    public List<UserDto> createUser(PersonInformation authenticationInfo, URI selectedCustomer) {
-        return createOrFetchUserEntriesForPerson(authenticationInfo,
-            customerDto -> isSelectedCustomer(customerDto, selectedCustomer));
+
+    public List<UserDto> createUser(PersonInformation personInformation,
+                                    Set<CustomerDto> customers, URI selectedCustomer) {
+        return createOrFetchUserEntriesForPerson(personInformation, customers,
+                                                 customerDto -> isSelectedCustomer(customerDto, selectedCustomer));
     }
-    
+
     private boolean isSelectedCustomer(CustomerDto customerDto, URI selectedCustomerId) {
+        LOGGER.info("Checking for selected customer: {} {} {}", customerDto.getId(), customerDto.getCristinId(),
+                    selectedCustomerId);
         return customerDto.getId().equals(selectedCustomerId) || customerDto.getCristinId().equals(selectedCustomerId);
     }
-    
-    public PersonInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber) {
-        return collectPersonInformation(nationalIdentityNumber, null, null);
-    }
-    
-    public PersonInformation collectPersonInformation(NationalIdentityNumber nationalIdentityNumber,
-                                                      String personFeideIdentifier,
-                                                      String orgFeideDomain) {
-        var personInformation = new PersonInformationImpl(personFeideIdentifier, orgFeideDomain);
-        fetchPersonInformationFromCristin(nationalIdentityNumber)
-            .ifPresent(personInformation::setCristinPersonResponse);
-        
-        var affiliationInformation = fetchParentInstitutionsForPersonAffiliations(personInformation);
-        personInformation.setPersonAffiliations(affiliationInformation);
-        
-        var activeCustomers = fetchCustomersForActiveAffiliations(personInformation);
-        personInformation.setActiveCustomers(activeCustomers);
-        
-        return personInformation;
-    }
-    
+
     private Predicate<CustomerDto> keepAll() {
         return customerDto -> true;
     }
-    
+
     private List<UserDto> createOrFetchUserEntriesForPerson(PersonInformation personInformation,
-                                                            Predicate<CustomerDto> filterActiveCustomers) {
-        
-        var customers = personInformation.getActiveCustomers();
+                                                            Set<CustomerDto> customers,
+                                                            Predicate<CustomerDto> customerFilter) {
+        LOGGER.info("Customers: {}", customers);
+
         return customers.stream()
-                   .filter(filterActiveCustomers::test)
+                   .filter(customerFilter)
                    .map(customer -> createNewUserObject(customer, personInformation))
                    .map(user -> getExistingUserOrCreateNew(user, personInformation))
                    .collect(Collectors.toList());
     }
-    
-    private Set<CustomerDto> fetchCustomersForActiveAffiliations(PersonInformation personInformation) {
-    
-        return personInformation.getPersonAffiliations()
-                   .stream()
-                   .map(PersonAffiliation::getParentInstitution)
-                   .map(attempt(customerService::getCustomerByCristinId))
-                   .flatMap(Try::stream)
-                   .collect(Collectors.toSet());
-    }
-    
-    private List<PersonAffiliation> fetchParentInstitutionsForPersonAffiliations(
-        PersonInformation personInformation) {
-        return personInformation.getCristinPersonResponse().stream()
-                   .map(CristinPersonResponse::getAffiliations)
-                   .flatMap(Collection::stream)
-                   .filter(CristinAffiliation::isActive)
-                   .map(CristinAffiliation::getOrganizationUri)
-                   .map(this::fetchParentInstitutionCristinId)
-                   .collect(Collectors.toList());
-    }
-    
-    private PersonAffiliation fetchParentInstitutionCristinId(URI mostSpecificAffiliation) {
-        return attempt(() -> cristinClient.fetchTopLevelOrgUri(mostSpecificAffiliation))
-                   .map(parentInstitution -> PersonAffiliation.create(mostSpecificAffiliation, parentInstitution))
-                   .orElseThrow();
-    }
-    
-    private Optional<CristinPersonResponse> fetchPersonInformationFromCristin(NationalIdentityNumber nin) {
-        return attempt(() -> cristinClient.fetchPersonInformation(nin)).toOptional();
-    }
-    
+
     private UserDto createNewUserObject(CustomerDto customer, PersonInformation personInformation) {
-        
-        var cristinResponse = personInformation.getCristinPersonResponse().orElseThrow();
+        LOGGER.info("Creating new user object for customer {}", customer.getId());
+
         var affiliation = personInformation.getOrganizationAffiliation(customer.getCristinId());
-        var feideIdentifier = personInformation.getPersonFeideIdentifier();
+        var feideIdentifier = personInformation.getFeideIdentifier();
+        var personRegistryId = personInformation.getPersonRegistryId().orElseThrow();
         var user = UserDto.newBuilder()
                        .withUsername(
-                           createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(cristinResponse, customer))
+                           createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(personRegistryId, customer))
                        .withRoles(Collections.singletonList(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
                        .withFeideIdentifier(feideIdentifier)
                        .withInstitution(customer.getId())
-                       .withGivenName(cristinResponse.extractFirstName())
-                       .withFamilyName(cristinResponse.extractLastName())
-                       .withCristinId(cristinResponse.getCristinId())
+                       .withGivenName(personInformation.getGivenName().orElseThrow())
+                       .withFamilyName(personInformation.getFamilyName().orElseThrow())
+                       .withCristinId(personRegistryId)
                        .withInstitutionCristinId(customer.getCristinId())
                        .withAffiliation(affiliation);
-        
+
+        LOGGER.info("New user object: {}", user);
         return user.build();
     }
-    
+
     // Create a username that will allow the user to access their resources even if the identity service stack
     // gets totally destroyed.
     private String createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(
-        CristinPersonResponse cristinResponse,
+        URI personRegistryId,
         CustomerDto customer) {
-        var personIdentifier = cristinResponse.getPersonsCristinIdentifier().getValue();
+
         var customerIdentifier = UriWrapper.fromUri(customer.getCristinId()).getLastPathElement();
+        var personIdentifier = UriWrapper.fromUri(personRegistryId).getLastPathElement();
         return personIdentifier + AT + customerIdentifier;
     }
-    
+
     private UserDto getExistingUserOrCreateNew(UserDto user, PersonInformation personInformation) {
         return attempt(() -> fetchUserBasedOnCristinIdentifiers(user, personInformation))
                    .or(() -> fetchLegacyUserWithFeideIdentifier(user, personInformation))
                    .or(() -> addUser(user))
                    .orElseThrow();
     }
-    
+
     private UserDto fetchLegacyUserWithFeideIdentifier(UserDto userWithUpdatedInformation,
                                                        PersonInformation personInformation) throws NotFoundException {
         var queryObject =
-            UserDto.newBuilder().withUsername(personInformation.getPersonFeideIdentifier()).build();
+            UserDto.newBuilder().withUsername(personInformation.getFeideIdentifier()).build();
         var savedUser = identityService.getUser(queryObject);
         var affiliation =
             personInformation.getOrganizationAffiliation(userWithUpdatedInformation.getInstitutionCristinId());
@@ -173,27 +116,31 @@ public class UserEntriesCreatorForPerson {
                               .withAffiliation(affiliation)
                               .build();
         identityService.updateUser(updatedUser);
+        LOGGER.info("Updated legacy user with feide identifier username!");
+
         return updatedUser;
     }
-    
+
     private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user, PersonInformation personInformation)
         throws NotFoundException {
         var existingUser =
             identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(),
-                user.getInstitutionCristinId());
+                                                                         user.getInstitutionCristinId());
         return updateUserAffiliation(existingUser, personInformation);
     }
-    
+
     private UserDto updateUserAffiliation(UserDto existingUser,
                                           PersonInformation personInformation) throws NotFoundException {
         var affiliation = personInformation.getOrganizationAffiliation(existingUser.getInstitutionCristinId());
         var updatedUser = existingUser.copy().withAffiliation(affiliation).build();
         identityService.updateUser(updatedUser);
+        LOGGER.info("Updated user!");
         return updatedUser;
     }
-    
+
     private UserDto addUser(UserDto user) throws ConflictException {
         identityService.addUser(user);
+        LOGGER.info("Added user!");
         return user;
     }
 }

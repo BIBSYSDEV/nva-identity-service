@@ -34,6 +34,8 @@ dependencies {
 
 test {
     environment "API_DOMAIN", "localhost"
+    environment "CRISTIN_API_URL", "https://cristin.no"
+    environment "ID_NAMESPACE", "https://www.example.org/namespace/"
     environment "AWS_REGION", "eu-west-1"
     environment "EVENT_BUS", "eventBus"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"

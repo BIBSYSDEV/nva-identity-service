@@ -1,29 +1,30 @@
 package no.unit.nva.useraccessservice.usercreation.person;
 
+import java.net.URI;
 import java.util.List;
 
 public class Affiliation {
-    private final String institutionId;
-    private final List<String> unitId;
+    private final URI institutionUri;
+    private final List<URI> unitUris;
 
-    public Affiliation(String institutionId, List<String> unitId) {
-        this.institutionId = institutionId;
-        this.unitId = unitId;
+    public Affiliation(URI institutionUri, List<URI> unitUris) {
+        this.institutionUri = institutionUri;
+        this.unitUris = unitUris;
     }
 
-    public String getInstitutionId() {
-        return institutionId;
+    public URI getInstitutionUri() {
+        return institutionUri;
     }
 
-    public List<String> getUnitId() {
-        return unitId;
+    public List<URI> getUnitUris() {
+        return unitUris;
     }
 
     @Override
     public String toString() {
         return "Affiliation{" +
-               "institutionId='" + institutionId + '\'' +
-               ", unitId=" + unitId +
+               "institutionUri='" + institutionUri + '\'' +
+               ", unitUris=" + unitUris +
                '}';
     }
 }

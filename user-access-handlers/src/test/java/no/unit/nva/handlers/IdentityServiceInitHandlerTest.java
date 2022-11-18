@@ -36,6 +36,8 @@ import org.junit.jupiter.api.Test;
 class IdentityServiceInitHandlerTest {
 
     private static final int USER_PSEUDO_ACCESS_RIGHT = 1;
+    private static final int PUBLISH_METADATA = 1;
+    private static final int PUBLISH_FILES = 1;
     private IdentityService identityService;
     private ByteArrayOutputStream output;
     private Context context;
@@ -69,7 +71,8 @@ class IdentityServiceInitHandlerTest {
             .map(RoleDto::getAccessRights)
             .flatMap(Collection::stream)
             .collect(Collectors.toSet());
-        assertThat(accessRights.size(), is(equalTo(AccessRight.values().length - USER_PSEUDO_ACCESS_RIGHT)));
+        assertThat(accessRights.size(),
+                   is(equalTo(AccessRight.values().length - USER_PSEUDO_ACCESS_RIGHT - PUBLISH_METADATA - PUBLISH_FILES)));
     }
 
     @Test

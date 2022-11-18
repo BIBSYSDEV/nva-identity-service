@@ -1,63 +1,70 @@
 package no.unit.nva.useraccessservice.usercreation;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.useraccessservice.usercreation.cristin.PersonAffiliation;
-import no.unit.nva.useraccessservice.usercreation.cristin.person.CristinPersonResponse;
+import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
+import no.unit.nva.useraccessservice.usercreation.person.Person;
+import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import nva.commons.core.JacocoGenerated;
 
 public class PersonInformationImpl implements PersonInformation {
+    private final String feideIdentifier;
+    private final String feideDomain;
+    private final Person personFromRegistry;
 
-    private final String personFeideIdentifier;
-    private final String orgFeideDomain;
-    private CristinPersonResponse cristinResponse;
-    private Set<CustomerDto> activeCustomers;
+    private final List<PersonAffiliation> personAffiliations;
 
-    private List<PersonAffiliation> personAffiliations;
+    public PersonInformationImpl(PersonRegistry personRegistry, String nin) {
+        this(personRegistry, nin, null, null);
+    }
 
-    public PersonInformationImpl(String personFeideIdentifier, String orgFeideDomain) {
-        this.personFeideIdentifier = personFeideIdentifier;
-        this.orgFeideDomain = orgFeideDomain;
+    public PersonInformationImpl(PersonRegistry personRegistry, String nin, String feideIdentifier,
+                                 String feideDomain) {
+        this.feideIdentifier = feideIdentifier;
+        this.feideDomain = feideDomain;
+        Optional<Person> person = personRegistry.fetchPersonByNin(nin);
+        if (person.isPresent()) {
+            this.personFromRegistry = person.get();
+            this.personAffiliations = new ArrayList<>();
+            this.personFromRegistry.getAffiliations().stream()
+                .map(this::createPersonAffiliations)
+                .forEach(this.personAffiliations::addAll);
+        } else {
+            this.personFromRegistry = null;
+            this.personAffiliations = Collections.emptyList();
+        }
+    }
+
+    @Override
+    public boolean personIsPresentInPersonRegistry() {
+        return personFromRegistry != null;
+    }
+
+    @Override
+    public Optional<String> getGivenName() {
+        return (personFromRegistry != null) ? Optional.ofNullable(personFromRegistry.getFirstname()) : Optional.empty();
+    }
+
+    @Override
+    public Optional<String> getFamilyName() {
+        return (personFromRegistry != null) ? Optional.ofNullable(personFromRegistry.getSurname()) : Optional.empty();
     }
 
     @JacocoGenerated
     @Override
-    public Set<CustomerDto> getActiveCustomers() {
-        return activeCustomers;
+    public String getFeideDomain() {
+        return this.feideDomain;
     }
 
     @JacocoGenerated
     @Override
-    public void setActiveCustomers(Set<CustomerDto> activeCustomers) {
-        this.activeCustomers = activeCustomers;
-    }
-
-    @JacocoGenerated
-    @Override
-    public String getOrgFeideDomain() {
-        return orgFeideDomain;
-    }
-
-    @JacocoGenerated
-    @Override
-    public String getPersonFeideIdentifier() {
-        return personFeideIdentifier;
-    }
-
-    @JacocoGenerated
-    @Override
-    public Optional<CristinPersonResponse> getCristinPersonResponse() {
-        return Optional.ofNullable(this.cristinResponse);
-    }
-
-    @JacocoGenerated
-    @Override
-    public void setCristinPersonResponse(CristinPersonResponse cristinResponse) {
-        this.cristinResponse = cristinResponse;
+    public String getFeideIdentifier() {
+        return this.feideIdentifier;
     }
 
     @Override
@@ -73,20 +80,26 @@ public class PersonInformationImpl implements PersonInformation {
     }
 
     @Override
-    @JacocoGenerated
-    public void setPersonAffiliations(List<PersonAffiliation> affiliationInformation) {
-        this.personAffiliations = affiliationInformation;
+    public Optional<URI> getPersonRegistryId() {
+        return (personFromRegistry != null) ?
+                   Optional.of(personFromRegistry.getId())
+                   : Optional.empty();
     }
 
-    @Override
-    public Optional<URI> getPersonRegistryId() {
-        return getCristinPersonResponse().map(CristinPersonResponse::getCristinId);
+    private List<PersonAffiliation> createPersonAffiliations(Affiliation affiliation) {
+        return affiliation.getUnitUris().stream()
+                   .map(unitUri -> createPersonAffiliation(affiliation.getInstitutionUri(), unitUri))
+                   .collect(Collectors.toList());
+    }
+
+    private PersonAffiliation createPersonAffiliation(URI institutionUri, URI unitUri) {
+        return PersonAffiliation.create(institutionUri, unitUri);
     }
 
     private Stream<URI> allAffiliationsWithSameParentInstitution(URI parentInstitution) {
         return this.personAffiliations.stream()
-            .filter(affiliation -> affiliation.getParentInstitution().equals(parentInstitution))
-            .map(PersonAffiliation::getOrganization);
+                   .filter(affiliation -> affiliation.getInstitutionCristinId().equals(parentInstitution))
+                   .map(PersonAffiliation::getUnitCristinId);
     }
 
     private URI anyAffiliationButProduceConsistentResponseForSameInputSet(Stream<URI> affiliations) {

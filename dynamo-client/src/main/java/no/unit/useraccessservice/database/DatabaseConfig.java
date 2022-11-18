@@ -23,8 +23,8 @@ public final class DatabaseConfig {
             .build();
     }
 
-    private DatabaseConfig(){
-
+    private DatabaseConfig() {
+        // NO-OP
     }
 
 }

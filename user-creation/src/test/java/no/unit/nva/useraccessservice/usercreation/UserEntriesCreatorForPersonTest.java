@@ -159,7 +159,7 @@ class UserEntriesCreatorForPersonTest {
         var person = scenarios.personWithExactlyOneActiveEmployment();
         var personInformation = new PersonInformationImpl(personRegistry, person);
         var customers = fetchCustomersWithActiveAffiliations(personInformation.getPersonAffiliations());
-        var existingUser = scenarios.createUsersForAllAffiliations(person, identityService)
+        var existingUser = scenarios.createUsersForAllActiveAffiliations(person, identityService)
                                .stream()
                                .collect(SingletonCollector.collect());
         var actualUser = userCreator.createUsers(personInformation, customers)
@@ -206,7 +206,7 @@ class UserEntriesCreatorForPersonTest {
     void shouldUpdateLegacyFeideUserWithNecessaryDetailsWhenSuchUserExists() {
         var person = scenarios.personWithExactlyOneActiveEmployment();
         var feideIdentifier = randomString();
-        var existingUser = scenarios.createLegacyUsersForAllAffiliations(person,
+        var existingUser = scenarios.createLegacyUsersForAllActiveAffiliations(person,
                                                                          feideIdentifier,
                                                                          identityService)
                                .stream()

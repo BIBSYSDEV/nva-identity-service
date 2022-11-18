@@ -123,13 +123,14 @@ public class CristinPersonRegistry implements PersonRegistry {
 
     private Person asPerson(CristinPerson cristinPerson) {
 
-        var personAffiliations = cristinPerson.getAffiliations().stream()
-                                     .filter(CristinAffiliation::isActive)
-                                     .map(this::collectAffiliation)
-                                     .collect(Collectors.groupingBy(GenericPair::getLeft, mapping(GenericPair::getRight, toList())))
-                                     .entrySet().stream()
-                                     .map(a -> new Affiliation(a.getKey(), a.getValue()))
-                                     .collect(toList());
+        var personAffiliations
+            = cristinPerson.getAffiliations().stream()
+                  .filter(CristinAffiliation::isActive)
+                  .map(this::collectAffiliation)
+                  .collect(Collectors.groupingBy(GenericPair::getLeft, mapping(GenericPair::getRight, toList())))
+                  .entrySet().stream()
+                  .map(a -> new Affiliation(a.getKey(), a.getValue()))
+                  .collect(toList());
 
         return new Person(generateCristinIdForPerson(cristinPerson.getId()),
                           cristinPerson.getId(),
@@ -227,6 +228,7 @@ public class CristinPersonRegistry implements PersonRegistry {
     }
 
     private static class GenericPair<T> {
+
         private final T left;
         private final T right;
 

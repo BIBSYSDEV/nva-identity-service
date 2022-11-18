@@ -24,11 +24,11 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPe
 import nva.commons.apigateway.exceptions.ConflictException;
 
 public class AuthenticationScenarios {
-    
+
     private final MockPersonRegistry personRegistry;
     private final CustomerService customerService;
     private final Map<String, List<CustomerDto>> personNinToCustomers;
-    
+
     public AuthenticationScenarios(MockPersonRegistry personRegistry,
                                    CustomerService customerService,
                                    IdentityService identityService) throws InvalidInputException, ConflictException {
@@ -37,19 +37,19 @@ public class AuthenticationScenarios {
         this.personNinToCustomers = new ConcurrentHashMap<>();
         addCreatorRoleToIdentityService(identityService);
     }
-    
+
     public String personWithTwoActiveEmploymentsInDifferentInstitutions() {
         var person = personRegistry.personWithTwoActiveEmploymentsInDifferentInstitutions();
         registerTopOrganizationsAsCustomers(person);
         return person;
     }
-    
+
     public String personWithExactlyOneActiveEmployment() {
         var personNin = personRegistry.personWithExactlyOneActiveEmployment();
         registerTopOrganizationsAsCustomers(personNin);
         return personNin;
     }
-    
+
     public String personWithExactlyOneActiveEmploymentInNonCustomer() {
         return personRegistry.personWithExactlyOneActiveEmployment();
     }
@@ -103,36 +103,27 @@ public class AuthenticationScenarios {
         return personRegistry.getCristinIdForPerson(nin);
     }
 
-    //    public List<EmploymentInformation> fetchTopOrgEmploymentInformation(NationalIdentityNumber person) {
-//        return personRegistry.fetchTopOrgEmploymentInformation(person);
-//    }
-//
     public CristinPerson getPersonFromRegistry(String nin) {
         return personRegistry.getPerson(nin);
     }
 
-//    public URI getTopLevelOrgForNonTopLevelOrg(URI organizationUri) {
-//        return personRegistry.getTopLevelOrgForNonTopLevelOrg(organizationUri);
-//    }
-    
     public List<CustomerDto> fetchCustomersForPerson(String nin) {
         return Optional.ofNullable(personNinToCustomers.get(nin)).orElse(Collections.emptyList());
     }
-    
-   
-    
+
     private void registerTopOrganizationsAsCustomers(String personNin) {
         var customers = newCustomerRequests(personNin)
-                            .map(this::persistCustomer).collect(Collectors.toList());
+                            .map(this::persistCustomer)
+                            .collect(Collectors.toList());
         personNinToCustomers.put(personNin, customers);
     }
-    
+
     private CustomerDto persistCustomer(CustomerDto customer) {
         return attempt(() -> customerService.createCustomer(customer)).orElseThrow();
     }
-    
+
     private Stream<CustomerDto> newCustomerRequests(String personNin) {
-        return personRegistry.getInstitutionUnitCristinUris(personNin)
+        return personRegistry.getInstitutionUnitCristinUrisByState(personNin, true)
                    .stream()
                    .distinct()
                    .map(orgId -> CustomerDto.builder().withCristinId(orgId)
@@ -140,26 +131,31 @@ public class AuthenticationScenarios {
                                      .build());
     }
 
-    public List<UserDto> createUsersForAllAffiliations(String nin, IdentityService identityService) {
+    public List<UserDto> createUsersForAllActiveAffiliations(String nin, IdentityService identityService) {
         var personFromRegistry = getPersonFromRegistry(nin);
 
         return personFromRegistry.getAffiliations().stream()
+                   .filter(CristinAffiliation::isActive)
                    .map(affiliation -> createUserForAffiliation(nin, null, affiliation, identityService))
                    .collect(Collectors.toList());
     }
 
-    public List<UserDto> createLegacyUsersForAllAffiliations(String nin,
+    public List<UserDto> createLegacyUsersForAllActiveAffiliations(String nin,
                                                              String feideIdentifier,
                                                              IdentityService identityService) {
         var personFromRegistry = getPersonFromRegistry(nin);
 
         return personFromRegistry.getAffiliations().stream()
+                   .filter(CristinAffiliation::isActive)
                    .map(affiliation -> createUserForAffiliation(nin, feideIdentifier, affiliation, identityService))
                    .collect(Collectors.toList());
     }
 
-    private UserDto createUserForAffiliation(String nin, String feideIdentifier, CristinAffiliation affiliation,
+    private UserDto createUserForAffiliation(String nin,
+                                             String feideIdentifier,
+                                             CristinAffiliation affiliation,
                                              IdentityService identityService) {
+
         var institutionCristinId = personRegistry.getCristinIdForInstitution(affiliation.getInstitution().getId());
         var unitCristinId = personRegistry.getCristinIdForUnit(affiliation.getUnit().getId());
         var customerId = attempt(() -> customerService.getCustomerByCristinId(institutionCristinId)).map(
@@ -176,5 +172,4 @@ public class AuthenticationScenarios {
                        .build();
         return attempt(() -> identityService.addUser(user)).orElseThrow();
     }
-
 }

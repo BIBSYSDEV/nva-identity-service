@@ -41,12 +41,12 @@ public class Person {
 
     @Override
     public String toString() {
-        return "Person{" +
-               "id=" + id +
-               ", identifier='" + identifier + '\'' +
-               ", firstname='" + firstname + '\'' +
-               ", surname='" + surname + '\'' +
-               ", affiliations=" + affiliations +
-               '}';
+        return "Person{"
+               + "id=" + id
+               + ", identifier='" + identifier + '\''
+               + ", firstname='" + firstname + '\''
+               + ", surname='" + surname + '\''
+               + ", affiliations=" + affiliations
+               + '}';
     }
 }

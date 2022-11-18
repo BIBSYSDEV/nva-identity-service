@@ -11,7 +11,7 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
-import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FON_NON_FEIDE_USERS;
+import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
@@ -101,6 +101,7 @@ class UserSelectionUponLoginHandlerTest {
     private FakeCognito cognitoClient;
     private MockPersonRegistry mockPersonRegistry;
     private LocalIdentityService identityServiceDb;
+    private LocalCustomerServiceDatabase customerServiceDatabase;
     private AuthenticationScenarios scenarios;
     private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
 
@@ -131,6 +132,7 @@ class UserSelectionUponLoginHandlerTest {
     @AfterEach
     public void tearDown() {
         identityServiceDb.closeDB();
+        customerServiceDatabase.deleteDatabase();
     }
 
     @ParameterizedTest(name = "Login event type: {0}")
@@ -219,7 +221,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldMaintainUsernameInPreexistingUserEntriesForBothActiveAndInactiveEmployments(LoginEventType eventType) {
         var personLoggingIn =
             scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
-        var preExistingUsers = scenarios.createUsersForAllAffiliations(personLoggingIn, identityService);
+        var preExistingUsers = scenarios.createUsersForAllActiveAffiliations(personLoggingIn, identityService);
         var expectedUsernames = preExistingUsers.stream().map(UserDto::getUsername).collect(Collectors.toList());
         var event = newLoginEvent(personLoggingIn, eventType);
         handler.handleRequest(event, context);
@@ -235,7 +237,7 @@ class UserSelectionUponLoginHandlerTest {
         LoginEventType eventType) throws ConflictException, NotFoundException, InvalidInputException {
         var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment();
         var existingUserInitiallyWithoutRoles
-            = scenarios.createUsersForAllAffiliations(personLoggingIn, identityService).stream()
+            = scenarios.createUsersForAllActiveAffiliations(personLoggingIn, identityService).stream()
                   .collect(SingletonCollector.collect());
         var assignedAccessRights = randomAccessRights();
         var role = persistRoleToDatabase(assignedAccessRights);
@@ -325,7 +327,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldFailWhenSelectedUserHasWrongCustomerId(LoginEventType loginEventType) throws NotFoundException {
         var person = scenarios.personWithExactlyOneActiveEmployment();
 
-        var existingUser = scenarios.createUsersForAllAffiliations(person, identityService).stream()
+        var existingUser = scenarios.createUsersForAllActiveAffiliations(person, identityService).stream()
                                .collect(SingletonCollector.collect());
         existingUser.setInstitution(randomUri());
         identityService.updateUser(existingUser);
@@ -513,7 +515,7 @@ class UserSelectionUponLoginHandlerTest {
         LoginEventType loginEventType)
         throws NotFoundException {
         var person = scenarios.personWithExactlyOneActiveEmployment();
-        var existingUser = scenarios.createUsersForAllAffiliations(person, identityService)
+        var existingUser = scenarios.createUsersForAllActiveAffiliations(person, identityService)
                                .stream().collect(SingletonCollector.collect());
         removeEmployment(existingUser);
         var userBeforeLogIn = identityService.getUser(existingUser);
@@ -614,16 +616,16 @@ class UserSelectionUponLoginHandlerTest {
 
     private static CognitoUserPoolPreTokenGenerationEvent nonFeideLogin(String nin) {
         var request = Request.builder()
-                          .withUserAttributes(Map.of(NIN_FON_NON_FEIDE_USERS, nin)).build();
+                          .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin)).build();
         var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
         loginEvent.setRequest(request);
         return loginEvent;
     }
 
     private DynamoDBCustomerService initializeCustomerService() {
-        var localDatabase = new LocalCustomerServiceDatabase();
-        localDatabase.setupDatabase();
-        return new DynamoDBCustomerService(localDatabase.getDynamoClient());
+        customerServiceDatabase = new LocalCustomerServiceDatabase();
+        customerServiceDatabase.setupDatabase();
+        return new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
     }
 
     private IdentityService initializeIdentityService() {
@@ -678,7 +680,7 @@ class UserSelectionUponLoginHandlerTest {
     }
 
     private List<UserDto> createUsersWithRolesForPerson(String nin) {
-        return scenarios.createUsersForAllAffiliations(nin, identityService)
+        return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
                    .stream()
                    .map(attempt(user -> addRoleToUser(user, persistRandomRole())))
                    .map(Try::orElseThrow)
@@ -717,10 +719,19 @@ class UserSelectionUponLoginHandlerTest {
                    .userAttributes().stream()
                    .filter(attribute -> attribute.name().equals(ALLOWED_CUSTOMERS_CLAIM))
                    .map(AttributeType::value)
-                   .map(concatenatedUris -> concatenatedUris.split(","))
+                   .map(this::extractAllowedCustomersRespectingEmptyStringNull)
                    .flatMap(Arrays::stream)
-                   .map(URI::create)
                    .collect(Collectors.toList());
+    }
+
+    private URI[] extractAllowedCustomersRespectingEmptyStringNull(String value) {
+        if (EMPTY_CLAIM.equals(value)) {
+            return new URI[]{};
+        } else {
+            return Arrays.stream(value.split(","))
+                .map(URI::create)
+                .collect(Collectors.toList()).toArray(URI[]::new);
+        }
     }
 
     private String extractClaimFromCognitoUpdateRequest(String claimName) {

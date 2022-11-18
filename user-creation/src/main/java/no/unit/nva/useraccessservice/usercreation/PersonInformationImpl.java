@@ -81,8 +81,8 @@ public class PersonInformationImpl implements PersonInformation {
 
     @Override
     public Optional<URI> getPersonRegistryId() {
-        return (personFromRegistry != null) ?
-                   Optional.of(personFromRegistry.getId())
+        return (personFromRegistry != null)
+                   ? Optional.of(personFromRegistry.getId())
                    : Optional.empty();
     }
 

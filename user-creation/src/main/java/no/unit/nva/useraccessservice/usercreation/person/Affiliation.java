@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 public class Affiliation {
+
     private final URI institutionUri;
     private final List<URI> unitUris;
 
@@ -22,9 +23,9 @@ public class Affiliation {
 
     @Override
     public String toString() {
-        return "Affiliation{" +
-               "institutionUri='" + institutionUri + '\'' +
-               ", unitUris=" + unitUris +
-               '}';
+        return "Affiliation{"
+               + "institutionUri='" + institutionUri + '\''
+               + ", unitUris=" + unitUris
+               + '}';
     }
 }

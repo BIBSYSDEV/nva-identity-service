@@ -15,11 +15,8 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.paths.UriWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class UserEntriesCreatorForPerson {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserEntriesCreatorForPerson.class);
     public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
         RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT).build();
     private static final String AT = "@";
@@ -41,8 +38,6 @@ public class UserEntriesCreatorForPerson {
     }
 
     private boolean isSelectedCustomer(CustomerDto customerDto, URI selectedCustomerId) {
-        LOGGER.info("Checking for selected customer: {} {} {}", customerDto.getId(), customerDto.getCristinId(),
-                    selectedCustomerId);
         return customerDto.getId().equals(selectedCustomerId) || customerDto.getCristinId().equals(selectedCustomerId);
     }
 
@@ -53,8 +48,6 @@ public class UserEntriesCreatorForPerson {
     private List<UserDto> createOrFetchUserEntriesForPerson(PersonInformation personInformation,
                                                             Set<CustomerDto> customers,
                                                             Predicate<CustomerDto> customerFilter) {
-        LOGGER.info("Customers: {}", customers);
-
         return customers.stream()
                    .filter(customerFilter)
                    .map(customer -> createNewUserObject(customer, personInformation))
@@ -63,8 +56,6 @@ public class UserEntriesCreatorForPerson {
     }
 
     private UserDto createNewUserObject(CustomerDto customer, PersonInformation personInformation) {
-        LOGGER.info("Creating new user object for customer {}", customer.getId());
-
         var affiliation = personInformation.getOrganizationAffiliation(customer.getCristinId());
         var feideIdentifier = personInformation.getFeideIdentifier();
         var personRegistryId = personInformation.getPersonRegistryId().orElseThrow();
@@ -80,7 +71,6 @@ public class UserEntriesCreatorForPerson {
                        .withInstitutionCristinId(customer.getCristinId())
                        .withAffiliation(affiliation);
 
-        LOGGER.info("New user object: {}", user);
         return user.build();
     }
 
@@ -116,7 +106,6 @@ public class UserEntriesCreatorForPerson {
                               .withAffiliation(affiliation)
                               .build();
         identityService.updateUser(updatedUser);
-        LOGGER.info("Updated legacy user with feide identifier username!");
 
         return updatedUser;
     }
@@ -134,13 +123,11 @@ public class UserEntriesCreatorForPerson {
         var affiliation = personInformation.getOrganizationAffiliation(existingUser.getInstitutionCristinId());
         var updatedUser = existingUser.copy().withAffiliation(affiliation).build();
         identityService.updateUser(updatedUser);
-        LOGGER.info("Updated user!");
         return updatedUser;
     }
 
     private UserDto addUser(UserDto user) throws ConflictException {
         identityService.addUser(user);
-        LOGGER.info("Added user!");
         return user;
     }
 }

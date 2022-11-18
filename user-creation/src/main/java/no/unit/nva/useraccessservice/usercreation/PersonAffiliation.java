@@ -11,8 +11,8 @@ public final class PersonAffiliation {
         this.unitCristinId = unitCristinId;
     }
 
-    public static PersonAffiliation create(URI cristinInstitutionUri, URI cristinUnitUri) {
-        return new PersonAffiliation(cristinInstitutionUri, cristinUnitUri);
+    public static PersonAffiliation create(URI institutionCristinId, URI unitCristinId) {
+        return new PersonAffiliation(institutionCristinId, unitCristinId);
     }
 
     public URI getInstitutionCristinId() {
@@ -21,5 +21,13 @@ public final class PersonAffiliation {
 
     public URI getUnitCristinId() {
         return unitCristinId;
+    }
+
+    @Override
+    public String toString() {
+        return "PersonAffiliation{"
+               + "institutionCristinId=" + institutionCristinId
+               + ", unitCristinId=" + unitCristinId
+               + '}';
     }
 }

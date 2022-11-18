@@ -37,10 +37,10 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.PersonInformation;
 import no.unit.nva.useraccessservice.usercreation.PersonInformationImpl;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
-import no.unit.nva.useraccessservice.usercreation.PersonAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import nva.commons.core.Environment;
@@ -62,7 +62,7 @@ public class UserSelectionUponLoginHandler
 
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideIdNin";
-    public static final String NIN_FON_NON_FEIDE_USERS = "custom:nin";
+    public static final String NIN_FOR_NON_FEIDE_USERS = "custom:nin";
     public static final String FEIDE_ID = "custom:feideId";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
@@ -103,7 +103,9 @@ public class UserSelectionUponLoginHandler
                                                           nin,
                                                           personFeideIdentifier,
                                                           orgFeideDomain);
+
         var customers = fetchCustomersWithActiveAffiliations(personInformation.getPersonAffiliations());
+
         final var usersForPerson = userCreator.createUsers(personInformation, customers);
 
         final var roles = rolesPerCustomer(usersForPerson);
@@ -172,7 +174,7 @@ public class UserSelectionUponLoginHandler
 
     private static String extractNin(Map<String, String> userAttributes) {
         return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
-                   .or(() -> Optional.ofNullable(userAttributes.get(NIN_FON_NON_FEIDE_USERS)))
+                   .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS)))
                    .orElseThrow();
     }
 
@@ -193,16 +195,6 @@ public class UserSelectionUponLoginHandler
                    .build();
     }
 
-    //    private AuthenticationInformation collectAuthenticationInformation(String nin,
-    //                                                                       String orgFeideDomain,
-    //                                                                       String personFeideIdentifier) {
-    //        return attempt(() -> new NationalIdentityNumber(nin))
-    //                   .map(idNumber -> userCreator.collectPersonInformation(idNumber, personFeideIdentifier,
-    //                                                                         orgFeideDomain))
-    //                   .map(AuthenticationInformation::new)
-    //                   .orElseThrow();
-    //    }
-    //
     private Collection<String> rolesPerCustomer(List<UserDto> usersForPerson) {
         return usersForPerson.stream()
                    .flatMap(UserDto::generateRoleClaims)
@@ -257,10 +249,10 @@ public class UserSelectionUponLoginHandler
                                                               Collection<String> accessRights,
                                                               Collection<String> roles) {
 
-        var allowedCustomersString = createAllowedCustomersString(customers,
-                                                                  personInformation.getFeideDomain());
-
         if (personInformation.personIsPresentInPersonRegistry()) {
+            var allowedCustomersString = createAllowedCustomersString(customers,
+                                                                      personInformation.getFeideDomain());
+
             return addClaimsForPeopleRegisteredInPersonRegistry(personInformation,
                                                                 currentCustomer,
                                                                 currentUser,

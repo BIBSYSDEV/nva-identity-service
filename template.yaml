@@ -33,6 +33,13 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApiDomain
     Description: Domain-name for the backend
+  CristinApiUrl:
+    Type: String
+    Description: Url for Cristin API
+    Default: https://api.cristin-test.uio.no/v2
+    AllowedValues:
+      - https://api.cristin-test.uio.no/v2
+      - https://api.cristin.no/v2
   ApplicationDomain:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApplicationDomain
@@ -54,7 +61,6 @@ Parameters:
     Type: String
     Default: ''
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
-  CristinApiUrl: !Ref CristinApiUrl
 
 
 

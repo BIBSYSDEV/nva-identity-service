@@ -47,7 +47,10 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     @JacocoGenerated
     public CreateUserHandler(IdentityService identityService, CustomerService customerService) {
-        this(defaultUserCreator(identityService), identityService, customerService, CristinPersonRegistry.defaultPersonRegistry());
+        this(defaultUserCreator(identityService),
+             identityService,
+             customerService,
+             CristinPersonRegistry.defaultPersonRegistry());
     }
 
     public CreateUserHandler(UserEntriesCreatorForPerson userCreator,

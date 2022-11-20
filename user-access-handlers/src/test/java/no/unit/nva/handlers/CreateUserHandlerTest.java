@@ -80,7 +80,6 @@ class CreateUserHandlerTest extends HandlerTest {
         this.customerService = initializeCustomerService();
         this.identityService = initializeIdentityService();
 
-        var httpClient = WiremockHttpClient.create();
         var cristinUsername = randomString();
         var cristinPassword = randomString();
         secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_USERNAME_SECRET_KEY, cristinUsername);
@@ -93,6 +92,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
         var userCreator = new UserEntriesCreatorForPerson(identityService);
 
+        var httpClient = WiremockHttpClient.create();
         var personRegistry = CristinPersonRegistry.customPersonRegistry(
             httpClient,
             wiremockUri,

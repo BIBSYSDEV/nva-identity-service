@@ -110,12 +110,12 @@ class UserSelectionUponLoginHandlerTest {
         identityService = initializeIdentityService();
         customerService = initializeCustomerService();
 
-        var httpClient = WiremockHttpClient.create();
         var cristinUsername = randomString();
         var cristinPassword = randomString();
         secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_USERNAME_SECRET_KEY, cristinUsername);
         secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, cristinPassword);
 
+        var httpClient = WiremockHttpClient.create();
         var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
         mockPersonRegistry = new MockPersonRegistry(cristinUsername, cristinPassword, wiremockUri);
 

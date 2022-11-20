@@ -36,7 +36,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static nva.commons.core.attempt.Try.attempt;
 
-public class CristinPersonRegistry implements PersonRegistry {
+public final class CristinPersonRegistry implements PersonRegistry {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CristinPersonRegistry.class);
     private static final String ERROR_MESSAGE_FORMAT = "Request %s %s failed with response code %d: %s";

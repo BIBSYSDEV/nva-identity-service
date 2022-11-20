@@ -71,8 +71,11 @@ class IdentityServiceInitHandlerTest {
             .map(RoleDto::getAccessRights)
             .flatMap(Collection::stream)
             .collect(Collectors.toSet());
+        var expectedAccessRightsCount
+            = AccessRight.values().length - USER_PSEUDO_ACCESS_RIGHT - PUBLISH_METADATA - PUBLISH_FILES;
+
         assertThat(accessRights.size(),
-                   is(equalTo(AccessRight.values().length - USER_PSEUDO_ACCESS_RIGHT - PUBLISH_METADATA - PUBLISH_FILES)));
+                   is(equalTo(expectedAccessRightsCount)));
     }
 
     @Test

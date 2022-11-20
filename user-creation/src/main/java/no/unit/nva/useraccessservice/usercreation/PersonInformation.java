@@ -17,20 +17,8 @@ public interface PersonInformation {
     Optional<String> getFamilyName();
 
     URI getOrganizationAffiliation(URI parentInstitution);
+
     String getFeideIdentifier();
+
     String getFeideDomain();
-    //
-    //    void setActiveCustomers(Set<CustomerDto> activeCustomers);
-    //
-    //
-    //
-    //    Optional<CristinPersonResponse> getCristinPersonResponse();
-    //
-    //    void setCristinPersonResponse(CristinPersonResponse cristinResponse);
-    //
-    //
-    //
-    //    void setPersonAffiliations(List<PersonAffiliation> affiliationInformation);
-    //
-    //    Optional<URI> getPersonRegistryId();
 }

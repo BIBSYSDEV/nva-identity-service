@@ -76,6 +76,7 @@ Globals:
     Environment:
       Variables:
         API_DOMAIN: !Ref ApiDomain
+        CRISTIN_API_URL: !Ref CristinApiUrl
         CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
         BY_ORG_DOMAIN_INDEX_NAME: byOrgDomain
         BY_CRISTIN_ID_INDEX_NAME: byCristinId

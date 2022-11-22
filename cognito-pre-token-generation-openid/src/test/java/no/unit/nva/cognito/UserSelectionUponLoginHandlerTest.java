@@ -5,14 +5,16 @@ import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
-import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
+import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -30,6 +32,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsIn.in;
@@ -48,6 +51,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -68,6 +72,7 @@ import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -75,10 +80,12 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
+import nva.commons.logutils.LogUtils;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.EnumSource.Mode;
@@ -110,12 +117,12 @@ class UserSelectionUponLoginHandlerTest {
         identityService = initializeIdentityService();
         customerService = initializeCustomerService();
 
-        var cristinUsername = randomString();
-        var cristinPassword = randomString();
+        String cristinUsername = randomString();
+        String cristinPassword = randomString();
         secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_USERNAME_SECRET_KEY, cristinUsername);
         secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, cristinPassword);
 
-        var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
+        URI wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
         mockPersonRegistry = new MockPersonRegistry(cristinUsername, cristinPassword, wiremockUri);
 
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
@@ -152,6 +159,42 @@ class UserSelectionUponLoginHandlerTest {
                                       .stream()
                                       .collect(SingletonCollector.collect());
         assertThat(actualUser.getInstitutionCristinId(), is(equalTo(expectedAffiliation)));
+    }
+
+    @ParameterizedTest(name = "Login event type: {0}")
+    @DisplayName("should log and throw exception when Cristin is unavailable during login")
+    @EnumSource(LoginEventType.class)
+    void shouldLogAndThrowExceptionWhenCristinIsUnavailableDuringLogin(LoginEventType loginEventType,
+                                                                       WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+        var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment();
+        var event = newLoginEvent(personLoggingIn, loginEventType);
+
+        var httpClient = WiremockHttpClient.create();
+        var uriWhereCristinIsUnavailable
+            = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
+        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService,
+                                                    CristinPersonRegistry.customPersonRegistry(
+                                                        httpClient,
+                                                        uriWhereCristinIsUnavailable,
+                                                        ServiceConstants.API_DOMAIN,
+                                                        new SecretsReader(secretsManagerClient)));
+        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
+        assertThat(testAppender.getMessages(), containsString("Cristin is unavailable"));
+    }
+
+    @ParameterizedTest(name = "Login event type: {0}")
+    @DisplayName("should log and throw exception when Cristin returns bad json")
+    @EnumSource(LoginEventType.class)
+    void shouldLogAndThrowExceptionWhenCristinReturnsBadJsonDuringLogin(LoginEventType loginEventType) {
+
+        var personLoggingIn = scenarios.failingPersonRegistryRequestBadJson();
+        var event = newLoginEvent(personLoggingIn, loginEventType);
+
+        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
+        assertThat(testAppender.getMessages(), containsString("Got unexpected response body from Cristin"));
     }
 
     // TODO: is it possible to not have an active employment and be able to login through FEIDE and what should
@@ -284,25 +327,34 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualCustomerId, is(equalTo(expectedCustomerId.toString())));
     }
 
+    @ParameterizedTest(name = "should add firstName and lastName in claims when logging in")
+    @EnumSource(value = LoginEventType.class)
+    void shouldStoreGivenNameAndFamilyNameInUserTableWhenLoggingIn(LoginEventType loginEventType) {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var event = newLoginEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+
+        var expectedFirstName = scenarios.getPersonFromRegistry(person).getFirstname();
+        var expectedLastName = scenarios.getPersonFromRegistry(person).getSurname();
+
+        var firstName = extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM);
+        var lastName = extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM);
+
+        assertThat(firstName, is(equalTo(expectedFirstName)));
+        assertThat(lastName, is(equalTo(expectedLastName)));
+    }
+
     @ParameterizedTest(name = "should clear customer selection claims when user has many affiliations and logs in with"
                               + "personal number")
     @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"}, mode = Mode.INCLUDE)
-    void shouldClearCustomerSelectionClaimsIdWenUserHasManyAffiliationsAndLogsInWithPersonalNumber(
+    void shouldClearCustomerSelectionClaimsIdWhenUserHasManyAffiliationsAndLogsInWithPersonalNumber(
         LoginEventType loginEventType) {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
         var event = newLoginEvent(person, loginEventType);
 
         handler.handleRequest(event, context);
 
-        var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
-        var topOrgCristinId = extractClaimFromCognitoUpdateRequest(TOP_ORG_CRISTIN_ID);
-        var nvaUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
-        var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
-
-        assertThat(customerId, is(equalTo(EMPTY_CLAIM)));
-        assertThat(topOrgCristinId, is(equalTo(EMPTY_CLAIM)));
-        assertThat(nvaUsername, is(equalTo(EMPTY_CLAIM)));
-        assertThat(personAffiliation, is(equalTo(EMPTY_CLAIM)));
+        assertThatCustomerSelectionClaimsAreCleared();
     }
 
     @ParameterizedTest(name = "should not assign access rights for active employment when institution (top-level org) "
@@ -556,6 +608,57 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(accessRights, is((empty())));
     }
 
+    @Test
+    void shouldSetCustomerSelectionClaimsOnFeideLoginWithEmploymentInBothFeideAndNonFeideCustomers() {
+
+        var person = scenarios.personWithTwoActiveEmploymentsInNonFeideAndFeideCustomers();
+        var event = newLoginEvent(person, LoginEventType.FEIDE);
+
+        var selectedCustomer = scenarios.fetchCustomersForPerson(person)
+                                   .stream()
+                                   .filter(customer -> Objects.nonNull(customer.getFeideOrganizationDomain()))
+                                   .collect(SingletonCollector.collect());
+
+        handler.handleRequest(event, context);
+
+        var expectedCustomerId = selectedCustomer.getId();
+        var expectedCristinId = selectedCustomer.getCristinId();
+        var expectedUsername = constructExpectedUsername(person, selectedCustomer);
+
+        assertThatCustomerSelectionClaimsArePresent(expectedCustomerId, expectedCristinId, expectedUsername);
+    }
+
+    private void assertThatCustomerSelectionClaimsAreCleared() {
+        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        assertThat(customerId, is(equalTo(EMPTY_CLAIM)));
+
+        final var topOrgCristinId = extractClaimFromCognitoUpdateRequest(TOP_ORG_CRISTIN_ID);
+        assertThat(topOrgCristinId, is(equalTo(EMPTY_CLAIM)));
+
+        final var nvaUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
+        assertThat(nvaUsername, is(equalTo(EMPTY_CLAIM)));
+
+        final var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
+        assertThat(personAffiliation, is(equalTo(EMPTY_CLAIM)));
+    }
+
+    private void assertThatCustomerSelectionClaimsArePresent(URI expectedCustomerId,
+                                                             URI expectedCristinId,
+                                                             String expectedUsername) {
+
+        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        assertThat(customerId, is(equalTo(expectedCustomerId.toString())));
+
+        final var topOrgCristinId = extractClaimFromCognitoUpdateRequest(TOP_ORG_CRISTIN_ID);
+        assertThat(topOrgCristinId, is(equalTo(expectedCristinId.toString())));
+
+        final var nvaUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
+        assertThat(nvaUsername, is(equalTo(expectedUsername)));
+
+        final var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
+        assertThat(personAffiliation, is(notNullValue()));
+    }
+
     private static String extractFeideDomainFromInputEvent(CognitoUserPoolPreTokenGenerationEvent event) {
         return event.getRequest().getUserAttributes().get(ORG_FEIDE_DOMAIN);
     }
@@ -670,6 +773,7 @@ class UserSelectionUponLoginHandlerTest {
     private String fetchFeideDomainFromRandomCustomerWithActiveEmployment(String nin) {
         return scenarios.fetchCustomersForPerson(nin)
                    .stream()
+                   .filter(customer -> Objects.nonNull(customer.getFeideOrganizationDomain()))
                    .findAny()
                    .map(CustomerDto::getFeideOrganizationDomain)
                    .orElse(null);
@@ -730,8 +834,8 @@ class UserSelectionUponLoginHandlerTest {
             return new URI[]{};
         } else {
             return Arrays.stream(value.split(","))
-                .map(URI::create)
-                .collect(Collectors.toList()).toArray(URI[]::new);
+                       .map(URI::create)
+                       .collect(Collectors.toList()).toArray(URI[]::new);
         }
     }
 

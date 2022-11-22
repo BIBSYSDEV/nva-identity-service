@@ -68,14 +68,14 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'METHOD'
                 value = 'COVEREDRATIO'
-                minimum = 0.500
+                minimum = 1.000
             }
         }
         rule {
             limit {
                 counter = 'CLASS'
                 value = 'COVEREDRATIO'
-                minimum = 0.500
+                minimum = 1.000
             }
         }
     }

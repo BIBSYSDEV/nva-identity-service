@@ -8,6 +8,8 @@ import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUB
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
@@ -37,10 +39,10 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.usercreation.PersonAffiliation;
-import no.unit.nva.useraccessservice.usercreation.PersonInformation;
-import no.unit.nva.useraccessservice.usercreation.PersonInformationImpl;
+import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
+import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
+import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import nva.commons.core.Environment;
@@ -98,45 +100,52 @@ public class UserSelectionUponLoginHandler
         var nin = extractNin(input.getRequest().getUserAttributes());
         var orgFeideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
         var personFeideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
+        var optionalPerson = personRegistry.fetchPersonByNin(nin);
 
-        var personInformation = new PersonInformationImpl(personRegistry,
-                                                          nin,
-                                                          personFeideIdentifier,
-                                                          orgFeideDomain);
+        final Set<CustomerDto> customersForPerson;
+        final List<UserDto> usersForPerson;
+        final Set<String> rolesPerCustomerForPerson;
+        final CustomerDto currentCustomer;
+        final UserDto currentUser;
 
-        var customers = fetchCustomersWithActiveAffiliations(personInformation.getPersonAffiliations());
-
-        final var usersForPerson = userCreator.createUsers(personInformation, customers);
-
-        final var roles = rolesPerCustomer(usersForPerson);
-        var currentCustomer
-            = returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer(orgFeideDomain,
-                                                                                                 customers);
-        UserDto currentUser = null;
-        if (currentCustomer != null) {
-            currentUser = getCurrentUser(currentCustomer, usersForPerson);
+        if (optionalPerson.isPresent()) {
+            var person = optionalPerson.get();
+            customersForPerson = fetchCustomersWithActiveAffiliations(person.getAffiliations());
+            var userCreationContext = new UserCreationContext(person, customersForPerson, personFeideIdentifier);
+            usersForPerson = userCreator.createUsers(userCreationContext);
+            rolesPerCustomerForPerson = rolesPerCustomer(usersForPerson);
+            currentCustomer
+                = returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer(
+                orgFeideDomain, customersForPerson);
+            currentUser = nonNull(currentCustomer)
+                              ? getCurrentUser(currentCustomer, usersForPerson)
+                              : null;
+        } else {
+            customersForPerson = Collections.emptySet();
+            usersForPerson = Collections.emptyList();
+            rolesPerCustomerForPerson = Collections.emptySet();
+            currentCustomer = null;
+            currentUser = null;
         }
 
-        final var accessRights = createAccessRightsPerCustomer(usersForPerson);
+        final var accessRights = createAccessRightsPerCustomer(usersForPerson, customersForPerson);
+
         updateCognitoUserAttributes(input,
-                                    personInformation,
+                                    optionalPerson.orElse(null),
+                                    orgFeideDomain,
                                     currentCustomer,
                                     currentUser,
-                                    customers,
+                                    customersForPerson,
                                     accessRights,
-                                    roles);
+                                    rolesPerCustomerForPerson);
         injectAccessRightsToEventResponse(input, accessRights);
         return input;
     }
 
     private UserDto getCurrentUser(CustomerDto currentCustomer, Collection<UserDto> users) {
-        if (nonNull(currentCustomer)) {
-            var currentCustomerId = currentCustomer.getId();
-            return attempt(() -> filterOutUser(users, currentCustomerId))
-                       .orElseThrow(fail -> handleUserNotFoundError(currentCustomerId));
-        } else {
-            throw handleUserNotFoundError(null);
-        }
+        var currentCustomerId = currentCustomer.getId();
+        return attempt(() -> filterOutUser(users, currentCustomerId))
+                   .orElseThrow(fail -> handleUserNotFoundError(currentCustomerId));
     }
 
     private IllegalStateException handleUserNotFoundError(URI currentCustomerId) {
@@ -164,9 +173,9 @@ public class UserSelectionUponLoginHandler
                || feideDomain.equals(customer.getFeideOrganizationDomain());
     }
 
-    private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<PersonAffiliation> personAffiliations) {
-        return personAffiliations.stream()
-                   .map(PersonAffiliation::getInstitutionCristinId)
+    private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {
+        return affiliations.stream()
+                   .map(Affiliation::getInstitutionId)
                    .map(attempt(customerService::getCustomerByCristinId))
                    .flatMap(Try::stream)
                    .collect(Collectors.toSet());
@@ -195,7 +204,7 @@ public class UserSelectionUponLoginHandler
                    .build();
     }
 
-    private Collection<String> rolesPerCustomer(List<UserDto> usersForPerson) {
+    private Set<String> rolesPerCustomer(List<UserDto> usersForPerson) {
         return usersForPerson.stream()
                    .flatMap(UserDto::generateRoleClaims)
                    .collect(Collectors.toSet());
@@ -203,7 +212,8 @@ public class UserSelectionUponLoginHandler
 
     private void updateCognitoUserAttributes(
         CognitoUserPoolPreTokenGenerationEvent input,
-        PersonInformation personInformation,
+        Person person,
+        String feideDomain,
         CustomerDto currentCustomer,
         UserDto currentUser,
         Set<CustomerDto> customers,
@@ -211,7 +221,8 @@ public class UserSelectionUponLoginHandler
         Collection<String> roles) {
 
         cognitoClient.adminUpdateUserAttributes(createUpdateUserAttributesRequest(input,
-                                                                                  personInformation,
+                                                                                  person,
+                                                                                  feideDomain,
                                                                                   currentCustomer,
                                                                                   currentUser,
                                                                                   customers,
@@ -221,14 +232,16 @@ public class UserSelectionUponLoginHandler
 
     private AdminUpdateUserAttributesRequest createUpdateUserAttributesRequest(
         CognitoUserPoolPreTokenGenerationEvent input,
-        PersonInformation personInformation,
+        Person person,
+        String feideDomain,
         CustomerDto currentCustomer,
         UserDto currentUser,
         Set<CustomerDto> customers,
         Collection<String> accessRights,
         Collection<String> roles) {
 
-        Collection<AttributeType> userAttributes = updatedPersonAttributes(personInformation,
+        Collection<AttributeType> userAttributes = updatedPersonAttributes(person,
+                                                                           feideDomain,
                                                                            currentCustomer,
                                                                            currentUser,
                                                                            customers,
@@ -242,18 +255,18 @@ public class UserSelectionUponLoginHandler
                    .build();
     }
 
-    private Collection<AttributeType> updatedPersonAttributes(PersonInformation personInformation,
+    private Collection<AttributeType> updatedPersonAttributes(Person person,
+                                                              String feideDomain,
                                                               CustomerDto currentCustomer,
                                                               UserDto currentUser,
                                                               Set<CustomerDto> customers,
                                                               Collection<String> accessRights,
                                                               Collection<String> roles) {
 
-        if (personInformation.personIsPresentInPersonRegistry()) {
-            var allowedCustomersString = createAllowedCustomersString(customers,
-                                                                      personInformation.getFeideDomain());
+        if (nonNull(person)) {
+            var allowedCustomersString = createAllowedCustomersString(customers, feideDomain);
 
-            return addClaimsForPeopleRegisteredInPersonRegistry(personInformation,
+            return addClaimsForPeopleRegisteredInPersonRegistry(person,
                                                                 currentCustomer,
                                                                 currentUser,
                                                                 accessRights,
@@ -264,7 +277,7 @@ public class UserSelectionUponLoginHandler
     }
 
     private List<AttributeType> addClaimsForPeopleRegisteredInPersonRegistry(
-        PersonInformation personInformation,
+        Person person,
         CustomerDto currentCustomer,
         UserDto currentUser,
         Collection<String> accessRights,
@@ -272,13 +285,12 @@ public class UserSelectionUponLoginHandler
         String allowedCustomersString) {
 
         var claims = new ArrayList<AttributeType>();
-        claims.add(createAttribute("custom:firstName", personInformation.getFamilyName().orElseThrow()));
-        claims.add(createAttribute("custom:lastName", personInformation.getFamilyName().orElseThrow()));
+        claims.add(createAttribute(FIRST_NAME_CLAIM, person.getFirstname()));
+        claims.add(createAttribute(LAST_NAME_CLAIM, person.getSurname()));
         claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, accessRights)));
         claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
         claims.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString));
-        claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM,
-                                   personInformation.getPersonRegistryId().orElseThrow().toString()));
+        claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(currentCustomer, currentUser, claims);
         return claims;
     }
@@ -363,9 +375,9 @@ public class UserSelectionUponLoginHandler
                               .build());
     }
 
-    private List<String> createAccessRightsPerCustomer(List<UserDto> personsUsers) {
+    private List<String> createAccessRightsPerCustomer(List<UserDto> personsUsers, Set<CustomerDto> customers) {
         return personsUsers.stream()
-                   .map(user -> UserAccessRightForCustomer.fromUser(user, customerService))
+                   .map(user -> UserAccessRightForCustomer.fromUser(user, customers))
                    .flatMap(Collection::stream)
                    .map(UserAccessRightForCustomer::toString)
                    .collect(Collectors.toList());

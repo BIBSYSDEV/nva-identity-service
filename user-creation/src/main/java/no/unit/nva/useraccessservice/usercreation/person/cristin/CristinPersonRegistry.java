@@ -27,6 +27,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPe
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.PersonSearchResultItem;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.attempt.Failure;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
 import org.slf4j.Logger;
@@ -99,7 +100,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem) {
-        var request = createRequest(personSearchResultItem.getUrl());
+        var request = createRequest(URI.create(personSearchResultItem.getUrl()));
         return executeRequest(request, CristinPerson.class);
     }
 
@@ -117,8 +118,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     private static <T> T fromJson(String responseAsString, Class<T> type) {
         return attempt(() -> JsonUtils.dtoObjectMapper.readValue(responseAsString, type))
-                   .orElseThrow(
-                       failure -> new PersonRegistryException("Failed to parse response!", failure.getException()));
+                   .orElseThrow(CristinPersonRegistry::logAndThrowException);
+    }
+
+    private static <T> PersonRegistryException logAndThrowException(Failure<T> failure) {
+        LOGGER.error("Got unexpected response body from Cristin", failure.getException());
+        return new PersonRegistryException("Failed to parse response!", failure.getException());
     }
 
     private Person asPerson(CristinPerson cristinPerson) {
@@ -152,7 +157,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     private GenericPair<URI> collectAffiliation(CristinAffiliation cristinAffiliation) {
-        var institutionUri = cristinAffiliation.getInstitution().getUri();
+        var institutionUri = URI.create(cristinAffiliation.getInstitution().getUrl());
         var cristinInstitution = fetchInstitutionFromCristin(institutionUri);
         var institutionId = cristinInstitution.getCorrespondingUnit().getId();
         return new GenericPair<>(generateCristinIdForOrganization(institutionId),
@@ -187,6 +192,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
         try {
             response = this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (IOException | InterruptedException e) {
+            LOGGER.error("Cristin is unavailable", e);
             conditionallyInterrupt(e);
             throw new PersonRegistryException("Cristin is unavailable", e);
         } finally {
@@ -199,6 +205,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
         return fromJson(response.body(), type);
     }
 
+    @JacocoGenerated
     private static void conditionallyInterrupt(Exception e) {
         if (e instanceof InterruptedException) {
             Thread.currentThread().interrupt();

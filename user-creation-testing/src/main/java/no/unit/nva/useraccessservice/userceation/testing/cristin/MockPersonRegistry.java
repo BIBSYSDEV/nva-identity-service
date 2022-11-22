@@ -35,11 +35,8 @@ public class MockPersonRegistry {
     private static final String CRISTIN_PATH = "cristin";
     private static final String PERSON_PATH = "person";
     private static final String ORGANIZATION_PATH = "organization";
-
     private static final String AUTHORIZATION_HEADER_NAME = "authorization";
-
-    private final URI cristinBaseUri;
-
+    private URI cristinBaseUri;
     private final Map<String, CristinPerson> people;
     private final Map<String, URI> cristinInstitutionIdToUnitUriMap;
     private final String basicAuthorizationHeaderValue;
@@ -55,7 +52,12 @@ public class MockPersonRegistry {
         var nin = randomString();
         createPersonSearchStubBadGateway(nin);
         return nin;
+    }
 
+    public String mockResponseForIllegalJson() {
+        var nin = randomString();
+        createPersonSearchStubIllegalJson(nin);
+        return nin;
     }
 
     private String generateBasicAuthorizationHeaderValue(String username, String password) {
@@ -130,6 +132,10 @@ public class MockPersonRegistry {
 
     public URI getCristinIdForUnit(String identifier) {
         return nvaScopedOrganizationCristinId(identifier);
+    }
+
+    public void setCristinBaseUri(URI cristinBaseUri) {
+        this.cristinBaseUri = cristinBaseUri;
     }
 
     public URI getCristinIdForPerson(String nin) {
@@ -251,6 +257,16 @@ public class MockPersonRegistry {
         stubFor(get("/persons?national_id=" + nin)
                     .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
                     .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_BAD_GATEWAY)));
+    }
+
+    private void createPersonSearchStubIllegalJson(String nin) {
+        var illegalBodyAsArrayIsExpected = "{}";
+        stubFor(get("/persons?national_id=" + nin)
+                    .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                    .willReturn(aResponse()
+                                    .withBody(illegalBodyAsArrayIsExpected)
+                                    .withStatus(HttpURLConnection.HTTP_OK)));
+
     }
 
     private void createPersonGetStub(CristinPerson cristinPerson) {

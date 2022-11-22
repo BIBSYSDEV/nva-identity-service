@@ -2,6 +2,9 @@ package no.unit.nva.useraccessservice.usercreation.person;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Stream;
+import nva.commons.core.JacocoGenerated;
+import nva.commons.core.SingletonCollector;
 
 public class Person {
 
@@ -39,6 +42,23 @@ public class Person {
         return affiliations;
     }
 
+    public URI getConsistentUnitAffiliation(URI institutionId) {
+        var affiliations = findInstitutionUnitIds(institutionId);
+        return consistentlyPickAffiliationBySortingUriString(affiliations);
+    }
+
+    private URI consistentlyPickAffiliationBySortingUriString(Stream<URI> unitIds) {
+        return unitIds.map(URI::toString).sorted().map(URI::create).findFirst().orElseThrow();
+    }
+
+    private Stream<URI> findInstitutionUnitIds(URI institutionId) {
+        return this.affiliations.stream()
+                   .filter(affiliation -> affiliation.getInstitutionId().equals(institutionId))
+                   .map(Affiliation::getUnitIds)
+                   .collect(SingletonCollector.collect()).stream();
+    }
+
+    @JacocoGenerated
     @Override
     public String toString() {
         return "Person{"

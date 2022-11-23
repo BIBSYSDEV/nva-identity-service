@@ -264,7 +264,7 @@ class UserDaoTest {
     }
 
     @Test
-    void shouldCopyWithoutInformationLoss(){
+    void shouldCopyWithoutInformationLoss() {
         var source = randomUserDb();
         assertThat(source,doesNotHaveEmptyValues());
         var copy = source.copy().build();

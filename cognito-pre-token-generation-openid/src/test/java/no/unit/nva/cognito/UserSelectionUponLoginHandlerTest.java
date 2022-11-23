@@ -604,6 +604,7 @@ class UserSelectionUponLoginHandlerTest {
         var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
         var event = newLoginEvent(person, loginEventType);
         var response = handler.handleRequest(event, context);
+
         var accessRights = extractAccessRights(response);
         assertThat(accessRights, is((empty())));
     }

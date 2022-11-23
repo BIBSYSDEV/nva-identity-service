@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import no.unit.nva.commons.json.JsonUtils;
@@ -45,6 +46,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private static final String CRISTIN_PATH = "cristin";
     private static final String PERSON_PATH = "person";
     private static final String ORGANIZATION_PATH = "organization";
+    private static final String NATIONAL_IDENTITY_PATTERN = ".*\\?national_id=(\\d+)\\d\\d$";
     public static final String AUTHORIZATION = "Authorization";
 
     public static final String CRISTIN_CREDENTIALS_SECRET_NAME = "CristinClientBasicAuth";
@@ -121,10 +123,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
                    .orElseThrow(CristinPersonRegistry::logAndThrowException);
     }
 
+    @SuppressWarnings("PMD.InvalidLogMessageFormat")
     private static <T> PersonRegistryException logAndThrowException(Failure<T> failure) {
-        var exception = failure.getException();
-        LOGGER.error("Got unexpected response body from Cristin", exception);
-        return new PersonRegistryException("Failed to parse response!", exception);
+        LOGGER.error("Got unexpected response body from Cristin", failure.getException());
+        return new PersonRegistryException("Failed to parse response!", failure.getException());
     }
 
     private Person asPerson(CristinPerson cristinPerson) {
@@ -197,7 +199,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
             conditionallyInterrupt(e);
             throw new PersonRegistryException("Cristin is unavailable", e);
         } finally {
-            LOGGER.info("Called {} and got response in {} ms.", request.uri(),
+            LOGGER.info("Called {} and got response in {} ms.",
+                        maskSensitiveData(request.uri()),
                         Instant.now().toEpochMilli() - start.toEpochMilli());
         }
 
@@ -233,6 +236,20 @@ public final class CristinPersonRegistry implements PersonRegistry {
         var cristinCredentials = this.cristinCredentialsSupplier.get();
         var toBeEncoded = (cristinCredentials.getUsername() + ":" + cristinCredentials.getPassword()).getBytes();
         return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);
+    }
+
+    private String maskSensitiveData(URI uri) {
+        var pattern = Pattern.compile(NATIONAL_IDENTITY_PATTERN);
+        var matcher = pattern.matcher(uri.toString());
+        String maskedUri;
+        if (matcher.matches()) {
+            var toMask = matcher.group(1);
+            maskedUri = uri.toString().replaceAll(toMask, "XXXXXXXXX");
+        } else {
+            maskedUri = uri.toString();
+        }
+
+        return maskedUri;
     }
 
     private static class GenericPair<T> {

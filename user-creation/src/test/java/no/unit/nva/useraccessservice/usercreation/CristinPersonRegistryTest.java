@@ -4,6 +4,8 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_CREDENTIALS_SECRET_NAME;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_PASSWORD_SECRET_KEY;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -22,6 +24,7 @@ import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.logutils.LogUtils;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,6 +91,15 @@ public class CristinPersonRegistryTest {
         var personNin = scenarios.failingPersonRegistryRequestBadGateway();
 
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(personNin));
+    }
+
+    @Test
+    void shouldMaskNationalIdentityNumberInLog() {
+        var personNin = "12345678901";
+
+        var appender = LogUtils.getTestingAppenderForRootLogger();
+        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(personNin));
+        assertThat(appender.getMessages(), containsString("XXXXXXXXX01"));
     }
 
     private void setupCustomerAndIdentityService() {

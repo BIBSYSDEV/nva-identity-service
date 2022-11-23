@@ -122,8 +122,9 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     private static <T> PersonRegistryException logAndThrowException(Failure<T> failure) {
-        LOGGER.error("Got unexpected response body from Cristin", failure.getException());
-        return new PersonRegistryException("Failed to parse response!", failure.getException());
+        var exception = failure.getException();
+        LOGGER.error("Got unexpected response body from Cristin", exception);
+        return new PersonRegistryException("Failed to parse response!", exception);
     }
 
     private Person asPerson(CristinPerson cristinPerson) {

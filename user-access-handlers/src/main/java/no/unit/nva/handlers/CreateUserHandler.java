@@ -170,10 +170,8 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
-        return !(
-            requestInfo.clientIsInternalBackend()
-            || requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_USERS.toString())
-            || requestInfo.userIsApplicationAdmin()
-        );
+        return !(requestInfo.clientIsInternalBackend()
+                 || requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_USERS.toString())
+                 || requestInfo.userIsApplicationAdmin());
     }
 }

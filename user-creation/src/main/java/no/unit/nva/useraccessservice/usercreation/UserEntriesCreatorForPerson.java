@@ -2,6 +2,7 @@ package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static nva.commons.core.attempt.Try.attempt;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,6 +16,7 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.paths.UriWrapper;
 
 public class UserEntriesCreatorForPerson {
+
     public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
         RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT).build();
     private static final String AT = "@";
@@ -40,9 +42,11 @@ public class UserEntriesCreatorForPerson {
         var affiliation = person.getConsistentUnitAffiliation(customer.getCristinId());
         var feideIdentifier = context.getFeideIdentifier();
         var personId = context.getPerson().getId();
+        var customerCristinId = customer.getCristinId();
+        var username = createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(person.getIdentifier(),
+                                                                                       customerCristinId);
         var user = UserDto.newBuilder()
-                       .withUsername(
-                           createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(person.getIdentifier(), customer))
+                       .withUsername(username)
                        .withRoles(Collections.singletonList(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
                        .withFeideIdentifier(feideIdentifier)
                        .withInstitution(customer.getId())
@@ -57,11 +61,10 @@ public class UserEntriesCreatorForPerson {
 
     // Create a username that will allow the user to access their resources even if the identity service stack
     // gets totally destroyed.
-    private String createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(
-        String personIdentifier,
-        CustomerDto customer) {
+    private String createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(String personIdentifier,
+                                                                                   URI customerCristinId) {
 
-        var customerIdentifier = UriWrapper.fromUri(customer.getCristinId()).getLastPathElement();
+        var customerIdentifier = UriWrapper.fromUri(customerCristinId).getLastPathElement();
         return personIdentifier + AT + customerIdentifier;
     }
 

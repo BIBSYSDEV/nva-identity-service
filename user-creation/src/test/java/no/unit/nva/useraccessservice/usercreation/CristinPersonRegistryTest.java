@@ -41,7 +41,6 @@ public class CristinPersonRegistryTest {
     @BeforeEach
     public void beforeEach(WireMockRuntimeInfo wireMockRuntimeInfo) throws InvalidInputException, ConflictException {
         setupCustomerAndIdentityService();
-        var httpClient = WiremockHttpClient.create();
         var cristinUsername = randomString();
         var cristinPassword = randomString();
         secretsManagerClient = new FakeSecretsManagerClient();
@@ -49,6 +48,7 @@ public class CristinPersonRegistryTest {
         secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, cristinPassword);
         var apiDomain = ServiceConstants.API_DOMAIN;
         var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
+        var httpClient = WiremockHttpClient.create();
         personRegistry = CristinPersonRegistry.customPersonRegistry(httpClient,
                                                                     wiremockUri,
                                                                     apiDomain,

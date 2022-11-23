@@ -22,6 +22,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
+import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
@@ -89,7 +90,8 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private UserDto createNewUser(CreateUserRequest input) throws ConflictException {
-        var person = personRegistry.fetchPersonByNin(input.getNin())
+        var nin = new NationalIdentityNumber(input.getNin());
+        var person = personRegistry.fetchPersonByNin(nin)
                          .orElseThrow(() -> new ConflictException(personIsNotRegisteredError(input.getNin())));
 
         var customersWithActiveAffiliations = fetchCustomersWithActiveAffiliations(

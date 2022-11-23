@@ -20,6 +20,7 @@ import no.unit.nva.useraccessservice.constants.ServiceConstants;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
@@ -75,30 +76,33 @@ public class CristinPersonRegistryTest {
                                                                     uriWhereCristinIsUnavailable,
                                                                     ServiceConstants.API_DOMAIN,
                                                                     new SecretsReader(secretsManagerClient));
-
-        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(randomString()));
+        var nin = new NationalIdentityNumber(randomString());
+        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
     }
 
     @Test
     void shouldThrowExceptionIfCristinRespondsWithUnexpectedJson() {
         var personNin = scenarios.failingPersonRegistryRequestBadJson();
+        var nin = new NationalIdentityNumber(personNin);
 
-        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(personNin));
+        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
     }
 
     @Test
     void shouldThrowExceptionIfCristinRespondsWithNonOkStatusCode() {
         var personNin = scenarios.failingPersonRegistryRequestBadGateway();
+        var nin = new NationalIdentityNumber(personNin);
 
-        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(personNin));
+        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
     }
 
     @Test
     void shouldMaskNationalIdentityNumberInLog() {
         var personNin = "12345678901";
+        var nin = new NationalIdentityNumber(personNin);
 
         var appender = LogUtils.getTestingAppenderForRootLogger();
-        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(personNin));
+        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
         assertThat(appender.getMessages(), containsString("XXXXXXXXX01"));
     }
 

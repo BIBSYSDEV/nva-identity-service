@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
 import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
+import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
@@ -95,7 +96,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     @Override
-    public Optional<Person> fetchPersonByNin(String nin) {
+    public Optional<Person> fetchPersonByNin(NationalIdentityNumber nin) {
         return fetchPersonByNinFromCristin(nin)
                    .map(this::fetchPersonFromCristin)
                    .map(this::asPerson);
@@ -167,7 +168,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
                                  generateCristinIdForOrganization(cristinAffiliation.getUnit().getId()));
     }
 
-    private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(String nin) {
+    private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(NationalIdentityNumber nin) {
 
         var results = executeRequest(createPersonByNationalIdentityNumberQueryRequest(nin),
                                      PersonSearchResultItem[].class);
@@ -175,17 +176,17 @@ public final class CristinPersonRegistry implements PersonRegistry {
         return Arrays.stream(results).collect(SingletonCollector.tryCollect()).toOptional();
     }
 
-    private HttpRequest createPersonByNationalIdentityNumberQueryRequest(String nin) {
+    private HttpRequest createPersonByNationalIdentityNumberQueryRequest(NationalIdentityNumber nin) {
         return HttpRequest.newBuilder(createPersonByNationalIdentityNumberQueryUri(nin))
                    .GET()
                    .header(AUTHORIZATION, generateBasicAuthorization())
                    .build();
     }
 
-    private URI createPersonByNationalIdentityNumberQueryUri(String nin) {
+    private URI createPersonByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {
         return UriWrapper.fromUri(cristinBaseUri)
                    .addChild("persons")
-                   .addQueryParameter("national_id", nin)
+                   .addQueryParameter("national_id", nin.getNin())
                    .getUri();
     }
 

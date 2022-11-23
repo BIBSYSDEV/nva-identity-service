@@ -42,6 +42,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
+import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
@@ -181,10 +182,11 @@ public class UserSelectionUponLoginHandler
                    .collect(Collectors.toSet());
     }
 
-    private static String extractNin(Map<String, String> userAttributes) {
-        return Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
-                   .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS)))
-                   .orElseThrow();
+    private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {
+        return new NationalIdentityNumber(
+            Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
+                .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS)))
+                .orElseThrow());
     }
 
     private static String extractOrgFeideDomain(Map<String, String> userAttributes) {

@@ -4,5 +4,5 @@ import java.util.Optional;
 
 public interface PersonRegistry {
 
-    Optional<Person> fetchPersonByNin(String nin);
+    Optional<Person> fetchPersonByNin(NationalIdentityNumber nin);
 }

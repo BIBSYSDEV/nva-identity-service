@@ -95,7 +95,11 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     @Override
     public Optional<Person> fetchPersonByNin(NationalIdentityNumber nin) {
+        var start = Instant.now();
         var cristinCredentials = this.cristinCredentialsSupplier.get();
+
+        LOGGER.info("Read cristin credentials from secrets manager in {} ms.",
+                    Instant.now().toEpochMilli() - start.toEpochMilli());
 
         return fetchPersonByNinFromCristin(nin, cristinCredentials)
                    .map(person -> fetchPersonFromCristin(person, cristinCredentials))

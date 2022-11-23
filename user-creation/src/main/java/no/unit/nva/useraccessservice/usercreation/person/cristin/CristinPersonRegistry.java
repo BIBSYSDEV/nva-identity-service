@@ -95,25 +95,28 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     @Override
     public Optional<Person> fetchPersonByNin(NationalIdentityNumber nin) {
-        return fetchPersonByNinFromCristin(nin)
-                   .map(this::fetchPersonFromCristin)
-                   .map(this::asPerson);
+        var cristinCredentials = this.cristinCredentialsSupplier.get();
+
+        return fetchPersonByNinFromCristin(nin, cristinCredentials)
+                   .map(person -> fetchPersonFromCristin(person, cristinCredentials))
+                   .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
     }
 
-    private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem) {
-        var request = createRequest(URI.create(personSearchResultItem.getUrl()));
+    private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem,
+                                                 CristinCredentials cristinCredentials) {
+        var request = createRequest(URI.create(personSearchResultItem.getUrl()), cristinCredentials);
         return executeRequest(request, CristinPerson.class);
     }
 
-    private CristinInstitution fetchInstitutionFromCristin(URI institutionUri) {
-        var request = createRequest(institutionUri);
+    private CristinInstitution fetchInstitutionFromCristin(URI institutionUri, CristinCredentials cristinCredentials) {
+        var request = createRequest(institutionUri, cristinCredentials);
         return executeRequest(request, CristinInstitution.class);
     }
 
-    private HttpRequest createRequest(URI uri) {
+    private HttpRequest createRequest(URI uri, CristinCredentials cristinCredentials) {
         return HttpRequest.newBuilder(uri)
                    .GET()
-                   .header(AUTHORIZATION, generateBasicAuthorization())
+                   .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials))
                    .build();
     }
 
@@ -128,12 +131,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
         return new PersonRegistryException("Failed to parse response!", failure.getException());
     }
 
-    private Person asPerson(CristinPerson cristinPerson) {
+    private Person asPerson(CristinPerson cristinPerson, CristinCredentials cristinCredentials) {
 
         var personAffiliations
             = cristinPerson.getAffiliations().stream()
                   .filter(CristinAffiliation::isActive)
-                  .map(this::collectAffiliation)
+                  .map(activeAffiliation -> collectAffiliation(activeAffiliation, cristinCredentials))
                   .collect(Collectors.groupingBy(GenericPair::getLeft, mapping(GenericPair::getRight, toList())))
                   .entrySet().stream()
                   .map(a -> new Affiliation(a.getKey(), a.getValue()))
@@ -158,26 +161,30 @@ public final class CristinPersonRegistry implements PersonRegistry {
                    .getUri();
     }
 
-    private GenericPair<URI> collectAffiliation(CristinAffiliation cristinAffiliation) {
+    private GenericPair<URI> collectAffiliation(CristinAffiliation cristinAffiliation,
+                                                CristinCredentials cristinCredentials) {
+
         var institutionUri = URI.create(cristinAffiliation.getInstitution().getUrl());
-        var cristinInstitution = fetchInstitutionFromCristin(institutionUri);
+        var cristinInstitution = fetchInstitutionFromCristin(institutionUri, cristinCredentials);
         var institutionId = cristinInstitution.getCorrespondingUnit().getId();
         return new GenericPair<>(generateCristinIdForOrganization(institutionId),
                                  generateCristinIdForOrganization(cristinAffiliation.getUnit().getId()));
     }
 
-    private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(NationalIdentityNumber nin) {
+    private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(NationalIdentityNumber nin,
+                                                                         CristinCredentials cristinCredentials) {
 
-        var results = executeRequest(createPersonByNationalIdentityNumberQueryRequest(nin),
+        var results = executeRequest(createPersonByNationalIdentityNumberQueryRequest(nin, cristinCredentials),
                                      PersonSearchResultItem[].class);
 
         return Arrays.stream(results).collect(SingletonCollector.tryCollect()).toOptional();
     }
 
-    private HttpRequest createPersonByNationalIdentityNumberQueryRequest(NationalIdentityNumber nin) {
+    private HttpRequest createPersonByNationalIdentityNumberQueryRequest(NationalIdentityNumber nin,
+                                                                         CristinCredentials cristinCredentials) {
         return HttpRequest.newBuilder(createPersonByNationalIdentityNumberQueryUri(nin))
                    .GET()
-                   .header(AUTHORIZATION, generateBasicAuthorization())
+                   .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials))
                    .build();
     }
 
@@ -231,8 +238,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
                              response.body());
     }
 
-    private String generateBasicAuthorization() {
-        var cristinCredentials = this.cristinCredentialsSupplier.get();
+    private String generateBasicAuthorization(CristinCredentials cristinCredentials) {
         var toBeEncoded =
             (cristinCredentials.getUsername() + ":" + new String(cristinCredentials.getPassword())).getBytes();
         return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);

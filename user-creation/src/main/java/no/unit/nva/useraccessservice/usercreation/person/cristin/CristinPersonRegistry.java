@@ -90,9 +90,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     private static Supplier<CristinCredentials> secretsReaderCristinCredentialsSupplier(SecretsReader secretsReader) {
-        return () -> new CristinCredentials(
-            secretsReader.fetchSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_USERNAME_SECRET_KEY),
-            secretsReader.fetchSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY));
+        return () -> secretsReader.fetchClassSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CristinCredentials.class);
     }
 
     @Override
@@ -235,7 +233,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     private String generateBasicAuthorization() {
         var cristinCredentials = this.cristinCredentialsSupplier.get();
-        var toBeEncoded = (cristinCredentials.getUsername() + ":" + cristinCredentials.getPassword()).getBytes();
+        var toBeEncoded =
+            (cristinCredentials.getUsername() + ":" + new String(cristinCredentials.getPassword())).getBytes();
         return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);
     }
 

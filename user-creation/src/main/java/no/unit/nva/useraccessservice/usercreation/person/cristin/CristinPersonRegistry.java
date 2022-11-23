@@ -98,8 +98,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
         var start = Instant.now();
         var cristinCredentials = this.cristinCredentialsSupplier.get();
 
-        LOGGER.info("Read cristin credentials from secrets manager in {} ms.",
-                    Instant.now().toEpochMilli() - start.toEpochMilli());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Read cristin credentials from secrets manager in {} ms.",
+                        Instant.now().toEpochMilli() - start.toEpochMilli());
+        }
 
         return fetchPersonByNinFromCristin(nin, cristinCredentials)
                    .map(person -> fetchPersonFromCristin(person, cristinCredentials))
@@ -209,9 +211,11 @@ public final class CristinPersonRegistry implements PersonRegistry {
             conditionallyInterrupt(e);
             throw new PersonRegistryException("Cristin is unavailable", e);
         } finally {
-            LOGGER.info("Called {} and got response in {} ms.",
-                        maskSensitiveData(request.uri()),
-                        Instant.now().toEpochMilli() - start.toEpochMilli());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Called {} and got response in {} ms.",
+                            maskSensitiveData(request.uri()),
+                            Instant.now().toEpochMilli() - start.toEpochMilli());
+            }
         }
 
         assertOkResponse(request, response);

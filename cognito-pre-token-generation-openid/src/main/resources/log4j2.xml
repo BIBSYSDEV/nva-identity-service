@@ -10,6 +10,10 @@
 
   </Appenders>
   <Loggers>
+    <Logger name="no.unit.nva" additivity="false" level="debug">
+      <AppenderRef ref="Lambda"/>
+    </Logger>
+
     <Root level="info">
       <AppenderRef ref="Lambda"/>
     </Root>

@@ -100,7 +100,10 @@ public class UserSelectionUponLoginHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
-        LOGGER.info("Entering request handler...");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Entering request handler...");
+        }
+
         final var start = Instant.now();
 
         final var authenticationDetails = extractAuthenticationDetails(input);
@@ -108,8 +111,10 @@ public class UserSelectionUponLoginHandler
         var startFetchingPerson = Instant.now();
         var optionalPerson = personRegistry.fetchPersonByNin(authenticationDetails.getNin());
 
-        LOGGER.info("Got person details from registry in {} ms.",
-                    Instant.now().toEpochMilli() - startFetchingPerson.toEpochMilli());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Got person details from registry in {} ms.",
+                         Instant.now().toEpochMilli() - startFetchingPerson.toEpochMilli());
+        }
 
         if (optionalPerson.isPresent()) {
             var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(optionalPerson.get(),
@@ -120,7 +125,10 @@ public class UserSelectionUponLoginHandler
             injectAccessRightsToEventResponse(input, Collections.emptyList());
         }
 
-        LOGGER.info("Leaving request handler having spent {} ms.", Instant.now().toEpochMilli() - start.toEpochMilli());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Leaving request handler having spent {} ms.",
+                         Instant.now().toEpochMilli() - start.toEpochMilli());
+        }
         return input;
     }
 
@@ -130,14 +138,18 @@ public class UserSelectionUponLoginHandler
         var customersForPerson = fetchCustomersWithActiveAffiliations(person.getAffiliations());
         var usersForPerson = createUsers(person, customersForPerson, authenticationDetails);
 
-        LOGGER.info("Created users for customer with active affiliations in {} ms.",
-                    Instant.now().toEpochMilli() - start.toEpochMilli());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Created users for customer with active affiliations in {} ms.",
+                         Instant.now().toEpochMilli() - start.toEpochMilli());
+        }
 
         start = Instant.now();
         var accessRights = updateUserAttributesInCognito(person, customersForPerson, usersForPerson,
                                                          authenticationDetails);
-        LOGGER.info("Updated user attributes in Cognito in {} ms.",
-                    Instant.now().toEpochMilli() - start.toEpochMilli());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Updated user attributes in Cognito in {} ms.",
+                         Instant.now().toEpochMilli() - start.toEpochMilli());
+        }
 
         return accessRights;
     }

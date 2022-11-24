@@ -21,8 +21,8 @@ public class NationalIdentityNumber {
 
     @Override
     public String toString() {
-        return "NationalIdentityNumber{" +
-               "nin='" + mask(nin) + '\'' +
-               '}';
+        return "NationalIdentityNumber{"
+               + "nin='" + mask(nin) + '\''
+               + '}';
     }
 }

@@ -1493,7 +1493,7 @@ Resources:
 #          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   PreTokenGenerationHandlerTriggerPermission:
-    DependsOn:
+#    DependsOn:
 #      - PreTokenGenerationHandlerScalingPolicy
 #      - PreTokenGenerationHandlerScalableTarget
     Type: AWS::Lambda::Permission

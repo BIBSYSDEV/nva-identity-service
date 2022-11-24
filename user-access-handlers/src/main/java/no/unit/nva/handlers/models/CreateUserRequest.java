@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.usercreation.cristin.NationalIdentityNumber;
 import nva.commons.core.JacocoGenerated;
 
 public class CreateUserRequest {
@@ -19,13 +18,13 @@ public class CreateUserRequest {
 
     @JsonProperty(NATIONAL_IDENTITY_NUMBER_FIELD)
     @JsonAlias("nin")
-    private NationalIdentityNumber nin;
+    private String nin;
     @JsonProperty(CUSTOMER_ID_FIELD)
     private URI customerId;
     @JsonProperty(ROLES_FIELD)
     private Set<RoleDto> roles;
 
-    public CreateUserRequest(NationalIdentityNumber nin,
+    public CreateUserRequest(String nin,
                              URI customerId,
                              Set<RoleDto> roles) {
         this.nin = nin;
@@ -39,12 +38,12 @@ public class CreateUserRequest {
     }
 
     @JacocoGenerated
-    public NationalIdentityNumber getNin() {
+    public String getNin() {
         return nin;
     }
 
     @JacocoGenerated
-    public void setNin(NationalIdentityNumber nin) {
+    public void setNin(String nin) {
         this.nin = nin;
     }
 

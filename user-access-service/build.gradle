@@ -31,4 +31,6 @@ dependencies {
 test{
     environment "API_DOMAIN", "localhost"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
+    environment "CRISTIN_API_URL", "https://cristin.no"
+    environment "ID_NAMESPACE", "https://www.example.org/namespace/"
 }

@@ -1455,8 +1455,8 @@ Resources:
       DeploymentPreference:
         Enabled: true
         Type: AllAtOnce
-#      ProvisionedConcurrencyConfig:
-#        ProvisionedConcurrentExecutions: 1
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
           USERPOOL_NAME: !GetAtt UserPoolName.Value

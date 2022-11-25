@@ -69,6 +69,14 @@ public class MockPersonRegistry {
         return people.get(nin);
     }
 
+    public String personWithoutAffiliations() {
+        var nin = randomString();
+
+        createPersonWithAffiliations(nin, null);
+
+        return nin;
+    }
+
     public String personWithExactlyOneActiveEmployment() {
         var nin = randomString();
 
@@ -178,10 +186,15 @@ public class MockPersonRegistry {
                                               List<CristinAffiliation> cristinAffiliations) {
         var person = new CristinPerson(randomString(), randomString(), randomString(), cristinAffiliations);
 
-        var institutions = cristinAffiliations.stream()
+        final List<String> institutions;
+        if (cristinAffiliations == null) {
+            institutions = Collections.emptyList();
+        } else {
+            institutions = cristinAffiliations.stream()
                                .map(CristinAffiliation::getInstitution)
                                .map(CristinAffiliationInstitution::getId)
                                .collect(Collectors.toList());
+        }
         updateBuffersAndStubs(nin, person, institutions);
     }
 

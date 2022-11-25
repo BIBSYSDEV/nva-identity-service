@@ -2,7 +2,9 @@ package no.unit.nva.useraccessservice.usercreation.person.cristin.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class CristinPerson {
 
@@ -23,7 +25,7 @@ public class CristinPerson {
         this.id = id;
         this.firstname = firstname;
         this.surname = surname;
-        this.affiliations = affiliations;
+        this.affiliations = Objects.isNull(affiliations) ? Collections.emptyList() : affiliations;
     }
 
     public String getId() {

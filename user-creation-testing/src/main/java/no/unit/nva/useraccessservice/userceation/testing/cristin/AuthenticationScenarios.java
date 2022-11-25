@@ -95,6 +95,10 @@ public class AuthenticationScenarios {
         return personRegistry.mockResponseForIllegalJson();
     }
 
+    public String personWithoutAffiliations() {
+        return personRegistry.personWithoutAffiliations();
+    }
+
     private void addCreatorRoleToIdentityService(IdentityService identityService)
         throws InvalidInputException, ConflictException {
         var creatorRole = RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)

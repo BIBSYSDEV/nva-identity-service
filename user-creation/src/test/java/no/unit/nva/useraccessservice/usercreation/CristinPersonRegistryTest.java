@@ -6,6 +6,9 @@ import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinP
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -27,6 +30,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRe
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.logutils.LogUtils;
 import nva.commons.secrets.SecretsReader;
+import org.hamcrest.collection.IsEmptyIterable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,6 +108,16 @@ public class CristinPersonRegistryTest {
         var appender = LogUtils.getTestingAppenderForRootLogger();
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
         assertThat(appender.getMessages(), containsString("XXXXXXXXX01"));
+    }
+
+    @Test
+    void shouldReturnEmptyListOfAffiliationsIfFieldIsMissingInCristinOnGetPerson() {
+        var personNin = scenarios.personWithoutAffiliations();
+        var nin = new NationalIdentityNumber(personNin);
+
+        var person = personRegistry.fetchPersonByNin(nin);
+        assertThat(person.isPresent(), is(equalTo(true)));
+        assertThat(person.get().getAffiliations(), emptyIterable());
     }
 
     private void setupCustomerAndIdentityService() {

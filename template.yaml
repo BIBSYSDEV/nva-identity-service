@@ -1455,8 +1455,8 @@ Resources:
       DeploymentPreference:
         Enabled: true
         Type: AllAtOnce
-#      ProvisionedConcurrencyConfig:
-#        ProvisionedConcurrentExecutions: 1
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
           USERPOOL_NAME: !GetAtt UserPoolName.Value
@@ -1470,32 +1470,32 @@ Resources:
           CRISTIN_API_URL: !Ref CristinApiUrl
       Timeout: 20
 
-#  PreTokenGenerationHandlerScalableTarget:
-#    Type: AWS::ApplicationAutoScaling::ScalableTarget
-#    Properties:
-#      MaxCapacity: 10
-#      MinCapacity: 1
-#      ResourceId: !Sub function:${PreTokenGenerationHandler}:live
-#      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-#      ScalableDimension: lambda:function:ProvisionedConcurrency
-#      ServiceNamespace: lambda
-#    DependsOn: PreTokenGenerationHandlerAliaslive
-#
-#  PreTokenGenerationHandlerScalingPolicy:
-#    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-#    Properties:
-#      PolicyName: PreTokenGenerationHandlerScalingPolicy
-#      PolicyType: TargetTrackingScaling
-#      ScalingTargetId: !Ref PreTokenGenerationHandlerScalableTarget
-#      TargetTrackingScalingPolicyConfiguration:
-#        TargetValue: 0.70
-#        PredefinedMetricSpecification:
-#          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+  PreTokenGenerationHandlerScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 10
+      MinCapacity: 1
+      ResourceId: !Sub function:${PreTokenGenerationHandler}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: PreTokenGenerationHandlerAliaslive
+
+  PreTokenGenerationHandlerScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: PreTokenGenerationHandlerScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref PreTokenGenerationHandlerScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   PreTokenGenerationHandlerTriggerPermission:
-#    DependsOn:
-#      - PreTokenGenerationHandlerScalingPolicy
-#      - PreTokenGenerationHandlerScalableTarget
+    DependsOn:
+      - PreTokenGenerationHandlerScalingPolicy
+      - PreTokenGenerationHandlerScalableTarget
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction

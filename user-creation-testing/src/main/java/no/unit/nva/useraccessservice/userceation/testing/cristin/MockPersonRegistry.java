@@ -72,7 +72,7 @@ public class MockPersonRegistry {
     public String personWithoutAffiliations() {
         var nin = randomString();
 
-        createPersonWithAffiliations(nin, null);
+        createPersonWithoutAffiliations(nin);
 
         return nin;
     }
@@ -182,19 +182,22 @@ public class MockPersonRegistry {
         return UriWrapper.fromUri(cristinBaseUri).addChild("institutions", identifier).getUri().toString();
     }
 
+    private void createPersonWithoutAffiliations(String nin) {
+        var person = new CristinPerson(randomString(), randomString(), randomString(), null);
+
+        var institutions = Collections.<String>emptyList();
+        updateBuffersAndStubs(nin, person, institutions);
+    }
+
     private void createPersonWithAffiliations(String nin,
                                               List<CristinAffiliation> cristinAffiliations) {
         var person = new CristinPerson(randomString(), randomString(), randomString(), cristinAffiliations);
 
-        final List<String> institutions;
-        if (cristinAffiliations == null) {
-            institutions = Collections.emptyList();
-        } else {
-            institutions = cristinAffiliations.stream()
+        var institutions = cristinAffiliations.stream()
                                .map(CristinAffiliation::getInstitution)
                                .map(CristinAffiliationInstitution::getId)
                                .collect(Collectors.toList());
-        }
+
         updateBuffersAndStubs(nin, person, institutions);
     }
 

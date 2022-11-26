@@ -25,5 +25,6 @@ dependencies {
 
 test {
     environment "API_DOMAIN", "localhost"
-
+    environment "ID_NAMESPACE", "https://www.example.org/namespace/"
+    environment "CRISTIN_API_URL", "https://cristin.no"
 }

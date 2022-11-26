@@ -152,7 +152,12 @@ class RoleDtoTest extends DtoTest {
 
     @Test
     void shouldSerializeAsJson() throws InvalidInputException, BadRequestException {
-        var randomAccessRights = Set.of(randomAccessRight(), randomAccessRight());
+        var firstAccessRight = randomAccessRight();
+        var secondAccessRight = randomAccessRight();
+        while (secondAccessRight.equals(firstAccessRight)) {
+            secondAccessRight = randomAccessRight();
+        }
+        var randomAccessRights = Set.of(firstAccessRight, secondAccessRight);
         var sample = RoleDto.newBuilder()
             .withRoleName(randomString())
             .withAccessRights(randomAccessRights)

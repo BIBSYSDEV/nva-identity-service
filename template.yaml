@@ -33,6 +33,13 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApiDomain
     Description: Domain-name for the backend
+  CristinApiUrl:
+    Type: String
+    Description: Url for Cristin API
+    Default: https://api.cristin-test.uio.no/v2
+    AllowedValues:
+      - https://api.cristin-test.uio.no/v2
+      - https://api.cristin.no/v2
   ApplicationDomain:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApplicationDomain
@@ -56,6 +63,7 @@ Parameters:
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
 
 
+
 Mappings:
   Constants:
     Cognito:
@@ -74,6 +82,7 @@ Globals:
     Environment:
       Variables:
         API_DOMAIN: !Ref ApiDomain
+        CRISTIN_API_URL: !Ref CristinApiUrl
         CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
         BY_ORG_DOMAIN_INDEX_NAME: byOrgDomain
         BY_CRISTIN_ID_INDEX_NAME: byCristinId
@@ -235,6 +244,7 @@ Resources:
                    - secretsmanager:ListSecretVersionIds
                 Resource:
                   - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials*'
+                  - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:CristinClientBasicAuth*'
               - Effect: Allow
                 Action:
                   - secretsmanager:GetRandomPassword
@@ -360,6 +370,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           API_DOMAIN: !Ref ApiDomain
+          CRISTIN_API_URL: !Ref CristinApiUrl
           COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
           COGNITO_ID_KEY: backendClientId
           COGNITO_SECRET_KEY: backendClientSecret
@@ -896,10 +907,10 @@ Resources:
               - logs:PutLogEvents
               - lambda:InvokeFunction
             Resource: "*"
-  ScanUsersTablePermsision:
+  ScanUsersTablePermission:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub ScanUsersTablePermsision-${AWS::StackName}
+      PolicyName: !Sub ScanUsersTablePermission-${AWS::StackName}
       Roles:
         - !Ref BatchScanRole
       PolicyDocument:
@@ -1513,7 +1524,7 @@ Resources:
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-          PERSON_REGISTRY_HOST: !Sub '${ApiDomain}/cristin'
+          CRISTIN_API_URL: !Ref CristinApiUrl
       Timeout: 20
 
   PreTokenGenerationHandlerScalableTarget:
@@ -1530,7 +1541,7 @@ Resources:
   PreTokenGenerationHandlerScalingPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
-      PolicyName: PpeTokenGenerationnHandlerScalingPolicy
+      PolicyName: PreTokenGenerationHandlerScalingPolicy
       PolicyType: TargetTrackingScaling
       ScalingTargetId: !Ref PreTokenGenerationHandlerScalableTarget
       TargetTrackingScalingPolicyConfiguration:

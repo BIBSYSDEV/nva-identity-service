@@ -1,15 +1,15 @@
 package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.AT;
-import static nva.commons.core.attempt.Try.attempt;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.SingletonCollector;
 
 public class UserAccessRightForCustomer {
 
@@ -22,9 +22,10 @@ public class UserAccessRightForCustomer {
         this.customer = customerDto;
     }
 
-    public static List<UserAccessRightForCustomer> fromUser(UserDto user, CustomerService customerService) {
-        var customer =
-            attempt(() -> customerService.getCustomer(user.getInstitution())).orElseThrow();
+    public static List<UserAccessRightForCustomer> fromUser(UserDto user, Set<CustomerDto> customers) {
+        var customer = customers.stream()
+            .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
+            .collect(SingletonCollector.collect());
         return createAccessRightsForExistingCustomer(user, customer);
     }
 

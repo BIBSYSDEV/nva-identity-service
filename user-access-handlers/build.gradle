@@ -46,5 +46,6 @@ test{
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
     environment "SIKT_CRISTIN_ID", "https://example.org/sikt/cristin/id"
     environment "ID_NAMESPACE", "https://www.example.org/namespace/"
+    environment "CRISTIN_API_URL", "https://cristin.no"
     environment "ALLOWED_ORIGIN", "*"
 }

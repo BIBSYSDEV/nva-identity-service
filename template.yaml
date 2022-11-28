@@ -129,8 +129,8 @@ Resources:
           Principal:
             Federated:
               - "cognito-identity.amazon.com"
-            Action:
-              - "sts:AssumeRoleWithWebIdentity"
+          Action:
+            - "sts:AssumeRoleWithWebIdentity"
       Policies:
         - PolicyName: unauthenticatedUserPolicy
           PolicyDocument:

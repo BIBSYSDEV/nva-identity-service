@@ -1,9 +1,7 @@
 package no.unit.nva.customer.service.impl;
 
 import static nva.commons.core.attempt.Try.attempt;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +21,7 @@ import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
+import nva.commons.secrets.SecretsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -31,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
 
 public class DynamoDBCustomerService implements CustomerService {
 
@@ -46,7 +46,7 @@ public class DynamoDBCustomerService implements CustomerService {
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
-    private static final String DOI_SECRET_IDENTITY_NAME = "DoiSecretName";
+    private static final String DOI_SECRET_IDENTITY_NAME = "DoiAgentSecrets";
     private final DynamoDbTable<CustomerDao> table;
 
     /**
@@ -129,16 +129,15 @@ public class DynamoDBCustomerService implements CustomerService {
 
         var customer = getCustomer(identifier);
         customer.setDoiAgent(doiAgent);
-        /// TODO set secret in secret manager.
+        attempt(() -> new SecretsWriter().updateSecretKey(
+            DOI_SECRET_IDENTITY_NAME,
+            doiAgent.getPrefix(),
+            doiAgent.getSecret())
+        );
+
         return updateCustomer(identifier,customer).getDoiAgent();
     }
 
-    @Override
-    public URL createCustomerDoi(UUID identifier) throws NotFoundException, MalformedURLException {
-        var doiAgent = getCustomerDoiAgentSecret(identifier);
-        /// TODO  fetch doi secret / request new doi with secret / return new doi
-        return URI.create("https://example-org/doi/324234").toURL();
-    }
 
     public List<CustomerDto> updateCustomersWithNvaAttribute() {
         return table.scan()

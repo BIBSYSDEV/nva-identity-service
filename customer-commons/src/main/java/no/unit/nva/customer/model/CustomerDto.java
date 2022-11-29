@@ -397,11 +397,9 @@ public class CustomerDto implements Context {
             if (nonNull(doiAgent)) {
                 var urlId = nonNull(customerDto.identifier)
                                 ? toId(customerDto.identifier)
-                                : URI.create("https://example.org/custommer/null");
+                                : URI.create("https://example.org/custommer/should_only_appear_in_test");
                 return new DoiAgentDto(doiAgent)
-                           .addLink("self", urlId + "/doiAgent")
-                           .addLink("fetchdoi", urlId + "/doi")
-                           .addSecret("*****");
+                           .addLink("self", urlId + "/doiAgent");
             }
             return null;
         }
@@ -415,7 +413,7 @@ public class CustomerDto implements Context {
         private String name;
         private String prefix;
         private String secret;
-        private final Map<String, LinkItem> links = new HashMap<>(2);
+        private final Map<String, LinkItem> links = new HashMap<>(1);
 
         @SuppressWarnings("unused")
         public DoiAgentDto() {

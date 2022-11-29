@@ -42,11 +42,10 @@ class CustomerDtoTest {
         assertNotEquals(null, doi);
     }
 
-
     @Test
     void dtoSerializesToJsonAndBackWithSecret() throws BadRequestException {
         CustomerDto customer = randomCustomer();
-        customer.getDoiAgent().addLink("secret",randomUri().toString());
+        customer.getDoiAgent().setSecret("******");
         var json = customer.toString();
         var deserialized = CustomerDto.fromJson(json);
 
@@ -56,6 +55,7 @@ class CustomerDtoTest {
         assertEquals(doi.hashCode(),deserialized.getDoiAgent().hashCode());
         assertNotEquals(null, doi);
     }
+
     @Test
     void shouldThrowBadRequestExceptionWhenFailingToDeserialize() {
         String invalidJson = randomString();

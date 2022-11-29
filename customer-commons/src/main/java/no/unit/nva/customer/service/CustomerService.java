@@ -1,8 +1,6 @@
 package no.unit.nva.customer.service;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
@@ -31,6 +29,4 @@ public interface CustomerService {
 
     DoiAgentDto updateCustomerDoiAgentSecret(UUID identifier, DoiAgentDto doiAgent)
         throws NotFoundException, InputException;
-
-    URL createCustomerDoi(UUID identifier) throws NotFoundException, MalformedURLException;
 }

@@ -128,10 +128,13 @@ Resources:
         Statement:
           Effect: Allow
           Principal:
-            Federated:
-              - "cognito-identity.amazon.com"
-          Action:
-            - "sts:AssumeRoleWithWebIdentity"
+            Federated: cognito-identity.amazon.com
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+            "ForAnyValue:StringLike":
+              "cognito-identity.amazonaws.com:amr": unauthenticated
       Policies:
         - PolicyName: unauthenticatedUserPolicy
           PolicyDocument:
@@ -157,10 +160,13 @@ Resources:
         Statement:
           Effect: Allow
           Principal:
-            Federated:
-              - "cognito-identity.amazon.com"
-          Action:
-            - "sts:AssumeRoleWithWebIdentity"
+            Federated: cognito-identity.amazon.com
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+            "ForAnyValue:StringLike":
+              "cognito-identity.amazonaws.com:amr": authenticated
       Policies:
         - PolicyName: authenticatedUserPolicy
           PolicyDocument:

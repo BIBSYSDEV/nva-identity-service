@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.dao.UserDao;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -88,7 +87,10 @@ public class UserService extends DatabaseSubService {
      * @throws ConflictException when the entry exists.
      */
     public UserDto addUser(UserDto user) throws ConflictException {
-        logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
+        if (logger.isDebugEnabled()) {
+            logger.debug(ADD_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(user));
+        }
+
         checkUserDoesNotAlreadyExist(user);
         UserDao databaseEntryWithSyncedRoles = syncRoleDetails(UserDao.fromUserDto(user));
         table.putItem(databaseEntryWithSyncedRoles);
@@ -99,7 +101,6 @@ public class UserService extends DatabaseSubService {
      * Update an existing user.
      *
      * @param updateObject the updated user information.
-     * @throws InvalidInputException when the input entry is invalid.
      * @throws NotFoundException     when there is no user with the same username in the database.
      */
     public void updateUser(UserDto updateObject) throws NotFoundException {
@@ -145,7 +146,10 @@ public class UserService extends DatabaseSubService {
     }
 
     private Optional<UserDto> getUserAsOptional(UserDto queryObject) {
-        logger.debug(GET_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
+        if (logger.isDebugEnabled()) {
+            logger.debug(GET_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
+        }
+
         UserDto searchResult = attemptToFetchObject(queryObject);
         return Optional.ofNullable(searchResult);
     }

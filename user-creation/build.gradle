@@ -52,5 +52,6 @@ test{
     environment "COGNITO_SECRET_KEY", "someSecret"
     environment "COGNITO_ID_KEY", "someKey"
     environment "ID_NAMESPACE", "https://www.example.org/namespace/"
+    environment "CRISTIN_API_URL", "https://cristin.no"
     environment "ALLOWED_ORIGIN", "*"
 }

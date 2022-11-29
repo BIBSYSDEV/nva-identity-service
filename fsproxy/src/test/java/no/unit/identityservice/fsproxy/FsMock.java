@@ -261,7 +261,9 @@ public class FsMock {
         }
     }
 
-    private void addAllResponsesToCreatePerson(NationalIdentityNumber nin, FsPerson student, List<FsRoleToStaffPerson> roles,
+    private void addAllResponsesToCreatePerson(NationalIdentityNumber nin,
+                                               FsPerson student,
+                                               List<FsRoleToStaffPerson> roles,
                                                List<FsUriToCourseActivity> uriToCourseActivities) {
         addPersonToFsInstance(nin);
         addResponseForGettingStudentCoursesByFsIdNumber(nin, CURRENT_YEAR);
@@ -305,7 +307,8 @@ public class FsMock {
 
     private String createCoursesResponseBody(NationalIdentityNumber nin, int year) {
         var coursesForYear = studentCoursesForYear(nin, year);
-        var courses = FsCourseItemContainingCourseContainer.fromCourseList(coursesForYear);
+        var courses
+            = FsCourseItemContainingCourseContainer.fromCourseList(coursesForYear);
         return new FsCoursesSearchResult(courses).toString();
     }
 
@@ -387,7 +390,8 @@ public class FsMock {
 
     private void addResponseForGettingCourseActivityToRoleUri(FsRoleToStaffPerson role) {
         server.stubFor(get(urlPathEqualTo(role.getUriToRole().getPath())).willReturn(
-            ok().withHeader("Content-type", "application/json").withBody(createUriToCourseActivityResponseBody(role))));
+            ok().withHeader("Content-type", "application/json")
+                .withBody(createUriToCourseActivityResponseBody(role))));
     }
 
     private void addResponseForGettingCourseToStaffPerson(FsUriToCourseActivity courseActivity) {

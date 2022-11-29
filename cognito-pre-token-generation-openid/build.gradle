@@ -36,7 +36,8 @@ dependencies {
     testImplementation libs.nva.events
     testImplementation project(":user-access-internal-model")
     testImplementation project(":customer-testing")
-    testImplementation project(':user-access-testing')
+    testImplementation project (":user-creation-testing")
+    testImplementation project (":user-access-testing")
 }
 
 test {
@@ -47,6 +48,7 @@ test {
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "ID_NAMESPACE", "https://www.example.org/namespace/"
+    environment "CRISTIN_API_URL", "https://cristin.no"
     environment "ALLOWED_ORIGIN", "*"
 
 }

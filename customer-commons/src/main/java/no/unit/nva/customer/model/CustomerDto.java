@@ -4,17 +4,16 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.Typed;
@@ -82,7 +81,7 @@ public class CustomerDto implements Context {
     }
 
     public void setCreatedDate(String createdDate) {
-        this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) :null;
+        this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
     }
 
     public String getModifiedDate() {
@@ -397,7 +396,7 @@ public class CustomerDto implements Context {
             if (nonNull(doiAgent)) {
                 if (nonNull(customerDto.identifier)) {
                     return new DoiAgentDto(doiAgent)
-                       .addLink("self", toId(customerDto.identifier) + "/doiAgent");
+                               .addLink("self", toId(customerDto.identifier) + "/doiAgent");
                 }
                 return new DoiAgentDto(doiAgent)
                            .addLink("self", URI.create("https://example.org/custommer/test") + "/doiAgent");
@@ -411,10 +410,11 @@ public class CustomerDto implements Context {
     }
 
     public static class DoiAgentDto implements DoiAgent {
+
         private String name;
         private String prefix;
         private String secret;
-        private final Map<String, LinkItem> links = new HashMap<>(1);
+        private final Map<String, LinkItem> links = new ConcurrentHashMap<>(1);
 
         @SuppressWarnings("unused")
         public DoiAgentDto() {
@@ -449,11 +449,7 @@ public class CustomerDto implements Context {
         }
 
         public DoiAgentDto addLink(String name, String url) {
-            try {
-                links.putIfAbsent(name, LinkItem.fromString(url));
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
+            attempt(() -> links.putIfAbsent(name, LinkItem.fromString(url)));
             return this;
         }
 
@@ -495,6 +491,5 @@ public class CustomerDto implements Context {
         public String toString() {
             return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
         }
-
     }
 }

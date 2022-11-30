@@ -2,6 +2,7 @@ package no.unit.nva.customer.testing;
 
 import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -53,7 +54,7 @@ public class CustomerDataGenerator {
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .build();
 
-        assertThat(customer, doesNotHaveEmptyValues());
+        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.secret")));
         return customer;
     }
 

@@ -81,7 +81,8 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withPublicationWorkflow(randomPublicationWorkflow())
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .build();
-        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context")));
+        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
+                                                                         "doiAgent.secret")));
         return customer;
     }
 

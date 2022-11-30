@@ -1,9 +1,9 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -38,7 +37,8 @@ class CustomerDaoTest {
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(customerDto, doesNotHaveEmptyValues());
+        assertThat(customerDto, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.secret")));
+
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
         assertEquals(actual, actual);
@@ -78,11 +78,11 @@ class CustomerDaoTest {
 
     @Test
     void fromCustomerDbReturnsDbWithoutLossOfInformation() {
-        CustomerDto expected = createSampleCustomerDto();
-        CustomerDao customerDb = CustomerDao.fromCustomerDto(expected);
-        CustomerDto actual = customerDb.toCustomerDto();
+        CustomerDao expected = createSampleCustomerDao();
+        CustomerDto customerDto = expected.toCustomerDto();
+        CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(customerDb, doesNotHaveEmptyValues());
+        assertThat(actual, doesNotHaveEmptyValues());
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
     }
@@ -112,33 +112,29 @@ class CustomerDaoTest {
         return JsonConfig.mapFrom(jsonString);
     }
 
-    private CustomerDto createSampleCustomerDto() {
+    private CustomerDao createSampleCustomerDao() {
         UUID identifier = UUID.randomUUID();
-        URI id = LinkedDataContextUtils.toId(identifier);
-        CustomerDto customer = CustomerDto.builder()
-                                   .withName(randomString())
-                                   .withCristinId(randomUri())
-                                   .withCustomerOf(randomApplicationDomain())
-                                   .withFeideOrganizationDomain(randomString())
-                                   .withModifiedDate(randomInstant())
-                                   .withIdentifier(identifier)
-                                   .withId(id)
-                                   .withCname(randomString())
-                                   .withContext(LINKED_DATA_CONTEXT_VALUE)
-                                   .withArchiveName(randomString())
-                                   .withShortName(randomString())
-                                   .withInstitutionDns(randomString())
-                                   .withDisplayName(randomString())
-                                   .withCreatedDate(randomInstant())
-                                   .withVocabularies(randomVocabularyDtoSettings())
-                                   .withRorId(randomUri())
-                                   .withPublicationWorkflow(randomPublicationWorkflow())
-                                   .withDoiAgent(randomDoiAgent(randomString()))
-                                   .build();
-
-        assertThat(customer, doesNotHaveEmptyValues());
-        return customer;
+        return CustomerDao
+                   .builder()
+                   .withName(randomString())
+                   .withCristinId(randomUri())
+                   .withCustomerOf(randomApplicationDomain().getUri())
+                   .withFeideOrganizationDomain(randomString())
+                   .withModifiedDate(randomInstant())
+                   .withIdentifier(identifier)
+                   .withCname(randomString())
+                   .withArchiveName(randomString())
+                   .withShortName(randomString())
+                   .withInstitutionDns(randomString())
+                   .withDisplayName(randomString())
+                   .withCreatedDate(randomInstant())
+                   .withRorId(randomUri())
+                   .withVocabularySettings(randomVocabularySettings())
+                   .withPublicationWorkflow(randomPublicationWorkflow())
+                   .withDoiAgent(randomDoiAgent(randomString()))
+                   .build();
     }
+
 
     private ApplicationDomain randomApplicationDomain() {
         return ApplicationDomain.NVA;

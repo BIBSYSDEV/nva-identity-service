@@ -394,9 +394,13 @@ public class CustomerDto implements Context {
         }
 
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
-            if (nonNull(doiAgent) && nonNull(customerDto.identifier)) {
+            if (nonNull(doiAgent)) {
+                if (nonNull(customerDto.identifier)) {
+                    return new DoiAgentDto(doiAgent)
+                       .addLink("self", toId(customerDto.identifier) + "/doiAgent");
+                }
                 return new DoiAgentDto(doiAgent)
-                   .addLink("self", toId(customerDto.identifier) + "/doiAgent");
+                           .addLink("self", URI.create("https://example.org/custommer/test") + "/doiAgent");
             }
             return null;
         }

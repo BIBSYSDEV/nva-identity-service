@@ -46,7 +46,8 @@ public class DynamoDBCustomerService implements CustomerService {
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
-    private static final String DOI_SECRET_IDENTITY_NAME = "DoiAgentSecrets";
+    private static final String CUSTOMER_DOI_AGENT_SECRETS_NAME = "CustomerDoiAgentSecretsName";
+
     private final DynamoDbTable<CustomerDao> table;
 
     /**
@@ -117,10 +118,12 @@ public class DynamoDBCustomerService implements CustomerService {
 
     @Override
     public DoiAgentDto getCustomerDoiAgentSecret(UUID identifier) throws NotFoundException {
-        var doiAgentDto = getCustomer(identifier).getDoiAgent();
-        SecretsReader  secretsReader = new SecretsReader();
-        var secret = secretsReader.fetchSecret(DOI_SECRET_IDENTITY_NAME,doiAgentDto.getPrefix());
-        return doiAgentDto.addSecret(secret);
+
+        var customer = getCustomer(identifier);
+        var doiAgentDto = customer.getDoiAgent();
+        SecretsReader secretsReader = new SecretsReader();
+        var secret = secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME, doiAgentDto.getPrefix());
+        return doiAgentDto.setSecret(secret);
     }
 
     @Override
@@ -129,13 +132,13 @@ public class DynamoDBCustomerService implements CustomerService {
 
         var customer = getCustomer(identifier);
         customer.setDoiAgent(doiAgent);
-        attempt(() -> new SecretsWriter().updateSecretKey(
-            DOI_SECRET_IDENTITY_NAME,
-            doiAgent.getPrefix(),
-            doiAgent.getSecret())
-        );
+        new SecretsWriter().updateSecretKey(
+                    CUSTOMER_DOI_AGENT_SECRETS_NAME,
+                    doiAgent.getPrefix(),
+                    doiAgent.getSecret());
 
-        return updateCustomer(identifier,customer).getDoiAgent();
+        updateCustomer(identifier,customer);
+        return getCustomerDoiAgentSecret(identifier);
     }
 
 

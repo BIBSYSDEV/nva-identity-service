@@ -425,6 +425,11 @@ public class CustomerDto implements Context {
             this.name = doiAgent.getName();
         }
 
+        public static DoiAgentDto fromJson(String json) throws BadRequestException {
+            return attempt(() -> JsonConfig.readValue(json, DoiAgentDto.class)).orElseThrow(
+                fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
+        }
+
         @Override
         public String getPrefix() {
             return prefix;
@@ -443,8 +448,18 @@ public class CustomerDto implements Context {
             return links;
         }
 
-        public DoiAgentDto addSecret(String secretString) {
+        public DoiAgentDto setSecret(String secretString) {
             secret = secretString;
+            return this;
+        }
+
+        public DoiAgentDto setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public DoiAgentDto setPrefix(String prefix) {
+            this.prefix = prefix;
             return this;
         }
 
@@ -453,17 +468,6 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public void setPrefix(String prefix) {
-            this.prefix = prefix;
-        }
-
-        public void setSecret(String secret) {
-            this.secret = secret;
-        }
 
         @Override
         @JacocoGenerated

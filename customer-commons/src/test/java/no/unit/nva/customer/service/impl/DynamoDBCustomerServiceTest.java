@@ -5,7 +5,6 @@ import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
-import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -156,7 +155,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     void getCustomerByCristinIdReturnsTheCustomer() throws NotFoundException, ConflictException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
-        assertThat(createdCustomer, doesNotHaveEmptyValues());
+        assertThat(createdCustomer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.secret")));
         var retrievedCustomer = service.getCustomerByCristinId(createdCustomer.getCristinId());
         assertEquals(createdCustomer, retrievedCustomer);
     }
@@ -341,7 +340,8 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withPublicationWorkflow(randomPublicationWorkflow())
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .build();
-        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context")));
+        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
+                                                                         "doiAgent.secret")));
         return customer;
     }
 

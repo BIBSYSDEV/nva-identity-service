@@ -15,7 +15,6 @@ dependencies {
     implementation libs.aws.sdk2.dynamodb
     implementation libs.guava
     implementation libs.bundles.jackson
-    implementation 'org.projectlombok:lombok:1.18.22'
     testImplementation project(":customer-testing")
     testImplementation project(":user-access-testing")
 

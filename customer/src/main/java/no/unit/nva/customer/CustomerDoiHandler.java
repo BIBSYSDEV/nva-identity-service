@@ -3,7 +3,6 @@ package no.unit.nva.customer;
 import static nva.commons.core.attempt.Try.attempt;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.CustomerDto;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.core.attempt.Failure;

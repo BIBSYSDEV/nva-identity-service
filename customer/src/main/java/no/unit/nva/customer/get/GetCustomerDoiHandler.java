@@ -39,7 +39,8 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
     @Override
     protected String processInput(Void input, RequestInfo requestInfo, Context context)
         throws InputException, NotFoundException {
-        return customerService.getCustomerDoiAgentSecret(getIdentifier(requestInfo)).toString();
+        var doiAgent = customerService.getCustomerDoiAgentSecret(getIdentifier(requestInfo));
+        return doiAgent.toString();
     }
 
     @Override

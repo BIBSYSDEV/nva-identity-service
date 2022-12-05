@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 
@@ -25,8 +24,4 @@ public interface CustomerService {
 
     CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException;
 
-    DoiAgentDto getCustomerDoiAgentSecret(UUID identifier) throws NotFoundException;
-
-    DoiAgentDto updateCustomerDoiAgentSecret(UUID identifier, DoiAgentDto doiAgent)
-        throws NotFoundException, InputException;
 }

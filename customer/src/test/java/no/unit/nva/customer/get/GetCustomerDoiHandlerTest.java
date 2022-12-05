@@ -5,6 +5,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,48 +28,58 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
-class GetCustomerDoiHandlerTest  {
+class GetCustomerDoiHandlerTest {
 
     private static final Context CONTEXT = new FakeContext();
 
-    private DoiAgentDto mockResponse;
     private CustomerDto existingCustomer;
     private ByteArrayOutputStream outputStream;
     private CustomerService customerServiceMock;
     private GetCustomerDoiHandler handler;
+    private SecretsReader secretsReaderMock;
 
     @BeforeEach
     public void beforeEach() {
         this.outputStream = new ByteArrayOutputStream();
-        customerServiceMock = mock(CustomerService .class);
-        handler = new GetCustomerDoiHandler(customerServiceMock);
+        customerServiceMock = mock(CustomerService.class);
+        secretsReaderMock = mock(SecretsReader.class);
+        handler = new GetCustomerDoiHandler(customerServiceMock, secretsReaderMock);
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
-        mockResponse = existingCustomer.getDoiAgent().setSecret(randomString());
     }
 
     @Test
     void handleRequestReturnsOkWhenARequestWithAnExistingIdentifier() throws IOException, NotFoundException {
 
-        when(customerServiceMock.getCustomerDoiAgentSecret(eq(getExistingCustomerIdentifier())))
-            .thenReturn(mockResponse);
+        var secret = randomString();
+
+        when(customerServiceMock.getCustomer(any(UUID.class)))
+            .thenReturn(existingCustomer);
+
+        when(secretsReaderMock.fetchSecret(any(), eq(existingCustomer.getDoiAgent().getPrefix()))
+        ).thenReturn(secret);
 
         var response = sendRequest(getExistingCustomerIdentifier(), DoiAgentDto.class);
         var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(doiAgentResponse.getName(), is(equalTo(existingCustomer.getDoiAgent().getName())));
+        assertThat(doiAgentResponse.getSecret(), is(equalTo(secret)));
     }
 
     @Test
-    void handleRequestReturnsNotFoundWhenARequestWithANonExistingIdentifier() throws IOException {
-        var response = sendRequest(randomCustomerIdentifier(), Problem.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_INTERNAL_ERROR)));
-    }
+    void handleRequestReturnsNotFoundWhenARequestWithANonExistingIdentifier() throws IOException, NotFoundException {
 
+        when(customerServiceMock.getCustomer(any(UUID.class)))
+            .thenThrow(NotFoundException.class);
+
+        var response = sendRequest(randomCustomerIdentifier(), Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
+    }
 
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, CONTEXT);

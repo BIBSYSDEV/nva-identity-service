@@ -12,7 +12,6 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -20,8 +19,6 @@ import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
-import nva.commons.secrets.SecretsReader;
-import nva.commons.secrets.SecretsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -46,7 +43,6 @@ public class DynamoDBCustomerService implements CustomerService {
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
-    private static final String CUSTOMER_DOI_AGENT_SECRETS_NAME = "CustomerDoiAgentSecretsName";
 
     private final DynamoDbTable<CustomerDao> table;
 
@@ -115,32 +111,6 @@ public class DynamoDBCustomerService implements CustomerService {
         CustomerDao queryObject = createQueryForCristinNumber(cristinId);
         return sendQueryToIndex(queryObject, BY_CRISTIN_ID_INDEX_NAME, customer -> customer.getCristinId().toString());
     }
-
-    @Override
-    public DoiAgentDto getCustomerDoiAgentSecret(UUID identifier) throws NotFoundException {
-
-        var customer = getCustomer(identifier);
-        var doiAgentDto = customer.getDoiAgent();
-        SecretsReader secretsReader = new SecretsReader();
-        var secret = secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME, doiAgentDto.getPrefix());
-        return doiAgentDto.setSecret(secret);
-    }
-
-    @Override
-    public DoiAgentDto updateCustomerDoiAgentSecret(UUID identifier, DoiAgentDto doiAgent)
-        throws NotFoundException, InputException {
-
-        var customer = getCustomer(identifier);
-        customer.setDoiAgent(doiAgent);
-        new SecretsWriter().updateSecretKey(
-                    CUSTOMER_DOI_AGENT_SECRETS_NAME,
-                    doiAgent.getPrefix(),
-                    doiAgent.getSecret());
-
-        updateCustomer(identifier,customer);
-        return getCustomerDoiAgentSecret(identifier);
-    }
-
 
     public List<CustomerDto> updateCustomersWithNvaAttribute() {
         return table.scan()

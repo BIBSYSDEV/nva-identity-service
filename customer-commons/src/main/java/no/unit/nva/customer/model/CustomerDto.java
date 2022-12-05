@@ -431,35 +431,37 @@ public class CustomerDto implements Context {
         }
 
         @Override
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        @Override
         public String getPrefix() {
             return prefix;
         }
 
-        @Override
-        public String getName() {
-            return name;
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
         }
 
         public String getSecret() {
             return secret;
         }
 
+        public void setSecret(String secret) {
+            this.secret = secret;
+        }
+
         public Map<String, LinkItem> getLinks() {
             return links;
         }
 
-        public DoiAgentDto setSecret(String secretString) {
+        public DoiAgentDto addSecret(String secretString) {
             secret = secretString;
-            return this;
-        }
-
-        public DoiAgentDto setName(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public DoiAgentDto setPrefix(String prefix) {
-            this.prefix = prefix;
             return this;
         }
 

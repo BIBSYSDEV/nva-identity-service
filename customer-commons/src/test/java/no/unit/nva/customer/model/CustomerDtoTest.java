@@ -8,6 +8,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -15,9 +16,12 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -27,28 +31,48 @@ class CustomerDtoTest {
     @Test
     void dtoSerializesToJsonAndBack() throws BadRequestException {
         CustomerDto customer = randomCustomer();
-        customer.getDoiAgent().setSecret("****");
+        customer.getDoiAgent().addSecret("****");
         assertThat(customer, doesNotHaveEmptyValues());
         var json = customer.toString();
         var deserialized = CustomerDto.fromJson(json);
         assertThat(deserialized, is(equalTo(customer)));
         assertThat(deserialized, doesNotHaveEmptyValues());
-        assertEquals(deserialized.hashCode(),customer.hashCode());
+        assertEquals(deserialized.hashCode(), customer.hashCode());
         assertNotEquals(null, deserialized);
 
+        json = customer.getDoiAgent().toString();
+        var deserializedDoiAgent = DoiAgentDto.fromJson(json);
+
+        assertEquals(deserializedDoiAgent.hashCode(), customer.getDoiAgent().hashCode());
+        assertNotEquals(null, deserializedDoiAgent);
+    }
+
+    @Test
+    void validJsonFromLinkItem() throws IOException {
+        var linkItem = attempt(() -> new LinkItem(randomUri().toURL().toString())).get();
+        var item = JsonConfig.readValue(linkItem.toString(), LinkItem.class);
+        assertThat(item.toString(), is(equalTo(linkItem.toString())));
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenFailingToDeserializeDoiAgent() {
+        String invalidJson = randomString();
+        Executable action = () -> DoiAgentDto.fromJson(invalidJson);
+        var exception = assertThrows(BadRequestException.class, action);
+        assertThat(exception.getMessage(), containsString(invalidJson));
     }
 
     @Test
     void dtoSerializesToJsonAndBackWithSecret() throws BadRequestException {
         CustomerDto customer = randomCustomer();
-        customer.getDoiAgent().setSecret("******");
+        customer.getDoiAgent().addSecret("******");
         var json = customer.toString();
         var deserialized = CustomerDto.fromJson(json);
 
         var doi = deserialized.getDoiAgent();
-        assertThat(doi.toString(),doesNotHaveEmptyValues());
-        assertEquals(doi,deserialized.getDoiAgent());
-        assertEquals(doi.hashCode(),deserialized.getDoiAgent().hashCode());
+        assertThat(doi.toString(), doesNotHaveEmptyValues());
+        assertEquals(doi, deserialized.getDoiAgent());
+        assertEquals(doi.hashCode(), deserialized.getDoiAgent().hashCode());
         assertNotEquals(null, doi);
     }
 

@@ -48,11 +48,9 @@ class UpdateCustomerDoiHandlerTest {
         this.outputStream = new ByteArrayOutputStream();
         customerServiceMock = mock(CustomerService.class);
         secretWriterMock = mock(SecretsWriter.class);
-        handler = new UpdateCustomerDoiHandler(customerServiceMock,secretWriterMock);
+        handler = new UpdateCustomerDoiHandler(customerServiceMock, secretWriterMock);
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
     }
-
-
 
     @Test
     void handleUpdateRequestReturnsNotFoundWhenARequestWithANonExistingIdentifier()
@@ -64,16 +62,13 @@ class UpdateCustomerDoiHandlerTest {
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);
 
-        when(customerServiceMock.updateCustomer(any(UUID.class),any(CustomerDto.class))
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))
         ).thenReturn(existingCustomer);
 
-        when (secretWriterMock.updateSecretKey(any(),eq(existingCustomer.getDoiAgent().getPrefix()),any())
+        when(secretWriterMock.updateSecretKey(any(), eq(existingCustomer.getDoiAgent().getPrefix()), any())
         ).thenReturn(existingCustomer.getDoiAgent().getName());
 
-
-
-
-        var response = sendRequest(getExistingCustomerIdentifier(),doiAgent , DoiAgentDto.class);
+        var response = sendRequest(getExistingCustomerIdentifier(), doiAgent, DoiAgentDto.class);
         var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
@@ -91,15 +86,13 @@ class UpdateCustomerDoiHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
-
-
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, CONTEXT);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
 
-    private <T> GatewayResponse<T> sendRequest(UUID identifier, T body,  Class<T> responseType) throws IOException {
-        var request = createRequestWithMediaType(identifier,body);
+    private <T> GatewayResponse<T> sendRequest(UUID identifier, T body, Class<T> responseType) throws IOException {
+        var request = createRequestWithMediaType(identifier, body);
         return sendRequest(request, responseType);
     }
 
@@ -116,8 +109,7 @@ class UpdateCustomerDoiHandlerTest {
                    .build();
     }
 
-
-    private <T> InputStream createRequestWithInvalidUuid( T body)
+    private <T> InputStream createRequestWithInvalidUuid(T body)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<T>(dtoObjectMapper)
                    .withHeaders(getRequestHeaders())

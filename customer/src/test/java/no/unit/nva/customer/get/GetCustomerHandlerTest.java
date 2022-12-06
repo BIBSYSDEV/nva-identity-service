@@ -33,21 +33,22 @@ import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class GetCustomerHandlerTest {
-    
+
     public static final String MALFORMED_IDENTIFIER = "for-testing";
     public static final MediaType UNSUPPORTED_MEDIA_TYPE = MediaType.BZIP2;
-    
+
     private CustomerService customerServiceMock;
     private GetCustomerHandler handler;
     private Context context;
     private ByteArrayOutputStream outputStream;
-    
+
     /**
      * Setting up test environment.
      */
@@ -55,11 +56,11 @@ class GetCustomerHandlerTest {
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
         handler = new GetCustomerHandler(customerServiceMock);
-    
+
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }
-    
+
     @Test
     void requestToHandlerWithJsonLdAcceptHeaderReturnsJsonLdMediaType() throws IOException, NotFoundException {
         UUID identifier = UUID.randomUUID();
@@ -70,30 +71,30 @@ class GetCustomerHandlerTest {
                         .withHeaders(supportedHeaders.getRequestHeaders())
                         .withPathParameters(pathParameters)
                         .build();
-        
+
         var response = sendRequest(input, CustomerDto.class);
-        
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
         assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE),
-            is(equalTo(MediaTypes.APPLICATION_JSON_LD.toString())));
+                   is(MediaTypes.APPLICATION_JSON_LD.toString()));
     }
-    
+
     @Test
     void requestToHandlerReturnsCustomer() throws NotFoundException, IOException, BadRequestException {
         var identifier = UUID.randomUUID();
         var customerDto = prepareServiceWithCustomer(identifier);
         var inputStream = createGetCustomerRequest(customerDto);
-        
+
         var response = sendRequest(inputStream, CustomerDto.class);
-        
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
         CustomerDto actualCustomerDto = CustomerDto.fromJson(response.getBody());
         assertThat(actualCustomerDto.getId(), notNullValue());
         assertThat(actualCustomerDto.getContext(), notNullValue());
         assertThat(actualCustomerDto.getDoiAgent(), notNullValue());
-        assertThat(actualCustomerDto, equalTo(customerDto));
+        assertThat(actualCustomerDto, is(customerDto));
     }
-    
+
     @Test
     void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws IOException {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
@@ -101,12 +102,12 @@ class GetCustomerHandlerTest {
                         .withHeaders(getRequestHeaders())
                         .withPathParameters(pathParameters)
                         .build();
-        
+
         var response = sendRequest(input, Problem.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_BAD_REQUEST));
         assertThat(response.getBody(), containsString(IDENTIFIER_IS_NOT_A_VALID_UUID + MALFORMED_IDENTIFIER));
     }
-    
+
     @Test
     void requestToHandlerWithUnsupportedAcceptHeaderReturnsUnsupportedMediaType() throws IOException,
                                                                                          NotFoundException {
@@ -118,17 +119,17 @@ class GetCustomerHandlerTest {
                           .withHeaders(unsupportedRequestHeaders.getRequestHeaders())
                           .withPathParameters(pathParameters)
                           .build();
-        
+
         var response = sendRequest(request, Problem.class);
-        
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_UNSUPPORTED_TYPE)));
+
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_UNSUPPORTED_TYPE));
     }
-    
+
     private <T> GatewayResponse<T> sendRequest(InputStream input, Class<T> responseType) throws IOException {
         handler.handleRequest(input, outputStream, context);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
-    
+
     private InputStream createGetCustomerRequest(CustomerDto customerDto)
         throws JsonProcessingException {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
@@ -138,7 +139,7 @@ class GetCustomerHandlerTest {
                    .withPathParameters(pathParameters)
                    .build();
     }
-    
+
     private CustomerDto prepareServiceWithCustomer(UUID identifier) throws NotFoundException {
         CustomerDao customerDb = new CustomerDao.Builder()
                                      .withIdentifier(identifier)
@@ -149,15 +150,15 @@ class GetCustomerHandlerTest {
         when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);
         return customerDto;
     }
-    
+
     public static class RequestHeaders {
-        
+
         private final MediaType mediaType;
-        
+
         public RequestHeaders(MediaType mediaType) {
             this.mediaType = mediaType;
         }
-        
+
         public Map<String, String> getRequestHeaders() {
             return Map.of(
                 HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),

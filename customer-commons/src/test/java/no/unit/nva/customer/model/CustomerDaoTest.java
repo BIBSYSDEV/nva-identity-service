@@ -41,39 +41,28 @@ class CustomerDaoTest {
 
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
-        assertEquals(actual, actual);
         assertNotEquals(null, actual);
 
-        var doi = actual.getDoiAgent();
-        assertThat(doi.toString(),doesNotHaveEmptyValues());
-        assertEquals(doi,actual.getDoiAgent());
-        assertEquals(doi.hashCode(),actual.getDoiAgent().hashCode());
-        assertNotEquals(null, doi);
+        var actualDoiAgent = actual.getDoiAgent();
+        assertThat(actualDoiAgent.toString(),doesNotHaveEmptyValues());
+        assertEquals(actualDoiAgent,expected.getDoiAgent());
+        assertEquals(actualDoiAgent.hashCode(),expected.getDoiAgent().hashCode());
+        assertNotEquals(null, actualDoiAgent);
 
         assertThrows(IllegalStateException.class,() -> actual.setType("NOT A TYPE"));
     }
 
     @Test
-    void toCustomerDtoReturnsDtoWithLossOfSecret() {
-        CustomerDao expected = CustomerDataGenerator.createSampleCustomerDao();
-        CustomerDto customerDto = expected.toCustomerDto();
-        customerDto.getDoiAgent().addSecret(randomString());
+    void toCustomerDaoToDtoAndBackReturnsWithLossOfSecret() {
+        var expectedDao = CustomerDataGenerator.createSampleCustomerDao();
+        var customerDto = expectedDao.toCustomerDto();
+        customerDto
+            .getDoiAgent()
+            .addSecret(randomString());
+        var actualDao = CustomerDao.fromCustomerDto(customerDto);
+        var actualDoiAgent = actualDao.getDoiAgent();
 
-        CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
-        Diff diff = JAVERS.compare(expected, actual);
-        assertThat(customerDto, doesNotHaveEmptyValues());
-        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
-        assertThat(actual, is(equalTo(expected)));
-        assertEquals(actual, actual);
-        assertNotEquals(null, actual);
-
-        var doi = actual.getDoiAgent();
-        assertThat(doi.toString(),doesNotHaveEmptyValues());
-        assertEquals(doi,actual.getDoiAgent());
-        assertEquals(doi.hashCode(),actual.getDoiAgent().hashCode());
-        assertNotEquals(null, doi);
-
-        assertThrows(IllegalStateException.class,() -> actual.setType("NOT A TYPE"));
+        assertEquals(actualDoiAgent,expectedDao.getDoiAgent());
     }
 
     @Test

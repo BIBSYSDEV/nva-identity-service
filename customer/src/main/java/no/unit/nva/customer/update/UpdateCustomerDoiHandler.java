@@ -52,7 +52,7 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
         var customer = customerService.getCustomer(customerId);
         // TODO Implement access control ?  -->  authorizeDoiAgentChange(requestInfo);
         customer.setDoiAgent(input);
-        secretsWriter.updateSecretKey(CUSTOMER_DOI_AGENT_SECRETS_NAME, input.getPrefix(), input.getSecret());
+        secretsWriter.updateSecretKey(CUSTOMER_DOI_AGENT_SECRETS_NAME, customerId.toString(), input.getSecret());
         var result = customerService.updateCustomer(customerId, customer);
         return result
                    .getDoiAgent()

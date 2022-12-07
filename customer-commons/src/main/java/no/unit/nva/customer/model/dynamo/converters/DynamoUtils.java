@@ -4,9 +4,9 @@ import static java.util.Objects.nonNull;
 import java.util.Collection;
 import nva.commons.core.JacocoGenerated;
 
-@JacocoGenerated
 public final class DynamoUtils {
 
+    @JacocoGenerated
     private DynamoUtils() {
 
     }

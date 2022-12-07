@@ -78,7 +78,7 @@ class GetCustomerDoiHandlerTest {
 
         var response = sendRequest(randomCustomerIdentifier(), Problem.class);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {

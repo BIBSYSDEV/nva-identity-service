@@ -399,7 +399,7 @@ public class CustomerDto implements Context {
                                .addLink("self", toId(customerDto.identifier) + "/doiAgent");
                 }
                 return new DoiAgentDto(doiAgent)
-                           .addLink("self", URI.create("https://example.org/custommer/test") + "/doiAgent");
+                           .addLink("self", "https://example.org/customer/12345678/doiAgent");
             }
             return null;
         }

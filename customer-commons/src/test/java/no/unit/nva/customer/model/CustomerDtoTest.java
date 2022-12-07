@@ -69,11 +69,11 @@ class CustomerDtoTest {
         var json = customer.toString();
         var deserialized = CustomerDto.fromJson(json);
 
-        var doi = deserialized.getDoiAgent();
-        assertThat(doi.toString(), doesNotHaveEmptyValues());
-        assertEquals(doi, deserialized.getDoiAgent());
-        assertEquals(doi.hashCode(), deserialized.getDoiAgent().hashCode());
-        assertNotEquals(null, doi);
+        var deserializedDoiAgent = deserialized.getDoiAgent();
+        assertThat(deserializedDoiAgent.toString(), doesNotHaveEmptyValues());
+        assertEquals(deserializedDoiAgent, customer.getDoiAgent());
+        assertEquals(deserializedDoiAgent.hashCode(), customer.getDoiAgent().hashCode());
+        assertNotEquals(null, deserializedDoiAgent);
     }
 
     @Test

@@ -351,7 +351,7 @@ paths:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerDoiAgentFunction.Arn}/invocations
         responses: { }
-        httpMethod: GET
+        httpMethod: POST
         type: AWS_PROXY
     put:
       summary: Update Customer doi agent with secret

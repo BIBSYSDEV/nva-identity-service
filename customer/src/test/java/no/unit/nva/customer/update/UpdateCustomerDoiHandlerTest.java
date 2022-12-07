@@ -53,7 +53,7 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     @Test
-    void handleUpdateRequestReturnsNotFoundWhenARequestWithANonExistingIdentifier()
+    void handleUpdateRequestOK()
         throws ApiGatewayException, IOException {
         var secret = randomString();
         var doiAgent = existingCustomer.getDoiAgent()
@@ -65,7 +65,7 @@ class UpdateCustomerDoiHandlerTest {
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))
         ).thenReturn(existingCustomer);
 
-        when(secretWriterMock.updateSecretKey(any(), eq(existingCustomer.getDoiAgent().getPrefix()), any())
+        when(secretWriterMock.updateSecretKey(any(), eq(existingCustomer.getIdentifier().toString()), any())
         ).thenReturn(existingCustomer.getDoiAgent().getName());
 
         var response = sendRequest(getExistingCustomerIdentifier(), doiAgent, DoiAgentDto.class);
@@ -76,7 +76,7 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     @Test
-    void failUpdateRequestReturnsNotFoundWhenARequestWithAInvalidIdentifier()
+    void failUpdateRequestReturnsBadRequestWhenARequestWithAInvalidIdentifier()
         throws ApiGatewayException, IOException {
         when(
             customerServiceMock.getCustomer(any(UUID.class))
@@ -92,7 +92,7 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     private <T> GatewayResponse<T> sendRequest(UUID identifier, T body, Class<T> responseType) throws IOException {
-        var request = createRequestWithMediaType(identifier, body);
+        var request = createRequest(identifier, body);
         return sendRequest(request, responseType);
     }
 
@@ -100,7 +100,7 @@ class UpdateCustomerDoiHandlerTest {
         return existingCustomer.getIdentifier();
     }
 
-    private <T> InputStream createRequestWithMediaType(UUID identifier, T body)
+    private <T> InputStream createRequest(UUID identifier, T body)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<T>(dtoObjectMapper)
                    .withHeaders(getRequestHeaders())

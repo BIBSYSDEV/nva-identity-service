@@ -1,5 +1,6 @@
 package no.unit.nva.customer.create;
 
+import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.create.CreateCustomerRequest.TYPE_VALUE;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -141,7 +142,8 @@ public class CreateCustomerRequest {
     }
 
     public PublicationWorkflow getPublicationWorkflow() {
-        return publicationWorkflow;
+        return nonNull(publicationWorkflow) ? publicationWorkflow
+                   : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {

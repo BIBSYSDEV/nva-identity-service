@@ -11,7 +11,6 @@ import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.secrets.SecretsReader;
 
@@ -50,14 +49,11 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
     @Override
     protected DoiAgentDto processInput(DoiAgentDto input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
-        try {
-            // TODO Implement access control ?  -->  authorizeDoiAgentChange(requestInfo);
-            var doiAgent = customerService.getCustomer(getIdentifier(requestInfo)).getDoiAgent();
-            var secret = secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME, doiAgent.getPrefix());
-            return doiAgent.addSecret(secret);
-        } catch (Exception ex) {
-            throw new BadGatewayException(ex.getMessage());
-        }
+        // TODO Implement access control ?  -->  authorizeDoiAgentChange(requestInfo);
+        var identifier = getIdentifier(requestInfo);
+        var doiAgent = customerService.getCustomer(identifier).getDoiAgent();
+        var secret = secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME, identifier.toString());
+        return doiAgent.addSecret(secret);
     }
 
     @Override

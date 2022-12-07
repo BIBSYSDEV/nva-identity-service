@@ -609,26 +609,6 @@ Resources:
             Path: /{identifier}
             Method: get
             RestApiId: !Ref NvaCustomerApi
-  NvaFetchCustomerDoiFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.get.CreateCustomerDoiHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        GetCustomerEvent:
-          Type: Api
-          Properties:
-            Path: /{identifier}/doi
-            Method: get
-            RestApiId: !Ref NvaCustomerApi
   NvaGetCustomerDoiAgentFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -667,7 +647,7 @@ Resources:
           Type: Api
           Properties:
             Path: /{identifier}/doiagent
-            Method: post
+            Method: put
             RestApiId: !Ref NvaCustomerApi
   NvaGetCustomerVocabulariesFunction:
     Type: AWS::Serverless::Function

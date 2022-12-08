@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
-import com.google.common.net.MediaType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,7 +59,7 @@ class GetCustomerDoiHandlerTest {
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);
 
-        when(secretsReaderMock.fetchSecret(any(), eq(existingCustomer.getDoiAgent().getPrefix()))
+        when(secretsReaderMock.fetchSecret(any(), eq(existingCustomer.getIdentifier().toString()))
         ).thenReturn(secret);
 
         var response = sendRequest(getExistingCustomerIdentifier(), DoiAgentDto.class);
@@ -87,7 +86,7 @@ class GetCustomerDoiHandlerTest {
     }
 
     private <T> GatewayResponse<T> sendRequest(UUID identifier, Class<T> responseType) throws IOException {
-        var request = createRequestWithMediaType(identifier, MediaTypes.APPLICATION_JSON_LD);
+        var request = createRequestWithMediaType(identifier);
         return sendRequest(request, responseType);
     }
 
@@ -95,11 +94,11 @@ class GetCustomerDoiHandlerTest {
         return existingCustomer.getIdentifier();
     }
 
-    private InputStream createRequestWithMediaType(UUID identifier, MediaType acceptHeader)
+    private InputStream createRequestWithMediaType(UUID identifier)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
                    .withPathParameters(Map.of("identifier", identifier.toString()))
-                   .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
+                   .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
                    .build();
     }
 

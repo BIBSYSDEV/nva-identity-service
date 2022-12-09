@@ -1,23 +1,33 @@
 package no.unit.nva.customer.update;
 
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerDoiHandler;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
+import no.unit.nva.customer.model.SecretManagerDoiAgent;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.secrets.SecretsReader;
 import nva.commons.secrets.SecretsWriter;
 
 public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
 
     private final CustomerService customerService;
     private final SecretsWriter secretsWriter;
+    private final SecretsReader secretsReader;
 
     /**
      * Default Constructor for UpdateCustomerHandler.
@@ -25,18 +35,21 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
     @JacocoGenerated
     @SuppressWarnings("unused")
     public UpdateCustomerDoiHandler() {
-        this(defaultCustomerService(), new SecretsWriter());
+        this(defaultCustomerService(), new SecretsWriter(), new SecretsReader());
     }
 
     /**
      * Constructor for UpdateCustomerHandler.
      *
      * @param customerService customerService
+     * @param secretsReader
      */
-    public UpdateCustomerDoiHandler(CustomerService customerService, SecretsWriter secretsWriter) {
+    public UpdateCustomerDoiHandler(CustomerService customerService, SecretsWriter secretsWriter,
+                                    SecretsReader secretsReader) {
         super(DoiAgentDto.class);
         this.customerService = customerService;
         this.secretsWriter = secretsWriter;
+        this.secretsReader = secretsReader;
     }
 
     @Override
@@ -49,18 +62,48 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
         throws ApiGatewayException {
 
         var customerId = getIdentifier(requestInfo);
-        var customer = customerService.getCustomer(customerId);
+
         // TODO Implement access control ?  -->  authorizeDoiAgentChange(requestInfo);
+
+        var customer = customerService.getCustomer(customerId);
         customer.setDoiAgent(input);
-        secretsWriter.updateSecretKey(CUSTOMER_DOI_AGENT_SECRETS_NAME, customerId.toString(), input.getSecret());
         var result = customerService.updateCustomer(customerId, customer);
-        return result
-                   .getDoiAgent()
-                   .addSecret(input.getSecret());
+
+        var secretsListFiltered =
+            getSecretManagerDoiAgents()
+                .filter(p -> p.getCustomerId() != customer.getId());
+
+        var doiSecret = new SecretManagerDoiAgent(customer.getId(),input);
+
+        var allSecretsJsonString =
+            Stream.concat(secretsListFiltered, Stream.of(doiSecret))
+                .map(SecretManagerDoiAgent::toString)
+                .collect(Collectors.joining(",", "[", "]"));
+
+        secretsWriter.updateSecretKey(CUSTOMER_DOI_AGENT_SECRETS_NAME, CUSTOMER_DOI_AGENT_SECRETS_NAME,
+                                      allSecretsJsonString);
+        return result.getDoiAgent()
+                   .addPassword(input.getPassword());
     }
 
     @Override
     protected Integer getSuccessStatusCode(DoiAgentDto input, DoiAgentDto output) {
         return HttpURLConnection.HTTP_OK;
+    }
+
+    private Stream<SecretManagerDoiAgent> getSecretManagerDoiAgents() throws NotFoundException {
+        try {
+            var secretAsStringJsonArray =
+                secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME, CUSTOMER_DOI_AGENT_SECRETS_NAME);
+
+            return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgent[].class));
+        } catch (Exception ex) {
+            throw new NotFoundException(ex.getMessage());
+        }
+    }
+
+    private UUID toUuid(URI customerId) {
+        var parts = customerId.getPath().split("/");
+        return UUID.fromString(parts[parts.length - 1]);
     }
 }

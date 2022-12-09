@@ -31,7 +31,7 @@ class CustomerDtoTest {
     @Test
     void dtoSerializesToJsonAndBack() throws BadRequestException {
         CustomerDto customer = randomCustomer();
-        customer.getDoiAgent().addSecret("****");
+        customer.getDoiAgent().addPassword("****");
         assertThat(customer, doesNotHaveEmptyValues());
         var json = customer.toString();
         var deserialized = CustomerDto.fromJson(json);
@@ -65,7 +65,7 @@ class CustomerDtoTest {
     @Test
     void dtoSerializesToJsonAndBackWithSecret() throws BadRequestException {
         CustomerDto customer = randomCustomer();
-        customer.getDoiAgent().addSecret("******");
+        customer.getDoiAgent().addPassword("******");
         var json = customer.toString();
         var deserialized = CustomerDto.fromJson(json);
 

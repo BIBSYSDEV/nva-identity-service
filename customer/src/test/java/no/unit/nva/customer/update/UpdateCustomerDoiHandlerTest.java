@@ -28,6 +28,7 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.secrets.SecretsReader;
 import nva.commons.secrets.SecretsWriter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,7 @@ class UpdateCustomerDoiHandlerTest {
     private ByteArrayOutputStream outputStream;
     private CustomerService customerServiceMock;
     private SecretsWriter secretWriterMock;
+    private SecretsReader secretsReaderMock;
     private UpdateCustomerDoiHandler handler;
 
     @BeforeEach
@@ -48,7 +50,7 @@ class UpdateCustomerDoiHandlerTest {
         this.outputStream = new ByteArrayOutputStream();
         customerServiceMock = mock(CustomerService.class);
         secretWriterMock = mock(SecretsWriter.class);
-        handler = new UpdateCustomerDoiHandler(customerServiceMock, secretWriterMock);
+        handler = new UpdateCustomerDoiHandler(customerServiceMock, secretWriterMock, secretsReaderMock);
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
     }
 
@@ -57,7 +59,7 @@ class UpdateCustomerDoiHandlerTest {
         throws ApiGatewayException, IOException {
         var secret = randomString();
         var doiAgent = existingCustomer.getDoiAgent()
-                           .addSecret(secret);
+                           .addPassword(secret);
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);
@@ -72,7 +74,7 @@ class UpdateCustomerDoiHandlerTest {
         var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(doiAgentResponse.getSecret(), is(equalTo(secret)));
+        assertThat(doiAgentResponse.getPassword(), is(equalTo(secret)));
     }
 
     @Test

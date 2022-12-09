@@ -412,8 +412,9 @@ public class CustomerDto implements Context {
     public static class DoiAgentDto implements DoiAgent {
 
         private String name;
+        private String url;
         private String prefix;
-        private String secret;
+        private String password;
         private final Map<String, LinkItem> links = new ConcurrentHashMap<>(1);
 
         @SuppressWarnings("unused")
@@ -421,8 +422,9 @@ public class CustomerDto implements Context {
         }
 
         public DoiAgentDto(DoiAgent doiAgent) {
-            this.prefix = doiAgent.getPrefix();
             this.name = doiAgent.getName();
+            this.url = doiAgent.getUrl();
+            this.prefix = doiAgent.getPrefix();
         }
 
         public static DoiAgentDto fromJson(String json) throws BadRequestException {
@@ -444,24 +446,29 @@ public class CustomerDto implements Context {
             return prefix;
         }
 
+        @Override
+        public String getUrl() {
+            return url;
+        }
+
         public void setPrefix(String prefix) {
             this.prefix = prefix;
         }
 
-        public String getSecret() {
-            return secret;
+        public String getPassword() {
+            return password;
         }
 
-        public void setSecret(String secret) {
-            this.secret = secret;
+        public void setPassword(String password) {
+            this.password = password;
         }
 
         public Map<String, LinkItem> getLinks() {
             return links;
         }
 
-        public DoiAgentDto addSecret(String secretString) {
-            secret = secretString;
+        public DoiAgentDto addPassword(String secretString) {
+            password = secretString;
             return this;
         }
 
@@ -483,13 +490,13 @@ public class CustomerDto implements Context {
             DoiAgentDto that = (DoiAgentDto) o;
             return Objects.equals(getPrefix(), that.getPrefix())
                    && Objects.equals(getName(), that.getName())
-                   && Objects.equals(getSecret(), that.getSecret());
+                   && Objects.equals(getPassword(), that.getPassword());
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(getPrefix(), getName(), getSecret());
+            return Objects.hash(getPrefix(), getName(), getPassword());
         }
 
         @Override

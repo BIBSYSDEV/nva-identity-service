@@ -427,6 +427,8 @@ public class CustomerDao implements Typed {
 
     @DynamoDbBean
     public static class DoiAgentDao implements DoiAgent {
+
+        private String url;
         private String name;
         private String prefix;
 
@@ -435,22 +437,31 @@ public class CustomerDao implements Typed {
 
         public DoiAgentDao(DoiAgent doiAgent) {
             this.prefix = doiAgent.getPrefix();
+            this.url = doiAgent.getUrl();
             this.name = doiAgent.getName();
         }
 
+        @Override
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
 
         @Override
         public String getName() {
             return name;
         }
 
+        public void setName(String name) {
+            this.name = name;
+        }
+
         @Override
         public String getPrefix() {
             return prefix;
-        }
-
-        public void setName(String name) {
-            this.name = name;
         }
 
         public void setPrefix(String prefix) {
@@ -463,17 +474,18 @@ public class CustomerDao implements Typed {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (!(o instanceof DoiAgentDao that)) {
                 return false;
             }
-            DoiAgentDao that = (DoiAgentDao) o;
-            return Objects.equals(getPrefix(), that.getPrefix()) && Objects.equals(getName(), that.getName());
+            return Objects.equals(getUrl(), that.getUrl())
+                   && Objects.equals(getName(), that.getName())
+                   && Objects.equals(getPrefix(), that.getPrefix());
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(getPrefix(), getName());
+            return Objects.hash(getUrl(), getName(), getPrefix());
         }
 
         @Override

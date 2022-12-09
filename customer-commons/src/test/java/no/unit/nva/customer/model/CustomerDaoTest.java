@@ -37,7 +37,7 @@ class CustomerDaoTest {
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(customerDto, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.secret")));
+        assertThat(customerDto, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
 
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
@@ -58,7 +58,7 @@ class CustomerDaoTest {
         var customerDto = expectedDao.toCustomerDto();
         customerDto
             .getDoiAgent()
-            .addSecret(randomString());
+            .addPassword(randomString());
         var actualDao = CustomerDao.fromCustomerDto(customerDto);
         var actualDoiAgent = actualDao.getDoiAgent();
 

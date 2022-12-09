@@ -66,7 +66,7 @@ class GetCustomerDoiHandlerTest {
         var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(doiAgentResponse.getSecret(), is(equalTo(secret)));
+        assertThat(doiAgentResponse.getPassword(), is(equalTo(secret)));
     }
 
     @Test

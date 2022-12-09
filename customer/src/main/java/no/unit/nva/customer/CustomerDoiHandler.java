@@ -13,7 +13,8 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, DoiAgen
     public static final String IDENTIFIER = "identifier";
     public static final String IDENTIFIER_IS_NOT_A_VALID_UUID = "Identifier is not a valid UUID: ";
 
-    protected static final String CUSTOMER_DOI_AGENT_SECRETS_NAME = "CustomerDoiAgentSecretsName";
+    protected static final String CUSTOMER_DOI_AGENT_SECRETS_NAME = "dataCiteCustomerSecrets";
+
 
     public CustomerDoiHandler(Class<I> iclass) {
         super(iclass);

@@ -4,15 +4,17 @@ import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCus
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 
 class SecretManagerDoiAgentDaoTest {
 
     @Test
-    void fromJson() {
+    void fromJsonSuccessful() {
         var customerDao = createSampleCustomerDao();
         var doiAgentDao = customerDao.getDoiAgent();
-        var expected = new SecretManagerDoiAgentDao.Builder()
+        var expected = SecretManagerDoiAgentDao.builder()
                             .withCustomerId(customerDao.getCustomerOf())
                             .withPrefix(doiAgentDao.getPrefix())
                             .withUrl(doiAgentDao.getUrl())
@@ -23,6 +25,16 @@ class SecretManagerDoiAgentDaoTest {
         var actual = attempt(() -> SecretManagerDoiAgentDao.fromJson(json)).get();
 
         assertEquals(expected, actual);
+
+    }
+
+    @Test
+    void fromJsonFailing() {
+
+        var json = randomString();
+        var exception = assertThrows(BadRequestException.class, () -> SecretManagerDoiAgentDao.fromJson(json));
+
+        assertEquals(BadRequestException.class,exception.getClass());
 
     }
 }

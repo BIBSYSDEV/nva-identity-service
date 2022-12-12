@@ -26,20 +26,20 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
     }
 
     public SecretManagerDoiAgentDao(URI customerId, DoiAgentDto doiAgentDto) {
-        setCustomerId(customerId);
-        setPrefix(doiAgentDto.getPrefix());
-        setUrl(doiAgentDto.getUrl());
-        setUsername(doiAgentDto.getUsername());
-        setPassword(doiAgentDto.getPassword());
+        this.customerId = customerId;
+        this.prefix = doiAgentDto.getPrefix();
+        this.url = doiAgentDto.getUrl();
+        this.username = doiAgentDto.getUsername();
+        this.password = doiAgentDto.getPassword();
     }
 
 
     private SecretManagerDoiAgentDao(Builder builder) {
-        setCustomerId(builder.customerId);
-        setPrefix(builder.prefix);
-        setUrl(builder.url);
-        setUsername(builder.username);
-        setPassword(builder.password);
+        this.customerId = builder.customerId;
+        this.prefix = builder.prefix;
+        this.url = builder.url;
+        this.username = builder.username;
+        this.password = builder.password;
     }
 
     public static SecretManagerDoiAgentDao fromJson(String json) throws BadRequestException {
@@ -64,6 +64,7 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         this.prefix = prefix;
     }
 
+    @Override
     public String getUrl() {
         return url;
     }
@@ -118,6 +119,12 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+
+
     public static final class Builder {
 
         private URI customerId;
@@ -126,7 +133,7 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         private String username;
         private String password;
 
-        public Builder() {
+        private Builder() {
         }
 
         public Builder withCustomerId(URI customerId) {

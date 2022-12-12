@@ -47,7 +47,7 @@ class GetCustomerDoiHandlerTest {
         this.outputStream = new ByteArrayOutputStream();
         customerServiceMock = mock(CustomerService.class);
         secretsReaderMock = mock(SecretsReader.class);
-        handler = new GetCustomerDoiHandler(customerServiceMock, secretsReaderMock);
+        handler = new GetCustomerDoiHandler(secretsReaderMock);
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
     }
 

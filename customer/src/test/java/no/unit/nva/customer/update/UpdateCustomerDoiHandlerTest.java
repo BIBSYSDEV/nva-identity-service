@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
+import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.stubs.FakeContext;
@@ -50,6 +51,7 @@ class UpdateCustomerDoiHandlerTest {
         this.outputStream = new ByteArrayOutputStream();
         customerServiceMock = mock(CustomerService.class);
         secretWriterMock = mock(SecretsWriter.class);
+        secretsReaderMock = mock(SecretsReader.class);
         handler = new UpdateCustomerDoiHandler(customerServiceMock, secretWriterMock, secretsReaderMock);
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
     }
@@ -61,14 +63,16 @@ class UpdateCustomerDoiHandlerTest {
         var doiAgent = existingCustomer.getDoiAgent()
                            .addPassword(secret);
 
+        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(existingCustomer.getId(), doiAgent) + "]";
+
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);
 
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))
         ).thenReturn(existingCustomer);
 
-        when(secretWriterMock.updateSecretKey(any(), eq(existingCustomer.getIdentifier().toString()), any())
-        ).thenReturn(existingCustomer.getDoiAgent().getUsername());
+        when(secretsReaderMock.fetchSecret(any(), any())
+        ).thenReturn(secretDaoArray);
 
         var response = sendRequest(getExistingCustomerIdentifier(), doiAgent, DoiAgentDto.class);
         var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);

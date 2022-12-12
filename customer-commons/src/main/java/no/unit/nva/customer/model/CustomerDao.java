@@ -436,9 +436,9 @@ public class CustomerDao implements Typed {
         }
 
         public DoiAgentDao(DoiAgent doiAgent) {
-            setPrefix(doiAgent.getPrefix());
-            setUrl(doiAgent.getUrl());
-            setUsername(doiAgent.getUsername());
+            this.prefix = doiAgent.getPrefix();
+            this.url = doiAgent.getUrl();
+            this.username = doiAgent.getUsername();
         }
 
 
@@ -470,6 +470,7 @@ public class CustomerDao implements Typed {
         }
 
         @Override
+        @JacocoGenerated
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -484,6 +485,7 @@ public class CustomerDao implements Typed {
         }
 
         @Override
+        @JacocoGenerated
         public int hashCode() {
             return Objects.hash(getPrefix(), getUrl(), getUsername());
         }

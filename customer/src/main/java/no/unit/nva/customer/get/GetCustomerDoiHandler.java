@@ -1,7 +1,6 @@
 package no.unit.nva.customer.get;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
@@ -15,7 +14,6 @@ import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerDoiHandler;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
-import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -24,7 +22,6 @@ import nva.commons.secrets.SecretsReader;
 
 public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
 
-    private final CustomerService customerService;
 
     private final SecretsReader secretsReader;
 
@@ -34,18 +31,16 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
     @JacocoGenerated
     @SuppressWarnings("unused")
     public GetCustomerDoiHandler() {
-        this(defaultCustomerService(), new SecretsReader());
+        this(new SecretsReader());
     }
 
     /**
      * Constructor for CreateCustomerHandler.
      *
-     * @param customerService customerService
-     * @param secretsReader   a vaild SecretsReader
+     * @param secretsReader A valid SecretsReader.
      */
-    public GetCustomerDoiHandler(CustomerService customerService, SecretsReader secretsReader) {
+    public GetCustomerDoiHandler(SecretsReader secretsReader) {
         super(Void.class);
-        this.customerService = customerService;
         this.secretsReader = secretsReader;
     }
 

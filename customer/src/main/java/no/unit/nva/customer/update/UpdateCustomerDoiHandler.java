@@ -2,13 +2,13 @@ package no.unit.nva.customer.update;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.customer.Constants;
@@ -18,7 +18,6 @@ import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.secrets.SecretsReader;
 import nva.commons.secrets.SecretsWriter;
@@ -70,9 +69,7 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
         customer.setDoiAgent(input);
         var result = customerService.updateCustomer(customerId, customer);
 
-        var secretsListFiltered =
-            getSecretManagerDoiAgents()
-                .filter(p -> p.getCustomerId() != customer.getId());
+        var secretsListFiltered = getSecretManagerDoiAgentsFiltered(customer.getId());
 
         var doiSecret = new SecretManagerDoiAgentDao(customer.getId(), input);
 
@@ -92,15 +89,14 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private Stream<SecretManagerDoiAgentDao> getSecretManagerDoiAgents() throws NotFoundException {
-        try {
-            var secretAsStringJsonArray =
-                secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME, CUSTOMER_DOI_AGENT_SECRETS_NAME);
+    private Stream<SecretManagerDoiAgentDao> getSecretManagerDoiAgentsFiltered(URI customerId) {
+        var secretAsStringJsonArray =
+            secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME, CUSTOMER_DOI_AGENT_SECRETS_NAME);
 
-            return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class));
-        } catch (Exception ex) {
-            throw new NotFoundException(ex.getMessage());
-        }
+        return
+            attempt(() -> Arrays.stream(
+                dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class)
+            ).filter(p -> !p.getCustomerId().equals(customerId))).orElseThrow();
     }
 
 }

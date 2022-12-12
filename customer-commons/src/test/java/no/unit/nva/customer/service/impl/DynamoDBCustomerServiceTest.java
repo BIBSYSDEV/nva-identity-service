@@ -155,7 +155,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     void getCustomerByCristinIdReturnsTheCustomer() throws NotFoundException, ConflictException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
-        assertThat(createdCustomer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.secret")));
+        assertThat(createdCustomer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
         var retrievedCustomer = service.getCustomerByCristinId(createdCustomer.getCristinId());
         assertEquals(createdCustomer, retrievedCustomer);
     }
@@ -341,7 +341,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
-                                                                         "doiAgent.secret")));
+                                                                         "doiAgent.password")));
         return customer;
     }
 

@@ -82,7 +82,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
-                                                                         "doiAgent.secret")));
+                                                                         "doiAgent.password")));
         return customer;
     }
 

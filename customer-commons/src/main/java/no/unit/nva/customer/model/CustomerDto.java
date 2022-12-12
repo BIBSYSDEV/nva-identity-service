@@ -411,9 +411,9 @@ public class CustomerDto implements Context {
 
     public static class DoiAgentDto implements DoiAgent {
 
-        private String name;
         private String url;
         private String prefix;
+        private String username;
         private String password;
         private final Map<String, LinkItem> links = new ConcurrentHashMap<>(1);
 
@@ -422,7 +422,7 @@ public class CustomerDto implements Context {
         }
 
         public DoiAgentDto(DoiAgent doiAgent) {
-            this.name = doiAgent.getName();
+            this.username = doiAgent.getUsername();
             this.url = doiAgent.getUrl();
             this.prefix = doiAgent.getPrefix();
         }
@@ -433,12 +433,12 @@ public class CustomerDto implements Context {
         }
 
         @Override
-        public String getName() {
-            return name;
+        public String getUsername() {
+            return username;
         }
 
-        public void setName(String name) {
-            this.name = name;
+        public void setUsername(String name) {
+            this.username = name;
         }
 
         @Override
@@ -489,14 +489,14 @@ public class CustomerDto implements Context {
             }
             DoiAgentDto that = (DoiAgentDto) o;
             return Objects.equals(getPrefix(), that.getPrefix())
-                   && Objects.equals(getName(), that.getName())
+                   && Objects.equals(getUsername(), that.getUsername())
                    && Objects.equals(getPassword(), that.getPassword());
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(getPrefix(), getName(), getPassword());
+            return Objects.hash(getPrefix(), getUsername(), getPassword());
         }
 
         @Override

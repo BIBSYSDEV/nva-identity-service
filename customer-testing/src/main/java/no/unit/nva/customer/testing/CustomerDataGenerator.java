@@ -54,7 +54,7 @@ public class CustomerDataGenerator {
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .build();
 
-        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.secret")));
+        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
         return customer;
     }
 

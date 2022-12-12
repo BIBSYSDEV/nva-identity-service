@@ -68,7 +68,7 @@ class UpdateCustomerDoiHandlerTest {
         ).thenReturn(existingCustomer);
 
         when(secretWriterMock.updateSecretKey(any(), eq(existingCustomer.getIdentifier().toString()), any())
-        ).thenReturn(existingCustomer.getDoiAgent().getName());
+        ).thenReturn(existingCustomer.getDoiAgent().getUsername());
 
         var response = sendRequest(getExistingCustomerIdentifier(), doiAgent, DoiAgentDto.class);
         var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);

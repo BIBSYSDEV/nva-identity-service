@@ -6,7 +6,7 @@ public interface DoiAgent {
 
     String getUrl();
 
-    String getName();
+    String getUsername();
 
 
     static DoiAgent randomDoiAgent(String randomString) {
@@ -23,8 +23,8 @@ public interface DoiAgent {
             }
 
             @Override
-            public String getName() {
-                return "agency-name-" + randomString;
+            public String getUsername() {
+                return "user-name-" + randomString;
             }
         };
     }

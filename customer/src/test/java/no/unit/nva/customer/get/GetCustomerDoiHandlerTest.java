@@ -6,7 +6,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -20,6 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
+import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.stubs.FakeContext;
@@ -54,19 +54,20 @@ class GetCustomerDoiHandlerTest {
     @Test
     void handleRequestReturnsOkWhenARequestWithAnExistingIdentifier() throws IOException, NotFoundException {
 
-        var secret = randomString();
+        var secretDto = existingCustomer.getDoiAgent().addPassword(randomString());
+        var secretDaoArray = "[" +  new SecretManagerDoiAgentDao(existingCustomer.getId(), secretDto) + "]";
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);
 
-        when(secretsReaderMock.fetchSecret(any(), eq(existingCustomer.getIdentifier().toString()))
-        ).thenReturn(secret);
+        when(secretsReaderMock.fetchSecret(any(), any())
+        ).thenReturn(secretDaoArray.toString());
 
         var response = sendRequest(getExistingCustomerIdentifier(), DoiAgentDto.class);
         var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(doiAgentResponse.getPassword(), is(equalTo(secret)));
+        assertThat(doiAgentResponse, is(equalTo(secretDto)));
     }
 
     @Test

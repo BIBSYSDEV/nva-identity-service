@@ -428,17 +428,27 @@ public class CustomerDao implements Typed {
     @DynamoDbBean
     public static class DoiAgentDao implements DoiAgent {
 
-        private String url;
-        private String name;
         private String prefix;
+        private String url;
+        private String username;
 
         public DoiAgentDao() {
         }
 
         public DoiAgentDao(DoiAgent doiAgent) {
-            this.prefix = doiAgent.getPrefix();
-            this.url = doiAgent.getUrl();
-            this.name = doiAgent.getName();
+            setPrefix(doiAgent.getPrefix());
+            setUrl(doiAgent.getUrl());
+            setUsername(doiAgent.getUsername());
+        }
+
+
+        @Override
+        public String getPrefix() {
+            return prefix;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
         }
 
         @Override
@@ -451,41 +461,31 @@ public class CustomerDao implements Typed {
         }
 
         @Override
-        public String getName() {
-            return name;
+        public String getUsername() {
+            return username;
         }
 
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String getPrefix() {
-            return prefix;
-        }
-
-        public void setPrefix(String prefix) {
-            this.prefix = prefix;
+        public void setUsername(String username) {
+            this.username = username;
         }
 
         @Override
-        @JacocoGenerated
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof DoiAgentDao that)) {
+            if (!(o instanceof DoiAgentDao)) {
                 return false;
             }
-            return Objects.equals(getUrl(), that.getUrl())
-                   && Objects.equals(getName(), that.getName())
-                   && Objects.equals(getPrefix(), that.getPrefix());
+            DoiAgentDao that = (DoiAgentDao) o;
+            return Objects.equals(getPrefix(), that.getPrefix())
+                   && Objects.equals(getUrl(), that.getUrl())
+                   && Objects.equals(getUsername(), that.getUsername());
         }
 
         @Override
-        @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(getUrl(), getName(), getPrefix());
+            return Objects.hash(getPrefix(), getUrl(), getUsername());
         }
 
         @Override

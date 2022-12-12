@@ -10,7 +10,7 @@ import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
-public class SecretManagerDoiAgent implements DoiAgent {
+public class SecretManagerDoiAgentDao implements DoiAgent {
 
     private URI customerId;
     @JsonProperty("customerDoiPrefix")
@@ -18,32 +18,32 @@ public class SecretManagerDoiAgent implements DoiAgent {
     @JsonProperty("dataCiteMdsClientUrl")
     private String url;
     @JsonProperty("dataCiteMdsClientUsername")
-    private String name;
+    private String username;
     @JsonProperty("dataCiteMdsClientPassword")
     private  String password;
 
-    public SecretManagerDoiAgent() {
+    public SecretManagerDoiAgentDao() {
     }
 
-    public SecretManagerDoiAgent(URI customerId,DoiAgentDto doiAgentDto) {
+    public SecretManagerDoiAgentDao(URI customerId, DoiAgentDto doiAgentDto) {
         setCustomerId(customerId);
         setPrefix(doiAgentDto.getPrefix());
         setUrl(doiAgentDto.getUrl());
-        setName(doiAgentDto.getName());
+        setUsername(doiAgentDto.getUsername());
         setPassword(doiAgentDto.getPassword());
     }
 
 
-    private SecretManagerDoiAgent(Builder builder) {
+    private SecretManagerDoiAgentDao(Builder builder) {
         setCustomerId(builder.customerId);
         setPrefix(builder.prefix);
         setUrl(builder.url);
-        setName(builder.name);
+        setUsername(builder.username);
         setPassword(builder.password);
     }
 
-    public static SecretManagerDoiAgent fromJson(String json) throws BadRequestException {
-        return attempt(() -> JsonConfig.readValue(json, SecretManagerDoiAgent.class)).orElseThrow(
+    public static SecretManagerDoiAgentDao fromJson(String json) throws BadRequestException {
+        return attempt(() -> JsonConfig.readValue(json, SecretManagerDoiAgentDao.class)).orElseThrow(
             fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
@@ -73,12 +73,12 @@ public class SecretManagerDoiAgent implements DoiAgent {
     }
 
     @Override
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String name) {
+        this.username = name;
     }
 
     public String getPassword() {
@@ -95,20 +95,21 @@ public class SecretManagerDoiAgent implements DoiAgent {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SecretManagerDoiAgent that)) {
+        if (!(o instanceof SecretManagerDoiAgentDao)) {
             return false;
         }
+        SecretManagerDoiAgentDao that = (SecretManagerDoiAgentDao) o;
         return Objects.equals(getCustomerId(), that.getCustomerId())
                && Objects.equals(getPrefix(), that.getPrefix())
                && Objects.equals(getUrl(), that.getUrl())
-               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getUsername(), that.getUsername())
                && Objects.equals(getPassword(), that.getPassword());
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
-        return Objects.hash(getCustomerId(), getPrefix(), getUrl(), getName(), getPassword());
+        return Objects.hash(getCustomerId(), getPrefix(), getUrl(), getUsername(), getPassword());
     }
 
     @Override
@@ -122,7 +123,7 @@ public class SecretManagerDoiAgent implements DoiAgent {
         private URI customerId;
         private String prefix;
         private String url;
-        private String name;
+        private String username;
         private String password;
 
         public Builder() {
@@ -143,8 +144,8 @@ public class SecretManagerDoiAgent implements DoiAgent {
             return this;
         }
 
-        public Builder withName(String name) {
-            this.name = name;
+        public Builder withUsername(String name) {
+            this.username = name;
             return this;
         }
 
@@ -153,8 +154,8 @@ public class SecretManagerDoiAgent implements DoiAgent {
             return this;
         }
 
-        public SecretManagerDoiAgent build() {
-            return new SecretManagerDoiAgent(this);
+        public SecretManagerDoiAgentDao build() {
+            return new SecretManagerDoiAgentDao(this);
         }
     }
 }

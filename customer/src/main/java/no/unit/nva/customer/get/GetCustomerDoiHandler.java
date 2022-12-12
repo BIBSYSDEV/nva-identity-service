@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerDoiHandler;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
-import no.unit.nva.customer.model.SecretManagerDoiAgent;
+import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -41,7 +41,7 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
      * Constructor for CreateCustomerHandler.
      *
      * @param customerService customerService
-     * @param secretsReader a vaild SecretsReader
+     * @param secretsReader   a vaild SecretsReader
      */
     public GetCustomerDoiHandler(CustomerService customerService, SecretsReader secretsReader) {
         super(Void.class);
@@ -71,13 +71,13 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private Map<UUID,SecretManagerDoiAgent> getSecretManagerDoiAgent() throws NotFoundException {
+    private Map<UUID, SecretManagerDoiAgentDao> getSecretManagerDoiAgent() throws NotFoundException {
         try {
-            var secretAsStringJsonArray = secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME, CUSTOMER_DOI_AGENT_SECRETS_NAME);
+            var secretAsStringJsonArray = secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME,
+                                                                    CUSTOMER_DOI_AGENT_SECRETS_NAME);
 
-            return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgent[].class))
-                .collect(Collectors.toMap(it -> toUuid(it.getCustomerId()),it -> it));
-
+            return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class))
+                       .collect(Collectors.toMap(it -> toUuid(it.getCustomerId()), it -> it));
         } catch (Exception ex) {
             throw new NotFoundException(ex.getMessage());
         }
@@ -85,6 +85,6 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
 
     private UUID toUuid(URI customerId) {
         var parts = customerId.getPath().split("/");
-        return UUID.fromString(parts[parts.length-1]);
+        return UUID.fromString(parts[parts.length - 1]);
     }
 }

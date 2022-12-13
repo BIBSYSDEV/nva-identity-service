@@ -726,11 +726,14 @@ components:
     DoiAgent:
       type: object
       properties:
-        name:
-          type: string
         prefix:
           type: string
-        secret:
+        url:
+          type: string
+          format: url
+        username:
+          type: string
+        password:
           type: string
     VocabularyList:
       type: object
@@ -804,7 +807,8 @@ components:
             active: 'default'
         doiAgent:
           prefix: "1000.10"
-          name: "Doi Register Customer Name"
+          url: "test.nva.unit.no"
+          username: "Doi Register Customer Name"
         publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
     CustomerListExample:
       value:
@@ -832,7 +836,8 @@ components:
                 active: 'default'
             doiAgent:
               prefix: "1000.10"
-              name: "Doi Register Customer Name"
+              url: "test.nva.unit.no"
+              username: "Doi Register Customer Name"
             publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
     DoiAgentExample:
       value:

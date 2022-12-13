@@ -613,7 +613,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: customer
-      Handler: no.unit.nva.customer.create.GetCustomerDoiHandler::handleRequest
+      Handler: no.unit.nva.customer.get.GetCustomerDoiHandler::handleRequest
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -633,7 +633,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: customer
-      Handler: no.unit.nva.customer.create.UpdateCustomerDoiHandler::handleRequest
+      Handler: no.unit.nva.customer.update.UpdateCustomerDoiHandler::handleRequest
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'

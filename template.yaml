@@ -612,7 +612,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: customer
-      Role: !GetAtt CustomerSecretAdminRole
+      Role: !GetAtt CustomerSecretAdminRole.Arn
       Handler: no.unit.nva.customer.get.GetCustomerDoiHandler::handleRequest
       Environment:
         Variables:
@@ -634,7 +634,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: customer
-      Role: !GetAtt CustomerSecretAdminRole
+      Role: !GetAtt CustomerSecretAdminRole.Arn
       Handler: no.unit.nva.customer.update.UpdateCustomerDoiHandler::handleRequest
       Environment:
         Variables:

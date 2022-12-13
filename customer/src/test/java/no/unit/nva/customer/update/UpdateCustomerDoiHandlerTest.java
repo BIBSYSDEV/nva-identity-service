@@ -4,11 +4,11 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -42,7 +42,6 @@ class UpdateCustomerDoiHandlerTest {
     private CustomerDto existingCustomer;
     private ByteArrayOutputStream outputStream;
     private CustomerService customerServiceMock;
-    private SecretsWriter secretWriterMock;
     private SecretsReader secretsReaderMock;
     private UpdateCustomerDoiHandler handler;
 
@@ -50,7 +49,7 @@ class UpdateCustomerDoiHandlerTest {
     public void beforeEach() {
         this.outputStream = new ByteArrayOutputStream();
         customerServiceMock = mock(CustomerService.class);
-        secretWriterMock = mock(SecretsWriter.class);
+        var secretWriterMock = mock(SecretsWriter.class);
         secretsReaderMock = mock(SecretsReader.class);
         handler = new UpdateCustomerDoiHandler(customerServiceMock, secretWriterMock, secretsReaderMock);
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
@@ -63,7 +62,8 @@ class UpdateCustomerDoiHandlerTest {
         var doiAgent = existingCustomer.getDoiAgent()
                            .addPassword(secret);
 
-        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(existingCustomer.getId(), doiAgent) + "]";
+        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(existingCustomer.getId(), doiAgent) + ", "
+                             + new SecretManagerDoiAgentDao(randomUri(),doiAgent) + "]";
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);

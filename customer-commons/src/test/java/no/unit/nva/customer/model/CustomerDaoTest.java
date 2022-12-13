@@ -14,6 +14,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.util.Map;
@@ -50,6 +51,16 @@ class CustomerDaoTest {
         assertNotEquals(null, actualDoiAgent);
 
         assertThrows(IllegalStateException.class,() -> actual.setType("NOT A TYPE"));
+    }
+
+    @Test
+    void testingJacocoCoverageAssignNullWorking() {
+        var fullAvTull =
+            CustomerDao.builder()
+                .withCreatedDate((String) null)
+                .withModifiedDate((String) null)
+                .build();
+        assertNotNull(fullAvTull);
     }
 
     @Test

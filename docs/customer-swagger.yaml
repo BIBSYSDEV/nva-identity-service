@@ -258,67 +258,6 @@ paths:
               examples:
                 BadGatewatExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
-  /{identifier}/doi:
-    get:
-      summary: Fetch (new) Customer doi
-      security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
-      parameters:
-        - name: identifier
-          description: UUID identifier of the Customer to get.
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/CustomerIdentifier'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Customer'
-              examples:
-                objectExample:
-                  $ref: '#/components/examples/CustomerExample'
-            application/ld+json:
-              schema:
-                $ref: '#/components/schemas/Customer'
-              examples:
-                objectExample:
-                  $ref: '#/components/examples/CustomerExample'
-        '400':
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-              examples:
-                BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '404':
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-              examples:
-                NotFoundExample:
-                  $ref: '#/components/examples/NotFoundProblemExample'
-        '502':
-          description: Bad Gateway
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-              examples:
-                BadGatewayExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
-      x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaFetchCustomerDoiFunction.Arn}/invocations
-        responses: { }
-        httpMethod: POST
-        type: AWS_PROXY
   /{identifier}/doiagent:
     get:
       summary: Get Customer doi agent with secret

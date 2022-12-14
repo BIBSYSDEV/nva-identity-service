@@ -883,6 +883,17 @@ Resources:
               Service:
                 - lambda.amazonaws.com
             Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DataCiteSecretPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:PutSecretValue
+                  - secretsmanager:UpdateSecret
+                Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:dataCiteCustomerSecrets*'
 
   DefaultLambdaPermissions:
     Type: AWS::IAM::Policy
@@ -1339,7 +1350,6 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
-        - custom:doiAgent
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -1487,7 +1497,6 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
-        - custom:doiAgent
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2

@@ -936,7 +936,7 @@ Resources:
     Properties:
       PolicyName: !Sub DataCiteCustomerSecretPermission-${AWS::StackName}
       Roles:
-        - !Ref CustomerSecretReadWriteRole
+        - !Ref CustomerSecretAdminRole
       PolicyDocument:
         Version: '2012-10-17'
         Statement:

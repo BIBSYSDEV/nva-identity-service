@@ -58,7 +58,8 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
         var secret = secretMap.get(identifier);
 
         return new DoiAgentDto(secret)
-                   .addPassword(secret.getPassword());
+                   .addPassword(secret.getPassword())
+                   .addLink("self", secret.getCustomerId() + "/doiAgent");
     }
 
     @Override

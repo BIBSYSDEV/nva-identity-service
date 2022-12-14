@@ -59,7 +59,7 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
 
         return new DoiAgentDto(secret)
                    .addPassword(secret.getPassword())
-                   .addLink("self", secret.getCustomerId() + "/doiAgent");
+                   .addLink("self", secret.getCustomerId() + "doiAgent");
     }
 
     @Override

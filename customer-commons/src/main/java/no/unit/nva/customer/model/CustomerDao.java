@@ -217,7 +217,8 @@ public class CustomerDao implements Typed {
 
     @DynamoDbConvertedBy(DoiAgentConverter.class)
     public DoiAgentDao getDoiAgent() {
-        return doiAgent;
+        return  nonNull(doiAgent) ? doiAgent
+                    : new DoiAgentDao();
     }
 
     public void setDoiAgent(DoiAgentDao doi) {

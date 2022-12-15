@@ -617,13 +617,9 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
       Events:
-        GetCustomerEvent:
+        GetCustomerDoiEvent:
           Type: Api
           Properties:
             Path: /{identifier}/doiagent
@@ -645,7 +641,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
       Events:
-        GetCustomerEvent:
+        UpdaterCustomerDoiEvent:
           Type: Api
           Properties:
             Path: /{identifier}/doiagent
@@ -883,6 +879,18 @@ Resources:
               Service:
                 - lambda.amazonaws.com
             Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DatabasePermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
+
 
 
   DefaultLambdaPermissions:

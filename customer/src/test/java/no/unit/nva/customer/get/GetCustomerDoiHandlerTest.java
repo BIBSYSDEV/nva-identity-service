@@ -1,7 +1,7 @@
 package no.unit.nva.customer.get;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -54,14 +54,14 @@ class GetCustomerDoiHandlerTest {
     @Test
     void handleRequestReturnsOkWhenARequestWithAnExistingIdentifier() throws IOException, NotFoundException {
 
-        var secretDto = existingCustomer.getDoiAgent().addPassword(randomString());
+        var secretDto = existingCustomer.getDoiAgent();
         var secretDaoArray = "[" +  new SecretManagerDoiAgentDao(existingCustomer.getId(), secretDto) + "]";
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);
 
         when(secretsReaderMock.fetchSecret(any(), any())
-        ).thenReturn(secretDaoArray.toString());
+        ).thenReturn(secretDaoArray);
 
         var response = sendRequest(getExistingCustomerIdentifier(), DoiAgentDto.class);
         var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);
@@ -100,6 +100,8 @@ class GetCustomerDoiHandlerTest {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
                    .withPathParameters(Map.of("identifier", identifier.toString()))
                    .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
+                   .withCurrentCustomer(existingCustomer.getId())
+                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION.toString())
                    .build();
     }
 

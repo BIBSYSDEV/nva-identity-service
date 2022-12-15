@@ -22,7 +22,6 @@ import nva.commons.secrets.SecretsReader;
 
 public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
 
-
     private final SecretsReader secretsReader;
 
     /**
@@ -52,13 +51,13 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
     @Override
     protected DoiAgentDto processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
-        // TODO Implement access control ?  -->  authorizeDoiAgentChange(requestInfo);
+        authorizeDoiAgentRead(requestInfo);
         var identifier = getIdentifier(requestInfo);
         var secretMap = getSecretManagerDoiAgent();
         var secret = secretMap.get(identifier);
 
+        // if you want to show the password, add it here...
         return new DoiAgentDto(secret)
-                   .addPassword(secret.getPassword())
                    .addLink("self", secret.getCustomerId() + "/doiAgent");
     }
 

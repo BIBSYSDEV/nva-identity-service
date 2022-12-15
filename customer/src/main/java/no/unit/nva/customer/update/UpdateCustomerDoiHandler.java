@@ -61,10 +61,9 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
     protected DoiAgentDto processInput(DoiAgentDto input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
+        authorizeDoiAgentChange(requestInfo);
+
         var customerId = getIdentifier(requestInfo);
-
-        // TODO Implement access control ?  -->  authorizeDoiAgentChange(requestInfo);
-
         var customer = customerService.getCustomer(customerId);
         customer.setDoiAgent(input);
         var result = customerService.updateCustomer(customerId, customer);
@@ -78,10 +77,12 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
                 .map(SecretManagerDoiAgentDao::toString)
                 .collect(Collectors.joining(",", "[", "]"));
 
-        secretsWriter.updateSecretKey(CUSTOMER_DOI_AGENT_SECRETS_NAME, CUSTOMER_DOI_AGENT_SECRETS_NAME,
-                                      allSecretsJsonString);
-        return result.getDoiAgent()
-                   .addPassword(input.getPassword());
+        secretsWriter.updateSecretKey(
+            CUSTOMER_DOI_AGENT_SECRETS_NAME,
+            CUSTOMER_DOI_AGENT_SECRETS_NAME,
+            allSecretsJsonString);
+
+        return result.getDoiAgent();
     }
 
     @Override

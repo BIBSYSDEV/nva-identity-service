@@ -5,6 +5,7 @@ import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -112,6 +113,8 @@ class UpdateCustomerDoiHandlerTest {
                    .withHeaders(getRequestHeaders())
                    .withPathParameters(Map.of(IDENTIFIER, identifier.toString()))
                    .withBody(body)
+                   .withCurrentCustomer(existingCustomer.getId())
+                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION.toString())
                    .build();
     }
 
@@ -121,6 +124,8 @@ class UpdateCustomerDoiHandlerTest {
                    .withHeaders(getRequestHeaders())
                    .withPathParameters(Map.of(IDENTIFIER, randomString()))
                    .withBody(body)
+                   .withCurrentCustomer(existingCustomer.getId())
+                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION.toString())
                    .build();
     }
 }

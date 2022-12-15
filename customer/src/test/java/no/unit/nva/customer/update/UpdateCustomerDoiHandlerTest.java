@@ -6,6 +6,7 @@ import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
+import static nva.commons.apigateway.AccessRight.USER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -93,6 +94,17 @@ class UpdateCustomerDoiHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
+    @Test
+    void handleinvalidUserAccess()
+        throws ApiGatewayException, IOException {
+        when(
+            customerServiceMock.getCustomer(any(UUID.class))
+        ).thenThrow(NotFoundException.class);
+
+        var response = sendRequest(createRequestWithInvalidAccessRights(null), Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, CONTEXT);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
@@ -126,6 +138,17 @@ class UpdateCustomerDoiHandlerTest {
                    .withBody(body)
                    .withCurrentCustomer(existingCustomer.getId())
                    .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION.toString())
+                   .build();
+    }
+
+    private <T> InputStream createRequestWithInvalidAccessRights(T body)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<T>(dtoObjectMapper)
+                   .withHeaders(getRequestHeaders())
+                   .withPathParameters(Map.of(IDENTIFIER, randomString()))
+                   .withBody(body)
+                   .withCurrentCustomer(existingCustomer.getId())
+                   .withAccessRights(existingCustomer.getId(), USER.toString())
                    .build();
     }
 }

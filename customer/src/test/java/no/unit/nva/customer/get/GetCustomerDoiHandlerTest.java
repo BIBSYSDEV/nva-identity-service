@@ -2,6 +2,7 @@ package no.unit.nva.customer.get;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
+import static nva.commons.apigateway.AccessRight.USER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -81,6 +82,18 @@ class GetCustomerDoiHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
+    @Test
+    void handleinvalidUserAccess() throws NotFoundException, IOException {
+        when(customerServiceMock.getCustomer(any(UUID.class)))
+            .thenThrow(NotFoundException.class);
+
+        var response = sendFailedRequest(randomCustomerIdentifier(), Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+
+
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, CONTEXT);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
@@ -90,6 +103,17 @@ class GetCustomerDoiHandlerTest {
         var request = createRequestWithMediaType(identifier);
         return sendRequest(request, responseType);
     }
+
+    private <T> GatewayResponse<T> sendFailedRequest(UUID identifier, Class<T> responseType) throws IOException {
+        var request = new HandlerRequestBuilder<Void>(dtoObjectMapper)
+                          .withPathParameters(Map.of("identifier", identifier.toString()))
+                          .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
+                          .withCurrentCustomer(existingCustomer.getId())
+                          .withAccessRights(existingCustomer.getId(), USER.toString())
+                          .build();
+        return sendRequest(request, responseType);
+    }
+
 
     private UUID getExistingCustomerIdentifier() {
         return existingCustomer.getIdentifier();

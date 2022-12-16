@@ -1,14 +1,13 @@
 package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
-import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -16,12 +15,10 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
-import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -47,12 +44,6 @@ class CustomerDtoTest {
         assertNotEquals(null, deserializedDoiAgent);
     }
 
-    @Test
-    void validJsonFromLinkItem() throws IOException {
-        var linkItem = attempt(() -> new LinkItem(randomUri().toURL().toString())).get();
-        var item = JsonConfig.readValue(linkItem.toString(), LinkItem.class);
-        assertThat(item.toString(), is(equalTo(linkItem.toString())));
-    }
 
     @Test
     void shouldThrowBadRequestWhenFailingToDeserializeDoiAgent() {

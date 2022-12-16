@@ -1,6 +1,7 @@
 package no.unit.nva.customer.get;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
@@ -18,6 +19,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
 
 public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
@@ -51,14 +53,19 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
     @Override
     protected DoiAgentDto processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
+
         authorizeDoiAgentRead(requestInfo);
+
         var identifier = getIdentifier(requestInfo);
-        var secretMap = getSecretManagerDoiAgent();
-        var secret = secretMap.get(identifier);
+        var secret = getSecretsManagerDoiAgent().get(identifier);
+        var doiAgentId =
+            UriWrapper.fromUri(toId(identifier))
+                .addChild("doiAgent")
+                .getUri();
 
         // if you want to show the password, add it here...
         return new DoiAgentDto(secret)
-                   .addLink("self", secret.getCustomerId() + "/doiAgent");
+                   .addId(doiAgentId);
     }
 
     @Override
@@ -66,10 +73,11 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private Map<UUID, SecretManagerDoiAgentDao> getSecretManagerDoiAgent() throws NotFoundException {
+    private Map<UUID, SecretManagerDoiAgentDao> getSecretsManagerDoiAgent() throws NotFoundException {
         try {
-            var secretAsStringJsonArray = secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME,
-                                                                    CUSTOMER_DOI_AGENT_SECRETS_NAME);
+            var secretAsStringJsonArray = secretsReader.fetchSecret(
+                CUSTOMER_DOI_AGENT_SECRETS_NAME,
+                CUSTOMER_DOI_AGENT_SECRETS_NAME);
 
             return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class))
                        .collect(Collectors.toMap(it -> toUuid(it.getCustomerId()), it -> it));
@@ -79,7 +87,9 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
     }
 
     private UUID toUuid(URI customerId) {
-        var parts = customerId.getPath().split("/");
-        return UUID.fromString(parts[parts.length - 1]);
+        return
+            UUID.fromString(
+                UriWrapper.fromUri(customerId).getLastPathElement()
+            );
     }
 }

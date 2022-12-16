@@ -41,7 +41,7 @@ class SecretManagerDoiAgentDaoTest {
     }
 
     @Test
-    void stupidJacocoTestForCoverageThisIsAllReadyTestedElsewhere() {
+    void jacocoTestForTestCoverageThisIsAlreadyTestedElsewhere() {
         var customerDto = createSampleCustomerDao().toCustomerDto();
         var doiAgentDto = customerDto.getDoiAgent();
         var secretManagerDoiAgentDao = new SecretManagerDoiAgentDao(randomUri(),doiAgentDto);

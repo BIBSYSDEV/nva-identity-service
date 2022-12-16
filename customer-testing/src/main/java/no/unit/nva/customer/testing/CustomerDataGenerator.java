@@ -1,6 +1,5 @@
 package no.unit.nva.customer.testing;
 
-import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -22,6 +21,7 @@ import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
+import no.unit.nva.customer.model.interfaces.DoiAgent;
 import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 
@@ -87,6 +87,26 @@ public class CustomerDataGenerator {
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
+    }
+
+    public static DoiAgent randomDoiAgent(String randomString) {
+        return new DoiAgent() {
+
+            @Override
+            public String getPrefix() {
+                return "10.000";
+            }
+
+            @Override
+            public String getUrl() {
+                return "mds." + randomString + ".datacite.org";
+            }
+
+            @Override
+            public String getUsername() {
+                return "user-name-" + randomString;
+            }
+        };
     }
 
     private static ApplicationDomain randomApplicationDomain() {

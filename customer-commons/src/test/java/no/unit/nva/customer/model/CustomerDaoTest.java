@@ -1,6 +1,6 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;

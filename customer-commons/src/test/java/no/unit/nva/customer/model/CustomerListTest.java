@@ -35,7 +35,7 @@ class CustomerListTest {
     }
 
     @Test
-    void stupidJacocoTestForCoverage() {
+    void jacocoTestForTestCoverage() {
         var cust = new CustomerList().getCustomers();
         assertEquals(Collections.emptyList(),cust);
     }

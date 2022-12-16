@@ -1,6 +1,6 @@
 package no.unit.nva.customer;
 
-import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
@@ -82,7 +82,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
-                                                                         "doiAgent.password")));
+                                                                         "doiAgent.password", "doiAgent.id")));
         return customer;
     }
 

@@ -262,7 +262,7 @@ paths:
     get:
       summary: Get Customer doi agent with secret
       security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend"]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer
@@ -715,9 +715,7 @@ components:
           items:
             $ref: '#/components/schemas/Vocabulary'
         doiagent:
-          type: object
-          items:
-            $ref: '#/components/schemas/DoiAgent'
+          $ref: '#/components/schemas/DoiAgent'
         '@context':
           type: object
         publicationWorkflow:
@@ -726,6 +724,9 @@ components:
     DoiAgent:
       type: object
       properties:
+        id:
+          type: string
+          format: uri
         prefix:
           type: string
         url:
@@ -841,9 +842,11 @@ components:
             publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
     DoiAgentExample:
       value:
-        prefix: "1000.10"
-        name: "Doi Register Customer Name"
-        secret: "*******"
+        id: 'https://example.com/example/#/doiagent'
+        prefix: '1000.10'
+        url: 'https://namespace.schema.org'
+        username: 'Doi Registrar Username'
+        password: '*******'
     VocabularyListExample:
       value:
         '@context': 'https://bibsysdev.github.io/src/customer-api.json'

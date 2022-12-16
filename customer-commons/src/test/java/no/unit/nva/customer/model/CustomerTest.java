@@ -18,7 +18,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import no.unit.nva.customer.model.interfaces.DoiAgent;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
@@ -88,7 +88,7 @@ class CustomerTest {
                    .withVocabularySettings(vocabularySettings)
                    .withRorId(randomUri())
                    .withPublicationWorkflow(randomPublicationWorkflow())
-                   .withDoiAgent(DoiAgent.randomDoiAgent(randomString()))
+                   .withDoiAgent(CustomerDataGenerator.randomDoiAgent(randomString()))
             .build();
     }
 

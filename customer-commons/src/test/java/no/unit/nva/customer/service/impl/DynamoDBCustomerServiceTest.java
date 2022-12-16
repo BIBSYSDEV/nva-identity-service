@@ -1,7 +1,7 @@
 package no.unit.nva.customer.service.impl;
 
 import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
-import static no.unit.nva.customer.model.interfaces.DoiAgent.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
@@ -341,7 +341,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
-                                                                         "doiAgent.password")));
+                                                                         "doiAgent.password","doiAgent.id")));
         return customer;
     }
 

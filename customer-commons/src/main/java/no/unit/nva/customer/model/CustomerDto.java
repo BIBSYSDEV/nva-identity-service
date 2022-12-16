@@ -10,16 +10,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 
 //Overriding setters and getters is necessary for Jackson-Jr
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields", "PMD.GodClass"})
@@ -284,6 +283,7 @@ public class CustomerDto implements Context {
 
     public static final class Builder {
 
+        public static final String DOI_AGENT = "doiagent";
         private final CustomerDto customerDto;
 
         private Builder() {
@@ -395,11 +395,14 @@ public class CustomerDto implements Context {
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
             if (nonNull(doiAgent)) {
                 if (nonNull(customerDto.identifier)) {
+                    var doiAgentId =
+                        UriWrapper.fromUri(toId(customerDto.identifier))
+                            .addChild(DOI_AGENT)
+                            .getUri();
                     return new DoiAgentDto(doiAgent)
-                               .addLink("self", toId(customerDto.identifier) + "/doiAgent");
+                               .addId(doiAgentId);
                 }
-                return new DoiAgentDto(doiAgent)
-                           .addLink("self", "https://example.org/customer/12345678/doiAgent");
+                return new DoiAgentDto(doiAgent);
             }
             return null;
         }
@@ -411,11 +414,11 @@ public class CustomerDto implements Context {
 
     public static class DoiAgentDto implements DoiAgent {
 
+        private URI id;
         private String url;
         private String prefix;
         private String username;
         private String password;
-        private final Map<String, LinkItem> links = new ConcurrentHashMap<>(1);
 
         @SuppressWarnings("unused")
         public DoiAgentDto() {
@@ -430,6 +433,19 @@ public class CustomerDto implements Context {
         public static DoiAgentDto fromJson(String json) throws BadRequestException {
             return attempt(() -> JsonConfig.readValue(json, DoiAgentDto.class)).orElseThrow(
                 fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
+        }
+
+        public URI getId() {
+            return id;
+        }
+
+        public void setId(URI id) {
+            this.id = id;
+        }
+
+        public DoiAgentDto addId(URI doiAgentId) {
+            this.id = doiAgentId;
+            return this;
         }
 
         @Override
@@ -451,6 +467,10 @@ public class CustomerDto implements Context {
             return url;
         }
 
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
         public void setPrefix(String prefix) {
             this.prefix = prefix;
         }
@@ -463,40 +483,31 @@ public class CustomerDto implements Context {
             this.password = password;
         }
 
-        public Map<String, LinkItem> getLinks() {
-            return links;
-        }
-
         public DoiAgentDto addPassword(String secretString) {
             password = secretString;
             return this;
         }
 
-        public DoiAgentDto addLink(String name, String url) {
-            attempt(() -> links.putIfAbsent(name, LinkItem.fromString(url)));
-            return this;
-        }
-
-
         @Override
-        @JacocoGenerated
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (!(o instanceof DoiAgentDto)) {
                 return false;
             }
             DoiAgentDto that = (DoiAgentDto) o;
-            return Objects.equals(getPrefix(), that.getPrefix())
+            return Objects.equals(getId(), that.getId())
+                   && Objects.equals(getUrl(), that.getUrl())
+                   && Objects.equals(getPrefix(), that.getPrefix())
                    && Objects.equals(getUsername(), that.getUsername())
                    && Objects.equals(getPassword(), that.getPassword());
         }
 
         @Override
-        @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(getPrefix(), getUsername(), getPassword());
+            return Objects.hash(getId(), getUrl(), getPrefix(), getUsername(),
+                                                           getPassword());
         }
 
         @Override
@@ -504,5 +515,6 @@ public class CustomerDto implements Context {
         public String toString() {
             return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
         }
+
     }
 }

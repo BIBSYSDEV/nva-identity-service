@@ -24,6 +24,7 @@ import nva.commons.secrets.SecretsReader;
 
 public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
 
+    public static final String DOI_AGENT = "doiagent";
     private final SecretsReader secretsReader;
 
     /**
@@ -60,7 +61,7 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
         var secret = getSecretsManagerDoiAgent().get(identifier);
         var doiAgentId =
             UriWrapper.fromUri(toId(identifier))
-                .addChild("doiAgent")
+                .addChild(DOI_AGENT)
                 .getUri();
 
         // if you want to show the password, add it here...

@@ -48,7 +48,9 @@ public class CreateCustomerRequest {
         request.setCristinId(customerDto.getCristinId());
         request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         request.setCustomerOf(customerDto.getCustomerOf());
-        request.setDoiAgent(customerDto.getDoiAgent());
+        if (nonNull(customerDto.getDoiAgent())) {
+            request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
+        }
         return request;
     }
 

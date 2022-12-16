@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto.Builder;
 import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
 public final class LinkedDataContextUtils {
@@ -16,6 +17,8 @@ public final class LinkedDataContextUtils {
     public static final URI LINKED_DATA_CONTEXT_VALUE =
         URI.create("https://bibsysdev.github.io/src/customer-context.json");
 
+
+    @JacocoGenerated
     private LinkedDataContextUtils() {
     }
 

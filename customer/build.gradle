@@ -10,6 +10,7 @@ dependencies {
 
     implementation libs.nva.apigateway
     implementation libs.nva.core
+    implementation libs.nva.secrets
     implementation libs.bundles.aws.lambda
     implementation libs.aws.sdk2.dynamodb
     implementation libs.guava

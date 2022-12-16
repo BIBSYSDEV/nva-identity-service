@@ -19,6 +19,7 @@ Feature: Get Customer
     And they see that the Customer has a created date
     And they see that the Customer has a modified date
     And they see that the Customer has a contact
+    And they see that the Customer has a doiPrefix
     And they see that the Customer has a logo file
 
     Examples:

@@ -1,8 +1,9 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -11,8 +12,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -34,18 +38,51 @@ class CustomerDaoTest {
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(customerDto, doesNotHaveEmptyValues());
+        assertThat(customerDto, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
+
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
+        assertNotEquals(null, actual);
+
+        var actualDoiAgent = actual.getDoiAgent();
+        assertThat(actualDoiAgent.toString(),doesNotHaveEmptyValues());
+        assertEquals(actualDoiAgent,expected.getDoiAgent());
+        assertEquals(actualDoiAgent.hashCode(),expected.getDoiAgent().hashCode());
+        assertNotEquals(null, actualDoiAgent);
+
+        assertThrows(IllegalStateException.class,() -> actual.setType("NOT A TYPE"));
+    }
+
+    @Test
+    void testingJacocoCoverageAssignNullWorking() {
+        var fullAvTull =
+            CustomerDao.builder()
+                .withCreatedDate((String) null)
+                .withModifiedDate((String) null)
+                .build();
+        assertNotNull(fullAvTull);
+    }
+
+    @Test
+    void toCustomerDaoToDtoAndBackReturnsWithLossOfSecret() {
+        var expectedDao = CustomerDataGenerator.createSampleCustomerDao();
+        var customerDto = expectedDao.toCustomerDto();
+        customerDto
+            .getDoiAgent()
+            .addPassword(randomString());
+        var actualDao = CustomerDao.fromCustomerDto(customerDto);
+        var actualDoiAgent = actualDao.getDoiAgent();
+
+        assertEquals(actualDoiAgent,expectedDao.getDoiAgent());
     }
 
     @Test
     void fromCustomerDbReturnsDbWithoutLossOfInformation() {
-        CustomerDto expected = createSampleCustomerDto();
-        CustomerDao customerDb = CustomerDao.fromCustomerDto(expected);
-        CustomerDto actual = customerDb.toCustomerDto();
+        CustomerDao expected = createSampleCustomerDao();
+        CustomerDto customerDto = expected.toCustomerDto();
+        CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(customerDb, doesNotHaveEmptyValues());
+        assertThat(actual, doesNotHaveEmptyValues());
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
     }
@@ -75,32 +112,29 @@ class CustomerDaoTest {
         return JsonConfig.mapFrom(jsonString);
     }
 
-    private CustomerDto createSampleCustomerDto() {
+    private CustomerDao createSampleCustomerDao() {
         UUID identifier = UUID.randomUUID();
-        URI id = LinkedDataContextUtils.toId(identifier);
-        CustomerDto customer = CustomerDto.builder()
-                                   .withName(randomString())
-                                   .withCristinId(randomUri())
-                                   .withCustomerOf(randomApplicationDomain())
-                                   .withFeideOrganizationDomain(randomString())
-                                   .withModifiedDate(randomInstant())
-                                   .withIdentifier(identifier)
-                                   .withId(id)
-                                   .withCname(randomString())
-                                   .withContext(LINKED_DATA_CONTEXT_VALUE)
-                                   .withArchiveName(randomString())
-                                   .withShortName(randomString())
-                                   .withInstitutionDns(randomString())
-                                   .withDisplayName(randomString())
-                                   .withCreatedDate(randomInstant())
-                                   .withVocabularies(randomVocabularyDtoSettings())
-                                   .withRorId(randomUri())
-                                   .withPublicationWorkflow(randomPublicationWorkflow())
-                                   .build();
-
-        assertThat(customer, doesNotHaveEmptyValues());
-        return customer;
+        return CustomerDao
+                   .builder()
+                   .withName(randomString())
+                   .withCristinId(randomUri())
+                   .withCustomerOf(randomApplicationDomain().getUri())
+                   .withFeideOrganizationDomain(randomString())
+                   .withModifiedDate(randomInstant())
+                   .withIdentifier(identifier)
+                   .withCname(randomString())
+                   .withArchiveName(randomString())
+                   .withShortName(randomString())
+                   .withInstitutionDns(randomString())
+                   .withDisplayName(randomString())
+                   .withCreatedDate(randomInstant())
+                   .withRorId(randomUri())
+                   .withVocabularySettings(randomVocabularySettings())
+                   .withPublicationWorkflow(randomPublicationWorkflow())
+                   .withDoiAgent(randomDoiAgent(randomString()))
+                   .build();
     }
+
 
     private ApplicationDomain randomApplicationDomain() {
         return ApplicationDomain.NVA;

@@ -1,8 +1,7 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
-import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -14,13 +13,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Context;
+import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 
 //Overriding setters and getters is necessary for Jackson-Jr
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields"})
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields", "PMD.GodClass"})
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
@@ -42,6 +43,7 @@ public class CustomerDto implements Context {
     private List<VocabularyDto> vocabularies;
     private URI rorId;
     private PublicationWorkflow publicationWorkflow;
+    private DoiAgentDto doiAgent;
 
     public CustomerDto() {
         super();
@@ -74,19 +76,19 @@ public class CustomerDto implements Context {
     }
 
     public String getCreatedDate() {
-        return instantToString(createdDate);
+        return nonNull(createdDate) ? createdDate.toString() : null;
     }
 
     public void setCreatedDate(String createdDate) {
-        this.createdDate = stringToInstant(createdDate);
+        this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
     }
 
     public String getModifiedDate() {
-        return instantToString(modifiedDate);
+        return nonNull(modifiedDate) ? modifiedDate.toString() : null;
     }
 
     public void setModifiedDate(String modifiedDate) {
-        this.modifiedDate = stringToInstant(modifiedDate);
+        this.modifiedDate = nonNull(modifiedDate) ? Instant.parse(modifiedDate) : null;
     }
 
     public String getName() {
@@ -145,6 +147,14 @@ public class CustomerDto implements Context {
         this.feideOrganizationDomain = feideOrganizationDomain;
     }
 
+    public DoiAgentDto getDoiAgent() {
+        return doiAgent;
+    }
+
+    public void setDoiAgent(DoiAgentDto doiAgent) {
+        this.doiAgent = doiAgent;
+    }
+
     public URI getCristinId() {
         return cristinId;
     }
@@ -196,60 +206,63 @@ public class CustomerDto implements Context {
     }
 
     public Builder copy() {
-        return new Builder().withVocabularies(getVocabularies())
-                   .withShortName(getShortName())
-                   .withInstitutionDns(getInstitutionDns())
-                   .withDisplayName(getDisplayName())
-                   .withCreatedDate(stringToInstant(getCreatedDate()))
+        return new Builder()
                    .withArchiveName(getArchiveName())
-                   .withIdentifier(getIdentifier())
-                   .withContext(getContext())
                    .withCname(getCname())
-                   .withId(getId())
+                   .withContext(getContext())
+                   .withCreatedDate(getCreatedDate())
                    .withCristinId(getCristinId())
                    .withCustomerOf(getCustomerOf())
+                   .withDisplayName(getDisplayName())
                    .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                   .withId(getId())
+                   .withIdentifier(getIdentifier())
+                   .withInstitutionDns(getInstitutionDns())
+                   .withModifiedDate(getModifiedDate())
                    .withName(getName())
-                   .withModifiedDate(stringToInstant(getModifiedDate()))
+                   .withPublicationWorkflow(getPublicationWorkflow())
                    .withRorId(getRorId())
-                   .withPublicationWorkflow(getPublicationWorkflow());
+                   .withShortName(getShortName())
+                   .withDoiAgent(getDoiAgent())
+                   .withVocabularies(getVocabularies());
     }
 
-    @JacocoGenerated
     @Override
+    @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow());
+                            getRorId(), getPublicationWorkflow(), getDoiAgent());
     }
 
-    @JacocoGenerated
     @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CustomerDto)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         CustomerDto that = (CustomerDto) o;
-        return Objects.equals(getContext(), that.getContext())
-               && Objects.equals(getId(), that.getId())
-               && Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getArchiveName(), that.getArchiveName())
+        return Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getContext(), that.getContext())
                && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getCustomerOf(), that.getCustomerOf())
-               && Objects.equals(getVocabularies(), that.getVocabularies())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getId(), that.getId())
+               && Objects.equals(getIdentifier(), that.getIdentifier())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
                && Objects.equals(getRorId(), that.getRorId())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getVocabularies(), that.getVocabularies())
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
@@ -270,6 +283,7 @@ public class CustomerDto implements Context {
 
     public static final class Builder {
 
+        public static final String DOI_AGENT = "doiagent";
         private final CustomerDto customerDto;
 
         private Builder() {
@@ -287,12 +301,22 @@ public class CustomerDto implements Context {
         }
 
         public Builder withCreatedDate(Instant createdDate) {
-            customerDto.setCreatedDate(instantToString(createdDate));
+            customerDto.createdDate = createdDate;
+            return this;
+        }
+
+        public Builder withCreatedDate(String createdDate) {
+            customerDto.setCreatedDate(createdDate);
             return this;
         }
 
         public Builder withModifiedDate(Instant modifiedDate) {
-            customerDto.setModifiedDate(instantToString(modifiedDate));
+            customerDto.modifiedDate = modifiedDate;
+            return this;
+        }
+
+        public Builder withModifiedDate(String modifiedDate) {
+            customerDto.setModifiedDate(modifiedDate);
             return this;
         }
 
@@ -363,8 +387,134 @@ public class CustomerDto implements Context {
             return this;
         }
 
+        public Builder withDoiAgent(DoiAgent doiAgent) {
+            customerDto.setDoiAgent(buildDoiAgentDto(doiAgent));
+            return this;
+        }
+
+        private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
+            if (nonNull(doiAgent)) {
+                if (nonNull(customerDto.identifier)) {
+                    var doiAgentId =
+                        UriWrapper.fromUri(toId(customerDto.identifier))
+                            .addChild(DOI_AGENT)
+                            .getUri();
+                    return new DoiAgentDto(doiAgent)
+                               .addId(doiAgentId);
+                }
+                return new DoiAgentDto(doiAgent);
+            }
+            return null;
+        }
+
         public CustomerDto build() {
             return customerDto;
         }
+    }
+
+    public static class DoiAgentDto implements DoiAgent {
+
+        private URI id;
+        private String url;
+        private String prefix;
+        private String username;
+        private String password;
+
+        @SuppressWarnings("unused")
+        public DoiAgentDto() {
+        }
+
+        public DoiAgentDto(DoiAgent doiAgent) {
+            this.username = doiAgent.getUsername();
+            this.url = doiAgent.getUrl();
+            this.prefix = doiAgent.getPrefix();
+        }
+
+        public static DoiAgentDto fromJson(String json) throws BadRequestException {
+            return attempt(() -> JsonConfig.readValue(json, DoiAgentDto.class)).orElseThrow(
+                fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
+        }
+
+        public URI getId() {
+            return id;
+        }
+
+        public void setId(URI id) {
+            this.id = id;
+        }
+
+        public DoiAgentDto addId(URI doiAgentId) {
+            this.id = doiAgentId;
+            return this;
+        }
+
+        @Override
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String name) {
+            this.username = name;
+        }
+
+        @Override
+        public String getPrefix() {
+            return prefix;
+        }
+
+        @Override
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public DoiAgentDto addPassword(String secretString) {
+            password = secretString;
+            return this;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof DoiAgentDto)) {
+                return false;
+            }
+            DoiAgentDto that = (DoiAgentDto) o;
+            return Objects.equals(getId(), that.getId())
+                   && Objects.equals(getUrl(), that.getUrl())
+                   && Objects.equals(getPrefix(), that.getPrefix())
+                   && Objects.equals(getUsername(), that.getUsername())
+                   && Objects.equals(getPassword(), that.getPassword());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getId(), getUrl(), getPrefix(), getUsername(),
+                                                           getPassword());
+        }
+
+        @Override
+        @JacocoGenerated
+        public String toString() {
+            return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
+        }
+
     }
 }

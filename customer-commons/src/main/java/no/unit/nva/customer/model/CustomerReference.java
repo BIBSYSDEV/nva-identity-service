@@ -1,7 +1,6 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.identityservice.json.JsonConfig.instantToString;
-import static no.unit.nva.identityservice.json.JsonConfig.stringToInstant;
+import static java.util.Objects.nonNull;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
@@ -38,11 +37,11 @@ public class CustomerReference {
     }
 
     public String getCreatedDate() {
-        return instantToString(createdDate);
+        return nonNull(createdDate) ? createdDate.toString() : null;
     }
 
     public void setCreatedDate(String createdDate) {
-        this.createdDate = stringToInstant(createdDate);
+        this.createdDate =  nonNull(createdDate) ? Instant.parse(createdDate) : null;
     }
 
     @JacocoGenerated

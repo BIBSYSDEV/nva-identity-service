@@ -28,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
+
 public class DynamoDBCustomerService implements CustomerService {
 
     public static final String BY_ORG_DOMAIN_INDEX_NAME = "byOrgDomain";
@@ -42,6 +43,7 @@ public class DynamoDBCustomerService implements CustomerService {
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
+
     private final DynamoDbTable<CustomerDao> table;
 
     /**

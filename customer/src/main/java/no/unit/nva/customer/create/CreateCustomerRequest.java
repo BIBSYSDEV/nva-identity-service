@@ -2,6 +2,7 @@ package no.unit.nva.customer.create;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.create.CreateCustomerRequest.TYPE_VALUE;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -10,8 +11,10 @@ import java.util.List;
 import java.util.Objects;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.VocabularyDto;
+import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
 
 @JsonTypeInfo(use = Id.NAME, property = "type")
@@ -30,11 +33,13 @@ public class CreateCustomerRequest {
     private List<VocabularyDto> vocabularies;
     private PublicationWorkflow publicationWorkflow;
     private ApplicationDomain customerOf;
+    private DoiAgentDto doiAgent;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
         var request = new CreateCustomerRequest();
         request.setName(customerDto.getName());
         request.setDisplayName(customerDto.getDisplayName());
+        request.setShortName(customerDto.getShortName());
         request.setArchiveName(customerDto.getArchiveName());
         request.setCname(customerDto.getCname());
         request.setInstitutionDns(customerDto.getInstitutionDns());
@@ -43,15 +48,10 @@ public class CreateCustomerRequest {
         request.setCristinId(customerDto.getCristinId());
         request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         request.setCustomerOf(customerDto.getCustomerOf());
+        if (nonNull(customerDto.getDoiAgent())) {
+            request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
+        }
         return request;
-    }
-
-    public ApplicationDomain getCustomerOf() {
-        return customerOf;
-    }
-
-    public void setCustomerOf(ApplicationDomain customerOf) {
-        this.customerOf = customerOf;
     }
 
     public CustomerDto toCustomerDto() {
@@ -67,95 +67,78 @@ public class CreateCustomerRequest {
                    .withVocabularies(vocabularies)
                    .withPublicationWorkflow(getPublicationWorkflow())
                    .withCustomerOf(getCustomerOf())
+                   .withDoiAgent(getDoiAgent())
                    .build();
     }
 
-    @JacocoGenerated
     public String getName() {
         return name;
     }
 
-    @JacocoGenerated
     public void setName(String name) {
         this.name = name;
     }
 
-    @JacocoGenerated
     public String getDisplayName() {
         return displayName;
     }
 
-    @JacocoGenerated
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
-    @JacocoGenerated
     public String getShortName() {
         return shortName;
     }
 
-    @JacocoGenerated
     public void setShortName(String shortName) {
         this.shortName = shortName;
     }
 
-    @JacocoGenerated
     public String getArchiveName() {
         return archiveName;
     }
 
-    @JacocoGenerated
     public void setArchiveName(String archiveName) {
         this.archiveName = archiveName;
     }
 
-    @JacocoGenerated
     public String getCname() {
         return cname;
     }
 
-    @JacocoGenerated
     public void setCname(String cname) {
         this.cname = cname;
     }
 
-    @JacocoGenerated
     public String getInstitutionDns() {
         return institutionDns;
     }
 
-    @JacocoGenerated
     public void setInstitutionDns(String institutionDns) {
         this.institutionDns = institutionDns;
     }
 
-    @JacocoGenerated
     public String getFeideOrganizationDomain() {
         return feideOrganizationDomain;
     }
 
-    @JacocoGenerated
     public void setFeideOrganizationDomain(String feideOrganizationDomain) {
         this.feideOrganizationDomain = feideOrganizationDomain;
     }
 
-    @JacocoGenerated
     public URI getCristinId() {
         return cristinId;
     }
 
-    @JacocoGenerated
     public void setCristinId(URI cristinId) {
         this.cristinId = cristinId;
     }
 
-    @JacocoGenerated
     public List<VocabularyDto> getVocabularies() {
         return vocabularies;
     }
 
-    @JacocoGenerated
     public void setVocabularies(List<VocabularyDto> vocabularies) {
         this.vocabularies = vocabularies;
     }
@@ -169,11 +152,28 @@ public class CreateCustomerRequest {
         this.publicationWorkflow = publicationWorkflow;
     }
 
+    public ApplicationDomain getCustomerOf() {
+        return customerOf;
+    }
+
+    public void setCustomerOf(ApplicationDomain customerOf) {
+        this.customerOf = customerOf;
+    }
+
+    public DoiAgentDto getDoiAgent() {
+        return doiAgent;
+    }
+
+    public void setDoiAgent(DoiAgentDto doiAgent) {
+        this.doiAgent = doiAgent;
+    }
+
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
-                            getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies());
+                            getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
+                            getDoiAgent());
     }
 
     @JacocoGenerated
@@ -194,6 +194,13 @@ public class CreateCustomerRequest {
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getVocabularies(), that.getVocabularies());
+    }
+
+    @Override
+    @JacocoGenerated
+    public String toString() {
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 }

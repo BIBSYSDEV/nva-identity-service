@@ -62,13 +62,10 @@ Parameters:
     Default: ''
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
 
-
-
 Mappings:
   Constants:
     Cognito:
       UserPoolNamePrefix: IdentityService-UserPool-
-
 
 Conditions:
   WithSuffix: !Not [ !Equals [ !Ref Suffix, '' ] ]
@@ -108,8 +105,6 @@ Resources:
           ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
         - ClientId: !Ref DLRApplicationClient
           ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
-
-
 
   UpdateCognintoUserAttributesRole:
     Type: AWS::IAM::Role
@@ -361,6 +356,7 @@ Resources:
             Path: /roles/{role}
             Method: get
             RestApiId: !Ref UsersAndRolesApi
+
   CreateUserHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -384,7 +380,6 @@ Resources:
             Path: /users
             Method: post
             RestApiId: !Ref UsersAndRolesApi
-
 
   UpdateUserHandler:
     Type: AWS::Serverless::Function
@@ -423,7 +418,6 @@ Resources:
             Path: /users/{username}
             Method: get
             RestApiId: !Ref UsersAndRolesApi
-
 
   CustomerSelectionHandler:
     Type: AWS::Serverless::Function
@@ -592,6 +586,7 @@ Resources:
             Path: /
             Method: post
             RestApiId: !Ref NvaCustomerApi
+
   NvaGetCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -612,6 +607,47 @@ Resources:
             Path: /{identifier}
             Method: get
             RestApiId: !Ref NvaCustomerApi
+
+  NvaGetCustomerDoiAgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Role: !GetAtt CustomerSecretAdminRole.Arn
+      Handler: no.unit.nva.customer.get.GetCustomerDoiHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+      Events:
+        GetCustomerDoiEvent:
+          Type: Api
+          Properties:
+            Path: /{identifier}/doiagent
+            Method: get
+            RestApiId: !Ref NvaCustomerApi
+
+  NvaUpdateCustomerDoiAgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Role: !GetAtt CustomerSecretAdminRole.Arn
+      Handler: no.unit.nva.customer.update.UpdateCustomerDoiHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        UpdaterCustomerDoiEvent:
+          Type: Api
+          Properties:
+            Path: /{identifier}/doiagent
+            Method: put
+            RestApiId: !Ref NvaCustomerApi
+
   NvaGetCustomerVocabulariesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -764,7 +800,6 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
 
-
   NvaCustomerBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
@@ -813,7 +848,6 @@ Resources:
                 topic:
                   - IdentityService.IdentityEntry.ScanAndUpdate
 
-
   InternalBus:
     Type: AWS::Events::EventBus
     Properties:
@@ -833,6 +867,31 @@ Resources:
                 - lambda.amazonaws.com
             Action: sts:AssumeRole
 
+  CustomerSecretAdminRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DatabasePermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
+
+
 
   DefaultLambdaPermissions:
     Type: AWS::IAM::Policy
@@ -840,6 +899,7 @@ Resources:
       PolicyName: !Sub DefaultLambdaPermissions-${AWS::StackName}
       Roles:
         - !Ref BatchScanRole
+        - !Ref CustomerSecretAdminRole
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -850,6 +910,7 @@ Resources:
               - logs:PutLogEvents
               - lambda:InvokeFunction
             Resource: "*"
+
   ScanUsersTablePermission:
     Type: AWS::IAM::Policy
     Properties:
@@ -879,6 +940,23 @@ Resources:
             Action:
               - secretsmanager:GetSecretValue
             Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BareProxySecret*'
+
+  DataCiteCustomerSecretPermission:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub DataCiteCustomerSecretPermission-${AWS::StackName}
+      Roles:
+        - !Ref CustomerSecretAdminRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:PutSecretValue
+              - secretsmanager:UpdateSecret
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:dataCiteCustomerSecrets*'
+
   EventsLambdaPermissions:
     Type: AWS::IAM::Policy
     Properties:
@@ -1297,6 +1375,7 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
+
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:

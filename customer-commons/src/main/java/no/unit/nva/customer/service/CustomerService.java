@@ -23,4 +23,5 @@ public interface CustomerService {
     CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws InputException, NotFoundException;
 
     CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException;
+
 }

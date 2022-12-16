@@ -9,6 +9,7 @@ dependencies {
     implementation project (':json-config')
     implementation libs.nva.apigateway
     implementation libs.nva.core
+    implementation libs.nva.secrets
     implementation libs.bundles.jackson
     implementation libs.guava
     implementation libs.aws.sdk2.dynamodbenhanced

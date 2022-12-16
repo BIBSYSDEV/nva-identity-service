@@ -1,9 +1,9 @@
 package no.unit.nva.customer.model;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -32,5 +32,11 @@ class CustomerListTest {
         String customerListJson = customerList.toString();
         CustomerList mappedCustomerList = CustomerList.fromString(customerListJson);
         assertNotNull(mappedCustomerList);
+    }
+
+    @Test
+    void jacocoTestForTestCoverage() {
+        var cust = new CustomerList().getCustomers();
+        assertEquals(Collections.emptyList(),cust);
     }
 }

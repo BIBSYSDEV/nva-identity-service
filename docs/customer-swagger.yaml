@@ -258,6 +258,100 @@ paths:
               examples:
                 BadGatewatExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
+  /{identifier}/doiagent:
+    get:
+      summary: Get Customer doi agent with secret
+      security:
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoiAgent'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/DoiAgentExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/DoiAgent'
+              examples:
+                VocabularyListExample:
+                  $ref: '#/components/examples/DoiAgentExample'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerDoiAgentFunction.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+    put:
+      summary: Update Customer doi agent with secret
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend"]
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer to update
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DoiAgent'
+            examples:
+              CustomerExample:
+                $ref: '#/components/examples/DoiAgentExample'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerDoiAgentFunction.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoiAgent'
+              examples:
+                CustomerExample:
+                  $ref: '#/components/examples/DoiAgentExample'
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/DoiAgent'
+              examples:
+                CustomerExample:
+                  $ref: '#/components/examples/DoiAgentExample'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
+        '502':
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
   /{identifier}/vocabularies:
     get:
       security:
@@ -620,11 +714,28 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Vocabulary'
+        doiagent:
+          $ref: '#/components/schemas/DoiAgent'
         '@context':
           type: object
         publicationWorkflow:
           type: string
           enum: [RegistratorPublishesMetadataOnly, RegistratorPublishesMetadataAndFiles, RegistratorRequiresApprovalForMetadataAndFiles]
+    DoiAgent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uri
+        prefix:
+          type: string
+        url:
+          type: string
+          format: url
+        username:
+          type: string
+        password:
+          type: string
     VocabularyList:
       type: object
       properties:
@@ -695,6 +806,10 @@ components:
             type: 'Vocabulary'
             name: 'Example VOC'
             active: 'default'
+        doiAgent:
+          prefix: "1000.10"
+          url: "test.nva.unit.no"
+          username: "Doi Register Customer Name"
         publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
     CustomerListExample:
       value:
@@ -720,7 +835,18 @@ components:
                 type: 'Vocabulary'
                 name: 'Example VOC'
                 active: 'default'
+            doiAgent:
+              prefix: "1000.10"
+              url: "test.nva.unit.no"
+              username: "Doi Register Customer Name"
             publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
+    DoiAgentExample:
+      value:
+        id: 'https://example.com/example/#/doiagent'
+        prefix: '1000.10'
+        url: 'https://namespace.schema.org'
+        username: 'Doi Registrar Username'
+        password: '*******'
     VocabularyListExample:
       value:
         '@context': 'https://bibsysdev.github.io/src/customer-api.json'

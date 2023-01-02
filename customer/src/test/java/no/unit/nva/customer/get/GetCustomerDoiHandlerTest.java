@@ -56,7 +56,7 @@ class GetCustomerDoiHandlerTest {
     void handleRequestReturnsOkWhenARequestWithAnExistingIdentifier() throws IOException, NotFoundException {
 
         var secretDto = existingCustomer.getDoiAgent();
-        var secretDaoArray = "[" +  new SecretManagerDoiAgentDao(existingCustomer.getId(), secretDto) + "]";
+        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(existingCustomer.getId(), secretDto) + "]";
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);
@@ -108,8 +108,6 @@ class GetCustomerDoiHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
     }
 
-
-
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, CONTEXT);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
@@ -129,7 +127,6 @@ class GetCustomerDoiHandlerTest {
                           .build();
         return sendRequest(request, responseType);
     }
-
 
     private UUID getExistingCustomerIdentifier() {
         return existingCustomer.getIdentifier();

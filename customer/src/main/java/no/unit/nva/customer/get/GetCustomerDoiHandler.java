@@ -1,5 +1,6 @@
 package no.unit.nva.customer.get;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
@@ -84,6 +85,9 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
             var secretAsStringJsonArray = secretsReader.fetchSecret(
                 CUSTOMER_DOI_AGENT_SECRETS_NAME,
                 CUSTOMER_DOI_AGENT_SECRETS_NAME);
+            if (isNull(secretAsStringJsonArray)) {
+                secretAsStringJsonArray = "[]";
+            }
 
             return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class))
                        .collect(Collectors.toMap(it -> toUuid(it.getCustomerId()), it -> it));

@@ -72,6 +72,22 @@ class GetCustomerDoiHandlerTest {
     }
 
     @Test
+    void handleRequestReturnsDefaultDoiWhenNoSecretsExists() throws IOException, NotFoundException {
+
+        when(customerServiceMock.getCustomer(any(UUID.class)))
+            .thenReturn(existingCustomer);
+
+        when(secretsReaderMock.fetchSecret(any(), any())
+        ).thenReturn(null);
+
+        var response = sendRequest(getExistingCustomerIdentifier(), DoiAgentDto.class);
+        var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(doiAgentResponse.getId(), is(equalTo(existingCustomer.getDoiAgent().getId())));
+    }
+
+    @Test
     void handleRequestReturnsNotFoundWhenARequestWithANonExistingIdentifier() throws IOException, NotFoundException {
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
@@ -83,7 +99,7 @@ class GetCustomerDoiHandlerTest {
     }
 
     @Test
-    void handleinvalidUserAccess() throws NotFoundException, IOException {
+    void handleInvalidUserAccess() throws NotFoundException, IOException {
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenThrow(NotFoundException.class);
 

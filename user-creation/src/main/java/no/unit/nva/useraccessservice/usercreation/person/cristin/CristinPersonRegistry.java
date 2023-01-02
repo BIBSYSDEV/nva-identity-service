@@ -194,10 +194,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     private HttpRequest createPersonByNationalIdentityNumberQueryRequest(NationalIdentityNumber nin,
                                                                          CristinCredentials cristinCredentials) {
-        return HttpRequest.newBuilder(createPersonByNationalIdentityNumberQueryUri(nin))
-                   .GET()
-                   .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials))
-                   .build();
+        return createRequest(createPersonByNationalIdentityNumberQueryUri(nin), cristinCredentials);
     }
 
     private URI createPersonByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {
@@ -245,11 +242,13 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     private String generateErrorMessageForResponse(HttpRequest request, HttpResponse<String> response) {
+        var body = response.body();
+        var potentiallyTruncatedBody = body.substring(0, Math.min(body.length(), 512));
         return String.format(ERROR_MESSAGE_FORMAT,
                              request.method(),
-                             request.uri(),
+                             maskSensitiveData(request.uri()),
                              response.statusCode(),
-                             response.body());
+                             potentiallyTruncatedBody);
     }
 
     private String generateBasicAuthorization(CristinCredentials cristinCredentials) {

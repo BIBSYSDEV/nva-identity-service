@@ -1,10 +1,7 @@
 package no.unit.nva.customer.model;
 
-import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
-import static no.unit.nva.customer.model.Sector.DELIMITER;
-import static no.unit.nva.customer.model.Sector.ERROR_MESSAGE_TEMPLATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsEqual.equalTo;

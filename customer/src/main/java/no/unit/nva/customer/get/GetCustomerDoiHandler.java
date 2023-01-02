@@ -69,8 +69,9 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
             // if you want to show the password, add it here...
             return new DoiAgentDto(secret)
                        .addId(doiAgentId);
+        } else {
+            return new DoiAgentDto().addId(doiAgentId);
         }
-        return new DoiAgentDto().addId(doiAgentId);
     }
 
     @Override

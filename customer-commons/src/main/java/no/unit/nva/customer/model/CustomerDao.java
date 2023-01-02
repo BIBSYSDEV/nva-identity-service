@@ -56,6 +56,8 @@ public class CustomerDao implements Typed {
     private URI rorId;
     private PublicationWorkflow publicationWorkflow;
     private DoiAgentDao doiAgent;
+    private boolean nviInstitution;
+    private Sector sector;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -83,6 +85,8 @@ public class CustomerDao implements Typed {
                    .withShortName(dto.getShortName())
                    .withVocabularySettings(extractVocabularySettings(dto))
                    .withDoiAgent(dto.getDoiAgent())
+                   .withNviInstitution(dto.isNviInstitution())
+                   .withSector(dto.getSector())
                    .build();
     }
 
@@ -225,6 +229,23 @@ public class CustomerDao implements Typed {
         this.doiAgent = doi;
     }
 
+
+    public boolean isNviInstitution() {
+        return nviInstitution;
+    }
+
+    public void setNviInstitution(boolean nviInstitution) {
+        this.nviInstitution = nviInstitution;
+    }
+
+    public Sector getSector() {
+        return nonNull(sector) ? sector : Sector.UHI;
+    }
+
+    public void setSector(Sector sector) {
+        this.sector = sector;
+    }
+
     public CustomerDto toCustomerDto() {
         CustomerDto customerDto =
             CustomerDto.builder()
@@ -244,6 +265,8 @@ public class CustomerDao implements Typed {
                 .withRorId(getRorId())
                 .withPublicationWorkflow(getPublicationWorkflow())
                 .withDoiAgent(getDoiAgent())
+                .withNviInstitution(isNviInstitution())
+                .withSector(getSector())
                 .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -255,7 +278,7 @@ public class CustomerDao implements Typed {
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(),
                             getCristinId(), getCustomerOf(), getVocabularies(), getRorId(), getPublicationWorkflow(),
-                            getDoiAgent());
+                            getDoiAgent(), isNviInstitution(),getSector());
     }
 
     @Override
@@ -277,6 +300,8 @@ public class CustomerDao implements Typed {
                && Objects.equals(getArchiveName(), that.getArchiveName())
                && Objects.equals(getCname(), that.getCname())
                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(isNviInstitution(), that.isNviInstitution())
+               && Objects.equals(getSector(), that.getSector())
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getCristinId(), that.getCristinId())
@@ -421,6 +446,16 @@ public class CustomerDao implements Typed {
             return this;
         }
 
+        public Builder withNviInstitution(boolean hasNviInstitution) {
+            customerDb.setNviInstitution(hasNviInstitution);
+            return this;
+        }
+
+        public Builder withSector(Sector sector) {
+            customerDb.setSector(sector);
+            return this;
+        }
+
         public CustomerDao build() {
             return customerDb;
         }
@@ -437,9 +472,9 @@ public class CustomerDao implements Typed {
         }
 
         public DoiAgentDao(DoiAgent doiAgent) {
-            this.prefix = doiAgent.getPrefix();
-            this.url = doiAgent.getUrl();
-            this.username = doiAgent.getUsername();
+            setUsername(doiAgent.getUsername());
+            setUrl(doiAgent.getUrl());
+            setPrefix(doiAgent.getPrefix());
         }
 
         @Override

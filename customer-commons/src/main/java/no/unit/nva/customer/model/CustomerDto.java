@@ -44,6 +44,8 @@ public class CustomerDto implements Context {
     private URI rorId;
     private PublicationWorkflow publicationWorkflow;
     private DoiAgentDto doiAgent;
+    private boolean nviInstitution;
+    private Sector sector;
 
     public CustomerDto() {
         super();
@@ -195,6 +197,22 @@ public class CustomerDto implements Context {
         this.publicationWorkflow = publicationWorkflow;
     }
 
+    public void setNviInstitution(boolean nviInstitution) {
+        this.nviInstitution = nviInstitution;
+    }
+
+    public boolean isNviInstitution() {
+        return nviInstitution;
+    }
+
+    public Sector getSector() {
+        return sector;
+    }
+
+    public void setSector(Sector sector) {
+        this.sector = sector;
+    }
+
     @Override
     public URI getContext() {
         return context;
@@ -224,6 +242,8 @@ public class CustomerDto implements Context {
                    .withRorId(getRorId())
                    .withShortName(getShortName())
                    .withDoiAgent(getDoiAgent())
+                   .withNviInstitution(isNviInstitution())
+                   .withSector(getSector())
                    .withVocabularies(getVocabularies());
     }
 
@@ -392,6 +412,16 @@ public class CustomerDto implements Context {
             return this;
         }
 
+        public Builder withNviInstitution(boolean hasNviInstitution) {
+            customerDto.setNviInstitution(hasNviInstitution);
+            return this;
+        }
+
+        public Builder withSector(Sector sector) {
+            customerDto.setSector(sector);
+            return this;
+        }
+
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
             if (nonNull(doiAgent)) {
                 if (nonNull(customerDto.identifier)) {
@@ -425,9 +455,9 @@ public class CustomerDto implements Context {
         }
 
         public DoiAgentDto(DoiAgent doiAgent) {
-            this.username = doiAgent.getUsername();
-            this.url = doiAgent.getUrl();
-            this.prefix = doiAgent.getPrefix();
+            setUsername(doiAgent.getUsername());
+            setUrl(doiAgent.getUrl());
+            setPrefix(doiAgent.getPrefix());
         }
 
         public static DoiAgentDto fromJson(String json) throws BadRequestException {

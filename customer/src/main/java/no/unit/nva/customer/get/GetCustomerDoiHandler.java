@@ -1,5 +1,6 @@
 package no.unit.nva.customer.get;
 
+import static java.util.Objects.nonNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -64,9 +65,12 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
                 .addChild(DOI_AGENT)
                 .getUri();
 
-        // if you want to show the password, add it here...
-        return new DoiAgentDto(secret)
-                   .addId(doiAgentId);
+        if (nonNull(secret)) {
+            // if you want to show the password, add it here...
+            return new DoiAgentDto(secret)
+                       .addId(doiAgentId);
+        }
+        return new DoiAgentDto().addId(doiAgentId);
     }
 
     @Override

@@ -120,9 +120,15 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     private HttpRequest createRequest(URI uri, CristinCredentials cristinCredentials) {
+        var username = cristinCredentials.getUsername();
+        var authorization = generateBasicAuthorization(cristinCredentials);
+
+        LOGGER.info("Using authorization {} for user {}.", authorization, username);
+
         return HttpRequest.newBuilder(uri)
                    .GET()
                    .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials))
+                   // TODO: try setting accept header
                    .build();
     }
 

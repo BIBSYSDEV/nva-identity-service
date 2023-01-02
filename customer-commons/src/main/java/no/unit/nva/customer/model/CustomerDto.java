@@ -455,9 +455,9 @@ public class CustomerDto implements Context {
         }
 
         public DoiAgentDto(DoiAgent doiAgent) {
-            setUsername(doiAgent.getUsername());
-            setUrl(doiAgent.getUrl());
-            setPrefix(doiAgent.getPrefix());
+            this.username = doiAgent.getUsername();
+            this.url = doiAgent.getUrl();
+            this.prefix = doiAgent.getPrefix();
         }
 
         public static DoiAgentDto fromJson(String json) throws BadRequestException {

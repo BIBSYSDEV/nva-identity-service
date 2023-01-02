@@ -54,6 +54,8 @@ public class CustomerDataGenerator {
                                    .withRorId(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
                                    .withDoiAgent(randomDoiAgent(randomString()))
+                                   .withSector(randomSector())
+                                   .withNviInstitution(randomBoolean())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));

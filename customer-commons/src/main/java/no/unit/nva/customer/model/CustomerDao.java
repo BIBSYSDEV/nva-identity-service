@@ -472,9 +472,9 @@ public class CustomerDao implements Typed {
         }
 
         public DoiAgentDao(DoiAgent doiAgent) {
-            setUsername(doiAgent.getUsername());
-            setUrl(doiAgent.getUrl());
-            setPrefix(doiAgent.getPrefix());
+            this.prefix = doiAgent.getPrefix();
+            this.url = doiAgent.getUrl();
+            this.username = doiAgent.getUsername();
         }
 
         @Override

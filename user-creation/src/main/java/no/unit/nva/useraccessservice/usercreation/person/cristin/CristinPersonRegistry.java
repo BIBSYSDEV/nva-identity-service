@@ -49,6 +49,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private static final String ORGANIZATION_PATH = "organization";
     private static final String NATIONAL_IDENTITY_PATTERN = ".*\\?national_id=(\\d+)\\d\\d$";
     public static final String AUTHORIZATION = "Authorization";
+    public static final String USER_AGENT = "User-Agent";
 
     public static final String CRISTIN_CREDENTIALS_SECRET_NAME = "CristinClientBasicAuth";
     public static final String CRISTIN_USERNAME_SECRET_KEY = "username";
@@ -128,6 +129,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
         return HttpRequest.newBuilder(uri)
                    .GET()
                    .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials))
+                   .header(USER_AGENT, "nva-identity-service/1.0 (https://github.com/BIBSYSDEV/nva-identity-service; "
+                                       + "mailto:support@sikt.no)")
                    // TODO: try setting accept header
                    .build();
     }

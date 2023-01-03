@@ -28,6 +28,7 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.secrets.ErrorReadingSecretException;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,7 +90,31 @@ class GetCustomerDoiHandlerTest {
 
 
     @Test
-    void handleInvalidUserAccess() throws NotFoundException, IOException {
+    void handleRequestWhenJsonSecretsAreCorrupt() throws IOException {
+
+        when(secretsReaderMock.fetchSecret(any(), any())
+        ).thenThrow(ErrorReadingSecretException.class);
+
+        var response = sendRequest(getExistingCustomerIdentifier(), Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_INTERNAL_ERROR)));
+
+    }
+
+
+    @Test
+    void handleInvalidUserAccess1() throws NotFoundException, IOException {
+        when(customerServiceMock.getCustomer(any(UUID.class)))
+            .thenThrow(NotFoundException.class);
+
+        var response = sendFailedRequest(randomCustomerIdentifier(), Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+
+    @Test
+    void handleInvalidUserAccess2() throws NotFoundException, IOException {
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenThrow(NotFoundException.class);
 

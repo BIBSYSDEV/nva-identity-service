@@ -2,6 +2,7 @@ package no.unit.nva.customer.testing;
 
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
+import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -18,6 +19,7 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.PublicationWorkflow;
+import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
@@ -52,6 +54,8 @@ public class CustomerDataGenerator {
                                    .withRorId(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
                                    .withDoiAgent(randomDoiAgent(randomString()))
+                                   .withSector(randomSector())
+                                   .withNviInstitution(randomBoolean())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
@@ -84,6 +88,8 @@ public class CustomerDataGenerator {
                                    .withRorId(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
                                    .withDoiAgent(randomDoiAgent(randomString()))
+                                   .withNviInstitution(randomBoolean())
+                                   .withSector(randomSector())
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
@@ -144,6 +150,10 @@ public class CustomerDataGenerator {
 
     public static PublicationWorkflow randomPublicationWorkflow() {
         return randomElement(PublicationWorkflow.values());
+    }
+
+    public static Sector randomSector() {
+        return randomElement(Sector.values());
     }
 }
 

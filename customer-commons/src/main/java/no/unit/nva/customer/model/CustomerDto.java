@@ -489,6 +489,7 @@ public class CustomerDto implements Context {
         }
 
         @Override
+        @JacocoGenerated
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -505,9 +506,9 @@ public class CustomerDto implements Context {
         }
 
         @Override
+        @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(getId(), getUrl(), getPrefix(), getUsername(),
-                                                           getPassword());
+            return Objects.hash(getId(), getUrl(), getPrefix(), getUsername(), getPassword());
         }
 
         @Override
@@ -515,6 +516,5 @@ public class CustomerDto implements Context {
         public String toString() {
             return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
         }
-
     }
 }

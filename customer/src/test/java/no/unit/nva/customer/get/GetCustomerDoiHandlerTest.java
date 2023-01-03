@@ -28,6 +28,7 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.secrets.ErrorReadingSecretException;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,7 @@ class GetCustomerDoiHandlerTest {
     void handleRequestReturnsOkWhenARequestWithAnExistingIdentifier() throws IOException, NotFoundException {
 
         var secretDto = existingCustomer.getDoiAgent();
-        var secretDaoArray = "[" +  new SecretManagerDoiAgentDao(existingCustomer.getId(), secretDto) + "]";
+        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(existingCustomer.getId(), secretDto) + "]";
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);
@@ -72,18 +73,37 @@ class GetCustomerDoiHandlerTest {
     }
 
     @Test
-    void handleRequestReturnsNotFoundWhenARequestWithANonExistingIdentifier() throws IOException, NotFoundException {
+    void handleRequestReturnsDefaultDoiWhenNoSecretsExists() throws IOException, NotFoundException {
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
-            .thenThrow(NotFoundException.class);
+            .thenReturn(existingCustomer);
 
-        var response = sendRequest(randomCustomerIdentifier(), Problem.class);
+        when(secretsReaderMock.fetchSecret(any(), any())
+        ).thenReturn(null);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
+        var response = sendRequest(getExistingCustomerIdentifier(), DoiAgentDto.class);
+        var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(doiAgentResponse.getId(), is(equalTo(existingCustomer.getDoiAgent().getId())));
     }
 
+
     @Test
-    void handleinvalidUserAccess() throws NotFoundException, IOException {
+    void handleRequestWhenJsonSecretsAreCorrupt() throws IOException {
+
+        when(secretsReaderMock.fetchSecret(any(), any())
+        ).thenThrow(ErrorReadingSecretException.class);
+
+        var response = sendRequest(getExistingCustomerIdentifier(), Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_INTERNAL_ERROR)));
+
+    }
+
+
+    @Test
+    void handleInvalidUserAccess1() throws NotFoundException, IOException {
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenThrow(NotFoundException.class);
 
@@ -93,6 +113,15 @@ class GetCustomerDoiHandlerTest {
     }
 
 
+    @Test
+    void handleInvalidUserAccess2() throws NotFoundException, IOException {
+        when(customerServiceMock.getCustomer(any(UUID.class)))
+            .thenThrow(NotFoundException.class);
+
+        var response = sendFailedRequest(randomCustomerIdentifier(), Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
 
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, CONTEXT);
@@ -113,7 +142,6 @@ class GetCustomerDoiHandlerTest {
                           .build();
         return sendRequest(request, responseType);
     }
-
 
     private UUID getExistingCustomerIdentifier() {
         return existingCustomer.getIdentifier();

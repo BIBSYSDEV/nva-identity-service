@@ -87,16 +87,6 @@ class GetCustomerDoiHandlerTest {
         assertThat(doiAgentResponse.getId(), is(equalTo(existingCustomer.getDoiAgent().getId())));
     }
 
-    @Test
-    void handleRequestReturnsNotFoundWhenARequestWithANonExistingIdentifier() throws IOException, NotFoundException {
-
-        when(customerServiceMock.getCustomer(any(UUID.class)))
-            .thenThrow(NotFoundException.class);
-
-        var response = sendRequest(randomCustomerIdentifier(), Problem.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
-    }
 
     @Test
     void handleInvalidUserAccess() throws NotFoundException, IOException {

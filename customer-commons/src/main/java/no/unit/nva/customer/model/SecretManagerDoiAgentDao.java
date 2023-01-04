@@ -1,6 +1,8 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.CustomerDto.Builder.DOI_AGENT;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -10,6 +12,7 @@ import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 
 public class SecretManagerDoiAgentDao implements DoiAgent {
 
@@ -26,14 +29,14 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
     public SecretManagerDoiAgentDao() {
     }
 
-    public SecretManagerDoiAgentDao(URI customerId, DoiAgentDto doiAgentDto) {
-        this.customerId = customerId;
+    public SecretManagerDoiAgentDao(DoiAgentDto doiAgentDto) {
+        var rapper = UriWrapper.fromUri(doiAgentDto.getId());
+        this.customerId =  rapper.getParent().orElseThrow().getUri();
         this.prefix = doiAgentDto.getPrefix();
         this.url = doiAgentDto.getUrl();
         this.username = doiAgentDto.getUsername();
         this.password = doiAgentDto.getPassword();
     }
-
 
     private SecretManagerDoiAgentDao(Builder builder) {
         this.customerId = builder.customerId;
@@ -43,7 +46,21 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         this.password = builder.password;
     }
 
+    public DoiAgentDto toDoiAgentDto() {
+        var doiAgentId =
+            UriWrapper.fromUri(customerId)
+                .addChild(DOI_AGENT)
+                .getUri();
+        return new DoiAgentDto(this)
+                   .addPassword(getPassword())
+                   .addId(doiAgentId);
+    }
+
     public SecretManagerDoiAgentDao merge(DoiAgentDto agentDto) {
+
+        if (isNull(customerId)) {
+            setCustomerId(agentDto.getId());
+        }
 
         if (nonNull(agentDto.getPrefix())) {
             setPrefix(agentDto.getPrefix());
@@ -139,8 +156,6 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
     public static Builder builder() {
         return new Builder();
     }
-
-
 
     public static final class Builder {
 

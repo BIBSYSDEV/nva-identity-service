@@ -2,7 +2,6 @@ package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDao;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -42,9 +41,8 @@ class SecretManagerDoiAgentDaoTest {
 
     @Test
     void jacocoTestForTestCoverageThisIsAlreadyTestedElsewhere() {
-        var customerDto = createSampleCustomerDao().toCustomerDto();
-        var doiAgentDto = customerDto.getDoiAgent();
-        var secretManagerDoiAgentDao = new SecretManagerDoiAgentDao(randomUri(),doiAgentDto);
+        var doiAgentDto = createSampleCustomerDao().toCustomerDto().getDoiAgent();
+        var secretManagerDoiAgentDao = new SecretManagerDoiAgentDao(doiAgentDto);
 
         assertNotNull(secretManagerDoiAgentDao);
     }

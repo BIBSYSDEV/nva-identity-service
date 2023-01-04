@@ -4,7 +4,6 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.USER;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -60,15 +59,18 @@ class UpdateCustomerDoiHandlerTest {
     @Test
     void handleUpdateRequestOK()
         throws ApiGatewayException, IOException {
-        var secret = randomString();
-        var doiAgent = existingCustomer.getDoiAgent()
-                           .addPassword(secret);
 
-        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(existingCustomer.getId(), doiAgent) + ", "
-                             + new SecretManagerDoiAgentDao(randomUri(),doiAgent.addPassword(randomString())) + "]";
+        var secretPassword = randomString();
+        var customer2 = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
 
-        when(customerServiceMock.getCustomer(any(UUID.class)))
-            .thenReturn(existingCustomer);
+        var doiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
+        var doiAgent2 = customer2.getDoiAgent().addPassword(randomString());
+
+        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(doiAgent) + ", "
+                             + new SecretManagerDoiAgentDao(doiAgent2) + "]";
+
+        when(customerServiceMock.getCustomer(any(UUID.class))
+        ).thenReturn(existingCustomer);
 
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))
         ).thenReturn(existingCustomer);
@@ -76,11 +78,15 @@ class UpdateCustomerDoiHandlerTest {
         when(secretsReaderMock.fetchSecret(any(), any())
         ).thenReturn(secretDaoArray);
 
-        var response = sendRequest(getExistingCustomerIdentifier(), doiAgent, DoiAgentDto.class);
-        var doiAgentResponse = response.getBodyObject(DoiAgentDto.class);
+        var response = sendRequest(getExistingCustomerIdentifier(),
+                                   new DoiAgentDto()
+                                       .addId(doiAgent.getId())
+                                       .addPassword(secretPassword).toString(),
+                                   String.class);
+        var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(doiAgentResponse.getPassword(), is(equalTo(secret)));
+        assertThat(doiAgentResponse.getPassword(), is(equalTo(secretPassword)));
     }
 
     @Test

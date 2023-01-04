@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -42,6 +43,22 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         this.password = builder.password;
     }
 
+    public SecretManagerDoiAgentDao merge(DoiAgentDto agentDto) {
+
+        if (nonNull(agentDto.getPrefix())) {
+            setPrefix(agentDto.getPrefix());
+        }
+        if (nonNull(agentDto.getUrl())) {
+            setUrl(agentDto.getUrl());
+        }
+        if (nonNull(agentDto.getUsername())) {
+            setUsername(agentDto.getUsername());
+        }
+        if (nonNull(agentDto.getPassword())) {
+            setPassword(agentDto.getPassword());
+        }
+        return this;
+    }
     public static SecretManagerDoiAgentDao fromJson(String json) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(json, SecretManagerDoiAgentDao.class)).orElseThrow(
             fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));

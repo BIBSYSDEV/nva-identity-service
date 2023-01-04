@@ -65,7 +65,7 @@ class UpdateCustomerDoiHandlerTest {
                            .addPassword(secret);
 
         var secretDaoArray = "[" + new SecretManagerDoiAgentDao(existingCustomer.getId(), doiAgent) + ", "
-                             + new SecretManagerDoiAgentDao(randomUri(),doiAgent) + "]";
+                             + new SecretManagerDoiAgentDao(randomUri(),doiAgent.addPassword(randomString())) + "]";
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);

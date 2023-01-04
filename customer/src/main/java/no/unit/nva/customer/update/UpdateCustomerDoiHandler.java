@@ -6,7 +6,6 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,14 +67,10 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
         customer.setDoiAgent(input);
         var result = customerService.updateCustomer(customerId, customer);
 
-        var secretsListFiltered = getSecretManagerDoiAgentsFiltered(customer.getId());
-
-        var doiSecret = new SecretManagerDoiAgentDao(customer.getId(), input);
-
-        var allSecretsJsonString =
-            Stream.concat(secretsListFiltered, Stream.of(doiSecret))
-                .map(SecretManagerDoiAgentDao::toString)
-                .collect(Collectors.joining(",", "[", "]"));
+        var allSecretsJsonString = getSecretManagerDoiAgents()
+            .map(doiSecret -> doiSecret.getCustomerId().equals(customer.getId()) ? doiSecret.merge(input) : doiSecret)
+            .map(SecretManagerDoiAgentDao::toString)
+            .collect(Collectors.joining(",", "[", "]"));
 
         secretsWriter.updateSecretKey(
             CUSTOMER_DOI_AGENT_SECRETS_NAME,
@@ -90,14 +85,14 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<DoiAgentDto> {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private Stream<SecretManagerDoiAgentDao> getSecretManagerDoiAgentsFiltered(URI customerId) {
+    private Stream<SecretManagerDoiAgentDao> getSecretManagerDoiAgents() {
         var secretAsStringJsonArray =
             secretsReader.fetchSecret(CUSTOMER_DOI_AGENT_SECRETS_NAME, CUSTOMER_DOI_AGENT_SECRETS_NAME);
 
         return
             attempt(() -> Arrays.stream(
                 dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class)
-            ).filter(p -> !p.getCustomerId().equals(customerId))).orElseThrow();
+            )).orElseThrow();
     }
 
 }

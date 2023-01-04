@@ -3,6 +3,11 @@ package no.unit.nva.customer;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
 import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
@@ -18,6 +23,10 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, DoiAgen
 
     protected static final String CUSTOMER_DOI_AGENT_SECRETS_NAME = "dataCiteCustomerSecrets";
 
+    //Map<String, String> result = mapper.readValue(data, type);
+    ObjectMapper mapper  = new ObjectMapper();
+    TypeFactory factory = TypeFactory.defaultInstance();
+    MapType type = factory.constructMapType(HashMap.class, URI.class, String.class);
 
     public CustomerDoiHandler(Class<I> iclass) {
         super(iclass);

@@ -28,6 +28,29 @@ import org.junit.jupiter.api.function.Executable;
 class CustomerDtoTest {
 
     @Test
+    void doiAgentMergeTest() {
+        var doiAgent = randomCustomer()
+                           .getDoiAgent()
+                           .addPassword(randomString());
+
+        var secretDoi = new SecretManagerDoiAgentDao(randomCustomer().getDoiAgent());
+
+        secretDoi.merge(doiAgent);
+
+        assertEquals(secretDoi.getPassword(), doiAgent.getPassword());
+
+    }
+
+    @Test
+    void doiAgentMergeTest2() {
+        var doiAgent = randomCustomer()
+                           .getDoiAgent()
+                           .addPassword(randomString());
+
+    }
+
+
+    @Test
     void dtoSerializesToJsonAndBack() throws BadRequestException {
         CustomerDto customer = randomCustomer();
         customer.getDoiAgent().addPassword("****");

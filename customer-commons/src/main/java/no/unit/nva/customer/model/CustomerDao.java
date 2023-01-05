@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
@@ -476,6 +477,11 @@ public class CustomerDao implements Typed {
             this.url = doiAgent.getUrl();
             this.username = doiAgent.getUsername();
         }
+
+        public DoiAgentDto toDoiAgentDto() {
+            return new DoiAgentDto(this);
+        }
+
 
         @Override
         public String getPrefix() {

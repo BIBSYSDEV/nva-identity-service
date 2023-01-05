@@ -303,7 +303,6 @@ public class CustomerDto implements Context {
 
     public static final class Builder {
 
-        public static final String DOI_AGENT = "doiagent";
         private final CustomerDto customerDto;
 
         private Builder() {
@@ -424,15 +423,9 @@ public class CustomerDto implements Context {
 
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
             if (nonNull(doiAgent)) {
-                if (nonNull(customerDto.identifier)) {
-                    var doiAgentId =
-                        UriWrapper.fromUri(toId(customerDto.identifier))
-                            .addChild(DOI_AGENT)
-                            .getUri();
-                    return new DoiAgentDto(doiAgent)
-                               .addId(doiAgentId);
-                }
-                return new DoiAgentDto(doiAgent);
+                return nonNull(customerDto.identifier)
+                           ? new DoiAgentDto(doiAgent).addIdFromUuid(customerDto.identifier)
+                           : new DoiAgentDto(doiAgent);
             }
             return null;
         }
@@ -477,6 +470,17 @@ public class CustomerDto implements Context {
             this.id = doiAgentId;
             return this;
         }
+
+        /**
+            Takes a customer identifier and build a doiAgent Id.
+         */
+        public DoiAgentDto addIdFromUuid(UUID identifier) {
+            this.id = UriWrapper.fromUri(toId(identifier))
+                          .addChild(DOI_AGENT)
+                          .getUri();
+            return this;
+        }
+
 
         @Override
         public String getUsername() {

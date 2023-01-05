@@ -78,10 +78,41 @@ class UpdateCustomerDoiHandlerTest {
         when(secretsReaderMock.fetchSecret(any(), any())
         ).thenReturn(secretDaoArray);
 
-        var response = sendRequest(getExistingCustomerIdentifier(),
-                                   new DoiAgentDto()
-                                       .addId(doiAgent.getId())
-                                       .addPassword(secretPassword).toString(),
+        var response = sendRequest(existingCustomer.getIdentifier(),
+                                   doiAgentToJson(secretPassword, doiAgent),
+                                   String.class);
+        var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(doiAgentResponse.getPassword(), is(equalTo(secretPassword)));
+    }
+
+    @Test
+    void handleInsertRequestOK()
+        throws ApiGatewayException, IOException {
+
+        var secretPassword = randomString();
+        var customer2 = CustomerDataGenerator.createSampleCustomerDto();
+
+        var doiAgent = existingCustomer.getDoiAgent()
+                           .addPassword(randomString());
+        var doiAgent2 = customer2.getDoiAgent()
+                            .addPassword(randomString());
+
+        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(doiAgent) + ", "
+                             + new SecretManagerDoiAgentDao(doiAgent2) + "]";
+
+        when(customerServiceMock.getCustomer(any(UUID.class))
+        ).thenReturn(existingCustomer);
+
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))
+        ).thenReturn(existingCustomer);
+
+        when(secretsReaderMock.fetchSecret(any(), any())
+        ).thenReturn(secretDaoArray);
+
+        var response = sendRequest(existingCustomer.getIdentifier(),
+                                   doiAgentToJson(secretPassword, doiAgent),
                                    String.class);
         var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
 
@@ -120,10 +151,7 @@ class UpdateCustomerDoiHandlerTest {
         var request = createRequest(identifier, body);
         return sendRequest(request, responseType);
     }
-
-    private UUID getExistingCustomerIdentifier() {
-        return existingCustomer.getIdentifier();
-    }
+    
 
     private <T> InputStream createRequest(UUID identifier, T body)
         throws JsonProcessingException {
@@ -156,5 +184,11 @@ class UpdateCustomerDoiHandlerTest {
                    .withCurrentCustomer(existingCustomer.getId())
                    .withAccessRights(existingCustomer.getId(), USER.toString())
                    .build();
+    }
+
+    private String doiAgentToJson(String secretPassword, DoiAgentDto doiAgent) {
+        return new DoiAgentDto(doiAgent)
+                   .addId(doiAgent.getId())
+                   .addPassword(secretPassword).toString();
     }
 }

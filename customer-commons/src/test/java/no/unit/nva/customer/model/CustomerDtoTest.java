@@ -16,7 +16,6 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Collection;
 import java.util.List;
@@ -33,14 +32,23 @@ class CustomerDtoTest {
         var doiAgent = randomCustomer()
                            .getDoiAgent()
                            .addPassword(randomString());
-        var doiAgent2 = randomCustomer()
-                            .getDoiAgent();
 
-       // doiAgent.merge(doiAgent2);
+        var secretDoi = new SecretManagerDoiAgentDao(randomCustomer().getDoiAgent());
 
-        assertNotNull(doiAgent.getPassword());
+        secretDoi.merge(doiAgent);
+
+        assertEquals(secretDoi.getPassword(), doiAgent.getPassword());
 
     }
+
+    @Test
+    void doiAgentMergeTest2() {
+        var doiAgent = randomCustomer()
+                           .getDoiAgent()
+                           .addPassword(randomString());
+
+    }
+
 
     @Test
     void dtoSerializesToJsonAndBack() throws BadRequestException {

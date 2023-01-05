@@ -48,16 +48,15 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
         authorizeDoiAgentRead(requestInfo);
 
         var identifier = getIdentifier(requestInfo);
-        var doiAgentId = getDoiAgentId(identifier);
 
         var secret = attempt(() -> getSecretsManagerDoiAgent().get(identifier))
                          .orElseThrow(this::throwException);
 
-        if (nonNull(secret)) {
-            return secret.toDoiAgentDto().toString();
-        } else {
-            return new DoiAgentDto().addId(doiAgentId).toString();
-        }
+        var result = nonNull(secret)
+                         ? secret.toDoiAgentDto()
+                         : new DoiAgentDto().addIdFromUuid(identifier);
+
+        return attempt(() -> mapperToJsonCompact.writeValueAsString(result)).orElseThrow();
     }
 
     @Override

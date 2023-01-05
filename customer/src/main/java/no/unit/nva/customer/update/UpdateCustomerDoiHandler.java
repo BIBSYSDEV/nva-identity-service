@@ -63,11 +63,11 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
 
         var customerId = getIdentifier(requestInfo);
 
-        var result = UpdateSecretManager(customerId, input).toString();
+        var result = updateSecretManager(customerId, input);
 
-        UpdateCustomer(customerId, result);
+        updateCustomer(customerId, result);
 
-        return result;
+        return attempt(() -> mapperToJsonCompact.writeValueAsString(result)).orElseThrow();
     }
 
     @Override
@@ -75,29 +75,31 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
         return HttpURLConnection.HTTP_OK;
     }
 
-    private void UpdateCustomer(UUID customerId, String input)
-        throws NotFoundException, InputException, BadRequestException {
+    private void updateCustomer(UUID customerId, DoiAgentDto input)
+        throws NotFoundException, InputException {
 
         var customer = customerService.getCustomer(customerId);
-        customer.setDoiAgent(DoiAgentDto.fromJson(input));
+        customer.setDoiAgent(input);
 
         customerService.updateCustomer(customerId, customer);
     }
 
-    private DoiAgentDto UpdateSecretManager(UUID customerId, String input)
+    private DoiAgentDto updateSecretManager(UUID customerId, String input)
         throws BadRequestException {
 
         var allSecrets = attempt(this::getSecretsManagerDoiAgent).orElseThrow();
-
         if (allSecrets.containsKey(customerId)) {
+
             allSecrets.get(customerId).merge(DoiAgentDto.fromJson(input));
         } else {
+
             allSecrets.put(customerId, SecretManagerDoiAgentDao.fromJson(input));
         }
 
-        var allSecretsJsonString = allSecrets.values().stream()
-                                       .map(SecretManagerDoiAgentDao::toString)
-                                       .collect(Collectors.joining(",", "[", "]"));
+        var allSecretsJsonString =
+            allSecrets.values().stream()
+                .map(SecretManagerDoiAgentDao::toString)
+                .collect(Collectors.joining(",", "[", "]"));
         secretsWriter.updateSecretKey(SECRETS_KEY_AND_NAME, SECRETS_KEY_AND_NAME, allSecretsJsonString);
 
         return allSecrets.get(customerId).toDoiAgentDto();

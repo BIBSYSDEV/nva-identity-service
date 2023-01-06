@@ -59,6 +59,10 @@ class UpdateCustomerDoiHandlerTest {
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
     }
 
+    /**
+     * Task.
+     * <a href="https://unit.atlassian.net/browse/NP-27814">NP-27814</a>
+     */
     @Test
     void handleUpdateRequestOK()
         throws ApiGatewayException, IOException {
@@ -68,7 +72,7 @@ class UpdateCustomerDoiHandlerTest {
         var doiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
         var doiAgent2 = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
 
-        var secretDaoArray =  createSampleSecretDaos(doiAgent, doiAgent2);
+        var secretDaoArray = createSampleSecretDaos(doiAgent, doiAgent2);
 
         when(customerServiceMock.getCustomer(any(UUID.class))
         ).thenReturn(existingCustomer);
@@ -82,7 +86,7 @@ class UpdateCustomerDoiHandlerTest {
         var response = sendRequest(existingCustomer.getIdentifier(),
                                    doiAgentToJson(secretPassword, doiAgent),
                                    String.class);
-        var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
+        var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(doiAgentResponse.getPassword(), is(equalTo(secretPassword)));
@@ -116,7 +120,7 @@ class UpdateCustomerDoiHandlerTest {
         var response = sendRequest(existingCustomer.getIdentifier(),
                                    expectedDoiAgent.toString(),
                                    String.class);
-        var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
+        var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(expectedDoiAgent, is(equalTo(doiAgentResponse)));
@@ -125,7 +129,6 @@ class UpdateCustomerDoiHandlerTest {
     @Test
     void handleUpdateUserNameRequestOK()
         throws ApiGatewayException, IOException {
-
 
         var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
         var expectedDoiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
@@ -145,7 +148,7 @@ class UpdateCustomerDoiHandlerTest {
         var response = sendRequest(existingCustomer.getIdentifier(),
                                    expectedDoiAgent.toString(),
                                    String.class);
-        var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
+        var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(expectedDoiAgent, is(equalTo(doiAgentResponse)));
@@ -227,6 +230,5 @@ class UpdateCustomerDoiHandlerTest {
                    .map(SecretManagerDoiAgentDao::new)
                    .map(SecretManagerDoiAgentDao::toString)
                    .collect(Collectors.joining(",", "[", "]"));
-
     }
 }

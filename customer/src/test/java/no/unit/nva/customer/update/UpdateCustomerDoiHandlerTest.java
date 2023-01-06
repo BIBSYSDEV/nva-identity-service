@@ -123,6 +123,35 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     @Test
+    void handleUpdateUserNameRequestOK()
+        throws ApiGatewayException, IOException {
+
+
+        var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
+        var expectedDoiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
+
+        var secretDaoArray = createSampleSecretDaos(doiAgent, expectedDoiAgent);
+
+        expectedDoiAgent.setUsername(null);
+        when(customerServiceMock.getCustomer(any(UUID.class))
+        ).thenReturn(existingCustomer);
+
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))
+        ).thenReturn(existingCustomer);
+
+        when(secretsReaderMock.fetchSecret(any(), any())
+        ).thenReturn(secretDaoArray);
+
+        var response = sendRequest(existingCustomer.getIdentifier(),
+                                   expectedDoiAgent.toString(),
+                                   String.class);
+        var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(expectedDoiAgent, is(equalTo(doiAgentResponse)));
+    }
+
+    @Test
     void failUpdateRequestReturnsBadRequestWhenARequestWithAInvalidIdentifier()
         throws ApiGatewayException, IOException {
         when(

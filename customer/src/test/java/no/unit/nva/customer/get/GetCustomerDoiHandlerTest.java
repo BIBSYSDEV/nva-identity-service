@@ -72,6 +72,7 @@ class GetCustomerDoiHandlerTest {
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(doiAgentResponse, is(equalTo(secretDto)));
+        System.out.println(response.getBody());
         assertTrue(response.getBody().contains("\"password\" : null"));
     }
 

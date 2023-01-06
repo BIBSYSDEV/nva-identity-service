@@ -57,7 +57,7 @@ class GetCustomerDoiHandlerTest {
     void handleRequestReturnsOkWhenARequestWithAnExistingIdentifier() throws IOException, NotFoundException {
 
         var secretDto = existingCustomer.getDoiAgent();
-        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(existingCustomer.getId(), secretDto) + "]";
+        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(secretDto) + "]";
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
             .thenReturn(existingCustomer);

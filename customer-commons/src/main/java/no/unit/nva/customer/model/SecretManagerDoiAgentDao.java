@@ -1,5 +1,7 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -9,6 +11,7 @@ import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 
 public class SecretManagerDoiAgentDao implements DoiAgent {
 
@@ -22,30 +25,61 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
     @JsonProperty("dataCiteMdsClientPassword")
     private  String password;
 
+    @SuppressWarnings("unused")
     public SecretManagerDoiAgentDao() {
     }
 
-    public SecretManagerDoiAgentDao(URI customerId, DoiAgentDto doiAgentDto) {
-        this.customerId = customerId;
+    public SecretManagerDoiAgentDao(DoiAgentDto doiAgentDto) {
+        this.customerId = agentIdToCustomerId(doiAgentDto.getId());
         this.prefix = doiAgentDto.getPrefix();
         this.url = doiAgentDto.getUrl();
         this.username = doiAgentDto.getUsername();
         this.password = doiAgentDto.getPassword();
     }
 
-
-    private SecretManagerDoiAgentDao(Builder builder) {
-        this.customerId = builder.customerId;
-        this.prefix = builder.prefix;
-        this.url = builder.url;
-        this.username = builder.username;
-        this.password = builder.password;
-    }
-
     public static SecretManagerDoiAgentDao fromJson(String json) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(json, SecretManagerDoiAgentDao.class)).orElseThrow(
             fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
+
+    public DoiAgentDto toDoiAgentDto() {
+        return new DoiAgentDto(this)
+                   .addPassword(getPassword())
+                   .addId(customerIdToAgentId(customerId));
+    }
+
+    public void merge(DoiAgentDto agentDto) {
+
+        if (isNull(customerId)) {
+            setCustomerId(agentIdToCustomerId(agentDto.getId()));
+        }
+
+        if (nonNull(agentDto.getPrefix())) {
+            setPrefix(agentDto.getPrefix());
+        }
+        if (nonNull(agentDto.getUrl())) {
+            setUrl(agentDto.getUrl());
+        }
+        if (nonNull(agentDto.getUsername())) {
+            setUsername(agentDto.getUsername());
+        }
+        if (nonNull(agentDto.getPassword())) {
+            setPassword(agentDto.getPassword());
+        }
+    }
+
+    private URI agentIdToCustomerId(URI agentId) {
+        return UriWrapper.fromUri(agentId)
+                   .getParent().orElseThrow().getUri();
+    }
+
+    private URI customerIdToAgentId(URI customerId) {
+        return UriWrapper.fromUri(customerId).addChild(DOI_AGENT).getUri();
+    }
+
+    /**
+     * Boilerplate code ahead.
+     */
 
     public URI getCustomerId() {
         return customerId;
@@ -119,50 +153,4 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
-
-
-    public static final class Builder {
-
-        private URI customerId;
-        private String prefix;
-        private String url;
-        private String username;
-        private String password;
-
-        private Builder() {
-        }
-
-        public Builder withCustomerId(URI customerId) {
-            this.customerId = customerId;
-            return this;
-        }
-
-        public Builder withUrl(String url) {
-            this.url = url;
-            return this;
-        }
-
-        public Builder withPrefix(String prefix) {
-            this.prefix = prefix;
-            return this;
-        }
-
-        public Builder withUsername(String name) {
-            this.username = name;
-            return this;
-        }
-
-        public Builder withPassword(String secret) {
-            this.password = secret;
-            return this;
-        }
-
-        public SecretManagerDoiAgentDao build() {
-            return new SecretManagerDoiAgentDao(this);
-        }
-    }
 }

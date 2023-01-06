@@ -472,10 +472,11 @@ public class CustomerDto implements Context {
         }
 
         /**
-            Takes a customer identifier and build a doiAgent Id.
+            Takes a customer identifier and build a doiAgent id.
          */
         public DoiAgentDto addIdFromUuid(UUID identifier) {
-            this.id = UriWrapper.fromUri(toId(identifier))
+            this.id = UriWrapper
+                          .fromUri(toId(identifier))
                           .addChild(DOI_AGENT)
                           .getUri();
             return this;

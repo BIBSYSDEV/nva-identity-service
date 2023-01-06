@@ -19,8 +19,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
@@ -66,8 +68,7 @@ class UpdateCustomerDoiHandlerTest {
         var doiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
         var doiAgent2 = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
 
-        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(doiAgent) + ", "
-                             + new SecretManagerDoiAgentDao(doiAgent2) + "]";
+        var secretDaoArray =  createSampleSecretDaos(doiAgent, doiAgent2);
 
         when(customerServiceMock.getCustomer(any(UUID.class))
         ).thenReturn(existingCustomer);
@@ -101,8 +102,7 @@ class UpdateCustomerDoiHandlerTest {
         var doiAgent2 = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
         var expectedDoiAgent = existingCustomer.getDoiAgent().addPassword(secretPassword);
 
-        var secretDaoArray = "[" + new SecretManagerDoiAgentDao(doiAgent) + ", "
-                             + new SecretManagerDoiAgentDao(doiAgent2) + "]";
+        var secretDaoArray = createSampleSecretDaos(doiAgent, doiAgent2);
 
         when(customerServiceMock.getCustomer(any(UUID.class))
         ).thenReturn(existingCustomer);
@@ -153,7 +153,6 @@ class UpdateCustomerDoiHandlerTest {
         var request = createRequest(identifier, body);
         return sendRequest(request, responseType);
     }
-    
 
     private <T> InputStream createRequest(UUID identifier, T body)
         throws JsonProcessingException {
@@ -192,5 +191,13 @@ class UpdateCustomerDoiHandlerTest {
         return new DoiAgentDto(doiAgent)
                    .addId(doiAgent.getId())
                    .addPassword(secretPassword).toString();
+    }
+
+    private String createSampleSecretDaos(DoiAgentDto... args) {
+        return Arrays.stream(args)
+                   .map(SecretManagerDoiAgentDao::new)
+                   .map(SecretManagerDoiAgentDao::toString)
+                   .collect(Collectors.joining(",", "[", "]"));
+
     }
 }

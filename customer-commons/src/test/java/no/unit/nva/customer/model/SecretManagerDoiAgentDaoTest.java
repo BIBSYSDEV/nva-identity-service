@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class SecretManagerDoiAgentDaoTest {
 
     @Test
-    void fromJsonSuccessful() {
+    void shouldDeserialize() {
         var doiAgentDto = createSampleCustomerDao().getDoiAgent().toDoiAgentDto()
                               .addPassword(randomString())
                               .addIdFromUuid(randomIdentifier());
@@ -27,7 +27,7 @@ class SecretManagerDoiAgentDaoTest {
     }
 
     @Test
-    void fromJsonFailing() {
+    void shouldFailDeserialize() {
 
         var json = randomString();
         var exception = assertThrows(BadRequestException.class, () -> SecretManagerDoiAgentDao.fromJson(json));
@@ -37,7 +37,7 @@ class SecretManagerDoiAgentDaoTest {
     }
 
     @Test
-    void jacocoTestForTestCoverageThisIsAlreadyTestedElsewhere() {
+    void shouldUpdate() {
         var doiAgentDto = createSampleCustomerDao().toCustomerDto()
                               .getDoiAgent().addPassword(randomString());
         var secretManagerDoiAgentDao = new SecretManagerDoiAgentDao(doiAgentDto);

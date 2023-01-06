@@ -28,16 +28,16 @@ import org.junit.jupiter.api.function.Executable;
 class CustomerDtoTest {
 
     @Test
-    void doiAgentMergeTest() {
+    void shouldUpdateCustomerWithCustomersDoiSecret() {
         var doiAgent = randomCustomer()
                            .getDoiAgent()
                            .addPassword(randomString());
 
-        var secretDoi = new SecretManagerDoiAgentDao(randomCustomer().getDoiAgent());
+        var doiSecret = new SecretManagerDoiAgentDao(randomCustomer().getDoiAgent());
 
-        secretDoi.merge(doiAgent);
+        doiSecret.merge(doiAgent);
 
-        assertEquals(secretDoi.getPassword(), doiAgent.getPassword());
+        assertEquals(doiSecret.getPassword(), doiAgent.getPassword());
 
     }
 

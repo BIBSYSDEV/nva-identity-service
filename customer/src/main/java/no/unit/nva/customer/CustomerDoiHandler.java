@@ -55,7 +55,7 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
         }
 
         return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class))
-                   .collect(Collectors.toMap(it -> toUuid(it.getCustomerId()), it -> it));
+                   .collect(Collectors.toMap(customer -> toUuid(customer.getCustomerId()), customer -> customer));
     }
 
     private InputException handleIdentifierParsingError(String identifier, Failure<UUID> fail) {

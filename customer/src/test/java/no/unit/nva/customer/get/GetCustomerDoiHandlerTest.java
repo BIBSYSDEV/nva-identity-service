@@ -54,7 +54,6 @@ class GetCustomerDoiHandlerTest {
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
     }
 
-
     @Test
     void handleRequestReturnsOkWhenARequestWithAnExistingIdentifier() throws IOException, NotFoundException {
 

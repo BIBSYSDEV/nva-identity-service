@@ -42,15 +42,6 @@ class CustomerDtoTest {
     }
 
     @Test
-    void doiAgentMergeTest2() {
-        var doiAgent = randomCustomer()
-                           .getDoiAgent()
-                           .addPassword(randomString());
-
-    }
-
-
-    @Test
     void dtoSerializesToJsonAndBack() throws BadRequestException {
         CustomerDto customer = randomCustomer();
         customer.getDoiAgent().addPassword("****");

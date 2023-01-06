@@ -6,6 +6,7 @@ import static nva.commons.apigateway.AccessRight.USER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -53,6 +54,7 @@ class GetCustomerDoiHandlerTest {
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
     }
 
+
     @Test
     void handleRequestReturnsOkWhenARequestWithAnExistingIdentifier() throws IOException, NotFoundException {
 
@@ -70,6 +72,7 @@ class GetCustomerDoiHandlerTest {
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(doiAgentResponse, is(equalTo(secretDto)));
+        assertTrue(response.getBody().contains("password\":null"));
     }
 
     @Test

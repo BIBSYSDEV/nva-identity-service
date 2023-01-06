@@ -29,8 +29,7 @@ class CustomerDtoTest {
 
     @Test
     void shouldUpdateCustomerWithCustomersDoiSecret() {
-        var doiAgent = randomCustomer()
-                           .getDoiAgent()
+        var doiAgent = randomCustomer().getDoiAgent()
                            .addPassword(randomString());
 
         var doiSecret = new SecretManagerDoiAgentDao(randomCustomer().getDoiAgent());

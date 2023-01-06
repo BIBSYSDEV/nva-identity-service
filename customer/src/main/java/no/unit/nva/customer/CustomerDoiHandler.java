@@ -5,7 +5,15 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
 import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Map;
@@ -20,6 +28,7 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
+import org.zalando.problem.jackson.ProblemModule;
 
 public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String> {
 
@@ -27,8 +36,8 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
     public static final String IDENTIFIER_IS_NOT_A_VALID_UUID = "Identifier is not a valid UUID: ";
     protected static final String SECRETS_KEY_AND_NAME = "dataCiteCustomerSecrets";
     protected final SecretsReader secretsReader;
-    // TODO add this code in task #NP-27814
-    //protected final ObjectMapper mapperToJsonCompact = createJsonParser();
+
+    protected final ObjectMapper mapperToJsonCompact = createJsonParser();
 
     @JacocoGenerated
     public CustomerDoiHandler(Class<I> iclass) {
@@ -93,20 +102,19 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
             );
     }
 
-    // TODO add this code in task #NP-27814
-    //    private ObjectMapper createJsonParser() {
-    //        var jsonFactory = new JsonFactory().configure(Feature.ALLOW_SINGLE_QUOTES, true);
-    //        var objectMapper = new ObjectMapper(jsonFactory)
-    //                               .registerModule(new ProblemModule())
-    //                               .registerModule(new JavaTimeModule())
-    //                               .registerModule(new Jdk8Module())
-    //                               .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
-    //                               .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    //                               .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    //                               .setSerializationInclusion(Include.ALWAYS);
-    //        return objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
-    //        //return prettyJson
-    //        //           ? objectMapper.enable(SerializationFeature.INDENT_OUTPUT)
-    //        //           : objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
-    //    }
+    private ObjectMapper createJsonParser() {
+        var jsonFactory = new JsonFactory().configure(Feature.ALLOW_SINGLE_QUOTES, true);
+        var objectMapper = new ObjectMapper(jsonFactory)
+                               .registerModule(new ProblemModule())
+                               .registerModule(new JavaTimeModule())
+                               .registerModule(new Jdk8Module())
+                               .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
+                               .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                               .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                               .setSerializationInclusion(Include.ALWAYS);
+        return objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
+        //return prettyJson
+        //           ? objectMapper.enable(SerializationFeature.INDENT_OUTPUT)
+        //           : objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
+    }
 }

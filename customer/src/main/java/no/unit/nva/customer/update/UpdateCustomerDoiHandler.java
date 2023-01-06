@@ -67,9 +67,7 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
 
         updateCustomer(customerId, persistedDoiAgent);
 
-        return persistedDoiAgent.toString();
-        // TODO add this code in task #NP-27814
-        // return attempt(() -> mapperToJsonCompact.writeValueAsString(persistedDoiAgent)).orElseThrow();
+        return attempt(() -> mapperToJsonCompact.writeValueAsString(persistedDoiAgent)).orElseThrow();
     }
 
     @Override

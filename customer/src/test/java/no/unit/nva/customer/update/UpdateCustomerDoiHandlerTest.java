@@ -1,6 +1,7 @@
 package no.unit.nva.customer.update;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDto;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -61,10 +62,9 @@ class UpdateCustomerDoiHandlerTest {
         throws ApiGatewayException, IOException {
 
         var secretPassword = randomString();
-        var customer2 = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
 
         var doiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
-        var doiAgent2 = customer2.getDoiAgent().addPassword(randomString());
+        var doiAgent2 = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
 
         var secretDaoArray = "[" + new SecretManagerDoiAgentDao(doiAgent) + ", "
                              + new SecretManagerDoiAgentDao(doiAgent2) + "]";
@@ -87,17 +87,18 @@ class UpdateCustomerDoiHandlerTest {
         assertThat(doiAgentResponse.getPassword(), is(equalTo(secretPassword)));
     }
 
+    /**
+     * <a href="https://unit.atlassian.net/browse/NP-27812">NP-27812</a>
+     */
     @Test
     void handleInsertRequestOK()
         throws ApiGatewayException, IOException {
 
         var secretPassword = randomString();
-        var customer2 = CustomerDataGenerator.createSampleCustomerDto();
 
-        var doiAgent = existingCustomer.getDoiAgent()
-                           .addPassword(randomString());
-        var doiAgent2 = customer2.getDoiAgent()
-                            .addPassword(randomString());
+        var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
+        var doiAgent2 = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
+        var expectedDoiAgent = existingCustomer.getDoiAgent().addPassword(secretPassword);
 
         var secretDaoArray = "[" + new SecretManagerDoiAgentDao(doiAgent) + ", "
                              + new SecretManagerDoiAgentDao(doiAgent2) + "]";
@@ -112,12 +113,12 @@ class UpdateCustomerDoiHandlerTest {
         ).thenReturn(secretDaoArray);
 
         var response = sendRequest(existingCustomer.getIdentifier(),
-                                   doiAgentToJson(secretPassword, doiAgent),
+                                   expectedDoiAgent.toString(),
                                    String.class);
         var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(doiAgentResponse.getPassword(), is(equalTo(secretPassword)));
+        assertThat(expectedDoiAgent, is(equalTo(doiAgentResponse)));
     }
 
     @Test

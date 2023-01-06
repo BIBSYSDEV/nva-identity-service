@@ -63,11 +63,13 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
 
         var customerId = getIdentifier(requestInfo);
 
-        var result = updateSecretManager(customerId, input);
+        var persistedDoiAgent = updateSecretManager(customerId, input);
 
-        updateCustomer(customerId, result);
+        updateCustomer(customerId, persistedDoiAgent);
 
-        return attempt(() -> mapperToJsonCompact.writeValueAsString(result)).orElseThrow();
+        return persistedDoiAgent.toString();
+        // TODO add this code in task #NP-27814
+        // return attempt(() -> mapperToJsonCompact.writeValueAsString(persistedDoiAgent)).orElseThrow();
     }
 
     @Override
@@ -93,7 +95,7 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
             allSecrets.get(customerId).merge(DoiAgentDto.fromJson(input));
         } else {
 
-            allSecrets.put(customerId, SecretManagerDoiAgentDao.fromJson(input));
+            allSecrets.put(customerId, new SecretManagerDoiAgentDao(DoiAgentDto.fromJson(input)));
         }
 
         var allSecretsJsonString =

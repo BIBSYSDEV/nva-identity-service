@@ -25,6 +25,7 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
     @JsonProperty("dataCiteMdsClientPassword")
     private  String password;
 
+    @SuppressWarnings("unused")
     public SecretManagerDoiAgentDao() {
     }
 
@@ -34,6 +35,11 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         this.url = doiAgentDto.getUrl();
         this.username = doiAgentDto.getUsername();
         this.password = doiAgentDto.getPassword();
+    }
+
+    public static SecretManagerDoiAgentDao fromJson(String json) throws BadRequestException {
+        return attempt(() -> JsonConfig.readValue(json, SecretManagerDoiAgentDao.class)).orElseThrow(
+            fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
     public DoiAgentDto toDoiAgentDto() {
@@ -62,11 +68,6 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         }
     }
 
-    public static SecretManagerDoiAgentDao fromJson(String json) throws BadRequestException {
-        return attempt(() -> JsonConfig.readValue(json, SecretManagerDoiAgentDao.class)).orElseThrow(
-            fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
-    }
-
     private URI agentIdToCustomerId(URI agentId) {
         return UriWrapper.fromUri(agentId)
                    .getParent().orElseThrow().getUri();
@@ -76,6 +77,10 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         return UriWrapper.fromUri(customerId).addChild(DOI_AGENT).getUri();
     }
 
+    /**
+     *
+     * Boilerplate code ahead.
+     */
 
     public URI getCustomerId() {
         return customerId;

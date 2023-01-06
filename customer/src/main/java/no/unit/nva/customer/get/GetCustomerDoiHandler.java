@@ -56,7 +56,9 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
                          ? secret.toDoiAgentDto()
                          : new DoiAgentDto().addIdFromUuid(identifier);
 
-        return attempt(() -> mapperToJsonCompact.writeValueAsString(result)).orElseThrow();
+        return result.toString();
+        // TODO add this code in task #NP-27814
+        // return attempt(() -> mapperToJsonCompact.writeValueAsString(result)).orElseThrow();
     }
 
     @Override

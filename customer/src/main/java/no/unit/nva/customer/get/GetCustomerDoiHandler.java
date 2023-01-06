@@ -49,14 +49,14 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
 
         var identifier = getIdentifier(requestInfo);
 
-        var secret = attempt(() -> getSecretsManagerDoiAgent().get(identifier))
-                         .orElseThrow(this::throwException);
+        var doiSecretDao = attempt(() -> getSecretsManagerDoiAgent().get(identifier))
+                               .orElseThrow(this::throwException);
 
-        var result = nonNull(secret)
-                         ? secret.toDoiAgentDto()
-                         : new DoiAgentDto().addIdFromUuid(identifier);
+        var doiAgentDto = nonNull(doiSecretDao)
+                              ? doiSecretDao.toDoiAgentDto()
+                              : new DoiAgentDto().addIdByIdentifier(identifier);
 
-        return attempt(() -> mapperToJsonCompact.writeValueAsString(result)).orElseThrow();
+        return attempt(() -> mapperToJsonCompact.writeValueAsString(doiAgentDto)).orElseThrow();
     }
 
     @Override

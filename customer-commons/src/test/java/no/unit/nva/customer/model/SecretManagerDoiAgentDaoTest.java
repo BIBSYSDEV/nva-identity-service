@@ -16,14 +16,13 @@ class SecretManagerDoiAgentDaoTest {
     void shouldDeserialize() {
         var doiAgentDto = createSampleCustomerDao().getDoiAgent().toDoiAgentDto()
                               .addPassword(randomString())
-                              .addIdFromUuid(randomIdentifier());
+                              .addIdByIdentifier(randomIdentifier());
         var expected = new SecretManagerDoiAgentDao(doiAgentDto);
         var json = expected.toString();
         var actual = attempt(() -> SecretManagerDoiAgentDao.fromJson(json)).get();
 
         assertEquals(expected, actual);
         assertEquals(expected.toDoiAgentDto(), doiAgentDto);
-
     }
 
     @Test
@@ -32,8 +31,7 @@ class SecretManagerDoiAgentDaoTest {
         var json = randomString();
         var exception = assertThrows(BadRequestException.class, () -> SecretManagerDoiAgentDao.fromJson(json));
 
-        assertEquals(BadRequestException.class,exception.getClass());
-
+        assertEquals(BadRequestException.class, exception.getClass());
     }
 
     @Test
@@ -47,8 +45,4 @@ class SecretManagerDoiAgentDaoTest {
         assertEquals(secretManagerDoiAgentDao.toDoiAgentDto(), doiAgentDto);
         assertNotNull(secretManagerDoiAgentDao);
     }
-
-
-
-
 }

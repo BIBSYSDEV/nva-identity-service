@@ -424,7 +424,7 @@ public class CustomerDto implements Context {
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
             if (nonNull(doiAgent)) {
                 return nonNull(customerDto.identifier)
-                           ? new DoiAgentDto(doiAgent).addIdFromUuid(customerDto.identifier)
+                           ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
                            : new DoiAgentDto(doiAgent);
             }
             return null;
@@ -472,16 +472,15 @@ public class CustomerDto implements Context {
         }
 
         /**
-            Takes a customer identifier and build a doiAgent id.
+         * Takes a customer identifier and build a doiAgent id.
          */
-        public DoiAgentDto addIdFromUuid(UUID identifier) {
+        public DoiAgentDto addIdByIdentifier(UUID identifier) {
             this.id = UriWrapper
                           .fromUri(toId(identifier))
                           .addChild(DOI_AGENT)
                           .getUri();
             return this;
         }
-
 
         @Override
         public String getUsername() {

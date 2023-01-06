@@ -6,8 +6,14 @@ import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Map;
@@ -22,6 +28,7 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
+import org.zalando.problem.jackson.ProblemModule;
 
 public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String> {
 
@@ -30,7 +37,8 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
     protected static final String SECRETS_KEY_AND_NAME = "dataCiteCustomerSecrets";
     protected final SecretsReader secretsReader;
 
-    protected final ObjectMapper mapperToJsonCompact = dtoObjectMapper.setSerializationInclusion(Include.ALWAYS);
+    protected final ObjectMapper mapperToJsonCompact = createJsonParser();
+    // dtoObjectMapper.setSerializationInclusion(Include.ALWAYS);
 
     @JacocoGenerated
     public CustomerDoiHandler(Class<I> iclass) {
@@ -95,4 +103,19 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
             );
     }
 
+    private ObjectMapper createJsonParser() {
+        var jsonFactory =
+            new JsonFactory()
+                .configure(Feature.ALLOW_SINGLE_QUOTES, true);
+        return
+            new ObjectMapper(jsonFactory)
+                .registerModule(new ProblemModule())
+                .registerModule(new JavaTimeModule())
+                .registerModule(new Jdk8Module())
+                .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(SerializationFeature.INDENT_OUTPUT)
+                .setSerializationInclusion(Include.ALWAYS);
+    }
 }

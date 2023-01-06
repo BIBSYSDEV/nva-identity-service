@@ -94,19 +94,19 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
     }
 
     // TODO add this code in task #NP-27814
-//    private ObjectMapper createJsonParser() {
-//        var jsonFactory = new JsonFactory().configure(Feature.ALLOW_SINGLE_QUOTES, true);
-//        var objectMapper = new ObjectMapper(jsonFactory)
-//                               .registerModule(new ProblemModule())
-//                               .registerModule(new JavaTimeModule())
-//                               .registerModule(new Jdk8Module())
-//                               .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
-//                               .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-//                               .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-//                               .setSerializationInclusion(Include.ALWAYS);
-//        return objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
-//        //return prettyJson
-//        //           ? objectMapper.enable(SerializationFeature.INDENT_OUTPUT)
-//        //           : objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
-//    }
+    //    private ObjectMapper createJsonParser() {
+    //        var jsonFactory = new JsonFactory().configure(Feature.ALLOW_SINGLE_QUOTES, true);
+    //        var objectMapper = new ObjectMapper(jsonFactory)
+    //                               .registerModule(new ProblemModule())
+    //                               .registerModule(new JavaTimeModule())
+    //                               .registerModule(new Jdk8Module())
+    //                               .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
+    //                               .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    //                               .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    //                               .setSerializationInclusion(Include.ALWAYS);
+    //        return objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
+    //        //return prettyJson
+    //        //           ? objectMapper.enable(SerializationFeature.INDENT_OUTPUT)
+    //        //           : objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
+    //    }
 }

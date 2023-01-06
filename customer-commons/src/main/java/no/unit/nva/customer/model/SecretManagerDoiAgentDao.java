@@ -78,7 +78,6 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
     }
 
     /**
-     *
      * Boilerplate code ahead.
      */
 

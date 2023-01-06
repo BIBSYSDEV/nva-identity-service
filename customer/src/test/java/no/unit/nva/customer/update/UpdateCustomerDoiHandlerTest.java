@@ -88,6 +88,7 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     /**
+     * Task.
      * <a href="https://unit.atlassian.net/browse/NP-27812">NP-27812</a>
      */
     @Test

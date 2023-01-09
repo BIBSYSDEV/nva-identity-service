@@ -68,10 +68,8 @@ class UpdateCustomerDoiHandlerTest {
         throws ApiGatewayException, IOException {
 
         var secretPassword = randomString();
-
         var doiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
         var doiAgent2 = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
-
         var secretDaoArray = createSampleSecretDaos(doiAgent, doiAgent2);
 
         when(customerServiceMock.getCustomer(any(UUID.class))
@@ -101,11 +99,9 @@ class UpdateCustomerDoiHandlerTest {
         throws ApiGatewayException, IOException {
 
         var secretPassword = randomString();
-
         var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
         var doiAgent2 = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
         var expectedDoiAgent = existingCustomer.getDoiAgent().addPassword(secretPassword);
-
         var secretDaoArray = createSampleSecretDaos(doiAgent, doiAgent2);
 
         when(customerServiceMock.getCustomer(any(UUID.class))
@@ -132,10 +128,8 @@ class UpdateCustomerDoiHandlerTest {
 
         var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
         var expectedDoiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
-
         var secretDaoArray = createSampleSecretDaos(doiAgent, expectedDoiAgent);
 
-        expectedDoiAgent.setUsername(null);
         when(customerServiceMock.getCustomer(any(UUID.class))
         ).thenReturn(existingCustomer);
 
@@ -145,6 +139,7 @@ class UpdateCustomerDoiHandlerTest {
         when(secretsReaderMock.fetchSecret(any(), any())
         ).thenReturn(secretDaoArray);
 
+        expectedDoiAgent.setUsername(null);
         var response = sendRequest(existingCustomer.getIdentifier(),
                                    expectedDoiAgent.toString(),
                                    String.class);

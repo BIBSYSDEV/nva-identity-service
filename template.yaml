@@ -19,6 +19,10 @@ Parameters:
     Type: String
     Default: nva-develop
     Description: The prefix for the Cognito domain that hosts the sign-up and sign-in pages for your application.
+  ExternalAuthenticationDomainPrefix:
+    Type: String
+    Default: nva-develop-ext
+    Description: Authentication url prefix for external users
   FeideMetadataUrl:
     Type: String
     AllowedValues:
@@ -1024,6 +1028,14 @@ Resources:
       Type: String
       Value: !GetAtt UserPool.Arn
 
+  ExternalCognitoAuthorizerArnParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '${ParameterNamePrefix}ExternalCognitoAuthorizerArn'
+      Description: ARN Identifier of the External UserPool
+      Type: String
+      Value: !GetAtt ExternalCognitoUserPool.Arn
+
   CognitoIdentityPoolIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -1267,6 +1279,18 @@ Resources:
         - ScopeDescription: Frontend scope
           ScopeName: frontend
       UserPoolId: !Ref UserPool
+
+  ResourceServerExternalScopes:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      Identifier: https://api.nva.unit.no/scopes/user
+      Name: Scopes for external users
+      Scopes:
+        - ScopeDescription: Read access
+          ScopeName: read
+        - ScopeDescription: Write access
+          ScopeName: write
+      UserPoolId: !Ref ExternalCognitoUserPool
 
   BackendApplicationClient:
     DependsOn: ResourceServerScopes
@@ -1522,6 +1546,18 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
+  ## External API
+  ExternalCognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: ExternalUsersPool
+      AutoVerifiedAttributes:
+        - email
+  ExternalUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId: !Ref ExternalCognitoUserPool
+      Domain: !Ref ExternalAuthenticationDomainPrefix
 
   PreTokenGenerationHandler:
     Type: AWS::Serverless::Function
@@ -1591,3 +1627,9 @@ Outputs:
   CognitoURN:
     Description: Amazon Cognito URN.
     Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
+  ExternalCognitoDomain:
+    Description: External users Amazon Cognito Domain.
+    Value: !Sub 'https://${ExternalAuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+  ExternalCognitoURN:
+    Description: External users Amazon Cognito URN.
+    Value: !Sub 'urn:amazon:cognito:sp:${ExternalCognitoUserPool}'

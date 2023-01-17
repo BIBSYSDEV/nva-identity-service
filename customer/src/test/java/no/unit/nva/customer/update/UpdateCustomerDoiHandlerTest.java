@@ -11,6 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -126,6 +127,24 @@ class UpdateCustomerDoiHandlerTest {
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(existingDoiAgent, is(equalTo(doiAgentResponse)));
+    }
+
+    @Test
+    void shouldReturnExistingValuesWhenPersistingEmptyOrMissingFields()
+        throws ApiGatewayException, IOException {
+
+        existingDoiAgent.setUrl(null);
+        existingDoiAgent.setPrefix(null);
+        existingDoiAgent.setPassword(null);
+        var response = sendRequest(existingCustomer.getIdentifier(),
+                                   existingDoiAgent.toString(),
+                                   String.class);
+        var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertNotNull(doiAgentResponse.getPassword());
+        assertNotNull(doiAgentResponse.getPrefix());
+        assertNotNull(doiAgentResponse.getUrl());
     }
 
     @Test

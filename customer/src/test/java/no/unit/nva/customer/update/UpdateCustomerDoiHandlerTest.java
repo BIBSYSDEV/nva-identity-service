@@ -80,7 +80,7 @@ class UpdateCustomerDoiHandlerTest {
      * <a href="https://unit.atlassian.net/browse/NP-27814">NP-27814</a>
      */
     @Test
-    void shouldUpdateExistingSecretWhenIdentifierFound()
+    void shouldUpdateExistingSecretWhenIdentifierFoundInSecrets()
         throws ApiGatewayException, IOException {
 
         var secretPassword = randomString();
@@ -115,7 +115,7 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     @Test
-    void shouldHandlePersistEmptyUserName()
+    void shouldReturnSecretWithEmptyUserNameWhenPersistingEmptyUserName()
         throws ApiGatewayException, IOException {
 
 

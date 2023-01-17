@@ -8,8 +8,10 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.USER;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -23,6 +25,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
@@ -44,31 +47,23 @@ class UpdateCustomerDoiHandlerTest {
     private static final Context CONTEXT = new FakeContext();
 
     private CustomerDto existingCustomer;
+    private DoiAgentDto existingDoiAgent;
     private ByteArrayOutputStream outputStream;
     private CustomerService customerServiceMock;
-    private SecretsReader secretsReaderMock;
     private UpdateCustomerDoiHandler handler;
 
     @BeforeEach
-    public void beforeEach() {
+    public void beforeEach() throws NotFoundException, InputException {
         this.outputStream = new ByteArrayOutputStream();
         customerServiceMock = mock(CustomerService.class);
-        var secretWriterMock = mock(SecretsWriter.class);
-        secretsReaderMock = mock(SecretsReader.class);
-        handler = new UpdateCustomerDoiHandler(customerServiceMock, secretWriterMock, secretsReaderMock);
+        var secretsReaderMock = mock(SecretsReader.class);
+
+        handler = new UpdateCustomerDoiHandler(customerServiceMock, mock(SecretsWriter.class), secretsReaderMock);
         existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
-    }
+        existingDoiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
 
-    @Test
-    void handleUpdateRequestOK()
-        throws ApiGatewayException, IOException {
-
-        var secretPassword = randomString();
-
-        var doiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
-        var doiAgent2 = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
-
-        var secretDaoArray =  createSampleSecretDaos(doiAgent, doiAgent2);
+        var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
+        var secretDaoArray = createSampleSecretDaos(doiAgent, existingDoiAgent);
 
         when(customerServiceMock.getCustomer(any(UUID.class))
         ).thenReturn(existingCustomer);
@@ -78,11 +73,22 @@ class UpdateCustomerDoiHandlerTest {
 
         when(secretsReaderMock.fetchSecret(any(), any())
         ).thenReturn(secretDaoArray);
+    }
+
+    /**
+     * Task.
+     * <a href="https://unit.atlassian.net/browse/NP-27814">NP-27814</a>
+     */
+    @Test
+    void shouldUpdateExistingSecretWhenIdentifierFoundInSecrets()
+        throws ApiGatewayException, IOException {
+
+        var secretPassword = randomString();
 
         var response = sendRequest(existingCustomer.getIdentifier(),
-                                   doiAgentToJson(secretPassword, doiAgent),
+                                   doiAgentToJson(existingDoiAgent, secretPassword),
                                    String.class);
-        var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
+        var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(doiAgentResponse.getPassword(), is(equalTo(secretPassword)));
@@ -91,35 +97,54 @@ class UpdateCustomerDoiHandlerTest {
     /**
      * Task.
      * <a href="https://unit.atlassian.net/browse/NP-27812">NP-27812</a>
+     * This also tests that secret is persisted with the identifier in the request.
      */
     @Test
-    void handleInsertRequestOK()
+    void shouldInsertSecretWhenIdentifierNotFoundInSecrets()
         throws ApiGatewayException, IOException {
 
-        var secretPassword = randomString();
+        var expectedDoiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
+        var identifier = UUID.randomUUID();
 
-        var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
-        var doiAgent2 = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
-        var expectedDoiAgent = existingCustomer.getDoiAgent().addPassword(secretPassword);
-
-        var secretDaoArray = createSampleSecretDaos(doiAgent, doiAgent2);
-
-        when(customerServiceMock.getCustomer(any(UUID.class))
-        ).thenReturn(existingCustomer);
-
-        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))
-        ).thenReturn(existingCustomer);
-
-        when(secretsReaderMock.fetchSecret(any(), any())
-        ).thenReturn(secretDaoArray);
-
-        var response = sendRequest(existingCustomer.getIdentifier(),
-                                   expectedDoiAgent.toString(),
-                                   String.class);
-        var doiAgentResponse =  DoiAgentDto.fromJson(response.getBody());
+        var response = sendRequest(identifier, expectedDoiAgent.toString(), String.class);
+        var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        assertThat(expectedDoiAgent, is(equalTo(doiAgentResponse)));
+        assertThat(expectedDoiAgent.getPassword(), is(equalTo(doiAgentResponse.getPassword())));
+        assertThat(expectedDoiAgent.getId(), is(not(equalTo(doiAgentResponse.getId()))));
+    }
+
+    @Test
+    void shouldReturnSecretWithEmptyUserNameWhenPersistingEmptyUserName()
+        throws ApiGatewayException, IOException {
+
+
+        existingDoiAgent.setUsername(null);
+        var response = sendRequest(existingCustomer.getIdentifier(),
+                                   existingDoiAgent.toString(),
+                                   String.class);
+        var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(existingDoiAgent, is(equalTo(doiAgentResponse)));
+    }
+
+    @Test
+    void shouldReturnExistingValuesWhenPersistingEmptyOrMissingFields()
+        throws ApiGatewayException, IOException {
+
+        existingDoiAgent.setUrl(null);
+        existingDoiAgent.setPrefix(null);
+        existingDoiAgent.setPassword(null);
+        var response = sendRequest(existingCustomer.getIdentifier(),
+                                   existingDoiAgent.toString(),
+                                   String.class);
+        var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertNotNull(doiAgentResponse.getPassword());
+        assertNotNull(doiAgentResponse.getPrefix());
+        assertNotNull(doiAgentResponse.getUrl());
     }
 
     @Test
@@ -134,7 +159,7 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     @Test
-    void handleinvalidUserAccess()
+    void failUpdateRequestReturnsForbiddenRequestWhenARequestWithInvalidAccessRights()
         throws ApiGatewayException, IOException {
         when(
             customerServiceMock.getCustomer(any(UUID.class))
@@ -187,7 +212,7 @@ class UpdateCustomerDoiHandlerTest {
                    .build();
     }
 
-    private String doiAgentToJson(String secretPassword, DoiAgentDto doiAgent) {
+    private String doiAgentToJson(DoiAgentDto doiAgent, String secretPassword) {
         return new DoiAgentDto(doiAgent)
                    .addId(doiAgent.getId())
                    .addPassword(secretPassword).toString();
@@ -198,6 +223,5 @@ class UpdateCustomerDoiHandlerTest {
                    .map(SecretManagerDoiAgentDao::new)
                    .map(SecretManagerDoiAgentDao::toString)
                    .collect(Collectors.joining(",", "[", "]"));
-
     }
 }

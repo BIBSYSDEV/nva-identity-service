@@ -60,9 +60,7 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         if (nonNull(agentDto.getUrl())) {
             setUrl(agentDto.getUrl());
         }
-        if (nonNull(agentDto.getUsername())) {
-            setUsername(agentDto.getUsername());
-        }
+        setUsername(agentDto.getUsername());
         if (nonNull(agentDto.getPassword())) {
             setPassword(agentDto.getPassword());
         }

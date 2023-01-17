@@ -64,7 +64,7 @@ class UpdateCustomerDoiHandlerTest {
      * <a href="https://unit.atlassian.net/browse/NP-27814">NP-27814</a>
      */
     @Test
-    void handleUpdateRequestOK()
+    void shouldHandleValidUpdateRequestOK()
         throws ApiGatewayException, IOException {
 
         var secretPassword = randomString();
@@ -97,7 +97,7 @@ class UpdateCustomerDoiHandlerTest {
      * <a href="https://unit.atlassian.net/browse/NP-27812">NP-27812</a>
      */
     @Test
-    void handleInsertRequestOK()
+    void shouldHandleValidInsertRequestOK()
         throws ApiGatewayException, IOException {
 
         var secretPassword = randomString();
@@ -127,12 +127,11 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     @Test
-    void handleUpdateUserNameRequestOK()
+    void shouldPersistUserNameAsNull()
         throws ApiGatewayException, IOException {
 
         var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
         var expectedDoiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
-
         var secretDaoArray = createSampleSecretDaos(doiAgent, expectedDoiAgent);
 
         expectedDoiAgent.setUsername(null);
@@ -166,7 +165,7 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     @Test
-    void handleinvalidUserAccess()
+    void failUpdateRequestReturnsForbiddenRequestWhenARequestWithInvalidAccessRights()
         throws ApiGatewayException, IOException {
         when(
             customerServiceMock.getCustomer(any(UUID.class))

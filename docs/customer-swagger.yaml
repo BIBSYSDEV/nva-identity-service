@@ -195,7 +195,7 @@ paths:
     put:
       summary: Update Customer
       security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin"]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update

@@ -556,12 +556,17 @@ Resources:
         Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
       StageName: Prod
       Auth:
+        AddDefaultAuthorizerToCorsPreflight: false
+        DefaultAuthorizer: CognitoAuthorizer
         Authorizers:
           CognitoAuthorizer:
+            AuthorizationScopes:
+              - 'https://api.nva.unit.no/scopes/backend'
+              - 'https://api.nva.unit.no/scopes/frontend'
+              - 'aws.cognito.signin.user.admin'
             UserPoolArn: !GetAtt UserPool.Arn
             Identity:
               Header: Authorization
-              ValidationExpression: Bearer.*
               ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
       DefinitionBody:

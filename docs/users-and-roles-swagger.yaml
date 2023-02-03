@@ -13,8 +13,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CustomerSelection'
-      security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/frontend"]
       responses:
         '200':
           description: Successful login
@@ -27,8 +25,6 @@ paths:
   /roles:
     post:
       summary: Adds new Role
-      security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend"]
       requestBody:
         required: true
         content:
@@ -57,8 +53,6 @@ paths:
           schema:
             type: string
           required: true
-      security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       responses:
         '200':
           description: Successful fetching of role. Returns the requested role
@@ -75,8 +69,6 @@ paths:
   /userinfo:
     get:
       summary: Selects Customer for User
-      security:
-        - CognitoUserPool: [ 'aws.cognito.signin.user.admin' ]
       responses:
         '200':
           description: Return OpenID user info for testing clients that do not have openid scope
@@ -89,8 +81,6 @@ paths:
   /users:
     post:
       summary: Adds new user
-      security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend" ]
       requestBody:
         required: true
         content:
@@ -119,8 +109,6 @@ paths:
           schema:
             type: string
           required: true
-      security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       responses:
         '200':
           description: Successful fetching of User. Returns the requested User
@@ -148,8 +136,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
-      security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       responses:
         '202':
           description: Successful request for updating the user. User will be eventually updated
@@ -182,8 +168,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-      security:
-        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend"]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListByInstitutionHandler.Arn}/invocations
@@ -244,12 +228,3 @@ components:
         type:
           type: string
           default: CustomerSelection
-  securitySchemes:
-    CognitoUserPool:
-      type: http
-      scheme: bearer
-      x-amazon-apigateway-authtype: cognito_user_pools
-      x-amazon-apigateway-authorizer:
-        type: cognito_user_pools
-        providerARNs:
-          - Fn::GetAtt: UserPool.Arn

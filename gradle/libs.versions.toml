@@ -49,6 +49,7 @@ aws-sdk2-dynamodb = { group = 'software.amazon.awssdk', name = 'dynamodb', versi
 aws-sdk2-dynamodbenhanced = { group = 'software.amazon.awssdk', name = 'dynamodb-enhanced', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
 aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
+aws-sdk2-cognitoidentityprovider= { group = 'software.amazon.awssdk',   name = 'cognitoidentityprovider',   version.ref = 'awsSdk2' }
 aws-java-sdk2-cognitoidp = { group = 'software.amazon.awssdk', name = 'cognitoidentityprovider', version.ref = 'awsSdk2' }
 aws-http-client-spi = { group = 'software.amazon.awssdk', name = 'http-client-spi', version.ref = 'awsSdk2' }
 

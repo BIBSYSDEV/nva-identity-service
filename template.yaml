@@ -251,6 +251,17 @@ Resources:
                   - secretsmanager:GetRandomPassword
                   - secretsmanager:ListSecrets
                 Resource: '*'
+        - PolicyName: ExternalUserPoolClients
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-idp:ListResourceServers
+                  - cognito-idp:CreateUserPoolClient
+                  - cognito-idp:DescribeUserPoolClient
+                  - cognito-idp:ListUserPoolClients
+                Resource: !GetAtt ExternalCognitoUserPool.Arn
 
   ### User Access Service ##############################################################################################
 
@@ -497,6 +508,26 @@ Resources:
             TableName: !Ref UserRoleMappings
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
+
+  CreateExternalUserClientHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.CreateExternalUserClientHandler::handleRequest
+      Role: !GetAtt CreateUsersRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          API_DOMAIN: !Ref ApiDomain
+          EXTERNAL_USER_POOL_ID: !Ref ExternalCognitoUserPool
+          EXTERNAL_USER_POOL_URL: !Ref ExternalUserPoolDomain
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /external-users
+            Method: post
+            RestApiId: !Ref UsersAndRolesApi
 
   UsersAndRolesApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping

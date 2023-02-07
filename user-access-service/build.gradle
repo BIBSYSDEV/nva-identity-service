@@ -16,6 +16,7 @@ dependencies {
     implementation libs.aws.sdk2.dynamodbenhanced
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.urlconnection
+    implementation libs.aws.sdk2.cognitoidentityprovider
 
     implementation libs.bundles.jackson
     implementation libs.nva.json
@@ -33,4 +34,7 @@ test{
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "CRISTIN_API_URL", "https://cristin.no"
     environment "ID_NAMESPACE", "https://www.example.org/namespace/"
+    environment "EXTERNAL_USER_POOL_ID", "id"
+    environment "EXTERNAL_USER_POOL_URL", "http://localhost"
+    environment "AWS_REGION", "eu-west-1"
 }

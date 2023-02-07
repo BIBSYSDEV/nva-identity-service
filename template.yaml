@@ -520,7 +520,7 @@ Resources:
           ALLOWED_ORIGIN: '*'
           API_DOMAIN: !Ref ApiDomain
           EXTERNAL_USER_POOL_ID: !Ref ExternalCognitoUserPool
-          EXTERNAL_USER_POOL_URL: !Ref ExternalUserPoolDomain
+          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
       Events:
         ApiEvent:
           Type: Api

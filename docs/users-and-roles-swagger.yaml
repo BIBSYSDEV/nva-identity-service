@@ -150,25 +150,25 @@ paths:
         responses: {}
         httpMethod: POST
         type: aws_proxy
-  /external-users:
+  /external-clients:
     post:
-      summary: Adds new external user
+      summary: Adds new external client
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ExternalUser'
+              $ref: '#/components/schemas/ExternalClient'
       responses:
         '200':
           description: Successful creation of external user. Returns the credentials for the generated user
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/ExternalUserCredentials'
+                $ref: '#/components/schemas/ExternalClientCredentials'
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateExternalUserClientHandler.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateExternalClientHandler.Arn}/invocations
         responses: {}
         httpMethod: POST
         type: aws_proxy
@@ -235,12 +235,12 @@ components:
             $ref: '#/components/schemas/AccessRight'
         viewingScope:
           $ref: '#/components/schemas/ViewingScope'
-    ExternalUser:
+    ExternalClient:
       properties:
         clientName:
           type: string
-          description: Name of the OAuth client for the external user
-    ExternalUserCredentials:
+          description: Name of the OAuth client for the external client
+    ExternalClientCredentials:
       properties:
         clientId:
           type: string

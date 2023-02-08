@@ -8,18 +8,18 @@ import no.unit.nva.testutils.RandomDataGenerator;
 import org.junit.jupiter.api.Test;
 
 
-public class CreateExternalUserRequestTest {
+public class CreateExternalClientRequestTest {
 
     @Test
     public void shouldHaveAnEmptyConstructor() {
-        new CreateExternalUserRequest();
+        new CreateExternalClientRequest();
     }
 
     @Test
     public void toStringShouldContainAllFields() {
         var clientName = RandomDataGenerator.randomString();
 
-        var request = new CreateExternalUserRequest(clientName);
+        var request = new CreateExternalClientRequest(clientName);
 
         assertThat(request.toString(), containsString(clientName));
     }
@@ -28,7 +28,7 @@ public class CreateExternalUserRequestTest {
     public void gettersShouldReturnCorrectValues() {
         var clientName = RandomDataGenerator.randomString();
 
-        var request = new CreateExternalUserRequest(clientName);
+        var request = new CreateExternalClientRequest(clientName);
 
         assertThat(request.getClientName(), is(equalTo(clientName)));
     }

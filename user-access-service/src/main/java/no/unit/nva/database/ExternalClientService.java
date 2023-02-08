@@ -9,7 +9,7 @@ import static software.amazon.awssdk.services.cognitoidentityprovider.model.Time
 import static software.amazon.awssdk.services.cognitoidentityprovider.model.TimeUnitsType.MINUTES;
 import java.util.Collection;
 import java.util.List;
-import no.unit.nva.useraccessservice.model.CreateExternalUserResponse;
+import no.unit.nva.useraccessservice.model.CreateExternalClientResponse;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
@@ -19,14 +19,14 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateUserP
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateUserPoolClientResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.TokenValidityUnitsType;
 
-public class ExternalUserService {
+public class ExternalClientService {
 
     private final CognitoIdentityProviderClient client;
     public static final String AWS_REGION = ENVIRONMENT.readEnv("AWS_REGION");
     private static final String EXTERNAL_USER_POOL_ID = new Environment().readEnv("EXTERNAL_USER_POOL_ID");
     private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
 
-    public ExternalUserService(CognitoIdentityProviderClient client) {
+    public ExternalClientService(CognitoIdentityProviderClient client) {
         this.client = client;
     }
 
@@ -68,15 +68,15 @@ public class ExternalUserService {
                    .build();
     }
 
-    public CreateExternalUserResponse createNewExternalUserClient(String appClientName) {
+    public CreateExternalClientResponse createNewExternalClient(String appClientName) {
         var response = client.createUserPoolClient(buildCreateCognitoClientRequest(appClientName));
         return createCogntioCredentialsDtoFromResponse(response);
 
     }
 
-    private CreateExternalUserResponse createCogntioCredentialsDtoFromResponse(CreateUserPoolClientResponse response) {
+    private CreateExternalClientResponse createCogntioCredentialsDtoFromResponse(CreateUserPoolClientResponse response) {
         var userPoolClient = response.userPoolClient();
-        return new CreateExternalUserResponse(
+        return new CreateExternalClientResponse(
             userPoolClient.clientId(),
             userPoolClient.clientSecret(),
             EXTERNAL_USER_POOL_URL
@@ -84,11 +84,11 @@ public class ExternalUserService {
     }
 
     @JacocoGenerated
-    public static ExternalUserService defaultExternalUserClientService() {
+    public static ExternalClientService defaultExternalClientService() {
         var client = CognitoIdentityProviderClient.builder()
                                                    .httpClient(UrlConnectionHttpClient.builder().build())
                                                    .region(Region.of(AWS_REGION))
                                                    .build();
-        return new ExternalUserService(client);
+        return new ExternalClientService(client);
     }
 }

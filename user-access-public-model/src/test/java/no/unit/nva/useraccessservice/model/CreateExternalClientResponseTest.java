@@ -7,12 +7,12 @@ import static org.hamcrest.core.StringContains.containsString;
 import no.unit.nva.testutils.RandomDataGenerator;
 import org.junit.jupiter.api.Test;
 
-public class CreateExternalUserResponseTest {
+public class CreateExternalClientResponseTest {
 
 
     @Test
     public void shouldHaveAnEmptyConstructor() {
-        new CreateExternalUserResponse();
+        new CreateExternalClientResponse();
     }
 
     @Test
@@ -21,7 +21,7 @@ public class CreateExternalUserResponseTest {
         var secret = RandomDataGenerator.randomString();
         var url = RandomDataGenerator.randomString();
 
-        var response = new CreateExternalUserResponse(id, secret, url);
+        var response = new CreateExternalClientResponse(id, secret, url);
 
         assertThat(response.toString(), containsString(id));
         assertThat(response.toString(), containsString(secret));
@@ -34,7 +34,7 @@ public class CreateExternalUserResponseTest {
         var secret = RandomDataGenerator.randomString();
         var url = RandomDataGenerator.randomString();
 
-        var response = new CreateExternalUserResponse(id, secret, url);
+        var response = new CreateExternalClientResponse(id, secret, url);
 
         assertThat(response.getClientId(), is(equalTo(id)));
         assertThat(response.getClientSecret(), is(equalTo(secret)));

@@ -7,15 +7,16 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import no.unit.nva.database.ExternalUserService;
+import no.unit.nva.database.ExternalClientService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.useraccessservice.model.CreateExternalUserResponse;
-import no.unit.nva.useraccessservice.model.CreateExternalUserRequest;
+import no.unit.nva.useraccessservice.model.CreateExternalClientResponse;
+import no.unit.nva.useraccessservice.model.CreateExternalClientRequest;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
 import nva.commons.core.Environment;
@@ -30,13 +31,13 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateUserP
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateUserPoolClientResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientType;
 
-public class CreateExternalUserClientHandlerTest extends HandlerTest {
+public class CreateExternalClientHandlerTest extends HandlerTest {
 
     public static final String CLIENT_NAME = "client1";
     public static final String CLIENT_ID= "id1";
     public static final String CLIENT_SECRET = "secret1";
     private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
-    private CreateExternalUserClientHandler handler;
+    private CreateExternalClientHandler handler;
     private FakeContext context;
     private ByteArrayOutputStream outputStream;
     private CognitoIdentityProviderClient cognitoClient;
@@ -44,26 +45,26 @@ public class CreateExternalUserClientHandlerTest extends HandlerTest {
     @BeforeEach
     public void setup()  {
         cognitoClient = Mockito.mock(CognitoIdentityProviderClient.class);
-        var externalUserService = new ExternalUserService(cognitoClient);
+        var externalUserService = new ExternalClientService(cognitoClient);
 
         var response = CreateUserPoolClientResponse.builder().userPoolClient(
             UserPoolClientType.builder().clientId(CLIENT_ID).clientSecret(CLIENT_SECRET).build()
         ).build();
 
-        Mockito.when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
+        when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
             .thenReturn(response);
 
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-        handler = new CreateExternalUserClientHandler(externalUserService);
+        handler = new CreateExternalClientHandler(externalUserService);
     }
 
     @Test
     public void shouldReturnCredentialsWhenClientDoesNotExist() throws IOException {
-        var request = new CreateExternalUserRequest(CLIENT_NAME);
-        var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalUserResponse.class);
+        var request = new CreateExternalClientRequest(CLIENT_NAME);
+        var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
 
-        var cognitoCredentials = gatewayResponse.getBodyObject(CreateExternalUserResponse.class);
+        var cognitoCredentials = gatewayResponse.getBodyObject(CreateExternalClientResponse.class);
 
         assertThat(cognitoCredentials.getClientId(),  is(equalTo(CLIENT_ID)));
         assertThat(cognitoCredentials.getClientSecret(),  is(equalTo(CLIENT_SECRET)));
@@ -73,29 +74,29 @@ public class CreateExternalUserClientHandlerTest extends HandlerTest {
     @Test
     public void shouldNotExposeExceptionCausedByCognitoClient() throws IOException {
         var exceptionMsg = "some exception";
-        Mockito.when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
+        when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
             .thenThrow(SdkClientException.create(exceptionMsg));
 
-        var request = new CreateExternalUserRequest(CLIENT_NAME);
-        var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalUserResponse.class);
+        var request = new CreateExternalClientRequest(CLIENT_NAME);
+        var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
         assertThat(gatewayResponse.getBody(), not(containsString(exceptionMsg)));
     }
 
     @Test
     public void shouldLogErrorsCausedByCognitoClient() throws IOException {
         var exceptionMsg = "some exception";
-        Mockito.when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
+        when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
             .thenThrow(SdkClientException.create(exceptionMsg));
 
-        var request = new CreateExternalUserRequest(CLIENT_NAME);
+        var request = new CreateExternalClientRequest(CLIENT_NAME);
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
-        sendRequest(createBackendRequest(request), CreateExternalUserResponse.class);
+        sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
         assertThat(testAppender.getMessages(), Matchers.containsString(exceptionMsg));
     }
 
-    private InputStream createBackendRequest(CreateExternalUserRequest requestBody)
+    private InputStream createBackendRequest(CreateExternalClientRequest requestBody)
         throws JsonProcessingException {
-        return new HandlerRequestBuilder<CreateExternalUserRequest>(dtoObjectMapper)
+        return new HandlerRequestBuilder<CreateExternalClientRequest>(dtoObjectMapper)
                    .withScope(RequestInfoConstants.BACKEND_SCOPE_AS_DEFINED_IN_IDENTITY_SERVICE)
                    .withBody(requestBody)
                    .build();

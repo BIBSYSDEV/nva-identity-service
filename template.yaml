@@ -509,12 +509,13 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
 
-  CreateExternalUserClientHandler:
+  CreateExternalClientHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.CreateExternalUserClientHandler::handleRequest
+      Handler: no.unit.nva.handlers.CreateExternalClientHandler::handleRequest
       Role: !GetAtt CreateUsersRole.Arn
+      Description: Creates a new Cognito Client assosicated with the external user pool
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -525,7 +526,7 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /external-users
+            Path: /external-clients
             Method: post
             RestApiId: !Ref UsersAndRolesApi
 

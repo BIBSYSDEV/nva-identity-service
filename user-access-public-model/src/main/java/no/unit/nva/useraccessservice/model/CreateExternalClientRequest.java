@@ -4,17 +4,17 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.unit.nva.identityservice.json.JsonConfig;
 
-public class CreateExternalUserRequest {
+public class CreateExternalClientRequest {
 
     private static final String CLIENT_NAME = "clientName";
 
     @JsonProperty(CLIENT_NAME)
     private String clientName;
 
-    public CreateExternalUserRequest() {
+    public CreateExternalClientRequest() {
     }
 
-    public CreateExternalUserRequest(String clientName) {
+    public CreateExternalClientRequest(String clientName) {
         this.clientName = clientName;
     }
 

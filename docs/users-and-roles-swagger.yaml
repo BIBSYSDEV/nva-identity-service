@@ -168,7 +168,7 @@ paths:
     post:
       summary: Adds new external client
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "aws.cognito.signin.user.admin", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "aws.cognito.signin.user.admin" ]
       requestBody:
         required: true
         content:

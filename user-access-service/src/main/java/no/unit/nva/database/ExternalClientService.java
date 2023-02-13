@@ -32,8 +32,7 @@ public class ExternalClientService {
 
     private Collection<String> getDefaultScopes() {
         return List.of(
-            "https://api.nva.unit.no/scopes/user/read",
-            "https://api.nva.unit.no/scopes/user/write"
+            "https://api.nva.unit.no/scopes/third-party"
         );
     }
 

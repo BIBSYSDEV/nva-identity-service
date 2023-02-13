@@ -1307,13 +1307,11 @@ Resources:
   ResourceServerExternalScopes:
     Type: AWS::Cognito::UserPoolResourceServer
     Properties:
-      Identifier: https://api.nva.unit.no/scopes/user
-      Name: Scopes for external users
+      Identifier: https://api.nva.unit.no/scopes
+      Name: Scopes for external user pool
       Scopes:
-        - ScopeDescription: Read access
-          ScopeName: read
-        - ScopeDescription: Write access
-          ScopeName: write
+        - ScopeDescription: Third part access
+          ScopeName: third-party
       UserPoolId: !Ref ExternalCognitoUserPool
 
   BackendApplicationClient:

@@ -7,6 +7,8 @@ paths:
   /login:
     post:
       summary: Selects Customer for User
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
         required: true
         content:
@@ -25,6 +27,8 @@ paths:
   /roles:
     post:
       summary: Adds new Role
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "aws.cognito.signin.user.admin" ]
       requestBody:
         required: true
         content:
@@ -47,6 +51,8 @@ paths:
   /roles/{role}:
     get:
       summary: Gets an existing Role
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - in: path
           name: role
@@ -69,6 +75,8 @@ paths:
   /userinfo:
     get:
       summary: Selects Customer for User
+      security:
+        - CognitoUserPool: [ "aws.cognito.signin.user.admin" ]
       responses:
         '200':
           description: Return OpenID user info for testing clients that do not have openid scope
@@ -81,6 +89,8 @@ paths:
   /users:
     post:
       summary: Adds new user
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
         required: true
         content:
@@ -103,6 +113,8 @@ paths:
   /users/{username}:
     get:
       summary: Gets an existing User
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - in: path
           name: username
@@ -124,6 +136,8 @@ paths:
         type: aws_proxy
     put:
       summary: Updates an existing User
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - in: path
           name: username
@@ -153,6 +167,8 @@ paths:
   /external-clients:
     post:
       summary: Adds new external client
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "aws.cognito.signin.user.admin", "aws.cognito.signin.user.admin" ]
       requestBody:
         required: true
         content:
@@ -174,7 +190,9 @@ paths:
         type: aws_proxy
   /institutions/users:
     get:
-      summary: Lists users of specified institution
+      summary: Lists users of specified
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - in: query
           name: institution
@@ -197,6 +215,16 @@ paths:
         httpMethod: POST
         type: aws_proxy
 components:
+  securitySchemes:
+    CognitoUserPool:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools
+        providerARNs:
+          - Fn::GetAtt: UserPool.Arn
   schemas:
     AccessRight:
       type: string

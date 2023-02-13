@@ -314,19 +314,6 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
-      Auth:
-        AddDefaultAuthorizerToCorsPreflight: false
-        DefaultAuthorizer: CognitoAuthorizer
-        Authorizers:
-          CognitoAuthorizer:
-            AuthorizationScopes:
-              - 'https://api.nva.unit.no/scopes/backend'
-              - 'https://api.nva.unit.no/scopes/frontend'
-              - 'aws.cognito.signin.user.admin'
-            UserPoolArn: !GetAtt UserPool.Arn
-            Identity:
-              Header: Authorization
-              ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
       DefinitionBody:
         'Fn::Transform':

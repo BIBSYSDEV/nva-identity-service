@@ -24,6 +24,8 @@ paths:
   /:
     post:
       summary: Create Customer
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "aws.cognito.signin.user.admin" ]
       requestBody:
         required: true
         content:
@@ -80,6 +82,8 @@ paths:
                   $ref: '#/components/examples/BadGatewayProblemExample'
     get:
       summary: Get All Customers
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetAllCustomersFunction.Arn}/invocations
@@ -132,6 +136,8 @@ paths:
   /{identifier}:
     get:
       summary: Get Customer
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to get.
@@ -190,6 +196,8 @@ paths:
                   $ref: '#/components/examples/BadGatewayProblemExample'
     put:
       summary: Update Customer
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
@@ -255,6 +263,8 @@ paths:
   /{identifier}/doiagent:
     get:
       summary: Get Customer doi agent with secret
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer
@@ -286,6 +296,8 @@ paths:
         type: AWS_PROXY
     put:
       summary: Update Customer doi agent with secret
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
@@ -344,6 +356,9 @@ paths:
                   $ref: '#/components/examples/BadGatewayProblemExample'
   /{identifier}/vocabularies:
     get:
+      summary: Gets vocabulary definition for a customer
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer
@@ -375,6 +390,8 @@ paths:
         type: AWS_PROXY
     post:
       summary: Create vocabulary definition for customer
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
@@ -439,6 +456,8 @@ paths:
                   $ref: '#/components/examples/BadGatewayProblemExample'
     put:
       summary: Update Vocabularies
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
@@ -507,6 +526,8 @@ paths:
   /orgDomain/{orgDomain}:
     get:
       summary: Get CustomerIdentifiers by orgDomain
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: orgDomain
           description: the Feide org domain of the CustomerIdentifiers to get
@@ -560,6 +581,8 @@ paths:
   /cristinId/{cristinId}:
     get:
       summary: Get Customer by cristinId
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: cristinId
           description: CristinId of the Customer to get
@@ -618,6 +641,17 @@ paths:
                 BadGatewatExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
 components:
+  securitySchemes:
+    CognitoUserPool:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools
+        providerARNs:
+          - Fn::GetAtt: UserPool.Arn
+      description: Allows authenticated users to read data from customers table
   schemas:
     CustomerIdentifier:
       type: string

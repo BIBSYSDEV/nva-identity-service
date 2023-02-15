@@ -28,7 +28,7 @@ paths:
     post:
       summary: Adds new Role
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
         required: true
         content:
@@ -168,7 +168,7 @@ paths:
     post:
       summary: Adds new external client
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
         required: true
         content:

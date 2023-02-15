@@ -47,5 +47,7 @@ test{
     environment "SIKT_CRISTIN_ID", "https://example.org/sikt/cristin/id"
     environment "ID_NAMESPACE", "https://www.example.org/namespace/"
     environment "CRISTIN_API_URL", "https://cristin.no"
+    environment "EXTERNAL_USER_POOL_ID", "1"
+    environment "EXTERNAL_USER_POOL_URL", "http://localhost"
     environment "ALLOWED_ORIGIN", "*"
 }

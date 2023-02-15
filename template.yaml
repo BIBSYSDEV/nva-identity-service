@@ -19,6 +19,10 @@ Parameters:
     Type: String
     Default: nva-develop
     Description: The prefix for the Cognito domain that hosts the sign-up and sign-in pages for your application.
+  ExternalAuthenticationDomainPrefix:
+    Type: String
+    Default: nva-develop-ext
+    Description: Authentication url prefix for external users
   FeideMetadataUrl:
     Type: String
     AllowedValues:
@@ -247,6 +251,17 @@ Resources:
                   - secretsmanager:GetRandomPassword
                   - secretsmanager:ListSecrets
                 Resource: '*'
+        - PolicyName: ExternalUserPoolClients
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-idp:ListResourceServers
+                  - cognito-idp:CreateUserPoolClient
+                  - cognito-idp:DescribeUserPoolClient
+                  - cognito-idp:ListUserPoolClients
+                Resource: !GetAtt ExternalCognitoUserPool.Arn
 
   ### User Access Service ##############################################################################################
 
@@ -299,19 +314,6 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
-      Auth:
-        AddDefaultAuthorizerToCorsPreflight: false
-        DefaultAuthorizer: CognitoAuthorizer
-        Authorizers:
-          CognitoAuthorizer:
-            AuthorizationScopes:
-              - 'https://api.nva.unit.no/scopes/backend'
-              - 'https://api.nva.unit.no/scopes/frontend'
-              - 'aws.cognito.signin.user.admin'
-            UserPoolArn: !GetAtt UserPool.Arn
-            Identity:
-              Header: Authorization
-              ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
       DefinitionBody:
         'Fn::Transform':
@@ -494,6 +496,27 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
 
+  CreateExternalClientHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.CreateExternalClientHandler::handleRequest
+      Role: !GetAtt CreateUsersRole.Arn
+      Description: Creates a new Cognito Client assosicated with the external user pool
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          API_DOMAIN: !Ref ApiDomain
+          EXTERNAL_USER_POOL_ID: !Ref ExternalCognitoUserPool
+          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /external-clients
+            Method: post
+            RestApiId: !Ref UsersAndRolesApi
+
   UsersAndRolesApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
@@ -551,14 +574,6 @@ Resources:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
       StageName: Prod
-      Auth:
-        Authorizers:
-          CognitoAuthorizer:
-            UserPoolArn: !GetAtt UserPool.Arn
-            Identity:
-              Header: Authorization
-              ValidationExpression: Bearer.*
-              ReauthorizeEvery: 10
       EndpointConfiguration: REGIONAL
       DefinitionBody:
         'Fn::Transform':
@@ -1024,6 +1039,14 @@ Resources:
       Type: String
       Value: !GetAtt UserPool.Arn
 
+  ExternalCognitoAuthorizerArnParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '${ParameterNamePrefix}ExternalCognitoAuthorizerArn'
+      Description: ARN Identifier of the External UserPool
+      Type: String
+      Value: !GetAtt ExternalCognitoUserPool.Arn
+
   CognitoIdentityPoolIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -1267,6 +1290,16 @@ Resources:
         - ScopeDescription: Frontend scope
           ScopeName: frontend
       UserPoolId: !Ref UserPool
+
+  ResourceServerExternalScopes:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      Identifier: https://api.nva.unit.no/scopes
+      Name: Scopes for external user pool
+      Scopes:
+        - ScopeDescription: Third part access
+          ScopeName: third-party
+      UserPoolId: !Ref ExternalCognitoUserPool
 
   BackendApplicationClient:
     DependsOn: ResourceServerScopes
@@ -1522,6 +1555,18 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
+  ## External API
+  ExternalCognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: ExternalUsersPool
+      AutoVerifiedAttributes:
+        - email
+  ExternalUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId: !Ref ExternalCognitoUserPool
+      Domain: !Ref ExternalAuthenticationDomainPrefix
 
   PreTokenGenerationHandler:
     Type: AWS::Serverless::Function
@@ -1591,3 +1636,9 @@ Outputs:
   CognitoURN:
     Description: Amazon Cognito URN.
     Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
+  ExternalCognitoDomain:
+    Description: External users Amazon Cognito Domain.
+    Value: !Sub 'https://${ExternalAuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+  ExternalCognitoURN:
+    Description: External users Amazon Cognito URN.
+    Value: !Sub 'urn:amazon:cognito:sp:${ExternalCognitoUserPool}'

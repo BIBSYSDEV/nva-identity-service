@@ -1,9 +1,9 @@
 [versions]
-nvaCommons = { strictly = '1.25.20' }
+nvaCommons = { strictly = '1.27.2' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
-awsSdk2 = { strictly = '2.17.191' }
-jackson = { strictly = "2.13.3" }
+awsSdk2 = { strictly = '2.19.15' }
+jackson = { strictly = "2.14.1" }
 xraySdk = { strictly = '2.9.1' }
 dynamoDbLocal = { strictly = '1.17.2' }
 zalandoProblem = { strictly = '0.27.1' }
@@ -14,7 +14,7 @@ apacheHttpClient = { strictly = '4.5.13' }
 hamcrest = { strictly = '2.2' }
 javersCore = { strictly = '6.2.5' }
 javafaker = { strictly = '1.0.2' }
-mockitoCore = { strictly = '3.12.4' }
+mockitoCore = { strictly = '4.5.1' }
 apiGuardian = { strictly = '1.1.2' }
 guava = { strictly = '31.1-jre' }
 hamcrestJackson = { strictly = '1.2.0' }
@@ -49,6 +49,7 @@ aws-sdk2-dynamodb = { group = 'software.amazon.awssdk', name = 'dynamodb', versi
 aws-sdk2-dynamodbenhanced = { group = 'software.amazon.awssdk', name = 'dynamodb-enhanced', version.ref = 'awsSdk2' }
 aws-sdk2-urlconnection = { group = 'software.amazon.awssdk', name = 'url-connection-client', version.ref = 'awsSdk2' }
 aws-sdk2-eventbridge = { group = 'software.amazon.awssdk', name = 'eventbridge', version.ref = 'awsSdk2' }
+aws-sdk2-cognitoidentityprovider= { group = 'software.amazon.awssdk',   name = 'cognitoidentityprovider',   version.ref = 'awsSdk2' }
 aws-java-sdk2-cognitoidp = { group = 'software.amazon.awssdk', name = 'cognitoidentityprovider', version.ref = 'awsSdk2' }
 aws-http-client-spi = { group = 'software.amazon.awssdk', name = 'http-client-spi', version.ref = 'awsSdk2' }
 

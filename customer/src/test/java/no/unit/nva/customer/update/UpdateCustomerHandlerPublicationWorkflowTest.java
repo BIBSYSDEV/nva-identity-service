@@ -5,6 +5,7 @@ import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISH
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
+import static no.unit.nva.testutils.HandlerRequestBuilder.SCOPE_CLAIM;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.Test;
 public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerServiceDatabase {
 
     private static final Instant NOW = Instant.now();
+    public static final String AWS_COGNITO_SIGNIN_USER_ADMIN = "aws.cognito.signin.user.admin";
     private UpdateCustomerHandler handler;
     private Context context;
     private ByteArrayOutputStream outputStream;
@@ -66,6 +68,22 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
                    is(not(equalTo(preExistingCustomer.getPublicationWorkflow()))));
 
         var request = updateRequestWithCorrectAuthorization(updateCustomer, getIdentifierPathParam(updateCustomer));
+        var response = sendUpdateRequest(request, CustomerDto.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(response.getBodyObject(CustomerDto.class).getPublicationWorkflow(),
+                   is(equalTo(updateCustomer.getPublicationWorkflow())));
+    }
+
+    @Test
+    void shouldUpdatePublicationWorkflowWhenAuthorizedAsCognitoAdmin() throws IOException {
+        createCustomerInLocalDb();
+        var updateCustomer = changePublicationWorkflowFromPreExistingCustomer();
+
+        assertThat(updateCustomer.getPublicationWorkflow(),
+                   is(not(equalTo(preExistingCustomer.getPublicationWorkflow()))));
+
+        var request = updateRequestWithCognitoAdminAuthorization(updateCustomer, getIdentifierPathParam(updateCustomer));
         var response = sendUpdateRequest(request, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
@@ -108,6 +126,16 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
                    .withCustomerId(updateCustomer.getId())
                    .withAccessRights(updateCustomer.getId(),
                                      AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
+                   .withBody(updateCustomer)
+                   .build();
+    }
+
+    private InputStream updateRequestWithCognitoAdminAuthorization(CustomerDto updateCustomer,
+                                                              Map<String, String> pathParameters)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withPathParameters(pathParameters)
+                   .withCustomerId(updateCustomer.getId())
+                   .withAuthorizerClaim(SCOPE_CLAIM, AWS_COGNITO_SIGNIN_USER_ADMIN)
                    .withBody(updateCustomer)
                    .build();
     }

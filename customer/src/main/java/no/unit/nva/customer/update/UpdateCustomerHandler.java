@@ -2,6 +2,7 @@ package no.unit.nva.customer.update;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.apigateway.RequestInfoConstants.SCOPES_CLAIM;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
@@ -23,6 +24,7 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
 
     public static final String IDENTIFIER = "identifier";
     public static final String IDENTIFIER_IS_NOT_A_VALID_UUID = "Identifier is not a valid UUID: ";
+    public static final String AWS_COGNITO_SIGNIN_USER_ADMIN = "aws.cognito.signin.user.admin";
     private final CustomerService customerService;
 
     /**
@@ -69,13 +71,20 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     }
 
     private void authorizePublicationWorkflowChange(RequestInfo requestInfo) throws ForbiddenException {
-        if (notAuthorizedToChangePublicationWorkflow(requestInfo) && isNotApplicationAdmin(requestInfo)) {
-            throw new ForbiddenException();
+        if (notAuthorizedToChangePublicationWorkflow(requestInfo) &&
+            isNotApplicationAdmin(requestInfo) &&
+            isNotCognitoAdmin(requestInfo)) {
+                throw new ForbiddenException();
         }
     }
 
     private boolean isNotApplicationAdmin(RequestInfo requestInfo) {
         return !requestInfo.userIsApplicationAdmin();
+    }
+
+    private boolean isNotCognitoAdmin(RequestInfo requestInfo) {
+        return !requestInfo.getRequestContextParameterOpt(SCOPES_CLAIM).map(
+            value -> value.contains(AWS_COGNITO_SIGNIN_USER_ADMIN)).orElse(false);
     }
 
     private boolean notAuthorizedToChangePublicationWorkflow(RequestInfo requestInfo) {

@@ -1560,6 +1560,8 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: ExternalUsersPool
+      LambdaConfig:
+        PreTokenGeneration: !Sub '${ExternalClientPreTokenHandler.Arn}'
       AutoVerifiedAttributes:
         - email
   ExternalUserPoolDomain:
@@ -1592,6 +1594,17 @@ Resources:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           CRISTIN_API_URL: !Ref CristinApiUrl
+      Timeout: 20
+
+  ExternalClientPreTokenHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.ExternalClientPreTokenHandler::handleRequest
+      Role: !GetAtt CreateUsersRole.Arn
+      Environment:
+        Variables:
+          API_DOMAIN: !Ref ApiDomain
       Timeout: 20
 
   PreTokenGenerationHandlerScalableTarget:

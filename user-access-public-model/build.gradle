@@ -19,4 +19,6 @@ test {
     environment "API_DOMAIN", "localhost"
     environment "CRISTIN_API_URL", "https://cristin.no"
     environment "ID_NAMESPACE", "https://www.example.org/namespace/"
+    environment "BOT_FILTER_BYPASS_HEADER_NAME", "ExampleHeaderName"
+    environment "BOT_FILTER_BYPASS_HEADER_VALUE", "ExampleHeaderValue"
 }

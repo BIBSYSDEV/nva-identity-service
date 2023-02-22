@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_CREDENTIALS_SECRET_NAME;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_PASSWORD_SECRET_KEY;
@@ -38,6 +39,7 @@ import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegis
 import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
@@ -50,6 +52,7 @@ import org.junit.jupiter.api.Test;
 @WireMockTest(httpsEnabled = true)
 class UserEntriesCreatorForPersonTest {
 
+    private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
     public static final int SINGLE_USER = 0;
     private UserEntriesCreatorForPerson userCreator;
     private LocalCustomerServiceDatabase customerServiceDatabase;
@@ -70,9 +73,18 @@ class UserEntriesCreatorForPersonTest {
         secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, cristinPassword);
 
         var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
-        MockPersonRegistry mockPersonRegistry = new MockPersonRegistry(cristinUsername, cristinPassword, wiremockUri);
 
-        personRegistry = customPersonRegistry(httpClient, wiremockUri, ServiceConstants.API_DOMAIN,
+        var defaultRequestHeaders = new HttpHeaders()
+                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+        MockPersonRegistry mockPersonRegistry = new MockPersonRegistry(cristinUsername,
+                                                                       cristinPassword,
+                                                                       wiremockUri,
+                                                                       defaultRequestHeaders);
+
+        personRegistry = customPersonRegistry(httpClient,
+                                              wiremockUri,
+                                              ServiceConstants.API_DOMAIN,
+                                              defaultRequestHeaders,
                                               new SecretsReader(secretsManagerClient));
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
 

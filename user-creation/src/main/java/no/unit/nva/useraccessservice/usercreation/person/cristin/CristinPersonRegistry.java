@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_NAME;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static nva.commons.core.attempt.Try.attempt;
 
 public final class CristinPersonRegistry implements PersonRegistry {
@@ -56,36 +58,53 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private final HttpClient httpClient;
     private final URI cristinBaseUri;
     private final String apiDomain;
+    private final HttpHeaders defaultRequestHeaders;
     private final Supplier<CristinCredentials> cristinCredentialsSupplier;
 
     private CristinPersonRegistry(HttpClient httpClient,
                                   URI cristinBaseUri,
                                   String apiDomain,
+                                  HttpHeaders defaultRequestHeaders,
                                   Supplier<CristinCredentials> credentialsSupplier) {
         this.httpClient = httpClient;
         this.cristinBaseUri = cristinBaseUri;
         this.apiDomain = apiDomain;
+        this.defaultRequestHeaders = defaultRequestHeaders;
         this.cristinCredentialsSupplier = credentialsSupplier;
     }
 
     @JacocoGenerated
     public static PersonRegistry defaultPersonRegistry() {
-        return personRegistry(HttpClient.newHttpClient(), ServiceConstants.CRISTIN_BASE_URI,
-                              ServiceConstants.API_DOMAIN, new SecretsReader());
+        var defaultRequestHeaders = new HttpHeaders()
+                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+        return personRegistry(HttpClient.newHttpClient(),
+                              ServiceConstants.CRISTIN_BASE_URI,
+                              ServiceConstants.API_DOMAIN,
+                              defaultRequestHeaders,
+                              new SecretsReader());
     }
 
     public static PersonRegistry customPersonRegistry(HttpClient httpClient,
                                                       URI cristinBaseUri,
                                                       String apiDomain,
+                                                      HttpHeaders defaultRequestHeaders,
                                                       SecretsReader secretsReader) {
-        return personRegistry(httpClient, cristinBaseUri, apiDomain, secretsReader);
+        return personRegistry(httpClient,
+                              cristinBaseUri,
+                              apiDomain,
+                              defaultRequestHeaders,
+                              secretsReader);
     }
 
     private static PersonRegistry personRegistry(HttpClient httpClient,
                                                  URI cristinBaseUri,
                                                  String apiDomain,
+                                                 HttpHeaders defaultRequestHeaders,
                                                  SecretsReader secretsReader) {
-        return new CristinPersonRegistry(httpClient, cristinBaseUri, apiDomain,
+        return new CristinPersonRegistry(httpClient,
+                                         cristinBaseUri,
+                                         apiDomain,
+                                         defaultRequestHeaders,
                                          secretsReaderCristinCredentialsSupplier(secretsReader));
     }
 
@@ -100,7 +119,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Read cristin credentials from secrets manager in {} ms.",
-                        Instant.now().toEpochMilli() - start.toEpochMilli());
+                         Instant.now().toEpochMilli() - start.toEpochMilli());
         }
 
         return fetchPersonByNinFromCristin(nin, cristinCredentials)
@@ -120,10 +139,14 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     private HttpRequest createRequest(URI uri, CristinCredentials cristinCredentials) {
-        return HttpRequest.newBuilder(uri)
+        var requestBuilder = HttpRequest.newBuilder(uri)
                    .GET()
-                   .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials))
-                   .build();
+                   .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
+
+        defaultRequestHeaders.stream()
+            .forEach(entry -> requestBuilder.header(entry.getKey(), entry.getValue()));
+
+        return requestBuilder.build();
     }
 
     private static <T> T fromJson(String responseAsString, Class<T> type) {
@@ -188,10 +211,14 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     private HttpRequest createPersonByNationalIdentityNumberQueryRequest(NationalIdentityNumber nin,
                                                                          CristinCredentials cristinCredentials) {
-        return HttpRequest.newBuilder(createPersonByNationalIdentityNumberQueryUri(nin))
+        var requestBuilder = HttpRequest.newBuilder(createPersonByNationalIdentityNumberQueryUri(nin))
                    .GET()
-                   .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials))
-                   .build();
+                   .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
+
+        defaultRequestHeaders.stream()
+            .forEach(entry -> requestBuilder.header(entry.getKey(), entry.getValue()));
+
+        return requestBuilder.build();
     }
 
     private URI createPersonByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {
@@ -213,8 +240,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
         } finally {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Called {} and got response in {} ms.",
-                            maskSensitiveData(request.uri()),
-                            Instant.now().toEpochMilli() - start.toEpochMilli());
+                             maskSensitiveData(request.uri()),
+                             Instant.now().toEpochMilli() - start.toEpochMilli());
             }
         }
 

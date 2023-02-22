@@ -54,4 +54,6 @@ test{
     environment "ID_NAMESPACE", "https://www.example.org/namespace/"
     environment "CRISTIN_API_URL", "https://cristin.no"
     environment "ALLOWED_ORIGIN", "*"
+    environment "BOT_FILTER_BYPASS_HEADER_NAME", "ExampleHeaderName"
+    environment "BOT_FILTER_BYPASS_HEADER_VALUE", "ExampleHeaderValue"
 }

@@ -20,6 +20,8 @@ import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_AL
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_NAME;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static no.unit.nva.useraccessservice.model.UserDto.AT;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_CREDENTIALS_SECRET_NAME;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_PASSWORD_SECRET_KEY;
@@ -74,6 +76,7 @@ import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationS
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -123,7 +126,14 @@ class UserSelectionUponLoginHandlerTest {
         secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, cristinPassword);
 
         URI wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
-        mockPersonRegistry = new MockPersonRegistry(cristinUsername, cristinPassword, wiremockUri);
+
+        var defaultRequestHeaders = new HttpHeaders()
+                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+
+        mockPersonRegistry = new MockPersonRegistry(cristinUsername,
+                                                    cristinPassword,
+                                                    wiremockUri,
+                                                    defaultRequestHeaders);
 
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
         cognitoClient = new FakeCognito(randomString());
@@ -134,6 +144,7 @@ class UserSelectionUponLoginHandlerTest {
                                                         httpClient,
                                                         wiremockUri,
                                                         ServiceConstants.API_DOMAIN,
+                                                        defaultRequestHeaders,
                                                         new SecretsReader(secretsManagerClient)));
     }
 
@@ -173,12 +184,17 @@ class UserSelectionUponLoginHandlerTest {
         var httpClient = WiremockHttpClient.create();
         var uriWhereCristinIsUnavailable
             = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
-        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService,
-                                                    CristinPersonRegistry.customPersonRegistry(
-                                                        httpClient,
-                                                        uriWhereCristinIsUnavailable,
-                                                        ServiceConstants.API_DOMAIN,
-                                                        new SecretsReader(secretsManagerClient)));
+
+        var defaultRequestHeaders = new HttpHeaders()
+                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+
+        var personRegistry = CristinPersonRegistry.customPersonRegistry(
+            httpClient,
+            uriWhereCristinIsUnavailable,
+            ServiceConstants.API_DOMAIN,
+            defaultRequestHeaders,
+            new SecretsReader(secretsManagerClient));
+        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService, personRegistry);
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
         assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
         assertThat(testAppender.getMessages(), containsString("Cristin is unavailable"));

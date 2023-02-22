@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Base64;
@@ -18,6 +19,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliationInstitution;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliationUnit;
@@ -40,12 +42,17 @@ public class MockPersonRegistry {
     private final Map<String, CristinPerson> people;
     private final Map<String, URI> cristinInstitutionIdToUnitUriMap;
     private final String basicAuthorizationHeaderValue;
+    private final HttpHeaders defaultRequestHeaders;
 
-    public MockPersonRegistry(String username, String password, URI cristinBaseUri) {
+    public MockPersonRegistry(String username,
+                              String password,
+                              URI cristinBaseUri,
+                              HttpHeaders defaultRequestHeaders) {
         this.people = new ConcurrentHashMap<>();
         this.cristinInstitutionIdToUnitUriMap = new ConcurrentHashMap<>();
         this.cristinBaseUri = cristinBaseUri;
         this.basicAuthorizationHeaderValue = generateBasicAuthorizationHeaderValue(username, password);
+        this.defaultRequestHeaders = defaultRequestHeaders;
     }
 
     public String mockResponseForBadGateway() {
@@ -227,7 +234,6 @@ public class MockPersonRegistry {
 
     private void createStubForInstitution(String institutionIdentifier) {
         var institutionUnitIdentifier = randomString();
-        //institutionUnitCristinUris.put(nin, List.of(nvaScopedCristinId(institutionUnitIdentifier)));
         var urlForUnit = generateUnitUrl(institutionUnitIdentifier);
         var correspondingUnit = new CristinInstitutionUnit(institutionUnitIdentifier, urlForUnit);
         var cristinInstitution = new CristinInstitution(correspondingUnit);
@@ -239,9 +245,19 @@ public class MockPersonRegistry {
             = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(cristinInstitution))
                   .orElseThrow();
 
-        stubFor(get("/institutions/" + institutionIdentifier)
-                    .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                    .willReturn(aResponse().withBody(response).withStatus(HttpURLConnection.HTTP_OK)));
+        stubWithDefaultRequestHeadersEqualToFor(
+            get("/institutions/" + institutionIdentifier)
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                                .withBody(response)
+                                .withStatus(HttpURLConnection.HTTP_OK)));
+    }
+
+    private void stubWithDefaultRequestHeadersEqualToFor(MappingBuilder mappingBuilder) {
+        defaultRequestHeaders.stream()
+            .forEach(entry -> mappingBuilder.withHeader(entry.getKey(), equalTo(entry.getValue())));
+
+        stubFor(mappingBuilder);
     }
 
     private void createStubsForPerson(String nin, CristinPerson cristinPerson) {
@@ -263,26 +279,31 @@ public class MockPersonRegistry {
             = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(searchResults))
                   .orElseThrow();
 
-        stubFor(get("/persons?national_id=" + nin)
-                    .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                    .willReturn(aResponse().withBody(response).withStatus(HttpURLConnection.HTTP_OK)));
+        stubWithDefaultRequestHeadersEqualToFor(
+            get("/persons?national_id=" + nin)
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                                .withBody(response)
+                                .withStatus(HttpURLConnection.HTTP_OK)));
     }
 
     private void createPersonSearchStubBadGateway(String nin) {
-
-        stubFor(get("/persons?national_id=" + nin)
-                    .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                    .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_BAD_GATEWAY)));
+        stubWithDefaultRequestHeadersEqualToFor(
+            get("/persons?national_id=" + nin)
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                                .withStatus(HttpURLConnection.HTTP_BAD_GATEWAY)));
     }
 
     private void createPersonSearchStubIllegalJson(String nin) {
         var illegalBodyAsArrayIsExpected = "{}";
-        stubFor(get("/persons?national_id=" + nin)
-                    .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                    .willReturn(aResponse()
-                                    .withBody(illegalBodyAsArrayIsExpected)
-                                    .withStatus(HttpURLConnection.HTTP_OK)));
 
+        stubWithDefaultRequestHeadersEqualToFor(
+            get("/persons?national_id=" + nin)
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                                .withBody(illegalBodyAsArrayIsExpected)
+                                .withStatus(HttpURLConnection.HTTP_OK)));
     }
 
     private void createPersonGetStub(CristinPerson cristinPerson) {
@@ -290,9 +311,12 @@ public class MockPersonRegistry {
             = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(cristinPerson))
                   .orElseThrow();
 
-        stubFor(get("/persons/" + cristinPerson.getId())
-                    .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                    .willReturn(aResponse().withBody(response).withStatus(HttpURLConnection.HTTP_OK)));
+        stubWithDefaultRequestHeadersEqualToFor(
+            get("/persons/" + cristinPerson.getId())
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                                .withBody(response)
+                                .withStatus(HttpURLConnection.HTTP_OK)));
     }
 
     public Set<URI> getUnitCristinUris(String nin) {

@@ -50,4 +50,6 @@ test{
     environment "EXTERNAL_USER_POOL_ID", "1"
     environment "EXTERNAL_USER_POOL_URL", "http://localhost"
     environment "ALLOWED_ORIGIN", "*"
+    environment "BOT_FILTER_BYPASS_HEADER_NAME", "ExampleHeaderName"
+    environment "BOT_FILTER_BYPASS_HEADER_VALUE", "ExampleHeaderValue"
 }

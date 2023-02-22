@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_CREDENTIALS_SECRET_NAME;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_PASSWORD_SECRET_KEY;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
@@ -27,17 +28,17 @@ import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.logutils.LogUtils;
 import nva.commons.secrets.SecretsReader;
-import org.hamcrest.collection.IsEmptyIterable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @WireMockTest(httpsEnabled = true)
 public class CristinPersonRegistryTest {
-
+    private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
     private PersonRegistry personRegistry;
     private FakeSecretsManagerClient secretsManagerClient;
     private AuthenticationScenarios scenarios;
@@ -57,11 +58,17 @@ public class CristinPersonRegistryTest {
         var apiDomain = ServiceConstants.API_DOMAIN;
         var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
         var httpClient = WiremockHttpClient.create();
+        var defaultRequestHeaders = new HttpHeaders()
+                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         personRegistry = CristinPersonRegistry.customPersonRegistry(httpClient,
                                                                     wiremockUri,
                                                                     apiDomain,
+                                                                    defaultRequestHeaders,
                                                                     new SecretsReader(secretsManagerClient));
-        MockPersonRegistry mockPersonRegistry = new MockPersonRegistry(cristinUsername, cristinPassword, wiremockUri);
+        MockPersonRegistry mockPersonRegistry = new MockPersonRegistry(cristinUsername,
+                                                                       cristinPassword,
+                                                                       wiremockUri,
+                                                                       defaultRequestHeaders);
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
     }
 
@@ -76,9 +83,13 @@ public class CristinPersonRegistryTest {
         var httpClient = WiremockHttpClient.create();
         var uriWhereCristinIsUnavailable
             = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
+
+        var defaultRequestHeaders = new HttpHeaders()
+                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         personRegistry = CristinPersonRegistry.customPersonRegistry(httpClient,
                                                                     uriWhereCristinIsUnavailable,
                                                                     ServiceConstants.API_DOMAIN,
+                                                                    defaultRequestHeaders,
                                                                     new SecretsReader(secretsManagerClient));
         var nin = new NationalIdentityNumber(randomString());
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));

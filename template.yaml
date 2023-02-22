@@ -37,6 +37,14 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApiDomain
     Description: Domain-name for the backend
+  CristinBotFilterBypassHeaderName:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: CristinBotFilterBypassHeaderName
+    Description: Header name of http request header to use to bypass bot filter in requests to Cristin API.
+  CristinBotFilterBypassHeaderValue:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: CristinBotFilterBypassHeaderValue
+    Description: Header value of http request header to use to bypass bot filter in requests to Cristin API.
   CristinApiUrl:
     Type: String
     Description: Url for Cristin API
@@ -89,7 +97,8 @@ Globals:
         BY_CRISTIN_ID_INDEX_NAME: byCristinId
         USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
         COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
-
+        BOT_FILTER_BYPASS_HEADER_NAME: !Ref CristinBotFilterBypassHeaderName
+        BOT_FILTER_BYPASS_HEADER_VALUE: !Ref CristinBotFilterBypassHeaderValue
   Api:
     Cors:
       AllowMethods: '''POST, PUT, GET,OPTIONS'''

@@ -203,22 +203,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(NationalIdentityNumber nin,
                                                                          CristinCredentials cristinCredentials) {
 
-        var results = executeRequest(createPersonByNationalIdentityNumberQueryRequest(nin, cristinCredentials),
-                                     PersonSearchResultItem[].class);
+        var request = createRequest(createPersonByNationalIdentityNumberQueryUri(nin), cristinCredentials);
+        var results = executeRequest(request, PersonSearchResultItem[].class);
 
         return Arrays.stream(results).collect(SingletonCollector.tryCollect()).toOptional();
-    }
-
-    private HttpRequest createPersonByNationalIdentityNumberQueryRequest(NationalIdentityNumber nin,
-                                                                         CristinCredentials cristinCredentials) {
-        var requestBuilder = HttpRequest.newBuilder(createPersonByNationalIdentityNumberQueryUri(nin))
-                   .GET()
-                   .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
-
-        defaultRequestHeaders.stream()
-            .forEach(entry -> requestBuilder.header(entry.getKey(), entry.getValue()));
-
-        return requestBuilder.build();
     }
 
     private URI createPersonByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {

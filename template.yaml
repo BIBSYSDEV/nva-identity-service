@@ -1601,7 +1601,7 @@ Resources:
     Properties:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.ExternalClientPreTokenHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
+      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
       Environment:
         Variables:
           API_DOMAIN: !Ref ApiDomain

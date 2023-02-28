@@ -71,10 +71,10 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     }
 
     private void authorizePublicationWorkflowChange(RequestInfo requestInfo) throws ForbiddenException {
-        if (notAuthorizedToChangePublicationWorkflow(requestInfo) &&
-            isNotApplicationAdmin(requestInfo) &&
-            isNotCognitoAdmin(requestInfo)) {
-                throw new ForbiddenException();
+        if (notAuthorizedToChangePublicationWorkflow(requestInfo)
+            && isNotApplicationAdmin(requestInfo)
+            && isNotCognitoAdmin(requestInfo)) {
+            throw new ForbiddenException();
         }
     }
 

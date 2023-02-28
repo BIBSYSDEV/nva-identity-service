@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Map;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
@@ -74,6 +75,15 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
         assertThat(actualResponseBody.getPublicationWorkflow(), is(equalTo(REGISTRATOR_PUBLISHES_METADATA_AND_FILES)));
+    }
+
+    @Test
+    void shouldReturnDefaultSectorInstitutionWhenNoneIsSet() throws BadRequestException, IOException {
+        var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+        assertThat(actualResponseBody.getSector(), is(equalTo(Sector.UHI)));
+        assertThat(actualResponseBody.isNviInstitution(), is(equalTo(false)));
     }
 
     @Test

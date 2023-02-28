@@ -13,6 +13,7 @@ import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.PublicationWorkflow;
+import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
@@ -68,6 +69,8 @@ public class CreateCustomerRequest {
                    .withPublicationWorkflow(getPublicationWorkflow())
                    .withCustomerOf(getCustomerOf())
                    .withDoiAgent(getDoiAgent())
+                   .withNviInstitution(false)
+                   .withSector(Sector.UHI)
                    .build();
     }
 

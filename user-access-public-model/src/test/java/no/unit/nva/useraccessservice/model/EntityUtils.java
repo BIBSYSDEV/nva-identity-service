@@ -43,7 +43,7 @@ public final class EntityUtils {
     }
 
     /**
-     * Creates a a user with username and a role but without institution.
+     * Creates a user with username and a role but without institution.
      *
      * @return {@link UserDto}
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.

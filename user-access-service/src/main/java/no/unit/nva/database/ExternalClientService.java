@@ -1,93 +1,80 @@
 package no.unit.nva.database;
 
+import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.ENVIRONMENT;
-import static software.amazon.awssdk.services.cognitoidentityprovider.model.ExplicitAuthFlowsType.ALLOW_ADMIN_USER_PASSWORD_AUTH;
-import static software.amazon.awssdk.services.cognitoidentityprovider.model.ExplicitAuthFlowsType.ALLOW_CUSTOM_AUTH;
-import static software.amazon.awssdk.services.cognitoidentityprovider.model.ExplicitAuthFlowsType.ALLOW_REFRESH_TOKEN_AUTH;
-import static software.amazon.awssdk.services.cognitoidentityprovider.model.ExplicitAuthFlowsType.ALLOW_USER_SRP_AUTH;
-import static software.amazon.awssdk.services.cognitoidentityprovider.model.TimeUnitsType.DAYS;
-import static software.amazon.awssdk.services.cognitoidentityprovider.model.TimeUnitsType.MINUTES;
-import java.util.Collection;
-import java.util.List;
-import no.unit.nva.useraccessservice.model.CreateExternalClientResponse;
-import nva.commons.core.Environment;
+import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import java.net.URI;
+import java.util.Optional;
+import no.unit.nva.database.IdentityService.Constants;
+import no.unit.nva.useraccessservice.dao.ClientDao;
+import no.unit.nva.useraccessservice.model.ClientDto;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateUserPoolClientRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateUserPoolClientResponse;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.TokenValidityUnitsType;
+import nva.commons.core.attempt.Try;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-public class ExternalClientService {
+public class ExternalClientService extends DatabaseSubService {
 
-    private final CognitoIdentityProviderClient client;
+    public static final String CLIENT_NOT_FOUND_MESSAGE = "Could not find client: ";
     public static final String AWS_REGION = ENVIRONMENT.readEnv("AWS_REGION");
-    private static final String EXTERNAL_USER_POOL_ID = new Environment().readEnv("EXTERNAL_USER_POOL_ID");
-    private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
 
-    public ExternalClientService(CognitoIdentityProviderClient client) {
-        this.client = client;
+    private final DynamoDbTable<ClientDao> table;
+
+    public ExternalClientService(DynamoDbClient dynamoClient) {
+        super(dynamoClient);
+        this.table = this.client.table(Constants.USERS_AND_ROLES_TABLE, ClientDao.TABLE_SCHEMA);
     }
 
-    private Collection<String> getDefaultScopes() {
-        return List.of(
-            "https://api.nva.unit.no/scopes/third-party"
-        );
+    public void createNewExternalClient(String clientId,
+                                                                URI customer) throws BadRequestException {
+
+
+
+        var clientDto = ClientDto.newBuilder()
+                            .withClientId(clientId)
+                            .withCustomer(customer)
+                            .build();
+
+        addClientToDB(clientDto);
     }
 
-    private CreateUserPoolClientRequest buildCreateCognitoClientRequest(String appClientName) {
-        return CreateUserPoolClientRequest.builder()
-                   .userPoolId(EXTERNAL_USER_POOL_ID)
-                   .clientName(appClientName)
-                   .generateSecret(true)
-                   .allowedOAuthScopes(getDefaultScopes())
-                   .allowedOAuthFlowsWithStrings("client_credentials")
-                   .allowedOAuthFlowsUserPoolClient(true)
-                   .explicitAuthFlows(
-                       List.of(
-                           ALLOW_ADMIN_USER_PASSWORD_AUTH,
-                           ALLOW_CUSTOM_AUTH,
-                           ALLOW_REFRESH_TOKEN_AUTH,
-                           ALLOW_USER_SRP_AUTH)
-                   )
-                   .tokenValidityUnits(getDefaultTokenValidityUnits())
-                   .refreshTokenValidity(30)
-                   .accessTokenValidity(15)
-                   .idTokenValidity(15)
-                   .build();
 
+    public void addClientToDB(ClientDto clientDto) {
+        table.putItem(ClientDao.fromClientDto(clientDto));
     }
 
-    private TokenValidityUnitsType getDefaultTokenValidityUnits() {
-        return TokenValidityUnitsType.builder()
-                   .refreshToken(DAYS)
-                   .accessToken(MINUTES)
-                   .idToken(MINUTES)
-                   .build();
+    /**
+     * Fetches a role from the database.
+     *
+     * @param queryObject the query object containing the rolename.
+     * @return the Role that corresponds to the given rolename.
+     */
+    public ClientDto getClient(ClientDto queryObject) throws NotFoundException {
+        return getRoleAsOptional(queryObject)
+                   .orElseThrow(() -> new NotFoundException(CLIENT_NOT_FOUND_MESSAGE + queryObject.getClientId()));
     }
 
-    public CreateExternalClientResponse createNewExternalClient(String appClientName) {
-        var response = client.createUserPoolClient(buildCreateCognitoClientRequest(appClientName));
-        return createCogntioCredentialsDtoFromResponse(response);
-
+    private Optional<ClientDto> getRoleAsOptional(ClientDto queryObject) {
+        return Optional.ofNullable(attemptFetchClient(queryObject));
     }
 
-    private CreateExternalClientResponse createCogntioCredentialsDtoFromResponse(CreateUserPoolClientResponse response) {
-        var userPoolClient = response.userPoolClient();
-        return new CreateExternalClientResponse(
-            userPoolClient.clientId(),
-            userPoolClient.clientSecret(),
-            EXTERNAL_USER_POOL_URL
-        );
+    private ClientDto attemptFetchClient(ClientDto queryObject) {
+        ClientDao clientDao = Try.of(queryObject)
+                                  .map(ClientDao::fromClientDto)
+                                  .map(this::fetchClientDao)
+                                  .orElseThrow(DatabaseSubService::handleError);
+        return nonNull(clientDao) ? clientDao.toClientDto() : null;
+    }
+
+    protected ClientDao fetchClientDao(ClientDao queryObject) {
+        return table.getItem(queryObject);
     }
 
     @JacocoGenerated
     public static ExternalClientService defaultExternalClientService() {
-        var client = CognitoIdentityProviderClient.builder()
-                                                   .httpClient(UrlConnectionHttpClient.builder().build())
-                                                   .region(Region.of(AWS_REGION))
-                                                   .build();
-        return new ExternalClientService(client);
+
+        return new ExternalClientService(DEFAULT_DYNAMO_CLIENT);
     }
 }

@@ -36,6 +36,7 @@ test{
     environment "ID_NAMESPACE", "https://www.example.org/namespace/"
     environment "EXTERNAL_USER_POOL_ID", "id"
     environment "EXTERNAL_USER_POOL_URL", "http://localhost"
+    environment "EXTERNAL_SCOPE_IDENTIFIER", "http://localhost"
     environment "AWS_REGION", "eu-west-1"
     environment "BOT_FILTER_BYPASS_HEADER_NAME", "ExampleHeaderName"
     environment "BOT_FILTER_BYPASS_HEADER_VALUE", "ExampleHeaderValue"

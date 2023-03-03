@@ -69,6 +69,10 @@ Parameters:
     Type: String
     Description: Base path mapping in CustomDomain for Customer service
     Default: customer
+  ExternalUserScopeIdentifier:
+    Type: String
+    Description: Identifier for external scope
+    Default: https://api.nva.unit.no/scopes/third-party
   Suffix:
     Type: String
     Default: ''
@@ -518,6 +522,7 @@ Resources:
           API_DOMAIN: !Ref ApiDomain
           EXTERNAL_USER_POOL_ID: !Ref ExternalCognitoUserPool
           EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+          EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
       Events:
         ApiEvent:
           Type: Api
@@ -1303,11 +1308,17 @@ Resources:
   ResourceServerExternalScopes:
     Type: AWS::Cognito::UserPoolResourceServer
     Properties:
-      Identifier: https://api.nva.unit.no/scopes
+      Identifier: !Ref ExternalUserScopeIdentifier
       Name: Scopes for external user pool
       Scopes:
-        - ScopeDescription: Third part access
-          ScopeName: third-party
+        - ScopeDescription: Publications read
+          ScopeName: publication/read
+        - ScopeDescription: Publications write/update
+          ScopeName: publication/upsert
+        - ScopeDescription: Ticket read
+          ScopeName: ticket/read
+        - ScopeDescription: Ticket write/update
+          ScopeName: ticket/upsert
       UserPoolId: !Ref ExternalCognitoUserPool
 
   BackendApplicationClient:

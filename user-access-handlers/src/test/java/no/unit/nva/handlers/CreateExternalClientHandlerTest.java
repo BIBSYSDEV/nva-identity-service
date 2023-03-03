@@ -1,5 +1,7 @@
 package no.unit.nva.handlers;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
@@ -12,11 +14,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import no.unit.nva.CognitoService;
 import no.unit.nva.database.ExternalClientService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.useraccessservice.model.CreateExternalClientResponse;
 import no.unit.nva.useraccessservice.model.CreateExternalClientRequest;
+import no.unit.nva.useraccessservice.model.CreateExternalClientResponse;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
 import nva.commons.core.Environment;
@@ -25,73 +31,166 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
+import org.zalando.problem.Problem;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateUserPoolClientRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateUserPoolClientResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeResourceServerRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.DescribeResourceServerResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ResourceServerScopeType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ResourceServerType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ScopeDoesNotExistException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientType;
 
 public class CreateExternalClientHandlerTest extends HandlerTest {
 
     public static final String CLIENT_NAME = "client1";
-    public static final String CLIENT_ID= "id1";
+    public static final String CLIENT_ID = "id1";
     public static final String CLIENT_SECRET = "secret1";
+    public static final String INVALID_SCOPE = "https://scopes/invalid-scope";
     private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
+    public static final String EXTERNAL_SCOPE_IDENTIFIER = new Environment().readEnv("EXTERNAL_SCOPE_IDENTIFIER");
     private CreateExternalClientHandler handler;
     private FakeContext context;
     private ByteArrayOutputStream outputStream;
     private CognitoIdentityProviderClient cognitoClient;
 
     @BeforeEach
-    public void setup()  {
-        cognitoClient = Mockito.mock(CognitoIdentityProviderClient.class);
-        var externalUserService = new ExternalClientService(cognitoClient);
-
-        var response = CreateUserPoolClientResponse.builder().userPoolClient(
-            UserPoolClientType.builder().clientId(CLIENT_ID).clientSecret(CLIENT_SECRET).build()
-        ).build();
-
-        when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
-            .thenReturn(response);
+    public void setup() {
+        this.cognitoClient = setupCognitoMock();
+        var externalUserService = new ExternalClientService(initializeTestDatabase());
+        var cognitoService = new CognitoService(cognitoClient);
 
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-        handler = new CreateExternalClientHandler(externalUserService);
+        handler = new CreateExternalClientHandler(externalUserService, cognitoService);
+    }
+
+    private CognitoIdentityProviderClient setupCognitoMock() {
+        var mock = Mockito.mock(CognitoIdentityProviderClient.class);
+
+        var resourceServerResponse = DescribeResourceServerResponse.builder().resourceServer(
+            ResourceServerType.builder().scopes(
+                ResourceServerScopeType.builder().scopeName("publication/read").build(),
+                ResourceServerScopeType.builder().scopeName("publication/upsert").build()
+            ).build()
+        ).build();
+        when(mock.describeResourceServer(any(DescribeResourceServerRequest.class))).thenReturn(
+            resourceServerResponse
+        );
+
+        when(mock.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
+            .thenAnswer((Answer) invocation -> {
+                Object[] args = invocation.getArguments();
+                CreateUserPoolClientRequest request = (CreateUserPoolClientRequest) args[0];
+
+                if (request.allowedOAuthScopes().stream().anyMatch(it -> it.equals(INVALID_SCOPE))) {
+                    throw ScopeDoesNotExistException.builder().build();
+                }
+
+                var userPoolClient = UserPoolClientType
+                                         .builder()
+                                         .clientId(CLIENT_ID)
+                                         .clientSecret(CLIENT_SECRET)
+                                         .allowedOAuthScopes(request.allowedOAuthScopes())
+                                         .build();
+
+                var response = CreateUserPoolClientResponse
+                                   .builder()
+                                   .userPoolClient(
+                                       userPoolClient
+                                   )
+                                   .build();
+                return response;
+            });
+
+        return mock;
     }
 
     @Test
-    public void shouldReturnCredentialsWhenClientDoesNotExist() throws IOException {
-        var request = new CreateExternalClientRequest(CLIENT_NAME);
+    public void shouldReturnCredentialsWhenClientDoesNotAlreadyExist() throws IOException, URISyntaxException {
+        var request = new CreateExternalClientRequest(CLIENT_NAME, new URI("https://example.org/123"), List.of());
         var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
 
         var cognitoCredentials = gatewayResponse.getBodyObject(CreateExternalClientResponse.class);
 
-        assertThat(cognitoCredentials.getClientId(),  is(equalTo(CLIENT_ID)));
-        assertThat(cognitoCredentials.getClientSecret(),  is(equalTo(CLIENT_SECRET)));
-        assertThat(cognitoCredentials.getClientUrl(),  is(equalTo(EXTERNAL_USER_POOL_URL)));
+        assertThat(cognitoCredentials.getClientId(), is(equalTo(CLIENT_ID)));
+        assertThat(cognitoCredentials.getClientSecret(), is(equalTo(CLIENT_SECRET)));
+        assertThat(cognitoCredentials.getClientUrl(), is(equalTo(EXTERNAL_USER_POOL_URL)));
     }
 
     @Test
-    public void shouldNotExposeExceptionCausedByCognitoClient() throws IOException {
+    public void shouldReturnSameCustomerThatWasRequested() throws IOException, URISyntaxException {
+        var customer = randomCristinOrgId();
+        var request = new CreateExternalClientRequest(CLIENT_NAME, customer, List.of());
+        var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
+
+        var response = gatewayResponse.getBodyObject(CreateExternalClientResponse.class);
+
+        assertThat(response.getCustomer(), is(equalTo(customer)));
+    }
+
+    @Test
+    public void shouldReturnSameScopeThatWasRequested() throws IOException, URISyntaxException {
+        var scopes = List.of(
+            "https://api.nva.unit.no/scopes/third-party/publication/read",
+            "https://api.nva.unit.no/scopes/third-party/publication/upsert"
+        );
+
+        var request = new CreateExternalClientRequest(CLIENT_NAME, new URI("https://example.org/123"), scopes);
+        var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
+
+        var response = gatewayResponse.getBodyObject(CreateExternalClientResponse.class);
+
+        assertThat(response.getScopes(), is(equalTo(scopes)));
+    }
+
+    @Test
+    public void shouldInformCallerOfInvalidRequestedScopes() throws IOException, URISyntaxException {
+        var validScope = EXTERNAL_SCOPE_IDENTIFIER + "/publication/read";
+        var scopes = List.of(
+            validScope,
+            INVALID_SCOPE
+        );
+
+        var request = new CreateExternalClientRequest(CLIENT_NAME, new URI("https://example.org/123"), scopes);
+        var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
+
+        var response = gatewayResponse.getBodyObject(Problem.class);
+
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+        assertThat(response.getDetail(), containsString(INVALID_SCOPE));
+        assertThat(response.getDetail(), not(containsString(validScope)));
+    }
+
+
+    @Test
+    public void shouldNotExposeExceptionCausedByCognitoClient() throws IOException, URISyntaxException {
         var exceptionMsg = "some exception";
         when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
             .thenThrow(SdkClientException.create(exceptionMsg));
 
-        var request = new CreateExternalClientRequest(CLIENT_NAME);
+        var request = new CreateExternalClientRequest(CLIENT_NAME, new URI("https://example.org/123"), List.of());
         var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
         assertThat(gatewayResponse.getBody(), not(containsString(exceptionMsg)));
     }
 
     @Test
-    public void shouldLogErrorsCausedByCognitoClient() throws IOException {
+    public void shouldLogErrorsCausedByCognitoClient() throws IOException, URISyntaxException {
         var exceptionMsg = "some exception";
         when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
             .thenThrow(SdkClientException.create(exceptionMsg));
 
-        var request = new CreateExternalClientRequest(CLIENT_NAME);
+        var request = createRequest(List.of());
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
         sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
         assertThat(testAppender.getMessages(), Matchers.containsString(exceptionMsg));
+    }
+
+    private CreateExternalClientRequest createRequest(List<String> scopes) throws URISyntaxException {
+        return new CreateExternalClientRequest(CLIENT_NAME, new URI("https://example.org/123"), scopes);
     }
 
     private InputStream createBackendRequest(CreateExternalClientRequest requestBody)

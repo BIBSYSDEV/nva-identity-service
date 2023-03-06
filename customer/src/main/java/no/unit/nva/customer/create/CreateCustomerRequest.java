@@ -35,6 +35,9 @@ public class CreateCustomerRequest {
     private PublicationWorkflow publicationWorkflow;
     private ApplicationDomain customerOf;
     private DoiAgentDto doiAgent;
+    private boolean nviInstitution;
+    private Sector sector;
+
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
         var request = new CreateCustomerRequest();
@@ -49,6 +52,8 @@ public class CreateCustomerRequest {
         request.setCristinId(customerDto.getCristinId());
         request.setPublicationWorkflow(customerDto.getPublicationWorkflow());
         request.setCustomerOf(customerDto.getCustomerOf());
+        request.setSector(customerDto.getSector());
+        request.setNviInstitution(customerDto.isNviInstitution());
         if (nonNull(customerDto.getDoiAgent())) {
             request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
         }
@@ -69,8 +74,8 @@ public class CreateCustomerRequest {
                    .withPublicationWorkflow(getPublicationWorkflow())
                    .withCustomerOf(getCustomerOf())
                    .withDoiAgent(getDoiAgent())
-                   .withNviInstitution(false)
-                   .withSector(Sector.UHI)
+                   .withNviInstitution(isNviInstitution())
+                   .withSector(getSector())
                    .build();
     }
 
@@ -171,12 +176,29 @@ public class CreateCustomerRequest {
         this.doiAgent = doiAgent;
     }
 
+    public boolean isNviInstitution() {
+        return nviInstitution;
+    }
+
+    public void setNviInstitution(boolean nviInstitution) {
+        this.nviInstitution = nviInstitution;
+    }
+
+    public Sector getSector() {
+        return nonNull(sector) ? sector : Sector.UHI;
+    }
+
+    public void setSector(Sector sector) {
+        this.sector = sector;
+    }
+
+
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
-                            getDoiAgent());
+                            getDoiAgent(),getSector(),isNviInstitution());
     }
 
     @JacocoGenerated
@@ -198,6 +220,8 @@ public class CreateCustomerRequest {
                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getDoiAgent(), that.getDoiAgent())
+               && Objects.equals(getSector(), that.getSector())
+               && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(getVocabularies(), that.getVocabularies());
     }
 

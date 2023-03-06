@@ -185,7 +185,7 @@ public class CreateCustomerRequest {
     }
 
     public Sector getSector() {
-        return sector;
+        return nonNull(sector) ? sector : Sector.UHI;
     }
 
     public void setSector(Sector sector) {

@@ -163,7 +163,6 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withVocabularies(Collections.emptySet())
                    .withCustomerOf(randomElement(ApplicationDomain.values()))
                    .withDoiAgent(randomDoiAgent(randomString()))
-                   .withSector(Sector.UHI)
                    .build();
     }
 }

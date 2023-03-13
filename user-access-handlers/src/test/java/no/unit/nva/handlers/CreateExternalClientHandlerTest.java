@@ -3,6 +3,9 @@ package no.unit.nva.handlers;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_CLIENT_NAME;
+import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_CUSTOMER;
+import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_SCOPES;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
@@ -163,6 +166,39 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         assertThat(response.getDetail(), containsString(INVALID_SCOPE));
         assertThat(response.getDetail(), not(containsString(validScope)));
+    }
+
+    @Test
+    public void shouldReturnBadRequestWhenScopeIsMissingInRequest() throws IOException, URISyntaxException {
+        var request = new CreateExternalClientRequest(CLIENT_NAME, new URI("https://example.org/123"), null);
+        var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
+
+        var response = gatewayResponse.getBodyObject(Problem.class);
+
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+        assertThat(response.getDetail(), is(equalTo(MISSING_SCOPES)));
+    }
+
+    @Test
+    public void shouldReturnBadRequestWhenCustomerIsMissingInRequest() throws IOException, URISyntaxException {
+        var request = new CreateExternalClientRequest(CLIENT_NAME, null, List.of());
+        var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
+
+        var response = gatewayResponse.getBodyObject(Problem.class);
+
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+        assertThat(response.getDetail(), is(equalTo(MISSING_CUSTOMER)));
+    }
+
+    @Test
+    public void shouldReturnBadRequestWhenClientNameIsMissingInRequest() throws IOException, URISyntaxException {
+        var request = new CreateExternalClientRequest(null, new URI("https://example.org/123"), List.of());
+        var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
+
+        var response = gatewayResponse.getBodyObject(Problem.class);
+
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+        assertThat(response.getDetail(), is(equalTo(MISSING_CLIENT_NAME)));
     }
 
 

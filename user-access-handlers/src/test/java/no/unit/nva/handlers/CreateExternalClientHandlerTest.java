@@ -73,8 +73,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
 
         var resourceServerResponse = DescribeResourceServerResponse.builder().resourceServer(
             ResourceServerType.builder().scopes(
-                ResourceServerScopeType.builder().scopeName("publication/read").build(),
-                ResourceServerScopeType.builder().scopeName("publication/upsert").build()
+                ResourceServerScopeType.builder().scopeName("publication-read").build(),
+                ResourceServerScopeType.builder().scopeName("publication-upsert").build()
             ).build()
         ).build();
         when(mock.describeResourceServer(any(DescribeResourceServerRequest.class))).thenReturn(
@@ -135,8 +135,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     @Test
     public void shouldReturnSameScopeThatWasRequested() throws IOException, URISyntaxException {
         var scopes = List.of(
-            "https://api.nva.unit.no/scopes/third-party/publication/read",
-            "https://api.nva.unit.no/scopes/third-party/publication/upsert"
+            "https://api.nva.unit.no/scopes/third-party/publication-read",
+            "https://api.nva.unit.no/scopes/third-party/publication-upsert"
         );
 
         var request = new CreateExternalClientRequest(CLIENT_NAME, new URI("https://example.org/123"), scopes);
@@ -149,7 +149,7 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
 
     @Test
     public void shouldInformCallerOfInvalidRequestedScopes() throws IOException, URISyntaxException {
-        var validScope = EXTERNAL_SCOPE_IDENTIFIER + "/publication/read";
+        var validScope = EXTERNAL_SCOPE_IDENTIFIER + "/publication-read";
         var scopes = List.of(
             validScope,
             INVALID_SCOPE

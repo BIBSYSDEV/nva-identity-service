@@ -53,7 +53,7 @@ class CognitoServiceTest {
                                                                     .scopes(List.of(
                                                                         ResourceServerScopeType
                                                                             .builder()
-                                                                            .scopeName("publication/read")
+                                                                            .scopeName("publication-read")
                                                                             .build()
                                                                     ))
                                                                     .build())

@@ -1312,13 +1312,13 @@ Resources:
       Name: Scopes for external user pool
       Scopes:
         - ScopeDescription: Publications read
-          ScopeName: publication/read
+          ScopeName: publication-read
         - ScopeDescription: Publications write/update
-          ScopeName: publication/upsert
+          ScopeName: publication-upsert
         - ScopeDescription: Ticket read
-          ScopeName: ticket/read
+          ScopeName: ticket-read
         - ScopeDescription: Ticket write/update
-          ScopeName: ticket/upsert
+          ScopeName: ticket-upsert
       UserPoolId: !Ref ExternalCognitoUserPool
 
   BackendApplicationClient:

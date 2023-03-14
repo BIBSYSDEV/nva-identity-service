@@ -72,6 +72,7 @@ public class CognitoService {
                    .idTokenValidity(15)
                    .build();
     }
+
     private DescribeResourceServerRequest buildDescribeResourceServerRequest() {
         return DescribeResourceServerRequest.builder()
                    .userPoolId(EXTERNAL_USER_POOL_ID)

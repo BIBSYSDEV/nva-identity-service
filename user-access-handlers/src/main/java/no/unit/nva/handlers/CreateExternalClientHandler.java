@@ -1,13 +1,15 @@
 
 package no.unit.nva.handlers;
 
+import static java.util.stream.Collectors.joining;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.util.ArrayList;
 import no.unit.nva.CognitoService;
 import no.unit.nva.database.ExternalClientService;
-import no.unit.nva.useraccessservice.model.CreateExternalClientResponse;
 import no.unit.nva.useraccessservice.model.CreateExternalClientRequest;
+import no.unit.nva.useraccessservice.model.CreateExternalClientResponse;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -59,14 +61,20 @@ public class CreateExternalClientHandler
     }
 
     private void validateRequest(CreateExternalClientRequest input) throws BadRequestException {
+        var issues = new ArrayList<String>();
         if (input.getScopes() == null) {
-            throw new BadRequestException(MISSING_SCOPES);
+            issues.add(MISSING_SCOPES);
         }
         if (input.getCustomer() == null) {
-            throw new BadRequestException(MISSING_CUSTOMER);
+            issues.add(MISSING_CUSTOMER);
         }
         if (input.getClientName() == null) {
-            throw new BadRequestException(MISSING_CLIENT_NAME);
+            issues.add(MISSING_CLIENT_NAME);
+        }
+        if (!issues.isEmpty()) {
+            throw new BadRequestException(
+                "Issues validating request: " + issues.stream().collect(joining(", "))
+            );
         }
     }
 

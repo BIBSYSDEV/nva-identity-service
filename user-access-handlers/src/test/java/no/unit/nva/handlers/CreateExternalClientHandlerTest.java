@@ -176,7 +176,7 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var response = gatewayResponse.getBodyObject(Problem.class);
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
-        assertThat(response.getDetail(), is(equalTo(MISSING_SCOPES)));
+        assertThat(response.getDetail(), containsString(MISSING_SCOPES));
     }
 
     @Test
@@ -187,7 +187,7 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var response = gatewayResponse.getBodyObject(Problem.class);
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
-        assertThat(response.getDetail(), is(equalTo(MISSING_CUSTOMER)));
+        assertThat(response.getDetail(), containsString(MISSING_CUSTOMER));
     }
 
     @Test
@@ -198,7 +198,21 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var response = gatewayResponse.getBodyObject(Problem.class);
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
-        assertThat(response.getDetail(), is(equalTo(MISSING_CLIENT_NAME)));
+        assertThat(response.getDetail(), containsString(MISSING_CLIENT_NAME));
+    }
+
+    @Test
+    public void shouldReturnDetectMultipleIssuesInRequest() throws IOException {
+        var request = new CreateExternalClientRequest(null, null, null);
+        var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
+
+        var response = gatewayResponse.getBodyObject(Problem.class);
+
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+        assertThat(response.getDetail(), containsString(MISSING_SCOPES));
+        assertThat(response.getDetail(), containsString(MISSING_CLIENT_NAME));
+        assertThat(response.getDetail(), containsString(MISSING_CUSTOMER));
+        assertThat(response.getDetail(), not(containsString("[")));
     }
 
 

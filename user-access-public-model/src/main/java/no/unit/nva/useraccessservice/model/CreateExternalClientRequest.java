@@ -33,9 +33,11 @@ public class CreateExternalClientRequest {
     public String getClientName() {
         return clientName;
     }
+
     public URI getCustomer() {
         return customer;
     }
+
     public List<String> getScopes() {
         return scopes;
     }

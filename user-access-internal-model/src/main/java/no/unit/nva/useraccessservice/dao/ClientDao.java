@@ -44,12 +44,11 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public static ClientDao fromClientDto(ClientDto clientDto) {
         ClientDao.Builder clientDb = ClientDao.newBuilder()
-                                       .withClientId(clientDto.getClientId())
-                                       .withCustomer(clientDto.getCustomer());
+                                         .withClientId(clientDto.getClientId())
+                                         .withCustomer(clientDto.getCustomer());
 
         return clientDb.build();
     }
-
 
     @JacocoGenerated
     @DynamoDbAttribute(CLIENT_ID_FIELD)
@@ -58,8 +57,7 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     }
 
     /**
-     * @param clientTd
-     * Method to be used only by DynamoDb mapper. Do not use. Use the builder instead.
+     * @param clientTd Method to be used only by DynamoDb mapper. Do not use. Use the builder instead.
      */
     public void setClientTd(String clientTd) {
         this.clientTd = clientTd;
@@ -72,8 +70,7 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     }
 
     /**
-     * @param customer
-     * Method to be used only by DynamoDb mapper. Do not use. Use the builder instead.
+     * @param customer Method to be used only by DynamoDb mapper. Do not use. Use the builder instead.
      */
     public void setCustomer(URI customer) {
         this.customer = customer;
@@ -87,7 +84,7 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public ClientDto toClientDto() {
 
         ClientDto.Builder clientDto = ClientDto.newBuilder()
-                                      .withClientId(this.getClientTd())
+                                          .withClientId(this.getClientTd())
                                           .withCustomer(this.getCustomer());
 
         return clientDto.build();
@@ -163,7 +160,6 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                    .withClientId(this.getClientTd())
                    .withCustomer(this.getCustomer());
     }
-
 
     @Override
     @JacocoGenerated

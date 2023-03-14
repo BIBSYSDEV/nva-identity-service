@@ -174,14 +174,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ExternalClient'
+              $ref: '#/components/schemas/ExternalClientRequest'
       responses:
         '200':
           description: Successful creation of external user. Returns the credentials for the generated user
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/ExternalClientCredentials'
+                $ref: '#/components/schemas/ExternalClient'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "/components/schemas/Problem"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateExternalClientHandler.Arn}/invocations
@@ -263,12 +269,20 @@ components:
             $ref: '#/components/schemas/AccessRight'
         viewingScope:
           $ref: '#/components/schemas/ViewingScope'
-    ExternalClient:
+    ExternalClientRequest:
       properties:
         clientName:
           type: string
           description: Name of the OAuth client for the external client
-    ExternalClientCredentials:
+        customer:
+          type: string
+          description: URI of the customer associated with the client
+        scopes:
+          type: array
+          items:
+              type: string
+          description: Scopes that the client should have access to
+    ExternalClient:
       properties:
         clientId:
           type: string
@@ -279,6 +293,14 @@ components:
         clientUrl:
           type: string
           description: URL for generating tokens
+        customer:
+          type: string
+          description: URL for the associated customer
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes that the client have access to
     ViewingScope:
       properties:
         includedUnits:
@@ -294,3 +316,12 @@ components:
         type:
           type: string
           default: CustomerSelection
+    Problem:
+      type: object
+      properties:
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string

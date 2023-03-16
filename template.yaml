@@ -82,6 +82,7 @@ Mappings:
   Constants:
     Cognito:
       UserPoolNamePrefix: IdentityService-UserPool-
+      ExternalUserPoolNamePrefix: IdentityService-ExternalUserPool-
 
 Conditions:
   WithSuffix: !Not [ !Equals [ !Ref Suffix, '' ] ]
@@ -275,7 +276,7 @@ Resources:
                   - cognito-idp:CreateUserPoolClient
                   - cognito-idp:DescribeUserPoolClient
                   - cognito-idp:ListUserPoolClients
-                Resource: !GetAtt ExternalCognitoUserPool.Arn
+                Resource: !GetAtt ExternalUserPool.Arn
 
   ### User Access Service ##############################################################################################
 
@@ -521,7 +522,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           API_DOMAIN: !Ref ApiDomain
-          EXTERNAL_USER_POOL_ID: !Ref ExternalCognitoUserPool
+          EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
           EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
           EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
       Events:
@@ -530,6 +531,28 @@ Resources:
           Properties:
             Path: /external-clients
             Method: post
+            RestApiId: !Ref UsersAndRolesApi
+
+  GetExternalClientHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.GetExternalClientHandler::handleRequest
+      Role: !GetAtt CreateUsersRole.Arn
+      Description: Get a store external client and its details
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          API_DOMAIN: !Ref ApiDomain
+          EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
+          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+          EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /external-clients/{clientId}
+            Method: get
             RestApiId: !Ref UsersAndRolesApi
 
   UsersAndRolesApiStaticUrl:
@@ -1060,7 +1083,7 @@ Resources:
       Name: !Sub '${ParameterNamePrefix}ExternalCognitoAuthorizerArn'
       Description: ARN Identifier of the External UserPool
       Type: String
-      Value: !GetAtt ExternalCognitoUserPool.Arn
+      Value: !GetAtt ExternalUserPool.Arn
 
   CognitoIdentityPoolIdParameter:
     Type: AWS::SSM::Parameter
@@ -1320,7 +1343,7 @@ Resources:
           ScopeName: ticket-read
         - ScopeDescription: Ticket write/update
           ScopeName: ticket-upsert
-      UserPoolId: !Ref ExternalCognitoUserPool
+      UserPoolId: !Ref ExternalUserPool
 
   BackendApplicationClient:
     DependsOn: ResourceServerScopes
@@ -1577,16 +1600,28 @@ Resources:
         - custom:topOrgCristinId
         - custom:personAffiliation
   ## External API
-  ExternalCognitoUserPool:
+  ExternalUserPoolName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      DataType: text
+      Description: External userpool name
+      Name: /NVA/ExternalUserPoolName
+      Type: String
+      Value: !Sub
+        - "${UserPoolName}${AWS::AccountId}"
+        - UserPoolName: !FindInMap [ 'Constants', 'Cognito','ExternalUserPoolNamePrefix' ]
+
+  ExternalUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: ExternalUsersPool
       AutoVerifiedAttributes:
         - email
+      UserPoolName: !GetAtt ExternalUserPoolName.Value
+
   ExternalUserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      UserPoolId: !Ref ExternalCognitoUserPool
+      UserPoolId: !Ref ExternalUserPool
       Domain: !Ref ExternalAuthenticationDomainPrefix
 
   PreTokenGenerationHandler:
@@ -1662,4 +1697,4 @@ Outputs:
     Value: !Sub 'https://${ExternalAuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
   ExternalCognitoURN:
     Description: External users Amazon Cognito URN.
-    Value: !Sub 'urn:amazon:cognito:sp:${ExternalCognitoUserPool}'
+    Value: !Sub 'urn:amazon:cognito:sp:${ExternalUserPool}'

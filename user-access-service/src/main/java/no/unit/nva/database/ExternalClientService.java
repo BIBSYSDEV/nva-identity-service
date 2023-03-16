@@ -1,14 +1,12 @@
 package no.unit.nva.database;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.useraccessservice.constants.ServiceConstants.ENVIRONMENT;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import java.net.URI;
 import java.util.Optional;
 import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.useraccessservice.dao.ClientDao;
 import no.unit.nva.useraccessservice.model.ClientDto;
-import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Try;
@@ -18,7 +16,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 public class ExternalClientService extends DatabaseSubService {
 
     public static final String CLIENT_NOT_FOUND_MESSAGE = "Could not find client: ";
-    public static final String AWS_REGION = ENVIRONMENT.readEnv("AWS_REGION");
 
     private final DynamoDbTable<ClientDao> table;
 
@@ -27,11 +24,7 @@ public class ExternalClientService extends DatabaseSubService {
         this.table = this.client.table(Constants.USERS_AND_ROLES_TABLE, ClientDao.TABLE_SCHEMA);
     }
 
-    public void createNewExternalClient(String clientId,
-                                                                URI customer) throws BadRequestException {
-
-
-
+    public void createNewExternalClient(String clientId, URI customer) {
         var clientDto = ClientDto.newBuilder()
                             .withClientId(clientId)
                             .withCustomer(customer)

@@ -19,6 +19,7 @@ dependencies {
     implementation libs.nva.core
     implementation libs.nva.lambdaauthorizer
     implementation libs.nva.secrets
+    implementation libs.nva.identifiers
     implementation libs.aws.lambda.events
     implementation libs.bundles.aws.lambda
     implementation libs.bundles.jackson

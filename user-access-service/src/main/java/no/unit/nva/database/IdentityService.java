@@ -6,6 +6,7 @@ import java.util.List;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.internals.UserScanResult;
+import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -43,6 +44,10 @@ public interface IdentityService {
     List<UserDto> getUsersByCristinId(URI cristinPersonId);
     
     UserDto getUserByPersonCristinIdAndCustomerCristinId(URI cristinPersonId, URI cristinOrgId);
+
+    void addExternalClient(ClientDto clientDto);
+
+    ClientDto getClient(ClientDto queryObject) throws NotFoundException;
     
     class Constants {
         

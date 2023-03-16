@@ -181,7 +181,7 @@ paths:
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/ExternalClient'
+                $ref: '#/components/schemas/ExternalClientWithCredentials'
         400:
           description: Bad Request
           content:
@@ -191,6 +191,36 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateExternalClientHandler.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: aws_proxy
+  /external-clients/{clientId}:
+    parameters:
+      - in: path
+        name: clientId
+        schema:
+          type: string
+        required: true
+    get:
+      summary: Get a stored client and its associated customer
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+      responses:
+        '200':
+          description: Returns the externalClient
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/ExternalClient'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "/components/schemas/Problem"
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetExternalClientHandler.Arn}/invocations
         responses: {}
         httpMethod: POST
         type: aws_proxy
@@ -283,6 +313,14 @@ components:
               type: string
           description: Scopes that the client should have access to
     ExternalClient:
+      properties:
+        clientId:
+          type: string
+          description: Client ID used for authentication
+        customer:
+          type: string
+          description: URL for the associated customer
+    ExternalClientWithCredentials:
       properties:
         clientId:
           type: string

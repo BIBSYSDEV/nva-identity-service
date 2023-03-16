@@ -11,6 +11,7 @@ import no.unit.nva.useraccessservice.dao.UserDao;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.internals.UserScanResult;
+import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 public class IdentityServiceImpl implements IdentityService {
 
     private final UserService userService;
+    private final ExternalClientService externalClientService;
     private final RoleService roleService;
     private final DynamoDbClient dynamoDbClient;
 
@@ -35,6 +37,7 @@ public class IdentityServiceImpl implements IdentityService {
     public IdentityServiceImpl(DynamoDbClient dynamoDbClient) {
         super();
         this.roleService = new RoleService(dynamoDbClient);
+        this.externalClientService = new ExternalClientService(dynamoDbClient);
         this.userService = new UserService(dynamoDbClient, roleService);
         this.dynamoDbClient = dynamoDbClient;
     }
@@ -90,7 +93,17 @@ public class IdentityServiceImpl implements IdentityService {
     public UserDto getUserByPersonCristinIdAndCustomerCristinId(URI cristinPersonId, URI cristinOrgId) {
         return userService.getUsersByByCristinIdAndCristinOrgId(cristinPersonId, cristinOrgId);
     }
-    
+
+    @Override
+    public void addExternalClient(ClientDto clientDto) {
+        externalClientService.createNewExternalClient(clientDto.getClientId(), clientDto.getCustomer());
+    }
+
+    @Override
+    public ClientDto getClient(ClientDto queryObject) throws NotFoundException {
+        return externalClientService.getClient(queryObject);
+    }
+
     private boolean thereAreMoreEntries(ScanResponse result) {
         return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty();
     }

@@ -11,6 +11,7 @@ import java.util.Collections;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -53,6 +54,13 @@ public class HandlerTest extends LocalIdentityService {
             .withRoles(Collections.singletonList(someRole))
             .withInstitution(institution)
             .build();
+    }
+
+    protected ClientDto insertClientToDatabase(String clientId, URI customer)
+        throws InvalidEntryInternalException, ConflictException {
+        ClientDto client = ClientDto.newBuilder().withClientId(clientId).withCustomer(customer).build();
+        databaseService.addExternalClient(client);
+        return client;
     }
 
 

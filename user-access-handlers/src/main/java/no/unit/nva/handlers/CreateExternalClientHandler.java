@@ -7,7 +7,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.ArrayList;
 import no.unit.nva.CognitoService;
-import no.unit.nva.database.ExternalClientService;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.CreateExternalClientRequest;
 import no.unit.nva.useraccessservice.model.CreateExternalClientResponse;
 import nva.commons.apigateway.RequestInfo;
@@ -26,19 +27,19 @@ public class CreateExternalClientHandler
     public static final String MISSING_CUSTOMER = "Request does not contain 'customer'";
     public static final String MISSING_CLIENT_NAME = "Request does not contain 'clientName'";
     private CognitoService cognitoService;
-    private ExternalClientService externalClientService;
+    private IdentityService databaseService;
 
     @JacocoGenerated
     public CreateExternalClientHandler() {
         this(
-            ExternalClientService.defaultExternalClientService(),
+            IdentityService.defaultIdentityService(),
             CognitoService.defaultCognitoService()
         );
     }
 
-    public CreateExternalClientHandler(ExternalClientService externalClientService, CognitoService cognitoService) {
+    public CreateExternalClientHandler(IdentityService databaseService, CognitoService cognitoService) {
         super(CreateExternalClientRequest.class);
-        this.externalClientService = externalClientService;
+        this.databaseService = databaseService;
         this.cognitoService = cognitoService;
     }
 
@@ -52,10 +53,13 @@ public class CreateExternalClientHandler
         validateRequest(input);
 
         var cognitoResponse = this.cognitoService.createUserPoolClient(input.getClientName(), input.getScopes());
-        externalClientService.createNewExternalClient(
-            input.getClientName(),
-            input.getCustomer()
-        );
+        var clientDto =
+            ClientDto.newBuilder()
+                .withClientId(cognitoResponse.userPoolClient().clientId())
+                .withCustomer(input.getCustomer())
+                .build();
+
+        databaseService.addExternalClient(clientDto);
 
         return formatResponse(input.getCustomer(), cognitoResponse.userPoolClient());
     }

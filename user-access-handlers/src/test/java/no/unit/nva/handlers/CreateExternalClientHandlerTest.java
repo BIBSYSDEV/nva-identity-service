@@ -13,6 +13,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import com.amazonaws.services.lambda.runtime.Client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,10 +25,13 @@ import no.unit.nva.CognitoService;
 import no.unit.nva.database.ExternalClientService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import no.unit.nva.testutils.RandomDataGenerator;
+import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.CreateExternalClientRequest;
 import no.unit.nva.useraccessservice.model.CreateExternalClientResponse;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.logutils.LogUtils;
 import org.hamcrest.Matchers;
@@ -63,12 +67,12 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     @BeforeEach
     public void setup() {
         this.cognitoClient = setupCognitoMock();
-        var externalUserService = new ExternalClientService(initializeTestDatabase());
+        databaseService = createDatabaseServiceUsingLocalStorage();
         var cognitoService = new CognitoService(cognitoClient);
 
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-        handler = new CreateExternalClientHandler(externalUserService, cognitoService);
+        handler = new CreateExternalClientHandler(databaseService, cognitoService);
     }
 
     private CognitoIdentityProviderClient setupCognitoMock() {
@@ -122,6 +126,24 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         assertThat(cognitoCredentials.getClientId(), is(equalTo(CLIENT_ID)));
         assertThat(cognitoCredentials.getClientSecret(), is(equalTo(CLIENT_SECRET)));
         assertThat(cognitoCredentials.getClientUrl(), is(equalTo(EXTERNAL_USER_POOL_URL)));
+    }
+
+    @Test
+    public void clientShouldBeStoredToDatabase() throws IOException, URISyntaxException, NotFoundException {
+        var customer = RandomDataGenerator.randomUri();
+        var request = new CreateExternalClientRequest(CLIENT_NAME, customer, List.of());
+        sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
+
+        var expected = ClientDto
+                           .newBuilder()
+                           .withClientId(CLIENT_ID)
+                           .withCustomer(customer)
+                           .build();
+
+        var found = databaseService.getClient(expected);
+
+        assertThat(found.getClientId(), is(equalTo(CLIENT_ID)));
+        assertThat(found.getCustomer(), is(equalTo(customer)));
     }
 
     @Test
@@ -214,7 +236,6 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         assertThat(response.getDetail(), containsString(MISSING_CUSTOMER));
         assertThat(response.getDetail(), not(containsString("[")));
     }
-
 
     @Test
     public void shouldNotExposeExceptionCausedByCognitoClient() throws IOException, URISyntaxException {

@@ -16,6 +16,7 @@ import no.unit.nva.database.ExternalClientService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.testutils.RandomDataGenerator;
+import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.CreateExternalClientRequest;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
@@ -32,8 +33,6 @@ class GetExternalClientHandlerTest extends HandlerTest {
 
     @BeforeEach
     public void setup() {
-        var externalUserService = new ExternalClientService(initializeTestDatabase());
-
         databaseService = createDatabaseServiceUsingLocalStorage();
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
@@ -49,7 +48,15 @@ class GetExternalClientHandlerTest extends HandlerTest {
 
     @Test
     public void shouldReturnTheClientWhenItExists() throws IOException, ConflictException {
-        insertClientToDatabase("someClientId", RandomDataGenerator.randomUri());
+        var client =
+            ClientDto.newBuilder()
+                .withClientId("someClientId")
+                .withCristin(RandomDataGenerator.randomUri())
+                .withCustomer(RandomDataGenerator.randomUri())
+                .withOwner("someone@123")
+                .build();
+
+        insertClientToDatabase(client);
         var gatewayResponse = sendRequest(createBackendRequest("someClientId"), Problem.class);
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_OK)));

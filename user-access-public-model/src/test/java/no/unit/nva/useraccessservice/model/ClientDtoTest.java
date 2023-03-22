@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ class ClientDtoTest extends DtoTest {
 
     @DisplayName("ClientDto object contains type with value \"Client\"")
     @Test
-    void clientDtoSerializedObjectContainsTypeWithValueUser() throws IOException {
+    void clientDtoSerializedObjectContainsTypeWithValueClient() throws IOException {
         ClientDto clientDto = createRandomClient();
         var jsonMap = toMap(clientDto);
 
@@ -35,24 +34,24 @@ class ClientDtoTest extends DtoTest {
     @Test
     void clientDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
         throws InvalidEntryInternalException, IOException {
-        ClientDto sampleUser = createRandomClient();
-        var json = toMap(sampleUser);
+        ClientDto sampleClient = createRandomClient();
+        var json = toMap(sampleClient);
         assertThatSerializedItemContainsType(json, CLIENT_TYPE_LITERAL);
 
         String jsonStringWithType = JsonConfig.writeValueAsString(json);
         ClientDto deserializedItem = JsonConfig.readValue(jsonStringWithType, ClientDto.class);
 
-        assertThat(deserializedItem, is(equalTo(sampleUser)));
-        assertThat(deserializedItem, is(not(sameInstance(sampleUser))));
+        assertThat(deserializedItem, is(equalTo(sampleClient)));
+        assertThat(deserializedItem, is(not(sameInstance(sampleClient))));
     }
 
     @Test
     void shouldCopyWithoutInformationLoss() {
-        ClientDto initialUser = createRandomClient();
-        ClientDto copiedUser = initialUser.copy().build();
+        ClientDto initialClient = createRandomClient();
+        ClientDto copiedClient = initialClient.copy().build();
 
-        assertThat(copiedUser, is(equalTo(initialUser)));
-        assertThat(copiedUser, is(not(sameInstance(initialUser))));
+        assertThat(copiedClient, is(equalTo(initialClient)));
+        assertThat(copiedClient, is(not(sameInstance(initialClient))));
     }
 
     @Test
@@ -74,6 +73,8 @@ class ClientDtoTest extends DtoTest {
         return ClientDto.newBuilder()
                    .withClientId(randomString())
                    .withCustomer(randomCristinOrgId())
+                   .withCristin(randomCristinOrgId())
+                   .withOwner(randomString())
                    .build();
     }
 }

@@ -24,7 +24,9 @@ public class CreateExternalClientHandler
 
     private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
     public static final String MISSING_SCOPES = "Request does not contain 'scopes'";
-    public static final String MISSING_CUSTOMER = "Request does not contain 'customer'";
+    public static final String MISSING_CUSTOMER_URI = "Request does not contain 'customerUri'";
+    public static final String MISSING_CRISTIN_URI = "Request does not contain 'cristinUri'";
+    public static final String MISSING_OWNER = "Request does not contain 'owner'";
     public static final String MISSING_CLIENT_NAME = "Request does not contain 'clientName'";
     private CognitoService cognitoService;
     private IdentityService databaseService;
@@ -56,12 +58,14 @@ public class CreateExternalClientHandler
         var clientDto =
             ClientDto.newBuilder()
                 .withClientId(cognitoResponse.userPoolClient().clientId())
-                .withCustomer(input.getCustomer())
+                .withCustomer(input.getCustomerUri())
+                .withCristin(input.getCristinUri())
+                .withOwner(input.getOwner())
                 .build();
 
         databaseService.addExternalClient(clientDto);
 
-        return formatResponse(input.getCustomer(), cognitoResponse.userPoolClient());
+        return formatResponse(input.getCustomerUri(), cognitoResponse.userPoolClient());
     }
 
     private void validateRequest(CreateExternalClientRequest input) throws BadRequestException {
@@ -69,8 +73,14 @@ public class CreateExternalClientHandler
         if (input.getScopes() == null) {
             issues.add(MISSING_SCOPES);
         }
-        if (input.getCustomer() == null) {
-            issues.add(MISSING_CUSTOMER);
+        if (input.getCustomerUri() == null) {
+            issues.add(MISSING_CUSTOMER_URI);
+        }
+        if (input.getCristinUri() == null) {
+            issues.add(MISSING_CRISTIN_URI);
+        }
+        if (input.getOwner() == null) {
+            issues.add(MISSING_OWNER);
         }
         if (input.getClientName() == null) {
             issues.add(MISSING_CLIENT_NAME);

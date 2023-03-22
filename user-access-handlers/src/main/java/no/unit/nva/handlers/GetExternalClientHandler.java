@@ -45,7 +45,12 @@ public class GetExternalClientHandler
     }
 
     private GetExternalClientResponse formatResponse(ClientDto clientDto) {
-        return new GetExternalClientResponse(clientDto.getClientId(), clientDto.getCustomer());
+        return new GetExternalClientResponse(
+            clientDto.getClientId(),
+            clientDto.getCustomer(),
+            clientDto.getCristin(),
+            clientDto.getOwner()
+        );
     }
 
     @Override

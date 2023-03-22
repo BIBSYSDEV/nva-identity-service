@@ -16,6 +16,8 @@ public class ClientDto implements WithCopy<Builder>, Typed {
     public static final String TYPE = "Client";
     public static final String CLIENT_ID_FIELD = "client";
     public static final String CUSTOMER_FIELD = "customer";
+    public static final String CRISTIN_FIELD = "ccristin";
+    public static final String OWNER_FIELD = "owner";
     public static final String AT = "@";
 
     @JsonProperty(CLIENT_ID_FIELD)
@@ -23,6 +25,11 @@ public class ClientDto implements WithCopy<Builder>, Typed {
 
     @JsonProperty(CUSTOMER_FIELD)
     private URI customer;
+
+    @JsonProperty(CRISTIN_FIELD)
+    private URI cristin;
+    @JsonProperty(OWNER_FIELD)
+    private String owner;
 
     public ClientDto() {
 
@@ -40,8 +47,24 @@ public class ClientDto implements WithCopy<Builder>, Typed {
         return customer;
     }
 
+    public URI getCristin() {
+        return cristin;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
     public void setCustomer(URI customer) {
         this.customer = customer;
+    }
+
+    public void setCristin(URI cristin) {
+        this.cristin = cristin;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
     
     /**
@@ -73,7 +96,9 @@ public class ClientDto implements WithCopy<Builder>, Typed {
     public ClientDto.Builder copy() {
         return new Builder()
                    .withClientId(getClientId())
-                   .withCustomer(getCustomer());
+                   .withCustomer(getCustomer())
+                   .withCristin(getCristin())
+                   .withOwner(getOwner());
     }
     
     @Override
@@ -94,7 +119,9 @@ public class ClientDto implements WithCopy<Builder>, Typed {
         }
         ClientDto clientDto = (ClientDto) o;
         return Objects.equals(getClientId(), clientDto.getClientId())
-               && Objects.equals(getCustomer(), clientDto.getCustomer());
+               && Objects.equals(getCustomer(), clientDto.getCustomer())
+               && Objects.equals(getCristin(), clientDto.getCristin())
+               && Objects.equals(getOwner(), clientDto.getOwner());
     }
 
     @Override
@@ -117,6 +144,16 @@ public class ClientDto implements WithCopy<Builder>, Typed {
         
         public Builder withCustomer(URI customer) {
             clientDto.setCustomer(customer);
+            return this;
+        }
+
+        public Builder withCristin(URI cristin) {
+            clientDto.setCristin(cristin);
+            return this;
+        }
+
+        public Builder withOwner(String owner) {
+            clientDto.setOwner(owner);
             return this;
         }
         

@@ -37,7 +37,14 @@ class ExternalClientServiceTest extends LocalIdentityService {
                URISyntaxException, BadRequestException {
 
 
-        service.createNewExternalClient(CLIENT_ID, new URI("https://example.org/123"));
+        var clientDto = ClientDto.newBuilder()
+                                     .withClientId(CLIENT_ID)
+                                     .withCustomer(new URI("https://example.org/customer"))
+                                     .withCristin(new URI("https://example.org/cristin"))
+                                     .withOwner("owner")
+                                     .build();
+
+        service.createNewExternalClient(clientDto);
         ClientDto clientQuery =
             ClientDto.newBuilder().withClientId(CLIENT_ID).build();
 

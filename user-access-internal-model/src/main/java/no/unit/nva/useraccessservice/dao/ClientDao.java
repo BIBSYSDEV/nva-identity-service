@@ -30,9 +30,13 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String TYPE_VALUE = "CLIENT";
     public static final String CLIENT_ID_FIELD = "client";
     public static final String CUSTOMER_FIELD = "customer";
+    public static final String CRISTIN_FIELD = "cristin";
+    public static final String OWNER_FIELD = "owner";
 
     private String clientTd;
     private URI customer;
+    private URI cristin;
+    private String owner;
 
     public ClientDao() {
         super();
@@ -45,7 +49,9 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static ClientDao fromClientDto(ClientDto clientDto) {
         ClientDao.Builder clientDb = ClientDao.newBuilder()
                                          .withClientId(clientDto.getClientId())
-                                         .withCustomer(clientDto.getCustomer());
+                                         .withCustomer(clientDto.getCustomer())
+                                         .withCristin(clientDto.getCristin())
+                                         .withOwner(clientDto.getOwner());
 
         return clientDb.build();
     }
@@ -81,11 +87,51 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
      *
      * @return a data transfer object {@link ClientDto}
      */
+
+    @JacocoGenerated
+    @DynamoDbAttribute(CRISTIN_FIELD)
+    public URI getCristin() {
+        return cristin;
+    }
+
+    /**
+     * @param cristin Method to be used only by DynamoDb mapper. Do not use. Use the builder instead.
+     */
+    public void setCristin(URI cristin) {
+        this.cristin = cristin;
+    }
+
+    /**
+     * Creates a {@link ClientDto} from a {@link ClientDao}.
+     *
+     * @return a data transfer object {@link ClientDto}
+     */
+
+    @JacocoGenerated
+    @DynamoDbAttribute(OWNER_FIELD)
+    public String getOwner() {
+        return owner;
+    }
+
+    /**
+     * @param owner Method to be used only by DynamoDb mapper. Do not use. Use the builder instead.
+     */
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    /**
+     * Creates a {@link ClientDto} from a {@link ClientDao}.
+     *
+     * @return a data transfer object {@link ClientDto}
+     */
     public ClientDto toClientDto() {
 
         ClientDto.Builder clientDto = ClientDto.newBuilder()
                                           .withClientId(this.getClientTd())
-                                          .withCustomer(this.getCustomer());
+                                          .withCustomer(this.getCustomer())
+                                          .withCristin(this.getCristin())
+                                          .withOwner(this.getOwner());
 
         return clientDto.build();
     }
@@ -158,7 +204,9 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public ClientDao.Builder copy() {
         return newBuilder()
                    .withClientId(this.getClientTd())
-                   .withCustomer(this.getCustomer());
+                   .withCustomer(this.getCustomer())
+                   .withCristin(this.getCristin())
+                   .withOwner(this.getOwner());
     }
 
     @Override
@@ -178,7 +226,9 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         }
         ClientDao clientDao = (ClientDao) o;
         return Objects.equals(getClientTd(), clientDao.getClientTd())
-               && Objects.equals(getCustomer(), clientDao.getCustomer());
+               && Objects.equals(getCustomer(), clientDao.getCustomer())
+               && Objects.equals(getCristin(), clientDao.getCristin())
+               && Objects.equals(getOwner(), clientDao.getOwner());
     }
 
     /*For now the primary range key does not need to be different from the primary hash key*/
@@ -205,6 +255,16 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         public Builder withCustomer(URI customer) {
             clientDao.setCustomer(customer);
+            return this;
+        }
+
+        public Builder withCristin(URI cristin) {
+            clientDao.setCristin(cristin);
+            return this;
+        }
+
+        public Builder withOwner(String owner) {
+            clientDao.setOwner(owner);
             return this;
         }
 

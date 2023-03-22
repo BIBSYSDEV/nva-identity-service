@@ -304,9 +304,15 @@ components:
         clientName:
           type: string
           description: Name of the OAuth client for the external client
-        customer:
+        customerUri:
           type: string
           description: URI of the customer associated with the client
+        cristinUri:
+          type: string
+          description: URI of the cristinid associated with the client
+        owner:
+          type: string
+          description: Owner. Should be formated like someone@<cristinid>
         scopes:
           type: array
           items:
@@ -317,9 +323,15 @@ components:
         clientId:
           type: string
           description: Client ID used for authentication
-        customer:
+        customerUri:
           type: string
-          description: URL for the associated customer
+          description: URI for the associated customer
+        cristinUri:
+          type: string
+          description: URI for the associated cristinid
+        owner:
+          type: string
+          description: Owner
     ExternalClientWithCredentials:
       properties:
         clientId:

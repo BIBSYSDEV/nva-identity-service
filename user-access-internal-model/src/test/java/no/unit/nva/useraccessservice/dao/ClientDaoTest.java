@@ -45,13 +45,13 @@ class ClientDaoTest {
 
 
     @Test
-    void setUsernameShouldAddUsernameToUserObject() {
+    void setClientIdShouldAddClientIdToClientObject() {
         clientDao.setClientTd(SOME_CLIENT_ID);
         assertThat(clientDao.getClientTd(), is(equalTo(SOME_CLIENT_ID)));
     }
 
     @Test
-    void getUsernameShouldGetTheSetUsernameToUserObject() {
+    void getClientIdShouldGetTheSetClientIdToClientObject() {
         assertThat(clientDao.getClientTd(), is(nullValue()));
         clientDao.setClientTd(SOME_CLIENT_ID);
         assertThat(clientDao.getClientTd(), is(equalTo(SOME_CLIENT_ID)));
@@ -70,30 +70,30 @@ class ClientDaoTest {
     }
 
     @Test
-    void getHashKeyKeyShouldReturnTypeAndUsernameConcatenation() {
+    void getHashKeyKeyShouldReturnTypeAndClientIdConcatenation() {
         String expectedHashKey = String.join(ClientDao.FIELD_DELIMITER, ClientDao.TYPE_VALUE, SOME_CLIENT_ID);
         assertThat(sampleClient.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
     }
 
     @Test
     void shouldReturnCopyWithFilledInFields() {
-        ClientDao originalUser = randomClientDb();
-        ClientDao copy = originalUser.copy().build();
-        assertThat(copy, is(equalTo(originalUser)));
+        ClientDao originalClient = randomClientDb();
+        ClientDao copy = originalClient.copy().build();
+        assertThat(copy, is(equalTo(originalClient)));
 
-        assertThat(copy, is(not(sameInstance(originalUser))));
+        assertThat(copy, is(not(sameInstance(originalClient))));
     }
 
     @Test
     void shouldConvertToDtoAndBackWithoutInformationLoss() {
-        ClientDao originalUser = randomClientDb();
-        ClientDao converted = Try.of(originalUser)
+        ClientDao originalClient = randomClientDb();
+        ClientDao converted = Try.of(originalClient)
             .map(ClientDao::toClientDto)
             .map(ClientDao::fromClientDto)
             .orElseThrow();
 
-        assertThat(originalUser, is(equalTo(converted)));
-        Diff diff = JAVERS.compare(originalUser, converted);
+        assertThat(originalClient, is(equalTo(converted)));
+        Diff diff = JAVERS.compare(originalClient, converted);
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(converted, doesNotHaveEmptyValues());
     }
@@ -108,12 +108,14 @@ class ClientDaoTest {
     }
 
     private ClientDao randomClientDb() {
-        ClientDao randomUser = ClientDao.newBuilder()
-            .withClientId(randomString())
-            .withCustomer(randomCristinOrgId())
-            .build();
-        assertThat(randomUser, doesNotHaveEmptyValues());
-        return randomUser;
+        ClientDao randomClient = ClientDao.newBuilder()
+                                   .withClientId(randomString())
+                                   .withCustomer(randomCristinOrgId())
+                                   .withCristin(randomCristinOrgId())
+                                   .withOwner(randomString())
+                                   .build();
+        assertThat(randomClient, doesNotHaveEmptyValues());
+        return randomClient;
     }
 
 }

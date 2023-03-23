@@ -25,8 +25,8 @@ public class CreateExternalClientHandler
     private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
     public static final String MISSING_SCOPES = "Request does not contain 'scopes'";
     public static final String MISSING_CUSTOMER_URI = "Request does not contain 'customerUri'";
-    public static final String MISSING_CRISTIN_URI = "Request does not contain 'cristinUri'";
-    public static final String MISSING_OWNER = "Request does not contain 'owner'";
+    public static final String MISSING_CRISTIN_ORG_URI = "Request does not contain 'cristinOrgUri'";
+    public static final String MISSING_ACTING_USER = "Request does not contain 'actingUser'";
     public static final String MISSING_CLIENT_NAME = "Request does not contain 'clientName'";
     private CognitoService cognitoService;
     private IdentityService databaseService;
@@ -59,8 +59,8 @@ public class CreateExternalClientHandler
             ClientDto.newBuilder()
                 .withClientId(cognitoResponse.userPoolClient().clientId())
                 .withCustomer(input.getCustomerUri())
-                .withCristin(input.getCristinUri())
-                .withOwner(input.getOwner())
+                .withCristinOrgUri(input.getCristinOrgUri())
+                .withActingUser(input.getActingUser())
                 .build();
 
         databaseService.addExternalClient(clientDto);
@@ -76,11 +76,11 @@ public class CreateExternalClientHandler
         if (input.getCustomerUri() == null) {
             issues.add(MISSING_CUSTOMER_URI);
         }
-        if (input.getCristinUri() == null) {
-            issues.add(MISSING_CRISTIN_URI);
+        if (input.getCristinOrgUri() == null) {
+            issues.add(MISSING_CRISTIN_ORG_URI);
         }
-        if (input.getOwner() == null) {
-            issues.add(MISSING_OWNER);
+        if (input.getActingUser() == null) {
+            issues.add(MISSING_ACTING_USER);
         }
         if (input.getClientName() == null) {
             issues.add(MISSING_CLIENT_NAME);

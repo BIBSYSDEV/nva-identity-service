@@ -12,7 +12,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import no.unit.nva.database.ExternalClientService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.testutils.RandomDataGenerator;
@@ -51,9 +50,9 @@ class GetExternalClientHandlerTest extends HandlerTest {
         var client =
             ClientDto.newBuilder()
                 .withClientId("someClientId")
-                .withCristin(RandomDataGenerator.randomUri())
+                .withCristinOrgUri(RandomDataGenerator.randomUri())
                 .withCustomer(RandomDataGenerator.randomUri())
-                .withOwner("someone@123")
+                .withActingUser("someone@123")
                 .build();
 
         insertClientToDatabase(client);

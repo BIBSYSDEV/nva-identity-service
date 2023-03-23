@@ -111,8 +111,8 @@ class ClientDaoTest {
         ClientDao randomClient = ClientDao.newBuilder()
                                    .withClientId(randomString())
                                    .withCustomer(randomCristinOrgId())
-                                   .withCristin(randomCristinOrgId())
-                                   .withOwner(randomString())
+                                   .withCristinOrgUri(randomCristinOrgId())
+                                   .withActingUser(randomString())
                                    .build();
         assertThat(randomClient, doesNotHaveEmptyValues());
         return randomClient;

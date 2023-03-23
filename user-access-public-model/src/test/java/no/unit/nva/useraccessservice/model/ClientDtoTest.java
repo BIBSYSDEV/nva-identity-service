@@ -73,8 +73,8 @@ class ClientDtoTest extends DtoTest {
         return ClientDto.newBuilder()
                    .withClientId(randomString())
                    .withCustomer(randomCristinOrgId())
-                   .withCristin(randomCristinOrgId())
-                   .withOwner(randomString())
+                   .withCristinOrgUri(randomCristinOrgId())
+                   .withActingUser(randomString())
                    .build();
     }
 }

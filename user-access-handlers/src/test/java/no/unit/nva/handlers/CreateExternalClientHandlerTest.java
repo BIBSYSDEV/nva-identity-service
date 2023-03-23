@@ -4,9 +4,9 @@ import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_CLIENT_NAME;
-import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_CRISTIN_URI;
+import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_CRISTIN_ORG_URI;
 import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_CUSTOMER_URI;
-import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_OWNER;
+import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_ACTING_USER;
 import static no.unit.nva.handlers.CreateExternalClientHandler.MISSING_SCOPES;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
@@ -60,7 +60,7 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
     public static final String EXTERNAL_SCOPE_IDENTIFIER = new Environment().readEnv("EXTERNAL_SCOPE_IDENTIFIER");
     public static final URI SAMPLE_URI = URI.create("https://example.org/123");
-    public static final String SAMPLE_OWNER = "owner@123";
+    public static final String SAMPLE_ACTING_USER = "user@123";
     private CreateExternalClientHandler handler;
     private FakeContext context;
     private ByteArrayOutputStream outputStream;
@@ -123,8 +123,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
                           .withCustomerUri(SAMPLE_URI)
-                          .withCristinUri(SAMPLE_URI)
-                          .withOwner(SAMPLE_OWNER)
+                          .withCristinOrgUri(SAMPLE_URI)
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .withScopes(List.of())
                           .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
@@ -142,8 +142,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
                           .withCustomerUri(customer)
-                          .withCristinUri(SAMPLE_URI)
-                          .withOwner(SAMPLE_OWNER)
+                          .withCristinOrgUri(SAMPLE_URI)
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .withScopes(List.of())
                           .build();
         sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
@@ -166,8 +166,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
                           .withCustomerUri(customer)
-                          .withCristinUri(new URI("https://example.org/123"))
-                          .withOwner(SAMPLE_OWNER)
+                          .withCristinOrgUri(new URI("https://example.org/123"))
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .withScopes(List.of())
                           .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
@@ -187,8 +187,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
                           .withCustomerUri(SAMPLE_URI)
-                          .withCristinUri(SAMPLE_URI)
-                          .withOwner(SAMPLE_OWNER)
+                          .withCristinOrgUri(SAMPLE_URI)
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .withScopes(scopes)
                           .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
@@ -209,8 +209,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
                           .withCustomerUri(SAMPLE_URI)
-                          .withCristinUri(SAMPLE_URI)
-                          .withOwner(SAMPLE_OWNER)
+                          .withCristinOrgUri(SAMPLE_URI)
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .withScopes(scopes)
                           .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
@@ -227,8 +227,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
                           .withCustomerUri(new URI("https://example.org/123"))
-                          .withCristinUri(new URI("https://example.org/123"))
-                          .withOwner(SAMPLE_OWNER)
+                          .withCristinOrgUri(new URI("https://example.org/123"))
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
 
@@ -242,8 +242,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     public void shouldReturnBadRequestWhenCustomerIsMissingInRequest() throws IOException, URISyntaxException {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
-                          .withCristinUri(new URI("https://example.org/123"))
-                          .withOwner(SAMPLE_OWNER)
+                          .withCristinOrgUri(new URI("https://example.org/123"))
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .withScopes(List.of())
                           .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
@@ -259,7 +259,7 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
                           .withCustomerUri(SAMPLE_URI)
-                          .withOwner(SAMPLE_OWNER)
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .withScopes(List.of())
                           .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
@@ -267,14 +267,14 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var response = gatewayResponse.getBodyObject(Problem.class);
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
-        assertThat(response.getDetail(), containsString(MISSING_CRISTIN_URI));
+        assertThat(response.getDetail(), containsString(MISSING_CRISTIN_ORG_URI));
     }
 
     @Test
-    public void shouldReturnBadRequestWhenOwnerIsMissingInRequest() throws IOException, URISyntaxException {
+    public void shouldReturnBadRequestWhenActingUserIsMissingInRequest() throws IOException, URISyntaxException {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
-                          .withCristinUri(SAMPLE_URI)
+                          .withCristinOrgUri(SAMPLE_URI)
                           .withCustomerUri(SAMPLE_URI)
                           .withScopes(List.of())
                           .build();
@@ -283,15 +283,15 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var response = gatewayResponse.getBodyObject(Problem.class);
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
-        assertThat(response.getDetail(), containsString(MISSING_OWNER));
+        assertThat(response.getDetail(), containsString(MISSING_ACTING_USER));
     }
 
     @Test
     public void shouldReturnBadRequestWhenClientNameIsMissingInRequest() throws IOException, URISyntaxException {
         var request = CreateExternalClientRequest.newBuilder()
                           .withCustomerUri(SAMPLE_URI)
-                          .withCristinUri(SAMPLE_URI)
-                          .withOwner(SAMPLE_OWNER)
+                          .withCristinOrgUri(SAMPLE_URI)
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .withScopes(List.of())
                           .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
@@ -313,8 +313,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         assertThat(response.getDetail(), containsString(MISSING_SCOPES));
         assertThat(response.getDetail(), containsString(MISSING_CLIENT_NAME));
         assertThat(response.getDetail(), containsString(MISSING_CUSTOMER_URI));
-        assertThat(response.getDetail(), containsString(MISSING_CRISTIN_URI));
-        assertThat(response.getDetail(), containsString(MISSING_OWNER));
+        assertThat(response.getDetail(), containsString(MISSING_CRISTIN_ORG_URI));
+        assertThat(response.getDetail(), containsString(MISSING_ACTING_USER));
         assertThat(response.getDetail(), not(containsString("[")));
     }
 
@@ -327,8 +327,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var request = CreateExternalClientRequest.newBuilder()
                           .withClientName(CLIENT_NAME)
                           .withCustomerUri(SAMPLE_URI)
-                          .withCristinUri(SAMPLE_URI)
-                          .withOwner(SAMPLE_OWNER)
+                          .withCristinOrgUri(SAMPLE_URI)
+                          .withActingUser(SAMPLE_ACTING_USER)
                           .withScopes(List.of())
                           .build();
 
@@ -352,8 +352,8 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         return CreateExternalClientRequest.newBuilder()
                    .withClientName(CLIENT_NAME)
                    .withCustomerUri(SAMPLE_URI)
-                   .withCristinUri(SAMPLE_URI)
-                   .withOwner(SAMPLE_OWNER)
+                   .withCristinOrgUri(SAMPLE_URI)
+                   .withActingUser(SAMPLE_ACTING_USER)
                    .withScopes(scopes)
                    .build();
     }

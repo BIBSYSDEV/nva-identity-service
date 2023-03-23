@@ -48,8 +48,8 @@ public class GetExternalClientHandler
         return new GetExternalClientResponse(
             clientDto.getClientId(),
             clientDto.getCustomer(),
-            clientDto.getCristin(),
-            clientDto.getOwner()
+            clientDto.getCristinOrgUri(),
+            clientDto.getActingUser()
         );
     }
 

@@ -10,28 +10,28 @@ public class GetExternalClientResponse {
 
     public static final String CLIENT_ID_FIELD = "clientId";
     public static final String CUSTOMER_URI_FIELD = "customerUri";
-    public static final String CRISTIN_URI_FIELD = "cristinUri";
-    public static final String OWNER_FIELD = "owner";
+    public static final String CRISTIN_ORG_URI_FIELD = "cristinOrgUri";
+    public static final String ACTING_USER_FIELD = "actingUser";
 
     @JsonProperty(CLIENT_ID_FIELD)
     private String clientId;
     @JsonProperty(CUSTOMER_URI_FIELD)
     private URI customerUri;
-    @JsonProperty(CRISTIN_URI_FIELD)
-    private URI cristinUri;
-    @JsonProperty(OWNER_FIELD)
-    private String owner;
+    @JsonProperty(CRISTIN_ORG_URI_FIELD)
+    private URI cristinOrgUri;
+    @JsonProperty(ACTING_USER_FIELD)
+    private String actingUser;
 
     @JacocoGenerated
     public GetExternalClientResponse() {
 
     }
 
-    public GetExternalClientResponse(String clientId, URI customerUri, URI cristinUri, String owner) {
+    public GetExternalClientResponse(String clientId, URI customerUri, URI cristinOrgUri, String actingUser) {
         this.clientId = clientId;
         this.customerUri = customerUri;
-        this.cristinUri = cristinUri;
-        this.owner = owner;
+        this.cristinOrgUri = cristinOrgUri;
+        this.actingUser = actingUser;
     }
 
     public String getClientId() {
@@ -42,12 +42,12 @@ public class GetExternalClientResponse {
         return customerUri;
     }
 
-    public URI getCristinUri() {
-        return cristinUri;
+    public URI getCristinOrgUri() {
+        return cristinOrgUri;
     }
 
-    public String getOwner() {
-        return owner;
+    public String getActingUser() {
+        return actingUser;
     }
 
     @Override

@@ -11,16 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.net.URI;
 import java.net.URISyntaxException;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.ClientDto;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
-import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 
 class ExternalClientServiceTest extends LocalIdentityService {
     public static final String CLIENT_ID = "id1";
@@ -32,16 +27,12 @@ class ExternalClientServiceTest extends LocalIdentityService {
     }
 
     @Test
-    void shouldInsertClientToDb()
-        throws InvalidEntryInternalException, NotFoundException,
-               URISyntaxException, BadRequestException {
-
-
+    void shouldInsertClientToDb() throws InvalidEntryInternalException, NotFoundException, URISyntaxException {
         var clientDto = ClientDto.newBuilder()
                                      .withClientId(CLIENT_ID)
                                      .withCustomer(new URI("https://example.org/customer"))
-                                     .withCristin(new URI("https://example.org/cristin"))
-                                     .withOwner("owner")
+                                     .withCristinOrgUri(new URI("https://example.org/cristin"))
+                                     .withActingUser("actingUser")
                                      .build();
 
         service.createNewExternalClient(clientDto);

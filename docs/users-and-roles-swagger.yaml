@@ -307,12 +307,12 @@ components:
         customerUri:
           type: string
           description: URI of the customer associated with the client
-        cristinUri:
+        cristinOrgUri:
           type: string
-          description: URI of the cristinid associated with the client
-        owner:
+          description: URI of the cristin-organization associated with the client
+        actingUser:
           type: string
-          description: Owner. Should be formated like someone@<cristinid>
+          description: username to use when operations that leaves a trail of the user executing it is performed by the external client token
         scopes:
           type: array
           items:
@@ -326,12 +326,12 @@ components:
         customerUri:
           type: string
           description: URI for the associated customer
-        cristinUri:
+        cristinOrgUri:
           type: string
-          description: URI for the associated cristinid
-        owner:
+          description: URI for the associated cristin-organization
+        actingUser:
           type: string
-          description: Owner
+          description: username to use when operations that leaves a trail of the user executing it is performed by the external client token
     ExternalClientWithCredentials:
       properties:
         clientId:

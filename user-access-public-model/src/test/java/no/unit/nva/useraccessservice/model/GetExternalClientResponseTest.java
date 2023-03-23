@@ -6,7 +6,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.StringContains.containsString;
-import java.net.MalformedURLException;
 import org.junit.jupiter.api.Test;
 
 public class GetExternalClientResponseTest {
@@ -21,31 +20,31 @@ public class GetExternalClientResponseTest {
     public void toStringShouldContainAllFields() {
         var clientId = randomString();
         var customerUri = randomCristinOrgId();
-        var cristinUri = randomCristinOrgId();
-        var owner = randomString();
+        var cristinOrgUri = randomCristinOrgId();
+        var actingUser = randomString();
 
-        var response = new GetExternalClientResponse(clientId, customerUri, cristinUri, owner);
+        var response = new GetExternalClientResponse(clientId, customerUri, cristinOrgUri, actingUser);
 
         assertThat(response.toString(), containsString(clientId));
         assertThat(response.toString(), containsString(customerUri.toString()));
-        assertThat(response.toString(), containsString(cristinUri.toString()));
-        assertThat(response.toString(), containsString(owner));
+        assertThat(response.toString(), containsString(cristinOrgUri.toString()));
+        assertThat(response.toString(), containsString(actingUser));
     }
 
     @Test
     public void gettersShouldReturnCorrectValues() {
         var clientId = randomString();
         var customerUri = randomCristinOrgId();
-        var cristinUri = randomCristinOrgId();
-        var owner = randomString();
+        var cristinOrgUri = randomCristinOrgId();
+        var actingUser = randomString();
 
 
-        var response = new GetExternalClientResponse(clientId, customerUri, cristinUri, owner);
+        var response = new GetExternalClientResponse(clientId, customerUri, cristinOrgUri, actingUser);
 
         assertThat(response.getClientId(), is(equalTo(clientId)));
         assertThat(response.getCustomerUri(), is(equalTo(customerUri)));
-        assertThat(response.getCristinUri(), is(equalTo(cristinUri)));
-        assertThat(response.getOwner(), is(equalTo(owner)));
+        assertThat(response.getCristinOrgUri(), is(equalTo(cristinOrgUri)));
+        assertThat(response.getActingUser(), is(equalTo(actingUser)));
     }
 
 }

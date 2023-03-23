@@ -10,8 +10,8 @@ public class CreateExternalClientRequest {
 
     private static final String CLIENT_NAME = "clientName";
     private static final String CUSTOMER_URI = "customerUri";
-    private static final String CRISTIN_URI = "cristinUri";
-    private static final String OWNER = "owner";
+    private static final String CRISTIN_ORG_URI = "cristinOrgUri";
+    private static final String ACTING_USER = "actingUser";
     private static final String SCOPES = "scopes";
 
     @JsonProperty(CLIENT_NAME)
@@ -20,11 +20,11 @@ public class CreateExternalClientRequest {
     @JsonProperty(CUSTOMER_URI)
     private URI customerUri;
 
-    @JsonProperty(CRISTIN_URI)
-    private URI cristinUri;
+    @JsonProperty(CRISTIN_ORG_URI)
+    private URI cristinOrgUri;
 
-    @JsonProperty(OWNER)
-    private String owner;
+    @JsonProperty(ACTING_USER)
+    private String actingUser;
 
     @JsonProperty(SCOPES)
     private List<String> scopes;
@@ -41,12 +41,12 @@ public class CreateExternalClientRequest {
         this.customerUri = customerUri;
     }
 
-    public void setCristinUri(URI cristinUri) {
-        this.cristinUri = cristinUri;
+    public void setCristinOrgUri(URI cristinOrgUri) {
+        this.cristinOrgUri = cristinOrgUri;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
+    public void setActingUser(String actingUser) {
+        this.actingUser = actingUser;
     }
 
     public void setScopes(List<String> scopes) {
@@ -61,12 +61,12 @@ public class CreateExternalClientRequest {
         return customerUri;
     }
 
-    public URI getCristinUri() {
-        return cristinUri;
+    public URI getCristinOrgUri() {
+        return cristinOrgUri;
     }
 
-    public String getOwner() {
-        return owner;
+    public String getActingUser() {
+        return actingUser;
     }
 
     public List<String> getScopes() {
@@ -96,13 +96,13 @@ public class CreateExternalClientRequest {
             return this;
         }
 
-        public Builder withCristinUri(URI cristinUri) {
-            request.setCristinUri(cristinUri);
+        public Builder withCristinOrgUri(URI cristinOrgUri) {
+            request.setCristinOrgUri(cristinOrgUri);
             return this;
         }
 
-        public Builder withOwner(String owner) {
-            request.setOwner(owner);
+        public Builder withActingUser(String actingUser) {
+            request.setActingUser(actingUser);
             return this;
         }
 

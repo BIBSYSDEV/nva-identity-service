@@ -96,7 +96,7 @@ public class IdentityServiceImpl implements IdentityService {
 
     @Override
     public void addExternalClient(ClientDto clientDto) {
-        externalClientService.createNewExternalClient(clientDto.getClientId(), clientDto.getCustomer());
+        externalClientService.createNewExternalClient(clientDto);
     }
 
     @Override

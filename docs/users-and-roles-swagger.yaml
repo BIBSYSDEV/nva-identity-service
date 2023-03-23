@@ -304,9 +304,15 @@ components:
         clientName:
           type: string
           description: Name of the OAuth client for the external client
-        customer:
+        customerUri:
           type: string
           description: URI of the customer associated with the client
+        cristinOrgUri:
+          type: string
+          description: URI of the cristin-organization associated with the client
+        actingUser:
+          type: string
+          description: username to use when operations that leaves a trail of the user executing it is performed by the external client token
         scopes:
           type: array
           items:
@@ -317,9 +323,15 @@ components:
         clientId:
           type: string
           description: Client ID used for authentication
-        customer:
+        customerUri:
           type: string
-          description: URL for the associated customer
+          description: URI for the associated customer
+        cristinOrgUri:
+          type: string
+          description: URI for the associated cristin-organization
+        actingUser:
+          type: string
+          description: username to use when operations that leaves a trail of the user executing it is performed by the external client token
     ExternalClientWithCredentials:
       properties:
         clientId:

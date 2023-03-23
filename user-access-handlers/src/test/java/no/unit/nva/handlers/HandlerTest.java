@@ -56,11 +56,10 @@ public class HandlerTest extends LocalIdentityService {
             .build();
     }
 
-    protected ClientDto insertClientToDatabase(String clientId, URI customer)
-        throws InvalidEntryInternalException, ConflictException {
-        ClientDto client = ClientDto.newBuilder().withClientId(clientId).withCustomer(customer).build();
-        databaseService.addExternalClient(client);
-        return client;
+    protected ClientDto insertClientToDatabase(ClientDto clientDto)
+        throws InvalidEntryInternalException {
+        databaseService.addExternalClient(clientDto);
+        return clientDto;
     }
 
 

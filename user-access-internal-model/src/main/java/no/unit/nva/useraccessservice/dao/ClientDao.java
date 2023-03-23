@@ -29,10 +29,14 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final TableSchema<ClientDao> TABLE_SCHEMA = TableSchema.fromClass(ClientDao.class);
     public static final String TYPE_VALUE = "CLIENT";
     public static final String CLIENT_ID_FIELD = "client";
-    public static final String CUSTOMER_FIELD = "customer";
+    public static final String CUSTOMER_FIELD = "customerUri";
+    public static final String CRISTIN_ORG_FIELD = "cristinOrgUri";
+    public static final String ACTING_USER_FIELD = "actingUser";
 
     private String clientTd;
     private URI customer;
+    private URI cristinOrgUri;
+    private String actingUser;
 
     public ClientDao() {
         super();
@@ -45,7 +49,9 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static ClientDao fromClientDto(ClientDto clientDto) {
         ClientDao.Builder clientDb = ClientDao.newBuilder()
                                          .withClientId(clientDto.getClientId())
-                                         .withCustomer(clientDto.getCustomer());
+                                         .withCustomer(clientDto.getCustomer())
+                                         .withCristinOrgUri(clientDto.getCristinOrgUri())
+                                         .withActingUser(clientDto.getActingUser());
 
         return clientDb.build();
     }
@@ -81,11 +87,51 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
      *
      * @return a data transfer object {@link ClientDto}
      */
+
+    @JacocoGenerated
+    @DynamoDbAttribute(CRISTIN_ORG_FIELD)
+    public URI getCristinOrgUri() {
+        return cristinOrgUri;
+    }
+
+    /**
+     * @param cristinOrgUri Method to be used only by DynamoDb mapper. Do not use. Use the builder instead.
+     */
+    public void setCristinOrgUri(URI cristinOrgUri) {
+        this.cristinOrgUri = cristinOrgUri;
+    }
+
+    /**
+     * Creates a {@link ClientDto} from a {@link ClientDao}.
+     *
+     * @return a data transfer object {@link ClientDto}
+     */
+
+    @JacocoGenerated
+    @DynamoDbAttribute(ACTING_USER_FIELD)
+    public String getActingUser() {
+        return actingUser;
+    }
+
+    /**
+     * @param actingUser Method to be used only by DynamoDb mapper. Do not use. Use the builder instead.
+     */
+    public void setActingUser(String actingUser) {
+        this.actingUser = actingUser;
+    }
+
+    /**
+     * Creates a {@link ClientDto} from a {@link ClientDao}.
+     *
+     * @return a data transfer object {@link ClientDto}
+     */
     public ClientDto toClientDto() {
 
         ClientDto.Builder clientDto = ClientDto.newBuilder()
                                           .withClientId(this.getClientTd())
-                                          .withCustomer(this.getCustomer());
+                                          .withCustomer(this.getCustomer())
+                                          .withCristinOrgUri(this.getCristinOrgUri())
+                                          .withActingUser(this.getActingUser());
 
         return clientDto.build();
     }
@@ -158,7 +204,9 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public ClientDao.Builder copy() {
         return newBuilder()
                    .withClientId(this.getClientTd())
-                   .withCustomer(this.getCustomer());
+                   .withCustomer(this.getCustomer())
+                   .withCristinOrgUri(this.getCristinOrgUri())
+                   .withActingUser(this.getActingUser());
     }
 
     @Override
@@ -178,7 +226,9 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         }
         ClientDao clientDao = (ClientDao) o;
         return Objects.equals(getClientTd(), clientDao.getClientTd())
-               && Objects.equals(getCustomer(), clientDao.getCustomer());
+               && Objects.equals(getCustomer(), clientDao.getCustomer())
+               && Objects.equals(getCristinOrgUri(), clientDao.getCristinOrgUri())
+               && Objects.equals(getActingUser(), clientDao.getActingUser());
     }
 
     /*For now the primary range key does not need to be different from the primary hash key*/
@@ -205,6 +255,16 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         public Builder withCustomer(URI customer) {
             clientDao.setCustomer(customer);
+            return this;
+        }
+
+        public Builder withCristinOrgUri(URI cristinOrgUri) {
+            clientDao.setCristinOrgUri(cristinOrgUri);
+            return this;
+        }
+
+        public Builder withActingUser(String actingUser) {
+            clientDao.setActingUser(actingUser);
             return this;
         }
 

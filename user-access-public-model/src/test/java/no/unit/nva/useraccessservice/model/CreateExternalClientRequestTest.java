@@ -9,7 +9,6 @@ import static org.hamcrest.core.StringContains.containsString;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-
 public class CreateExternalClientRequestTest {
 
     @Test
@@ -20,26 +19,47 @@ public class CreateExternalClientRequestTest {
     @Test
     public void toStringShouldContainAllFields() {
         var clientName = randomString();
-        var customer = randomCristinOrgId();
+        var actingUser = randomString();
+        var customerUri = randomCristinOrgId();
+        var cristinOrgUri = randomCristinOrgId();
         var scopes = List.of(randomString());
 
-        var request = new CreateExternalClientRequest(clientName, customer, scopes);
+        var request =
+            CreateExternalClientRequest.newBuilder()
+                .withClientName(clientName)
+                .withCustomerUri(customerUri)
+                .withCristinOrgUri(cristinOrgUri)
+                .withActingUser(actingUser)
+                .withScopes(scopes)
+                .build();
 
         assertThat(request.toString(), containsString(clientName));
-        assertThat(request.toString(), containsString(customer.toString()));
+        assertThat(request.toString(), containsString(customerUri.toString()));
+        assertThat(request.toString(), containsString(cristinOrgUri.toString()));
+        assertThat(request.toString(), containsString(actingUser));
         assertThat(request.toString(), containsString(scopes.get(0)));
     }
 
     @Test
-    public void gettersShouldReturnCorrectValues() {
+    public void gettersShouldReturnSameValuesGivenToSetters() {
         var clientName = randomString();
-        var customer = randomCristinOrgId();
+        var actingUser = randomString();
+        var customerUri = randomCristinOrgId();
+        var cristinOrgUri = randomCristinOrgId();
         var scopes = List.of(randomString());
 
-        var request = new CreateExternalClientRequest(clientName, customer, scopes);
+        var request = new CreateExternalClientRequest();
+
+        request.setClientName(clientName);
+        request.setActingUser(actingUser);
+        request.setCustomerUri(customerUri);
+        request.setCristinOrgUri(cristinOrgUri);
+        request.setScopes(scopes);
 
         assertThat(request.getClientName(), is(equalTo(clientName)));
-        assertThat(request.getCustomer(), is(equalTo(customer)));
+        assertThat(request.getCustomerUri(), is(equalTo(customerUri)));
+        assertThat(request.getCristinOrgUri(), is(equalTo(cristinOrgUri)));
+        assertThat(request.getActingUser(), is(equalTo(actingUser)));
         assertThat(request.getScopes(), is(equalTo(scopes)));
     }
 }

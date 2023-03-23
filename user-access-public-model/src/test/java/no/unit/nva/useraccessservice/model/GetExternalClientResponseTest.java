@@ -2,13 +2,10 @@ package no.unit.nva.useraccessservice.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.StringContains.containsString;
-import java.net.MalformedURLException;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 
 public class GetExternalClientResponseTest {
@@ -20,25 +17,34 @@ public class GetExternalClientResponseTest {
     }
 
     @Test
-    public void toStringShouldContainAllFields() throws MalformedURLException {
+    public void toStringShouldContainAllFields() {
         var clientId = randomString();
-        var customer = randomCristinOrgId();
+        var customerUri = randomCristinOrgId();
+        var cristinOrgUri = randomCristinOrgId();
+        var actingUser = randomString();
 
-        var response = new GetExternalClientResponse(clientId, customer);
+        var response = new GetExternalClientResponse(clientId, customerUri, cristinOrgUri, actingUser);
 
         assertThat(response.toString(), containsString(clientId));
-        assertThat(response.toString(), containsString(customer.toString()));
+        assertThat(response.toString(), containsString(customerUri.toString()));
+        assertThat(response.toString(), containsString(cristinOrgUri.toString()));
+        assertThat(response.toString(), containsString(actingUser));
     }
 
     @Test
     public void gettersShouldReturnCorrectValues() {
         var clientId = randomString();
-        var customer = randomCristinOrgId();
+        var customerUri = randomCristinOrgId();
+        var cristinOrgUri = randomCristinOrgId();
+        var actingUser = randomString();
 
-        var response = new GetExternalClientResponse(clientId, customer);
+
+        var response = new GetExternalClientResponse(clientId, customerUri, cristinOrgUri, actingUser);
 
         assertThat(response.getClientId(), is(equalTo(clientId)));
-        assertThat(response.getCustomer(), is(equalTo(customer)));
+        assertThat(response.getCustomerUri(), is(equalTo(customerUri)));
+        assertThat(response.getCristinOrgUri(), is(equalTo(cristinOrgUri)));
+        assertThat(response.getActingUser(), is(equalTo(actingUser)));
     }
 
 }

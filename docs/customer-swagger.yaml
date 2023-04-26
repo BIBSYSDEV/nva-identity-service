@@ -770,25 +770,30 @@ components:
           type: string
     Problem:
       type: object
+      description: NVA error reporting object
+      required:
+        - title
+        - detail
+        - status
       properties:
-        type:
-          type: string
-          format: uri
-          description: A URI describing the error and mitigations, in generic cases, this is about:blank
-        status:
-          type: integer
-          format: int32
-          description: The HTTP status code associated with the problem
         title:
           type: string
           description: Human-readable description of the error status
         detail:
           type: string
           description: A more detailed error message describing the error and potential mitigations
+        status:
+          type: integer
+          description: The HTTP status code associated with the problem
+        requestId:
+          type: string
+          description: Identifier of the request causing the problem
         instance:
           type: string
-          format: uri
           description: The requested path associated with the error
+        type:
+          type: string
+          description: A URI describing the error and mitigations, in generic cases, this is about:blank
   examples:
     CustomerExample:
       value:

@@ -1351,6 +1351,8 @@ Resources:
           ScopeName: ticket-read
         - ScopeDescription: Ticket write/update
           ScopeName: ticket-upsert
+        - ScopeDescription: Upload file
+          ScopeName: file-upload
       UserPoolId: !Ref ExternalUserPool
 
   BackendApplicationClient:

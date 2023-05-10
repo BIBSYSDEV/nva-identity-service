@@ -9,6 +9,9 @@ import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PROJECTS;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
+import static nva.commons.apigateway.AccessRight.PROCESS_IMPORT_CANDIDATE;
+import static nva.commons.apigateway.AccessRight.PUBLISH_THESIS;
+import static nva.commons.apigateway.AccessRight.PUBLISH_THESIS_EMBARGO_READ;
 import static nva.commons.apigateway.AccessRight.READ_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.REJECT_DOI_REQUEST;
 import static nva.commons.core.attempt.Try.attempt;
@@ -98,26 +101,39 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
         var creator = RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
                           .build();
         var curator = RoleDto.newBuilder().withRoleName("Curator")
-            .withAccessRights(
-                List.of(APPROVE_DOI_REQUEST,
-                    REJECT_DOI_REQUEST,
-                    READ_DOI_REQUEST,
-                    EDIT_OWN_INSTITUTION_RESOURCES,
-                    APPROVE_PUBLISH_REQUEST))
-            .build();
+                          .withAccessRights(
+                              List.of(APPROVE_DOI_REQUEST,
+                                      REJECT_DOI_REQUEST,
+                                      READ_DOI_REQUEST,
+                                      EDIT_OWN_INSTITUTION_RESOURCES,
+                                      APPROVE_PUBLISH_REQUEST))
+                          .build();
         var institutionAdmin = RoleDto.newBuilder().withRoleName("Institution-admin")
-            .withAccessRights(List.of(EDIT_OWN_INSTITUTION_RESOURCES,
-                EDIT_OWN_INSTITUTION_PROJECTS,
-                EDIT_OWN_INSTITUTION_USERS))
-            .build();
+                                   .withAccessRights(List.of(EDIT_OWN_INSTITUTION_RESOURCES,
+                                                             EDIT_OWN_INSTITUTION_PROJECTS,
+                                                             EDIT_OWN_INSTITUTION_USERS))
+                                   .build();
+        var importCandidateCurator =
+            RoleDto.newBuilder()
+                .withRoleName("Import-candidate-curator")
+                .withAccessRights(List.of(PROCESS_IMPORT_CANDIDATE))
+                .build();
+        var curatorThesis =
+            RoleDto.newBuilder().withRoleName("Curator-thesis").withAccessRights(List.of(PUBLISH_THESIS)).build();
+        var curatorThesisEmbargo =
+            RoleDto.newBuilder()
+                .withRoleName("Curator-thesis-embargo")
+                .withAccessRights(List.of(PUBLISH_THESIS_EMBARGO_READ))
+                .build();
         var applicationAdmin = RoleDto.newBuilder().withRoleName("App-admin")
-            .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
-            .build();
-        
+                                   .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
+                                   .build();
+
         var editor = RoleDto.newBuilder().withRoleName("Editor")
-            .withAccessRights(List.of(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW))
-            .build();
-        
-        return List.of(creator, curator, institutionAdmin, applicationAdmin, editor);
+                         .withAccessRights(List.of(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW))
+                         .build();
+
+        return List.of(creator, curator, institutionAdmin, applicationAdmin, editor, importCandidateCurator,
+                       curatorThesis, curatorThesisEmbargo);
     }
 }

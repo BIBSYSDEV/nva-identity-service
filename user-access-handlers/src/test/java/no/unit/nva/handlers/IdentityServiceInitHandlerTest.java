@@ -38,6 +38,10 @@ class IdentityServiceInitHandlerTest {
     private static final int USER_PSEUDO_ACCESS_RIGHT = 1;
     private static final int PUBLISH_METADATA = 1;
     private static final int PUBLISH_FILES = 1;
+    private static final int PROCESS_IMPORT_CANDIDATE = 1;
+    private static final int PUBLISH_THESIS = 1;
+    private static final int PUBLISH_THESIS_EMBARGO_READ = 1;
+
     private IdentityService identityService;
     private ByteArrayOutputStream output;
     private Context context;
@@ -72,7 +76,8 @@ class IdentityServiceInitHandlerTest {
             .flatMap(Collection::stream)
             .collect(Collectors.toSet());
         var expectedAccessRightsCount
-            = AccessRight.values().length - USER_PSEUDO_ACCESS_RIGHT - PUBLISH_METADATA - PUBLISH_FILES;
+            =
+            AccessRight.values().length - USER_PSEUDO_ACCESS_RIGHT - PUBLISH_METADATA - PUBLISH_FILES - PROCESS_IMPORT_CANDIDATE - PUBLISH_THESIS - PUBLISH_THESIS_EMBARGO_READ;
 
         assertThat(accessRights.size(),
                    is(equalTo(expectedAccessRightsCount)));

@@ -113,9 +113,9 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
                                                              EDIT_OWN_INSTITUTION_PROJECTS,
                                                              EDIT_OWN_INSTITUTION_USERS))
                                    .build();
-        var importCandidateCurator =
+        var curatorImportCandidate =
             RoleDto.newBuilder()
-                .withRoleName("Import-candidate-curator")
+                .withRoleName("Curator-Import-candidate")
                 .withAccessRights(List.of(PROCESS_IMPORT_CANDIDATE))
                 .build();
         var curatorThesis =
@@ -133,7 +133,7 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
                          .withAccessRights(List.of(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW))
                          .build();
 
-        return List.of(creator, curator, institutionAdmin, applicationAdmin, editor, importCandidateCurator,
+        return List.of(creator, curator, institutionAdmin, applicationAdmin, editor, curatorImportCandidate,
                        curatorThesis, curatorThesisEmbargo);
     }
 }

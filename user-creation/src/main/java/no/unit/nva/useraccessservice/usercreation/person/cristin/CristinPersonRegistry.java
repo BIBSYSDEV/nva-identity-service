@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -77,7 +78,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     public static PersonRegistry defaultPersonRegistry() {
         var defaultRequestHeaders = new HttpHeaders()
                                         .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
-        return personRegistry(HttpClient.newHttpClient(),
+        return personRegistry(HttpClient.newBuilder().version(Version.HTTP_1_1).build(),
                               ServiceConstants.CRISTIN_BASE_URI,
                               ServiceConstants.API_DOMAIN,
                               defaultRequestHeaders,

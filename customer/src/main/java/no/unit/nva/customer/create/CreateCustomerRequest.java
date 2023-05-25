@@ -37,6 +37,7 @@ public class CreateCustomerRequest {
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
     private Sector sector;
+    private  URI rorId;
 
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
@@ -54,11 +55,13 @@ public class CreateCustomerRequest {
         request.setCustomerOf(customerDto.getCustomerOf());
         request.setSector(customerDto.getSector());
         request.setNviInstitution(customerDto.isNviInstitution());
+        request.setRorId(customerDto.getRorId());
         if (nonNull(customerDto.getDoiAgent())) {
             request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
         }
         return request;
     }
+
 
     public CustomerDto toCustomerDto() {
         return CustomerDto.builder()
@@ -76,6 +79,7 @@ public class CreateCustomerRequest {
                    .withDoiAgent(getDoiAgent())
                    .withNviInstitution(isNviInstitution())
                    .withSector(getSector())
+                   .withRorId(getRorId())
                    .build();
     }
 
@@ -192,13 +196,20 @@ public class CreateCustomerRequest {
         this.sector = sector;
     }
 
+    public URI getRorId() {
+        return rorId;
+    }
+
+    public void setRorId(URI rorId) {
+        this.rorId = rorId;
+    }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
-                            getDoiAgent(),getSector(),isNviInstitution());
+                            getDoiAgent(),getSector(),isNviInstitution(), getRorId());
     }
 
     @JacocoGenerated
@@ -221,6 +232,7 @@ public class CreateCustomerRequest {
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getSector(), that.getSector())
+               && Objects.equals(getRorId(), that.getRorId())
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(getVocabularies(), that.getVocabularies());
     }
@@ -230,4 +242,5 @@ public class CreateCustomerRequest {
     public String toString() {
         return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
+
 }

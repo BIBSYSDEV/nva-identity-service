@@ -63,7 +63,7 @@ class UpdateCustomerDoiHandlerTest {
         existingDoiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
 
         var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
-        var secretDaoArray = createSampleSecretDaos(doiAgent, existingDoiAgent);
+        var secretDaoArray = createSampleSecretDaos(doiAgent, existingDoiAgent, existingDoiAgent);
 
         when(customerServiceMock.getCustomer(any(UUID.class))
         ).thenReturn(existingCustomer);

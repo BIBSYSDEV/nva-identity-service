@@ -35,12 +35,32 @@ class SecretManagerDoiAgentDaoTest {
     }
 
     @Test
-    void shouldUpdate() {
-        var doiAgentDto = createSampleCustomerDao().toCustomerDto()
-                              .getDoiAgent().addPassword(randomString());
+    void shouldUpdateDoiAgent() {
+        var doiAgentDto =
+            createSampleCustomerDao()
+                .toCustomerDto()
+                .getDoiAgent()
+                .addPassword(randomString());
         var secretManagerDoiAgentDao = new SecretManagerDoiAgentDao(doiAgentDto);
 
         secretManagerDoiAgentDao.merge(doiAgentDto);
+
+        assertEquals(secretManagerDoiAgentDao.toDoiAgentDto(), doiAgentDto);
+        assertNotNull(secretManagerDoiAgentDao);
+    }
+
+    @Test
+    void shouldUpdateSecretManagerDoiAgent() {
+        var doiAgentDto =
+            createSampleCustomerDao()
+                .toCustomerDto()
+                .getDoiAgent()
+                .addPassword(randomString());
+        var secretManagerDoiAgentDao = new SecretManagerDoiAgentDao(doiAgentDto);
+        doiAgentDto.setPassword(randomString());
+        var secretManagerDoiAgentDao2 = new SecretManagerDoiAgentDao(doiAgentDto);
+
+        secretManagerDoiAgentDao.merge(secretManagerDoiAgentDao2);
 
         assertEquals(secretManagerDoiAgentDao.toDoiAgentDto(), doiAgentDto);
         assertNotNull(secretManagerDoiAgentDao);

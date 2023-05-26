@@ -48,40 +48,24 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
                    .addId(customerIdToAgentId(customerId));
     }
 
-    public void merge(DoiAgentDto agentDto) {
-
+    public void merge(DoiAgentDto doiAgent) {
         if (isNull(customerId)) {
-            setCustomerId(agentIdToCustomerId(agentDto.getId()));
+            setCustomerId(agentIdToCustomerId(doiAgent.getId()));
         }
-
-        if (nonNull(agentDto.getPrefix())) {
-            setPrefix(agentDto.getPrefix());
+        if (nonNull(doiAgent.getPrefix())) {
+            setPrefix(doiAgent.getPrefix());
         }
-        if (nonNull(agentDto.getUrl())) {
-            setUrl(agentDto.getUrl());
+        if (nonNull(doiAgent.getUrl())) {
+            setUrl(doiAgent.getUrl());
         }
-        setUsername(agentDto.getUsername());
-        if (nonNull(agentDto.getPassword())) {
-            setPassword(agentDto.getPassword());
+        if (nonNull(doiAgent.getPassword())) {
+            setPassword(doiAgent.getPassword());
         }
+        setUsername(doiAgent.getUsername());
     }
 
-    public SecretManagerDoiAgentDao merge(SecretManagerDoiAgentDao agentDto) {
-
-        if (isNull(customerId)) {
-            setCustomerId(agentDto.getCustomerId());
-        }
-
-        if (nonNull(agentDto.getPrefix())) {
-            setPrefix(agentDto.getPrefix());
-        }
-        if (nonNull(agentDto.getUrl())) {
-            setUrl(agentDto.getUrl());
-        }
-        setUsername(agentDto.getUsername());
-        if (nonNull(agentDto.getPassword())) {
-            setPassword(agentDto.getPassword());
-        }
+    public SecretManagerDoiAgentDao merge(SecretManagerDoiAgentDao agentDao) {
+        merge(agentDao.toDoiAgentDto());
         return this;
     }
 

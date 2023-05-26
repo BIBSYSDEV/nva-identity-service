@@ -1,22 +1,25 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDao;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomIdentifier;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.*;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
+
 class SecretManagerDoiAgentDaoTest {
+
+    private static final String DOIAGENT = "/doiagent";
 
     @Test
     void shouldDeserialize() {
         var doiAgentDto = createSampleCustomerDao().getDoiAgent().toDoiAgentDto()
-                              .addPassword(randomString())
-                              .addIdByIdentifier(randomIdentifier());
+            .addPassword(randomString())
+            .addIdByIdentifier(randomIdentifier());
         var expected = new SecretManagerDoiAgentDao(doiAgentDto);
         var json = expected.toString();
         var actual = attempt(() -> SecretManagerDoiAgentDao.fromJson(json)).get();
@@ -35,34 +38,33 @@ class SecretManagerDoiAgentDaoTest {
     }
 
     @Test
-    void shouldUpdateDoiAgent() {
-        var doiAgentDto =
-            createSampleCustomerDao()
-                .toCustomerDto()
-                .getDoiAgent()
-                .addPassword(randomString());
+    void shouldMergeDoiAgentWithoutLoosingInformation() {
+        var doiAgentDto = randomDoiAgentDto();
         var secretManagerDoiAgentDao = new SecretManagerDoiAgentDao(doiAgentDto);
 
         secretManagerDoiAgentDao.merge(doiAgentDto);
 
-        assertEquals(secretManagerDoiAgentDao.toDoiAgentDto(), doiAgentDto);
         assertNotNull(secretManagerDoiAgentDao);
+        assertEquals(secretManagerDoiAgentDao.toDoiAgentDto(), doiAgentDto);
     }
 
     @Test
-    void shouldUpdateSecretManagerDoiAgent() {
-        var doiAgentDto =
-            createSampleCustomerDao()
-                .toCustomerDto()
-                .getDoiAgent()
-                .addPassword(randomString());
-        var secretManagerDoiAgentDao = new SecretManagerDoiAgentDao(doiAgentDto);
-        doiAgentDto.setPassword(randomString());
-        var secretManagerDoiAgentDao2 = new SecretManagerDoiAgentDao(doiAgentDto);
+    void shouldMergeSecretManagerDoiAgentWithoutChangingCustomer() {
+        var doiAgentDto = randomDoiAgentDto();
+        var smDoiAgent = new SecretManagerDoiAgentDao(doiAgentDto);
+        var smDoiAgent2 = new SecretManagerDoiAgentDao(randomDoiAgentDto());
 
-        secretManagerDoiAgentDao.merge(secretManagerDoiAgentDao2);
+        smDoiAgent2.merge(smDoiAgent);
 
-        assertEquals(secretManagerDoiAgentDao.toDoiAgentDto(), doiAgentDto);
-        assertNotNull(secretManagerDoiAgentDao);
+        assertEquals(smDoiAgent.toDoiAgentDto(), doiAgentDto);
+        assertNotEquals(smDoiAgent.getCustomerId(),smDoiAgent2.getCustomerId());
     }
+
+    private CustomerDto.DoiAgentDto randomDoiAgentDto() {
+        return new CustomerDto.DoiAgentDto(randomDoiAgent(randomString()))
+            .addPassword(randomString())
+            .addId(URI.create(randomUri() + DOIAGENT));
+    }
+
+
 }

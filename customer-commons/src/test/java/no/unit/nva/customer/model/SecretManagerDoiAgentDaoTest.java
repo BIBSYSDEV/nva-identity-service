@@ -1,10 +1,15 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.testing.CustomerDataGenerator.*;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDao;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomIdentifier;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;

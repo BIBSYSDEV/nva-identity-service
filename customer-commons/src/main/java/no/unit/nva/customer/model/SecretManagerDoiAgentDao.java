@@ -66,6 +66,25 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         }
     }
 
+    public SecretManagerDoiAgentDao merge(SecretManagerDoiAgentDao agentDto) {
+
+        if (isNull(customerId)) {
+            setCustomerId(agentDto.getCustomerId());
+        }
+
+        if (nonNull(agentDto.getPrefix())) {
+            setPrefix(agentDto.getPrefix());
+        }
+        if (nonNull(agentDto.getUrl())) {
+            setUrl(agentDto.getUrl());
+        }
+        setUsername(agentDto.getUsername());
+        if (nonNull(agentDto.getPassword())) {
+            setPassword(agentDto.getPassword());
+        }
+        return this;
+    }
+
     private URI agentIdToCustomerId(URI agentId) {
         return UriWrapper.fromUri(agentId)
                    .getParent().orElseThrow().getUri();

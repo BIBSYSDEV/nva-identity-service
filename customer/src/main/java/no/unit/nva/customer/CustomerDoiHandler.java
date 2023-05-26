@@ -18,7 +18,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
@@ -66,7 +65,10 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
         }
 
         return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class))
-            .collect(Collectors.toConcurrentMap(this::extractKey,Function.identity(),SecretManagerDoiAgentDao::merge));
+            .collect(Collectors.toConcurrentMap(
+                this::extractKey,
+                doiAgent -> doiAgent,
+                SecretManagerDoiAgentDao::merge));
     }
 
 

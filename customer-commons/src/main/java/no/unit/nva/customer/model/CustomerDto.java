@@ -12,8 +12,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import no.unit.nva.customer.model.CustomerDao.Builder;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
+import no.unit.nva.customer.model.interfaces.RetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -46,6 +48,7 @@ public class CustomerDto implements Context {
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
     private Sector sector;
+    private RetentionStrategyDto rightRetentionStrategy;
 
     public CustomerDto() {
         super();
@@ -213,6 +216,13 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
+    public void setRightRetentionStrategy(RetentionStrategyDto retention) {
+        rightRetentionStrategy = retention;
+    }
+
+    public RetentionStrategyDto getRightRetentionStrategy() {
+        return rightRetentionStrategy;
+    }
     @Override
     public URI getContext() {
         return context;
@@ -244,7 +254,8 @@ public class CustomerDto implements Context {
                    .withDoiAgent(getDoiAgent())
                    .withNviInstitution(isNviInstitution())
                    .withSector(getSector())
-                   .withVocabularies(getVocabularies());
+                   .withVocabularies(getVocabularies())
+                   .withRightRetentionStrategy(getRightRetentionStrategy());
     }
 
     @Override
@@ -300,6 +311,7 @@ public class CustomerDto implements Context {
     public void setType(String type) {
         // do nothing;
     }
+
 
     public static final class Builder {
 
@@ -418,6 +430,11 @@ public class CustomerDto implements Context {
 
         public Builder withSector(Sector sector) {
             customerDto.setSector(sector);
+            return this;
+        }
+
+        public Builder withRightRetentionStrategy(RetentionStrategy rightsRetentionStrategy) {
+            customerDto.setRightRetentionStrategy(new RetentionStrategyDto(rightsRetentionStrategy));
             return this;
         }
 

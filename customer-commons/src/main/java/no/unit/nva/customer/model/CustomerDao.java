@@ -14,10 +14,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.model.CustomerDto.Builder;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
+import no.unit.nva.customer.model.interfaces.RetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
@@ -59,6 +61,7 @@ public class CustomerDao implements Typed {
     private DoiAgentDao doiAgent;
     private boolean nviInstitution;
     private Sector sector;
+    private RetentionStrategyDao rightsRetentionStrategy;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -88,6 +91,7 @@ public class CustomerDao implements Typed {
                    .withDoiAgent(dto.getDoiAgent())
                    .withNviInstitution(dto.isNviInstitution())
                    .withSector(dto.getSector())
+                   .withRightRetentionStrategy(dto.getRightRetentionStrategy())
                    .build();
     }
 
@@ -247,6 +251,15 @@ public class CustomerDao implements Typed {
         this.sector = sector;
     }
 
+    public RetentionStrategyDao getRightsRetentionStrategy() {
+        return rightsRetentionStrategy;
+    }
+
+    public void setRightsRetentionStrategy(RetentionStrategy retention) {
+        this.rightsRetentionStrategy = nonNull(retention)
+            ? new RetentionStrategyDao(retention)
+            : new RetentionStrategyDao(RetentionStrategyType.NullRightRetentionStrategy,null);
+    }
     public CustomerDto toCustomerDto() {
         CustomerDto customerDto =
             CustomerDto.builder()
@@ -268,6 +281,7 @@ public class CustomerDao implements Typed {
                 .withDoiAgent(getDoiAgent())
                 .withNviInstitution(isNviInstitution())
                 .withSector(getSector())
+                .withRightRetentionStrategy(getRightsRetentionStrategy())
                 .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -452,6 +466,11 @@ public class CustomerDao implements Typed {
             return this;
         }
 
+        public Builder withRightRetentionStrategy(RetentionStrategy retention) {
+            customerDb.setRightsRetentionStrategy(retention);
+            return this;
+        }
+
         public Builder withSector(Sector sector) {
             customerDb.setSector(sector);
             return this;
@@ -460,6 +479,7 @@ public class CustomerDao implements Typed {
         public CustomerDao build() {
             return customerDb;
         }
+
     }
 
     @DynamoDbBean

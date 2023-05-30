@@ -5,6 +5,7 @@ import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
@@ -343,6 +344,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .withSector(randomSector())
                            .withNviInstitution(randomBoolean())
+                           .withRightRetentionStrategy(randomRetentionStrategy())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password","doiAgent.id")));

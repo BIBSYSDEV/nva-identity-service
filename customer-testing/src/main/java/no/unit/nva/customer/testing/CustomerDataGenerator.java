@@ -19,11 +19,14 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.PublicationWorkflow;
+import no.unit.nva.customer.model.RetentionStrategyDao;
+import no.unit.nva.customer.model.RetentionStrategyType;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
+import no.unit.nva.customer.model.interfaces.RetentionStrategy;
 import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 
@@ -56,6 +59,7 @@ public class CustomerDataGenerator {
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withSector(randomSector())
                                    .withNviInstitution(randomBoolean())
+                                   .withRightRetentionStrategy(randomRetentionStrategy())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
@@ -90,11 +94,16 @@ public class CustomerDataGenerator {
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withNviInstitution(randomBoolean())
                                    .withSector(randomSector())
+                                   .withRightRetentionStrategy(randomRetentionStrategy())
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
     }
 
+    public static RetentionStrategy randomRetentionStrategy() {
+        return
+            new RetentionStrategyDao(randomElement(RetentionStrategyType.values()), randomUri());
+    }
     public static DoiAgent randomDoiAgent(String randomString) {
         return new DoiAgent() {
 

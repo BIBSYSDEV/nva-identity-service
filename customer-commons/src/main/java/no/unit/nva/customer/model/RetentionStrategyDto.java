@@ -3,10 +3,16 @@ package no.unit.nva.customer.model;
 import java.beans.ConstructorProperties;
 import java.net.URI;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.interfaces.RetentionStrategy;
 import nva.commons.core.JacocoGenerated;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class RetentionStrategyDto implements RetentionStrategy, JsonSerializable {
 
     private final RetentionStrategyType retentionStrategy;
@@ -22,15 +28,18 @@ public class RetentionStrategyDto implements RetentionStrategy, JsonSerializable
         this(retention.getRetentionStrategy(), retention.getId());
     }
 
+    @Override
     public RetentionStrategyType getRetentionStrategy() {
         return retentionStrategy;
     }
 
+    @Override
     public URI getId() {
         return id;
     }
 
     @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -43,6 +52,7 @@ public class RetentionStrategyDto implements RetentionStrategy, JsonSerializable
     }
 
     @Override
+    @JacocoGenerated
     public int hashCode() {
         return Objects.hash(retentionStrategy, id);
     }

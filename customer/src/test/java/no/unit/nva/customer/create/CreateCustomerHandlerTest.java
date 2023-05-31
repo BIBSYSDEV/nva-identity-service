@@ -5,6 +5,7 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRetentionStrategy;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -164,6 +165,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withCustomerOf(randomElement(ApplicationDomain.values()))
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withRorId(randomUri())
+                   .withRightRetentionStrategy(randomRetentionStrategy())
                    .build();
     }
 }

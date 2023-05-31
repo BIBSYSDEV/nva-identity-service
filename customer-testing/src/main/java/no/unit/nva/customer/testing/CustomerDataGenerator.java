@@ -9,6 +9,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +20,7 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.PublicationWorkflow;
-import no.unit.nva.customer.model.RetentionStrategyDao;
+import no.unit.nva.customer.model.CustomerDao.RetentionStrategyDao;
 import no.unit.nva.customer.model.RetentionStrategyType;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.model.VocabularyDao;
@@ -101,9 +102,13 @@ public class CustomerDataGenerator {
     }
 
     public static RetentionStrategy randomRetentionStrategy() {
+        var elements = Arrays.stream(RetentionStrategyType.values())
+                .filter(f -> f.ordinal() > 0)
+                .collect(Collectors.toList());
         return
-            new RetentionStrategyDao(randomElement(RetentionStrategyType.values()), randomUri());
+            new RetentionStrategyDao(randomElement(elements), randomUri());
     }
+
     public static DoiAgent randomDoiAgent(String randomString) {
         return new DoiAgent() {
 

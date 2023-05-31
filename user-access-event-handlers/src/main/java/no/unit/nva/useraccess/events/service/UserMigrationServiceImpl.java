@@ -70,7 +70,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     private Optional<UUID> getCustomerIdentifier(UserDto user) {
         return attempt(user::getInstitution)
             .map(UriWrapper::fromUri)
-            .map(UriWrapper::getFilename)
+            .map(UriWrapper::getLastPathElement)
             .map(UUID::fromString)
             .toOptional(f -> logInvalidInstitutionUriAndReturnEmpty(f.getException(), user));
     }

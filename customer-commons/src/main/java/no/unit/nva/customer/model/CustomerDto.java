@@ -263,7 +263,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(), getDoiAgent());
+                            getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightRetentionStrategy());
     }
 
     @Override
@@ -293,6 +293,7 @@ public class CustomerDto implements Context {
                && Objects.equals(getShortName(), that.getShortName())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getDoiAgent(), that.getDoiAgent())
+               && Objects.equals(getRightRetentionStrategy(), that.getRightRetentionStrategy())
                && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
@@ -433,16 +434,22 @@ public class CustomerDto implements Context {
         }
 
         public Builder withRightRetentionStrategy(RetentionStrategy rightsRetentionStrategy) {
-
-            customerDto.setRightRetentionStrategy(new RetentionStrategyDto(rightsRetentionStrategy));
+            customerDto.setRightRetentionStrategy(buildRetentionStrategyDto(rightsRetentionStrategy));
             return this;
         }
 
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
             if (nonNull(doiAgent)) {
                 return nonNull(customerDto.identifier)
-                           ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
-                           : new DoiAgentDto(doiAgent);
+                        ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
+                        : new DoiAgentDto(doiAgent);
+            }
+            return null;
+        }
+
+        private RetentionStrategyDto buildRetentionStrategyDto(RetentionStrategy retentionStrategy) {
+            if (nonNull(retentionStrategy)) {
+                return new RetentionStrategyDto(retentionStrategy);
             }
             return null;
         }

@@ -1,26 +1,13 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
-import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
-import static nva.commons.core.attempt.Try.attempt;
-import java.net.URI;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
+import no.unit.nva.customer.model.dynamo.converters.RetentionStrategyConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
-import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -30,6 +17,22 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConve
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
+import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
+import static nva.commons.core.attempt.Try.attempt;
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
@@ -72,26 +75,26 @@ public class CustomerDao implements Typed {
 
     public static CustomerDao fromCustomerDto(CustomerDto dto) {
         return builder()
-                   .withArchiveName(dto.getArchiveName())
-                   .withCname(dto.getCname())
-                   .withCreatedDate(dto.getCreatedDate())
-                   .withCristinId(dto.getCristinId())
-                   .withCustomerOf(extractCustomerOf(dto))
-                   .withDisplayName(dto.getDisplayName())
-                   .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
-                   .withIdentifier(dto.getIdentifier())
-                   .withInstitutionDns(dto.getInstitutionDns())
-                   .withModifiedDate(dto.getModifiedDate())
-                   .withName(dto.getName())
-                   .withPublicationWorkflow(dto.getPublicationWorkflow())
-                   .withRorId(dto.getRorId())
-                   .withShortName(dto.getShortName())
-                   .withVocabularySettings(extractVocabularySettings(dto))
-                   .withDoiAgent(dto.getDoiAgent())
-                   .withNviInstitution(dto.isNviInstitution())
-                   .withSector(dto.getSector())
-                   .withRightRetentionStrategy(dto.getRightRetentionStrategy())
-                   .build();
+            .withArchiveName(dto.getArchiveName())
+            .withCname(dto.getCname())
+            .withCreatedDate(dto.getCreatedDate())
+            .withCristinId(dto.getCristinId())
+            .withCustomerOf(extractCustomerOf(dto))
+            .withDisplayName(dto.getDisplayName())
+            .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
+            .withIdentifier(dto.getIdentifier())
+            .withInstitutionDns(dto.getInstitutionDns())
+            .withModifiedDate(dto.getModifiedDate())
+            .withName(dto.getName())
+            .withPublicationWorkflow(dto.getPublicationWorkflow())
+            .withRorId(dto.getRorId())
+            .withShortName(dto.getShortName())
+            .withVocabularySettings(extractVocabularySettings(dto))
+            .withDoiAgent(dto.getDoiAgent())
+            .withNviInstitution(dto.isNviInstitution())
+            .withSector(dto.getSector())
+            .withRightRetentionStrategy(dto.getRightRetentionStrategy())
+            .build();
     }
 
     @DynamoDbAttribute(IDENTIFIER)
@@ -216,7 +219,7 @@ public class CustomerDao implements Typed {
 
     public PublicationWorkflow getPublicationWorkflow() {
         return nonNull(publicationWorkflow) ? publicationWorkflow
-                   : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+            : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
@@ -225,8 +228,9 @@ public class CustomerDao implements Typed {
 
     @DynamoDbConvertedBy(DoiAgentConverter.class)
     public DoiAgentDao getDoiAgent() {
-        return  nonNull(doiAgent) ? doiAgent
-                    : new DoiAgentDao();
+        return nonNull(doiAgent)
+            ? doiAgent
+            : new DoiAgentDao();
     }
 
     public void setDoiAgent(DoiAgentDao doi) {
@@ -253,15 +257,14 @@ public class CustomerDao implements Typed {
     @DynamoDbConvertedBy(RetentionStrategyConverter.class)
     public RetentionStrategyDao getRightsRetentionStrategy() {
         return nonNull(rightsRetentionStrategy)
-                   ? rightsRetentionStrategy
-                   : new RetentionStrategyDao(RetentionStrategyType.NullRightRetentionStrategy,null);
+            ? rightsRetentionStrategy
+            : new RetentionStrategyDao();
     }
 
-    public void setRightsRetentionStrategy(RetentionStrategy retention) {
-        this.rightsRetentionStrategy = nonNull(retention)
-            ? new RetentionStrategyDao(retention)
-            : new RetentionStrategyDao(RetentionStrategyType.NullRightRetentionStrategy,null);
+    public void setRightsRetentionStrategy(RetentionStrategyDao retention) {
+        this.rightsRetentionStrategy = retention;
     }
+
     public CustomerDto toCustomerDto() {
         CustomerDto customerDto =
             CustomerDto.builder()
@@ -292,10 +295,9 @@ public class CustomerDao implements Typed {
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(),
-                            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(), getPublicationWorkflow(),
-                            getDoiAgent(), isNviInstitution(),getSector());
+            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationDomain(),
+            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(), getPublicationWorkflow(),
+            getDoiAgent(), isNviInstitution(), getSector(), getRightsRetentionStrategy());
     }
 
     @Override
@@ -309,31 +311,32 @@ public class CustomerDao implements Typed {
         }
         CustomerDao that = (CustomerDao) o;
         return Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getArchiveName(), that.getArchiveName())
-               && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(isNviInstitution(), that.isNviInstitution())
-               && Objects.equals(getSector(), that.getSector())
-               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getDoiAgent(), that.getDoiAgent())
-               && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getCustomerOf(), that.getCustomerOf())
-               && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getRorId(), that.getRorId())
-               && getPublicationWorkflow() == that.getPublicationWorkflow();
+            && Objects.equals(getCreatedDate(), that.getCreatedDate())
+            && Objects.equals(getModifiedDate(), that.getModifiedDate())
+            && Objects.equals(getName(), that.getName())
+            && Objects.equals(getDisplayName(), that.getDisplayName())
+            && Objects.equals(getShortName(), that.getShortName())
+            && Objects.equals(getArchiveName(), that.getArchiveName())
+            && Objects.equals(getCname(), that.getCname())
+            && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+            && Objects.equals(isNviInstitution(), that.isNviInstitution())
+            && Objects.equals(getSector(), that.getSector())
+            && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+            && Objects.equals(getDoiAgent(), that.getDoiAgent())
+            && Objects.equals(getCristinId(), that.getCristinId())
+            && Objects.equals(getCustomerOf(), that.getCustomerOf())
+            && Objects.equals(getVocabularies(), that.getVocabularies())
+            && Objects.equals(getRorId(), that.getRorId())
+            && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
+            && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
     private static URI extractCustomerOf(CustomerDto dto) {
         return Optional.ofNullable(dto)
-                   .map(CustomerDto::getCustomerOf)
-                   .map(ApplicationDomain::toString)
-                   .map(URI::create)
-                   .orElse(null);
+            .map(CustomerDto::getCustomerOf)
+            .map(ApplicationDomain::toString)
+            .map(URI::create)
+            .orElse(null);
     }
 
     @Override
@@ -351,18 +354,18 @@ public class CustomerDao implements Typed {
 
     private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {
         return Optional.ofNullable(dto.getVocabularies())
-                   .stream()
-                   .flatMap(Collection::stream)
-                   .map(VocabularyDao::fromVocabularySettingsDto)
-                   .collect(Collectors.toSet());
+            .stream()
+            .flatMap(Collection::stream)
+            .map(VocabularyDao::fromVocabularySettingsDto)
+            .collect(Collectors.toSet());
     }
 
     private Set<VocabularyDto> extractVocabularySettings() {
         return Optional.ofNullable(this.getVocabularies())
-                   .stream()
-                   .flatMap(Collection::stream)
-                   .map(VocabularyDao::toVocabularySettingsDto)
-                   .collect(Collectors.toSet());
+            .stream()
+            .flatMap(Collection::stream)
+            .map(VocabularyDao::toVocabularySettingsDto)
+            .collect(Collectors.toSet());
     }
 
     public static final class Builder {
@@ -469,7 +472,7 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withRightRetentionStrategy(RetentionStrategy retention) {
-            customerDb.setRightsRetentionStrategy(retention);
+            customerDb.setRightsRetentionStrategy(new RetentionStrategyDao(retention));
             return this;
         }
 
@@ -485,7 +488,7 @@ public class CustomerDao implements Typed {
     }
 
     @DynamoDbBean
-    public static class DoiAgentDao implements DoiAgent {
+    public static class DoiAgentDao implements DoiAgent, JsonSerializable {
 
         private String prefix;
         private String url;
@@ -543,8 +546,8 @@ public class CustomerDao implements Typed {
             }
             DoiAgentDao that = (DoiAgentDao) o;
             return Objects.equals(getPrefix(), that.getPrefix())
-                   && Objects.equals(getUrl(), that.getUrl())
-                   && Objects.equals(getUsername(), that.getUsername());
+                && Objects.equals(getUrl(), that.getUrl())
+                && Objects.equals(getUsername(), that.getUsername());
         }
 
         @Override
@@ -556,7 +559,73 @@ public class CustomerDao implements Typed {
         @Override
         @JacocoGenerated
         public String toString() {
-            return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
+            return toJsonString();
+        }
+    }
+
+    @DynamoDbBean
+    public static class RetentionStrategyDao implements RetentionStrategy, JsonSerializable {
+
+        private RetentionStrategyType retentionStrategy;
+        private URI id;
+
+        public RetentionStrategyDao() {
+            retentionStrategy = RetentionStrategyType.NullRightRetentionStrategy;
+        }
+
+        public RetentionStrategyDao(RetentionStrategyType retentionStrategy, URI id) {
+            this.retentionStrategy = retentionStrategy;
+            this.id = id;
+        }
+
+        public RetentionStrategyDao(RetentionStrategy retentionStrategy) {
+            if (nonNull(retentionStrategy)) {
+                this.retentionStrategy = retentionStrategy.getRetentionStrategy();
+                this.id = retentionStrategy.getId();
+            }
+        }
+
+        @Override
+        public RetentionStrategyType getRetentionStrategy() {
+            return retentionStrategy;
+        }
+
+        @Override
+        public URI getId() {
+            return id;
+        }
+
+        public void setRetentionStrategy(RetentionStrategyType retentionStrategy) {
+            this.retentionStrategy = retentionStrategy;
+        }
+
+        public void setId(URI id) {
+            this.id = id;
+        }
+
+        @Override
+        @JacocoGenerated
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            RetentionStrategyDao that = (RetentionStrategyDao) o;
+            return retentionStrategy == that.retentionStrategy && Objects.equals(id, that.id);
+        }
+
+        @Override
+        @JacocoGenerated
+        public int hashCode() {
+            return Objects.hash(retentionStrategy, id);
+        }
+
+        @Override
+        @JacocoGenerated
+        public String toString() {
+            return toJsonString();
         }
     }
 }

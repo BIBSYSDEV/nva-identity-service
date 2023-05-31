@@ -9,7 +9,11 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.interfaces.RetentionStrategy;
+import no.unit.nva.identityservice.json.JsonConfig;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
+
+import static nva.commons.core.attempt.Try.attempt;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -37,6 +41,7 @@ public class RetentionStrategyDto implements RetentionStrategy, JsonSerializable
     }
 
     @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -49,6 +54,7 @@ public class RetentionStrategyDto implements RetentionStrategy, JsonSerializable
     }
 
     @Override
+    @JacocoGenerated
     public int hashCode() {
         return Objects.hash(retentionStrategy, id);
     }

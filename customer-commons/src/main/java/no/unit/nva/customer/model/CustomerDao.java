@@ -3,6 +3,7 @@ package no.unit.nva.customer.model;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
+import no.unit.nva.customer.model.dynamo.converters.RetentionStrategyConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RetentionStrategy;
@@ -293,10 +294,9 @@ public class CustomerDao implements Typed {
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(),
-                            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(), getPublicationWorkflow(),
-                            getDoiAgent(), isNviInstitution(),getSector());
+            getShortName(), getArchiveName(), getCname(), getInstitutionDns(), getFeideOrganizationDomain(),
+            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(), getPublicationWorkflow(),
+            getDoiAgent(), isNviInstitution(), getSector(), getRightsRetentionStrategy());
     }
 
     @Override
@@ -326,6 +326,7 @@ public class CustomerDao implements Typed {
                && Objects.equals(getCustomerOf(), that.getCustomerOf())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getRorId(), that.getRorId())
+               && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
                && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
@@ -580,8 +581,6 @@ public class CustomerDao implements Typed {
             if (nonNull(retentionStrategy)) {
                 this.retentionStrategy = retentionStrategy.getRetentionStrategy();
                 this.id = retentionStrategy.getId();
-            } else {
-                this.retentionStrategy = RetentionStrategyType.NullRightRetentionStrategy;
             }
         }
 
@@ -606,6 +605,7 @@ public class CustomerDao implements Typed {
         }
 
         @Override
+        @JacocoGenerated
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -618,6 +618,7 @@ public class CustomerDao implements Typed {
         }
 
         @Override
+        @JacocoGenerated
         public int hashCode() {
             return Objects.hash(retentionStrategy, id);
         }

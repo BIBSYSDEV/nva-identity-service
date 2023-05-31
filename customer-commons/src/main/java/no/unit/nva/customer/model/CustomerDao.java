@@ -1,35 +1,28 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
-import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
-import static nva.commons.core.attempt.Try.attempt;
-import java.net.URI;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
-import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
+import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
+import static nva.commons.core.attempt.Try.attempt;
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
@@ -254,13 +247,13 @@ public class CustomerDao implements Typed {
     public RetentionStrategyDao getRightsRetentionStrategy() {
         return nonNull(rightsRetentionStrategy)
                    ? rightsRetentionStrategy
-                   : new RetentionStrategyDao(RetentionStrategyType.NullRightRetentionStrategy,null);
+                   : new RetentionStrategyDao();
     }
 
-    public void setRightsRetentionStrategy(RetentionStrategy retention) {
+    public void setRightsRetentionStrategy(RetentionStrategyDao retention) {
         this.rightsRetentionStrategy = nonNull(retention)
-            ? new RetentionStrategyDao(retention)
-            : new RetentionStrategyDao(RetentionStrategyType.NullRightRetentionStrategy,null);
+            ? retention
+            : new RetentionStrategyDao();
     }
     public CustomerDto toCustomerDto() {
         CustomerDto customerDto =
@@ -469,7 +462,9 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withRightRetentionStrategy(RetentionStrategy retention) {
-            customerDb.setRightsRetentionStrategy(retention);
+            customerDb.setRightsRetentionStrategy(nonNull(retention)
+                    ? new RetentionStrategyDao(retention)
+                    : new RetentionStrategyDao());
             return this;
         }
 
@@ -485,7 +480,7 @@ public class CustomerDao implements Typed {
     }
 
     @DynamoDbBean
-    public static class DoiAgentDao implements DoiAgent {
+    public static class DoiAgentDao implements DoiAgent, JsonSerializable {
 
         private String prefix;
         private String url;
@@ -556,7 +551,69 @@ public class CustomerDao implements Typed {
         @Override
         @JacocoGenerated
         public String toString() {
-            return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
+            return toJsonString();
         }
     }
+
+    @DynamoDbBean
+    public static class RetentionStrategyDao implements RetentionStrategy, JsonSerializable {
+
+        private RetentionStrategyType retentionStrategy;
+        private URI id;
+
+        public RetentionStrategyDao() {
+            retentionStrategy = RetentionStrategyType.NullRightRetentionStrategy;
+        }
+
+        public RetentionStrategyDao(RetentionStrategyType retentionStrategy, URI id) {
+            this.retentionStrategy = retentionStrategy;
+            this.id = id;
+        }
+
+        public RetentionStrategyDao(RetentionStrategy retentionStrategy) {
+
+            this.retentionStrategy = retentionStrategy.getRetentionStrategy();
+            this.id = retentionStrategy.getId();
+        }
+
+        public RetentionStrategyType getRetentionStrategy() {
+            return retentionStrategy;
+        }
+
+        public URI getId() {
+            return id;
+        }
+
+        public void setRetentionStrategy(RetentionStrategyType retentionStrategy) {
+            this.retentionStrategy = retentionStrategy;
+        }
+
+        public void setId(URI id) {
+            this.id = id;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            RetentionStrategyDao that = (RetentionStrategyDao) o;
+            return retentionStrategy == that.retentionStrategy && Objects.equals(id, that.id);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(retentionStrategy, id);
+        }
+
+        @Override
+        @JacocoGenerated
+        public String toString() {
+            return toJsonString();
+        }
+    }
+
 }

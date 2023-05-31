@@ -5,6 +5,7 @@ import no.unit.nva.customer.model.RetentionStrategyType;
 
 public interface RetentionStrategy {
     RetentionStrategyType getRetentionStrategy();
+
     URI getId();
 
 }

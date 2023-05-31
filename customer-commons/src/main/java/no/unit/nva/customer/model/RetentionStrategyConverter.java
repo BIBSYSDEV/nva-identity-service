@@ -9,7 +9,8 @@ import no.unit.nva.customer.model.CustomerDao.RetentionStrategyDao;
 
 public class RetentionStrategyConverter implements AttributeConverter<RetentionStrategyDao> {
 
-    public static final TableSchema<RetentionStrategyDao> TABLE_SCHEMA = TableSchema.fromBean(RetentionStrategyDao.class);
+    public static final TableSchema<RetentionStrategyDao> TABLE_SCHEMA =
+        TableSchema.fromBean(RetentionStrategyDao.class);
 
     public RetentionStrategyConverter() {
     }
@@ -27,7 +28,7 @@ public class RetentionStrategyConverter implements AttributeConverter<RetentionS
 
     @Override
     public EnhancedType<RetentionStrategyDao> type() {
-        return  EnhancedType.of(RetentionStrategyDao.class);
+        return EnhancedType.of(RetentionStrategyDao.class);
     }
 
     @Override

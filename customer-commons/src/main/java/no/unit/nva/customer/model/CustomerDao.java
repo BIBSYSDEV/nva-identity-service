@@ -10,11 +10,20 @@ import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -218,8 +227,9 @@ public class CustomerDao implements Typed {
 
     @DynamoDbConvertedBy(DoiAgentConverter.class)
     public DoiAgentDao getDoiAgent() {
-        return  nonNull(doiAgent) ? doiAgent
-                    : new DoiAgentDao();
+        return  nonNull(doiAgent)
+            ? doiAgent
+            : new DoiAgentDao();
     }
 
     public void setDoiAgent(DoiAgentDao doi) {
@@ -251,9 +261,7 @@ public class CustomerDao implements Typed {
     }
 
     public void setRightsRetentionStrategy(RetentionStrategyDao retention) {
-        this.rightsRetentionStrategy = nonNull(retention)
-            ? retention
-            : new RetentionStrategyDao();
+        this.rightsRetentionStrategy = retention;
     }
     public CustomerDto toCustomerDto() {
         CustomerDto customerDto =
@@ -462,9 +470,7 @@ public class CustomerDao implements Typed {
         }
 
         public Builder withRightRetentionStrategy(RetentionStrategy retention) {
-            customerDb.setRightsRetentionStrategy(nonNull(retention)
-                    ? new RetentionStrategyDao(retention)
-                    : new RetentionStrategyDao());
+            customerDb.setRightsRetentionStrategy(new RetentionStrategyDao(retention));
             return this;
         }
 
@@ -571,10 +577,17 @@ public class CustomerDao implements Typed {
         }
 
         public RetentionStrategyDao(RetentionStrategy retentionStrategy) {
-
-            this.retentionStrategy = retentionStrategy.getRetentionStrategy();
-            this.id = retentionStrategy.getId();
+            if (nonNull(retentionStrategy)) {
+                this.retentionStrategy = retentionStrategy.getRetentionStrategy();
+                this.id = retentionStrategy.getId();
+            } else {
+                this.retentionStrategy = RetentionStrategyType.NullRightRetentionStrategy;
+            }
         }
+
+//        public RetentionStrategyDto toRetentionStrategyDto() {
+//            return new RetentionStrategyDto(this);
+//        }
 
         public RetentionStrategyType getRetentionStrategy() {
             return retentionStrategy;

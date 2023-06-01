@@ -108,6 +108,7 @@ public class CustomerDataGenerator {
         return
             new RetentionStrategyDao(randomElement(elements), randomUri());
     }
+
     public static DoiAgent randomDoiAgent(String randomString) {
         return new DoiAgent() {
 

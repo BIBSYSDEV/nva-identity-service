@@ -88,7 +88,9 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
         throws BadRequestException {
 
         var allSecrets = attempt(this::getSecretsManagerDoiAgent).orElseThrow();
-        var inputSecret = DoiAgentDto.fromJson(input).addIdByIdentifier(customerId);
+        var inputSecret = DoiAgentDto
+            .fromJson(input)
+            .addIdByIdentifier(customerId);
 
         if (allSecrets.containsKey(customerId)) {
             allSecrets.get(customerId).merge(inputSecret);

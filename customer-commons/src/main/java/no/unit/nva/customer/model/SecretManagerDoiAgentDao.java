@@ -48,22 +48,25 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
                    .addId(customerIdToAgentId(customerId));
     }
 
-    public void merge(DoiAgentDto agentDto) {
-
+    public void merge(DoiAgentDto doiAgent) {
         if (isNull(customerId)) {
-            setCustomerId(agentIdToCustomerId(agentDto.getId()));
+            setCustomerId(agentIdToCustomerId(doiAgent.getId()));
         }
+        if (nonNull(doiAgent.getPrefix())) {
+            setPrefix(doiAgent.getPrefix());
+        }
+        if (nonNull(doiAgent.getUrl())) {
+            setUrl(doiAgent.getUrl());
+        }
+        if (nonNull(doiAgent.getPassword())) {
+            setPassword(doiAgent.getPassword());
+        }
+        setUsername(doiAgent.getUsername());
+    }
 
-        if (nonNull(agentDto.getPrefix())) {
-            setPrefix(agentDto.getPrefix());
-        }
-        if (nonNull(agentDto.getUrl())) {
-            setUrl(agentDto.getUrl());
-        }
-        setUsername(agentDto.getUsername());
-        if (nonNull(agentDto.getPassword())) {
-            setPassword(agentDto.getPassword());
-        }
+    public SecretManagerDoiAgentDao merge(SecretManagerDoiAgentDao agentDao) {
+        merge(agentDao.toDoiAgentDto());
+        return this;
     }
 
     private URI agentIdToCustomerId(URI agentId) {

@@ -65,8 +65,12 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
         }
 
         return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class))
-                   .collect(Collectors.toMap(customer -> toUuid(customer.getCustomerId()), customer -> customer));
+            .collect(Collectors.toConcurrentMap(
+                this::extractKey,
+                doiAgent -> doiAgent,
+                SecretManagerDoiAgentDao::merge));
     }
+
 
     private InputException handleIdentifierParsingError(String identifier, Failure<UUID> fail) {
         return new InputException(IDENTIFIER_IS_NOT_A_VALID_UUID + identifier, fail.getException());
@@ -103,6 +107,10 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
             );
     }
 
+    private UUID extractKey(SecretManagerDoiAgentDao doiAgent) {
+        return toUuid(doiAgent.getCustomerId());
+    }
+
     private ObjectMapper createJsonParser() {
         var jsonFactory =
             new JsonFactory()
@@ -118,4 +126,5 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
                 .disable(SerializationFeature.INDENT_OUTPUT)
                 .setSerializationInclusion(Include.ALWAYS);
     }
+
 }

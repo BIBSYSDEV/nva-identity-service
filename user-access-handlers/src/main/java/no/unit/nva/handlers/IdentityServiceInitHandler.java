@@ -5,13 +5,14 @@ import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_AL
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
+import static nva.commons.apigateway.AccessRight.EDIT_ALL_NON_DEGREE_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PROJECTS;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
 import static nva.commons.apigateway.AccessRight.PROCESS_IMPORT_CANDIDATE;
-import static nva.commons.apigateway.AccessRight.PUBLISH_THESIS;
-import static nva.commons.apigateway.AccessRight.PUBLISH_THESIS_EMBARGO_READ;
+import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE;
+import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE_EMBARGO_READ;
 import static nva.commons.apigateway.AccessRight.READ_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.REJECT_DOI_REQUEST;
 import static nva.commons.core.attempt.Try.attempt;
@@ -119,18 +120,19 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
                 .withAccessRights(List.of(PROCESS_IMPORT_CANDIDATE))
                 .build();
         var curatorThesis =
-            RoleDto.newBuilder().withRoleName("Curator-thesis").withAccessRights(List.of(PUBLISH_THESIS)).build();
+            RoleDto.newBuilder().withRoleName("Curator-thesis").withAccessRights(List.of(PUBLISH_DEGREE)).build();
         var curatorThesisEmbargo =
             RoleDto.newBuilder()
                 .withRoleName("Curator-thesis-embargo")
-                .withAccessRights(List.of(PUBLISH_THESIS_EMBARGO_READ))
+                .withAccessRights(List.of(PUBLISH_DEGREE_EMBARGO_READ))
                 .build();
         var applicationAdmin = RoleDto.newBuilder().withRoleName("App-admin")
                                    .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
                                    .build();
 
         var editor = RoleDto.newBuilder().withRoleName("Editor")
-                         .withAccessRights(List.of(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW))
+                         .withAccessRights(List.of(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW,
+                                                   EDIT_ALL_NON_DEGREE_RESOURCES))
                          .build();
 
         return List.of(creator, curator, institutionAdmin, applicationAdmin, editor, curatorImportCandidate,

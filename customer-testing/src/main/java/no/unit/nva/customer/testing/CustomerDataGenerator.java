@@ -9,6 +9,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -19,11 +20,14 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.PublicationWorkflow;
+import no.unit.nva.customer.model.CustomerDao.RetentionStrategyDao;
+import no.unit.nva.customer.model.RetentionStrategyType;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
+import no.unit.nva.customer.model.interfaces.RetentionStrategy;
 import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 
@@ -56,6 +60,7 @@ public class CustomerDataGenerator {
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withSector(randomSector())
                                    .withNviInstitution(randomBoolean())
+                                   .withRightRetentionStrategy(randomRetentionStrategy())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
@@ -90,9 +95,18 @@ public class CustomerDataGenerator {
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withNviInstitution(randomBoolean())
                                    .withSector(randomSector())
+                                   .withRightRetentionStrategy(randomRetentionStrategy())
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
+    }
+
+    public static RetentionStrategy randomRetentionStrategy() {
+        var elements = Arrays.stream(RetentionStrategyType.values())
+                .filter(f -> f.ordinal() > 0)
+                .collect(Collectors.toList());
+        return
+            new RetentionStrategyDao(randomElement(elements), randomUri());
     }
 
     public static DoiAgent randomDoiAgent(String randomString) {

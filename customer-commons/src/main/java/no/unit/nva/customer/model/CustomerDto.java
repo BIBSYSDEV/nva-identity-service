@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.UUID;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
+import no.unit.nva.customer.model.interfaces.RetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -46,6 +47,7 @@ public class CustomerDto implements Context {
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
     private Sector sector;
+    private RetentionStrategyDto rightRetentionStrategy;
 
     public CustomerDto() {
         super();
@@ -213,6 +215,13 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
+    public void setRightRetentionStrategy(RetentionStrategyDto retention) {
+        rightRetentionStrategy = retention;
+    }
+
+    public RetentionStrategyDto getRightRetentionStrategy() {
+        return rightRetentionStrategy;
+    }
     @Override
     public URI getContext() {
         return context;
@@ -244,7 +253,8 @@ public class CustomerDto implements Context {
                    .withDoiAgent(getDoiAgent())
                    .withNviInstitution(isNviInstitution())
                    .withSector(getSector())
-                   .withVocabularies(getVocabularies());
+                   .withVocabularies(getVocabularies())
+                   .withRightRetentionStrategy(getRightRetentionStrategy());
     }
 
     @Override
@@ -253,7 +263,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(), getDoiAgent());
+                            getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightRetentionStrategy());
     }
 
     @Override
@@ -283,6 +293,7 @@ public class CustomerDto implements Context {
                && Objects.equals(getShortName(), that.getShortName())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getDoiAgent(), that.getDoiAgent())
+               && Objects.equals(getRightRetentionStrategy(), that.getRightRetentionStrategy())
                && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
@@ -300,6 +311,7 @@ public class CustomerDto implements Context {
     public void setType(String type) {
         // do nothing;
     }
+
 
     public static final class Builder {
 
@@ -421,11 +433,23 @@ public class CustomerDto implements Context {
             return this;
         }
 
+        public Builder withRightRetentionStrategy(RetentionStrategy rightsRetentionStrategy) {
+            customerDto.setRightRetentionStrategy(buildRetentionStrategyDto(rightsRetentionStrategy));
+            return this;
+        }
+
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
             if (nonNull(doiAgent)) {
                 return nonNull(customerDto.identifier)
-                           ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
-                           : new DoiAgentDto(doiAgent);
+                        ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
+                        : new DoiAgentDto(doiAgent);
+            }
+            return null;
+        }
+
+        private RetentionStrategyDto buildRetentionStrategyDto(RetentionStrategy retentionStrategy) {
+            if (nonNull(retentionStrategy)) {
+                return new RetentionStrategyDto(retentionStrategy);
             }
             return null;
         }

@@ -2,6 +2,7 @@ package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
@@ -136,6 +137,7 @@ class CustomerDaoTest {
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withNviInstitution(randomBoolean())
                    .withSector(randomSector())
+                   .withRightRetentionStrategy(randomRetentionStrategy())
                    .build();
     }
 

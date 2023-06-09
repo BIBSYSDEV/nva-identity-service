@@ -34,8 +34,10 @@ public interface IdentityService {
     UserDto addUser(UserDto user) throws ConflictException;
     
     void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException;
-    
-    void updateUser(UserDto user) throws NotFoundException;
+
+    void updateRole(RoleDto roleDto) throws InvalidInputException, NotFoundException;
+
+    UserDto updateUser(UserDto user) throws NotFoundException;
     
     RoleDto getRole(RoleDto input) throws NotFoundException;
     

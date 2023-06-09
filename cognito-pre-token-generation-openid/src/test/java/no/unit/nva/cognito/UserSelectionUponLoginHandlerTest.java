@@ -28,6 +28,7 @@ import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinP
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -626,6 +627,50 @@ class UserSelectionUponLoginHandlerTest {
     }
 
     @Test
+    void shouldUpdateUsersAccessRightsWhenRoleHasNewAccessRight()
+        throws InvalidInputException, ConflictException, NotFoundException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var existingUserInitiallyWithoutRoles
+            = scenarios.createUsersForAllActiveAffiliations(person, identityService).stream()
+                  .collect(SingletonCollector.collect());
+        var approveDoiAccessRight = AccessRight.APPROVE_DOI_REQUEST;
+        var approvePublishAccessRight = AccessRight.APPROVE_PUBLISH_REQUEST;
+        var role = persistRoleToDatabase(List.of(approveDoiAccessRight));
+        assignExistingRoleToUser(existingUserInitiallyWithoutRoles, role);
+        updateRole(role, approvePublishAccessRight);
+
+        var event = newLoginEvent(person, LoginEventType.FEIDE);
+
+
+        var response = handler.handleRequest(event, context);
+
+        var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        var actualAccessRightClaims = extractAccessRights(response);
+        var expectedAccessRightClaims = getExpectedAccessRights(customerId, approveDoiAccessRight,
+                                                                approvePublishAccessRight);
+        assertThat(actualAccessRightClaims, containsInAnyOrder(expectedAccessRightClaims));
+
+        var updatedUser = identityService.getUser(existingUserInitiallyWithoutRoles);
+        var expectedAccessRights = List.of(approveDoiAccessRight,
+                                           approvePublishAccessRight).toArray(new AccessRight[0]);
+        assertThat(updatedUser.getAccessRights(), containsInAnyOrder(expectedAccessRights));
+    }
+
+    private String[] getExpectedAccessRights(String customerId, AccessRight... accessRights) {
+        if (accessRights == null || accessRights.length == 0) {
+            return new String[0];
+        }
+
+        return Arrays.stream(accessRights)
+                   .map(accessRight -> generateAccessRightClaim(customerId, accessRight))
+                   .toArray(String[]::new);
+    }
+
+    private String generateAccessRightClaim(String customerId, AccessRight accessRight) {
+        return accessRight + "@" + customerId;
+    }
+
+    @Test
     void shouldSetCustomerSelectionClaimsOnFeideLoginWithEmploymentInBothFeideAndNonFeideCustomers() {
 
         var person = scenarios.personWithTwoActiveEmploymentsInNonFeideAndFeideCustomers();
@@ -787,6 +832,18 @@ class UserSelectionUponLoginHandlerTest {
         return identityService.getRole(role);
     }
 
+    private RoleDto updateRole(RoleDto role, AccessRight accessRight)
+        throws InvalidInputException, NotFoundException {
+        var accessRights = new HashSet<>(role.getAccessRights());
+        accessRights.add(accessRight);
+        var updatedRole = RoleDto.newBuilder()
+                              .withRoleName(role.getRoleName())
+                              .withAccessRights(accessRights)
+                              .build();
+        updateRole(updatedRole);
+        return identityService.getRole(updatedRole);
+    }
+
     private String fetchFeideDomainFromRandomCustomerWithActiveEmployment(String nin) {
         return scenarios.fetchCustomersForPerson(nin)
                    .stream()
@@ -833,6 +890,11 @@ class UserSelectionUponLoginHandlerTest {
 
     private Void persistRole(RoleDto newRole) throws ConflictException, InvalidInputException {
         identityService.addRole(newRole);
+        return null;
+    }
+
+    private Void updateRole(RoleDto updatedRole) throws InvalidInputException, NotFoundException {
+        identityService.updateRole(updatedRole);
         return null;
     }
 

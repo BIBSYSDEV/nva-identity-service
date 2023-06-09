@@ -4,16 +4,21 @@ import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -23,7 +28,7 @@ public class IdentityServiceImplTest extends LocalIdentityService {
 
     public static final String EXPECTED_EXCEPTION_MESSAGE = "ExpectedExceptionMessage";
 
-    private IdentityServiceImpl databaseService;
+    private IdentityService databaseService;
 
     @BeforeEach
     public void init() throws InvalidEntryInternalException {
@@ -47,6 +52,24 @@ public class IdentityServiceImplTest extends LocalIdentityService {
         TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
         RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
         attempt(() -> databaseService.getRole(nonExistingRole));
+        assertThat(testAppender.getMessages(),
+                   StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
+    }
+
+    @Test
+    void shouldSucceedUpdatingAnExistingRole() throws InvalidInputException, ConflictException {
+        var serviceUnderTest = new IdentityServiceImpl(initializeTestDatabase());
+        var existingRole = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
+        serviceUnderTest.addRole(existingRole);
+
+        assertDoesNotThrow(() -> serviceUnderTest.updateRole(existingRole));
+    }
+
+    @Test
+    void updateRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
+        TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
+        RoleDto role = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
+        assertThrows(NotFoundException.class, () -> databaseService.updateRole(role));
         assertThat(testAppender.getMessages(),
                    StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
     }

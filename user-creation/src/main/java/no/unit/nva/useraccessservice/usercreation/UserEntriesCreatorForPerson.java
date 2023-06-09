@@ -104,8 +104,7 @@ public class UserEntriesCreatorForPerson {
                                           Person person) throws NotFoundException {
         var affiliation = person.getConsistentUnitAffiliation(existingUser.getInstitutionCristinId());
         var updatedUser = existingUser.copy().withAffiliation(affiliation).build();
-        identityService.updateUser(updatedUser);
-        return updatedUser;
+        return identityService.updateUser(updatedUser);
     }
 
     private UserDto addUser(UserDto user) throws ConflictException {

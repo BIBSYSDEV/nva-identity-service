@@ -53,6 +53,16 @@ public class RoleService extends DatabaseSubService {
             .orElseThrow(() -> handleRoleNotFound(queryObject));
     }
 
+    public void updateRole(RoleDto roleToUpdate) throws NotFoundException, InvalidInputException {
+        validate(roleToUpdate);
+
+        var role = getRoleAsOptional(roleToUpdate)
+                   .orElseThrow(() -> handleRoleNotFound(roleToUpdate));
+
+        var upd = role.copy().withAccessRights(roleToUpdate.getAccessRights()).build();
+        table.putItem(RoleDb.fromRoleDto(upd));
+    }
+
     protected RoleDb fetchRoleDb(RoleDb queryObject) {
         return table.getItem(queryObject);
     }

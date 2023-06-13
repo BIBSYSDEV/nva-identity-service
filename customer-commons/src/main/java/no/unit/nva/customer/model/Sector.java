@@ -5,7 +5,6 @@ public enum Sector {
     UHI,
     HEALTH,
     INSTITUTE,
-    ABM,
-    OTHER
+    ABM
 
 }

@@ -14,8 +14,11 @@ import no.unit.nva.useraccessservice.usercreation.person.Person;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.paths.UriWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UserEntriesCreatorForPerson {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserEntriesCreatorForPerson.class);
 
     public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
         RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT).build();
@@ -94,6 +97,7 @@ public class UserEntriesCreatorForPerson {
     }
 
     private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user, Person person) throws NotFoundException {
+        LOGGER.debug("Querying user by {} and {}…", user.getCristinId(), user.getInstitutionCristinId());
         var existingUser =
             identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(),
                                                                          user.getInstitutionCristinId());

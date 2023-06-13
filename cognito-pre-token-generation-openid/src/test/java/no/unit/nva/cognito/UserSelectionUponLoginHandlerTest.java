@@ -629,44 +629,25 @@ class UserSelectionUponLoginHandlerTest {
     void shouldUpdateUsersAccessRightsWhenRoleHasNewAccessRight()
         throws InvalidInputException, ConflictException, NotFoundException {
         var person = scenarios.personWithExactlyOneActiveEmployment();
-        var existingUserInitiallyWithoutRoles
-            = scenarios.createUsersForAllActiveAffiliations(person, identityService).stream()
-                  .collect(SingletonCollector.collect());
         var approveDoiAccessRight = AccessRight.APPROVE_DOI_REQUEST;
         var approvePublishAccessRight = AccessRight.APPROVE_PUBLISH_REQUEST;
+
+        var user = scenarios.createUsersForAllActiveAffiliations(person, identityService)
+                       .stream()
+                       .collect(SingletonCollector.collect());
         var role = persistRoleToDatabase(List.of(approveDoiAccessRight));
-        assignExistingRoleToUser(existingUserInitiallyWithoutRoles, role);
-        updateRole(role, approvePublishAccessRight);
+        assignExistingRoleToUser(user, role);
+
+        addAccessRightToExistingRole(role, approvePublishAccessRight);
 
         var event = newLoginEvent(person, LoginEventType.FEIDE);
 
-
         var response = handler.handleRequest(event, context);
 
-        var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
-        var actualAccessRightClaims = extractAccessRights(response);
-        var expectedAccessRightClaims = getExpectedAccessRights(customerId, approveDoiAccessRight,
-                                                                approvePublishAccessRight);
-        assertThat(actualAccessRightClaims, containsInAnyOrder(expectedAccessRightClaims));
+        assertTokenContainsAllAccessRightClaims(response, approveDoiAccessRight, approvePublishAccessRight);
 
-        var updatedUser = identityService.getUser(existingUserInitiallyWithoutRoles);
-        var expectedAccessRights = List.of(approveDoiAccessRight,
-                                           approvePublishAccessRight).toArray(new AccessRight[0]);
-        assertThat(updatedUser.getAccessRights(), containsInAnyOrder(expectedAccessRights));
-    }
-
-    private String[] getExpectedAccessRights(String customerId, AccessRight... accessRights) {
-        if (accessRights == null || accessRights.length == 0) {
-            return new String[0];
-        }
-
-        return Arrays.stream(accessRights)
-                   .map(accessRight -> generateAccessRightClaim(customerId, accessRight))
-                   .toArray(String[]::new);
-    }
-
-    private String generateAccessRightClaim(String customerId, AccessRight accessRight) {
-        return accessRight + "@" + customerId;
+        assertUserAccessRightsAreUpdated(user, approveDoiAccessRight,
+                                         approvePublishAccessRight);
     }
 
     @Test
@@ -687,6 +668,25 @@ class UserSelectionUponLoginHandlerTest {
         var expectedUsername = constructExpectedUsername(person, selectedCustomer);
 
         assertThatCustomerSelectionClaimsArePresent(expectedCustomerId, expectedCristinId, expectedUsername);
+    }
+
+    private void assertUserAccessRightsAreUpdated(UserDto user, AccessRight... accessRights) throws NotFoundException {
+        var updatedUser = identityService.getUser(user);
+        assertThat(updatedUser.getAccessRights(), containsInAnyOrder(accessRights));
+    }
+
+    private void assertTokenContainsAllAccessRightClaims(CognitoUserPoolPreTokenGenerationEvent response,
+                                                         AccessRight... accessRights) {
+        var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        var actualAccessRightClaims = extractAccessRights(response);
+        var expectedAccessRightClaims = Arrays.stream(accessRights)
+                                            .map(accessRight -> generateAccessRightClaim(customerId, accessRight))
+                                            .toArray();
+        assertThat(actualAccessRightClaims, containsInAnyOrder(expectedAccessRightClaims));
+    }
+
+    private String generateAccessRightClaim(String customerId, AccessRight accessRight) {
+        return accessRight + "@" + customerId;
     }
 
     private void assertThatCustomerSelectionClaimsAreCleared() {
@@ -831,7 +831,7 @@ class UserSelectionUponLoginHandlerTest {
         return identityService.getRole(role);
     }
 
-    private void updateRole(RoleDto role, AccessRight accessRight)
+    private void addAccessRightToExistingRole(RoleDto role, AccessRight accessRight)
         throws InvalidInputException, NotFoundException {
         var accessRights = new HashSet<>(role.getAccessRights());
         accessRights.add(accessRight);

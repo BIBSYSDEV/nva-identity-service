@@ -28,7 +28,6 @@ import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinP
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -832,7 +831,7 @@ class UserSelectionUponLoginHandlerTest {
         return identityService.getRole(role);
     }
 
-    private RoleDto updateRole(RoleDto role, AccessRight accessRight)
+    private void updateRole(RoleDto role, AccessRight accessRight)
         throws InvalidInputException, NotFoundException {
         var accessRights = new HashSet<>(role.getAccessRights());
         accessRights.add(accessRight);
@@ -841,7 +840,6 @@ class UserSelectionUponLoginHandlerTest {
                               .withAccessRights(accessRights)
                               .build();
         updateRole(updatedRole);
-        return identityService.getRole(updatedRole);
     }
 
     private String fetchFeideDomainFromRandomCustomerWithActiveEmployment(String nin) {
@@ -893,9 +891,8 @@ class UserSelectionUponLoginHandlerTest {
         return null;
     }
 
-    private Void updateRole(RoleDto updatedRole) throws InvalidInputException, NotFoundException {
+    private void updateRole(RoleDto updatedRole) throws InvalidInputException, NotFoundException {
         identityService.updateRole(updatedRole);
-        return null;
     }
 
     private List<URI> extractAllowedCustomersFromCongitoUpdateRequest() {

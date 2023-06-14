@@ -59,6 +59,14 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
         return new ExpectedBodyActualResponseTuple(expectedBody, response);
     }
 
+    protected <T> GatewayResponse<T> sendRequest(ControlledVocabularyHandler<?, ?> getHandler,
+                                                 InputStream getRequest,
+                                                 Class<T> responseType)
+        throws IOException {
+        getHandler.handleRequest(getRequest, output, CONTEXT);
+        return GatewayResponse.fromOutputStream(output, responseType);
+    }
+
     protected String responseContentType(GatewayResponse<?> response) {
         return response.getHeaders().get(HttpHeaders.CONTENT_TYPE);
     }
@@ -100,14 +108,6 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
         var response = sendRequest(getHandler, getRequest, VocabularyList.class);
         var getResponseObject = VocabularyList.fromJson(response.getBody());
         assertThat(getResponseObject.getVocabularies(), is(empty()));
-    }
-
-    protected <T> GatewayResponse<T> sendRequest(ControlledVocabularyHandler<?, ?> getHandler,
-                                                 InputStream getRequest,
-                                                 Class<T> responseType)
-        throws IOException {
-        getHandler.handleRequest(getRequest, output, CONTEXT);
-        return GatewayResponse.fromOutputStream(output, responseType);
     }
 
     public static class ExpectedBodyActualResponseTuple {

@@ -344,6 +344,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .withSector(randomSector())
                            .withNviInstitution(randomBoolean())
+                           .withRboInstitution(randomBoolean())
                            .withRightRetentionStrategy(randomRetentionStrategy())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",

@@ -60,6 +60,7 @@ public class CustomerDataGenerator {
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withSector(randomSector())
                                    .withNviInstitution(randomBoolean())
+                                   .withRboInstitution(randomBoolean())
                                    .withRightRetentionStrategy(randomRetentionStrategy())
                                    .build();
 

@@ -262,6 +262,7 @@ public class CustomerDto implements Context {
                    .withShortName(getShortName())
                    .withDoiAgent(getDoiAgent())
                    .withNviInstitution(isNviInstitution())
+                   .withRboInstitution(isRboInstitution())
                    .withSector(getSector())
                    .withVocabularies(getVocabularies())
                    .withRightRetentionStrategy(getRightRetentionStrategy());

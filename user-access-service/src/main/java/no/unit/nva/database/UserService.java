@@ -17,7 +17,6 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
@@ -130,14 +129,7 @@ public class UserService extends DatabaseSubService {
                    .map(Page::items)
                    .flatMap(Collection::stream)
                    .map(UserDao::toUserDto)
-                   .collect(SingletonCollector.tryCollect())
-                   .orElseThrow(f -> logAndThrow(f, cristinPersonId, cristinOrgId));
-    }
-
-    private RuntimeException logAndThrow(Failure<UserDto> failure, URI cristinPersonId, URI cristinOrgId) {
-        logger.debug(String.format("Failed to get user using %s and %s…", cristinPersonId, cristinOrgId),
-                     failure.getException());
-        return new RuntimeException(failure.getException());
+                   .collect(SingletonCollector.collect());
     }
 
     private QueryEnhancedRequest createQueryForSearchingInCristinCredentialsIndex(URI cristinPersonId,

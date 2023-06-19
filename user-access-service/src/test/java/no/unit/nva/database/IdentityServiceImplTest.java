@@ -1,14 +1,18 @@
 package no.unit.nva.database;
 
 import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
+import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.util.Set;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -18,7 +22,6 @@ import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -57,12 +60,17 @@ public class IdentityServiceImplTest extends LocalIdentityService {
     }
 
     @Test
-    void shouldSucceedUpdatingAnExistingRole() throws InvalidInputException, ConflictException {
-        var serviceUnderTest = new IdentityServiceImpl(initializeTestDatabase());
-        var existingRole = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
-        serviceUnderTest.addRole(existingRole);
+    void shouldSucceedUpdatingAnExistingRole() throws InvalidInputException, ConflictException, NotFoundException {
+        var existingRole = EntityUtils.createRole(randomString(), APPROVE_DOI_REQUEST);
+        databaseService.addRole(existingRole);
 
-        assertDoesNotThrow(() -> serviceUnderTest.updateRole(existingRole));
+        var updatedAccessRights = Set.of(APPROVE_DOI_REQUEST, APPROVE_PUBLISH_REQUEST);
+        var roleToUpdate = existingRole.copy().withAccessRights(updatedAccessRights).build();
+
+        databaseService.updateRole(roleToUpdate);
+
+        var updatedRole = databaseService.getRole(roleToUpdate);
+        assertThat(updatedRole.getAccessRights(), containsInAnyOrder(APPROVE_DOI_REQUEST, APPROVE_PUBLISH_REQUEST));
     }
 
     @Test

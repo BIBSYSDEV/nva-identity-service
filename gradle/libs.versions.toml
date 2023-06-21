@@ -1,9 +1,9 @@
 [versions]
-nvaCommons = { strictly = '1.29.1' }
+nvaCommons = { strictly = '1.30.1' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
-awsSdk2 = { strictly = '2.20.60' }
-jackson = { strictly = "2.14.1" }
+awsSdk2 = { strictly = '2.20.80' }
+jackson = { strictly = "2.15.2" }
 xraySdk = { strictly = '2.9.1' }
 dynamoDbLocal = { strictly = '1.17.2' }
 zalandoProblem = { strictly = '0.27.1' }
@@ -13,13 +13,13 @@ slf4j = { strictly = '1.8.0-beta4' }
 apacheHttpClient = { strictly = '4.5.13' }
 hamcrest = { strictly = '2.2' }
 javersCore = { strictly = '6.2.5' }
-javafaker = { strictly = '1.0.2' }
+datafaker = { strictly = '1.9.0' }
 mockitoCore = { strictly = '4.5.1' }
 apiGuardian = { strictly = '1.1.2' }
-guava = { strictly = '31.1-jre' }
+guava = { strictly = '32.0.0-jre' }
 hamcrestJackson = { strictly = '1.2.0' }
 log4j = { strictly = '2.17.2' }
-awsLambdaEvents = { strictly = '3.11.1' }
+awsLambdaEvents = { strictly = '3.11.2' }
 wiremock = { strictly = '2.33.2' }
 
 [libraries]
@@ -79,7 +79,7 @@ junit-jupiter-params = { group = 'org.junit.jupiter', name = 'junit-jupiter-para
 mockito-core = { group = 'org.mockito', name = 'mockito-core', version.ref = 'mockitoCore' }
 javers-core = { group = 'org.javers', name = 'javers-core', version.ref = 'javersCore' }
 hamcrest = { group = 'org.hamcrest', name = 'hamcrest', version.ref = 'hamcrest' }
-javafaker = { group = 'com.github.javafaker', name = 'javafaker', version.ref = 'javafaker' }
+datafaker = { group = 'net.datafaker', name = 'datafaker', version.ref = 'datafaker' }
 dynamoDbLocal = { group = 'com.amazonaws', name = 'DynamoDBLocal', version.ref = 'dynamoDbLocal' }
 nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nvaCommons' }
 hamcrest-jackson = { group = 'com.spotify', name = 'hamcrest-jackson', version.ref = 'hamcrestJackson' }
@@ -92,7 +92,7 @@ guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 [bundles]
 logging = ['log4j-core', 'log4j-api', 'slf4j', 'log4j-slf4j18-impl']
 testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core',
-    'javers-core', 'hamcrest', 'javafaker', 'nva-testutils', 'nva-logutils',
+    'javers-core', 'hamcrest', 'datafaker', 'nva-testutils', 'nva-logutils',
     'hamcrest-jackson', 'wiremock'
 ]
 #aws-xray = ['aws-xray-recorder-sdk-core', 'aws-xray-recorder-sdk-aws-sdk', 'aws-xray-recorder-sdk-aws-sdk-instrumentor']

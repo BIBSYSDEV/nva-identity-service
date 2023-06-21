@@ -1,8 +1,12 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.database.RoleService.ROLE_ALREADY_EXISTS_ERROR_MESSAGE;
 import static no.unit.nva.handlers.IdentityServiceInitHandler.SIKT_CRISTIN_ID;
+import static no.unit.nva.useraccessservice.model.RoleDto.MISSING_ROLE_NAME_ERROR;
+import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
+import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
@@ -13,6 +17,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.service.CustomerService;
@@ -24,9 +31,11 @@ import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.handlers.models.RoleList;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -35,9 +44,13 @@ import org.junit.jupiter.api.Test;
 
 class IdentityServiceInitHandlerTest {
 
-    private static final int USER_PSEUDO_ACCESS_RIGHT = 1;
-    private static final int PUBLISH_METADATA = 1;
-    private static final int PUBLISH_FILES = 1;
+    private static final String ROLE_NAME = "My-role";
+    private static final List<AccessRight> ACCESS_RIGHTS = List.of(APPROVE_DOI_REQUEST,
+                                                                   APPROVE_PUBLISH_REQUEST);
+    private static final RoleSource ROLE_SOURCE = () -> List.of(RoleDto.newBuilder()
+                                                                    .withRoleName(ROLE_NAME)
+                                                                    .withAccessRights(ACCESS_RIGHTS)
+                                                                    .build());
 
     private IdentityService identityService;
     private ByteArrayOutputStream output;
@@ -64,37 +77,64 @@ class IdentityServiceInitHandlerTest {
 
     @Test
     void shouldCreateTheDefaultRolesForTheService() throws IOException {
-        var handler = new IdentityServiceInitHandler(identityService, customerService);
+
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
         handler.handleRequest(createRequest(), output, context);
         var response = GatewayResponse.fromOutputStream(output, RoleList.class);
         var allRoles = response.getBodyObject(RoleList.class);
-        var accessRights = allRoles.getRoles().stream()
-                               .map(RoleDto::getAccessRights)
-                               .flatMap(Collection::stream)
-                               .collect(Collectors.toSet());
-        var expectedAccessRightsCount
-            =
-            AccessRight.values().length
-            - USER_PSEUDO_ACCESS_RIGHT
-            - PUBLISH_METADATA
-            - PUBLISH_FILES;
+        Set<AccessRight> accessRights = extractAllAccessRights(allRoles);
 
-        assertThat(accessRights.size(),
-                   is(equalTo(expectedAccessRightsCount)));
+        var expectedRolesCount = ROLE_SOURCE.roles().size();
+        assertThat(allRoles.getRoles(), hasSize(expectedRolesCount));
+
+        var expectedAccessRightsCount = ACCESS_RIGHTS.size();
+        assertThat(accessRights, hasSize(expectedAccessRightsCount));
     }
 
     @Test
     void shouldLogWarningWhenRoleCreationFails() throws IOException {
         var logger = LogUtils.getTestingAppenderForRootLogger();
-        var handler = new IdentityServiceInitHandler(identityService, customerService);
+        var role = invalidRole();
+        RoleSource roleSourceContainingIllegalRoleName = () -> List.of(role);
+        var handler = new IdentityServiceInitHandler(identityService, customerService,
+                                                     roleSourceContainingIllegalRoleName);
         handler.handleRequest(createRequest(), output, context);
-        makeRequestFailDueToCollisionError(handler, createRequest());
-        assertThat(logger.getMessages(), containsString(ROLE_ALREADY_EXISTS_ERROR_MESSAGE));
+        assertThat(logger.getMessages(), containsString(MISSING_ROLE_NAME_ERROR));
+    }
+
+    private Set<AccessRight> extractAllAccessRights(RoleList allRoles) {
+        return allRoles.getRoles().stream()
+                   .map(RoleDto::getAccessRights)
+                   .flatMap(Collection::stream)
+                   .collect(Collectors.toSet());
+    }
+
+    private RoleDto invalidRole() {
+        var role = new RoleDto();
+        role.setRoleName("");
+        role.setAccessRights(Collections.emptyList());
+        return role;
+    }
+
+    @Test
+    void shouldUpdateRoleIfAlreadyExists()
+        throws InvalidInputException, ConflictException, IOException, NotFoundException {
+        var role = RoleDto.newBuilder()
+                       .withRoleName(ROLE_NAME)
+                       .withAccessRights(List.of(APPROVE_DOI_REQUEST))
+                       .build();
+        identityService.addRole(role);
+
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
+        handler.handleRequest(createRequest(), output, context);
+
+        var updatedRole = identityService.getRole(role);
+        assertThat(updatedRole.getAccessRights(), containsInAnyOrder(APPROVE_DOI_REQUEST, APPROVE_PUBLISH_REQUEST));
     }
 
     @Test
     void shouldCreateSiktCustomer() throws NotFoundException, IOException {
-        var handler = new IdentityServiceInitHandler(identityService, customerService);
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
         handler.handleRequest(createRequest(), output, context);
         var customer = customerService.getCustomerByCristinId(SIKT_CRISTIN_ID);
         assertThat(customer, is(not(nullValue())));
@@ -115,10 +155,5 @@ class IdentityServiceInitHandlerTest {
 
     private InputStream createRequest() throws com.fasterxml.jackson.core.JsonProcessingException {
         return new HandlerRequestBuilder<Void>(JsonUtils.dtoObjectMapper).build();
-    }
-
-    private void makeRequestFailDueToCollisionError(IdentityServiceInitHandler handler, InputStream request)
-        throws IOException {
-        handler.handleRequest(request, output, context);
     }
 }

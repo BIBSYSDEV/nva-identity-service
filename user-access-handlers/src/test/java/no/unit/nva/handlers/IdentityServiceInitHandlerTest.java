@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.service.CustomerService;
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class IdentityServiceInitHandlerTest {
+
     private static final String ROLE_NAME = "My-role";
     private static final List<AccessRight> ACCESS_RIGHTS = List.of(APPROVE_DOI_REQUEST,
                                                                    APPROVE_PUBLISH_REQUEST);
@@ -80,10 +82,7 @@ class IdentityServiceInitHandlerTest {
         handler.handleRequest(createRequest(), output, context);
         var response = GatewayResponse.fromOutputStream(output, RoleList.class);
         var allRoles = response.getBodyObject(RoleList.class);
-        var accessRights = allRoles.getRoles().stream()
-                               .map(RoleDto::getAccessRights)
-                               .flatMap(Collection::stream)
-                               .collect(Collectors.toSet());
+        Set<AccessRight> accessRights = extractAllAccessRights(allRoles);
 
         var expectedRolesCount = ROLE_SOURCE.roles().size();
         assertThat(allRoles.getRoles(), hasSize(expectedRolesCount));
@@ -101,6 +100,13 @@ class IdentityServiceInitHandlerTest {
                                                      roleSourceContainingIllegalRoleName);
         handler.handleRequest(createRequest(), output, context);
         assertThat(logger.getMessages(), containsString(MISSING_ROLE_NAME_ERROR));
+    }
+
+    private Set<AccessRight> extractAllAccessRights(RoleList allRoles) {
+        return allRoles.getRoles().stream()
+                   .map(RoleDto::getAccessRights)
+                   .flatMap(Collection::stream)
+                   .collect(Collectors.toSet());
     }
 
     private RoleDto invalidRole() {

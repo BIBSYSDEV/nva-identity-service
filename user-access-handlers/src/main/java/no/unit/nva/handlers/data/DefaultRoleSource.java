@@ -5,10 +5,10 @@ import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
 import static nva.commons.apigateway.AccessRight.EDIT_ALL_NON_DEGREE_RESOURCES;
-import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PROJECTS;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_PROJECTS;
 import static nva.commons.apigateway.AccessRight.PROCESS_IMPORT_CANDIDATE;
 import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE;
 import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE_EMBARGO_READ;
@@ -30,6 +30,7 @@ public class DefaultRoleSource implements RoleSource {
 
     private static final RoleDto CREATOR_ROLE = RoleDto.newBuilder()
                                                     .withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
+                                                    .withAccessRights(List.of(MANAGE_OWN_PROJECTS))
                                                     .build();
 
     private static final RoleDto CURATOR_ROLE = RoleDto.newBuilder()
@@ -44,7 +45,6 @@ public class DefaultRoleSource implements RoleSource {
     private static final RoleDto INSTITUTION_ADMIN_ROLE = RoleDto.newBuilder()
                                                               .withRoleName(INSTITUTION_ADMIN_ROLE_NAME)
                                                               .withAccessRights(List.of(EDIT_OWN_INSTITUTION_RESOURCES,
-                                                                                        EDIT_OWN_INSTITUTION_PROJECTS,
                                                                                         EDIT_OWN_INSTITUTION_USERS))
                                                               .build();
 
@@ -65,11 +65,13 @@ public class DefaultRoleSource implements RoleSource {
                                                                        List.of(PUBLISH_DEGREE_EMBARGO_READ))
                                                                    .build();
 
-    private static final RoleDto APPLICATION_ADMIN_ROLE = RoleDto.newBuilder().withRoleName(APP_ADMIN_ROLE_NAME)
+    private static final RoleDto APPLICATION_ADMIN_ROLE = RoleDto.newBuilder()
+                                                              .withRoleName(APP_ADMIN_ROLE_NAME)
                                                               .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
                                                               .build();
 
-    private static final RoleDto EDITOR_ROLE = RoleDto.newBuilder().withRoleName(EDITOR_ROLE_NAME)
+    private static final RoleDto EDITOR_ROLE = RoleDto.newBuilder()
+                                                   .withRoleName(EDITOR_ROLE_NAME)
                                                    .withAccessRights(List.of(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW,
                                                                              EDIT_ALL_NON_DEGREE_RESOURCES))
                                                    .build();

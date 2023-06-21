@@ -12,10 +12,10 @@ import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
 import static nva.commons.apigateway.AccessRight.EDIT_ALL_NON_DEGREE_RESOURCES;
-import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PROJECTS;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_PROJECTS;
 import static nva.commons.apigateway.AccessRight.PROCESS_IMPORT_CANDIDATE;
 import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE;
 import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE_EMBARGO_READ;
@@ -23,10 +23,8 @@ import static nva.commons.apigateway.AccessRight.READ_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.REJECT_DOI_REQUEST;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import java.util.List;
-import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.handlers.RoleSource;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.core.SingletonCollector;
@@ -41,10 +39,10 @@ public class DefaultRoleSourceTest {
     }
 
     @Test
-    void creatorsShouldHaveNoAccessRights() {
+    void creatorsShouldHaveCorrectAccessRights() {
         var creatorRole = getRoleByName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT);
 
-        assertThat(creatorRole.getAccessRights(), empty());
+        assertThat(creatorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_PROJECTS));
     }
 
     @Test
@@ -84,7 +82,6 @@ public class DefaultRoleSourceTest {
         var institutionAdminRole = getRoleByName(INSTITUTION_ADMIN_ROLE_NAME);
 
         assertThat(institutionAdminRole.getAccessRights(), containsInAnyOrder(EDIT_OWN_INSTITUTION_RESOURCES,
-                                                                              EDIT_OWN_INSTITUTION_PROJECTS,
                                                                               EDIT_OWN_INSTITUTION_USERS));
     }
 

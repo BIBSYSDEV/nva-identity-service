@@ -5,6 +5,8 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.RequestUtils;
@@ -45,7 +47,7 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
     @Override
     protected CustomerDto processInput(Void input, RequestInfo request, Context context)
         throws NotFoundException, InputException {
-        var cristinId = URI.create(getCristinId(request));
+        var cristinId = URI.create(URLDecoder.decode(getCristinId(request), StandardCharsets.UTF_8));
         return customerService.getCustomerByCristinId(cristinId);
     }
 

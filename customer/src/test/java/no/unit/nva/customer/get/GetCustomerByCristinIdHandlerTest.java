@@ -3,6 +3,7 @@ package no.unit.nva.customer.get;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -16,6 +17,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.ApplicationDomain;
@@ -25,6 +28,7 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -55,10 +59,12 @@ class GetCustomerByCristinIdHandlerTest {
         prepareMocksWithExistingCustomer();
         
         Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID,
-            SAMPLE_CRISTIN_ID.toString());
+                                                    URLEncoder.encode(SAMPLE_CRISTIN_ID.toString(),
+                                                                      StandardCharsets.UTF_8));
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withHeaders(getRequestHeaders())
                         .withPathParameters(pathParameters)
+                        .withAccessRights(randomUri(), AccessRight.USER.toString())
                         .build();
         
         var response = sendRequest(input, CustomerDto.class);

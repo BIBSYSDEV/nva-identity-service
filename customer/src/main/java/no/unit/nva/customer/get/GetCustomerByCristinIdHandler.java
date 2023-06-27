@@ -49,9 +49,8 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
     @Override
     protected CustomerDto processInput(Void input, RequestInfo request, Context context)
         throws NotFoundException, InputException {
-        var cristinId = URI.create(URLDecoder.decode(getCristinId(request), StandardCharsets.UTF_8));
-        logger.info("CristindId: {}", cristinId);
-        return customerService.getCustomerByCristinId(cristinId);
+        var cristinUriIdentifier = URI.create(URLDecoder.decode(getCristinId(request), StandardCharsets.UTF_8));
+        return customerService.getCustomerByCristinId(cristinUriIdentifier);
     }
 
     @Override

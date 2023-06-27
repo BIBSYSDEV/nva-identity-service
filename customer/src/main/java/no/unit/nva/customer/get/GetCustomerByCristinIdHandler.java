@@ -17,13 +17,10 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, CustomerDto> {
 
     public static final String CRISTIN_ID = "cristinId";
-    private static final Logger logger = LoggerFactory.getLogger(GetCustomerByCristinIdHandler.class);
     private final CustomerService customerService;
 
     @JacocoGenerated

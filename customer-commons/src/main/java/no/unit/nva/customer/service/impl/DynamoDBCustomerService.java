@@ -148,7 +148,9 @@ public class DynamoDBCustomerService implements CustomerService {
     private CustomerDto sendQueryToIndex(CustomerDao queryObject, String indexName,
                                          Function<CustomerDao, String> indexPartitionValue) throws NotFoundException {
         QueryEnhancedRequest query = createQuery(queryObject, indexPartitionValue);
+        logger.info("Query: {}", query);
         var results = table.index(indexName).query(query);
+        logger.info("Results: {}", results.toString());
         return results.stream()
                    .flatMap(page -> page.items().stream())
                    .map(CustomerDao::toCustomerDto)

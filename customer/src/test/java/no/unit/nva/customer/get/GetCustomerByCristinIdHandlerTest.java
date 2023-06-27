@@ -57,14 +57,12 @@ class GetCustomerByCristinIdHandlerTest {
     void handleRequestReturnsExistingCustomerOnValidCristinId()
         throws IOException, BadRequestException, NotFoundException {
         prepareMocksWithExistingCustomer();
-        
-        Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID,
-                                                    URLEncoder.encode(SAMPLE_CRISTIN_ID.toString(),
-                                                                      StandardCharsets.UTF_8));
+
+        var encodedCristinOrgUrl = URLEncoder.encode(SAMPLE_CRISTIN_ID.toString(), StandardCharsets.UTF_8);
+        Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, encodedCristinOrgUrl);
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withHeaders(getRequestHeaders())
                         .withPathParameters(pathParameters)
-                        .withAccessRights(randomUri(), AccessRight.USER.toString())
                         .build();
         
         var response = sendRequest(input, CustomerDto.class);

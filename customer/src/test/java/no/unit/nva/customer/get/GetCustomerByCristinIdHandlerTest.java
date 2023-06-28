@@ -59,7 +59,7 @@ class GetCustomerByCristinIdHandlerTest {
         prepareMocksWithExistingCustomer();
 
         var encodedCristinOrgUrl = URLEncoder.encode(SAMPLE_CRISTIN_ID.toString(), StandardCharsets.UTF_8);
-        Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, encodedCristinOrgUrl);
+        var pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, encodedCristinOrgUrl);
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withHeaders(getRequestHeaders())
                         .withPathParameters(pathParameters)
@@ -77,8 +77,7 @@ class GetCustomerByCristinIdHandlerTest {
     void handleRequestReturnsNotFoundOnInvalidCristinId() throws IOException, NotFoundException {
         prepareMocksWithMissingCustomer();
         
-        Map<String, String> pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID,
-            SAMPLE_CRISTIN_ID.toString());
+        var pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, SAMPLE_CRISTIN_ID.toString());
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withHeaders(getRequestHeaders())
                         .withPathParameters(pathParameters)
@@ -102,7 +101,7 @@ class GetCustomerByCristinIdHandlerTest {
     }
     
     private CustomerDto createCustomer() {
-        CustomerDao customer = new CustomerDao.Builder()
+        var customer = new CustomerDao.Builder()
                                    .withIdentifier(UUID.randomUUID())
                                    .withCristinId(SAMPLE_CRISTIN_ID)
                                    .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())

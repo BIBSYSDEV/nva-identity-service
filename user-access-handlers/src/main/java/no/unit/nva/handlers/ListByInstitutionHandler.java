@@ -4,7 +4,6 @@ import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Optional;
-import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
@@ -21,14 +20,6 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
     public static final String MISSING_QUERY_PARAMETER_ERROR = "Institution Id query parameter is not a URI. "
                                                                + "Probably error in the Lambda function definition.";
     private final IdentityService databaseService;
-
-    private final BiPredicate<UserDto, Optional<String>> likeUserOrEmpty = (userDto, userName) -> userName
-               .map(s -> userDto.getUsername().contains(s))
-               .orElse(true);
-    private final BiPredicate<UserDto, Optional<String>> hasRoleOrEmpty = (userDto, roleName) ->
-              roleName
-                  .map(s -> userDto.getRoles().stream().anyMatch(f -> f.getRoleName().equals(s)))
-                  .orElse(true);
 
     public ListByInstitutionHandler(IdentityService databaseService) {
         super(Void.class);
@@ -54,8 +45,8 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
         var users =
             databaseService
                 .listUsers(institutionId).stream()
-                .filter(user -> likeUserOrEmpty.test(user, userName))
-                .filter(user -> hasRoleOrEmpty.test(user, role))
+                .filter(user -> likeUserOrEmpty(user, userName))
+                .filter(user -> hasRoleOrEmpty(user, role))
                 .collect(Collectors.toList());
         return UserList.fromList(users);
     }
@@ -64,5 +55,16 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
         return requestInfo.getQueryParameterOpt(INSTITUTION_ID_QUERY_PARAMETER)
                    .map(URI::create)
                    .orElseThrow(() -> new BadRequestException(MISSING_QUERY_PARAMETER_ERROR));
+    }
+
+    private boolean likeUserOrEmpty(UserDto userDto, Optional<String> userName) {
+        return userName
+                   .map(s -> userDto.getUsername().contains(s))
+                   .orElse(true);
+    }
+    private boolean hasRoleOrEmpty(UserDto userDto, Optional<String> roleName) {
+        return roleName
+                   .map(s -> userDto.getRoles().stream().anyMatch(f -> f.getRoleName().equals(s)))
+                   .orElse(true);
     }
 }

@@ -39,6 +39,8 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
     public static final URI SOME_OTHER_INSTITUTION = randomCristinOrgId();
+    private static final String NAME = "name";
+    private static final String ROLE = "role";
     private ListByInstitutionHandler listByInstitutionHandler;
     private Context context;
     private ByteArrayOutputStream outputStream;
@@ -201,7 +203,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     private InputStream createListRequest(URI institutionId) throws JsonProcessingException {
         Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString());
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+        return new HandlerRequestBuilder<>(dtoObjectMapper)
                    .withQueryParameters(queryParams)
                    .build();
     }
@@ -209,9 +211,9 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     private InputStream createListWithFilterRequest(URI institutionId, String role) throws JsonProcessingException {
         var queryParams = Map.of(
             INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString(),
-            "role", role);
+            ROLE, role);
 
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+        return new HandlerRequestBuilder<>(dtoObjectMapper)
                    .withQueryParameters(queryParams)
                    .build();
     }
@@ -220,9 +222,9 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         throws JsonProcessingException {
         var queryParams = Map.of(
             INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString(),
-            "name", username);
+            NAME, username);
 
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+        return new HandlerRequestBuilder<>(dtoObjectMapper)
                    .withQueryParameters(queryParams)
                    .build();
     }

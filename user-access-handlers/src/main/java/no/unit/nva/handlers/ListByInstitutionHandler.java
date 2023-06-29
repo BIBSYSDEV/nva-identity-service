@@ -62,6 +62,7 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
                    .map(s -> userDto.getUsername().contains(s))
                    .orElse(true);
     }
+
     private boolean hasRoleOrEmpty(UserDto userDto, Optional<String> roleName) {
         return roleName
                    .map(s -> userDto.getRoles().stream().anyMatch(f -> f.getRoleName().equals(s)))

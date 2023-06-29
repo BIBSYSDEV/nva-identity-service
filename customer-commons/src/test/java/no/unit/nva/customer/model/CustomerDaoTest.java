@@ -136,6 +136,7 @@ class CustomerDaoTest {
                    .withPublicationWorkflow(randomPublicationWorkflow())
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withNviInstitution(randomBoolean())
+                   .withRboInstitution(randomBoolean())
                    .withSector(randomSector())
                    .withRightRetentionStrategy(randomRetentionStrategy())
                    .build();

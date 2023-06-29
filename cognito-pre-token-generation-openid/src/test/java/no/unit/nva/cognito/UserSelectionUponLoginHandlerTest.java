@@ -626,6 +626,31 @@ class UserSelectionUponLoginHandlerTest {
     }
 
     @Test
+    void shouldUpdateUsersAccessRightsWhenRoleHasNewAccessRight()
+        throws InvalidInputException, ConflictException, NotFoundException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var approveDoiAccessRight = AccessRight.APPROVE_DOI_REQUEST;
+        var approvePublishAccessRight = AccessRight.APPROVE_PUBLISH_REQUEST;
+
+        var user = scenarios.createUsersForAllActiveAffiliations(person, identityService)
+                       .stream()
+                       .collect(SingletonCollector.collect());
+        var role = persistRoleToDatabase(List.of(approveDoiAccessRight));
+        assignExistingRoleToUser(user, role);
+
+        addAccessRightToExistingRole(role, approvePublishAccessRight);
+
+        var event = newLoginEvent(person, LoginEventType.FEIDE);
+
+        var response = handler.handleRequest(event, context);
+
+        assertTokenContainsAllAccessRightClaims(response, approveDoiAccessRight, approvePublishAccessRight);
+
+        assertUserAccessRightsAreUpdated(user, approveDoiAccessRight,
+                                         approvePublishAccessRight);
+    }
+
+    @Test
     void shouldSetCustomerSelectionClaimsOnFeideLoginWithEmploymentInBothFeideAndNonFeideCustomers() {
 
         var person = scenarios.personWithTwoActiveEmploymentsInNonFeideAndFeideCustomers();
@@ -643,6 +668,25 @@ class UserSelectionUponLoginHandlerTest {
         var expectedUsername = constructExpectedUsername(person, selectedCustomer);
 
         assertThatCustomerSelectionClaimsArePresent(expectedCustomerId, expectedCristinId, expectedUsername);
+    }
+
+    private void assertUserAccessRightsAreUpdated(UserDto user, AccessRight... accessRights) throws NotFoundException {
+        var updatedUser = identityService.getUser(user);
+        assertThat(updatedUser.getAccessRights(), containsInAnyOrder(accessRights));
+    }
+
+    private void assertTokenContainsAllAccessRightClaims(CognitoUserPoolPreTokenGenerationEvent response,
+                                                         AccessRight... accessRights) {
+        var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        var actualAccessRightClaims = extractAccessRights(response);
+        var expectedAccessRightClaims = Arrays.stream(accessRights)
+                                            .map(accessRight -> generateAccessRightClaim(customerId, accessRight))
+                                            .toArray();
+        assertThat(actualAccessRightClaims, containsInAnyOrder(expectedAccessRightClaims));
+    }
+
+    private String generateAccessRightClaim(String customerId, AccessRight accessRight) {
+        return accessRight + "@" + customerId;
     }
 
     private void assertThatCustomerSelectionClaimsAreCleared() {
@@ -787,6 +831,17 @@ class UserSelectionUponLoginHandlerTest {
         return identityService.getRole(role);
     }
 
+    private void addAccessRightToExistingRole(RoleDto role, AccessRight accessRight)
+        throws InvalidInputException, NotFoundException {
+        var accessRights = new HashSet<>(role.getAccessRights());
+        accessRights.add(accessRight);
+        var updatedRole = RoleDto.newBuilder()
+                              .withRoleName(role.getRoleName())
+                              .withAccessRights(accessRights)
+                              .build();
+        updateRole(updatedRole);
+    }
+
     private String fetchFeideDomainFromRandomCustomerWithActiveEmployment(String nin) {
         return scenarios.fetchCustomersForPerson(nin)
                    .stream()
@@ -834,6 +889,10 @@ class UserSelectionUponLoginHandlerTest {
     private Void persistRole(RoleDto newRole) throws ConflictException, InvalidInputException {
         identityService.addRole(newRole);
         return null;
+    }
+
+    private void updateRole(RoleDto updatedRole) throws InvalidInputException, NotFoundException {
+        identityService.updateRole(updatedRole);
     }
 
     private List<URI> extractAllowedCustomersFromCongitoUpdateRequest() {

@@ -63,8 +63,14 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
-    public void updateUser(UserDto user) throws NotFoundException {
+    public void updateRole(RoleDto roleDto) throws NotFoundException, InvalidInputException {
+        this.roleService.updateRole(roleDto);
+    }
+
+    @Override
+    public UserDto updateUser(UserDto user) throws NotFoundException {
         this.userService.updateUser(user);
+        return this.userService.getUser(user);
     }
 
     @Override

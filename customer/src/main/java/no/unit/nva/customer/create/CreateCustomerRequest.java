@@ -20,6 +20,7 @@ import nva.commons.core.JacocoGenerated;
 
 @JsonTypeInfo(use = Id.NAME, property = "type")
 @JsonTypeName(TYPE_VALUE)
+@SuppressWarnings("PMD.TooManyFields")
 public class CreateCustomerRequest {
 
     public static final String TYPE_VALUE = "Customer";
@@ -36,9 +37,9 @@ public class CreateCustomerRequest {
     private ApplicationDomain customerOf;
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
+    private boolean rboInstitution;
     private Sector sector;
-    private  URI rorId;
-
+    private URI rorId;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
         var request = new CreateCustomerRequest();
@@ -55,13 +56,13 @@ public class CreateCustomerRequest {
         request.setCustomerOf(customerDto.getCustomerOf());
         request.setSector(customerDto.getSector());
         request.setNviInstitution(customerDto.isNviInstitution());
+        request.setRboInstitution(customerDto.isRboInstitution());
         request.setRorId(customerDto.getRorId());
         if (nonNull(customerDto.getDoiAgent())) {
             request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
         }
         return request;
     }
-
 
     public CustomerDto toCustomerDto() {
         return CustomerDto.builder()
@@ -78,6 +79,7 @@ public class CreateCustomerRequest {
                    .withCustomerOf(getCustomerOf())
                    .withDoiAgent(getDoiAgent())
                    .withNviInstitution(isNviInstitution())
+                   .withRboInstitution(isRboInstitution())
                    .withSector(getSector())
                    .withRorId(getRorId())
                    .build();
@@ -188,6 +190,14 @@ public class CreateCustomerRequest {
         this.nviInstitution = nviInstitution;
     }
 
+    public boolean isRboInstitution() {
+        return rboInstitution;
+    }
+
+    public void setRboInstitution(boolean rboInstitution) {
+        this.rboInstitution = rboInstitution;
+    }
+
     public Sector getSector() {
         return nonNull(sector) ? sector : Sector.UHI;
     }
@@ -209,7 +219,7 @@ public class CreateCustomerRequest {
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
-                            getDoiAgent(),getSector(),isNviInstitution(), getRorId());
+                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getRorId());
     }
 
     @JacocoGenerated
@@ -234,6 +244,7 @@ public class CreateCustomerRequest {
                && Objects.equals(getSector(), that.getSector())
                && Objects.equals(getRorId(), that.getRorId())
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
+               && Objects.equals(isRboInstitution(), that.isRboInstitution())
                && Objects.equals(getVocabularies(), that.getVocabularies());
     }
 
@@ -242,5 +253,4 @@ public class CreateCustomerRequest {
     public String toString() {
         return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
-
 }

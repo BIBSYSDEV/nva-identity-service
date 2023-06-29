@@ -46,6 +46,7 @@ public class CustomerDto implements Context {
     private PublicationWorkflow publicationWorkflow;
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
+    private boolean rboInstitution;
     private Sector sector;
     private RetentionStrategyDto rightRetentionStrategy;
 
@@ -199,12 +200,20 @@ public class CustomerDto implements Context {
         this.publicationWorkflow = publicationWorkflow;
     }
 
+    public boolean isNviInstitution() {
+        return nviInstitution;
+    }
+
     public void setNviInstitution(boolean nviInstitution) {
         this.nviInstitution = nviInstitution;
     }
 
-    public boolean isNviInstitution() {
-        return nviInstitution;
+    public boolean isRboInstitution() {
+        return rboInstitution;
+    }
+
+    public void setRboInstitution(boolean rboInstitution) {
+        this.rboInstitution = rboInstitution;
     }
 
     public Sector getSector() {
@@ -215,13 +224,14 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
+    public RetentionStrategyDto getRightRetentionStrategy() {
+        return rightRetentionStrategy;
+    }
+
     public void setRightRetentionStrategy(RetentionStrategyDto retention) {
         rightRetentionStrategy = retention;
     }
 
-    public RetentionStrategyDto getRightRetentionStrategy() {
-        return rightRetentionStrategy;
-    }
     @Override
     public URI getContext() {
         return context;
@@ -252,6 +262,7 @@ public class CustomerDto implements Context {
                    .withShortName(getShortName())
                    .withDoiAgent(getDoiAgent())
                    .withNviInstitution(isNviInstitution())
+                   .withRboInstitution(isRboInstitution())
                    .withSector(getSector())
                    .withVocabularies(getVocabularies())
                    .withRightRetentionStrategy(getRightRetentionStrategy());
@@ -311,7 +322,6 @@ public class CustomerDto implements Context {
     public void setType(String type) {
         // do nothing;
     }
-
 
     public static final class Builder {
 
@@ -428,6 +438,11 @@ public class CustomerDto implements Context {
             return this;
         }
 
+        public Builder withRboInstitution(boolean rboInstitution) {
+            customerDto.setRboInstitution(rboInstitution);
+            return this;
+        }
+
         public Builder withSector(Sector sector) {
             customerDto.setSector(sector);
             return this;
@@ -441,8 +456,8 @@ public class CustomerDto implements Context {
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
             if (nonNull(doiAgent)) {
                 return nonNull(customerDto.identifier)
-                        ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
-                        : new DoiAgentDto(doiAgent);
+                           ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
+                           : new DoiAgentDto(doiAgent);
             }
             return null;
         }

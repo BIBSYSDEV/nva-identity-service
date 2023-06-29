@@ -16,7 +16,6 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.paths.UriWrapper;
 
 public class UserEntriesCreatorForPerson {
-
     public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
         RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT).build();
     private static final String AT = "@";
@@ -104,8 +103,7 @@ public class UserEntriesCreatorForPerson {
                                           Person person) throws NotFoundException {
         var affiliation = person.getConsistentUnitAffiliation(existingUser.getInstitutionCristinId());
         var updatedUser = existingUser.copy().withAffiliation(affiliation).build();
-        identityService.updateUser(updatedUser);
-        return updatedUser;
+        return identityService.updateUser(updatedUser);
     }
 
     private UserDto addUser(UserDto user) throws ConflictException {

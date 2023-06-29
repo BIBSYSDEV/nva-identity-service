@@ -57,7 +57,7 @@ public class UserService extends DatabaseSubService {
      */
     public UserDto getUser(UserDto queryObject) throws NotFoundException {
         return getUserAsOptional(queryObject)
-            .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
+                   .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }
 
     /**
@@ -72,11 +72,11 @@ public class UserService extends DatabaseSubService {
         var result = institutionsIndex.query(listUsersQuery);
 
         var users = result.stream()
-            .map(Page::items)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+                        .map(Page::items)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList());
         return users.stream().map(UserDao::toUserDto)
-            .collect(Collectors.toList());
+                   .collect(Collectors.toList());
     }
 
     /**
@@ -101,7 +101,7 @@ public class UserService extends DatabaseSubService {
      * Update an existing user.
      *
      * @param updateObject the updated user information.
-     * @throws NotFoundException     when there is no user with the same username in the database.
+     * @throws NotFoundException when there is no user with the same username in the database.
      */
     public void updateUser(UserDto updateObject) throws NotFoundException {
 
@@ -116,29 +116,32 @@ public class UserService extends DatabaseSubService {
         var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId, EMPTY_CRISTIN_ORG_ID);
         var result = cristinCredentialsIndex.query(request);
         return result.stream()
-            .map(Page::items)
-            .flatMap(Collection::stream)
-            .map(UserDao::toUserDto).collect(Collectors.toList());
+                   .map(Page::items)
+                   .flatMap(Collection::stream)
+                   .map(UserDao::toUserDto).collect(Collectors.toList());
     }
 
     public UserDto getUsersByByCristinIdAndCristinOrgId(URI cristinPersonId, URI cristinOrgId) {
         var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId, cristinOrgId);
         var result = cristinCredentialsIndex.query(request);
+
         return result.stream()
-            .map(Page::items)
-            .flatMap(Collection::stream)
-            .map(UserDao::toUserDto).collect(SingletonCollector.collect());
+                   .map(Page::items)
+                   .flatMap(Collection::stream)
+                   .map(UserDao::toUserDto)
+                   .collect(SingletonCollector.collect());
     }
 
     private QueryEnhancedRequest createQueryForSearchingInCristinCredentialsIndex(URI cristinPersonId,
                                                                                   URI cristinOrgId) {
         var key = Optional.ofNullable(cristinOrgId)
-            .map(orgId -> Key.builder().partitionValue(cristinPersonId.toString()).sortValue(orgId.toString()))
-            .orElseGet(() -> Key.builder().partitionValue(cristinPersonId.toString()))
-            .build();
+                      .map(
+                          orgId -> Key.builder().partitionValue(cristinPersonId.toString()).sortValue(orgId.toString()))
+                      .orElseGet(() -> Key.builder().partitionValue(cristinPersonId.toString()))
+                      .build();
         return QueryEnhancedRequest.builder()
-            .queryConditional(QueryConditional.keyEqualTo(key))
-            .build();
+                   .queryConditional(QueryConditional.keyEqualTo(key))
+                   .build();
     }
 
     private UserDao syncRoleDetails(UserDao updateObject) {
@@ -156,9 +159,10 @@ public class UserService extends DatabaseSubService {
 
     private QueryEnhancedRequest createListUsersByInstitutionQuery(URI institution) {
         return QueryEnhancedRequest.builder()
-            .queryConditional(QueryConditional.keyEqualTo(Key.builder().partitionValue(institution.toString()).build()))
-            .consistentRead(false)
-            .build();
+                   .queryConditional(
+                       QueryConditional.keyEqualTo(Key.builder().partitionValue(institution.toString()).build()))
+                   .consistentRead(false)
+                   .build();
     }
 
     private void checkUserDoesNotAlreadyExist(UserDto user) throws ConflictException {
@@ -169,7 +173,7 @@ public class UserService extends DatabaseSubService {
 
     private UserDto getExistingUserOrSendNotFoundError(UserDto queryObject) throws NotFoundException {
         return getUserAsOptional(queryObject)
-            .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
+                   .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }
 
     private boolean userAlreadyExists(UserDto user) {
@@ -178,8 +182,8 @@ public class UserService extends DatabaseSubService {
 
     private UserDto attemptToFetchObject(UserDto queryObject) {
         UserDao userDao = attempt(() -> UserDao.fromUserDto(queryObject))
-            .map(this::fetchItem)
-            .orElseThrow(DatabaseSubService::handleError);
+                              .map(this::fetchItem)
+                              .orElseThrow(DatabaseSubService::handleError);
         return nonNull(userDao) ? userDao.toUserDto() : null;
     }
 
@@ -203,9 +207,9 @@ public class UserService extends DatabaseSubService {
     // TODO: use batch query for minimizing the cost.
     private List<RoleDb> currentRoles(UserDao currentUser) {
         return currentUser.getRolesNonNull()
-            .stream()
-            .map(roleService::fetchRoleDb)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                   .stream()
+                   .map(roleService::fetchRoleDb)
+                   .filter(Objects::nonNull)
+                   .collect(Collectors.toList());
     }
 }

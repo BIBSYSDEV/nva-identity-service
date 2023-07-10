@@ -3,7 +3,8 @@ package no.unit.nva.handlers;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -38,14 +39,33 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
 
     @Override
     protected UserList processInput(Void body, RequestInfo input, Context context) throws BadRequestException {
-        URI institutionId = extractInstitutionIdFromRequest(input);
-        List<UserDto> users = databaseService.listUsers(institutionId);
+        var institutionId = extractInstitutionIdFromRequest(input);
+        var role = input.getQueryParameterOpt("role");
+        var userName = input.getQueryParameterOpt("name");
+        var users =
+            databaseService
+                .listUsers(institutionId).stream()
+                .filter(user -> likeUserOrEmpty(user, userName))
+                .filter(user -> hasRoleOrEmpty(user, role))
+                .collect(Collectors.toList());
         return UserList.fromList(users);
     }
 
     private URI extractInstitutionIdFromRequest(RequestInfo requestInfo) throws BadRequestException {
         return requestInfo.getQueryParameterOpt(INSTITUTION_ID_QUERY_PARAMETER)
-            .map(URI::create)
-            .orElseThrow(() -> new BadRequestException(MISSING_QUERY_PARAMETER_ERROR));
+                   .map(URI::create)
+                   .orElseThrow(() -> new BadRequestException(MISSING_QUERY_PARAMETER_ERROR));
+    }
+
+    private boolean likeUserOrEmpty(UserDto userDto, Optional<String> userName) {
+        return userName
+                   .map(s -> userDto.getUsername().contains(s))
+                   .orElse(true);
+    }
+
+    private boolean hasRoleOrEmpty(UserDto userDto, Optional<String> roleName) {
+        return roleName
+                   .map(s -> userDto.getRoles().stream().anyMatch(f -> f.getRoleName().equals(s)))
+                   .orElse(true);
     }
 }

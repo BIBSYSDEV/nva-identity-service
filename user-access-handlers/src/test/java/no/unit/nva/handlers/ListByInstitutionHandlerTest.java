@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.UserList;
 import nva.commons.apigateway.GatewayResponse;
@@ -38,6 +39,8 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
     public static final URI SOME_OTHER_INSTITUTION = randomCristinOrgId();
+    private static final String NAME = "name";
+    private static final String ROLE = "role";
     private ListByInstitutionHandler listByInstitutionHandler;
     private Context context;
     private ByteArrayOutputStream outputStream;
@@ -69,6 +72,36 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
         var actualUsers = parseResponseBody(response);
         assertThatListsAreEquivalent(expectedUsers, actualUsers);
+    }
+
+    @Test
+    void handleRequestReturnsListOfUsersGivenAnInstitutionAndRole()
+        throws IOException, ConflictException, InvalidEntryInternalException {
+
+        var expectedUser = insertTwoUsersOfSameInstitution().getUsers().get(0);
+        var roleName = ((RoleDto) expectedUser.getRoles().toArray()[0]).getRoleName();
+        var validRequest = createListWithFilterRequest(DEFAULT_INSTITUTION, roleName);
+
+        var response = sendRequestToHandler(validRequest, UserList.class);
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
+
+        var actualUsers = parseResponseBody(response).getUsers();
+        assertThat(actualUsers.get(0), is(equalTo(expectedUser)));
+    }
+
+    @Test
+    void handleRequestReturnsListOfUsersGivenAnInstitutionAndUserName()
+        throws IOException, ConflictException, InvalidEntryInternalException {
+
+        var expectedUser = insertTwoUsersOfSameInstitution().getUsers().get(0);
+        var username = expectedUser.getUsername();
+        var validRequest = createListWithFilterUserNameRequest(DEFAULT_INSTITUTION, username);
+
+        var response = sendRequestToHandler(validRequest, UserList.class);
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
+
+        var actualUsers = parseResponseBody(response).getUsers();
+        assertThat(actualUsers.get(0), is(equalTo(expectedUser)));
     }
 
     @Test
@@ -106,7 +139,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     void shouldReturnBadRequestWheRequestParameterIsMissing()
         throws InvalidEntryInternalException, IOException {
         var request = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-            .build();
+                          .build();
         var response = sendRequestToHandler(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
@@ -134,8 +167,8 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     private UserList expectedUsersOfInstitution(UserList insertedUsers) {
         List<UserDto> users = insertedUsers.getUsers().stream()
-            .filter(userDto -> userDto.getInstitution().equals(HandlerTest.DEFAULT_INSTITUTION))
-            .collect(Collectors.toList());
+                                  .filter(userDto -> userDto.getInstitution().equals(HandlerTest.DEFAULT_INSTITUTION))
+                                  .collect(Collectors.toList());
         return UserList.fromList(users);
     }
 
@@ -170,8 +203,29 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     private InputStream createListRequest(URI institutionId) throws JsonProcessingException {
         Map<String, String> queryParams = Map.of(INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString());
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-            .withQueryParameters(queryParams)
-            .build();
+        return new HandlerRequestBuilder<>(dtoObjectMapper)
+                   .withQueryParameters(queryParams)
+                   .build();
+    }
+
+    private InputStream createListWithFilterRequest(URI institutionId, String role) throws JsonProcessingException {
+        var queryParams = Map.of(
+            INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString(),
+            ROLE, role);
+
+        return new HandlerRequestBuilder<>(dtoObjectMapper)
+                   .withQueryParameters(queryParams)
+                   .build();
+    }
+
+    private InputStream createListWithFilterUserNameRequest(URI institutionId, String username)
+        throws JsonProcessingException {
+        var queryParams = Map.of(
+            INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString(),
+            NAME, username);
+
+        return new HandlerRequestBuilder<>(dtoObjectMapper)
+                   .withQueryParameters(queryParams)
+                   .build();
     }
 }

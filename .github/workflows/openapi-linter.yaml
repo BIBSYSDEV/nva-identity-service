@@ -1,12 +1,8 @@
 name: Lint OpenAPI
-
 on: [ push ]
-
 jobs:
   openapi-linter:
-
     runs-on: ubuntu-latest
-
     services:
       swagger-editor:
         image: swaggerapi/swagger-editor
@@ -15,8 +11,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Validate OpenAPI definition
+      - name: Validate customer OpenAPI definition
         uses: char0n/swagger-editor-validate@v1
         with:
           swagger-editor-url: http://localhost/
-          definition-file: docs/openapi.yaml
+          definition-file: docs/customer-swagger.yaml
+
+      - uses: actions/checkout@v2
+      - name: Validate users&roles OpenAPI definition
+        uses: char0n/swagger-editor-validate@v1
+        with:
+          swagger-editor-url: http://localhost/
+          definition-file: docs/users-and-roles-swagger.yaml

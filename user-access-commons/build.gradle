@@ -1,16 +1,13 @@
-plugins {
-    id 'nva.identity.service.java-library-conventions'
-    id 'nva.identity.service.dynamodblocal'
-}
-
 dependencies {
 
     implementation project (":json-config")
     implementation libs.nva.core
 
     implementation libs.nva.apigateway
+
     implementation libs.bundles.jackson
 
+    testImplementation libs.apache.httpclient
     testImplementation libs.bundles.testing
     testImplementation project(":user-access-testing")
 }

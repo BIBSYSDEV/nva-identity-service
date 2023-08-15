@@ -472,6 +472,7 @@ public class CustomerDao implements Typed {
             return this;
         }
 
+        @SuppressWarnings({"PMD.NullAssignment"})
         public Builder withDoiAgent(DoiAgent doiAgent) {
             customerDb.setDoiAgent(nonNull(doiAgent) ? new DoiAgentDao(doiAgent) : null);
             return this;

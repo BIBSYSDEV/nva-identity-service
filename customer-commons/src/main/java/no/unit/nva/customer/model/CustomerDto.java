@@ -25,7 +25,11 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
 //Overriding setters and getters is necessary for Jackson-Jr
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields", "PMD.GodClass", "PMD.NullAssignment"})
+@SuppressWarnings({"PMD.ExcessivePublicCount",
+        "PMD.UselessOverridingMethod",
+        "PMD.TooManyFields",
+        "PMD.GodClass",
+        "PMD.NullAssignment"})
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";

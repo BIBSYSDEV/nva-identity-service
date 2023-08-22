@@ -5,9 +5,9 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: corretto11
+      java: corretto17
     commands:
-      - pip3 install aws-sam-cli
+      - pip3 install aws-sam-cli -U
   build:
     commands:
       # Force build of user-access-service to produce zip for Lambda Layer

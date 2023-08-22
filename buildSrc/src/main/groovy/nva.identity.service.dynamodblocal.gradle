@@ -1,23 +1,8 @@
+plugins{
 
-
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
-    maven { url "https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/release" }
 }
-
-dependencies {
-    //To support dynamodb local when testing, using mac m1
-    testImplementation libs.dynamoDbLocal
-    if (System.getProperty("os.arch") == "aarch64") {
-        testCompileOnly group: 'io.github.ganadist.sqlite4java', name: 'libsqlite4java-osx-aarch64', version: '1.0.392'
-    }
-}
-
-// For using DynamoDB locally
 configurations.testImplementation.canBeResolved = true
-task copyNativeDeps(type: Copy) {
+tasks.register('copyNativeDeps', Copy) {
     from(configurations.testImplementation) {
         include "*.dylib"
         include "*.so"
@@ -26,7 +11,7 @@ task copyNativeDeps(type: Copy) {
     into 'build/dynamodb-local'
 }
 
-test{
+test {
     dependsOn copyNativeDeps
     systemProperty "java.library.path", 'build/dynamodb-local'
 }

@@ -69,6 +69,7 @@ public class DefaultRoleSource implements RoleSource {
     private static final RoleDto APPLICATION_ADMIN_ROLE = RoleDto.newBuilder()
                                                               .withRoleName(APP_ADMIN_ROLE_NAME)
                                                               .withAccessRights(List.of(ADMINISTRATE_APPLICATION,
+                                                                                        PROCESS_IMPORT_CANDIDATE,
                                                                                         MANAGE_NVI_PERIODS))
                                                               .build();
 

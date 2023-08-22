@@ -90,7 +90,9 @@ public class DefaultRoleSourceTest {
     void appAdminsShouldHaveCorrectAccessRights() {
         var appAdminRole = getRoleByName(APP_ADMIN_ROLE_NAME);
 
-        assertThat(appAdminRole.getAccessRights(), containsInAnyOrder(ADMINISTRATE_APPLICATION, MANAGE_NVI_PERIODS));
+        assertThat(appAdminRole.getAccessRights(), containsInAnyOrder(ADMINISTRATE_APPLICATION,
+                                                                      PROCESS_IMPORT_CANDIDATE,
+                                                                      MANAGE_NVI_PERIODS));
     }
 
     @Test

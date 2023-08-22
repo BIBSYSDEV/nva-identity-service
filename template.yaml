@@ -1040,7 +1040,7 @@ Resources:
   CognitoAuthenticationDomainParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoAuthenticationDomain'
+      Name: !Sub '${ParameterNamePrefix}CognitoAuthenIticationDomain'
       Description: The full Cognito domain that hosts the sign-up and sign-in pages for your application.
       Type: String
       Value: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'

@@ -8,6 +8,7 @@ import static nva.commons.apigateway.AccessRight.EDIT_ALL_NON_DEGREE_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_NVI_PERIODS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_PROJECTS;
 import static nva.commons.apigateway.AccessRight.PROCESS_IMPORT_CANDIDATE;
 import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE;
@@ -67,7 +68,8 @@ public class DefaultRoleSource implements RoleSource {
 
     private static final RoleDto APPLICATION_ADMIN_ROLE = RoleDto.newBuilder()
                                                               .withRoleName(APP_ADMIN_ROLE_NAME)
-                                                              .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
+                                                              .withAccessRights(List.of(ADMINISTRATE_APPLICATION,
+                                                                                        MANAGE_NVI_PERIODS))
                                                               .build();
 
     private static final RoleDto EDITOR_ROLE = RoleDto.newBuilder()

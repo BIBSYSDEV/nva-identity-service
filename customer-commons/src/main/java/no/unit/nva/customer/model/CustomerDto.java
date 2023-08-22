@@ -3,7 +3,9 @@ package no.unit.nva.customer.model;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
 import static nva.commons.core.attempt.Try.attempt;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RetentionStrategy;
@@ -22,7 +25,11 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
 //Overriding setters and getters is necessary for Jackson-Jr
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.UselessOverridingMethod", "PMD.TooManyFields", "PMD.GodClass"})
+@SuppressWarnings({"PMD.ExcessivePublicCount",
+    "PMD.UselessOverridingMethod",
+    "PMD.TooManyFields",
+    "PMD.GodClass",
+    "PMD.NullAssignment"})
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
@@ -57,7 +64,7 @@ public class CustomerDto implements Context {
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(json, CustomerDto.class)).orElseThrow(
-            fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
+                fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
     public static Builder builder() {
@@ -244,37 +251,37 @@ public class CustomerDto implements Context {
 
     public Builder copy() {
         return new Builder()
-                   .withArchiveName(getArchiveName())
-                   .withCname(getCname())
-                   .withContext(getContext())
-                   .withCreatedDate(getCreatedDate())
-                   .withCristinId(getCristinId())
-                   .withCustomerOf(getCustomerOf())
-                   .withDisplayName(getDisplayName())
-                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                   .withId(getId())
-                   .withIdentifier(getIdentifier())
-                   .withInstitutionDns(getInstitutionDns())
-                   .withModifiedDate(getModifiedDate())
-                   .withName(getName())
-                   .withPublicationWorkflow(getPublicationWorkflow())
-                   .withRorId(getRorId())
-                   .withShortName(getShortName())
-                   .withDoiAgent(getDoiAgent())
-                   .withNviInstitution(isNviInstitution())
-                   .withRboInstitution(isRboInstitution())
-                   .withSector(getSector())
-                   .withVocabularies(getVocabularies())
-                   .withRightRetentionStrategy(getRightRetentionStrategy());
+                .withArchiveName(getArchiveName())
+                .withCname(getCname())
+                .withContext(getContext())
+                .withCreatedDate(getCreatedDate())
+                .withCristinId(getCristinId())
+                .withCustomerOf(getCustomerOf())
+                .withDisplayName(getDisplayName())
+                .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                .withId(getId())
+                .withIdentifier(getIdentifier())
+                .withInstitutionDns(getInstitutionDns())
+                .withModifiedDate(getModifiedDate())
+                .withName(getName())
+                .withPublicationWorkflow(getPublicationWorkflow())
+                .withRorId(getRorId())
+                .withShortName(getShortName())
+                .withDoiAgent(getDoiAgent())
+                .withNviInstitution(isNviInstitution())
+                .withRboInstitution(isRboInstitution())
+                .withSector(getSector())
+                .withVocabularies(getVocabularies())
+                .withRightRetentionStrategy(getRightRetentionStrategy());
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
-                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightRetentionStrategy());
+                getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightRetentionStrategy());
     }
 
     @Override
@@ -288,24 +295,24 @@ public class CustomerDto implements Context {
         }
         CustomerDto that = (CustomerDto) o;
         return Objects.equals(getArchiveName(), that.getArchiveName())
-               && Objects.equals(getContext(), that.getContext())
-               && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getCustomerOf(), that.getCustomerOf())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getId(), that.getId())
-               && Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getRorId(), that.getRorId())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getDoiAgent(), that.getDoiAgent())
-               && Objects.equals(getRightRetentionStrategy(), that.getRightRetentionStrategy())
-               && getPublicationWorkflow() == that.getPublicationWorkflow();
+                && Objects.equals(getContext(), that.getContext())
+                && Objects.equals(getCname(), that.getCname())
+                && Objects.equals(getCreatedDate(), that.getCreatedDate())
+                && Objects.equals(getCristinId(), that.getCristinId())
+                && Objects.equals(getCustomerOf(), that.getCustomerOf())
+                && Objects.equals(getDisplayName(), that.getDisplayName())
+                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+                && Objects.equals(getId(), that.getId())
+                && Objects.equals(getIdentifier(), that.getIdentifier())
+                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+                && Objects.equals(getModifiedDate(), that.getModifiedDate())
+                && Objects.equals(getName(), that.getName())
+                && Objects.equals(getRorId(), that.getRorId())
+                && Objects.equals(getShortName(), that.getShortName())
+                && Objects.equals(getVocabularies(), that.getVocabularies())
+                && Objects.equals(getDoiAgent(), that.getDoiAgent())
+                && Objects.equals(getRightRetentionStrategy(), that.getRightRetentionStrategy())
+                && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
     @Override
@@ -456,8 +463,8 @@ public class CustomerDto implements Context {
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
             if (nonNull(doiAgent)) {
                 return nonNull(customerDto.identifier)
-                           ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
-                           : new DoiAgentDto(doiAgent);
+                        ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
+                        : new DoiAgentDto(doiAgent);
             }
             return null;
         }
@@ -494,7 +501,7 @@ public class CustomerDto implements Context {
 
         public static DoiAgentDto fromJson(String json) throws BadRequestException {
             return attempt(() -> JsonConfig.readValue(json, DoiAgentDto.class)).orElseThrow(
-                fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
+                    fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
         }
 
         public URI getId() {
@@ -515,9 +522,9 @@ public class CustomerDto implements Context {
          */
         public DoiAgentDto addIdByIdentifier(UUID identifier) {
             this.id = UriWrapper
-                          .fromUri(toId(identifier))
-                          .addChild(DOI_AGENT)
-                          .getUri();
+                    .fromUri(toId(identifier))
+                    .addChild(DOI_AGENT)
+                    .getUri();
             return this;
         }
 
@@ -567,15 +574,14 @@ public class CustomerDto implements Context {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof DoiAgentDto)) {
+            if (!(o instanceof DoiAgentDto that)) {
                 return false;
             }
-            DoiAgentDto that = (DoiAgentDto) o;
             return Objects.equals(getId(), that.getId())
-                   && Objects.equals(getUrl(), that.getUrl())
-                   && Objects.equals(getPrefix(), that.getPrefix())
-                   && Objects.equals(getUsername(), that.getUsername())
-                   && Objects.equals(getPassword(), that.getPassword());
+                    && Objects.equals(getUrl(), that.getUrl())
+                    && Objects.equals(getPrefix(), that.getPrefix())
+                    && Objects.equals(getUsername(), that.getUsername())
+                    && Objects.equals(getPassword(), that.getPassword());
         }
 
         @Override

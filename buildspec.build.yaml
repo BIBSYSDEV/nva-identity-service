@@ -3,9 +3,9 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: openjdk11
+      java: openjdk17
     commands:
-      - pip3 install aws-sam-cli
+      - pip3 install aws-sam-cli -U
   build:
     commands:
       - sam build

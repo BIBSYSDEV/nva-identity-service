@@ -1,8 +1,3 @@
-plugins {
-    id 'nva.identity.service.java-library-conventions'
-    id 'nva.identity.service.dynamodblocal'
-}
-
 dependencies {
 
     implementation project(':dynamo-client')
@@ -10,6 +5,7 @@ dependencies {
     implementation libs.nva.apigateway
     implementation libs.nva.core
     implementation libs.nva.secrets
+    implementation libs.nva.json
     implementation libs.bundles.jackson
     implementation libs.guava
     implementation libs.aws.sdk2.dynamodbenhanced

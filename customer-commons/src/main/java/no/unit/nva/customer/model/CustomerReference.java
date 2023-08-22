@@ -36,10 +36,12 @@ public class CustomerReference {
         this.displayName = displayName;
     }
 
+    @SuppressWarnings({"PMD.NullAssignment"})
     public String getCreatedDate() {
         return nonNull(createdDate) ? createdDate.toString() : null;
     }
 
+    @SuppressWarnings({"PMD.NullAssignment"})
     public void setCreatedDate(String createdDate) {
         this.createdDate =  nonNull(createdDate) ? Instant.parse(createdDate) : null;
     }

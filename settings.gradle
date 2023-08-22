@@ -1,4 +1,3 @@
-enableFeaturePreview('VERSION_CATALOGS')
 rootProject.name = 'nva-identity-service'
 include 'json-config'
 include 'dynamo-client'

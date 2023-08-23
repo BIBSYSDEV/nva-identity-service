@@ -92,7 +92,8 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldReturnAListOfCustomersContainingCustomerDoiPrefix() throws ConflictException, NotFoundException, IOException {
+    void shouldReturnAListOfCustomersContainingCustomerDoiPrefix()
+        throws ConflictException, NotFoundException, IOException {
         var doiPrefix = randomString();
         var s = insertRandomCustomerWithDoiPrefix(doiPrefix);
         var input = sampleRequest();
@@ -103,7 +104,8 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(actualCustomerPreview.getDoiPrefix(), is(equalTo(doiPrefix)));
     }
 
-    private CustomerDto insertRandomCustomerWithDoiPrefix(String doiPrefix) throws ConflictException, NotFoundException {
+    private CustomerDto insertRandomCustomerWithDoiPrefix(String doiPrefix)
+        throws ConflictException, NotFoundException {
         var customer = CustomerDto.builder()
             .withDisplayName(randomString())
             .withCristinId(randomUri())

@@ -669,7 +669,7 @@ components:
         customers:
           type: array
           items:
-            $ref: '#/components/schemas/Customer'
+            $ref: '#/components/schemas/CustomerReference'
         '@context':
           type: string
           format: uri
@@ -726,6 +726,19 @@ components:
         publicationWorkflow:
           type: string
           enum: [RegistratorPublishesMetadataOnly, RegistratorPublishesMetadataAndFiles, RegistratorRequiresApprovalForMetadataAndFiles]
+    CustomerReference:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uri
+        displayName:
+          type: string
+        createdDate:
+          type: string
+          format: date-time
+        doiPrefix:
+          type: string
     DoiAgent:
       type: object
       properties:
@@ -828,28 +841,9 @@ components:
         type: CustomerList
         customers:
           - id: 'https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6'
-            identifier: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
-            type: Customer
             createdDate: '2021-05-07T14:29:04.144Z'
-            modifiedDate: '2021-05-07T14:29:04.144Z'
-            name: 'Universitet for norsk Reindrift'
             displayName: 'Universitet for Reindrift'
-            shortName: 'UNIREIN'
-            archiveName: 'unirein'
-            cname: 'arkiv.unirein.no'
-            institutionDns: 'unirein.no'
-            feideOrganizationId: '111111111'
-            cristinId: 'https://api.cristin.no/v2/institutions/11110'
-            vocabularies:
-              - id: 'https://example.org/example#'
-                type: 'Vocabulary'
-                name: 'Example VOC'
-                active: 'default'
-            doiAgent:
-              prefix: "1000.10"
-              url: "test.nva.unit.no"
-              username: "Doi Register Customer Name"
-            publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
+            doiPrefix: "1000.10"
     DoiAgentExample:
       value:
         id: 'https://example.com/example/#/doiagent'

@@ -1,9 +1,12 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
+
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
+
 import nva.commons.core.JacocoGenerated;
 
 public class CustomerReference {
@@ -12,12 +15,22 @@ public class CustomerReference {
     private String displayName;
     private Instant createdDate;
 
+    private String doiPrefix;
+
     public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
         var customerReference = new CustomerReference();
         customerReference.setDisplayName(customerDto.getDisplayName());
         customerReference.setId(customerDto.getId());
         customerReference.setCreatedDate(customerDto.getCreatedDate());
+        customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
         return customerReference;
+    }
+
+    private static String extractDoiPrefix(CustomerDto customerDto) {
+        return Optional
+            .ofNullable(customerDto.getDoiAgent())
+            .map(CustomerDto.DoiAgentDto::getPrefix)
+            .orElse(null);
     }
 
     public URI getId() {
@@ -36,6 +49,14 @@ public class CustomerReference {
         this.displayName = displayName;
     }
 
+    public String getDoiPrefix() {
+        return doiPrefix;
+    }
+
+    public void setDoiPrefix(String doiPrefix) {
+        this.doiPrefix = doiPrefix;
+    }
+
     @SuppressWarnings({"PMD.NullAssignment"})
     public String getCreatedDate() {
         return nonNull(createdDate) ? createdDate.toString() : null;
@@ -43,13 +64,16 @@ public class CustomerReference {
 
     @SuppressWarnings({"PMD.NullAssignment"})
     public void setCreatedDate(String createdDate) {
-        this.createdDate =  nonNull(createdDate) ? Instant.parse(createdDate) : null;
+        this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getDisplayName(), getCreatedDate());
+        return Objects.hash(getId(),
+            getDisplayName(),
+            getDoiPrefix(),
+            getCreatedDate());
     }
 
     @JacocoGenerated
@@ -58,12 +82,12 @@ public class CustomerReference {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CustomerReference)) {
+        if (!(o instanceof CustomerReference that)) {
             return false;
         }
-        CustomerReference that = (CustomerReference) o;
         return Objects.equals(getId(), that.getId())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate());
+            && Objects.equals(getDisplayName(), that.getDisplayName())
+            && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
+            && Objects.equals(getCreatedDate(), that.getCreatedDate());
     }
 }

@@ -91,7 +91,7 @@ Globals:
   Function:
     MemorySize: 1769
     Timeout: 10
-    Runtime: java11
+    Runtime: java17
     Tracing: Active
     Environment:
       Variables:

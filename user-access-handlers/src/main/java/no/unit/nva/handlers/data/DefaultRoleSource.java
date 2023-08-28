@@ -23,7 +23,7 @@ public class DefaultRoleSource implements RoleSource {
 
     protected static final String CURATOR_ROLE_NAME = "Curator";
     protected static final String INSTITUTION_ADMIN_ROLE_NAME = "Institution-admin";
-    protected static final String CURATOR_IMPORT_CANDIDATE_ROLE_NAME = "Curator-Import-candidate";
+    protected static final String INTERNAL_IMPORTER_ROLE_NAME = "Internal-importer";
     protected static final String CURATOR_THESIS_ROLE_NAME = "Curator-thesis";
     protected static final String CURATOR_THESIS_EMBARGO_ROLE_NAME = "Curator-thesis-embargo";
     protected static final String APP_ADMIN_ROLE_NAME = "App-admin";
@@ -49,8 +49,8 @@ public class DefaultRoleSource implements RoleSource {
                                                                                         EDIT_OWN_INSTITUTION_USERS))
                                                               .build();
 
-    private static final RoleDto CURATOR_IMPORT_CANDIDATE_ROLE = RoleDto.newBuilder()
-                                                                     .withRoleName(CURATOR_IMPORT_CANDIDATE_ROLE_NAME)
+    private static final RoleDto INTERNAL_IMPORTER = RoleDto.newBuilder()
+                                                                     .withRoleName(INTERNAL_IMPORTER_ROLE_NAME)
                                                                      .withAccessRights(
                                                                          List.of(PROCESS_IMPORT_CANDIDATE))
                                                                      .build();
@@ -86,7 +86,7 @@ public class DefaultRoleSource implements RoleSource {
                        INSTITUTION_ADMIN_ROLE,
                        APPLICATION_ADMIN_ROLE,
                        EDITOR_ROLE,
-                       CURATOR_IMPORT_CANDIDATE_ROLE,
+                       INTERNAL_IMPORTER,
                        CURATOR_THESIS_ROLE,
                        CURATOR_THESIS_EMBARGO_ROLE);
     }

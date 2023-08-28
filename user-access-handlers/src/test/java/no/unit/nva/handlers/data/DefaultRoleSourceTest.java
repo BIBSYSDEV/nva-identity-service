@@ -2,7 +2,7 @@ package no.unit.nva.handlers.data;
 
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_IMPORT_CANDIDATE_ROLE_NAME;
+import static no.unit.nva.handlers.data.DefaultRoleSource.INTERNAL_IMPORTER_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_EMBARGO_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_ROLE_NAME;
@@ -59,7 +59,7 @@ public class DefaultRoleSourceTest {
 
     @Test
     void importCandidateCuratorsShouldHaveCorrectAccessRights() {
-        var importCandidateCuratorRole = getRoleByName(CURATOR_IMPORT_CANDIDATE_ROLE_NAME);
+        var importCandidateCuratorRole = getRoleByName(INTERNAL_IMPORTER_ROLE_NAME);
 
         assertThat(importCandidateCuratorRole.getAccessRights(), containsInAnyOrder(PROCESS_IMPORT_CANDIDATE));
     }
@@ -109,7 +109,7 @@ public class DefaultRoleSourceTest {
                                             CURATOR_ROLE_NAME,
                                             CURATOR_THESIS_ROLE_NAME,
                                             CURATOR_THESIS_EMBARGO_ROLE_NAME,
-                                            CURATOR_IMPORT_CANDIDATE_ROLE_NAME,
+                                            INTERNAL_IMPORTER_ROLE_NAME,
                                             INSTITUTION_ADMIN_ROLE_NAME,
                                             APP_ADMIN_ROLE_NAME,
                                             EDITOR_ROLE_NAME).size();

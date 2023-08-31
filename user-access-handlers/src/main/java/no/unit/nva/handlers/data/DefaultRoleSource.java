@@ -8,6 +8,7 @@ import static nva.commons.apigateway.AccessRight.EDIT_ALL_NON_DEGREE_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_NVI_CANDIDATE;
 import static nva.commons.apigateway.AccessRight.MANAGE_NVI_PERIODS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_PROJECTS;
 import static nva.commons.apigateway.AccessRight.PROCESS_IMPORT_CANDIDATE;
@@ -28,6 +29,7 @@ public class DefaultRoleSource implements RoleSource {
     protected static final String CURATOR_THESIS_EMBARGO_ROLE_NAME = "Curator-thesis-embargo";
     protected static final String APP_ADMIN_ROLE_NAME = "App-admin";
     protected static final String EDITOR_ROLE_NAME = "Editor";
+    protected static final String NVI_CURATOR_ROLE_NAME = "Nvi-curator";
 
     private static final RoleDto CREATOR_ROLE = RoleDto.newBuilder()
                                                     .withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
@@ -79,6 +81,11 @@ public class DefaultRoleSource implements RoleSource {
                                                                              EDIT_ALL_NON_DEGREE_RESOURCES))
                                                    .build();
 
+    private static final RoleDto NVI_CURATOR = RoleDto.newBuilder()
+                                                   .withRoleName(NVI_CURATOR_ROLE_NAME)
+                                                   .withAccessRights(List.of(MANAGE_NVI_CANDIDATE))
+                                                   .build();
+
     @Override
     public List<RoleDto> roles() {
         return List.of(CREATOR_ROLE,
@@ -88,6 +95,7 @@ public class DefaultRoleSource implements RoleSource {
                        EDITOR_ROLE,
                        INTERNAL_IMPORTER,
                        CURATOR_THESIS_ROLE,
-                       CURATOR_THESIS_EMBARGO_ROLE);
+                       CURATOR_THESIS_EMBARGO_ROLE,
+                       NVI_CURATOR);
     }
 }

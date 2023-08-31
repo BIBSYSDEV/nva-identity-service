@@ -8,6 +8,7 @@ import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_EMBARGO
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.EDITOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.INSTITUTION_ADMIN_ROLE_NAME;
+import static no.unit.nva.handlers.data.DefaultRoleSource.NVI_CURATOR_ROLE_NAME;
 import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
@@ -15,6 +16,7 @@ import static nva.commons.apigateway.AccessRight.EDIT_ALL_NON_DEGREE_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
 import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_NVI_CANDIDATE;
 import static nva.commons.apigateway.AccessRight.MANAGE_NVI_PERIODS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_PROJECTS;
 import static nva.commons.apigateway.AccessRight.PROCESS_IMPORT_CANDIDATE;
@@ -104,6 +106,13 @@ public class DefaultRoleSourceTest {
     }
 
     @Test
+    void nviCuratorsShouldHaveCorrectAccessRights() {
+        var editorRole = getRoleByName(NVI_CURATOR_ROLE_NAME);
+
+        assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_NVI_CANDIDATE));
+    }
+
+    @Test
     void shouldReturnExpectedNumberOfRoles() {
         var expectedNumberOfRoles = List.of(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT,
                                             CURATOR_ROLE_NAME,
@@ -112,7 +121,8 @@ public class DefaultRoleSourceTest {
                                             INTERNAL_IMPORTER_ROLE_NAME,
                                             INSTITUTION_ADMIN_ROLE_NAME,
                                             APP_ADMIN_ROLE_NAME,
-                                            EDITOR_ROLE_NAME).size();
+                                            EDITOR_ROLE_NAME,
+                                            NVI_CURATOR_ROLE_NAME).size();
 
         assertThat(roleSource.roles(), hasSize(expectedNumberOfRoles));
     }

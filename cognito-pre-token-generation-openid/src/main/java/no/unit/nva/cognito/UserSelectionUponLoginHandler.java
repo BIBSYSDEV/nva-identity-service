@@ -432,11 +432,11 @@ public class UserSelectionUponLoginHandler
     }
 
     private List<String> createAccessRightsPerCustomer(List<UserDto> personUsers, Set<CustomerDto> customers) {
-        return personUsers.stream()
+        return new ArrayList<>(personUsers.stream()
                    .map(user -> UserAccessRightForCustomer.fromUser(user, customers))
                    .flatMap(Collection::stream)
                    .map(UserAccessRightForCustomer::toString)
-                   .collect(Collectors.toList());
+                   .collect(Collectors.toSet()));
     }
 
     private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride) {

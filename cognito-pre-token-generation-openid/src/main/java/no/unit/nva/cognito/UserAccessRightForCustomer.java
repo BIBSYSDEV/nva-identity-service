@@ -1,6 +1,5 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.cognito.CognitoClaims.AT;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -63,6 +62,6 @@ public class UserAccessRightForCustomer {
     }
 
     private String accessRightWithCustomerId() {
-        return accessRight.toString() + AT + customer.getId();
+        return accessRight.toString();
     }
 }

@@ -1,9 +1,9 @@
 package no.unit.nva.customer.service.impl;
 
 import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -89,7 +89,8 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldUpdateRboInstitutionWhenRboInstitutionIsSetToTrue() throws NotFoundException, InputException, ConflictException {
+    void shouldUpdateRboInstitutionWhenRboInstitutionIsSetToTrue()
+        throws NotFoundException, InputException, ConflictException {
         var customer = newCustomerDto();
         customer.setRboInstitution(false);
         var createdCustomer = service.createCustomer(customer);

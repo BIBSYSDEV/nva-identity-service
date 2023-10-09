@@ -97,6 +97,55 @@ public class CustomerDao implements Typed {
                    .build();
     }
 
+    public boolean isRboInstitution() {
+        return rboInstitution;
+    }
+
+    public void setRboInstitution(boolean rboInstitution) {
+        this.rboInstitution = rboInstitution;
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
+                            institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
+                            publicationWorkflow, doiAgent, nviInstitution, rboInstitution, sector,
+                            rightsRetentionStrategy);
+    }
+
+    @JacocoGenerated
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CustomerDao that = (CustomerDao) o;
+        return nviInstitution == that.nviInstitution
+               && rboInstitution == that.rboInstitution
+               && Objects.equals(identifier, that.identifier)
+               && Objects.equals(createdDate, that.createdDate)
+               && Objects.equals(modifiedDate, that.modifiedDate)
+               && Objects.equals(name, that.name)
+               && Objects.equals(displayName, that.displayName)
+               && Objects.equals(shortName, that.shortName)
+               && Objects.equals(archiveName, that.archiveName)
+               && Objects.equals(cname, that.cname)
+               && Objects.equals(institutionDns, that.institutionDns)
+               && Objects.equals(feideOrganizationDomain, that.feideOrganizationDomain)
+               && Objects.equals(cristinId, that.cristinId)
+               && Objects.equals(customerOf, that.customerOf)
+               && Objects.equals(vocabularies, that.vocabularies)
+               && Objects.equals(rorId, that.rorId)
+               && publicationWorkflow == that.publicationWorkflow
+               && Objects.equals(doiAgent, that.doiAgent)
+               && sector == that.sector
+               && Objects.equals(rightsRetentionStrategy, that.rightsRetentionStrategy);
+    }
+
     @DynamoDbAttribute(IDENTIFIER)
     @DynamoDbPartitionKey
     public UUID getIdentifier() {
@@ -245,14 +294,6 @@ public class CustomerDao implements Typed {
         this.nviInstitution = nviInstitution;
     }
 
-    private boolean isRboInstitution() {
-        return rboInstitution;
-    }
-
-    private void setRboInstitution(boolean rboInstitution) {
-        this.rboInstitution = rboInstitution;
-    }
-
     public Sector getSector() {
         return nonNull(sector) ? sector : Sector.UHI;
     }
@@ -273,81 +314,29 @@ public class CustomerDao implements Typed {
     }
 
     public CustomerDto toCustomerDto() {
-        CustomerDto customerDto =
-            CustomerDto.builder()
-                .withCname(getCname())
-                .withName(getName())
-                .withIdentifier(getIdentifier())
-                .withArchiveName(getArchiveName())
-                .withCreatedDate(getCreatedDate())
-                .withDisplayName(getDisplayName())
-                .withInstitutionDns(getInstitutionDns())
-                .withShortName(getShortName())
-                .withVocabularies(extractVocabularySettings())
-                .withModifiedDate(getModifiedDate())
-                .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                .withCristinId(getCristinId())
-                .withCustomerOf(fromUri(getCustomerOf()))
-                .withRorId(getRorId())
-                .withPublicationWorkflow(getPublicationWorkflow())
-                .withDoiAgent(getDoiAgent())
-                .withNviInstitution(isNviInstitution())
-                .withRboInstitution(isRboInstitution())
-                .withSector(getSector())
-                .withRightRetentionStrategy(getRightsRetentionStrategy())
-                .build();
+        CustomerDto customerDto = CustomerDto.builder()
+                                      .withCname(getCname())
+                                      .withName(getName())
+                                      .withIdentifier(getIdentifier())
+                                      .withArchiveName(getArchiveName())
+                                      .withCreatedDate(getCreatedDate())
+                                      .withDisplayName(getDisplayName())
+                                      .withInstitutionDns(getInstitutionDns())
+                                      .withShortName(getShortName())
+                                      .withVocabularies(extractVocabularySettings())
+                                      .withModifiedDate(getModifiedDate())
+                                      .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                                      .withCristinId(getCristinId())
+                                      .withCustomerOf(fromUri(getCustomerOf()))
+                                      .withRorId(getRorId())
+                                      .withPublicationWorkflow(getPublicationWorkflow())
+                                      .withDoiAgent(getDoiAgent())
+                                      .withNviInstitution(isNviInstitution())
+                                      .withRboInstitution(isRboInstitution())
+                                      .withSector(getSector())
+                                      .withRightRetentionStrategy(getRightsRetentionStrategy())
+                                      .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
-    }
-
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(),
-                            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(), getPublicationWorkflow(),
-                            getDoiAgent(), isNviInstitution(), isRboInstitution(), getSector(),
-                            getRightsRetentionStrategy());
-    }
-
-    @Override
-    @JacocoGenerated
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        CustomerDao that = (CustomerDao) o;
-        return Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getArchiveName(), that.getArchiveName())
-               && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(isNviInstitution(), that.isNviInstitution())
-               && Objects.equals(isRboInstitution(), that.isRboInstitution())
-               && Objects.equals(getSector(), that.getSector())
-               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getDoiAgent(), that.getDoiAgent())
-               && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getCustomerOf(), that.getCustomerOf())
-               && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getRorId(), that.getRorId())
-               && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
-               && getPublicationWorkflow() == that.getPublicationWorkflow();
-    }
-
-    private static URI extractCustomerOf(CustomerDto dto) {
-        return Optional.ofNullable(dto)
-            .map(CustomerDto::getCustomerOf)
-            .map(ApplicationDomain::toString)
-            .map(URI::create)
-            .orElse(null);
     }
 
     @Override
@@ -361,6 +350,14 @@ public class CustomerDao implements Typed {
         if (nonNull(type) && !TYPE.equals(type)) {
             throw new IllegalStateException("Wrong type for Customer:" + type);
         }
+    }
+
+    private static URI extractCustomerOf(CustomerDto dto) {
+        return Optional.ofNullable(dto)
+                   .map(CustomerDto::getCustomerOf)
+                   .map(ApplicationDomain::toString)
+                   .map(URI::create)
+                   .orElse(null);
     }
 
     private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {
@@ -552,23 +549,22 @@ public class CustomerDao implements Typed {
 
         @Override
         @JacocoGenerated
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof DoiAgentDao)) {
-                return false;
-            }
-            DoiAgentDao that = (DoiAgentDao) o;
-            return Objects.equals(getPrefix(), that.getPrefix())
-                && Objects.equals(getUrl(), that.getUrl())
-                && Objects.equals(getUsername(), that.getUsername());
+        public int hashCode() {
+            return Objects.hash(getPrefix(), getUrl(), getUsername());
         }
 
         @Override
         @JacocoGenerated
-        public int hashCode() {
-            return Objects.hash(getPrefix(), getUrl(), getUsername());
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof DoiAgentDao that)) {
+                return false;
+            }
+            return Objects.equals(getPrefix(), that.getPrefix())
+                   && Objects.equals(getUrl(), that.getUrl())
+                   && Objects.equals(getUsername(), that.getUsername());
         }
 
         @Override
@@ -610,12 +606,18 @@ public class CustomerDao implements Typed {
             return id;
         }
 
+        public void setId(URI id) {
+            this.id = id;
+        }
+
         public void setRetentionStrategy(RetentionStrategyType retentionStrategy) {
             this.retentionStrategy = retentionStrategy;
         }
 
-        public void setId(URI id) {
-            this.id = id;
+        @Override
+        @JacocoGenerated
+        public int hashCode() {
+            return Objects.hash(retentionStrategy, id);
         }
 
         @Override
@@ -629,12 +631,6 @@ public class CustomerDao implements Typed {
             }
             RetentionStrategyDao that = (RetentionStrategyDao) o;
             return retentionStrategy == that.retentionStrategy && Objects.equals(id, that.id);
-        }
-
-        @Override
-        @JacocoGenerated
-        public int hashCode() {
-            return Objects.hash(retentionStrategy, id);
         }
 
         @Override

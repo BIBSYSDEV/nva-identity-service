@@ -92,7 +92,7 @@ class CustomerDaoTest {
 
     @Test
     void daoCanBeDeserializedWhenJsonDoesNotIncludeType() throws IOException {
-        CustomerDao someDao = sampleCustomerDao();
+        CustomerDao someDao = createSampleCustomerDao();
         Map<String, Object> jsonMap = customerToJsonMap(someDao);
         jsonMap.remove("type");
         var jsonStringWithoutType = JsonConfig.writeValueAsString(jsonMap);
@@ -102,7 +102,7 @@ class CustomerDaoTest {
 
     @Test
     void daoIsSerializedWithType() throws IOException {
-        CustomerDao someDao = sampleCustomerDao();
+        CustomerDao someDao = createSampleCustomerDao();
         var jsonMap = customerToJsonMap(someDao);
         assertThat(jsonMap, hasKey("type"));
         var jsonString = JsonConfig.writeValueAsString(jsonMap);
@@ -157,9 +157,5 @@ class CustomerDaoTest {
         VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
                                                      randomElement(VocabularyStatus.values()));
         return Set.of(vocabulary);
-    }
-
-    private CustomerDao sampleCustomerDao() {
-        return CustomerDao.builder().withArchiveName("someName").withIdentifier(UUID.randomUUID()).build();
     }
 }

@@ -1,9 +1,9 @@
 package no.unit.nva.customer.service.impl;
 
 import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -16,9 +16,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -84,6 +86,19 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         createdCustomer.setName(newName);
         var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
         assertEquals(newName, updatedCustomer.getName());
+    }
+
+    @Test
+    void shouldUpdateRboInstitutionWhenRboInstitutionIsSetToTrue()
+        throws NotFoundException, InputException, ConflictException {
+        var customer = newCustomerDto();
+        customer.setRboInstitution(false);
+        var createdCustomer = service.createCustomer(customer);
+        assertFalse(createdCustomer.isRboInstitution());
+
+        createdCustomer.setRboInstitution(true);
+        var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+        assertTrue(updatedCustomer.isRboInstitution());
     }
 
     @Test

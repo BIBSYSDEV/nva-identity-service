@@ -131,13 +131,14 @@ public class UserSelectionUponLoginHandler
                 var impersonatedUser =
                     cognitoClient.adminGetUser(AdminGetUserRequest.builder().userPoolId(authenticationDetails.getUserPoolId()).username(impersonating).build());
                 LOGGER.info("impersonatedUser: {}", impersonatedUser);
-                LOGGER.info("UserAttributes: {}", impersonatedUser.userAttributes());
 
                 //convert to map of string, string
                 var impersonatedUsersAttributes =
                     impersonatedUser.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value));
+                LOGGER.info("impersonatedUsersAttributes: {}", impersonatedUsersAttributes);
                 injectAccessRightsToEventResponse(input, accessRights, impersonatedUsersAttributes);
             } else {
+                LOGGER.info("Did not impersonate, or have app-admin");
                 injectAccessRightsToEventResponse(input, accessRights, Map.of());
             }
 
@@ -149,6 +150,8 @@ public class UserSelectionUponLoginHandler
             LOGGER.debug("Leaving request handler having spent {} ms.",
                          Instant.now().toEpochMilli() - start.toEpochMilli());
         }
+
+        LOGGER.info(input.getResponse().toString());
         return input;
     }
 

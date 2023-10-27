@@ -58,6 +58,7 @@ import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsPro
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
@@ -120,9 +121,28 @@ public class UserSelectionUponLoginHandler
             var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(optionalPerson.get(),
                                                                                 authenticationDetails);
 
-            injectAccessRightsToEventResponse(input, accessRights);
+            var impersonating = input.getRequest().getUserAttributes().get("custom:impersonating");
+            var roles = input.getRequest().getUserAttributes().get("custom:roles");
+
+
+            LOGGER.info("Impersonating: {}", impersonating);
+            LOGGER.info("Roles: {}", roles);
+            if (impersonating != null && roles.contains("App-admin@")) {
+                var impersonatedUser =
+                    cognitoClient.adminGetUser(AdminGetUserRequest.builder().userPoolId(authenticationDetails.getUserPoolId()).username(impersonating).build());
+                LOGGER.info("impersonatedUser: {}", impersonatedUser);
+                LOGGER.info("UserAttributes: {}", impersonatedUser.userAttributes());
+
+                //convert to map of string, string
+                var impersonatedUsersAttributes =
+                    impersonatedUser.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value));
+                injectAccessRightsToEventResponse(input, accessRights, impersonatedUsersAttributes);
+            } else {
+                injectAccessRightsToEventResponse(input, accessRights, Map.of());
+            }
+
         } else {
-            injectAccessRightsToEventResponse(input, Collections.emptyList());
+            injectAccessRightsToEventResponse(input, Collections.emptyList(), Map.of());
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -425,9 +445,10 @@ public class UserSelectionUponLoginHandler
     }
 
     private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
-                                                   List<String> accessRights) {
+                                                   List<String> accessRights,
+                                                   Map<String, String> claimsToOverride) {
         input.setResponse(Response.builder()
-                              .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
+                              .withClaimsOverrideDetails(buildOverrideClaims(claimsToOverride, accessRights))
                               .build());
     }
 
@@ -439,12 +460,13 @@ public class UserSelectionUponLoginHandler
                    .collect(Collectors.toList());
     }
 
-    private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride) {
+    private ClaimsOverrideDetails buildOverrideClaims(Map<String, String> claimsToOverride, List<String> groupsToOverride) {
         var groups = GroupConfiguration.builder()
                          .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
                          .build();
         return ClaimsOverrideDetails.builder()
                    .withGroupOverrideDetails(groups)
+                   .withClaimsToAddOrOverride(claimsToOverride)
                    .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
                    .build();
     }

@@ -9,6 +9,8 @@ import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
@@ -61,6 +63,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
+@SuppressWarnings({"PMD.GodClass"})
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
@@ -72,7 +75,8 @@ public class UserSelectionUponLoginHandler
     public static final String FEIDE_ID = "custom:feideId";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
-
+    public static final String APP_ADMIN_ROLE_NAME = "App-admin";
+    public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -109,17 +113,22 @@ public class UserSelectionUponLoginHandler
         final var authenticationDetails = extractAuthenticationDetails(input);
 
         var startFetchingPerson = Instant.now();
-        var optionalPerson = personRegistry.fetchPersonByNin(authenticationDetails.getNin());
+
+        var impersonating = input.getRequest().getUserAttributes().get(IMPERSONATING_CLAIM);
+        var nin = getCurrentNin(impersonating, authenticationDetails);
+
+        var requestedPerson = personRegistry.fetchPersonByNin(nin);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Got person details from registry in {} ms.",
                          Instant.now().toEpochMilli() - startFetchingPerson.toEpochMilli());
         }
 
-        if (optionalPerson.isPresent()) {
-            var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(optionalPerson.get(),
-                                                                                authenticationDetails);
-
+        if (requestedPerson.isPresent()) {
+            var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
+            var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(requestedPerson.get(),
+                                                                                authenticationDetails,
+                                                                                impersonatedBy);
             injectAccessRightsToEventResponse(input, accessRights);
         } else {
             injectAccessRightsToEventResponse(input, Collections.emptyList());
@@ -129,11 +138,43 @@ public class UserSelectionUponLoginHandler
             LOGGER.debug("Leaving request handler having spent {} ms.",
                          Instant.now().toEpochMilli() - start.toEpochMilli());
         }
+
         return input;
     }
 
+    private NationalIdentityNumber getCurrentNin(String impersonating,
+            AuthenticationDetails authenticationDetails) {
+
+        if (isNull(impersonating)) {
+            return authenticationDetails.getNin();
+        }
+        var impersonator = personRegistry.fetchPersonByNin(authenticationDetails.getNin()).get();
+
+        LOGGER.info("User {} {} impersonating: {}",
+                    impersonator.getIdentifier(),
+                    authenticationDetails.getUsername(),
+                    impersonating);
+
+        var customerForImpersonators = fetchCustomersWithActiveAffiliations(impersonator.getAffiliations());
+        var usersForImpersonator = createUsers(impersonator, customerForImpersonators, authenticationDetails);
+        var rolesForImpersonator = rolesPerCustomer(usersForImpersonator);
+        var allowed = rolesForImpersonator.stream().anyMatch(s -> s.startsWith(APP_ADMIN_ROLE_NAME));
+
+        if (!allowed) {
+            LOGGER.warn(USER_NOT_ALLOWED_TO_IMPERSONATE);
+            throw new IllegalStateException(USER_NOT_ALLOWED_TO_IMPERSONATE);
+        }
+
+        return new NationalIdentityNumber(impersonating);
+    }
+
+    private String getImpersonatedBy(String impersonating, AuthenticationDetails authenticationDetails) {
+        return isNull(impersonating) ? null : authenticationDetails.getUsername();
+    }
+
     private List<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(Person person,
-                                                                          AuthenticationDetails authenticationDetails) {
+                                                                          AuthenticationDetails authenticationDetails,
+                                                                          String impersonatedBy) {
         var start = Instant.now();
         var customersForPerson = fetchCustomersWithActiveAffiliations(person.getAffiliations());
         var usersForPerson = createUsers(person, customersForPerson, authenticationDetails);
@@ -144,8 +185,11 @@ public class UserSelectionUponLoginHandler
         }
 
         start = Instant.now();
-        var accessRights = updateUserAttributesInCognito(person, customersForPerson, usersForPerson,
-                                                         authenticationDetails);
+        var accessRights = updateUserAttributesInCognito(person,
+                                                         customersForPerson,
+                                                         usersForPerson,
+                                                         authenticationDetails,
+                                                         impersonatedBy);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Updated user attributes in Cognito in {} ms.",
                          Instant.now().toEpochMilli() - start.toEpochMilli());
@@ -157,7 +201,8 @@ public class UserSelectionUponLoginHandler
     private List<String> updateUserAttributesInCognito(Person person,
                                                        Set<CustomerDto> customers,
                                                        List<UserDto> users,
-                                                       AuthenticationDetails authenticationDetails) {
+                                                       AuthenticationDetails authenticationDetails,
+                                                       String impersonatedBy) {
 
         var rolesPerCustomerForPerson = rolesPerCustomer(users);
         var currentCustomer
@@ -175,7 +220,8 @@ public class UserSelectionUponLoginHandler
                                     currentUser,
                                     customers,
                                     accessRights,
-                                    rolesPerCustomerForPerson);
+                                    rolesPerCustomerForPerson,
+                                    impersonatedBy);
 
         return accessRights;
     }
@@ -276,7 +322,8 @@ public class UserSelectionUponLoginHandler
         UserDto currentUser,
         Set<CustomerDto> customers,
         Collection<String> accessRights,
-        Collection<String> roles) {
+        Collection<String> roles,
+        String impersonatedBy) {
 
         final var updateUserAttributesRequest = createUpdateUserAttributesRequest(
             authenticationDetails,
@@ -285,7 +332,8 @@ public class UserSelectionUponLoginHandler
             currentUser,
             customers,
             accessRights,
-            roles);
+            roles,
+            impersonatedBy);
 
         cognitoClient.adminUpdateUserAttributes(updateUserAttributesRequest);
     }
@@ -297,7 +345,8 @@ public class UserSelectionUponLoginHandler
         UserDto currentUser,
         Set<CustomerDto> customers,
         Collection<String> accessRights,
-        Collection<String> roles) {
+        Collection<String> roles,
+        String impersonatedBy) {
 
         Collection<AttributeType> userAttributes = updatedPersonAttributes(person,
                                                                            authenticationDetails.getFeideDomain(),
@@ -305,7 +354,8 @@ public class UserSelectionUponLoginHandler
                                                                            currentUser,
                                                                            customers,
                                                                            accessRights,
-                                                                           roles);
+                                                                           roles,
+                                                                           impersonatedBy);
 
         return AdminUpdateUserAttributesRequest.builder()
                    .userPoolId(authenticationDetails.getUserPoolId())
@@ -320,7 +370,8 @@ public class UserSelectionUponLoginHandler
                                                               UserDto currentUser,
                                                               Set<CustomerDto> customers,
                                                               Collection<String> accessRights,
-                                                              Collection<String> roles) {
+                                                              Collection<String> roles,
+                                                              String impersonatedBy) {
 
         var allowedCustomersString = createAllowedCustomersString(customers, feideDomain);
 
@@ -329,7 +380,8 @@ public class UserSelectionUponLoginHandler
                                                             currentUser,
                                                             accessRights,
                                                             roles,
-                                                            allowedCustomersString);
+                                                            allowedCustomersString,
+                                                            impersonatedBy);
     }
 
     private List<AttributeType> addClaimsForPeopleRegisteredInPersonRegistry(
@@ -338,7 +390,8 @@ public class UserSelectionUponLoginHandler
         UserDto currentUser,
         Collection<String> accessRights,
         Collection<String> roles,
-        String allowedCustomersString) {
+        String allowedCustomersString,
+        String impersonatedBy) {
 
         var claims = new ArrayList<AttributeType>();
         claims.add(createAttribute(FIRST_NAME_CLAIM, person.getFirstname()));
@@ -347,6 +400,7 @@ public class UserSelectionUponLoginHandler
         claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
         claims.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString));
         claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
+        claims.add(createAttribute(IMPERSONATED_BY_CLAIM, impersonatedBy));
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(currentCustomer, currentUser, claims);
         return claims;
     }

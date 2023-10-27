@@ -6,6 +6,8 @@ import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
@@ -16,6 +18,7 @@ import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_U
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
+import static no.unit.nva.cognito.UserSelectionUponLoginHandler.USER_NOT_ALLOWED_TO_IMPERSONATE;
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -101,6 +104,7 @@ class UserSelectionUponLoginHandlerTest {
     public static final int SINGLE_EXPECTED_USER = 1;
     public static final boolean ACTIVE = true;
     public static final boolean INACTIVE = false;
+    public static final String APP_ADMIN_SOMEWHERE = "App-admin@somewhere";
 
     private final Context context = new FakeContext();
     private UserSelectionUponLoginHandler handler;
@@ -670,6 +674,66 @@ class UserSelectionUponLoginHandlerTest {
         assertThatCustomerSelectionClaimsArePresent(expectedCustomerId, expectedCristinId, expectedUsername);
     }
 
+    @Test
+    void shouldReturnTokenWithImpersonatedUsersAttributeWhenImpersonationIsSetAndUserIsAppAdmin()
+        throws InvalidInputException, ConflictException {
+        var adminName = randomString();
+        var adminNin = scenarios.personWithExactlyOneActiveEmployment();
+        var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment();
+
+        var newRole = RoleDto.newBuilder()
+                          .withRoleName(APP_ADMIN_SOMEWHERE)
+                          .withAccessRights(List.of(AccessRight.ADMINISTRATE_APPLICATION))
+                          .build();
+        persistRole(newRole);
+        createUserWithRolesForPerson(adminNin, newRole);
+
+        var event = feideLoginWithImpersonation(adminName, adminNin, otherPersonNin);
+        handler.handleRequest(event, context);
+
+        var expectedFirstName = scenarios.getPersonFromRegistry(otherPersonNin).getFirstname();
+        var expectedLastName = scenarios.getPersonFromRegistry(otherPersonNin).getSurname();
+
+        var firstName = extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM);
+        var lastName = extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM);
+
+        assertThat(firstName, is(equalTo(expectedFirstName)));
+        assertThat(lastName, is(equalTo(expectedLastName)));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAttemptingToImpersonateAndUserIsNotAppAdmin() {
+        var notAdmin = scenarios.personWithExactlyOneActiveEmployment();
+        var otherPerson = scenarios.personWithExactlyOneActiveEmployment();
+
+        var event = feideLoginWithImpersonation(randomString(), notAdmin, otherPerson);
+
+        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        assertThrows(Exception.class, () -> handler.handleRequest(event, context));
+        assertThat(testAppender.getMessages(), containsString(USER_NOT_ALLOWED_TO_IMPERSONATE));
+    }
+
+    @Test
+    void shouldSetImpersonatedByClaimWhenImpersonating() throws InvalidInputException, ConflictException {
+        var adminName = randomString();
+        var adminNin = scenarios.personWithExactlyOneActiveEmployment();
+        var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment();
+
+        var newRole = RoleDto.newBuilder()
+                          .withRoleName(APP_ADMIN_SOMEWHERE)
+                          .withAccessRights(List.of(AccessRight.ADMINISTRATE_APPLICATION))
+                          .build();
+        persistRole(newRole);
+        createUserWithRolesForPerson(adminNin, newRole);
+
+        var event = feideLoginWithImpersonation(adminName, adminNin, otherPersonNin);
+        handler.handleRequest(event, context);
+
+        var impersonatedByClaim = extractClaimFromCognitoUpdateRequest(IMPERSONATED_BY_CLAIM);
+
+        assertThat(impersonatedByClaim, is(equalTo(adminName)));
+    }
+
     private void assertUserAccessRightsAreUpdated(UserDto user, AccessRight... accessRights) throws NotFoundException {
         var updatedUser = identityService.getUser(user);
         assertThat(updatedUser.getAccessRights(), containsInAnyOrder(accessRights));
@@ -856,6 +920,22 @@ class UserSelectionUponLoginHandlerTest {
         return LoginEventType.FEIDE.equals(loginEventType) ? feideLogin(personNin) : nonFeideLogin(personNin);
     }
 
+    private CognitoUserPoolPreTokenGenerationEvent feideLoginWithImpersonation(String adminUsername,
+                                                                               String adminNin,
+                                                                               String impersonatedNin) {
+
+        var attributes = new ConcurrentHashMap<String, String>();
+        attributes.put(NIN_FOR_FEIDE_USERS, adminNin);
+        attributes.put(IMPERSONATING_CLAIM, impersonatedNin);
+
+        var request = Request.builder().withUserAttributes(attributes).build();
+        var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
+        loginEvent.setRequest(request);
+        loginEvent.setUserName(adminUsername);
+        return loginEvent;
+    }
+
+
     private List<UserDto> createUsersWithRolesForPerson(String nin) {
         return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
                    .stream()
@@ -863,6 +943,16 @@ class UserSelectionUponLoginHandlerTest {
                    .map(Try::orElseThrow)
                    .collect(Collectors.toList());
     }
+
+    private List<UserDto> createUserWithRolesForPerson(String nin, RoleDto role) {
+        return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
+                   .stream()
+                   .map(attempt(user -> addRoleToUser(user, role)))
+                   .map(Try::orElseThrow)
+                   .collect(Collectors.toList());
+    }
+
+
 
     private Stream<String> createScopedRoles(UserDto user) {
         var customerId = user.getInstitution();

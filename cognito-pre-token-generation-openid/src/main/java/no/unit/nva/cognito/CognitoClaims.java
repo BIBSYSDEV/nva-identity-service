@@ -17,9 +17,11 @@ public final class CognitoClaims {
     public static final String PERSON_AFFILIATION_CLAIM = "custom:personAffiliation";
     public static final String LAST_NAME_CLAIM = "custom:lastName";
     public static final String FIRST_NAME_CLAIM = "custom:firstName";
+    public static final String IMPERSONATING_CLAIM = "custom:impersonating";
+    public static final String IMPERSONATED_BY_CLAIM = "custom:impersonatedBy";
 
     public static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FOR_NON_FEIDE_USERS,
-        NIN_FOR_FEIDE_USERS};
+        NIN_FOR_FEIDE_USERS, IMPERSONATING_CLAIM};
     public static final String AT = "@";
     public static final String ELEMENTS_DELIMITER = ",";
 

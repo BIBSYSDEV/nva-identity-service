@@ -1275,6 +1275,14 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: impersonating
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: impersonatedBy
+          AttributeDataType: String
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value
@@ -1422,6 +1430,8 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
+        - custom:impersonating
+        - custom:impersonatedBy
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2

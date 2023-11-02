@@ -1293,6 +1293,10 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: impersonatedBy
+          AttributeDataType: String
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value

@@ -126,7 +126,10 @@ public class UserSelectionUponLoginHandler
             var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(optionalPerson.get(),
                                                                                 authenticationDetails);
 
-                injectAccessRightsToEventResponse(input, accessRights, Map.of());
+            var overrideClaims = Map.of(
+              "custom:impersonatedBy", authenticationDetails.getUsername()
+            );
+                injectAccessRightsToEventResponse(input, accessRights, overrideClaims);
         } else {
             injectAccessRightsToEventResponse(input, Collections.emptyList(), Map.of());
         }

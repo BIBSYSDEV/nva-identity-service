@@ -125,11 +125,12 @@ public class UserSelectionUponLoginHandler
         if (optionalPerson.isPresent()) {
             var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(optionalPerson.get(),
                                                                                 authenticationDetails);
-
-            var overrideClaims = Map.of(
-              "custom:impersonatedBy", authenticationDetails.getUsername()
-            );
-                injectAccessRightsToEventResponse(input, accessRights, overrideClaims);
+            Map<String, String> overrideClaims = isNull(impersonating)
+                                     ? Map.of()
+                                     : Map.of(
+                                         "custom:impersonatedBy", authenticationDetails.getUsername()
+                                     );
+            injectAccessRightsToEventResponse(input, accessRights, overrideClaims);
         } else {
             injectAccessRightsToEventResponse(input, Collections.emptyList(), Map.of());
         }

@@ -9,6 +9,7 @@ import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
@@ -61,6 +62,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
+@SuppressWarnings({"PMD.GodClass"})
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
@@ -123,12 +125,15 @@ public class UserSelectionUponLoginHandler
         }
 
         if (optionalPerson.isPresent()) {
+
+            var impersonatedBy = isNull(impersonating) ? null : authenticationDetails.getUsername();
             var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(optionalPerson.get(),
-                                                                                authenticationDetails);
+                                                                                authenticationDetails,
+                                                                                impersonatedBy);
             Map<String, String> overrideClaims = isNull(impersonating)
                                      ? Map.of()
                                      : Map.of(
-                                         "custom:impersonatedBy", authenticationDetails.getUsername()
+                                        // "custom:impersonatedBy", authenticationDetails.getUsername()
                                      );
             injectAccessRightsToEventResponse(input, accessRights, overrideClaims);
         } else {
@@ -145,7 +150,8 @@ public class UserSelectionUponLoginHandler
     }
 
     private List<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(Person person,
-                                                                          AuthenticationDetails authenticationDetails) {
+                                                                          AuthenticationDetails authenticationDetails,
+                                                                          String impersonatedBy) {
         var start = Instant.now();
         var customersForPerson = fetchCustomersWithActiveAffiliations(person.getAffiliations());
         var usersForPerson = createUsers(person, customersForPerson, authenticationDetails);
@@ -156,8 +162,11 @@ public class UserSelectionUponLoginHandler
         }
 
         start = Instant.now();
-        var accessRights = updateUserAttributesInCognito(person, customersForPerson, usersForPerson,
-                                                         authenticationDetails);
+        var accessRights = updateUserAttributesInCognito(person,
+                                                         customersForPerson,
+                                                         usersForPerson,
+                                                         authenticationDetails,
+                                                         impersonatedBy);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Updated user attributes in Cognito in {} ms.",
                          Instant.now().toEpochMilli() - start.toEpochMilli());
@@ -169,7 +178,8 @@ public class UserSelectionUponLoginHandler
     private List<String> updateUserAttributesInCognito(Person person,
                                                        Set<CustomerDto> customers,
                                                        List<UserDto> users,
-                                                       AuthenticationDetails authenticationDetails) {
+                                                       AuthenticationDetails authenticationDetails,
+                                                       String impersonatedBy) {
 
         var rolesPerCustomerForPerson = rolesPerCustomer(users);
         var currentCustomer
@@ -187,7 +197,8 @@ public class UserSelectionUponLoginHandler
                                     currentUser,
                                     customers,
                                     accessRights,
-                                    rolesPerCustomerForPerson);
+                                    rolesPerCustomerForPerson,
+                                    impersonatedBy);
 
         return accessRights;
     }
@@ -288,7 +299,8 @@ public class UserSelectionUponLoginHandler
         UserDto currentUser,
         Set<CustomerDto> customers,
         Collection<String> accessRights,
-        Collection<String> roles) {
+        Collection<String> roles,
+        String impersonatedBy) {
 
         final var updateUserAttributesRequest = createUpdateUserAttributesRequest(
             authenticationDetails,
@@ -297,7 +309,8 @@ public class UserSelectionUponLoginHandler
             currentUser,
             customers,
             accessRights,
-            roles);
+            roles,
+            impersonatedBy);
 
         cognitoClient.adminUpdateUserAttributes(updateUserAttributesRequest);
     }
@@ -309,7 +322,8 @@ public class UserSelectionUponLoginHandler
         UserDto currentUser,
         Set<CustomerDto> customers,
         Collection<String> accessRights,
-        Collection<String> roles) {
+        Collection<String> roles,
+        String impersonatedBy) {
 
         Collection<AttributeType> userAttributes = updatedPersonAttributes(person,
                                                                            authenticationDetails.getFeideDomain(),
@@ -317,7 +331,8 @@ public class UserSelectionUponLoginHandler
                                                                            currentUser,
                                                                            customers,
                                                                            accessRights,
-                                                                           roles);
+                                                                           roles,
+                                                                           impersonatedBy);
 
         return AdminUpdateUserAttributesRequest.builder()
                    .userPoolId(authenticationDetails.getUserPoolId())
@@ -332,7 +347,8 @@ public class UserSelectionUponLoginHandler
                                                               UserDto currentUser,
                                                               Set<CustomerDto> customers,
                                                               Collection<String> accessRights,
-                                                              Collection<String> roles) {
+                                                              Collection<String> roles,
+                                                              String impersonatedBy) {
 
         var allowedCustomersString = createAllowedCustomersString(customers, feideDomain);
 
@@ -341,7 +357,8 @@ public class UserSelectionUponLoginHandler
                                                             currentUser,
                                                             accessRights,
                                                             roles,
-                                                            allowedCustomersString);
+                                                            allowedCustomersString,
+                                                            impersonatedBy);
     }
 
     private List<AttributeType> addClaimsForPeopleRegisteredInPersonRegistry(
@@ -350,7 +367,8 @@ public class UserSelectionUponLoginHandler
         UserDto currentUser,
         Collection<String> accessRights,
         Collection<String> roles,
-        String allowedCustomersString) {
+        String allowedCustomersString,
+        String impersonatedBy) {
 
         var claims = new ArrayList<AttributeType>();
         claims.add(createAttribute(FIRST_NAME_CLAIM, person.getFirstname()));
@@ -359,6 +377,9 @@ public class UserSelectionUponLoginHandler
         claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
         claims.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString));
         claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
+        if (!isNull(impersonatedBy)) {
+            claims.add(createAttribute(IMPERSONATED_BY_CLAIM, impersonatedBy));
+        }
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(currentCustomer, currentUser, claims);
         return claims;
     }

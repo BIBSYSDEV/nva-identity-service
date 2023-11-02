@@ -58,7 +58,6 @@ import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsPro
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
@@ -110,7 +109,13 @@ public class UserSelectionUponLoginHandler
         final var authenticationDetails = extractAuthenticationDetails(input);
 
         var startFetchingPerson = Instant.now();
-        var optionalPerson = personRegistry.fetchPersonByNin(authenticationDetails.getNin());
+
+        var impersonating = input.getRequest().getUserAttributes().get("custom:impersonating");
+        LOGGER.info("Impersonating: {}", impersonating);
+        var nin = isNull(impersonating)
+                      ? authenticationDetails.getNin()
+                      : new NationalIdentityNumber(impersonating);
+        var optionalPerson = personRegistry.fetchPersonByNin(nin);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Got person details from registry in {} ms.",
@@ -121,27 +126,7 @@ public class UserSelectionUponLoginHandler
             var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(optionalPerson.get(),
                                                                                 authenticationDetails);
 
-            var impersonating = input.getRequest().getUserAttributes().get("custom:impersonating");
-            var roles = input.getRequest().getUserAttributes().get("custom:roles");
-
-
-            LOGGER.info("Impersonating: {}", impersonating);
-            LOGGER.info("Roles: {}", roles);
-            if (impersonating != null && roles.contains("App-admin@")) {
-                var impersonatedUser =
-                    cognitoClient.adminGetUser(AdminGetUserRequest.builder().userPoolId(authenticationDetails.getUserPoolId()).username(impersonating).build());
-                LOGGER.info("impersonatedUser: {}", impersonatedUser);
-
-                //convert to map of string, string
-                var impersonatedUsersAttributes =
-                    impersonatedUser.userAttributes().stream().collect(Collectors.toMap(AttributeType::name, AttributeType::value));
-                LOGGER.info("impersonatedUsersAttributes: {}", impersonatedUsersAttributes);
-                injectAccessRightsToEventResponse(input, accessRights, impersonatedUsersAttributes);
-            } else {
-                LOGGER.info("Did not impersonate, or have app-admin");
                 injectAccessRightsToEventResponse(input, accessRights, Map.of());
-            }
-
         } else {
             injectAccessRightsToEventResponse(input, Collections.emptyList(), Map.of());
         }

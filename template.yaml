@@ -1444,6 +1444,8 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
+        - custom:impersonating
+        - custom:impersonatedBy
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2

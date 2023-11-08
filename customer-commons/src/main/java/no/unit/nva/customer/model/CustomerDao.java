@@ -14,10 +14,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
-import no.unit.nva.customer.model.dynamo.converters.RetentionStrategyConverter;
+import no.unit.nva.customer.model.dynamo.converters.RightsRetentionStrategyConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
@@ -62,6 +64,7 @@ public class CustomerDao implements Typed {
     private boolean nviInstitution;
     private boolean rboInstitution;
     private Sector sector;
+    @JsonAlias("rightRetentionStrategy")
     private RightsRetentionStrategyDao rightsRetentionStrategy;
 
     public CustomerDao() {
@@ -93,7 +96,7 @@ public class CustomerDao implements Typed {
                    .withNviInstitution(dto.isNviInstitution())
                    .withRboInstitution(dto.isRboInstitution())
                    .withSector(dto.getSector())
-                   .withRightRetentionStrategy(dto.getRightRetentionStrategy())
+                   .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
                    .build();
     }
 
@@ -302,7 +305,7 @@ public class CustomerDao implements Typed {
         this.sector = sector;
     }
 
-    @DynamoDbConvertedBy(RetentionStrategyConverter.class)
+    @DynamoDbConvertedBy(RightsRetentionStrategyConverter.class)
     public RightsRetentionStrategyDao getRightsRetentionStrategy() {
         return nonNull(rightsRetentionStrategy)
                    ? rightsRetentionStrategy
@@ -334,7 +337,7 @@ public class CustomerDao implements Typed {
                                       .withNviInstitution(isNviInstitution())
                                       .withRboInstitution(isRboInstitution())
                                       .withSector(getSector())
-                                      .withRightRetentionStrategy(getRightsRetentionStrategy())
+                                      .withRightsRetentionStrategy(getRightsRetentionStrategy())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -480,7 +483,7 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withRightRetentionStrategy(RightsRetentionStrategy rightsRetentionStrategy) {
+        public Builder withRightsRetentionStrategy(RightsRetentionStrategy rightsRetentionStrategy) {
             customerDb.setRightsRetentionStrategy(new RightsRetentionStrategyDao(rightsRetentionStrategy));
             return this;
         }
@@ -577,11 +580,12 @@ public class CustomerDao implements Typed {
     @DynamoDbBean
     public static class RightsRetentionStrategyDao implements RightsRetentionStrategy, JsonSerializable {
 
+        @JsonAlias("retentionStrategy")
         private RightsRetentionStrategyType type;
         private URI id;
 
         public RightsRetentionStrategyDao() {
-            type = RightsRetentionStrategyType.NullRightRetentionStrategy;
+            type = RightsRetentionStrategyType.NullRightsRetentionStrategy;
         }
 
         public RightsRetentionStrategyDao(RightsRetentionStrategyType type, URI id) {

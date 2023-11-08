@@ -55,7 +55,7 @@ public class CustomerDto implements Context {
     private boolean nviInstitution;
     private boolean rboInstitution;
     private Sector sector;
-    private RightsRightsRetentionStrategyDto rightRetentionStrategy;
+    private RightsRetentionStrategyDto rightsRetentionStrategy;
 
     public CustomerDto() {
         super();
@@ -231,12 +231,12 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
-    public RightsRightsRetentionStrategyDto getRightRetentionStrategy() {
-        return rightRetentionStrategy;
+    public RightsRetentionStrategyDto getRightsRetentionStrategy() {
+        return rightsRetentionStrategy;
     }
 
-    public void setRightRetentionStrategy(RightsRightsRetentionStrategyDto retention) {
-        rightRetentionStrategy = retention;
+    public void setRightsRetentionStrategy(RightsRetentionStrategyDto rightsRetentionStrategy) {
+        this.rightsRetentionStrategy = rightsRetentionStrategy;
     }
 
     @Override
@@ -272,7 +272,7 @@ public class CustomerDto implements Context {
                 .withRboInstitution(isRboInstitution())
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
-                .withRightRetentionStrategy(getRightRetentionStrategy());
+                .withRightsRetentionStrategy(getRightsRetentionStrategy());
     }
 
     @Override
@@ -281,7 +281,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                 getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                 getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightRetentionStrategy());
+                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy());
     }
 
     @Override
@@ -311,7 +311,7 @@ public class CustomerDto implements Context {
                 && Objects.equals(getShortName(), that.getShortName())
                 && Objects.equals(getVocabularies(), that.getVocabularies())
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
-                && Objects.equals(getRightRetentionStrategy(), that.getRightRetentionStrategy())
+                && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
                 && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
@@ -455,8 +455,8 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withRightRetentionStrategy(RightsRetentionStrategy rightsRetentionStrategy) {
-            customerDto.setRightRetentionStrategy(buildRetentionStrategyDto(rightsRetentionStrategy));
+        public Builder withRightsRetentionStrategy(RightsRetentionStrategy rightsRetentionStrategy) {
+            customerDto.setRightsRetentionStrategy(buildRetentionStrategyDto(rightsRetentionStrategy));
             return this;
         }
 
@@ -469,9 +469,9 @@ public class CustomerDto implements Context {
             return null;
         }
 
-        private RightsRightsRetentionStrategyDto buildRetentionStrategyDto(RightsRetentionStrategy rightsRetentionStrategy) {
+        private RightsRetentionStrategyDto buildRetentionStrategyDto(RightsRetentionStrategy rightsRetentionStrategy) {
             if (nonNull(rightsRetentionStrategy)) {
-                return new RightsRightsRetentionStrategyDto(rightsRetentionStrategy);
+                return new RightsRetentionStrategyDto(rightsRetentionStrategy);
             }
             return null;
         }

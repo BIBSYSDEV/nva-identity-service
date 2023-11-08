@@ -8,18 +8,18 @@ import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import nva.commons.core.JacocoGenerated;
 
-public class RightsRightsRetentionStrategyDto implements RightsRetentionStrategy, JsonSerializable {
+public class RightsRetentionStrategyDto implements RightsRetentionStrategy, JsonSerializable {
 
     private final RightsRetentionStrategyType type;
     private final URI id;
 
     @ConstructorProperties({"type", "id"})
-    public RightsRightsRetentionStrategyDto(RightsRetentionStrategyType type, URI id) {
+    public RightsRetentionStrategyDto(RightsRetentionStrategyType type, URI id) {
         this.type = type;
         this.id = id;
     }
 
-    public RightsRightsRetentionStrategyDto(RightsRetentionStrategy retention) {
+    public RightsRetentionStrategyDto(RightsRetentionStrategy retention) {
         this(retention.getType(), retention.getId());
     }
 
@@ -42,7 +42,7 @@ public class RightsRightsRetentionStrategyDto implements RightsRetentionStrategy
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RightsRightsRetentionStrategyDto that = (RightsRightsRetentionStrategyDto) o;
+        RightsRetentionStrategyDto that = (RightsRetentionStrategyDto) o;
         return type == that.type && Objects.equals(id, that.id);
     }
 

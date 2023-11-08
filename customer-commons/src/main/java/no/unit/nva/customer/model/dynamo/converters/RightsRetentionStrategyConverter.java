@@ -9,12 +9,12 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
 
 @JacocoGenerated
-public class RetentionStrategyConverter implements AttributeConverter<RightsRetentionStrategyDao> {
+public class RightsRetentionStrategyConverter implements AttributeConverter<RightsRetentionStrategyDao> {
 
     public static final TableSchema<RightsRetentionStrategyDao> TABLE_SCHEMA =
         TableSchema.fromBean(RightsRetentionStrategyDao.class);
 
-    public RetentionStrategyConverter() {
+    public RightsRetentionStrategyConverter() {
     }
 
     @Override

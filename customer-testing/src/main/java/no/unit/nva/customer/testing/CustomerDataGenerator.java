@@ -61,7 +61,7 @@ public class CustomerDataGenerator {
                                    .withSector(randomSector())
                                    .withNviInstitution(randomBoolean())
                                    .withRboInstitution(randomBoolean())
-                                   .withRightRetentionStrategy(randomRetentionStrategy())
+                                   .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
@@ -96,13 +96,13 @@ public class CustomerDataGenerator {
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withNviInstitution(randomBoolean())
                                    .withSector(randomSector())
-                                   .withRightRetentionStrategy(randomRetentionStrategy())
+                                   .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
     }
 
-    public static RightsRetentionStrategy randomRetentionStrategy() {
+    public static RightsRetentionStrategy randomRightsRetentionStrategy() {
         var elements = Arrays.stream(RightsRetentionStrategyType.values())
                 .filter(f -> f.ordinal() > 0)
                 .collect(Collectors.toList());

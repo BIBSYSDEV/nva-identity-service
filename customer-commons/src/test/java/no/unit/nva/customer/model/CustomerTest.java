@@ -7,7 +7,7 @@ import static no.unit.nva.customer.model.VocabularyStatus.ERROR_MESSAGE_TEMPLATE
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomApplicationDomainUri;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRetentionStrategy;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -90,7 +90,7 @@ class CustomerTest {
                    .withRorId(randomUri())
                    .withPublicationWorkflow(randomPublicationWorkflow())
                    .withDoiAgent(CustomerDataGenerator.randomDoiAgent(randomString()))
-                   .withRightRetentionStrategy(randomRetentionStrategy())
+                   .withRightsRetentionStrategy(randomRightsRetentionStrategy())
             .build();
     }
 

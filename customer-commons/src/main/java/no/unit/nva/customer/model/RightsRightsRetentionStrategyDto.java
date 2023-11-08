@@ -10,22 +10,22 @@ import nva.commons.core.JacocoGenerated;
 
 public class RightsRightsRetentionStrategyDto implements RightsRetentionStrategy, JsonSerializable {
 
-    private final RightsRetentionStrategyType retentionStrategy;
+    private final RightsRetentionStrategyType type;
     private final URI id;
 
-    @ConstructorProperties({"retentionStrategy", "id"})
-    public RightsRightsRetentionStrategyDto(RightsRetentionStrategyType retentionStrategy, URI id) {
-        this.retentionStrategy = retentionStrategy;
+    @ConstructorProperties({"type", "id"})
+    public RightsRightsRetentionStrategyDto(RightsRetentionStrategyType type, URI id) {
+        this.type = type;
         this.id = id;
     }
 
     public RightsRightsRetentionStrategyDto(RightsRetentionStrategy retention) {
-        this(retention.getRetentionStrategy(), retention.getId());
+        this(retention.getType(), retention.getId());
     }
 
     @Override
-    public RightsRetentionStrategyType getRetentionStrategy() {
-        return retentionStrategy;
+    public RightsRetentionStrategyType getType() {
+        return type;
     }
 
     @Override
@@ -43,13 +43,13 @@ public class RightsRightsRetentionStrategyDto implements RightsRetentionStrategy
             return false;
         }
         RightsRightsRetentionStrategyDto that = (RightsRightsRetentionStrategyDto) o;
-        return retentionStrategy == that.retentionStrategy && Objects.equals(id, that.id);
+        return type == that.type && Objects.equals(id, that.id);
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
-        return Objects.hash(retentionStrategy, id);
+        return Objects.hash(type, id);
     }
 
     @Override

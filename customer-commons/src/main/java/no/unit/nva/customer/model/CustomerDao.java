@@ -577,28 +577,28 @@ public class CustomerDao implements Typed {
     @DynamoDbBean
     public static class RightsRetentionStrategyDao implements RightsRetentionStrategy, JsonSerializable {
 
-        private RightsRetentionStrategyType retentionStrategy;
+        private RightsRetentionStrategyType type;
         private URI id;
 
         public RightsRetentionStrategyDao() {
-            retentionStrategy = RightsRetentionStrategyType.NullRightRetentionStrategy;
+            type = RightsRetentionStrategyType.NullRightRetentionStrategy;
         }
 
-        public RightsRetentionStrategyDao(RightsRetentionStrategyType retentionStrategy, URI id) {
-            this.retentionStrategy = retentionStrategy;
+        public RightsRetentionStrategyDao(RightsRetentionStrategyType type, URI id) {
+            this.type = type;
             this.id = id;
         }
 
         public RightsRetentionStrategyDao(RightsRetentionStrategy rightsRetentionStrategy) {
             if (nonNull(rightsRetentionStrategy)) {
-                this.retentionStrategy = rightsRetentionStrategy.getRetentionStrategy();
+                this.type = rightsRetentionStrategy.getType();
                 this.id = rightsRetentionStrategy.getId();
             }
         }
 
         @Override
-        public RightsRetentionStrategyType getRetentionStrategy() {
-            return retentionStrategy;
+        public RightsRetentionStrategyType getType() {
+            return type;
         }
 
         @Override
@@ -610,14 +610,14 @@ public class CustomerDao implements Typed {
             this.id = id;
         }
 
-        public void setRetentionStrategy(RightsRetentionStrategyType rightsRetentionStrategyType) {
-            this.retentionStrategy = rightsRetentionStrategyType;
+        public void setType(RightsRetentionStrategyType rightsRetentionStrategyType) {
+            this.type = rightsRetentionStrategyType;
         }
 
         @Override
         @JacocoGenerated
         public int hashCode() {
-            return Objects.hash(retentionStrategy, id);
+            return Objects.hash(type, id);
         }
 
         @Override
@@ -630,7 +630,7 @@ public class CustomerDao implements Typed {
                 return false;
             }
             RightsRetentionStrategyDao that = (RightsRetentionStrategyDao) o;
-            return retentionStrategy == that.retentionStrategy && Objects.equals(id, that.id);
+            return type == that.type && Objects.equals(id, that.id);
         }
 
         @Override

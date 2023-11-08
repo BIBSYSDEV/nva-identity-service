@@ -4,7 +4,7 @@ import java.net.URI;
 import no.unit.nva.customer.model.RightsRetentionStrategyType;
 
 public interface RightsRetentionStrategy {
-    RightsRetentionStrategyType getRetentionStrategy();
+    RightsRetentionStrategyType getType();
 
     URI getId();
 

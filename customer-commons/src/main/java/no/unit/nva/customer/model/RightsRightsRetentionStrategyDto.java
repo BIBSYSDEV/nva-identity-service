@@ -5,26 +5,26 @@ import java.net.URI;
 import java.util.Objects;
 
 import no.unit.nva.commons.json.JsonSerializable;
-import no.unit.nva.customer.model.interfaces.RetentionStrategy;
+import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import nva.commons.core.JacocoGenerated;
 
-public class RetentionStrategyDto implements RetentionStrategy, JsonSerializable {
+public class RightsRightsRetentionStrategyDto implements RightsRetentionStrategy, JsonSerializable {
 
-    private final RetentionStrategyType retentionStrategy;
+    private final RightsRetentionStrategyType retentionStrategy;
     private final URI id;
 
     @ConstructorProperties({"retentionStrategy", "id"})
-    public RetentionStrategyDto(RetentionStrategyType retentionStrategy, URI id) {
+    public RightsRightsRetentionStrategyDto(RightsRetentionStrategyType retentionStrategy, URI id) {
         this.retentionStrategy = retentionStrategy;
         this.id = id;
     }
 
-    public RetentionStrategyDto(RetentionStrategy retention) {
+    public RightsRightsRetentionStrategyDto(RightsRetentionStrategy retention) {
         this(retention.getRetentionStrategy(), retention.getId());
     }
 
     @Override
-    public RetentionStrategyType getRetentionStrategy() {
+    public RightsRetentionStrategyType getRetentionStrategy() {
         return retentionStrategy;
     }
 
@@ -42,7 +42,7 @@ public class RetentionStrategyDto implements RetentionStrategy, JsonSerializable
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RetentionStrategyDto that = (RetentionStrategyDto) o;
+        RightsRightsRetentionStrategyDto that = (RightsRightsRetentionStrategyDto) o;
         return retentionStrategy == that.retentionStrategy && Objects.equals(id, that.id);
     }
 

@@ -6,31 +6,31 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import no.unit.nva.customer.model.CustomerDao.RetentionStrategyDao;
+import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
 
 @JacocoGenerated
-public class RetentionStrategyConverter implements AttributeConverter<RetentionStrategyDao> {
+public class RetentionStrategyConverter implements AttributeConverter<RightsRetentionStrategyDao> {
 
-    public static final TableSchema<RetentionStrategyDao> TABLE_SCHEMA =
-        TableSchema.fromBean(RetentionStrategyDao.class);
+    public static final TableSchema<RightsRetentionStrategyDao> TABLE_SCHEMA =
+        TableSchema.fromBean(RightsRetentionStrategyDao.class);
 
     public RetentionStrategyConverter() {
     }
 
     @Override
-    public AttributeValue transformFrom(RetentionStrategyDao input) {
+    public AttributeValue transformFrom(RightsRetentionStrategyDao input) {
         var map = TABLE_SCHEMA.itemToMap(input, true);
         return AttributeValue.builder().m(map).build();
     }
 
     @Override
-    public RetentionStrategyDao transformTo(AttributeValue input) {
+    public RightsRetentionStrategyDao transformTo(AttributeValue input) {
         return TABLE_SCHEMA.mapToItem(input.m());
     }
 
     @Override
-    public EnhancedType<RetentionStrategyDao> type() {
-        return EnhancedType.of(RetentionStrategyDao.class);
+    public EnhancedType<RightsRetentionStrategyDao> type() {
+        return EnhancedType.of(RightsRetentionStrategyDao.class);
     }
 
     @Override

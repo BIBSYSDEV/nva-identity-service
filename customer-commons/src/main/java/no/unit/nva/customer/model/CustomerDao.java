@@ -20,7 +20,7 @@ import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.RetentionStrategyConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
-import no.unit.nva.customer.model.interfaces.RetentionStrategy;
+import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
@@ -62,7 +62,7 @@ public class CustomerDao implements Typed {
     private boolean nviInstitution;
     private boolean rboInstitution;
     private Sector sector;
-    private RetentionStrategyDao rightsRetentionStrategy;
+    private RightsRetentionStrategyDao rightsRetentionStrategy;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -303,14 +303,14 @@ public class CustomerDao implements Typed {
     }
 
     @DynamoDbConvertedBy(RetentionStrategyConverter.class)
-    public RetentionStrategyDao getRightsRetentionStrategy() {
+    public RightsRetentionStrategyDao getRightsRetentionStrategy() {
         return nonNull(rightsRetentionStrategy)
                    ? rightsRetentionStrategy
-                   : new RetentionStrategyDao();
+                   : new RightsRetentionStrategyDao();
     }
 
-    public void setRightsRetentionStrategy(RetentionStrategyDao retention) {
-        this.rightsRetentionStrategy = retention;
+    public void setRightsRetentionStrategy(RightsRetentionStrategyDao rightsRetentionStrategy) {
+        this.rightsRetentionStrategy = rightsRetentionStrategy;
     }
 
     public CustomerDto toCustomerDto() {
@@ -480,8 +480,8 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withRightRetentionStrategy(RetentionStrategy retention) {
-            customerDb.setRightsRetentionStrategy(new RetentionStrategyDao(retention));
+        public Builder withRightRetentionStrategy(RightsRetentionStrategy rightsRetentionStrategy) {
+            customerDb.setRightsRetentionStrategy(new RightsRetentionStrategyDao(rightsRetentionStrategy));
             return this;
         }
 
@@ -575,29 +575,29 @@ public class CustomerDao implements Typed {
     }
 
     @DynamoDbBean
-    public static class RetentionStrategyDao implements RetentionStrategy, JsonSerializable {
+    public static class RightsRetentionStrategyDao implements RightsRetentionStrategy, JsonSerializable {
 
-        private RetentionStrategyType retentionStrategy;
+        private RightsRetentionStrategyType retentionStrategy;
         private URI id;
 
-        public RetentionStrategyDao() {
-            retentionStrategy = RetentionStrategyType.NullRightRetentionStrategy;
+        public RightsRetentionStrategyDao() {
+            retentionStrategy = RightsRetentionStrategyType.NullRightRetentionStrategy;
         }
 
-        public RetentionStrategyDao(RetentionStrategyType retentionStrategy, URI id) {
+        public RightsRetentionStrategyDao(RightsRetentionStrategyType retentionStrategy, URI id) {
             this.retentionStrategy = retentionStrategy;
             this.id = id;
         }
 
-        public RetentionStrategyDao(RetentionStrategy retentionStrategy) {
-            if (nonNull(retentionStrategy)) {
-                this.retentionStrategy = retentionStrategy.getRetentionStrategy();
-                this.id = retentionStrategy.getId();
+        public RightsRetentionStrategyDao(RightsRetentionStrategy rightsRetentionStrategy) {
+            if (nonNull(rightsRetentionStrategy)) {
+                this.retentionStrategy = rightsRetentionStrategy.getRetentionStrategy();
+                this.id = rightsRetentionStrategy.getId();
             }
         }
 
         @Override
-        public RetentionStrategyType getRetentionStrategy() {
+        public RightsRetentionStrategyType getRetentionStrategy() {
             return retentionStrategy;
         }
 
@@ -610,8 +610,8 @@ public class CustomerDao implements Typed {
             this.id = id;
         }
 
-        public void setRetentionStrategy(RetentionStrategyType retentionStrategy) {
-            this.retentionStrategy = retentionStrategy;
+        public void setRetentionStrategy(RightsRetentionStrategyType rightsRetentionStrategyType) {
+            this.retentionStrategy = rightsRetentionStrategyType;
         }
 
         @Override
@@ -629,7 +629,7 @@ public class CustomerDao implements Typed {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            RetentionStrategyDao that = (RetentionStrategyDao) o;
+            RightsRetentionStrategyDao that = (RightsRetentionStrategyDao) o;
             return retentionStrategy == that.retentionStrategy && Objects.equals(id, that.id);
         }
 

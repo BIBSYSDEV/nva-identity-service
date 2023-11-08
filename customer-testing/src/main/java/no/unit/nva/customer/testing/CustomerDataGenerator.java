@@ -20,14 +20,14 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.PublicationWorkflow;
-import no.unit.nva.customer.model.CustomerDao.RetentionStrategyDao;
-import no.unit.nva.customer.model.RetentionStrategyType;
+import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
+import no.unit.nva.customer.model.RightsRetentionStrategyType;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
-import no.unit.nva.customer.model.interfaces.RetentionStrategy;
+import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 
@@ -102,12 +102,12 @@ public class CustomerDataGenerator {
         return customer;
     }
 
-    public static RetentionStrategy randomRetentionStrategy() {
-        var elements = Arrays.stream(RetentionStrategyType.values())
+    public static RightsRetentionStrategy randomRetentionStrategy() {
+        var elements = Arrays.stream(RightsRetentionStrategyType.values())
                 .filter(f -> f.ordinal() > 0)
                 .collect(Collectors.toList());
         return
-            new RetentionStrategyDao(randomElement(elements), randomUri());
+            new RightsRetentionStrategyDao(randomElement(elements), randomUri());
     }
 
     public static DoiAgent randomDoiAgent(String randomString) {

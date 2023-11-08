@@ -1,6 +1,6 @@
 package no.unit.nva.customer.model;
 
-public enum RetentionStrategyType {
+public enum RightsRetentionStrategyType {
     NullRightRetentionStrategy,
     RightRetentionStrategy,
     OverridableRightRetentionStrategy

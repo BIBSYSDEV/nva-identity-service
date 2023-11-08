@@ -17,7 +17,7 @@ import java.util.UUID;
 
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
-import no.unit.nva.customer.model.interfaces.RetentionStrategy;
+import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -55,7 +55,7 @@ public class CustomerDto implements Context {
     private boolean nviInstitution;
     private boolean rboInstitution;
     private Sector sector;
-    private RetentionStrategyDto rightRetentionStrategy;
+    private RightsRightsRetentionStrategyDto rightRetentionStrategy;
 
     public CustomerDto() {
         super();
@@ -231,11 +231,11 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
-    public RetentionStrategyDto getRightRetentionStrategy() {
+    public RightsRightsRetentionStrategyDto getRightRetentionStrategy() {
         return rightRetentionStrategy;
     }
 
-    public void setRightRetentionStrategy(RetentionStrategyDto retention) {
+    public void setRightRetentionStrategy(RightsRightsRetentionStrategyDto retention) {
         rightRetentionStrategy = retention;
     }
 
@@ -455,7 +455,7 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withRightRetentionStrategy(RetentionStrategy rightsRetentionStrategy) {
+        public Builder withRightRetentionStrategy(RightsRetentionStrategy rightsRetentionStrategy) {
             customerDto.setRightRetentionStrategy(buildRetentionStrategyDto(rightsRetentionStrategy));
             return this;
         }
@@ -469,9 +469,9 @@ public class CustomerDto implements Context {
             return null;
         }
 
-        private RetentionStrategyDto buildRetentionStrategyDto(RetentionStrategy retentionStrategy) {
-            if (nonNull(retentionStrategy)) {
-                return new RetentionStrategyDto(retentionStrategy);
+        private RightsRightsRetentionStrategyDto buildRetentionStrategyDto(RightsRetentionStrategy rightsRetentionStrategy) {
+            if (nonNull(rightsRetentionStrategy)) {
+                return new RightsRightsRetentionStrategyDto(rightsRetentionStrategy);
             }
             return null;
         }

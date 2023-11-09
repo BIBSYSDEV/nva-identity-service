@@ -682,6 +682,32 @@ components:
         cristinId:
           type: string
           format: uri
+    NullRightsRetentionStrategy:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Always has the value 'NullRightsRetentionStrategy'
+    RightsRetentionStrategy:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Always has the value 'RightsRetentionStrategy'
+        id:
+          type: string
+          format: uri
+          description: a link to the rights retention strategy for the customer
+    OverridableRightsRetentionStrategy:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Always has the value 'OverridableRightsRetentionStrategy'
+        id:
+          type: string
+          format: uri
+          description: a link to the rights retention strategy for the customer
     Customer:
       type: object
       properties:
@@ -715,17 +741,44 @@ components:
         cristinId:
           type: string
           format: uri
+        customerOf:
+          type: string
+          description: the application scope the customer is part of, default value is 'nva.unit.no'
         vocabularies:
           type: array
           items:
             $ref: '#/components/schemas/Vocabulary'
-        doiagent:
+        rorId:
+          type: string
+          format: uri
+          description: the customers persistent identifier in the Research Organization Registry (ROR)
+        doiAgent:
           $ref: '#/components/schemas/DoiAgent'
         '@context':
           type: object
         publicationWorkflow:
           type: string
           enum: [RegistratorPublishesMetadataOnly, RegistratorPublishesMetadataAndFiles, RegistratorRequiresApprovalForMetadataAndFiles]
+        nviInstitution:
+          type: boolean
+          description: whether or not the institution is part of NVI reporting
+        rboInstitution:
+          type: boolean
+          description: whether or not the institution is part of result-based redistribution
+        sector:
+          type: string
+          enum:
+            - UHI
+            - HEALTH
+            - INSTITUTE
+            - ABM
+            - OTHER
+          description: what type the sector the institution is part of
+        rightsRetentionStrategy:
+          oneOf:
+            - $ref: '#/components/schemas/NullRightsRetentionStrategy'
+            - $ref: '#/components/schemas/RightsRetentionStrategy'
+            - $ref: '#/components/schemas/OverridableRightsRetentionStrategy'
     CustomerReference:
       type: object
       properties:
@@ -824,16 +877,24 @@ components:
         institutionDns: 'unirein.no'
         feideOrganizationId: '111111111'
         cristinId: 'https://api.cristin.no/v2/institutions/11110'
+        customerOf: 'nva.unit.no'
         vocabularies:
           - id: 'https://example.org/example#'
             type: 'Vocabulary'
             name: 'Example VOC'
             active: 'default'
+        rorId: 'https://ror.org/026eeyk15'
         doiAgent:
           prefix: "1000.10"
           url: "test.nva.unit.no"
           username: "Doi Register Customer Name"
         publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
+        nviInstitution: false
+        rboInstitution: false
+        sector: UHI
+        rightsRetentionStrategy:
+          type: OverridableRightsRetentionStrategy
+          id: 'https://unirein.no/rights-retention-strategy.html'
     CustomerListExample:
       value:
         '@context': 'https://bibsysdev.github.io/src/customer-api.json'

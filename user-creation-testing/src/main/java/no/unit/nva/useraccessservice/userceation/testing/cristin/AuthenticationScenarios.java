@@ -91,8 +91,12 @@ public class AuthenticationScenarios {
         return personRegistry.mockResponseForBadGateway();
     }
 
-    public String failingPersonRegistryRequestBadJson() {
-        return personRegistry.mockResponseForIllegalJson();
+    public String failingPersonRegistryRequestBadJsonByNin() {
+        return personRegistry.mockResponseForIllegalJsonByNin();
+    }
+
+    public URI failingPersonRegistryRequestBadJsonById() {
+        return personRegistry.mockResponseForIllegalJsonById();
     }
 
     public String personWithoutAffiliations() {

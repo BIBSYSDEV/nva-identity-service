@@ -96,11 +96,17 @@ public class CristinPersonRegistryTest {
     }
 
     @Test
-    void shouldThrowExceptionIfCristinRespondsWithUnexpectedJson() {
-        var personNin = scenarios.failingPersonRegistryRequestBadJson();
+    void shouldThrowExceptionIfCristinRespondsWithUnexpectedJsonWhenFetchingByNin() {
+        var personNin = scenarios.failingPersonRegistryRequestBadJsonByNin();
         var nin = new NationalIdentityNumber(personNin);
 
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
+    }
+
+    @Test
+    void shouldThrowExceptionIfCristinRespondsWithUnexpectedJsonWhenFetchingById() {
+        var cristinId = scenarios.failingPersonRegistryRequestBadJsonById();
+        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByCristinId(cristinId));
     }
 
     @Test

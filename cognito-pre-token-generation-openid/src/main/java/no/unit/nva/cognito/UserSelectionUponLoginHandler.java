@@ -113,11 +113,9 @@ public class UserSelectionUponLoginHandler
         var startFetchingPerson = Instant.now();
 
         var impersonating = input.getRequest().getUserAttributes().get("custom:impersonating");
-        LOGGER.info("Impersonating: {}", impersonating);
-        var nin = isNull(impersonating)
-                      ? authenticationDetails.getNin()
-                      : new NationalIdentityNumber(impersonating);
-        var optionalPerson = personRegistry.fetchPersonByNin(nin);
+        var optionalPerson = isNull(impersonating)
+                                 ? personRegistry.fetchPersonByNin(authenticationDetails.getNin())
+                                 : getImpersonatedPerson(authenticationDetails, impersonating);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Got person details from registry in {} ms.",
@@ -125,19 +123,13 @@ public class UserSelectionUponLoginHandler
         }
 
         if (optionalPerson.isPresent()) {
-
             var impersonatedBy = isNull(impersonating) ? null : authenticationDetails.getUsername();
             var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(optionalPerson.get(),
                                                                                 authenticationDetails,
                                                                                 impersonatedBy);
-            Map<String, String> overrideClaims = isNull(impersonating)
-                                     ? Map.of()
-                                     : Map.of(
-                                        // "custom:impersonatedBy", authenticationDetails.getUsername()
-                                     );
-            injectAccessRightsToEventResponse(input, accessRights, overrideClaims);
+            injectAccessRightsToEventResponse(input, accessRights);
         } else {
-            injectAccessRightsToEventResponse(input, Collections.emptyList(), Map.of());
+            injectAccessRightsToEventResponse(input, Collections.emptyList());
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -147,6 +139,14 @@ public class UserSelectionUponLoginHandler
 
         LOGGER.info(input.getResponse().toString());
         return input;
+    }
+
+    private Optional<Person> getImpersonatedPerson(AuthenticationDetails authenticationDetails, String impersonating) {
+        LOGGER.info("User {} {} is impersonating: {}",
+                    authenticationDetails.getFeideIdentifier(),
+                    authenticationDetails.getUsername() ,
+                    impersonating);
+        return personRegistry.fetchPersonByCristinId(impersonating);
     }
 
     private List<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(Person person,
@@ -458,10 +458,9 @@ public class UserSelectionUponLoginHandler
     }
 
     private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
-                                                   List<String> accessRights,
-                                                   Map<String, String> claimsToOverride) {
+                                                   List<String> accessRights) {
         input.setResponse(Response.builder()
-                              .withClaimsOverrideDetails(buildOverrideClaims(claimsToOverride, accessRights))
+                              .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
                               .build());
     }
 
@@ -473,13 +472,12 @@ public class UserSelectionUponLoginHandler
                    .collect(Collectors.toList());
     }
 
-    private ClaimsOverrideDetails buildOverrideClaims(Map<String, String> claimsToOverride, List<String> groupsToOverride) {
+    private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride) {
         var groups = GroupConfiguration.builder()
                          .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
                          .build();
         return ClaimsOverrideDetails.builder()
                    .withGroupOverrideDetails(groups)
-                   .withClaimsToAddOrOverride(claimsToOverride)
                    .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
                    .build();
     }

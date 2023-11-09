@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import java.net.HttpURLConnection;
@@ -61,10 +62,16 @@ public class MockPersonRegistry {
         return nin;
     }
 
-    public String mockResponseForIllegalJson() {
+    public String mockResponseForIllegalJsonByNin() {
         var nin = randomString();
-        createPersonSearchStubIllegalJson(nin);
+        createPersonSearchStubIllegalJsonByNin(nin);
         return nin;
+    }
+
+    public URI mockResponseForIllegalJsonById() {
+        var id = randomUri();
+        createPersonSearchStubIllegalJsonById(id);
+        return id;
     }
 
     private String generateBasicAuthorizationHeaderValue(String username, String password) {
@@ -295,11 +302,22 @@ public class MockPersonRegistry {
                                 .withStatus(HttpURLConnection.HTTP_BAD_GATEWAY)));
     }
 
-    private void createPersonSearchStubIllegalJson(String nin) {
+    private void createPersonSearchStubIllegalJsonByNin(String nin) {
         var illegalBodyAsArrayIsExpected = "{}";
 
         stubWithDefaultRequestHeadersEqualToFor(
             get("/persons?national_id=" + nin)
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                                .withBody(illegalBodyAsArrayIsExpected)
+                                .withStatus(HttpURLConnection.HTTP_OK)));
+    }
+
+    private void createPersonSearchStubIllegalJsonById(URI id) {
+        var illegalBodyAsArrayIsExpected = "{}";
+        var s = id.toString();
+        stubWithDefaultRequestHeadersEqualToFor(
+            get(id.toString())
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
                 .willReturn(aResponse()
                                 .withBody(illegalBodyAsArrayIsExpected)

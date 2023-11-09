@@ -128,6 +128,20 @@ public final class CristinPersonRegistry implements PersonRegistry {
                    .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
     }
 
+    @Override
+    public Optional<Person> fetchPersonByCristinId(URI cristinId) {
+        var start = Instant.now();
+        var cristinCredentials = this.cristinCredentialsSupplier.get();
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Read cristin credentials from secrets manager in {} ms.",
+                         Instant.now().toEpochMilli() - start.toEpochMilli());
+        }
+
+        return fetchPersonByUriFromCristin(cristinId, cristinCredentials)
+                   .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+    }
+
     private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem,
                                                  CristinCredentials cristinCredentials) {
         var request = createRequest(URI.create(personSearchResultItem.getUrl()), cristinCredentials);
@@ -208,6 +222,13 @@ public final class CristinPersonRegistry implements PersonRegistry {
         var results = executeRequest(request, PersonSearchResultItem[].class);
 
         return Arrays.stream(results).collect(SingletonCollector.tryCollect()).toOptional();
+    }
+
+    private Optional<CristinPerson> fetchPersonByUriFromCristin(URI uri,
+                                                                         CristinCredentials cristinCredentials) {
+
+        var request = createRequest(uri, cristinCredentials);
+        return attempt(() -> executeRequest(request, CristinPerson.class)).toOptional();
     }
 
     private URI createPersonByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {

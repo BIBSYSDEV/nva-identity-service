@@ -34,8 +34,6 @@ test {
     environment "AWS_REGION", "eu-west-1"
     environment "EVENT_BUS", "eventBus"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
-    environment "BARE_PROXY_SECRET_NAME", "bareProxysecretName"
-    environment "BARE_PROXY_SECRET_KEY", "bareProxysecretKey"
     environment "BOT_FILTER_BYPASS_HEADER_NAME", "ExampleHeaderName"
     environment "BOT_FILTER_BYPASS_HEADER_VALUE", "ExampleHeaderValue"
 }

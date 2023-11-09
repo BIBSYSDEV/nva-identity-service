@@ -329,7 +329,8 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
-      EndpointConfiguration: REGIONAL
+      EndpointConfiguration:
+        Type: REGIONAL
       DefinitionBody:
         'Fn::Transform':
           Name: AWS::Include
@@ -612,7 +613,8 @@ Resources:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
       StageName: Prod
-      EndpointConfiguration: REGIONAL
+      EndpointConfiguration:
+        Type: REGIONAL
       DefinitionBody:
         'Fn::Transform':
           Name: AWS::Include
@@ -887,8 +889,6 @@ Resources:
         Variables:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           EVENT_BUS: !GetAtt InternalBus.Name
-          BARE_PROXY_SECRET_NAME: 'BareProxySecret'
-          BARE_PROXY_SECRET_KEY: 'BareProxySecretKey'
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Events:
@@ -979,20 +979,6 @@ Resources:
             Resource:
               - !GetAtt UserRoleMappings.Arn
               - !GetAtt NvaCustomersTable.Arn
-
-  GetBareProxySecretPermission:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub GetBareProxySecretPermission-${AWS::StackName}
-      Roles:
-        - !Ref BatchScanRole
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - secretsmanager:GetSecretValue
-            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BareProxySecret*'
 
   DataCiteCustomerSecretPermission:
     Type: AWS::IAM::Policy

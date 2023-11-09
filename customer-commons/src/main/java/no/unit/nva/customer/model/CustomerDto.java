@@ -17,7 +17,7 @@ import java.util.UUID;
 
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
-import no.unit.nva.customer.model.interfaces.RetentionStrategy;
+import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -55,7 +55,7 @@ public class CustomerDto implements Context {
     private boolean nviInstitution;
     private boolean rboInstitution;
     private Sector sector;
-    private RetentionStrategyDto rightRetentionStrategy;
+    private RightsRetentionStrategyDto rightsRetentionStrategy;
 
     public CustomerDto() {
         super();
@@ -231,12 +231,12 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
-    public RetentionStrategyDto getRightRetentionStrategy() {
-        return rightRetentionStrategy;
+    public RightsRetentionStrategyDto getRightsRetentionStrategy() {
+        return rightsRetentionStrategy;
     }
 
-    public void setRightRetentionStrategy(RetentionStrategyDto retention) {
-        rightRetentionStrategy = retention;
+    public void setRightsRetentionStrategy(RightsRetentionStrategyDto rightsRetentionStrategy) {
+        this.rightsRetentionStrategy = rightsRetentionStrategy;
     }
 
     @Override
@@ -272,7 +272,7 @@ public class CustomerDto implements Context {
                 .withRboInstitution(isRboInstitution())
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
-                .withRightRetentionStrategy(getRightRetentionStrategy());
+                .withRightsRetentionStrategy(getRightsRetentionStrategy());
     }
 
     @Override
@@ -281,7 +281,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                 getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                 getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightRetentionStrategy());
+                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy());
     }
 
     @Override
@@ -311,7 +311,7 @@ public class CustomerDto implements Context {
                 && Objects.equals(getShortName(), that.getShortName())
                 && Objects.equals(getVocabularies(), that.getVocabularies())
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
-                && Objects.equals(getRightRetentionStrategy(), that.getRightRetentionStrategy())
+                && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
                 && getPublicationWorkflow() == that.getPublicationWorkflow();
     }
 
@@ -455,8 +455,8 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withRightRetentionStrategy(RetentionStrategy rightsRetentionStrategy) {
-            customerDto.setRightRetentionStrategy(buildRetentionStrategyDto(rightsRetentionStrategy));
+        public Builder withRightsRetentionStrategy(RightsRetentionStrategy rightsRetentionStrategy) {
+            customerDto.setRightsRetentionStrategy(buildRetentionStrategyDto(rightsRetentionStrategy));
             return this;
         }
 
@@ -469,9 +469,9 @@ public class CustomerDto implements Context {
             return null;
         }
 
-        private RetentionStrategyDto buildRetentionStrategyDto(RetentionStrategy retentionStrategy) {
-            if (nonNull(retentionStrategy)) {
-                return new RetentionStrategyDto(retentionStrategy);
+        private RightsRetentionStrategyDto buildRetentionStrategyDto(RightsRetentionStrategy rightsRetentionStrategy) {
+            if (nonNull(rightsRetentionStrategy)) {
+                return new RightsRetentionStrategyDto(rightsRetentionStrategy);
             }
             return null;
         }

@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.useraccess.events.client.BareProxyClient;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.core.exceptions.ExceptionUtils;
@@ -16,22 +15,17 @@ import org.slf4j.LoggerFactory;
 
 public class UserMigrationServiceImpl implements UserMigrationService {
 
-    public static final String CRISTIN_API_HOST = "api.cristin.no";
-    public static final String UNDEFINED = "undefined";
     private static final Logger logger = LoggerFactory.getLogger(UserMigrationServiceImpl.class);
     private final CustomerService customerService;
-    private final BareProxyClient bareProxyClient;
 
-    public UserMigrationServiceImpl(CustomerService customerService, BareProxyClient bareProxyClient) {
+    public UserMigrationServiceImpl(CustomerService customerService) {
         this.customerService = customerService;
-        this.bareProxyClient = bareProxyClient;
     }
 
     @Override
     public UserDto migrateUser(UserDto user) {
         logger.trace("Updating user:{}", user.getUsername());
         resetViewingScope(user);
-        removeOldPatternOrganizationIds(user.getUsername());
         return user;
     }
 
@@ -45,26 +39,6 @@ public class UserMigrationServiceImpl implements UserMigrationService {
 
     private void resetViewingScope(UserDto user, URI organizationId) {
         user.setViewingScope(ViewingScope.defaultViewingScope(organizationId));
-    }
-
-    private void removeOldPatternOrganizationIds(String username) {
-        var authority = bareProxyClient.getAuthorityByFeideId(username);
-        if (authority.isPresent()) {
-            var systemControlNumber = authority.get().getSystemControlNumber();
-            var organizationIds = authority.get().getOrganizationIds();
-            organizationIds.stream()
-                .filter(this::isUnwantedUri)
-                .forEach(uri -> deleteFromAuthority(systemControlNumber, uri));
-        }
-    }
-
-    private boolean isUnwantedUri(URI organizationId) {
-        return CRISTIN_API_HOST.equals(organizationId.getHost())
-               || UNDEFINED.equals(organizationId.toString());
-    }
-
-    private void deleteFromAuthority(String systemControlNumber, URI organizationId) {
-        bareProxyClient.deleteAuthorityOrganizationId(systemControlNumber, organizationId);
     }
 
     private Optional<UUID> getCustomerIdentifier(UserDto user) {

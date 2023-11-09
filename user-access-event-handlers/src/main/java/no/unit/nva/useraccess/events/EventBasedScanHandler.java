@@ -10,7 +10,6 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.handlers.EventHandler;
 import no.unit.nva.events.models.AwsEventBridgeEvent;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
-import no.unit.nva.useraccess.events.client.BareProxyClientImpl;
 import no.unit.nva.useraccess.events.service.UserMigrationService;
 import no.unit.nva.useraccess.events.service.UserMigrationServiceImpl;
 import no.unit.nva.useraccessservice.internals.UserScanResult;
@@ -68,7 +67,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
     private static UserMigrationServiceImpl defaultMigrationService(
         DynamoDbClient dynamoDBClient) {
         DynamoDBCustomerService customerService = new DynamoDBCustomerService(dynamoDBClient);
-        return new UserMigrationServiceImpl(customerService, new BareProxyClientImpl());
+        return new UserMigrationServiceImpl(customerService);
     }
 
 

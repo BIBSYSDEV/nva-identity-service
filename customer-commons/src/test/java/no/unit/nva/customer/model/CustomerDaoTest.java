@@ -2,7 +2,7 @@ package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRetentionStrategy;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
@@ -19,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -110,6 +112,54 @@ class CustomerDaoTest {
         assertThat(deserialized, is(equalTo(someDao)));
     }
 
+    @Test
+    void shouldMigrateOldStyleDao() throws IOException {
+        var template = """
+                {
+                  "identifier" : "4fa3622d-877c-4759-b63f-d7d37cf26b5d",
+                  "createdDate" : "1985-06-22T21:25:11.558Z",
+                  "modifiedDate" : "2020-05-18T00:49:35.971Z",
+                  "name" : "5jA24q1K8xRjnX",
+                  "displayName" : "HpP3PceJ3eI",
+                  "shortName" : "AzObKaEO77a",
+                  "archiveName" : "ToPiKGbSOE0KvFTm2k7",
+                  "cname" : "gQcgg9mhSH3e27c9mi",
+                  "institutionDns" : "QoeKDoyM3UcRhcUF",
+                  "feideOrganizationDomain" : "jie3k8uRwHcVhx",
+                  "cristinId" : "https://www.example.com/0q7bcwf4zf1k6",
+                  "customerOf" : "nva.unit.no",
+                  "vocabularies" : [ {
+                    "type" : "Vocabulary",
+                    "name" : "cZkpIKoQze3EVv0Xm",
+                    "id" : "https://www.example.com/kdK0gJxdysnDOZ2aU",
+                    "status" : "Allowed"
+                  } ],
+                  "rorId" : "https://www.example.com/NS9SygkPsLcQU",
+                  "publicationWorkflow" : "RegistratorRequiresApprovalForMetadataAndFiles",
+                  "doiAgent" : {
+                    "prefix" : "10.000",
+                    "url" : "mds.X6wSynOURzWwNn2.datacite.org",
+                    "username" : "user-name-X6wSynOURzWwNn2"
+                  },
+                  "nviInstitution" : true,
+                  "rboInstitution" : false,
+                  "sector" : "INSTITUTE",
+                  "rightRetentionStrategy" : {
+                    "retentionStrategy" : "%s",
+                    "id" : "%s"
+                  },
+                  "type" : "Customer"
+                }
+                """;
+        var rightsRetentionStrategy = "RightsRetentionStrategy";
+        var uri = "https://www.example.com/ZxZeIEHmgcmlAEG5";
+        var json = String.format(template, rightsRetentionStrategy, uri);
+        var deserialized = JsonConfig.readValue(json, CustomerDao.class);
+        var rrs = deserialized.getRightsRetentionStrategy();
+        assertThat(rrs.getId().toString(), is(equalTo(uri)));
+        assertThat(rrs.getType().toString(), is(equalTo(rightsRetentionStrategy)));
+    }
+
     private Map<String, Object> customerToJsonMap(CustomerDao someDao) throws IOException {
         var jsonString = JsonConfig.writeValueAsString(someDao);
         return JsonConfig.mapFrom(jsonString);
@@ -138,7 +188,7 @@ class CustomerDaoTest {
                    .withNviInstitution(randomBoolean())
                    .withRboInstitution(randomBoolean())
                    .withSector(randomSector())
-                   .withRightRetentionStrategy(randomRetentionStrategy())
+                   .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();
     }
 

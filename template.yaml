@@ -114,15 +114,15 @@ Resources:
 
   ### Cognito ##########################################################################################################
 
-  IdentityPool:
-    Type: AWS::Cognito::IdentityPool
-    Properties:
-      AllowUnauthenticatedIdentities: True
-      CognitoIdentityProviders:
-        - ClientId: !Ref ApplicationClient
-          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
-        - ClientId: !Ref DLRApplicationClient
-          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+#  IdentityPool:
+#    Type: AWS::Cognito::IdentityPool
+#    Properties:
+#      AllowUnauthenticatedIdentities: True
+#      CognitoIdentityProviders:
+#        - ClientId: !Ref ApplicationClient
+#          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+#        - ClientId: !Ref DLRApplicationClient
+#          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
 
   UpdateCognintoUserAttributesRole:
     Type: AWS::IAM::Role
@@ -1069,14 +1069,14 @@ Resources:
       Type: String
       Value: !Ref FeideMetadataUrl
 
-  CognitoAuthorizerArnParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoAuthorizerArn'
-      Description: ARN Identifier of the UserPool
-      Type: String
-      Value: !GetAtt UserPool.Arn
-
+#  CognitoAuthorizerArnParameter:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      Name: !Sub '${ParameterNamePrefix}CognitoAuthorizerArn'
+#      Description: ARN Identifier of the UserPool
+#      Type: String
+#      Value: !GetAtt UserPool.Arn
+#
   ExternalCognitoAuthorizerArnParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -1093,37 +1093,37 @@ Resources:
       Type: String
       Value: !GetAtt ExternalUserPool.ProviderURL
 
-  CognitoIdentityPoolIdParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoIdentityPoolId'
-      Description: Identifier of the IdentityPool assosiated with the UserPool
-      Type: String
-      Value: !Ref IdentityPool
-
-  CognitoUserPoolIdParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Value: !Ref UserPool
-      Description: Identifier of the UserPool in Cognito
-      Name: !Sub '${ParameterNamePrefix}CognitoUserPoolId'
-      Type: String
-
-  CognitoUserPoolAppClientIdParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoUserPoolAppClientId'
-      Description: Identifier to use for the app clients to access this user pool
-      Type: String
-      Value: !Ref ApplicationClient
-
-  CognitoURNParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoURN'
-      Description: URN of the cognito login to use in Feide
-      Type: String
-      Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
+#  CognitoIdentityPoolIdParameter:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      Name: !Sub '${ParameterNamePrefix}CognitoIdentityPoolId'
+#      Description: Identifier of the IdentityPool assosiated with the UserPool
+#      Type: String
+#      Value: !Ref IdentityPool
+#
+#  CognitoUserPoolIdParameter:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      Value: !Ref UserPool
+#      Description: Identifier of the UserPool in Cognito
+#      Name: !Sub '${ParameterNamePrefix}CognitoUserPoolId'
+#      Type: String
+#
+#  CognitoUserPoolAppClientIdParameter:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      Name: !Sub '${ParameterNamePrefix}CognitoUserPoolAppClientId'
+#      Description: Identifier to use for the app clients to access this user pool
+#      Type: String
+#      Value: !Ref ApplicationClient
+#
+#  CognitoURNParameter:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      Name: !Sub '${ParameterNamePrefix}CognitoURN'
+#      Description: URN of the cognito login to use in Feide
+#      Type: String
+#      Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
 
   #============================ Deploy API ============================================================================#
   # This solves the problem described here:
@@ -1185,430 +1185,430 @@ Resources:
               except:
                 responseStatus = cfnresponse.FAILED
             cfnresponse.send(event, context, responseStatus, responseData)
-  UsersAndRolesApiGatewayCreateDeploymentCustomResource:
-    Type: AWS::CloudFormation::CustomResource
-    Properties:
-      ServiceToken: !GetAtt ApiGatewayCreateDeploymentLambda.Arn
-      RestApiId: !Ref UsersAndRolesApi
-      StageName: !Ref UsersAndRolesApi.Stage
-      Timestamp: '${BUILD_TIMESTAMP}'
-      AuthorizerArn: !GetAtt UserPool.Arn
-  CustomerApiGatewayCreateDeploymentCustomResource:
-    Type: AWS::CloudFormation::CustomResource
-    Properties:
-      ServiceToken: !GetAtt ApiGatewayCreateDeploymentLambda.Arn
-      RestApiId: !Ref NvaCustomerApi
-      StageName: !Ref NvaCustomerApi.Stage
-      Timestamp: '${BUILD_TIMESTAMP}'
-      AuthorizerArn: !GetAtt UserPool.Arn
+#  UsersAndRolesApiGatewayCreateDeploymentCustomResource:
+#    Type: AWS::CloudFormation::CustomResource
+#    Properties:
+#      ServiceToken: !GetAtt ApiGatewayCreateDeploymentLambda.Arn
+#      RestApiId: !Ref UsersAndRolesApi
+#      StageName: !Ref UsersAndRolesApi.Stage
+#      Timestamp: '${BUILD_TIMESTAMP}'
+#      AuthorizerArn: !GetAtt UserPool.Arn
+#  CustomerApiGatewayCreateDeploymentCustomResource:
+#    Type: AWS::CloudFormation::CustomResource
+#    Properties:
+#      ServiceToken: !GetAtt ApiGatewayCreateDeploymentLambda.Arn
+#      RestApiId: !Ref NvaCustomerApi
+#      StageName: !Ref NvaCustomerApi.Stage
+#      Timestamp: '${BUILD_TIMESTAMP}'
+#      AuthorizerArn: !GetAtt UserPool.Arn
 
 
 ### New Cognito ########################################################################################################
 
-  UserPoolName:
-    Type: AWS::SSM::Parameter
-    Properties:
-      DataType: text
-      Description: Userpool's Backend client ID
-      Name: /NVA/UserPoolName
-      Type: String
-      Value: !Sub
-        - "${UserPoolName}${AWS::AccountId}"
-        - UserPoolName: !FindInMap [ 'Constants', 'Cognito','UserPoolNamePrefix' ]
-
-  UserPool:
-    Type: AWS::Cognito::UserPool
-    Properties:
-      AdminCreateUserConfig:
-        AllowAdminCreateUserOnly: true
-      MfaConfiguration: "OFF"
-      LambdaConfig:
-        PreTokenGeneration: !Sub '${PreTokenGenerationHandler.Arn}'
-      Schema:
-        - Name: nin
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: feideId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: email
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: feidememberrole
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: feideIdNin
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: orgFeideDomain
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: firstName
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: lastName
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: accessRights
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: customerId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: allowedCustomers
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: roles
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: nvaUsername
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: cristinId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: topOrgCristinId
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-        - Name: personAffiliation
-          AttributeDataType: String
-          Mutable: true
-          Required: false
-      UsernameConfiguration:
-        CaseSensitive: true
-      UserPoolName: !GetAtt UserPoolName.Value
-
-  CongitoAuthUri:
-    Type: AWS::SSM::Parameter
-    Properties:
-      DataType: text
-      Description: Cognito Authentication URI
-      Name: /NVA/CognitoUri
-      Type: String
-      Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
-
-  ConnectionToDataporten:
-    Type: AWS::Cognito::UserPoolIdentityProvider
-    Properties:
-      AttributeMapping:
-        custom:nin: https://n.feide.no/claims/nin
-        custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
-        custom:feidememberrole: eduPersonAffiliation
-        custom:feideIdNin: norEduPersonNIN
-        custom:orgFeideDomain: schacHomeOrganization
-      ProviderDetails:
-        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
-        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
-        attributes_request_method: POST
-        oidc_issuer: 'https://auth.dataporten.no'
-        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
-        token_url: 'https://auth.dataporten.no/oauth/token'
-        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
-        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
-        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
-      ProviderName: Dataporten
-      ProviderType: OIDC
-      UserPoolId: !Ref UserPool
-
-  ResourceServerScopes:
-    Type: AWS::Cognito::UserPoolResourceServer
-    Properties:
-      Identifier: https://api.nva.unit.no/scopes
-      Name: Scopes for backend
-      Scopes:
-        - ScopeDescription: Necessary scope for backend authentication to work
-          ScopeName: backend
-        - ScopeDescription: Frontend scope
-          ScopeName: frontend
-      UserPoolId: !Ref UserPool
-
-  ResourceServerExternalScopes:
-    Type: AWS::Cognito::UserPoolResourceServer
-    Properties:
-      Identifier: !Ref ExternalUserScopeIdentifier
-      Name: Scopes for external user pool
-      Scopes:
-        - ScopeDescription: Publications read
-          ScopeName: publication-read
-        - ScopeDescription: Publications write/update
-          ScopeName: publication-upsert
-        - ScopeDescription: Ticket read
-          ScopeName: ticket-read
-        - ScopeDescription: Ticket write/update
-          ScopeName: ticket-upsert
-        - ScopeDescription: Upload file
-          ScopeName: file-upload
-      UserPoolId: !Ref ExternalUserPool
-
-  BackendApplicationClient:
-    DependsOn: ResourceServerScopes
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      UserPoolId: !Ref UserPool
-      AllowedOAuthFlows:
-          - client_credentials
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthScopes:
-         - https://api.nva.unit.no/scopes/backend
-      ClientName: BackendApplicationClient
-      CallbackURLs:
-        - https://api.nva.unit.no/scopes # not necessary maybe.
-      DefaultRedirectURI: https://api.nva.unit.no/scopes
-      ExplicitAuthFlows:
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_USER_SRP_AUTH
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      GenerateSecret: true
-      IdTokenValidity: 15
-      AccessTokenValidity: 15
-      TokenValidityUnits:
-        AccessToken: minutes
-        IdToken: minutes
-
-  BackendClientId:
-    Type: AWS::SSM::Parameter
-    Properties:
-      DataType: text
-      Description: Userpool's Backend client ID
-      Name: /NVA/BackendClientId
-      Type: String
-      Value: !Ref BackendApplicationClient
-
-  ApplicationClient:
-    DependsOn: ResourceServerScopes
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      AllowedOAuthFlows:
-        - code
-        - implicit
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
-        - openid
-        - email
-        - phone
-        - profile # it seems to be necessary for the custom attributes to appear
-        - https://api.nva.unit.no/scopes/frontend
-      CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
-      LogoutURLs:
-        - 'http://localhost:3000/logout'
-        - !Sub 'https://${ApplicationDomain}/logout'
-      ClientName: NvaApplicationClient
-      DefaultRedirectURI: 'http://localhost:3000'
-      EnableTokenRevocation: false
-      ExplicitAuthFlows:
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      GenerateSecret: false
-      PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feideIdNin
-        - custom:feidememberrole
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
-        - custom:personAffiliation
-      AccessTokenValidity: 1
-      IdTokenValidity: 1
-      RefreshTokenValidity: 2
-      TokenValidityUnits:
-        AccessToken: hours
-        IdToken: hours
-        RefreshToken: hours
-      SupportedIdentityProviders:
-        - !Ref ConnectionToDataporten
-      UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideIdNin
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
-        - custom:personAffiliation
-
-  UserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain
-    Properties:
-      UserPoolId: !Ref UserPool
-      Domain: !Ref AuthenticationDomainPrefix
-
-  DLRApplicationClient:
-    DependsOn: ResourceServerScopes
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      AllowedOAuthFlows:
-        - code
-        - implicit
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
-        - openid
-        - email
-        - phone
-        - profile # it seems to be necessary for the custom attributes to appear
-        - https://api.nva.unit.no/scopes/frontend
-      CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
-      LogoutURLs:
-        - 'http://localhost:3000/logout'
-        - !Sub 'https://${ApplicationDomain}/logout'
-      ClientName: DLRApplicationClient
-      DefaultRedirectURI: 'http://localhost:3000'
-      EnableTokenRevocation: false
-      ExplicitAuthFlows:
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      GenerateSecret: false
-      PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feideIdNin
-        - custom:feidememberrole
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:personAffiliation
-      AccessTokenValidity: 1
-      IdTokenValidity: 1
-      RefreshTokenValidity: 2
-      TokenValidityUnits:
-        AccessToken: hours
-        IdToken: hours
-        RefreshToken: hours
-      SupportedIdentityProviders:
-        - !Ref ConnectionToDataporten
-      UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideIdNin
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:personAffiliation
-
-  TestingApplicationClient:
-    DependsOn: ResourceServerScopes
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      AllowedOAuthFlows:
-        - code
-        - implicit
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
-        - openid
-        - email
-        - phone
-        - profile # it seems to be necessary for the custom attributes to appear
-        - https://api.nva.unit.no/scopes/frontend
-      CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
-      LogoutURLs:
-        - 'http://localhost:3000/logout'
-        - !Sub 'https://${ApplicationDomain}/logout'
-      ClientName: TestingClient3
-      DefaultRedirectURI: 'http://localhost:3000'
-      EnableTokenRevocation: false
-      ExplicitAuthFlows:
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-        - ALLOW_USER_PASSWORD_AUTH
-      GenerateSecret: false
-      PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feideIdNin
-        - custom:feidememberrole
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
-        - custom:personAffiliation
-      AccessTokenValidity: 1
-      IdTokenValidity: 1
-      RefreshTokenValidity: 2
-      TokenValidityUnits:
-        AccessToken: hours
-        IdToken: hours
-        RefreshToken: hours
-      SupportedIdentityProviders:
-        - COGNITO
-      UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideIdNin
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
-        - custom:personAffiliation
+#  UserPoolName:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      DataType: text
+#      Description: Userpool's Backend client ID
+#      Name: /NVA/UserPoolName
+#      Type: String
+#      Value: !Sub
+#        - "${UserPoolName}${AWS::AccountId}"
+#        - UserPoolName: !FindInMap [ 'Constants', 'Cognito','UserPoolNamePrefix' ]
+#
+#  UserPool:
+#    Type: AWS::Cognito::UserPool
+#    Properties:
+#      AdminCreateUserConfig:
+#        AllowAdminCreateUserOnly: true
+#      MfaConfiguration: "OFF"
+#      LambdaConfig:
+#        PreTokenGeneration: !Sub '${PreTokenGenerationHandler.Arn}'
+#      Schema:
+#        - Name: nin
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: feideId
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: email
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: feidememberrole
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: feideIdNin
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: orgFeideDomain
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: firstName
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: lastName
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: accessRights
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: customerId
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: allowedCustomers
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: roles
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: nvaUsername
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: cristinId
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: topOrgCristinId
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#        - Name: personAffiliation
+#          AttributeDataType: String
+#          Mutable: true
+#          Required: false
+#      UsernameConfiguration:
+#        CaseSensitive: true
+#      UserPoolName: !GetAtt UserPoolName.Value
+#
+#  CongitoAuthUri:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      DataType: text
+#      Description: Cognito Authentication URI
+#      Name: /NVA/CognitoUri
+#      Type: String
+#      Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+#
+#  ConnectionToDataporten:
+#    Type: AWS::Cognito::UserPoolIdentityProvider
+#    Properties:
+#      AttributeMapping:
+#        custom:nin: https://n.feide.no/claims/nin
+#        custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
+#        custom:feidememberrole: eduPersonAffiliation
+#        custom:feideIdNin: norEduPersonNIN
+#        custom:orgFeideDomain: schacHomeOrganization
+#      ProviderDetails:
+#        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
+#        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+#        attributes_request_method: POST
+#        oidc_issuer: 'https://auth.dataporten.no'
+#        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
+#        token_url: 'https://auth.dataporten.no/oauth/token'
+#        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
+#        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
+#        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+#      ProviderName: Dataporten
+#      ProviderType: OIDC
+#      UserPoolId: !Ref UserPool
+#
+#  ResourceServerScopes:
+#    Type: AWS::Cognito::UserPoolResourceServer
+#    Properties:
+#      Identifier: https://api.nva.unit.no/scopes
+#      Name: Scopes for backend
+#      Scopes:
+#        - ScopeDescription: Necessary scope for backend authentication to work
+#          ScopeName: backend
+#        - ScopeDescription: Frontend scope
+#          ScopeName: frontend
+#      UserPoolId: !Ref UserPool
+#
+#  ResourceServerExternalScopes:
+#    Type: AWS::Cognito::UserPoolResourceServer
+#    Properties:
+#      Identifier: !Ref ExternalUserScopeIdentifier
+#      Name: Scopes for external user pool
+#      Scopes:
+#        - ScopeDescription: Publications read
+#          ScopeName: publication-read
+#        - ScopeDescription: Publications write/update
+#          ScopeName: publication-upsert
+#        - ScopeDescription: Ticket read
+#          ScopeName: ticket-read
+#        - ScopeDescription: Ticket write/update
+#          ScopeName: ticket-upsert
+#        - ScopeDescription: Upload file
+#          ScopeName: file-upload
+#      UserPoolId: !Ref ExternalUserPool
+#
+#  BackendApplicationClient:
+#    DependsOn: ResourceServerScopes
+#    Type: AWS::Cognito::UserPoolClient
+#    Properties:
+#      UserPoolId: !Ref UserPool
+#      AllowedOAuthFlows:
+#          - client_credentials
+#      AllowedOAuthFlowsUserPoolClient: true
+#      AllowedOAuthScopes:
+#         - https://api.nva.unit.no/scopes/backend
+#      ClientName: BackendApplicationClient
+#      CallbackURLs:
+#        - https://api.nva.unit.no/scopes # not necessary maybe.
+#      DefaultRedirectURI: https://api.nva.unit.no/scopes
+#      ExplicitAuthFlows:
+#        - ALLOW_CUSTOM_AUTH
+#        - ALLOW_USER_SRP_AUTH
+#        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+#        - ALLOW_REFRESH_TOKEN_AUTH
+#      GenerateSecret: true
+#      IdTokenValidity: 15
+#      AccessTokenValidity: 15
+#      TokenValidityUnits:
+#        AccessToken: minutes
+#        IdToken: minutes
+#
+#  BackendClientId:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      DataType: text
+#      Description: Userpool's Backend client ID
+#      Name: /NVA/BackendClientId
+#      Type: String
+#      Value: !Ref BackendApplicationClient
+#
+#  ApplicationClient:
+#    DependsOn: ResourceServerScopes
+#    Type: AWS::Cognito::UserPoolClient
+#    Properties:
+#      AllowedOAuthFlows:
+#        - code
+#        - implicit
+#      AllowedOAuthFlowsUserPoolClient: true
+#      AllowedOAuthScopes:
+#        - aws.cognito.signin.user.admin
+#        - openid
+#        - email
+#        - phone
+#        - profile # it seems to be necessary for the custom attributes to appear
+#        - https://api.nva.unit.no/scopes/frontend
+#      CallbackURLs:
+#        - 'http://localhost:3000'
+#        - !Sub 'https://${ApplicationDomain}'
+#      LogoutURLs:
+#        - 'http://localhost:3000/logout'
+#        - !Sub 'https://${ApplicationDomain}/logout'
+#      ClientName: NvaApplicationClient
+#      DefaultRedirectURI: 'http://localhost:3000'
+#      EnableTokenRevocation: false
+#      ExplicitAuthFlows:
+#        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+#        - ALLOW_CUSTOM_AUTH
+#        - ALLOW_REFRESH_TOKEN_AUTH
+#      GenerateSecret: false
+#      PreventUserExistenceErrors: LEGACY
+#      ReadAttributes:
+#        - custom:feideId
+#        - custom:nin
+#        - custom:feideIdNin
+#        - custom:feidememberrole
+#        - custom:orgFeideDomain
+#        - custom:firstName
+#        - custom:lastName
+#        - custom:accessRights
+#        - custom:customerId
+#        - custom:allowedCustomers
+#        - custom:roles
+#        - custom:nvaUsername
+#        - custom:cristinId
+#        - custom:topOrgCristinId
+#        - custom:personAffiliation
+#      AccessTokenValidity: 1
+#      IdTokenValidity: 1
+#      RefreshTokenValidity: 2
+#      TokenValidityUnits:
+#        AccessToken: hours
+#        IdToken: hours
+#        RefreshToken: hours
+#      SupportedIdentityProviders:
+#        - !Ref ConnectionToDataporten
+#      UserPoolId: !Ref UserPool
+#      WriteAttributes:
+#        - custom:feideId
+#        - custom:nin
+#        - custom:feidememberrole
+#        - custom:feideIdNin
+#        - custom:orgFeideDomain
+#        - custom:firstName
+#        - custom:lastName
+#        - custom:accessRights
+#        - custom:customerId
+#        - custom:allowedCustomers
+#        - custom:roles
+#        - custom:nvaUsername
+#        - custom:cristinId
+#        - custom:topOrgCristinId
+#        - custom:personAffiliation
+#
+#  UserPoolDomain:
+#    Type: AWS::Cognito::UserPoolDomain
+#    Properties:
+#      UserPoolId: !Ref UserPool
+#      Domain: !Ref AuthenticationDomainPrefix
+#
+#  DLRApplicationClient:
+#    DependsOn: ResourceServerScopes
+#    Type: AWS::Cognito::UserPoolClient
+#    Properties:
+#      AllowedOAuthFlows:
+#        - code
+#        - implicit
+#      AllowedOAuthFlowsUserPoolClient: true
+#      AllowedOAuthScopes:
+#        - aws.cognito.signin.user.admin
+#        - openid
+#        - email
+#        - phone
+#        - profile # it seems to be necessary for the custom attributes to appear
+#        - https://api.nva.unit.no/scopes/frontend
+#      CallbackURLs:
+#        - 'http://localhost:3000'
+#        - !Sub 'https://${ApplicationDomain}'
+#      LogoutURLs:
+#        - 'http://localhost:3000/logout'
+#        - !Sub 'https://${ApplicationDomain}/logout'
+#      ClientName: DLRApplicationClient
+#      DefaultRedirectURI: 'http://localhost:3000'
+#      EnableTokenRevocation: false
+#      ExplicitAuthFlows:
+#        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+#        - ALLOW_CUSTOM_AUTH
+#        - ALLOW_REFRESH_TOKEN_AUTH
+#      GenerateSecret: false
+#      PreventUserExistenceErrors: LEGACY
+#      ReadAttributes:
+#        - custom:feideId
+#        - custom:nin
+#        - custom:feideIdNin
+#        - custom:feidememberrole
+#        - custom:orgFeideDomain
+#        - custom:firstName
+#        - custom:lastName
+#        - custom:accessRights
+#        - custom:customerId
+#        - custom:allowedCustomers
+#        - custom:roles
+#        - custom:personAffiliation
+#      AccessTokenValidity: 1
+#      IdTokenValidity: 1
+#      RefreshTokenValidity: 2
+#      TokenValidityUnits:
+#        AccessToken: hours
+#        IdToken: hours
+#        RefreshToken: hours
+#      SupportedIdentityProviders:
+#        - !Ref ConnectionToDataporten
+#      UserPoolId: !Ref UserPool
+#      WriteAttributes:
+#        - custom:feideId
+#        - custom:nin
+#        - custom:feidememberrole
+#        - custom:feideIdNin
+#        - custom:orgFeideDomain
+#        - custom:firstName
+#        - custom:lastName
+#        - custom:accessRights
+#        - custom:customerId
+#        - custom:allowedCustomers
+#        - custom:roles
+#        - custom:personAffiliation
+#
+#  TestingApplicationClient:
+#    DependsOn: ResourceServerScopes
+#    Type: AWS::Cognito::UserPoolClient
+#    Properties:
+#      AllowedOAuthFlows:
+#        - code
+#        - implicit
+#      AllowedOAuthFlowsUserPoolClient: true
+#      AllowedOAuthScopes:
+#        - aws.cognito.signin.user.admin
+#        - openid
+#        - email
+#        - phone
+#        - profile # it seems to be necessary for the custom attributes to appear
+#        - https://api.nva.unit.no/scopes/frontend
+#      CallbackURLs:
+#        - 'http://localhost:3000'
+#        - !Sub 'https://${ApplicationDomain}'
+#      LogoutURLs:
+#        - 'http://localhost:3000/logout'
+#        - !Sub 'https://${ApplicationDomain}/logout'
+#      ClientName: TestingClient3
+#      DefaultRedirectURI: 'http://localhost:3000'
+#      EnableTokenRevocation: false
+#      ExplicitAuthFlows:
+#        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+#        - ALLOW_CUSTOM_AUTH
+#        - ALLOW_REFRESH_TOKEN_AUTH
+#        - ALLOW_USER_PASSWORD_AUTH
+#      GenerateSecret: false
+#      PreventUserExistenceErrors: LEGACY
+#      ReadAttributes:
+#        - custom:feideId
+#        - custom:nin
+#        - custom:feideIdNin
+#        - custom:feidememberrole
+#        - custom:orgFeideDomain
+#        - custom:firstName
+#        - custom:lastName
+#        - custom:accessRights
+#        - custom:customerId
+#        - custom:allowedCustomers
+#        - custom:roles
+#        - custom:nvaUsername
+#        - custom:cristinId
+#        - custom:topOrgCristinId
+#        - custom:personAffiliation
+#      AccessTokenValidity: 1
+#      IdTokenValidity: 1
+#      RefreshTokenValidity: 2
+#      TokenValidityUnits:
+#        AccessToken: hours
+#        IdToken: hours
+#        RefreshToken: hours
+#      SupportedIdentityProviders:
+#        - COGNITO
+#      UserPoolId: !Ref UserPool
+#      WriteAttributes:
+#        - custom:feideId
+#        - custom:nin
+#        - custom:feidememberrole
+#        - custom:feideIdNin
+#        - custom:orgFeideDomain
+#        - custom:firstName
+#        - custom:lastName
+#        - custom:accessRights
+#        - custom:customerId
+#        - custom:allowedCustomers
+#        - custom:roles
+#        - custom:nvaUsername
+#        - custom:cristinId
+#        - custom:topOrgCristinId
+#        - custom:personAffiliation
   ## External API
   ExternalUserPoolName:
     Type: AWS::SSM::Parameter
@@ -1634,74 +1634,74 @@ Resources:
       UserPoolId: !Ref ExternalUserPool
       Domain: !Ref ExternalAuthenticationDomainPrefix
 
-  PreTokenGenerationHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.UserSelectionUponLoginHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
-      Tracing: Active
-      AutoPublishAlias: live
-      DeploymentPreference:
-        Enabled: true
-        Type: AllAtOnce
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
-      Environment:
-        Variables:
-          USERPOOL_NAME: !GetAtt UserPoolName.Value
-          API_DOMAIN: !Ref ApiDomain
-          COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
-          COGNITO_ID_KEY: backendClientId
-          COGNITO_SECRET_KEY: backendClientSecret
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-          CRISTIN_API_URL: !Ref CristinApiUrl
-      Timeout: 20
-
-  PreTokenGenerationHandlerScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Properties:
-      MaxCapacity: 10
-      MinCapacity: 1
-      ResourceId: !Sub function:${PreTokenGenerationHandler}:live
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-      ScalableDimension: lambda:function:ProvisionedConcurrency
-      ServiceNamespace: lambda
-    DependsOn: PreTokenGenerationHandlerAliaslive
-
-  PreTokenGenerationHandlerScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: PreTokenGenerationHandlerScalingPolicy
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref PreTokenGenerationHandlerScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 0.70
-        PredefinedMetricSpecification:
-          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
-
-  PreTokenGenerationHandlerTriggerPermission:
-    DependsOn:
-      - PreTokenGenerationHandlerScalingPolicy
-      - PreTokenGenerationHandlerScalableTarget
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Sub '${PreTokenGenerationHandler.Arn}'
-      Principal: cognito-idp.amazonaws.com
+#  PreTokenGenerationHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: cognito-pre-token-generation-openid
+#      Handler: no.unit.nva.cognito.UserSelectionUponLoginHandler::handleRequest
+#      Role: !GetAtt CreateUsersRole.Arn
+#      Tracing: Active
+#      AutoPublishAlias: live
+#      DeploymentPreference:
+#        Enabled: true
+#        Type: AllAtOnce
+#      ProvisionedConcurrencyConfig:
+#        ProvisionedConcurrentExecutions: 1
+#      Environment:
+#        Variables:
+#          USERPOOL_NAME: !GetAtt UserPoolName.Value
+#          API_DOMAIN: !Ref ApiDomain
+#          COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
+#          COGNITO_ID_KEY: backendClientId
+#          COGNITO_SECRET_KEY: backendClientSecret
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+#          CRISTIN_API_URL: !Ref CristinApiUrl
+#      Timeout: 20
+#
+#  PreTokenGenerationHandlerScalableTarget:
+#    Type: AWS::ApplicationAutoScaling::ScalableTarget
+#    Properties:
+#      MaxCapacity: 10
+#      MinCapacity: 1
+#      ResourceId: !Sub function:${PreTokenGenerationHandler}:live
+#      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+#      ScalableDimension: lambda:function:ProvisionedConcurrency
+#      ServiceNamespace: lambda
+#    DependsOn: PreTokenGenerationHandlerAliaslive
+#
+#  PreTokenGenerationHandlerScalingPolicy:
+#    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+#    Properties:
+#      PolicyName: PreTokenGenerationHandlerScalingPolicy
+#      PolicyType: TargetTrackingScaling
+#      ScalingTargetId: !Ref PreTokenGenerationHandlerScalableTarget
+#      TargetTrackingScalingPolicyConfiguration:
+#        TargetValue: 0.70
+#        PredefinedMetricSpecification:
+#          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+#
+#  PreTokenGenerationHandlerTriggerPermission:
+#    DependsOn:
+#      - PreTokenGenerationHandlerScalingPolicy
+#      - PreTokenGenerationHandlerScalableTarget
+#    Type: AWS::Lambda::Permission
+#    Properties:
+#      Action: lambda:InvokeFunction
+#      FunctionName: !Sub '${PreTokenGenerationHandler.Arn}'
+#      Principal: cognito-idp.amazonaws.com
 
 
 ### Outputs ############################################################################################################
 
 Outputs:
-  CognitoDomain:
-    Description: Amazon Cognito Domain.
-    Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
-  CognitoURN:
-    Description: Amazon Cognito URN.
-    Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
+#  CognitoDomain:
+#    Description: Amazon Cognito Domain.
+#    Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+#  CognitoURN:
+#    Description: Amazon Cognito URN.
+#    Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
   ExternalCognitoDomain:
     Description: External users Amazon Cognito Domain.
     Value: !Sub 'https://${ExternalAuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'

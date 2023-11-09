@@ -773,7 +773,7 @@ components:
             - INSTITUTE
             - ABM
             - OTHER
-          description: what type the sector the institution is part of
+          description: what sector the customer is part of
         rightsRetentionStrategy:
           oneOf:
             - $ref: '#/components/schemas/NullRightsRetentionStrategy'

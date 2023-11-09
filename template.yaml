@@ -325,250 +325,250 @@ Resources:
           Projection:
             ProjectionType: ALL
 
-  UsersAndRolesApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      EndpointConfiguration: REGIONAL
-      DefinitionBody:
-        'Fn::Transform':
-          Name: AWS::Include
-          Parameters:
-            Location: ./docs/users-and-roles-swagger.yaml
-
-  AddRoleHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.AddRoleHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /roles
-            Method: post
-            RestApiId: !Ref UsersAndRolesApi
-
-  GetRoleHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.GetRoleHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /roles/{role}
-            Method: get
-            RestApiId: !Ref UsersAndRolesApi
-
-  CreateUserHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.CreateUserHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          API_DOMAIN: !Ref ApiDomain
-          CRISTIN_API_URL: !Ref CristinApiUrl
-          COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
-          COGNITO_ID_KEY: backendClientId
-          COGNITO_SECRET_KEY: backendClientSecret
-          #TODO rename ID_NAMESPACE to CUSTOMER_ID_NAMESPACE
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /users
-            Method: post
-            RestApiId: !Ref UsersAndRolesApi
-
-  UpdateUserHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /users/{username}
-            Method: put
-            RestApiId: !Ref UsersAndRolesApi
-
-  GetUserHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /users/{username}
-            Method: get
-            RestApiId: !Ref UsersAndRolesApi
-
-  CustomerSelectionHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.CustomerSelectionHandler::handleRequest
-      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /login
-            Method: post
-            RestApiId: !Ref UsersAndRolesApi
-
-  CognitoUserInfoHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.CognitoUserInfoEndpoint::handleRequest
-      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /userinfo
-            Method: get
-            RestApiId: !Ref UsersAndRolesApi
-
-  ListByInstitutionHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.ListByInstitutionHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /institutions/users
-            Method: get
-            RequestParameters:
-              - method.request.querystring.institution:
-                  Required: true
-            RestApiId: !Ref UsersAndRolesApi
-
-  InitIdenitityServiceHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.IdentityServiceInitHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          SIKT_CRISTIN_ID: !Ref SiktCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-
-  CreateExternalClientHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.CreateExternalClientHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
-      Description: Creates a new Cognito Client assosicated with the external user pool
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          API_DOMAIN: !Ref ApiDomain
-          EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
-          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
-          EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /external-clients
-            Method: post
-            RestApiId: !Ref UsersAndRolesApi
-
-  GetExternalClientHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.GetExternalClientHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
-      Description: Get a store external client and its details
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          API_DOMAIN: !Ref ApiDomain
-          EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
-          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
-          EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /external-clients/{clientId}
-            Method: get
-            RestApiId: !Ref UsersAndRolesApi
-
-  UsersAndRolesApiStaticUrl:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath:
-        !If
-        - WithSuffix
-        - !Sub '${UsersAndRolesBasePath}-${Suffix}'
-        - !Sub '${UsersAndRolesBasePath}'
-      DomainName: !Ref ApiDomain
-      RestApiId: !Ref UsersAndRolesApi
-      Stage: !Ref UsersAndRolesApi.Stage
-
-  ### Customer Service #################################################################################################
-
+#  UsersAndRolesApi:
+#    Type: AWS::Serverless::Api
+#    Properties:
+#      StageName: Prod
+#      EndpointConfiguration: REGIONAL
+#      DefinitionBody:
+#        'Fn::Transform':
+#          Name: AWS::Include
+#          Parameters:
+#            Location: ./docs/users-and-roles-swagger.yaml
+#
+#  AddRoleHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: user-access-handlers
+#      Handler: no.unit.nva.handlers.AddRoleHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref UserRoleMappings
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /roles
+#            Method: post
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  GetRoleHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: user-access-handlers
+#      Handler: no.unit.nva.handlers.GetRoleHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#      Policies:
+#        - DynamoDBReadPolicy:
+#            TableName: !Ref UserRoleMappings
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /roles/{role}
+#            Method: get
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  CreateUserHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: user-access-handlers
+#      Handler: no.unit.nva.handlers.CreateUserHandler::handleRequest
+#      Role: !GetAtt CreateUsersRole.Arn
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          API_DOMAIN: !Ref ApiDomain
+#          CRISTIN_API_URL: !Ref CristinApiUrl
+#          COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
+#          COGNITO_ID_KEY: backendClientId
+#          COGNITO_SECRET_KEY: backendClientSecret
+#          #TODO rename ID_NAMESPACE to CUSTOMER_ID_NAMESPACE
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /users
+#            Method: post
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  UpdateUserHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: user-access-handlers
+#      Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref UserRoleMappings
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /users/{username}
+#            Method: put
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  GetUserHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: user-access-handlers
+#      Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#      Policies:
+#        - DynamoDBReadPolicy:
+#            TableName: !Ref UserRoleMappings
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /users/{username}
+#            Method: get
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  CustomerSelectionHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: cognito-pre-token-generation-openid
+#      Handler: no.unit.nva.cognito.CustomerSelectionHandler::handleRequest
+#      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /login
+#            Method: post
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  CognitoUserInfoHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: cognito-pre-token-generation-openid
+#      Handler: no.unit.nva.cognito.CognitoUserInfoEndpoint::handleRequest
+#      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /userinfo
+#            Method: get
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  ListByInstitutionHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: user-access-handlers
+#      Handler: no.unit.nva.handlers.ListByInstitutionHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#      Policies:
+#        - DynamoDBReadPolicy:
+#            TableName: !Ref UserRoleMappings
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /institutions/users
+#            Method: get
+#            RequestParameters:
+#              - method.request.querystring.institution:
+#                  Required: true
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  InitIdenitityServiceHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: user-access-handlers
+#      Handler: no.unit.nva.handlers.IdentityServiceInitHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          SIKT_CRISTIN_ID: !Ref SiktCristinId
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref UserRoleMappings
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#
+#  CreateExternalClientHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: user-access-handlers
+#      Handler: no.unit.nva.handlers.CreateExternalClientHandler::handleRequest
+#      Role: !GetAtt CreateUsersRole.Arn
+#      Description: Creates a new Cognito Client assosicated with the external user pool
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          API_DOMAIN: !Ref ApiDomain
+#          EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
+#          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+#          EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /external-clients
+#            Method: post
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  GetExternalClientHandler:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: user-access-handlers
+#      Handler: no.unit.nva.handlers.GetExternalClientHandler::handleRequest
+#      Role: !GetAtt CreateUsersRole.Arn
+#      Description: Get a store external client and its details
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          API_DOMAIN: !Ref ApiDomain
+#          EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
+#          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+#          EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /external-clients/{clientId}
+#            Method: get
+#            RestApiId: !Ref UsersAndRolesApi
+#
+#  UsersAndRolesApiStaticUrl:
+#    Type: AWS::ApiGateway::BasePathMapping
+#    Properties:
+#      BasePath:
+#        !If
+#        - WithSuffix
+#        - !Sub '${UsersAndRolesBasePath}-${Suffix}'
+#        - !Sub '${UsersAndRolesBasePath}'
+#      DomainName: !Ref ApiDomain
+#      RestApiId: !Ref UsersAndRolesApi
+#      Stage: !Ref UsersAndRolesApi.Stage
+#
+#  ### Customer Service #################################################################################################
+#
   NvaCustomersTable:
     Type: AWS::DynamoDB::Table
     UpdateReplacePolicy: Retain
@@ -601,269 +601,269 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
-
-  ApiAccessLogGroup:
-    Type: AWS::Logs::LogGroup
-
-  NvaCustomerApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      AccessLogSetting:
-        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
-        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
-      StageName: Prod
-      EndpointConfiguration: REGIONAL
-      DefinitionBody:
-        'Fn::Transform':
-          Name: AWS::Include
-          Parameters:
-            Location: ./docs/customer-swagger.yaml
-
-  NvaCreateCustomerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.create.CreateCustomerHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        PostEvent:
-          Type: Api
-          Properties:
-            Path: /
-            Method: post
-            RestApiId: !Ref NvaCustomerApi
-
-  NvaGetCustomerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        GetCustomerEvent:
-          Type: Api
-          Properties:
-            Path: /{identifier}
-            Method: get
-            RestApiId: !Ref NvaCustomerApi
-
-  NvaGetCustomerDoiAgentFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Role: !GetAtt CustomerSecretAdminRole.Arn
-      Handler: no.unit.nva.customer.get.GetCustomerDoiHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Events:
-        GetCustomerDoiEvent:
-          Type: Api
-          Properties:
-            Path: /{identifier}/doiagent
-            Method: get
-            RestApiId: !Ref NvaCustomerApi
-
-  NvaUpdateCustomerDoiAgentFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Role: !GetAtt CustomerSecretAdminRole.Arn
-      Handler: no.unit.nva.customer.update.UpdateCustomerDoiHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        UpdaterCustomerDoiEvent:
-          Type: Api
-          Properties:
-            Path: /{identifier}/doiagent
-            Method: put
-            RestApiId: !Ref NvaCustomerApi
-
-  NvaGetCustomerVocabulariesFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.get.GetControlledVocabularyHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        GetCustomerEvent:
-          Type: Api
-          Properties:
-            Path: /{identifier}/vocabularies
-            Method: get
-            RestApiId: !Ref NvaCustomerApi
-  NvaCreateCustomerVocabulariesFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.create.CreateControlledVocabularyHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        GetCustomerEvent:
-          Type: Api
-          Properties:
-            Path: /{identifier}/vocabularies
-            Method: post
-            RestApiId: !Ref NvaCustomerApi
-  NvaUpdateCustomerVocabulariesFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.update.UpdateControlledVocabularyHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        GetCustomerEvent:
-          Type: Api
-          Properties:
-            Path: /{identifier}/vocabularies
-            Method: put
-            RestApiId: !Ref NvaCustomerApi
-  NvaGetCustomerByOrgDomainFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        GetByOrgDomainEvent:
-          Type: Api
-          Properties:
-            Path: /orgDomain/{orgDomain}
-            Method: get
-            RestApiId: !Ref NvaCustomerApi
-  NvaGetCustomerByCristinIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.get.GetCustomerByCristinIdHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        GetByCristinIdEvent:
-          Type: Api
-          Properties:
-            Path: /cristinId/{cristinId}
-            Method: get
-            RestApiId: !Ref NvaCustomerApi
-  NvaGetAllCustomersFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.get.GetAllCustomersHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        GetEvent:
-          Type: Api
-          Properties:
-            Path: /
-            Method: get
-            RestApiId: !Ref NvaCustomerApi
-  NvaUpdateCustomerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.update.UpdateCustomerHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-      Events:
-        PutEvent:
-          Type: Api
-          Properties:
-            Path: /{identifier}
-            Method: put
-            RestApiId: !Ref NvaCustomerApi
-  NvaUpdateCustomerAppDomainFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: customer
-      Handler: no.unit.nva.customer.NvaApplicationDomainHandler::handleRequest
-      Environment:
-        Variables:
-          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NvaCustomersTable
-
-  NvaCustomerBasePathMapping:
-    Type: AWS::ApiGateway::BasePathMapping
-    Properties:
-      BasePath:
-        !If
-        - WithSuffix
-        - !Sub '${CustomerDomainBasePath}-${Suffix}'
-        - !Sub '${CustomerDomainBasePath}'
-      DomainName: !Ref ApiDomain
-      RestApiId: !Ref NvaCustomerApi
-      Stage: !Ref NvaCustomerApi.Stage
+#
+#  ApiAccessLogGroup:
+#    Type: AWS::Logs::LogGroup
+#
+#  NvaCustomerApi:
+#    Type: AWS::Serverless::Api
+#    Properties:
+#      AccessLogSetting:
+#        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+#        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
+#      StageName: Prod
+#      EndpointConfiguration: REGIONAL
+#      DefinitionBody:
+#        'Fn::Transform':
+#          Name: AWS::Include
+#          Parameters:
+#            Location: ./docs/customer-swagger.yaml
+#
+#  NvaCreateCustomerFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.create.CreateCustomerHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        PostEvent:
+#          Type: Api
+#          Properties:
+#            Path: /
+#            Method: post
+#            RestApiId: !Ref NvaCustomerApi
+#
+#  NvaGetCustomerFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        GetCustomerEvent:
+#          Type: Api
+#          Properties:
+#            Path: /{identifier}
+#            Method: get
+#            RestApiId: !Ref NvaCustomerApi
+#
+#  NvaGetCustomerDoiAgentFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Role: !GetAtt CustomerSecretAdminRole.Arn
+#      Handler: no.unit.nva.customer.get.GetCustomerDoiHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Events:
+#        GetCustomerDoiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /{identifier}/doiagent
+#            Method: get
+#            RestApiId: !Ref NvaCustomerApi
+#
+#  NvaUpdateCustomerDoiAgentFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Role: !GetAtt CustomerSecretAdminRole.Arn
+#      Handler: no.unit.nva.customer.update.UpdateCustomerDoiHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        UpdaterCustomerDoiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /{identifier}/doiagent
+#            Method: put
+#            RestApiId: !Ref NvaCustomerApi
+#
+#  NvaGetCustomerVocabulariesFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.get.GetControlledVocabularyHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        GetCustomerEvent:
+#          Type: Api
+#          Properties:
+#            Path: /{identifier}/vocabularies
+#            Method: get
+#            RestApiId: !Ref NvaCustomerApi
+#  NvaCreateCustomerVocabulariesFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.create.CreateControlledVocabularyHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        GetCustomerEvent:
+#          Type: Api
+#          Properties:
+#            Path: /{identifier}/vocabularies
+#            Method: post
+#            RestApiId: !Ref NvaCustomerApi
+#  NvaUpdateCustomerVocabulariesFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.update.UpdateControlledVocabularyHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        GetCustomerEvent:
+#          Type: Api
+#          Properties:
+#            Path: /{identifier}/vocabularies
+#            Method: put
+#            RestApiId: !Ref NvaCustomerApi
+#  NvaGetCustomerByOrgDomainFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        GetByOrgDomainEvent:
+#          Type: Api
+#          Properties:
+#            Path: /orgDomain/{orgDomain}
+#            Method: get
+#            RestApiId: !Ref NvaCustomerApi
+#  NvaGetCustomerByCristinIdFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.get.GetCustomerByCristinIdHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        GetByCristinIdEvent:
+#          Type: Api
+#          Properties:
+#            Path: /cristinId/{cristinId}
+#            Method: get
+#            RestApiId: !Ref NvaCustomerApi
+#  NvaGetAllCustomersFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.get.GetAllCustomersHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        GetEvent:
+#          Type: Api
+#          Properties:
+#            Path: /
+#            Method: get
+#            RestApiId: !Ref NvaCustomerApi
+#  NvaUpdateCustomerFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.update.UpdateCustomerHandler::handleRequest
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#      Events:
+#        PutEvent:
+#          Type: Api
+#          Properties:
+#            Path: /{identifier}
+#            Method: put
+#            RestApiId: !Ref NvaCustomerApi
+#  NvaUpdateCustomerAppDomainFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: customer
+#      Handler: no.unit.nva.customer.NvaApplicationDomainHandler::handleRequest
+#      Environment:
+#        Variables:
+#          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+#      Policies:
+#        - DynamoDBCrudPolicy:
+#            TableName: !Ref NvaCustomersTable
+#
+#  NvaCustomerBasePathMapping:
+#    Type: AWS::ApiGateway::BasePathMapping
+#    Properties:
+#      BasePath:
+#        !If
+#        - WithSuffix
+#        - !Sub '${CustomerDomainBasePath}-${Suffix}'
+#        - !Sub '${CustomerDomainBasePath}'
+#      DomainName: !Ref ApiDomain
+#      RestApiId: !Ref NvaCustomerApi
+#      Stage: !Ref NvaCustomerApi.Stage
 
   ### Events ############################################################################################################
   StartBatchScanHandler:
@@ -1130,61 +1130,61 @@ Resources:
   # https://stackoverflow.com/questions/41423439/cloudformation-doesnt-deploy-to-api-gateway-stages-on-update
   #====================================================================================================================#
 
-  ApiGatewayCreateDeploymentLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      Path: /
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-      Policies:
-        - PolicyName: ApiGatewayAdmin
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - apigateway:POST
-                Resource: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${UsersAndRolesApi}/deployments'
-              - Effect: Allow
-                Action:
-                  - apigateway:POST
-                Resource: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${NvaCustomerApi}/deployments'
-
-  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-lambda-function-code-cfnresponsemodule.html
-  ApiGatewayCreateDeploymentLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Handler: index.lambda_handler
-      MemorySize: 128
-      Timeout: 30
-      Role: !GetAtt ApiGatewayCreateDeploymentLambdaRole.Arn
-      Runtime: python3.8
-      Code:
-        ZipFile: |
-          import json, boto3
-          import cfnresponse
-          client = boto3.client('apigateway')
-          def lambda_handler(event, context):
-            responseData = {}
-            responseStatus = cfnresponse.SUCCESS
-            if event['RequestType'] == 'Update':
-              try:
-                properties = event['ResourceProperties']
-                response = client.create_deployment(
-                  restApiId=properties['RestApiId'],
-                  stageName=properties['StageName'],
-                  description='Deployed from Custom Resource'
-                )
-              except:
-                responseStatus = cfnresponse.FAILED
-            cfnresponse.send(event, context, responseStatus, responseData)
+#  ApiGatewayCreateDeploymentLambdaRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      AssumeRolePolicyDocument:
+#        Version: '2012-10-17'
+#        Statement:
+#          - Effect: Allow
+#            Principal:
+#              Service: lambda.amazonaws.com
+#            Action: sts:AssumeRole
+#      Path: /
+#      ManagedPolicyArns:
+#        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+#      Policies:
+#        - PolicyName: ApiGatewayAdmin
+#          PolicyDocument:
+#            Version: '2012-10-17'
+#            Statement:
+#              - Effect: Allow
+#                Action:
+#                  - apigateway:POST
+#                Resource: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${UsersAndRolesApi}/deployments'
+#              - Effect: Allow
+#                Action:
+#                  - apigateway:POST
+#                Resource: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${NvaCustomerApi}/deployments'
+#
+#  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-lambda-function-code-cfnresponsemodule.html
+#  ApiGatewayCreateDeploymentLambda:
+#    Type: AWS::Lambda::Function
+#    Properties:
+#      Handler: index.lambda_handler
+#      MemorySize: 128
+#      Timeout: 30
+#      Role: !GetAtt ApiGatewayCreateDeploymentLambdaRole.Arn
+#      Runtime: python3.8
+#      Code:
+#        ZipFile: |
+#          import json, boto3
+#          import cfnresponse
+#          client = boto3.client('apigateway')
+#          def lambda_handler(event, context):
+#            responseData = {}
+#            responseStatus = cfnresponse.SUCCESS
+#            if event['RequestType'] == 'Update':
+#              try:
+#                properties = event['ResourceProperties']
+#                response = client.create_deployment(
+#                  restApiId=properties['RestApiId'],
+#                  stageName=properties['StageName'],
+#                  description='Deployed from Custom Resource'
+#                )
+#              except:
+#                responseStatus = cfnresponse.FAILED
+#            cfnresponse.send(event, context, responseStatus, responseData)
 #  UsersAndRolesApiGatewayCreateDeploymentCustomResource:
 #    Type: AWS::CloudFormation::CustomResource
 #    Properties:

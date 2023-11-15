@@ -512,6 +512,40 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
 
+  SetImpersonationHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.SetImpersonationHandler::handleRequest
+      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /impersonation
+            Method: post
+            RestApiId: !Ref UsersAndRolesApi
+
+  StopImpersonationHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.StopImpersonationHandler::handleRequest
+      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /impersonation/stop
+            Method: post
+            RestApiId: !Ref UsersAndRolesApi
+
   CreateExternalClientHandler:
     Type: AWS::Serverless::Function
     Properties:

@@ -1,7 +1,6 @@
 
 package no.unit.nva.handlers;
 
-import static nva.commons.apigateway.RequestInfoConstants.ISS;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonPointer;
 import java.net.HttpURLConnection;
@@ -26,6 +25,7 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
     private final CognitoIdentityProviderClient cognitoClient;
     public static final Environment ENVIRONMENT = new Environment();
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
+    public static final String USER_POOL_ID = ENVIRONMENT.readEnv("USER_POOL_ID");
 
     @JacocoGenerated
     public StopImpersonationHandler() {
@@ -42,13 +42,12 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
         throws ApiGatewayException {
 
         var username = requestInfo.getRequestContextParameterOpt(USERNAME_POINTER).orElseThrow();
-        var userPoolId = requestInfo.getRequestContextParameterOpt(ISS).orElseThrow();
         var attributes = List.of(
             AttributeType.builder().name(IMPERSONATION).value("").build()
         );
 
         var request =  AdminUpdateUserAttributesRequest.builder()
-                                         .userPoolId(userPoolId)
+                                         .userPoolId(USER_POOL_ID)
                                          .username(username)
                                          .userAttributes(attributes)
                                          .build();

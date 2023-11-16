@@ -521,6 +521,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+          USER_POOL_ID: !GetAtt UserPool.UserPoolId
       Events:
         ApiEvent:
           Type: Api
@@ -538,6 +539,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
+          USER_POOL_ID: !GetAtt UserPool.UserPoolId
       Events:
         ApiEvent:
           Type: Api

@@ -164,6 +164,40 @@ paths:
         responses: {}
         httpMethod: POST
         type: aws_proxy
+  /impersonation/stop:
+    post:
+      summary: Stops impersonating as another user. Used by admins for support.
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+      responses:
+        '200':
+          description: Successful stoped impersonating user. Upon next login you will get your own claims.
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StopImpersonationHandler.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: aws_proxy
+  /impersonation:
+    post:
+      summary: Impersonate as another user. Used by admins for support. Will generate login claims as if you were someone else.
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NationalIdentificationNumberBody'
+      responses:
+        '200':
+          description: Successful impersonated as user. Upon next login you will get claims as if you were the impersonated person
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SetImpersonationHandler.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: aws_proxy
   /external-clients:
     post:
       summary: Adds new external client
@@ -312,6 +346,10 @@ components:
             $ref: '#/components/schemas/AccessRight'
         viewingScope:
           $ref: '#/components/schemas/ViewingScope'
+    NationalIdentificationNumberBody:
+      properties:
+        nin:
+          type: string
     ExternalClientRequest:
       properties:
         clientName:

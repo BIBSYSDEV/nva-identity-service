@@ -58,12 +58,12 @@ class StopImpersonationHandlerTest {
     }
 
     @Test
-    public void shouldCallCogntioAdminApiWithNullImpersonation()
+    public void shouldCallCogntioAdminApiWithEmptyStringImpersonation()
         throws IOException {
         var request = createDefaultRequestForStopImpersonation(randomString());
         handler.handleRequest(request, outputStream, context);
         var setImpersonationClaim = extractAdminUpdateRequestUserAttribute(IMPERSONATION).get();
-        assertThat(setImpersonationClaim.value(), is(nullValue()));
+        assertThat(setImpersonationClaim.value(), is(equalTo("")));
     }
 
     private InputStream createDefaultRequestForStopImpersonation(String username) throws JsonProcessingException {

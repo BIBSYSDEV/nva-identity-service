@@ -400,7 +400,7 @@ public class UserSelectionUponLoginHandler
         claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
         claims.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString));
         claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
-        claims.add(createAttribute(IMPERSONATED_BY_CLAIM, impersonatedBy));
+        claims.add(createAttribute(IMPERSONATED_BY_CLAIM, isNull(impersonatedBy) ? "" : impersonatedBy));
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(currentCustomer, currentUser, claims);
         return claims;
     }

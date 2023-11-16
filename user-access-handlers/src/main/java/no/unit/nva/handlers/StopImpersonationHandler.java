@@ -44,9 +44,8 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
         var username = requestInfo.getRequestContextParameterOpt(USERNAME_POINTER).orElseThrow();
         var userPoolId = requestInfo.getRequestContextParameterOpt(ISS).orElseThrow();
         var attributes = List.of(
-            AttributeType.builder().name(IMPERSONATION).value(null).build()
+            AttributeType.builder().name(IMPERSONATION).value("").build()
         );
-
 
         var request =  AdminUpdateUserAttributesRequest.builder()
                                          .userPoolId(userPoolId)

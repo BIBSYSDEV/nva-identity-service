@@ -14,6 +14,8 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
+import static no.unit.nva.cognito.LoginEventType.FEIDE;
+import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
@@ -31,12 +33,16 @@ import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinP
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasLength;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -81,6 +87,7 @@ import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.AccessRightEntry;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
@@ -95,6 +102,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.EnumSource.Mode;
+import org.mockito.hamcrest.MockitoHamcrest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
@@ -523,6 +531,84 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualTopOrgCristinId, is(equalTo(expectedTopLevelOrgUri.toString())));
     }
 
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldNotStoreAccessRightsInCognitoWhenUserHasSeveralActiveAffiliationsAndNoActiveCustomer(
+            LoginEventType loginEventType)
+        throws NotFoundException, InvalidInputException {
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutionsWithoutFeideDomain();
+        var role = persistRandomRole();
+        createUsersWithRolesForPerson(person, role);
+        addAccessRightToExistingRole(role, AccessRight.PUBLISH_DEGREE);
+
+        var event = newLoginEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+
+        var actualAccessRights = extractClaimFromCognitoUpdateRequest(ACCESS_RIGHTS_CLAIM);
+        assertThat(actualAccessRights, is(emptyString()));
+    }
+
+    @Test
+    void shouldOnlyStoreAccessRightsInCognitoOfCurrentCustomerWhenUserHasSeveralActiveAffiliationsAndActiveCustomer()
+        throws NotFoundException, InvalidInputException {
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var role = persistRandomRole();
+        createUsersWithRolesForPerson(person, role);
+        addAccessRightToExistingRole(role, AccessRight.PUBLISH_DEGREE);
+
+        var event = newLoginEvent(person, FEIDE);
+
+        handler.handleRequest(event, context);
+
+        var actualAccessRights = extractClaimFromCognitoUpdateRequest(ACCESS_RIGHTS_CLAIM);
+        var uniqueAccessRights =
+            AccessRightEntry.fromCsv(actualAccessRights).map(AccessRightEntry::getCustomerId).distinct().toList();
+        assertThat(uniqueAccessRights, hasSize(1));
+    }
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldStoreAccessRightsInCognitoWhenUserHasOneActiveAffiliations(LoginEventType loginEventType)
+        throws NotFoundException, InvalidInputException, ConflictException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+
+        var user = scenarios.createUsersForAllActiveAffiliations(person, identityService)
+                       .stream()
+                       .collect(SingletonCollector.collect());
+        var accessRight = randomElement(AccessRight.values());
+        var role = persistRoleToDatabase(List.of(accessRight));
+        assignExistingRoleToUser(user, role);
+        addAccessRightToExistingRole(role, accessRight);
+
+        var event = newLoginEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+
+        var actualAccessRights = extractClaimFromCognitoUpdateRequest(ACCESS_RIGHTS_CLAIM);
+        assertThat(actualAccessRights, containsString(accessRight.toString()));
+    }
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldStoreAccessRightsToDatabaseWhenUserHasSeveralActiveAffiliations(LoginEventType loginEventType)
+        throws InvalidInputException, NotFoundException {
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var role = persistRandomRole();
+        var users = createUsersWithRolesForPerson(person, role);
+        var accessRight = randomElement(AccessRight.values());
+        addAccessRightToExistingRole(role, accessRight);
+
+        var event = newLoginEvent(person, loginEventType);
+        handler.handleRequest(event, context);
+
+        users.forEach(user -> {
+            var userAfterLogin = attempt(() -> identityService.getUser(user)).orElseThrow();
+            assertThat(userAfterLogin.getAccessRights(), hasItem(accessRight));
+
+        });
+    }
+
+
+
     @ParameterizedTest(name = "should store user's username in cognito user attributes when user has "
                               + "many active affiliations but logged in with Feide")
     @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
@@ -940,6 +1026,14 @@ class UserSelectionUponLoginHandlerTest {
         return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
                    .stream()
                    .map(attempt(user -> addRoleToUser(user, persistRandomRole())))
+                   .map(Try::orElseThrow)
+                   .collect(Collectors.toList());
+    }
+
+    private List<UserDto> createUsersWithRolesForPerson(String nin, RoleDto role) {
+        return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
+                   .stream()
+                   .map(attempt(user -> addRoleToUser(user, role)))
                    .map(Try::orElseThrow)
                    .collect(Collectors.toList());
     }

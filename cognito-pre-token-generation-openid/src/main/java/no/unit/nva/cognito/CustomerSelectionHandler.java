@@ -1,7 +1,9 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
@@ -13,6 +15,9 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
+import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
@@ -82,21 +87,37 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
                                                   List<AttributeType> userAttributes,
                                                   String accessToken) {
         var user = fetchUser(customerSelection, userAttributes);
-
+        var customer = attempt(() -> customerService.getCustomer(customerSelection.getCustomerId())).orElseThrow();
+        var activeAccessRights = getActiveAccessRights(user, customer);
         var selectedCustomerCustomClaim = createCustomerSelectionClaim(user);
+        var accessRightsClaim = createAccessRightsClaim(activeAccessRights);
         var nvaUsernameClaim = createUsernameClaim(user);
         var selectedCustomerCristinId = crateCustomerCristinIdClaim(user);
         var userAffiliation = createUserAffiliationClaim(user);
 
         var request = UpdateUserAttributesRequest.builder()
-            .accessToken(accessToken)
-            .userAttributes(selectedCustomerCustomClaim, nvaUsernameClaim, selectedCustomerCristinId, userAffiliation)
-            .build();
+                          .accessToken(accessToken)
+                          .userAttributes(selectedCustomerCustomClaim, nvaUsernameClaim, selectedCustomerCristinId,
+                                          userAffiliation, accessRightsClaim)
+                          .build();
         cognito.updateUserAttributes(request);
+    }
+
+    private String getActiveAccessRights(UserDto user, CustomerDto customer) {
+        return attempt(() -> UserAccessRightForCustomer.fromUser(user, Set.of(customer)))
+                    .orElseThrow()
+                    .stream()
+                    .filter(ac -> ac.getCustomer().getId().equals(user.getInstitution()))
+                    .map(UserAccessRightForCustomer::toString)
+                    .collect(Collectors.joining(ELEMENTS_DELIMITER));
     }
 
     private AttributeType createUserAffiliationClaim(UserDto user) {
         return createAttribute(PERSON_AFFILIATION_CLAIM, user.getAffiliation());
+    }
+
+    private AttributeType createAccessRightsClaim(String claims) {
+        return createAttribute(ACCESS_RIGHTS_CLAIM, claims);
     }
 
     private AttributeType crateCustomerCristinIdClaim(UserDto userDto) {

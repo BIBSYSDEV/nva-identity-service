@@ -1,5 +1,6 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
@@ -42,9 +43,14 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import no.unit.nva.useraccessservice.dao.RoleDb;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
@@ -69,17 +75,21 @@ class CustomerSelectionHandlerTest {
     private LocalCustomerServiceDatabase customerDatabase;
     private LocalIdentityService usersDatabase;
     private ByteArrayOutputStream outputStream;
+    private AccessRight accessRight;
     
     @BeforeEach
-    public void init() {
+    public void init() throws InvalidInputException, ConflictException {
         outputStream = new ByteArrayOutputStream();
         setupCustomerService();
         setupIdentityService();
-        var person = randomUri();
+        accessRight = randomElement(AccessRight.values());
+        var role = randomRoleWithAccessRight(accessRight).toRoleDto();
+        addRole(role);
         personAccessToken = randomString();
+        var person = randomUri();
         setupCognitoAndPersonInformation(person);
         
-        addUserEntriesInIdentityService(person, allowedCustomers);
+        addUserEntriesInIdentityService(person, allowedCustomers, role);
         
         this.handler = new CustomerSelectionHandler(cognito, customerService, identityService);
     }
@@ -100,6 +110,19 @@ class CustomerSelectionHandlerTest {
         
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(URI.create(updatedSelectedCustomer), is(in(allowedCustomers.toArray(URI[]::new))));
+    }
+
+    @Test
+    void shouldSendAnUpdateAccessRightRequestToCognitoWhenInputContainsAnAccessTokenAndSelectionIsAmongTheValidOptions()
+        throws IOException {
+        var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
+        var input = createRequest(selectedCustomer);
+        var response = sendRequest(input, Void.class);
+        var updatedAccessRights = extractAttributeUpdate(ACCESS_RIGHTS_CLAIM);
+        var expectedAccessRights = accessRight + "@" + selectedCustomer;
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(updatedAccessRights, is(equalTo(expectedAccessRights)));
     }
     
     @Test
@@ -178,17 +201,28 @@ class CustomerSelectionHandlerTest {
         allowedCustomers = addCustomersToDatabase();
     }
     
-    private void addUserEntriesInIdentityService(URI personId, Set<URI> allowedCustomers) {
+    private void addUserEntriesInIdentityService(URI personId, Set<URI> allowedCustomers, RoleDto role) {
         allowedCustomers.stream()
-            .map(customerId -> createUserEntryInIdentityService(customerId, personId))
+            .map(customerId -> createUserEntryInIdentityService(customerId, personId, role))
             .forEach(this::addUser);
     }
     
     private void addUser(UserDto user) {
         attempt(() -> identityService.addUser(user)).orElseThrow();
     }
+
+    private void addRole(RoleDto role) throws InvalidInputException, ConflictException {
+        identityService.addRole(role);
+    }
+
+    private static RoleDb randomRoleWithAccessRight(AccessRight accessRight) {
+        return RoleDb.newBuilder()
+                   .withName(randomString())
+                   .withAccessRights(Set.of(accessRight))
+                   .build();
+    }
     
-    private UserDto createUserEntryInIdentityService(URI selectedCustomer, URI personId) {
+    private UserDto createUserEntryInIdentityService(URI selectedCustomer, URI personId, RoleDto role) {
         var customer = attempt(() -> customerService.getCustomer(selectedCustomer)).orElseThrow();
         var cristinPersonId = URI.create(extractPersonIdFromCognitoData());
         var nvaUsername = constructUserName();
@@ -199,6 +233,7 @@ class CustomerSelectionHandlerTest {
                    .withInstitution(customer.getId())
                    .withCristinId(cristinPersonId)
                    .withInstitutionCristinId(customer.getCristinId())
+                   .withRoles(Set.of(role))
                    .withAffiliation(randomUri())
                    .build();
     }

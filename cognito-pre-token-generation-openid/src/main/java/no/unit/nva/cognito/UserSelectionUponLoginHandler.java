@@ -20,6 +20,7 @@ import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -49,6 +50,7 @@ import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
@@ -75,7 +77,6 @@ public class UserSelectionUponLoginHandler
     public static final String FEIDE_ID = "custom:feideId";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
-    public static final String APP_ADMIN_ROLE_NAME = "App-admin";
     public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
@@ -157,8 +158,8 @@ public class UserSelectionUponLoginHandler
 
         var customerForImpersonators = fetchCustomersWithActiveAffiliations(impersonator.getAffiliations());
         var usersForImpersonator = createUsers(impersonator, customerForImpersonators, authenticationDetails);
-        var rolesForImpersonator = rolesPerCustomer(usersForImpersonator);
-        var allowed = rolesForImpersonator.stream().anyMatch(s -> s.startsWith(APP_ADMIN_ROLE_NAME));
+        var accessRightsForImpersonator = accessRightsPerCustomer(usersForImpersonator);
+        var allowed = accessRightsForImpersonator.contains(ADMINISTRATE_APPLICATION);
 
         if (!allowed) {
             LOGGER.warn(USER_NOT_ALLOWED_TO_IMPERSONATE);
@@ -307,6 +308,13 @@ public class UserSelectionUponLoginHandler
                    .httpClient(UrlConnectionHttpClient.create())
                    .region(AWS_REGION)
                    .build();
+    }
+
+    private Set<AccessRight> accessRightsPerCustomer(List<UserDto> usersForPerson) {
+        return usersForPerson.stream()
+                   .map(UserDto::getAccessRights)
+                   .flatMap(Collection::stream)
+                   .collect(Collectors.toSet());
     }
 
     private Set<String> rolesPerCustomer(List<UserDto> usersForPerson) {

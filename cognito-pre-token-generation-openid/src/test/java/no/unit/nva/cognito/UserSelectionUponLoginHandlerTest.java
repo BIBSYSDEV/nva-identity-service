@@ -31,6 +31,7 @@ import static no.unit.nva.useraccessservice.model.UserDto.AT;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_CREDENTIALS_SECRET_NAME;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_PASSWORD_SECRET_KEY;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
+import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -112,7 +113,6 @@ class UserSelectionUponLoginHandlerTest {
     public static final int SINGLE_EXPECTED_USER = 1;
     public static final boolean ACTIVE = true;
     public static final boolean INACTIVE = false;
-    public static final String APP_ADMIN_SOMEWHERE = "App-admin@somewhere";
 
     private final Context context = new FakeContext();
     private UserSelectionUponLoginHandler handler;
@@ -768,8 +768,8 @@ class UserSelectionUponLoginHandlerTest {
         var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment();
 
         var newRole = RoleDto.newBuilder()
-                          .withRoleName(APP_ADMIN_SOMEWHERE)
-                          .withAccessRights(List.of(AccessRight.ADMINISTRATE_APPLICATION))
+                          .withRoleName(randomString())
+                          .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
                           .build();
         persistRole(newRole);
         createUserWithRolesForPerson(adminNin, newRole);
@@ -806,8 +806,8 @@ class UserSelectionUponLoginHandlerTest {
         var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment();
 
         var newRole = RoleDto.newBuilder()
-                          .withRoleName(APP_ADMIN_SOMEWHERE)
-                          .withAccessRights(List.of(AccessRight.ADMINISTRATE_APPLICATION))
+                          .withRoleName(randomString())
+                          .withAccessRights(List.of(ADMINISTRATE_APPLICATION))
                           .build();
         persistRole(newRole);
         createUserWithRolesForPerson(adminNin, newRole);

@@ -212,7 +212,7 @@ public class UserSelectionUponLoginHandler
                               ? getCurrentUser(currentCustomer, users)
                               : null;
 
-        var accessRights = createAccessRightsPerCustomer(users, customers);
+        var accessRights = createAccessRightsForCurrentCustomer(users, customers, currentCustomer);
 
         updateCognitoUserAttributes(authenticationDetails,
                                     person,
@@ -485,10 +485,12 @@ public class UserSelectionUponLoginHandler
                               .build());
     }
 
-    private List<String> createAccessRightsPerCustomer(List<UserDto> personUsers, Set<CustomerDto> customers) {
+    private List<String> createAccessRightsForCurrentCustomer(List<UserDto> personUsers, Set<CustomerDto> customers,
+                                                       CustomerDto currentCustomer) {
         return personUsers.stream()
                    .map(user -> UserAccessRightForCustomer.fromUser(user, customers))
                    .flatMap(Collection::stream)
+                   .filter(ac -> ac.getCustomer().equals(currentCustomer))
                    .map(UserAccessRightForCustomer::toString)
                    .collect(Collectors.toList());
     }

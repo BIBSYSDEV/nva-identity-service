@@ -24,9 +24,13 @@ public class UserAccessRightForCustomer {
 
     public static List<UserAccessRightForCustomer> fromUser(UserDto user, Set<CustomerDto> customers) {
         var customer = customers.stream()
-            .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
-            .collect(SingletonCollector.collect());
+                           .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
+                           .collect(SingletonCollector.collect());
         return createAccessRightsForExistingCustomer(user, customer);
+    }
+
+    public CustomerDto getCustomer() {
+        return customer;
     }
 
     @Override
@@ -41,10 +45,9 @@ public class UserAccessRightForCustomer {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof UserAccessRightForCustomer)) {
+        if (!(o instanceof UserAccessRightForCustomer that)) {
             return false;
         }
-        UserAccessRightForCustomer that = (UserAccessRightForCustomer) o;
         return accessRight == that.accessRight && Objects.equals(customer, that.customer);
     }
 
@@ -57,9 +60,9 @@ public class UserAccessRightForCustomer {
     private static List<UserAccessRightForCustomer> createAccessRightsForExistingCustomer(UserDto user,
                                                                                           CustomerDto customer) {
         return user.getAccessRights()
-            .stream()
-            .map(accessRight -> new UserAccessRightForCustomer(customer, accessRight))
-            .collect(Collectors.toList());
+                   .stream()
+                   .map(accessRight -> new UserAccessRightForCustomer(customer, accessRight))
+                   .collect(Collectors.toList());
     }
 
     private String accessRightWithCustomerId() {

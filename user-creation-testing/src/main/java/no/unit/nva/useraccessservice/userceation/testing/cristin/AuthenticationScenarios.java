@@ -45,6 +45,13 @@ public class AuthenticationScenarios {
         return personNin;
     }
 
+    public String personWithTwoActiveEmploymentsInDifferentInstitutionsWithoutFeideDomain() {
+        var personNin = personRegistry.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var withFeideDomain = false;
+        registerTopOrganizationsAsCustomers(personNin, withFeideDomain);
+        return personNin;
+    }
+
     public String personWithExactlyOneActiveEmployment() {
         var personNin = personRegistry.personWithExactlyOneActiveEmployment();
         var withFeideDomain = true;

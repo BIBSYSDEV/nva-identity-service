@@ -56,10 +56,12 @@ public class CustomerDto implements Context {
     private boolean rboInstitution;
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
+    private List<PublicationTypes> publicationTypes;
 
     public CustomerDto() {
         super();
         this.vocabularies = Collections.emptyList();
+        this.publicationTypes = Collections.emptyList();
     }
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
@@ -231,6 +233,14 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
+    public List<PublicationTypes> getPublicationTypes() {
+        return publicationTypes;
+    }
+
+    public void setPublicationTypes(List<PublicationTypes> publicationTypes) {
+        this.publicationTypes = publicationTypes;
+    }
+
     public RightsRetentionStrategyDto getRightsRetentionStrategy() {
         return rightsRetentionStrategy;
     }
@@ -272,7 +282,8 @@ public class CustomerDto implements Context {
                 .withRboInstitution(isRboInstitution())
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
-                .withRightsRetentionStrategy(getRightsRetentionStrategy());
+                .withRightsRetentionStrategy(getRightsRetentionStrategy())
+                .withPublicationTypes(getPublicationTypes());
     }
 
     @Override
@@ -281,7 +292,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                 getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                 getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy());
+                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy(), getPublicationTypes());
     }
 
     @Override
@@ -312,7 +323,8 @@ public class CustomerDto implements Context {
                 && Objects.equals(getVocabularies(), that.getVocabularies())
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
                 && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
-                && getPublicationWorkflow() == that.getPublicationWorkflow();
+                && getPublicationWorkflow() == that.getPublicationWorkflow()
+                && Objects.equals(getPublicationTypes(), that.getPublicationTypes());
     }
 
     @Override
@@ -452,6 +464,13 @@ public class CustomerDto implements Context {
 
         public Builder withSector(Sector sector) {
             customerDto.setSector(sector);
+            return this;
+        }
+
+        public Builder withPublicationTypes(Collection<PublicationTypes> publicationTypes) {
+            if (nonNull(publicationTypes)) {
+                customerDto.setPublicationTypes(new ArrayList<>(publicationTypes));
+            }
             return this;
         }
 

@@ -779,6 +779,21 @@ components:
             - $ref: '#/components/schemas/NullRightsRetentionStrategy'
             - $ref: '#/components/schemas/RightsRetentionStrategy'
             - $ref: '#/components/schemas/OverridableRightsRetentionStrategy'
+        publicationTypes:
+          type: array
+          items:
+            type: string
+            enum:
+              - ACADEMIC_ARTICLE
+              - ACADEMIC_CHAPTER
+              - ACADEMIC_LITERATURE_REVIEW
+              - ACADEMIC_MONOGRAPH
+              - ANTHOLOGY
+              - ARCHITECTURE
+              - ARTISTIC
+              - ARTISTIC_DESIGN
+              - Other
+            description: List of publication types the customer is allowed to upload files
     CustomerReference:
       type: object
       properties:
@@ -895,6 +910,16 @@ components:
         rightsRetentionStrategy:
           type: OverridableRightsRetentionStrategy
           id: 'https://unirein.no/rights-retention-strategy.html'
+        publicationTypes:
+          - ACADEMIC_ARTICLE
+          - ACADEMIC_CHAPTER
+          - ACADEMIC_LITERATURE_REVIEW
+          - ACADEMIC_MONOGRAPH
+          - ANTHOLOGY
+          - ARCHITECTURE
+          - ARTISTIC
+          - ARTISTIC_DESIGN
+          - Other
     CustomerListExample:
       value:
         '@context': 'https://bibsysdev.github.io/src/customer-api.json'

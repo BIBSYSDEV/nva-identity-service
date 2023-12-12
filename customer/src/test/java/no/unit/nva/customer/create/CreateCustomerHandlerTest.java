@@ -5,6 +5,7 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
@@ -148,6 +149,20 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
     }
 
+    @Test
+    void shouldReturnPublicationTypesWhenValueIsSet() throws BadRequestException, IOException {
+        var randomPublicationTypes = randomPublicationTypes();
+        var customerDto =
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withPublicationTypes(randomPublicationTypes)
+                .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+        assertThat(actualResponseBody.getPublicationTypes(), is(equalTo(randomPublicationTypes)));
+    }
+
     private GatewayResponse<CustomerDto> insertCustomerWithSameInstitutionId(CreateCustomerRequest requestBody)
         throws IOException {
         return executeRequest(requestBody, CustomerDto.class);
@@ -174,6 +189,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withRorId(randomUri())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                   .withPublicationTypes(Collections.emptyList())
                    .build();
     }
 }

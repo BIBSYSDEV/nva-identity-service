@@ -2,6 +2,7 @@ package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -114,6 +115,7 @@ class CustomerDtoTest {
                    .withSector(randomSector())
                    .withNviInstitution(randomBoolean())
                    .withRboInstitution(randomBoolean())
+                   .withPublicationTypes(randomPublicationTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();
     }

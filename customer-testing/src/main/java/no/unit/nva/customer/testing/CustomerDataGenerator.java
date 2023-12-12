@@ -19,6 +19,7 @@ import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
+import no.unit.nva.customer.model.PublicationTypes;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
 import no.unit.nva.customer.model.RightsRetentionStrategyType;
@@ -62,6 +63,7 @@ public class CustomerDataGenerator {
                                    .withNviInstitution(randomBoolean())
                                    .withRboInstitution(randomBoolean())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                                   .withPublicationTypes(randomPublicationTypes())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
@@ -97,6 +99,7 @@ public class CustomerDataGenerator {
                                    .withNviInstitution(randomBoolean())
                                    .withSector(randomSector())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                                   .withPublicationTypes(randomPublicationTypes())
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
@@ -169,6 +172,14 @@ public class CustomerDataGenerator {
 
     public static Sector randomSector() {
         return randomElement(Sector.values());
+    }
+
+    public static PublicationTypes randomPublicationTypesDto() {
+        return randomElement(PublicationTypes.values());
+    }
+
+    public static List<PublicationTypes> randomPublicationTypes() {
+        return List.of(randomPublicationTypesDto(), randomPublicationTypesDto(), randomPublicationTypesDto());
     }
 }
 

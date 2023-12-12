@@ -1,6 +1,7 @@
 package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -188,6 +189,7 @@ class CustomerDaoTest {
                    .withNviInstitution(randomBoolean())
                    .withRboInstitution(randomBoolean())
                    .withSector(randomSector())
+                   .withPublicationTypes(randomPublicationTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();
     }

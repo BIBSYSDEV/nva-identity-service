@@ -9,6 +9,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -66,6 +67,7 @@ public class CustomerDao implements Typed {
     private Sector sector;
     @JsonAlias("rightRetentionStrategy")
     private RightsRetentionStrategyDao rightsRetentionStrategy;
+    private List<PublicationTypes> publicationTypes;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -97,6 +99,7 @@ public class CustomerDao implements Typed {
                    .withRboInstitution(dto.isRboInstitution())
                    .withSector(dto.getSector())
                    .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
+                   .withPublicationTypes(dto.getPublicationTypes())
                    .build();
     }
 
@@ -114,7 +117,7 @@ public class CustomerDao implements Typed {
         return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
                             institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
                             publicationWorkflow, doiAgent, nviInstitution, rboInstitution, sector,
-                            rightsRetentionStrategy);
+                            rightsRetentionStrategy, publicationTypes);
     }
 
     @JacocoGenerated
@@ -146,7 +149,8 @@ public class CustomerDao implements Typed {
                && publicationWorkflow == that.publicationWorkflow
                && Objects.equals(doiAgent, that.doiAgent)
                && sector == that.sector
-               && Objects.equals(rightsRetentionStrategy, that.rightsRetentionStrategy);
+               && Objects.equals(rightsRetentionStrategy, that.rightsRetentionStrategy)
+               && Objects.equals(publicationTypes, that.publicationTypes);
     }
 
     @DynamoDbAttribute(IDENTIFIER)
@@ -305,6 +309,14 @@ public class CustomerDao implements Typed {
         this.sector = sector;
     }
 
+    public List<PublicationTypes> getPublicationTypes() {
+        return publicationTypes;
+    }
+
+    public void setPublicationTypes(List<PublicationTypes> publicationTypes) {
+        this.publicationTypes = publicationTypes;
+    }
+
     @DynamoDbConvertedBy(RightsRetentionStrategyConverter.class)
     public RightsRetentionStrategyDao getRightsRetentionStrategy() {
         return nonNull(rightsRetentionStrategy)
@@ -338,6 +350,7 @@ public class CustomerDao implements Typed {
                                       .withRboInstitution(isRboInstitution())
                                       .withSector(getSector())
                                       .withRightsRetentionStrategy(getRightsRetentionStrategy())
+                                      .withPublicationTypes(getPublicationTypes())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -490,6 +503,11 @@ public class CustomerDao implements Typed {
 
         public Builder withSector(Sector sector) {
             customerDb.setSector(sector);
+            return this;
+        }
+
+        public Builder withPublicationTypes(List<PublicationTypes> publicationTypes) {
+            customerDb.setPublicationTypes(publicationTypes);
             return this;
         }
 

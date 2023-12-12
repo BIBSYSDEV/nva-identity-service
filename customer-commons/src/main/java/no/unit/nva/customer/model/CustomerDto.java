@@ -292,7 +292,8 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                 getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                 getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy(), getPublicationTypes());
+                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy(),
+                getPublicationTypes());
     }
 
     @Override

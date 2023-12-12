@@ -231,7 +231,8 @@ public class CreateCustomerRequest {
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
-                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getRorId(), getPublicationTypes());
+                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getRorId(),
+                            getPublicationTypes());
     }
 
     @JacocoGenerated

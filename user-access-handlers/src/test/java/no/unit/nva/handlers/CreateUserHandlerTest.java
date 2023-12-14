@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.testutils.RandomDataGenerator.randomAccessRight;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_NAME;
@@ -363,7 +364,7 @@ class CreateUserHandlerTest extends HandlerTest {
         var customerId = randomUri();
         return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
                    .withCurrentCustomer(customerId)
-                   .withAccessRights(customerId, randomString())
+                   .withAccessRights(customerId, randomAccessRight())
                    .withBody(requestBody)
                    .build();
     }
@@ -372,12 +373,9 @@ class CreateUserHandlerTest extends HandlerTest {
                                       CustomerDto customer,
                                       AccessRight... accessRights)
         throws JsonProcessingException {
-        var accessRightStrings = Arrays.stream(accessRights)
-                                     .map(AccessRight::toString)
-                                     .toArray(String[]::new);
         return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
                    .withCurrentCustomer(customer.getId())
-                   .withAccessRights(customer.getId(), accessRightStrings)
+                   .withAccessRights(customer.getId(), accessRights)
                    .withBody(requestBody)
                    .build();
     }

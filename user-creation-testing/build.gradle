@@ -30,7 +30,6 @@ dependencies {
     implementation libs.aws.sdk2.secrets
 
 
-    implementation libs.slf4j
     implementation libs.guava
     implementation libs.nva.events
     implementation libs.bundles.testing

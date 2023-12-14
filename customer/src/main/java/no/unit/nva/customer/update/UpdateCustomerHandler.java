@@ -88,7 +88,7 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     }
 
     private boolean notAuthorizedToChangePublicationWorkflow(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString());
+        return !requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW);
     }
 
     @Override

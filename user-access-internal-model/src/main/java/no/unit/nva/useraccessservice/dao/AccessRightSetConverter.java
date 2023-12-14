@@ -24,7 +24,7 @@ public class AccessRightSetConverter implements AttributeConverter<Set<AccessRig
     @Override
     public Set<AccessRight> transformTo(AttributeValue input) {
         return input.ss().stream()
-            .map(AccessRight::fromString)
+            .map(AccessRight::fromPersistedString)
             .collect(Collectors.toSet());
     }
     
@@ -44,7 +44,7 @@ public class AccessRightSetConverter implements AttributeConverter<Set<AccessRig
         return Optional.ofNullable(input)
             .stream()
             .flatMap(Collection::stream)
-            .map(AccessRight::toString)
+            .map(AccessRight::toPersistedString)
             .collect(Collectors.toSet());
     }
 }

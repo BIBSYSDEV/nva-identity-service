@@ -57,6 +57,7 @@ import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequest;
@@ -119,7 +120,7 @@ class CustomerSelectionHandlerTest {
         var input = createRequest(selectedCustomer);
         var response = sendRequest(input, Void.class);
         var updatedAccessRights = extractAttributeUpdate(ACCESS_RIGHTS_CLAIM);
-        var expectedAccessRights = accessRight + "@" + selectedCustomer;
+        var expectedAccessRights = accessRight.getPersistedValue() + "@" + selectedCustomer;
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(updatedAccessRights, is(equalTo(expectedAccessRights)));

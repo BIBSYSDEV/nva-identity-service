@@ -140,7 +140,7 @@ class GetCustomerDoiHandlerTest {
                           .withPathParameters(Map.of("identifier", identifier.toString()))
                           .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
                           .withCurrentCustomer(existingCustomer.getId())
-                          .withAccessRights(existingCustomer.getId(), USER.toString())
+                          .withAccessRights(existingCustomer.getId(), USER)
                           .build();
         return sendRequest(request, responseType);
     }
@@ -155,7 +155,7 @@ class GetCustomerDoiHandlerTest {
                    .withPathParameters(Map.of("identifier", identifier.toString()))
                    .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
                    .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION.toString())
+                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION)
                    .build();
     }
 

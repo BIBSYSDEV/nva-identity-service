@@ -2,6 +2,7 @@ package no.unit.nva.handlers.data;
 
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
+import static no.unit.nva.handlers.data.DefaultRoleSource.FILE_CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.INTERNAL_IMPORTER_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_EMBARGO_ROLE_NAME;
@@ -25,8 +26,8 @@ import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE_EMBARGO_READ;
 import static nva.commons.apigateway.AccessRight.READ_DOI_REQUEST;
 import static nva.commons.apigateway.AccessRight.REJECT_DOI_REQUEST;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import java.util.List;
 import no.unit.nva.handlers.RoleSource;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -45,14 +46,14 @@ public class DefaultRoleSourceTest {
     void creatorsShouldHaveCorrectAccessRights() {
         var creatorRole = getRoleByName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT);
 
-        assertThat(creatorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_PROJECTS));
+        assertThat(creatorRole.getAccessRights(), hasItems(MANAGE_OWN_PROJECTS));
     }
 
     @Test
     void curatorsShouldHaveCorrectAccessRights() {
         var curatorRole = getRoleByName(CURATOR_ROLE_NAME);
 
-        assertThat(curatorRole.getAccessRights(), containsInAnyOrder(APPROVE_DOI_REQUEST,
+        assertThat(curatorRole.getAccessRights(), hasItems(APPROVE_DOI_REQUEST,
                                                                      REJECT_DOI_REQUEST,
                                                                      READ_DOI_REQUEST,
                                                                      EDIT_OWN_INSTITUTION_RESOURCES,
@@ -63,28 +64,28 @@ public class DefaultRoleSourceTest {
     void importCandidateCuratorsShouldHaveCorrectAccessRights() {
         var importCandidateCuratorRole = getRoleByName(INTERNAL_IMPORTER_ROLE_NAME);
 
-        assertThat(importCandidateCuratorRole.getAccessRights(), containsInAnyOrder(PROCESS_IMPORT_CANDIDATE));
+        assertThat(importCandidateCuratorRole.getAccessRights(), hasItems(PROCESS_IMPORT_CANDIDATE));
     }
 
     @Test
     void thesisCuratorsShouldHaveCorrectAccessRights() {
         var thesisCuratorRole = getRoleByName(CURATOR_THESIS_ROLE_NAME);
 
-        assertThat(thesisCuratorRole.getAccessRights(), containsInAnyOrder(PUBLISH_DEGREE));
+        assertThat(thesisCuratorRole.getAccessRights(), hasItems(PUBLISH_DEGREE));
     }
 
     @Test
     void thesisEmbargoCuratorsShouldHaveCorrectAccessRights() {
         var thesisEmbargoCuratorRole = getRoleByName(CURATOR_THESIS_EMBARGO_ROLE_NAME);
 
-        assertThat(thesisEmbargoCuratorRole.getAccessRights(), containsInAnyOrder(PUBLISH_DEGREE_EMBARGO_READ));
+        assertThat(thesisEmbargoCuratorRole.getAccessRights(), hasItems(PUBLISH_DEGREE_EMBARGO_READ));
     }
 
     @Test
     void institutionAdminsShouldHaveCorrectAccessRights() {
         var institutionAdminRole = getRoleByName(INSTITUTION_ADMIN_ROLE_NAME);
 
-        assertThat(institutionAdminRole.getAccessRights(), containsInAnyOrder(EDIT_OWN_INSTITUTION_RESOURCES,
+        assertThat(institutionAdminRole.getAccessRights(), hasItems(EDIT_OWN_INSTITUTION_RESOURCES,
                                                                               EDIT_OWN_INSTITUTION_USERS));
     }
 
@@ -92,7 +93,7 @@ public class DefaultRoleSourceTest {
     void appAdminsShouldHaveCorrectAccessRights() {
         var appAdminRole = getRoleByName(APP_ADMIN_ROLE_NAME);
 
-        assertThat(appAdminRole.getAccessRights(), containsInAnyOrder(ADMINISTRATE_APPLICATION,
+        assertThat(appAdminRole.getAccessRights(), hasItems(ADMINISTRATE_APPLICATION,
                                                                       PROCESS_IMPORT_CANDIDATE,
                                                                       MANAGE_NVI_PERIODS));
     }
@@ -101,7 +102,7 @@ public class DefaultRoleSourceTest {
     void editorsShouldHaveCorrectAccessRights() {
         var editorRole = getRoleByName(EDITOR_ROLE_NAME);
 
-        assertThat(editorRole.getAccessRights(), containsInAnyOrder(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW,
+        assertThat(editorRole.getAccessRights(), hasItems(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW,
                                                                     EDIT_ALL_NON_DEGREE_RESOURCES));
     }
 
@@ -109,13 +110,14 @@ public class DefaultRoleSourceTest {
     void nviCuratorsShouldHaveCorrectAccessRights() {
         var editorRole = getRoleByName(NVI_CURATOR_ROLE_NAME);
 
-        assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_NVI_CANDIDATE));
+        assertThat(editorRole.getAccessRights(), hasItems(MANAGE_NVI_CANDIDATE));
     }
 
     @Test
     void shouldReturnExpectedNumberOfRoles() {
         var expectedNumberOfRoles = List.of(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT,
                                             CURATOR_ROLE_NAME,
+                                            FILE_CURATOR_ROLE_NAME,
                                             CURATOR_THESIS_ROLE_NAME,
                                             CURATOR_THESIS_EMBARGO_ROLE_NAME,
                                             INTERNAL_IMPORTER_ROLE_NAME,

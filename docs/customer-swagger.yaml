@@ -855,7 +855,7 @@ components:
               - TEXTBOOK
               - TEXTBOOK_CHAPTER
               - VISUAL_ARTS
-            description: List of publication types the customer is allowed to upload files
+            description: List of publication instance types the customer is allowed to upload files
     CustomerReference:
       type: object
       properties:
@@ -973,77 +973,77 @@ components:
           type: OverridableRightsRetentionStrategy
           id: 'https://unirein.no/rights-retention-strategy.html'
         allowFileUploadFor:
-          - ACADEMIC_ARTICLE
-          - ACADEMIC_CHAPTER
-          - ACADEMIC_LITERATURE_REVIEW
-          - ACADEMIC_MONOGRAPH
-          - ANTHOLOGY
-          - ARCHITECTURE
-          - ARTISTIC
-          - ARTISTIC_DESIGN
-          - BOOK
-          - BOOK_ANTHOLOGY
-          - CASE_REPORT
-          - CHAPTER_CONFERENCE_ABSTRACT
-          - CHAPTER_IN_REPORT
-          - CONFERENCE_ABSTRACT
-          - CONFERENCE_LECTURE
-          - CONFERENCE_POSTER
-          - CONFERENCE_REPORT
-          - DATA_MANAGEMENT_PLAN
-          - DATA_SET
-          - DEGREE
-          - DEGREE_BACHELOR
-          - DEGREE_LICENTIATE
-          - DEGREE_MASTER
-          - DEGREE_PHD
-          - ENCYCLOPEDIA
-          - ENCYCLOPEDIA_CHAPTER
-          - EVENT
-          - EXHIBITION_CATALOG
-          - EXHIBITION_CATALOG_CHAPTER
-          - EXHIBITION_CONTENT
-          - EXHIBITION_PRODUCTION
-          - GEOGRAPHICAL_CONTENT
-          - INTRODUCTION
-          - JOURNAL
-          - JOURNAL_CORRIGENDUM
-          - JOURNAL_ISSUE
-          - JOURNAL_LEADER
-          - JOURNAL_LETTER
-          - JOURNAL_REVIEW
-          - LECTURE
-          - LITERARY_ARTS
-          - MAP
-          - MEDIA_BLOG_POST
-          - MEDIA_CONTRIBUTION
-          - MEDIA_FEATURE_ARTICLE
-          - MEDIA_INTERVIEW
-          - MEDIA_PARTICIPATION_IN_RADIO_OR_TV
-          - MEDIA_PODCAST
-          - MEDIA_READER_OPINION
-          - MOVING_PICTURE
-          - MUSIC_PERFORMANCE
-          - NON_FICTION_CHAPTER
-          - NON_FICTION_MONOGRAPH
-          - OTHER_PRESENTATION
-          - OTHER_STUDENT_WORK
-          - PERFORMING_ARTS
-          - POPULAR_SCIENCE_ARTICLE
-          - POPULAR_SCIENCE_CHAPTER
-          - POPULAR_SCIENCE_MONOGRAPH
-          - PROFESSIONAL_ARTICLE
-          - REPORT
-          - REPORT_BASIC
-          - REPORT_BOOK_OF_ABSTRACT
-          - REPORT_POLICY
-          - REPORT_RESEARCH
-          - REPORT_WORKING_PAPER
-          - RESEARCH_DATA
-          - STUDY_PROTOCOL
-          - TEXTBOOK
-          - TEXTBOOK_CHAPTER
-          - VISUAL_ARTS
+          - "Vitenskapelig artikkel"
+          - "Vitenskapelig kapittel"
+          - "Vitenskapelig oversiktsartikkel"
+          - "Vitenskapelig monografi"
+          - "Del av bok eller rapport"
+          - "Arkitektur"
+          - "Kunstnerisk resultat"
+          - "Design"
+          - "Bokpublikasjon"
+          - "Antologi"
+          - "Kasuistikk"
+          - "Konferanseabstrakt"
+          - "Kapittel i rapport"
+          - "Konferanseabstrakt"
+          - "Konferanseforedrag"
+          - "Konferanseposter"
+          - "Konferanserapport"
+          - "Datahåndteringsplan (DMP)"
+          - "Datasett"
+          - "Studentoppgave eller avhandling"
+          - "Bacheloroppgave"
+          - "Lisensiatavhandling"
+          - "Masteroppgave"
+          - "Doktoravhandling"
+          - "Oppslagsverk"
+          - "Kapittel i oppslagsverk"
+          - "Presentasjon"
+          - "Utstillingskatalog"
+          - "Kapittel i utstillingskatalog"
+          - "Utstilling"
+          - "Utstillingsproduksjon"
+          - "Annen publikasjon"
+          - "Innledning i antologi"
+          - "Tidsskriftspublikasjon"
+          - "Korrigendum"
+          - "Hefte i tidsskrift"
+          - "Leder"
+          - "Kommentar"
+          - "Bokanmeldelse"
+          - "Foredrag"
+          - "Skrivekunst"
+          - "Kart"
+          - "Bloggpost"
+          - "Mediebidrag"
+          - "Kronikk"
+          - "Intervju"
+          - "Deltagelse i radio eller TV"
+          - "Podkast"
+          - "Leserinnlegg"
+          - "Film"
+          - "Musikk"
+          - "Faglig kapittel"
+          - "Faglig monografi"
+          - "Annen presentasjon"
+          - "Annen studentoppgave"
+          - "Scenekunst"
+          - "Populærvitenskapelig artikkel"
+          - "Populærvitenskapelig kapittel"
+          - "Populærvitenskapelig monografi"
+          - "Fagartikkel"
+          - "Rapport"
+          - "Annen rapport"
+          - "Abstraktsamling"
+          - "Policyrapport"
+          - "Forskningsrapport"
+          - "Arbeidsnotat"
+          - "Forskningsdata"
+          - "Studieprotokoll"
+          - "Lærebok"
+          - "Kapittel i lærebok"
+          - "Visuell kunst"
     CustomerListExample:
       value:
         '@context': 'https://bibsysdev.github.io/src/customer-api.json'

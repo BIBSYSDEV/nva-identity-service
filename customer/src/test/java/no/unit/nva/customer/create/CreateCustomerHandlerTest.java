@@ -155,7 +155,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldReturnPublicationTypesWhenValueIsSet() throws BadRequestException, IOException {
+    void shouldReturnPublicationInstanceTypesWhenValueIsSet() throws BadRequestException, IOException {
         var randomAllowFileUploadFor = randomAllowFileUploadFor();
         var customerDto =
             CustomerDto.builder()
@@ -166,11 +166,9 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
 
-        // Convert both lists to sets
         Set<PublicationInstanceTypes> expectedSet = new HashSet<>(randomAllowFileUploadFor);
         Set<PublicationInstanceTypes> actualSet = new HashSet<>(actualResponseBody.getAllowFileUploadFor());
 
-        // Compare the sets
         assertThat(actualSet, is(equalTo(expectedSet)));
     }
 

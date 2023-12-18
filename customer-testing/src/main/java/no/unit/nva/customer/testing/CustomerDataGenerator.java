@@ -180,7 +180,8 @@ public class CustomerDataGenerator {
     }
 
     public static Set<PublicationInstanceTypes> randomAllowFileUploadFor() {
-        return new HashSet<>(Arrays.asList(randomAllowFileUploadForDto(), randomAllowFileUploadForDto(), randomAllowFileUploadForDto()));
+        return new HashSet<>(Arrays.asList(randomAllowFileUploadForDto(), randomAllowFileUploadForDto(),
+                                           randomAllowFileUploadForDto()));
     }
 }
 

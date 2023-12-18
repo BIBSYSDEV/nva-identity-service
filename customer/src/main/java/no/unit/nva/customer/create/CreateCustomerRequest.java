@@ -9,10 +9,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
-import no.unit.nva.customer.model.PublicationTypes;
+import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.model.VocabularyDto;
@@ -41,7 +42,7 @@ public class CreateCustomerRequest {
     private boolean rboInstitution;
     private Sector sector;
     private URI rorId;
-    private List<PublicationTypes> publicationTypes;
+    private Set<PublicationInstanceTypes> allowFileUploadFor;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
         var request = new CreateCustomerRequest();
@@ -60,7 +61,7 @@ public class CreateCustomerRequest {
         request.setNviInstitution(customerDto.isNviInstitution());
         request.setRboInstitution(customerDto.isRboInstitution());
         request.setRorId(customerDto.getRorId());
-        request.setPublicationTypes(customerDto.getPublicationTypes());
+        request.setAllowFileUploadFor(customerDto.getAllowFileUploadFor());
         if (nonNull(customerDto.getDoiAgent())) {
             request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
         }
@@ -85,7 +86,7 @@ public class CreateCustomerRequest {
                    .withRboInstitution(isRboInstitution())
                    .withSector(getSector())
                    .withRorId(getRorId())
-                   .withPublicationTypes(getPublicationTypes())
+                   .withAllowFileUploadFor(getAllowFileUploadFor())
                    .build();
     }
 
@@ -210,12 +211,12 @@ public class CreateCustomerRequest {
         this.sector = sector;
     }
 
-    public List<PublicationTypes> getPublicationTypes() {
-        return publicationTypes;
+    public Set<PublicationInstanceTypes> getAllowFileUploadFor() {
+        return allowFileUploadFor;
     }
 
-    public void setPublicationTypes(List<PublicationTypes> publicationTypes) {
-        this.publicationTypes = publicationTypes;
+    public void setAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
+        this.allowFileUploadFor = allowFileUploadFor;
     }
 
     public URI getRorId() {
@@ -232,7 +233,7 @@ public class CreateCustomerRequest {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
                             getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getRorId(),
-                            getPublicationTypes());
+                            getAllowFileUploadFor());
     }
 
     @JacocoGenerated
@@ -259,7 +260,7 @@ public class CreateCustomerRequest {
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(isRboInstitution(), that.isRboInstitution())
                && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getPublicationTypes(), that.getPublicationTypes());
+               && Objects.equals(getAllowFileUploadFor(), that.getAllowFileUploadFor());
     }
 
     @Override

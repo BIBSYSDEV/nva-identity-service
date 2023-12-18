@@ -5,7 +5,7 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationTypes;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadFor;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
@@ -16,14 +16,19 @@ import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -151,16 +156,37 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldReturnPublicationTypesWhenValueIsSet() throws BadRequestException, IOException {
-        var randomPublicationTypes = randomPublicationTypes();
+        var randomAllowFileUploadFor = randomAllowFileUploadFor();
         var customerDto =
             CustomerDto.builder()
                 .withName("New Customer")
-                .withPublicationTypes(randomPublicationTypes)
+                .withAllowFileUploadFor(randomAllowFileUploadFor)
                 .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
-        assertThat(actualResponseBody.getPublicationTypes(), is(equalTo(randomPublicationTypes)));
+
+        // Convert both lists to sets
+        Set<PublicationInstanceTypes> expectedSet = new HashSet<>(randomAllowFileUploadFor);
+        Set<PublicationInstanceTypes> actualSet = new HashSet<>(actualResponseBody.getAllowFileUploadFor());
+
+        // Compare the sets
+        assertThat(actualSet, is(equalTo(expectedSet)));
+    }
+
+    @Test
+    void dtoSerializesToJsonAndBack() throws BadRequestException {
+        var customerDto =
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withAllowFileUploadFor(randomAllowFileUploadFor())
+                .build();
+
+        var json = customerDto.toString();
+        var deserialized = CustomerDto.fromJson(json);
+        assertThat(deserialized, is(equalTo(customerDto)));
+        assertEquals(deserialized.hashCode(), customerDto.hashCode());
+        assertNotEquals(null, deserialized);
     }
 
     private GatewayResponse<CustomerDto> insertCustomerWithSameInstitutionId(CreateCustomerRequest requestBody)
@@ -189,7 +215,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withRorId(randomUri())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                   .withPublicationTypes(Collections.emptyList())
+                   .withAllowFileUploadFor(Collections.emptySet())
                    .build();
     }
 }

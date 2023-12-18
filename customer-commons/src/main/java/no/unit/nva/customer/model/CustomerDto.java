@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import no.unit.nva.customer.model.interfaces.Context;
@@ -56,12 +57,12 @@ public class CustomerDto implements Context {
     private boolean rboInstitution;
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
-    private List<PublicationTypes> publicationTypes;
+    private Set<PublicationInstanceTypes> allowFileUploadFor;
 
     public CustomerDto() {
         super();
         this.vocabularies = Collections.emptyList();
-        this.publicationTypes = Collections.emptyList();
+        this.allowFileUploadFor = Collections.emptySet();
     }
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
@@ -233,12 +234,12 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
-    public List<PublicationTypes> getPublicationTypes() {
-        return publicationTypes;
+    public Set<PublicationInstanceTypes> getAllowFileUploadFor() {
+        return allowFileUploadFor;
     }
 
-    public void setPublicationTypes(List<PublicationTypes> publicationTypes) {
-        this.publicationTypes = publicationTypes;
+    public void setAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
+        this.allowFileUploadFor = allowFileUploadFor;
     }
 
     public RightsRetentionStrategyDto getRightsRetentionStrategy() {
@@ -283,17 +284,17 @@ public class CustomerDto implements Context {
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
                 .withRightsRetentionStrategy(getRightsRetentionStrategy())
-                .withPublicationTypes(getPublicationTypes());
+                .withAllowFileUploadFor(getAllowFileUploadFor());
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
-                getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy(),
-                getPublicationTypes());
+                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                            getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy(),
+                            getAllowFileUploadFor());
     }
 
     @Override
@@ -325,7 +326,7 @@ public class CustomerDto implements Context {
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
                 && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
                 && getPublicationWorkflow() == that.getPublicationWorkflow()
-                && Objects.equals(getPublicationTypes(), that.getPublicationTypes());
+                && Objects.equals(getAllowFileUploadFor(), that.getAllowFileUploadFor());
     }
 
     @Override
@@ -468,10 +469,8 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withPublicationTypes(Collection<PublicationTypes> publicationTypes) {
-            if (nonNull(publicationTypes)) {
-                customerDto.setPublicationTypes(new ArrayList<>(publicationTypes));
-            }
+        public Builder withAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
+            customerDto.setAllowFileUploadFor(allowFileUploadFor);
             return this;
         }
 

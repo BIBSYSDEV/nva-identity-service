@@ -9,7 +9,6 @@ import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -44,8 +43,11 @@ public class CustomerDao implements Typed {
     public static final String CRISTIN_ID = "cristinId";
     public static final String TYPE = "Customer";
     public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
+    public static final Set<PublicationInstanceTypes>
+        PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
     public static final TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
     public static final String VOCABULARIES_FIELD = "vocabularies";
+    public static final String PUBLICATION_TYPES_FIELD = "allowFileUploadFor";
     private UUID identifier;
     private Instant createdDate;
     private Instant modifiedDate;
@@ -67,10 +69,11 @@ public class CustomerDao implements Typed {
     private Sector sector;
     @JsonAlias("rightRetentionStrategy")
     private RightsRetentionStrategyDao rightsRetentionStrategy;
-    private List<PublicationTypes> publicationTypes;
+    private Set<PublicationInstanceTypes> allowFileUploadFor;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+        allowFileUploadFor = PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     public static Builder builder() {
@@ -99,7 +102,7 @@ public class CustomerDao implements Typed {
                    .withRboInstitution(dto.isRboInstitution())
                    .withSector(dto.getSector())
                    .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
-                   .withPublicationTypes(dto.getPublicationTypes())
+                   .withAllowFileUploadFor(extractPublicationInstanceTypes(dto))
                    .build();
     }
 
@@ -117,7 +120,7 @@ public class CustomerDao implements Typed {
         return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
                             institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
                             publicationWorkflow, doiAgent, nviInstitution, rboInstitution, sector,
-                            rightsRetentionStrategy, publicationTypes);
+                            rightsRetentionStrategy, allowFileUploadFor);
     }
 
     @JacocoGenerated
@@ -150,7 +153,7 @@ public class CustomerDao implements Typed {
                && Objects.equals(doiAgent, that.doiAgent)
                && sector == that.sector
                && Objects.equals(rightsRetentionStrategy, that.rightsRetentionStrategy)
-               && Objects.equals(publicationTypes, that.publicationTypes);
+               && Objects.equals(allowFileUploadFor, that.allowFileUploadFor);
     }
 
     @DynamoDbAttribute(IDENTIFIER)
@@ -309,12 +312,14 @@ public class CustomerDao implements Typed {
         this.sector = sector;
     }
 
-    public List<PublicationTypes> getPublicationTypes() {
-        return publicationTypes;
+    @DynamoDbIgnoreNulls
+    @DynamoDbAttribute(PUBLICATION_TYPES_FIELD)
+    public Set<PublicationInstanceTypes> getAllowFileUploadFor() {
+        return nonEmpty(allowFileUploadFor) ? allowFileUploadFor : PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
-    public void setPublicationTypes(List<PublicationTypes> publicationTypes) {
-        this.publicationTypes = publicationTypes;
+    public void setAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
+        this.allowFileUploadFor = nonEmpty(allowFileUploadFor) ? allowFileUploadFor : PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     @DynamoDbConvertedBy(RightsRetentionStrategyConverter.class)
@@ -350,7 +355,7 @@ public class CustomerDao implements Typed {
                                       .withRboInstitution(isRboInstitution())
                                       .withSector(getSector())
                                       .withRightsRetentionStrategy(getRightsRetentionStrategy())
-                                      .withPublicationTypes(getPublicationTypes())
+                                      .withAllowFileUploadFor(getAllowFileUploadFor())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -390,6 +395,13 @@ public class CustomerDao implements Typed {
                    .flatMap(Collection::stream)
                    .map(VocabularyDao::toVocabularySettingsDto)
                    .collect(Collectors.toSet());
+    }
+
+    private static Set<PublicationInstanceTypes> extractPublicationInstanceTypes(CustomerDto dto) {
+        return Optional.ofNullable(dto.getAllowFileUploadFor())
+            .stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
     }
 
     public static final class Builder {
@@ -506,8 +518,8 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withPublicationTypes(List<PublicationTypes> publicationTypes) {
-            customerDb.setPublicationTypes(publicationTypes);
+        public Builder withAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
+            customerDb.setAllowFileUploadFor(allowFileUploadFor);
             return this;
         }
 

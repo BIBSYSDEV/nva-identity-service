@@ -779,7 +779,7 @@ components:
             - $ref: '#/components/schemas/NullRightsRetentionStrategy'
             - $ref: '#/components/schemas/RightsRetentionStrategy'
             - $ref: '#/components/schemas/OverridableRightsRetentionStrategy'
-        publicationTypes:
+        allowFileUploadFor:
           type: array
           items:
             type: string
@@ -792,7 +792,69 @@ components:
               - ARCHITECTURE
               - ARTISTIC
               - ARTISTIC_DESIGN
-              - Other
+              - BOOK
+                BOOK_ANTHOLOGY
+                CASE_REPORT
+                CHAPTER_CONFERENCE_ABSTRACT
+                CHAPTER_IN_REPORT
+                CONFERENCE_ABSTRACT
+                CONFERENCE_LECTURE
+                CONFERENCE_POSTER
+                CONFERENCE_REPORT
+                DATA_MANAGEMENT_PLAN
+                DATA_SET
+                DEGREE
+                DEGREE_BACHELOR
+                DEGREE_LICENTIATE
+                DEGREE_MASTER
+                DEGREE_PHD
+                ENCYCLOPEDIA
+                ENCYCLOPEDIA_CHAPTER
+                EVENT
+                EXHIBITION_CATALOG
+                EXHIBITION_CATALOG_CHAPTER
+                EXHIBITION_CONTENT
+                EXHIBITION_PRODUCTION
+                GEOGRAPHICAL_CONTENT
+                INTRODUCTION
+                JOURNAL
+                JOURNAL_CORRIGENDUM
+                JOURNAL_ISSUE
+                JOURNAL_LEADER
+                JOURNAL_LETTER
+                JOURNAL_REVIEW
+                LECTURE
+                LITERARY_ARTS
+                MAP
+                MEDIA_BLOG_POST
+                MEDIA_CONTRIBUTION
+                MEDIA_FEATURE_ARTICLE
+                MEDIA_INTERVIEW
+                MEDIA_PARTICIPATION_IN_RADIO_OR_TV
+                MEDIA_PODCAST
+                MEDIA_READER_OPINION
+                MOVING_PICTURE
+                MUSIC_PERFORMANCE
+                NON_FICTION_CHAPTER
+                NON_FICTION_MONOGRAPH
+                OTHER_PRESENTATION
+                OTHER_STUDENT_WORK
+                PERFORMING_ARTS
+                POPULAR_SCIENCE_ARTICLE
+                POPULAR_SCIENCE_CHAPTER
+                POPULAR_SCIENCE_MONOGRAPH
+                PROFESSIONAL_ARTICLE
+                REPORT
+                REPORT_BASIC
+                REPORT_BOOK_OF_ABSTRACT
+                REPORT_POLICY
+                REPORT_RESEARCH
+                REPORT_WORKING_PAPER
+                RESEARCH_DATA
+                STUDY_PROTOCOL
+                TEXTBOOK
+                TEXTBOOK_CHAPTER
+                VISUAL_ARTS
             description: List of publication types the customer is allowed to upload files
     CustomerReference:
       type: object
@@ -910,7 +972,7 @@ components:
         rightsRetentionStrategy:
           type: OverridableRightsRetentionStrategy
           id: 'https://unirein.no/rights-retention-strategy.html'
-        publicationTypes:
+        allowFileUploadFor:
           - ACADEMIC_ARTICLE
           - ACADEMIC_CHAPTER
           - ACADEMIC_LITERATURE_REVIEW

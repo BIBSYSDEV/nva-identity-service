@@ -1,7 +1,7 @@
 package no.unit.nva.customer;
 
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationTypes;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadFor;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
@@ -87,7 +87,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withSector(randomSector())
                            .withNviInstitution(randomBoolean())
                            .withRboInstitution(randomBoolean())
-                           .withPublicationTypes(randomPublicationTypes())
+                           .withAllowFileUploadFor(randomAllowFileUploadFor())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",

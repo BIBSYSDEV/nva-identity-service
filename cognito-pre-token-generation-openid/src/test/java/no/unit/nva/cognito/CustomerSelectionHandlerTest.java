@@ -120,7 +120,7 @@ class CustomerSelectionHandlerTest {
         var input = createRequest(selectedCustomer);
         var response = sendRequest(input, Void.class);
         var updatedAccessRights = extractAttributeUpdate(ACCESS_RIGHTS_CLAIM);
-        var expectedAccessRights = accessRight.getPersistedValue() + "@" + selectedCustomer;
+        var expectedAccessRights = accessRight.toPersistedString() + "@" + selectedCustomer;
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(updatedAccessRights, is(equalTo(expectedAccessRights)));

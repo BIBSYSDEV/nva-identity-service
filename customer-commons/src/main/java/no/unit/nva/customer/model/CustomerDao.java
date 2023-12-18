@@ -315,13 +315,16 @@ public class CustomerDao implements Typed {
     @DynamoDbIgnoreNulls
     @DynamoDbAttribute(PUBLICATION_TYPES_FIELD)
     public Set<PublicationInstanceTypes> getAllowFileUploadFor() {
-        return nonEmpty(allowFileUploadFor) ?
-                   allowFileUploadFor : PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+        return nonEmpty(allowFileUploadFor)
+                   ? allowFileUploadFor
+                   : PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     public void setAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
-        this.allowFileUploadFor = nonEmpty(allowFileUploadFor) ?
-                                      allowFileUploadFor : PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+        this.allowFileUploadFor =
+            nonEmpty(allowFileUploadFor)
+                ? allowFileUploadFor
+                : PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     @DynamoDbConvertedBy(RightsRetentionStrategyConverter.class)

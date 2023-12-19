@@ -73,7 +73,7 @@ public class CustomerDao implements Typed {
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
-        allowFileUploadFor = ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO ;
+        allowFileUploadFor = ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     public static Builder builder() {
@@ -317,7 +317,7 @@ public class CustomerDao implements Typed {
     public Set<PublicationInstanceTypes> getAllowFileUploadFor() {
         return nonEmpty(allowFileUploadFor)
                    ? allowFileUploadFor
-                   : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO ;
+                   : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     public void setAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {

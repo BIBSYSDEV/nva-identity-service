@@ -46,7 +46,8 @@ public class DefaultRoleSource implements RoleSource {
 
     private static final RoleDto CREATOR_ROLE = RoleDto.newBuilder()
                                                     .withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
-                                                    .withAccessRights(List.of(MANAGE_OWN_PROJECTS, MANAGE_OWN_RESOURCES))
+                                                    .withAccessRights(List.of(MANAGE_OWN_PROJECTS,
+                                                                              MANAGE_OWN_RESOURCES))
                                                     .build();
 
     private static final RoleDto CURATOR_ROLE = RoleDto.newBuilder()

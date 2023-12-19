@@ -913,8 +913,10 @@ class UserSelectionUponLoginHandlerTest {
     private static List<String> constructExpectedAccessRights(UserDto existingUserInitiallyWithoutRoles,
                                                               Set<AccessRight> assignedAccessRights) {
         return assignedAccessRights.stream()
-                   .map(accessRight -> accessRight.toPersistedString() + AT + existingUserInitiallyWithoutRoles.getInstitution()
-                                                              .toString())
+                   .map(accessRight -> accessRight.toPersistedString()
+                                       + AT
+                                       + existingUserInitiallyWithoutRoles.getInstitution()
+                                             .toString())
                    .collect(Collectors.toList());
     }
 

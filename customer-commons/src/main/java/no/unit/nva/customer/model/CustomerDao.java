@@ -44,10 +44,10 @@ public class CustomerDao implements Typed {
     public static final String TYPE = "Customer";
     public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
     public static final Set<PublicationInstanceTypes>
-        PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
+        ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO  = null;
     public static final TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
     public static final String VOCABULARIES_FIELD = "vocabularies";
-    public static final String PUBLICATION_TYPES_FIELD = "allowFileUploadFor";
+    public static final String ALLOW_FILE_UPLOAD_FOR_FIELD = "allowFileUploadFor";
     private UUID identifier;
     private Instant createdDate;
     private Instant modifiedDate;
@@ -73,7 +73,7 @@ public class CustomerDao implements Typed {
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
-        allowFileUploadFor = PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+        allowFileUploadFor = ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO ;
     }
 
     public static Builder builder() {
@@ -313,18 +313,18 @@ public class CustomerDao implements Typed {
     }
 
     @DynamoDbIgnoreNulls
-    @DynamoDbAttribute(PUBLICATION_TYPES_FIELD)
+    @DynamoDbAttribute(ALLOW_FILE_UPLOAD_FOR_FIELD)
     public Set<PublicationInstanceTypes> getAllowFileUploadFor() {
         return nonEmpty(allowFileUploadFor)
                    ? allowFileUploadFor
-                   : PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+                   : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO ;
     }
 
     public void setAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
         this.allowFileUploadFor =
             nonEmpty(allowFileUploadFor)
                 ? allowFileUploadFor
-                : PUBLICATION_INSTANCE_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+                : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO ;
     }
 
     @DynamoDbConvertedBy(RightsRetentionStrategyConverter.class)

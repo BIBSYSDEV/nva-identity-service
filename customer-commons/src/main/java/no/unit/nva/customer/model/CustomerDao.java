@@ -324,7 +324,7 @@ public class CustomerDao implements Typed {
         this.allowFileUploadFor =
             nonEmpty(allowFileUploadFor)
                 ? allowFileUploadFor
-                : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO ;
+                : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     @DynamoDbConvertedBy(RightsRetentionStrategyConverter.class)

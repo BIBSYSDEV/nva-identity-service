@@ -186,7 +186,7 @@ class UpdateCustomerDoiHandlerTest {
                    .withPathParameters(Map.of(IDENTIFIER, identifier.toString()))
                    .withBody(body)
                    .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION.toString())
+                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION)
                    .build();
     }
 
@@ -197,7 +197,7 @@ class UpdateCustomerDoiHandlerTest {
                    .withPathParameters(Map.of(IDENTIFIER, randomString()))
                    .withBody(body)
                    .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION.toString())
+                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION)
                    .build();
     }
 
@@ -208,7 +208,7 @@ class UpdateCustomerDoiHandlerTest {
                    .withPathParameters(Map.of(IDENTIFIER, randomString()))
                    .withBody(body)
                    .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), USER.toString())
+                   .withAccessRights(existingCustomer.getId(), USER)
                    .build();
     }
 

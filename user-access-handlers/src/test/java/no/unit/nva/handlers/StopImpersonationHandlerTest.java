@@ -70,7 +70,7 @@ class StopImpersonationHandlerTest {
         var customer = randomUri();
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
                    .withCurrentCustomer(customer)
-                   .withAccessRights(customer, ADMINISTRATE_APPLICATION.toString())
+                   .withAccessRights(customer, ADMINISTRATE_APPLICATION)
                    .withAuthorizerClaim(USERNAME, username)
                    .withIssuer(randomString())
                    .build();

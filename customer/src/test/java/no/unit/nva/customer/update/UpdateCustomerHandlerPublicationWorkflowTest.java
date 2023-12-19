@@ -125,7 +125,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withPathParameters(pathParameters)
                    .withCustomerId(updateCustomer.getId())
                    .withAccessRights(updateCustomer.getId(),
-                                     AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW.toString())
+                                     AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW)
                    .withBody(updateCustomer)
                    .build();
     }

@@ -584,7 +584,7 @@ class UserSelectionUponLoginHandlerTest {
         handler.handleRequest(event, context);
 
         var actualAccessRights = extractClaimFromCognitoUpdateRequest(ACCESS_RIGHTS_CLAIM);
-        assertThat(actualAccessRights, containsString(accessRight.toString()));
+        assertThat(actualAccessRights, containsString(accessRight.toPersistedString()));
     }
 
     @ParameterizedTest
@@ -836,7 +836,7 @@ class UserSelectionUponLoginHandlerTest {
     }
 
     private String generateAccessRightClaim(String customerId, AccessRight accessRight) {
-        return accessRight + "@" + customerId;
+        return accessRight.toPersistedString() + "@" + customerId;
     }
 
     private void assertThatCustomerSelectionClaimsAreCleared() {
@@ -913,8 +913,10 @@ class UserSelectionUponLoginHandlerTest {
     private static List<String> constructExpectedAccessRights(UserDto existingUserInitiallyWithoutRoles,
                                                               Set<AccessRight> assignedAccessRights) {
         return assignedAccessRights.stream()
-                   .map(accessRight -> accessRight + AT + existingUserInitiallyWithoutRoles.getInstitution()
-                                                              .toString())
+                   .map(accessRight -> accessRight.toPersistedString()
+                                       + AT
+                                       + existingUserInitiallyWithoutRoles.getInstitution()
+                                             .toString())
                    .collect(Collectors.toList());
     }
 

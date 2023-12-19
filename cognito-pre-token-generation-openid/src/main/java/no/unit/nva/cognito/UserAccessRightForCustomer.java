@@ -66,6 +66,6 @@ public class UserAccessRightForCustomer {
     }
 
     private String accessRightWithCustomerId() {
-        return accessRight.toString() + AT + customer.getId();
+        return accessRight.toPersistedString() + AT + customer.getId();
     }
 }

@@ -1,26 +1,26 @@
 [versions]
-nvaCommons = { strictly = '1.31.7' }
+nvaCommons = { strictly = '1.36.6' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
-awsSdk2 = { strictly = '2.20.102' }
+awsSdk2 = { strictly = '2.20.141' }
 jackson = { strictly = "2.15.2" }
 xraySdk = { strictly = '2.9.1' }
-dynamoDbLocal = { strictly = '1.17.2' }
+dynamoDbLocal = { strictly = '1.19.0' }
 zalandoProblem = { strictly = '0.27.1' }
 awsLambdaCore = { strictly = '1.2.2' }
 jupiter = { strictly = "5.8.1" }
-slf4j = { strictly = '1.8.0-beta4' }
+slf4j = { strictly = '2.0.9' }
 apacheHttpClient = { strictly = '4.5.13' }
 hamcrest = { strictly = '2.2' }
 javersCore = { strictly = '6.2.5' }
 datafaker = { strictly = '1.9.0' }
 mockitoCore = { strictly = '4.5.1' }
 apiGuardian = { strictly = '1.1.2' }
-guava = { strictly = '32.0.0-jre' }
+guava = { strictly = '32.1.2-jre' }
 hamcrestJackson = { strictly = '1.2.0' }
-log4j = { strictly = '2.17.2' }
-awsLambdaEvents = { strictly = '3.11.2' }
-wiremock = { strictly = '2.33.2' }
+log4j = { strictly = '2.22.0' }
+awsLambdaEvents = { strictly = '3.11.4' }
+wiremock = { strictly = "3.0.2" }
 
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }
@@ -67,8 +67,6 @@ jackson-dataformat-xml = { group = 'com.fasterxml.jackson.dataformat', name = 'j
 slf4j = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
 log4j-core = { group = 'org.apache.logging.log4j', name = 'log4j-core', version.ref = 'log4j' }
 log4j-api = { group = 'org.apache.logging.log4j', name = 'log4j-api', version.ref = 'log4j' }
-log4j-slf4j18-impl = { group = 'org.apache.logging.log4j', name = 'log4j-slf4j18-impl', version.ref = 'log4j' }
-
 
 apache-httpclient = { group = 'org.apache.httpcomponents', name = 'httpclient', version.ref = 'apacheHttpClient' }
 zalando-problem = { group = 'org.zalando', name = 'problem', version.ref = 'zalandoProblem' }
@@ -84,13 +82,13 @@ dynamoDbLocal = { group = 'com.amazonaws', name = 'DynamoDBLocal', version.ref =
 nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nvaCommons' }
 hamcrest-jackson = { group = 'com.spotify', name = 'hamcrest-jackson', version.ref = 'hamcrestJackson' }
 
-wiremock = { group = 'com.github.tomakehurst', name = 'wiremock-jre8', version.ref = 'wiremock' }
+wiremock = { group = "org.wiremock", name = "wiremock", version.ref = "wiremock" }
 
 apiguardian-api = { group = 'org.apiguardian', name = 'apiguardian-api', version.ref = 'apiGuardian' }
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
 [bundles]
-logging = ['log4j-core', 'log4j-api', 'slf4j', 'log4j-slf4j18-impl']
+logging = ['log4j-core', 'log4j-api', 'slf4j']
 testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core',
     'javers-core', 'hamcrest', 'datafaker', 'nva-testutils', 'nva-logutils',
     'hamcrest-jackson', 'wiremock'

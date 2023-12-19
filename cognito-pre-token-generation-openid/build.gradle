@@ -26,7 +26,6 @@ dependencies {
     implementation libs.aws.sdk2.urlconnection
     implementation libs.aws.sdk2.secrets
 
-    testImplementation libs.slf4j
     testImplementation libs.guava
     testImplementation libs.nva.events
     testImplementation libs.nva.json

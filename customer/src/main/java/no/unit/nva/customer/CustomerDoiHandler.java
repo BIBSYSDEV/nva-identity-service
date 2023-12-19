@@ -89,11 +89,11 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
     }
 
     private boolean notEditor(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(EDIT_OWN_INSTITUTION_RESOURCES.toString());
+        return !requestInfo.userIsAuthorized(EDIT_OWN_INSTITUTION_RESOURCES);
     }
 
     private boolean notInstAdmin(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(EDIT_OWN_INSTITUTION_USERS.toString());
+        return !requestInfo.userIsAuthorized(EDIT_OWN_INSTITUTION_USERS);
     }
 
     private boolean notApplicationAdmin(RequestInfo requestInfo) {

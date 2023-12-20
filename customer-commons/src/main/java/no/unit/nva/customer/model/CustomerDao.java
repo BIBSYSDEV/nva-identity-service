@@ -9,7 +9,6 @@ import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -45,7 +44,7 @@ public class CustomerDao implements Typed {
     public static final String TYPE = "Customer";
     public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
     public static final Set<PublicationInstanceTypes>
-        ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO  = null;
+        ALLOW_FILE_UPLOAD_FOR_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO  = null;
     public static final TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
     public static final String VOCABULARIES_FIELD = "vocabularies";
     public static final String ALLOW_FILE_UPLOAD_FOR_TYPES_FIELD = "allowFileUploadForTypes";
@@ -74,7 +73,7 @@ public class CustomerDao implements Typed {
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
-        allowFileUploadForTypes = ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+        allowFileUploadForTypes = ALLOW_FILE_UPLOAD_FOR_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     public static Builder builder() {
@@ -318,15 +317,17 @@ public class CustomerDao implements Typed {
     public Set<PublicationInstanceTypes> getAllowFileUploadForTypes() {
         return nonEmpty(allowFileUploadForTypes)
                    ? allowFileUploadForTypes
-                   : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+                   : ALLOW_FILE_UPLOAD_FOR_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
-    public void setAllowFileUploadForTypes(Collection<PublicationInstanceTypes> allowFileUploadForTypes) {
+    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
         this.allowFileUploadForTypes =
             nonEmpty(allowFileUploadForTypes)
-                ? new HashSet<>(allowFileUploadForTypes)
-                : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+                ? allowFileUploadForTypes
+                : ALLOW_FILE_UPLOAD_FOR_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
+
+
 
     @DynamoDbConvertedBy(RightsRetentionStrategyConverter.class)
     public RightsRetentionStrategyDao getRightsRetentionStrategy() {

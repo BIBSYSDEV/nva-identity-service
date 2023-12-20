@@ -2,7 +2,6 @@ package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
-import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,7 +11,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -36,8 +34,6 @@ import nva.commons.core.paths.UriWrapper;
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
-    public static final Set<PublicationInstanceTypes>
-        ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO  = null;
     @JsonProperty("@context")
     private URI context;
     private URI id;
@@ -242,11 +238,8 @@ public class CustomerDto implements Context {
         return allowFileUploadForTypes;
     }
 
-    public void setAllowFileUploadForTypes(Collection<PublicationInstanceTypes> allowFileUploadForTypes) {
-        this.allowFileUploadForTypes =
-            nonEmpty(allowFileUploadForTypes)
-                ? new HashSet<>(allowFileUploadForTypes)
-                : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
+        this.allowFileUploadForTypes = allowFileUploadForTypes;
     }
 
     public RightsRetentionStrategyDto getRightsRetentionStrategy() {

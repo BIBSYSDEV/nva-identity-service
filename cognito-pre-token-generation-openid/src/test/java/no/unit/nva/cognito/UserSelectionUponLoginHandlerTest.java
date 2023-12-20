@@ -4,6 +4,7 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
@@ -319,7 +320,7 @@ class UserSelectionUponLoginHandlerTest {
         assertThatResponseContainsAssignedAccessRights(existingUserInitiallyWithoutRoles, assignedAccessRights,
                                                        response);
 
-        assertThatAccessRightsArePersistedInCognitoEntry(existingUserInitiallyWithoutRoles, assignedAccessRights);
+        assertThatAccessRightsArePersistedInCognitoEntry(assignedAccessRights);
     }
 
     @ParameterizedTest(name = "should add customer id as custom:customerId claim when user logs in and has only one "
@@ -554,16 +555,16 @@ class UserSelectionUponLoginHandlerTest {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
         var role = persistRandomRole();
         createUsersWithRolesForPerson(person, role);
-        addAccessRightToExistingRole(role, AccessRight.PUBLISH_DEGREE);
+        addAccessRightToExistingRole(role, AccessRight.MANAGE_DOI);
 
         var event = newLoginEvent(person, FEIDE);
 
         handler.handleRequest(event, context);
 
         var actualAccessRights = extractClaimFromCognitoUpdateRequest(ACCESS_RIGHTS_CLAIM);
-        var uniqueAccessRights =
-            AccessRightEntry.fromCsv(actualAccessRights).map(AccessRightEntry::getCustomerId).distinct().toList();
-        assertThat(uniqueAccessRights, hasSize(1));
+        var manageDoiAccessRights = Stream.of(actualAccessRights.split(ELEMENTS_DELIMITER)).filter(
+            accessRight -> accessRight.equals(AccessRight.MANAGE_DOI.toPersistedString())).toList();
+        assertThat(manageDoiAccessRights, hasSize(1));
     }
 
     @ParameterizedTest
@@ -734,7 +735,7 @@ class UserSelectionUponLoginHandlerTest {
 
         var response = handler.handleRequest(event, context);
 
-        assertTokenContainsAllAccessRightClaims(response, approveDoiAccessRight, approvePublishAccessRight);
+        assertIdTokenContainsGroupAccessRightClaims(user, response, approveDoiAccessRight, approvePublishAccessRight);
 
         assertUserAccessRightsAreUpdated(user, approveDoiAccessRight,
                                          approvePublishAccessRight);
@@ -825,18 +826,13 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(updatedUser.getAccessRights(), containsInAnyOrder(accessRights));
     }
 
-    private void assertTokenContainsAllAccessRightClaims(CognitoUserPoolPreTokenGenerationEvent response,
+    private void assertIdTokenContainsGroupAccessRightClaims(UserDto user,
+                                                             CognitoUserPoolPreTokenGenerationEvent response,
                                                          AccessRight... accessRights) {
-        var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
         var actualAccessRightClaims = extractAccessRights(response);
-        var expectedAccessRightClaims = Arrays.stream(accessRights)
-                                            .map(accessRight -> generateAccessRightClaim(customerId, accessRight))
-                                            .toArray();
+        var expectedAccessRightClaims =
+            constructExpectedAccessRightsForGroup(user, Set.of(accessRights)).toArray();
         assertThat(actualAccessRightClaims, containsInAnyOrder(expectedAccessRightClaims));
-    }
-
-    private String generateAccessRightClaim(String customerId, AccessRight accessRight) {
-        return accessRight.toPersistedString() + "@" + customerId;
     }
 
     private void assertThatCustomerSelectionClaimsAreCleared() {
@@ -886,7 +882,7 @@ class UserSelectionUponLoginHandlerTest {
         var groups =
             response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
         var groupsList = Arrays.asList(groups);
-        var expectedAccessRight = constructExpectedAccessRights(existingUser, assignedAccessRights);
+        var expectedAccessRight = constructExpectedAccessRightsForGroup(existingUser, assignedAccessRights);
         assertThat(groupsList, hasItems(expectedAccessRight.toArray(String[]::new)));
     }
 
@@ -900,17 +896,21 @@ class UserSelectionUponLoginHandlerTest {
         return attributes;
     }
 
-    private void assertThatAccessRightsArePersistedInCognitoEntry(UserDto existingUserInitiallyWithoutRoles,
-                                                                  Set<AccessRight> assignedAccessRights) {
+    private void assertThatAccessRightsArePersistedInCognitoEntry(Set<AccessRight> assignedAccessRights) {
         var accessRightsPersistedInCognito = extractAccessRightFromCognitoEntry();
-        var expectedAccessRights = constructExpectedAccessRights(existingUserInitiallyWithoutRoles,
-                                                                 assignedAccessRights);
+        var expectedAccessRights = constructExpectedAccessRights(assignedAccessRights);
         for (var expectedAccessRight : expectedAccessRights) {
             assertThat(accessRightsPersistedInCognito, containsString(expectedAccessRight));
         }
     }
 
-    private static List<String> constructExpectedAccessRights(UserDto existingUserInitiallyWithoutRoles,
+    private static List<String> constructExpectedAccessRights(Set<AccessRight> assignedAccessRights) {
+        return assignedAccessRights.stream()
+                   .map(AccessRight::toPersistedString)
+                   .collect(Collectors.toList());
+    }
+
+    private static List<String> constructExpectedAccessRightsForGroup(UserDto existingUserInitiallyWithoutRoles,
                                                               Set<AccessRight> assignedAccessRights) {
         return assignedAccessRights.stream()
                    .map(accessRight -> accessRight.toPersistedString()

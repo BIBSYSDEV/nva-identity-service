@@ -49,6 +49,7 @@ import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
@@ -212,14 +213,15 @@ public class UserSelectionUponLoginHandler
                               ? getCurrentUser(currentCustomer, users)
                               : null;
 
-        var accessRights = createAccessRightsForCurrentCustomer(users, customers, currentCustomer);
+        var accessRights = createAccessRightsWithCustomerForCurrentCustomer(users, customers, currentCustomer);
+        var accessRightsWithoutCustomer = createAccessRightsForCurrentCustomer(users, customers, currentCustomer);
 
         updateCognitoUserAttributes(authenticationDetails,
                                     person,
                                     currentCustomer,
                                     currentUser,
                                     customers,
-                                    accessRights,
+                                    accessRightsWithoutCustomer,
                                     rolesPerCustomerForPerson,
                                     impersonatedBy);
 
@@ -485,13 +487,31 @@ public class UserSelectionUponLoginHandler
                               .build());
     }
 
-    private List<String> createAccessRightsForCurrentCustomer(List<UserDto> personUsers, Set<CustomerDto> customers,
-                                                       CustomerDto currentCustomer) {
+    private List<UserAccessRightForCustomer> createAccessRightForCustomer(List<UserDto> personUsers,
+                                         Set<CustomerDto> customers,
+                                         CustomerDto currentCustomer) {
         return personUsers.stream()
                    .map(user -> UserAccessRightForCustomer.fromUser(user, customers))
                    .flatMap(Collection::stream)
                    .filter(ac -> ac.getCustomer().equals(currentCustomer))
+                   .toList();
+    }
+
+    private List<String> createAccessRightsWithCustomerForCurrentCustomer(List<UserDto> personUsers,
+                                                                   Set<CustomerDto> customers,
+                                                       CustomerDto currentCustomer) {
+        return createAccessRightForCustomer(personUsers, customers, currentCustomer)
+                   .stream()
                    .map(UserAccessRightForCustomer::toString)
+                   .collect(Collectors.toList());
+    }
+
+    private List<String> createAccessRightsForCurrentCustomer(List<UserDto> personUsers, Set<CustomerDto> customers,
+                                                              CustomerDto currentCustomer) {
+        return createAccessRightForCustomer(personUsers, customers, currentCustomer)
+                   .stream()
+                   .map(UserAccessRightForCustomer::getAccessRight)
+                   .map(AccessRight::toPersistedString)
                    .collect(Collectors.toList());
     }
 

@@ -33,6 +33,10 @@ public class UserAccessRightForCustomer {
         return customer;
     }
 
+    public AccessRight getAccessRight() {
+        return accessRight;
+    }
+
     @Override
     @JacocoGenerated
     public int hashCode() {

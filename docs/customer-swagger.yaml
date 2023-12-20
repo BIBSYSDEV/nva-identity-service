@@ -779,7 +779,7 @@ components:
             - $ref: '#/components/schemas/NullRightsRetentionStrategy'
             - $ref: '#/components/schemas/RightsRetentionStrategy'
             - $ref: '#/components/schemas/OverridableRightsRetentionStrategy'
-        allowFileUploadFor:
+        allowFileUploadForTypes:
           type: array
           items:
             type: string
@@ -972,7 +972,7 @@ components:
         rightsRetentionStrategy:
           type: OverridableRightsRetentionStrategy
           id: 'https://unirein.no/rights-retention-strategy.html'
-        allowFileUploadFor:
+        allowFileUploadForTypes:
           - "AcademicArticle"
           - "AcademicChapter"
           - "AcademicLiteratureReview"

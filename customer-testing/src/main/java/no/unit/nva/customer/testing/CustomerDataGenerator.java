@@ -64,7 +64,7 @@ public class CustomerDataGenerator {
                                    .withNviInstitution(randomBoolean())
                                    .withRboInstitution(randomBoolean())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                                   .withAllowFileUploadFor(randomAllowFileUploadFor())
+                                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
@@ -100,7 +100,7 @@ public class CustomerDataGenerator {
                                    .withNviInstitution(randomBoolean())
                                    .withSector(randomSector())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                                   .withAllowFileUploadFor(randomAllowFileUploadFor())
+                                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
@@ -175,13 +175,13 @@ public class CustomerDataGenerator {
         return randomElement(Sector.values());
     }
 
-    public static PublicationInstanceTypes randomAllowFileUploadForDto() {
+    public static PublicationInstanceTypes randomAllowFileUploadForTypesDto() {
         return randomElement(PublicationInstanceTypes.values());
     }
 
-    public static Set<PublicationInstanceTypes> randomAllowFileUploadFor() {
-        return new HashSet<>(Arrays.asList(randomAllowFileUploadForDto(), randomAllowFileUploadForDto(),
-                                           randomAllowFileUploadForDto()));
+    public static Set<PublicationInstanceTypes> randomAllowFileUploadForTypes() {
+        return new HashSet<>(Arrays.asList(randomAllowFileUploadForTypesDto(), randomAllowFileUploadForTypesDto(),
+                                           randomAllowFileUploadForTypesDto()));
     }
 }
 

@@ -5,7 +5,7 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadFor;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
@@ -156,18 +156,18 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldReturnPublicationInstanceTypesWhenValueIsSet() throws BadRequestException, IOException {
-        var randomAllowFileUploadFor = randomAllowFileUploadFor();
+        var randomAllowFileUploadFor = randomAllowFileUploadForTypes();
         var customerDto =
             CustomerDto.builder()
                 .withName("New Customer")
-                .withAllowFileUploadFor(randomAllowFileUploadFor)
+                .withAllowFileUploadForTypes(randomAllowFileUploadFor)
                 .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
 
         Set<PublicationInstanceTypes> expectedSet = new HashSet<>(randomAllowFileUploadFor);
-        Set<PublicationInstanceTypes> actualSet = new HashSet<>(actualResponseBody.getAllowFileUploadFor());
+        Set<PublicationInstanceTypes> actualSet = new HashSet<>(actualResponseBody.getAllowFileUploadForTypes());
 
         assertThat(actualSet, is(equalTo(expectedSet)));
     }
@@ -177,7 +177,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         var customerDto =
             CustomerDto.builder()
                 .withName("New Customer")
-                .withAllowFileUploadFor(randomAllowFileUploadFor())
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                 .build();
 
         var json = customerDto.toString();
@@ -213,7 +213,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withRorId(randomUri())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                   .withAllowFileUploadFor(Collections.emptySet())
+                   .withAllowFileUploadForTypes(Collections.emptySet())
                    .build();
     }
 }

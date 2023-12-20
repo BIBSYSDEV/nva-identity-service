@@ -2,7 +2,7 @@ package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadFor;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -115,7 +115,7 @@ class CustomerDtoTest {
                    .withSector(randomSector())
                    .withNviInstitution(randomBoolean())
                    .withRboInstitution(randomBoolean())
-                   .withAllowFileUploadFor(randomAllowFileUploadFor())
+                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();
     }

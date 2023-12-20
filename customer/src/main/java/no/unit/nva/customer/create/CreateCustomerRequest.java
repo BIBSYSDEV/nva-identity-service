@@ -42,7 +42,7 @@ public class CreateCustomerRequest {
     private boolean rboInstitution;
     private Sector sector;
     private URI rorId;
-    private Set<PublicationInstanceTypes> allowFileUploadFor;
+    private Set<PublicationInstanceTypes> allowFileUploadForTypes;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
         var request = new CreateCustomerRequest();
@@ -61,7 +61,7 @@ public class CreateCustomerRequest {
         request.setNviInstitution(customerDto.isNviInstitution());
         request.setRboInstitution(customerDto.isRboInstitution());
         request.setRorId(customerDto.getRorId());
-        request.setAllowFileUploadFor(customerDto.getAllowFileUploadFor());
+        request.setAllowFileUploadForTypes(customerDto.getAllowFileUploadForTypes());
         if (nonNull(customerDto.getDoiAgent())) {
             request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
         }
@@ -86,7 +86,7 @@ public class CreateCustomerRequest {
                    .withRboInstitution(isRboInstitution())
                    .withSector(getSector())
                    .withRorId(getRorId())
-                   .withAllowFileUploadFor(getAllowFileUploadFor())
+                   .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
                    .build();
     }
 
@@ -211,12 +211,12 @@ public class CreateCustomerRequest {
         this.sector = sector;
     }
 
-    public Set<PublicationInstanceTypes> getAllowFileUploadFor() {
-        return allowFileUploadFor;
+    public Set<PublicationInstanceTypes> getAllowFileUploadForTypes() {
+        return allowFileUploadForTypes;
     }
 
-    public void setAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
-        this.allowFileUploadFor = allowFileUploadFor;
+    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
+        this.allowFileUploadForTypes = allowFileUploadForTypes;
     }
 
     public URI getRorId() {
@@ -233,7 +233,7 @@ public class CreateCustomerRequest {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
                             getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getRorId(),
-                            getAllowFileUploadFor());
+                            getAllowFileUploadForTypes());
     }
 
     @JacocoGenerated
@@ -260,7 +260,7 @@ public class CreateCustomerRequest {
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(isRboInstitution(), that.isRboInstitution())
                && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getAllowFileUploadFor(), that.getAllowFileUploadFor());
+               && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
     }
 
     @Override

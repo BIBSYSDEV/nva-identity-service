@@ -2,6 +2,7 @@ package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
+import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -34,6 +36,8 @@ import nva.commons.core.paths.UriWrapper;
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
+    public static final Set<PublicationInstanceTypes>
+        ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO  = null;
     @JsonProperty("@context")
     private URI context;
     private URI id;
@@ -57,12 +61,12 @@ public class CustomerDto implements Context {
     private boolean rboInstitution;
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
-    private Set<PublicationInstanceTypes> allowFileUploadFor;
+    private Set<PublicationInstanceTypes> allowFileUploadForTypes;
 
     public CustomerDto() {
         super();
         this.vocabularies = Collections.emptyList();
-        this.allowFileUploadFor = Collections.emptySet();
+        this.allowFileUploadForTypes = Collections.emptySet();
     }
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
@@ -234,12 +238,15 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
-    public Set<PublicationInstanceTypes> getAllowFileUploadFor() {
-        return allowFileUploadFor;
+    public Set<PublicationInstanceTypes> getAllowFileUploadForTypes() {
+        return allowFileUploadForTypes;
     }
 
-    public void setAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
-        this.allowFileUploadFor = allowFileUploadFor;
+    public void setAllowFileUploadForTypes(Collection<PublicationInstanceTypes> allowFileUploadForTypes) {
+        this.allowFileUploadForTypes =
+            nonEmpty(allowFileUploadForTypes)
+                ? new HashSet<>(allowFileUploadForTypes)
+                : ALLOW_FILE_UPLOAD_FOR_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
     public RightsRetentionStrategyDto getRightsRetentionStrategy() {
@@ -284,7 +291,7 @@ public class CustomerDto implements Context {
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
                 .withRightsRetentionStrategy(getRightsRetentionStrategy())
-                .withAllowFileUploadFor(getAllowFileUploadFor());
+                .withAllowFileUploadForTypes(getAllowFileUploadForTypes());
     }
 
     @Override
@@ -294,7 +301,7 @@ public class CustomerDto implements Context {
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
                             getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy(),
-                            getAllowFileUploadFor());
+                            getAllowFileUploadForTypes());
     }
 
     @Override
@@ -326,7 +333,7 @@ public class CustomerDto implements Context {
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
                 && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
                 && getPublicationWorkflow() == that.getPublicationWorkflow()
-                && Objects.equals(getAllowFileUploadFor(), that.getAllowFileUploadFor());
+                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
     }
 
     @Override
@@ -469,8 +476,8 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withAllowFileUploadFor(Set<PublicationInstanceTypes> allowFileUploadFor) {
-            customerDto.setAllowFileUploadFor(allowFileUploadFor);
+        public Builder withAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
+            customerDto.setAllowFileUploadForTypes(allowFileUploadForTypes);
             return this;
         }
 

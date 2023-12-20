@@ -235,7 +235,14 @@ public class CustomerDto implements Context {
     }
 
     public Set<PublicationInstanceTypes> getAllowFileUploadForTypes() {
+        if (allowFileUploadForTypes == null || allowFileUploadForTypes.isEmpty()) {
+            return defaultAllowFileUploadForTypes();
+        }
         return allowFileUploadForTypes;
+    }
+
+    private Set<PublicationInstanceTypes> defaultAllowFileUploadForTypes() {
+        return Set.of(PublicationInstanceTypes.values());
     }
 
     public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {

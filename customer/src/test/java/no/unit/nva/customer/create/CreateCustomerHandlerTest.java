@@ -38,9 +38,12 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.zalando.problem.Problem;
 
 public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
@@ -170,6 +173,24 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         Set<PublicationInstanceTypes> actualSet = new HashSet<>(actualResponseBody.getAllowFileUploadForTypes());
 
         assertThat(actualSet, is(equalTo(expectedSet)));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void shouldReturnAllPublicationInstanceTypesWhenAllowFileUploadForTypesIsNullOrEmpty(
+        Set<PublicationInstanceTypes> allowFileUploadForTypes) throws BadRequestException,
+                                                                      IOException {
+        var customerDto =
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withAllowFileUploadForTypes(allowFileUploadForTypes)
+                .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+
+        assertThat(actualResponseBody.getAllowFileUploadForTypes(),
+                   IsIterableContainingInAnyOrder.containsInAnyOrder(PublicationInstanceTypes.values()));
     }
 
     @Test

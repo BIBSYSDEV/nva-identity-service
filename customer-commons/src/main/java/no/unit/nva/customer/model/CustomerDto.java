@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import no.unit.nva.customer.model.interfaces.Context;
@@ -56,10 +57,12 @@ public class CustomerDto implements Context {
     private boolean rboInstitution;
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
+    private Set<PublicationInstanceTypes> allowFileUploadForTypes;
 
     public CustomerDto() {
         super();
         this.vocabularies = Collections.emptyList();
+        this.allowFileUploadForTypes = Collections.emptySet();
     }
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
@@ -231,6 +234,14 @@ public class CustomerDto implements Context {
         this.sector = sector;
     }
 
+    public Set<PublicationInstanceTypes> getAllowFileUploadForTypes() {
+        return allowFileUploadForTypes;
+    }
+
+    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
+        this.allowFileUploadForTypes = allowFileUploadForTypes;
+    }
+
     public RightsRetentionStrategyDto getRightsRetentionStrategy() {
         return rightsRetentionStrategy;
     }
@@ -272,16 +283,18 @@ public class CustomerDto implements Context {
                 .withRboInstitution(isRboInstitution())
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
-                .withRightsRetentionStrategy(getRightsRetentionStrategy());
+                .withRightsRetentionStrategy(getRightsRetentionStrategy())
+                .withAllowFileUploadForTypes(getAllowFileUploadForTypes());
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
-                getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy());
+                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                            getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy(),
+                            getAllowFileUploadForTypes());
     }
 
     @Override
@@ -312,7 +325,8 @@ public class CustomerDto implements Context {
                 && Objects.equals(getVocabularies(), that.getVocabularies())
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
                 && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
-                && getPublicationWorkflow() == that.getPublicationWorkflow();
+                && getPublicationWorkflow() == that.getPublicationWorkflow()
+                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
     }
 
     @Override
@@ -452,6 +466,11 @@ public class CustomerDto implements Context {
 
         public Builder withSector(Sector sector) {
             customerDto.setSector(sector);
+            return this;
+        }
+
+        public Builder withAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
+            customerDto.setAllowFileUploadForTypes(allowFileUploadForTypes);
             return this;
         }
 

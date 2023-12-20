@@ -4,6 +4,7 @@ import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -361,6 +362,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withNviInstitution(randomBoolean())
                            .withRboInstitution(randomBoolean())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                           .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password","doiAgent.id")));

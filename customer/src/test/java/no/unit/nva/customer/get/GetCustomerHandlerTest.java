@@ -28,6 +28,7 @@ import java.util.UUID;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER;
 import static no.unit.nva.customer.get.GetCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -145,6 +146,7 @@ class GetCustomerHandlerTest {
                                      .withIdentifier(identifier)
                                      .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
                                      .withDoiAgent(randomDoiAgent(randomString()))
+                                     .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                      .build();
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);

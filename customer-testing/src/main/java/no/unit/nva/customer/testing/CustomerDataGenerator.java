@@ -10,6 +10,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -19,6 +20,7 @@ import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
+import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
 import no.unit.nva.customer.model.RightsRetentionStrategyType;
@@ -62,6 +64,7 @@ public class CustomerDataGenerator {
                                    .withNviInstitution(randomBoolean())
                                    .withRboInstitution(randomBoolean())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
@@ -97,6 +100,7 @@ public class CustomerDataGenerator {
                                    .withNviInstitution(randomBoolean())
                                    .withSector(randomSector())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
@@ -169,6 +173,15 @@ public class CustomerDataGenerator {
 
     public static Sector randomSector() {
         return randomElement(Sector.values());
+    }
+
+    public static PublicationInstanceTypes randomAllowFileUploadForTypesDto() {
+        return randomElement(PublicationInstanceTypes.values());
+    }
+
+    public static Set<PublicationInstanceTypes> randomAllowFileUploadForTypes() {
+        return new HashSet<>(Arrays.asList(randomAllowFileUploadForTypesDto(), randomAllowFileUploadForTypesDto(),
+                                           randomAllowFileUploadForTypesDto()));
     }
 }
 

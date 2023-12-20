@@ -779,6 +779,83 @@ components:
             - $ref: '#/components/schemas/NullRightsRetentionStrategy'
             - $ref: '#/components/schemas/RightsRetentionStrategy'
             - $ref: '#/components/schemas/OverridableRightsRetentionStrategy'
+        allowFileUploadFor:
+          type: array
+          items:
+            type: string
+            enum:
+              - AcademicArticle
+              - AcademicChapter
+              - AcademicLiteratureReview
+              - AcademicMonograph
+              - Anthology
+              - Architecture
+              - Artistic
+              - ArtisticDesign
+              - Book
+              - BookAnthology
+              - CaseReport
+              - ChapterConferenceAbstract
+              - ChapterInReport
+              - ConferenceAbstract
+              - ConferenceLecture
+              - ConferencePoster
+              - ConferenceReport
+              - DataManagementPlan
+              - DataSet
+              - Degree
+              - DegreeBachelor
+              - DegreeLicentiate
+              - DegreeMaster
+              - DegreePhd
+              - Encyclopedia
+              - EncyclopediaChapter
+              - Event
+              - ExhibitionCatalog
+              - ExhibitionCatalogChapter
+              - ExhibitionContent
+              - ExhibitionProduction
+              - GeographicalContent
+              - Introduction
+              - Journal
+              - JournalCorrigendum
+              - JournalIssue
+              - JournalLeader
+              - JournalLetter
+              - JournalReview
+              - Lecture
+              - LiteraryArts
+              - Map
+              - MediaBlogPost
+              - MediaContribution
+              - MediaFeatureArticle
+              - MediaInterview
+              - MediaParticipationInRadioOrTv
+              - MediaPodcast
+              - MediaReaderOpinion
+              - MovingPicture
+              - MusicPerformance
+              - NonFictionChapter
+              - NonFictionMonograph
+              - OtherPresentation
+              - OtherStudentWork
+              - PerformingArts
+              - PopularScienceArticle
+              - PopularScienceChapter
+              - PopularScienceMonograph
+              - ProfessionalArticle
+              - Report
+              - ReportBasic
+              - ReportBookOfAbstract
+              - ReportPolicy
+              - ReportResearch
+              - ReportWorkingPaper
+              - ResearchData
+              - StudyProtocol
+              - Textbook
+              - TextbookChapter
+              - VisualArts
+            description: List of publication instance types the customer is allowed to upload files
     CustomerReference:
       type: object
       properties:
@@ -895,6 +972,78 @@ components:
         rightsRetentionStrategy:
           type: OverridableRightsRetentionStrategy
           id: 'https://unirein.no/rights-retention-strategy.html'
+        allowFileUploadFor:
+          - "AcademicArticle"
+          - "AcademicChapter"
+          - "AcademicLiteratureReview"
+          - "AcademicMonograph"
+          - "Anthology"
+          - "Architecture"
+          - "Artistic"
+          - "ArtisticDesign"
+          - "Book"
+          - "BookAnthology"
+          - "CaseReport"
+          - "ChapterConferenceAbstract"
+          - "ChapterInReport"
+          - "ConferenceAbstract"
+          - "ConferenceLecture"
+          - "ConferencePoster"
+          - "ConferenceReport"
+          - "DataManagementPlan"
+          - "DataSet"
+          - "Degree"
+          - "DegreeBachelor"
+          - "DegreeLicentiate"
+          - "DegreeMaster"
+          - "DegreePhd"
+          - "Encyclopedia"
+          - "EncyclopediaChapter"
+          - "Event"
+          - "ExhibitionCatalog"
+          - "ExhibitionCatalogChapter"
+          - "ExhibitionContent"
+          - "ExhibitionProduction"
+          - "GeographicalContent"
+          - "Introduction"
+          - "Journal"
+          - "JournalCorrigendum"
+          - "JournalIssue"
+          - "JournalLeader"
+          - "JournalLetter"
+          - "JournalReview"
+          - "Lecture"
+          - "LiteraryArts"
+          - "Map"
+          - "MediaBlogPost"
+          - "MediaContribution"
+          - "MediaFeatureArticle"
+          - "MediaInterview"
+          - "MediaParticipationInRadioOrTv"
+          - "MediaPodcast"
+          - "MediaReaderOpinion"
+          - "MovingPicture"
+          - "MusicPerformance"
+          - "NonFictionChapter"
+          - "NonFictionMonograph"
+          - "OtherPresentation"
+          - "OtherStudentWork"
+          - "PerformingArts"
+          - "PopularScienceArticle"
+          - "PopularScienceChapter"
+          - "PopularScienceMonograph"
+          - "ProfessionalArticle"
+          - "Report"
+          - "ReportBasic"
+          - "ReportBookOfAbstract"
+          - "ReportPolicy"
+          - "ReportResearch"
+          - "ReportWorkingPaper"
+          - "ResearchData"
+          - "StudyProtocol"
+          - "Textbook"
+          - "TextbookChapter"
+          - "VisualArts"
     CustomerListExample:
       value:
         '@context': 'https://bibsysdev.github.io/src/customer-api.json'

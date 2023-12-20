@@ -9,9 +9,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
+import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.model.VocabularyDto;
@@ -40,6 +42,7 @@ public class CreateCustomerRequest {
     private boolean rboInstitution;
     private Sector sector;
     private URI rorId;
+    private Set<PublicationInstanceTypes> allowFileUploadForTypes;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
         var request = new CreateCustomerRequest();
@@ -58,6 +61,7 @@ public class CreateCustomerRequest {
         request.setNviInstitution(customerDto.isNviInstitution());
         request.setRboInstitution(customerDto.isRboInstitution());
         request.setRorId(customerDto.getRorId());
+        request.setAllowFileUploadForTypes(customerDto.getAllowFileUploadForTypes());
         if (nonNull(customerDto.getDoiAgent())) {
             request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
         }
@@ -82,6 +86,7 @@ public class CreateCustomerRequest {
                    .withRboInstitution(isRboInstitution())
                    .withSector(getSector())
                    .withRorId(getRorId())
+                   .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
                    .build();
     }
 
@@ -206,6 +211,14 @@ public class CreateCustomerRequest {
         this.sector = sector;
     }
 
+    public Set<PublicationInstanceTypes> getAllowFileUploadForTypes() {
+        return allowFileUploadForTypes;
+    }
+
+    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
+        this.allowFileUploadForTypes = allowFileUploadForTypes;
+    }
+
     public URI getRorId() {
         return rorId;
     }
@@ -219,7 +232,8 @@ public class CreateCustomerRequest {
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
-                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getRorId());
+                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getRorId(),
+                            getAllowFileUploadForTypes());
     }
 
     @JacocoGenerated
@@ -245,7 +259,8 @@ public class CreateCustomerRequest {
                && Objects.equals(getRorId(), that.getRorId())
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(isRboInstitution(), that.isRboInstitution())
-               && Objects.equals(getVocabularies(), that.getVocabularies());
+               && Objects.equals(getVocabularies(), that.getVocabularies())
+               && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
     }
 
     @Override

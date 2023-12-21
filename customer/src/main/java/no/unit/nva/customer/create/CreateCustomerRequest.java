@@ -40,6 +40,7 @@ public class CreateCustomerRequest {
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
+    private boolean inactive;
     private Sector sector;
     private URI rorId;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
@@ -60,6 +61,7 @@ public class CreateCustomerRequest {
         request.setSector(customerDto.getSector());
         request.setNviInstitution(customerDto.isNviInstitution());
         request.setRboInstitution(customerDto.isRboInstitution());
+        request.setInactive(customerDto.isInactive());
         request.setRorId(customerDto.getRorId());
         request.setAllowFileUploadForTypes(customerDto.getAllowFileUploadForTypes());
         if (nonNull(customerDto.getDoiAgent())) {
@@ -84,6 +86,7 @@ public class CreateCustomerRequest {
                    .withDoiAgent(getDoiAgent())
                    .withNviInstitution(isNviInstitution())
                    .withRboInstitution(isRboInstitution())
+                   .withInactive(isInactive())
                    .withSector(getSector())
                    .withRorId(getRorId())
                    .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
@@ -203,6 +206,14 @@ public class CreateCustomerRequest {
         this.rboInstitution = rboInstitution;
     }
 
+    public boolean isInactive() {
+        return inactive;
+    }
+
+    public void setInactive(boolean inactive) {
+        this.inactive = inactive;
+    }
+
     public Sector getSector() {
         return nonNull(sector) ? sector : Sector.UHI;
     }
@@ -232,8 +243,8 @@ public class CreateCustomerRequest {
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
-                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getRorId(),
-                            getAllowFileUploadForTypes());
+                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), isInactive(),
+                            getRorId(), getAllowFileUploadForTypes());
     }
 
     @JacocoGenerated
@@ -259,6 +270,7 @@ public class CreateCustomerRequest {
                && Objects.equals(getRorId(), that.getRorId())
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(isRboInstitution(), that.isRboInstitution())
+               && Objects.equals(isInactive(), that.isInactive())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
     }

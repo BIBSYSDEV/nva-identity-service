@@ -87,6 +87,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withSector(randomSector())
                            .withNviInstitution(randomBoolean())
                            .withRboInstitution(randomBoolean())
+                           .withInactive(randomBoolean())
                            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                            .build();

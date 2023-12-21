@@ -115,6 +115,7 @@ class CustomerDtoTest {
                    .withSector(randomSector())
                    .withNviInstitution(randomBoolean())
                    .withRboInstitution(randomBoolean())
+                   .withInactive(randomBoolean())
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();

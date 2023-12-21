@@ -66,6 +66,7 @@ public class CustomerDao implements Typed {
     private DoiAgentDao doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
+    private boolean inactive;
     private Sector sector;
     @JsonAlias("rightRetentionStrategy")
     private RightsRetentionStrategyDao rightsRetentionStrategy;
@@ -100,6 +101,7 @@ public class CustomerDao implements Typed {
                    .withDoiAgent(dto.getDoiAgent())
                    .withNviInstitution(dto.isNviInstitution())
                    .withRboInstitution(dto.isRboInstitution())
+                   .withInactive(dto.isInactive())
                    .withSector(dto.getSector())
                    .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(extractPublicationInstanceTypes(dto))
@@ -114,12 +116,20 @@ public class CustomerDao implements Typed {
         this.rboInstitution = rboInstitution;
     }
 
+    public boolean isInactive() {
+        return inactive;
+    }
+
+    public void setInactive(boolean inactive) {
+        this.inactive = inactive;
+    }
+
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
                             institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
-                            publicationWorkflow, doiAgent, nviInstitution, rboInstitution, sector,
+                            publicationWorkflow, doiAgent, nviInstitution, rboInstitution, inactive, sector,
                             rightsRetentionStrategy, allowFileUploadForTypes);
     }
 
@@ -135,6 +145,7 @@ public class CustomerDao implements Typed {
         CustomerDao that = (CustomerDao) o;
         return nviInstitution == that.nviInstitution
                && rboInstitution == that.rboInstitution
+               && inactive == that.inactive
                && Objects.equals(identifier, that.identifier)
                && Objects.equals(createdDate, that.createdDate)
                && Objects.equals(modifiedDate, that.modifiedDate)
@@ -360,6 +371,7 @@ public class CustomerDao implements Typed {
                                       .withDoiAgent(getDoiAgent())
                                       .withNviInstitution(isNviInstitution())
                                       .withRboInstitution(isRboInstitution())
+                                      .withInactive(isInactive())
                                       .withSector(getSector())
                                       .withRightsRetentionStrategy(getRightsRetentionStrategy())
                                       .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
@@ -532,6 +544,11 @@ public class CustomerDao implements Typed {
 
         public Builder withRboInstitution(boolean rboInstitution) {
             customerDb.setRboInstitution(rboInstitution);
+            return this;
+        }
+
+        public Builder withInactive(boolean inactive) {
+            customerDb.setInactive(inactive);
             return this;
         }
 

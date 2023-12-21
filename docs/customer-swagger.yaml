@@ -765,6 +765,9 @@ components:
         rboInstitution:
           type: boolean
           description: whether or not the institution is part of result-based redistribution
+        inactive:
+          type: boolean
+          description: whether or not the institution is active
         sector:
           type: string
           enum:
@@ -968,6 +971,7 @@ components:
         publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
         nviInstitution: false
         rboInstitution: false
+        inactive: false
         sector: UHI
         rightsRetentionStrategy:
           type: OverridableRightsRetentionStrategy

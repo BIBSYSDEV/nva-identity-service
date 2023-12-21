@@ -144,6 +144,7 @@ class CustomerDaoTest {
                   },
                   "nviInstitution" : true,
                   "rboInstitution" : false,
+                  "inactive" : false,
                   "sector" : "INSTITUTE",
                   "rightRetentionStrategy" : {
                     "retentionStrategy" : "%s",
@@ -188,6 +189,7 @@ class CustomerDaoTest {
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withNviInstitution(randomBoolean())
                    .withRboInstitution(randomBoolean())
+                   .withInactive(randomBoolean())
                    .withSector(randomSector())
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())

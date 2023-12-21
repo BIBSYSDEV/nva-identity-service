@@ -55,6 +55,7 @@ public class CustomerDto implements Context {
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
+    private boolean inactive;
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
@@ -226,6 +227,14 @@ public class CustomerDto implements Context {
         this.rboInstitution = rboInstitution;
     }
 
+    public boolean isInactive() {
+        return inactive;
+    }
+
+    public void setInactive(boolean inactive) {
+        this.inactive = inactive;
+    }
+
     public Sector getSector() {
         return sector;
     }
@@ -281,6 +290,7 @@ public class CustomerDto implements Context {
                 .withDoiAgent(getDoiAgent())
                 .withNviInstitution(isNviInstitution())
                 .withRboInstitution(isRboInstitution())
+                .withInactive(isInactive())
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
                 .withRightsRetentionStrategy(getRightsRetentionStrategy())
@@ -461,6 +471,11 @@ public class CustomerDto implements Context {
 
         public Builder withRboInstitution(boolean rboInstitution) {
             customerDto.setRboInstitution(rboInstitution);
+            return this;
+        }
+
+        public Builder withInactive(boolean inactive) {
+            customerDto.setInactive(inactive);
             return this;
         }
 

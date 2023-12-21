@@ -103,6 +103,19 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
+    void shouldUpdateInactiveWhenInactiveIsSetToTrue()
+        throws NotFoundException, InputException, ConflictException {
+        var customer = newCustomerDto();
+        customer.setInactive(false);
+        var createdCustomer = service.createCustomer(customer);
+        assertFalse(createdCustomer.isInactive());
+
+        createdCustomer.setInactive(true);
+        var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+        assertTrue(updatedCustomer.isInactive());
+    }
+
+    @Test
     void updateExistingCustomerChangesModifiedDate() throws NotFoundException, InputException, ConflictException {
         var customer = newCustomerDto();
         var createdCustomer = service.createCustomer(customer);
@@ -361,6 +374,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withSector(randomSector())
                            .withNviInstitution(randomBoolean())
                            .withRboInstitution(randomBoolean())
+                           .withInactive(randomBoolean())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                            .build();

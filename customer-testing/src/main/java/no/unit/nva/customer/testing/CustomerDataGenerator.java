@@ -63,6 +63,7 @@ public class CustomerDataGenerator {
                                    .withSector(randomSector())
                                    .withNviInstitution(randomBoolean())
                                    .withRboInstitution(randomBoolean())
+                                   .withInactive(randomBoolean())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .build();

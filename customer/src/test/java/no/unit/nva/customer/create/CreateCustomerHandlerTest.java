@@ -110,6 +110,20 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
+    void shouldReturnInactiveWhenValueIsSet() throws BadRequestException, IOException {
+        var customerDto =
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withInactive(true)
+                .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+
+        assertThat(actualResponseBody.isInactive(), is(equalTo(true)));
+    }
+
+    @Test
     void shouldReturnPublicationWorkflowWhenValueIsSet() throws BadRequestException, IOException {
         var customerDto =
             CustomerDto.builder()

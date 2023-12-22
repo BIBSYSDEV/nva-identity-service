@@ -235,7 +235,7 @@ public class CreateCustomerRequest {
     }
 
     public void setServiceCenterUri(URI serviceCenterUri) {
-        this.serviceCenterUri =serviceCenterUri;
+        this.serviceCenterUri = serviceCenterUri;
     }
 
     @JacocoGenerated

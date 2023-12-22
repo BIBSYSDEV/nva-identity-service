@@ -22,6 +22,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -51,6 +52,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     private CreateCustomerHandler handler;
     private Context context;
     private ByteArrayOutputStream outputSteam;
+    private URI testServiceCenterUri = randomUri();
 
     @BeforeEach
     public void setUp() {
@@ -131,6 +133,20 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                               .replace(REGISTRATOR_PUBLISHES_METADATA_ONLY.getValue(), "hello");
         var response = executeRequest(requestBody, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+    }
+
+    @Test
+    void shouldReturnServiceCenterUriWhenValueIsSet() throws BadRequestException, IOException {
+        var customerDto =
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withServiceCenterUri(testServiceCenterUri)
+                .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+
+        assertThat(actualResponseBody.getServiceCenterUri(), is(equalTo(testServiceCenterUri)));
     }
 
     @Test
@@ -233,6 +249,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withCustomerOf(randomElement(ApplicationDomain.values()))
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withRorId(randomUri())
+                   .withServiceCenterUri(randomUri())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(Collections.emptySet())
                    .build();

@@ -82,6 +82,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
                            .withVocabularies(randomVocabularySet())
                            .withRorId(randomUri())
+                           .withServiceCenterUri(randomUri())
                            .withPublicationWorkflow(randomPublicationWorkflow())
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .withSector(randomSector())

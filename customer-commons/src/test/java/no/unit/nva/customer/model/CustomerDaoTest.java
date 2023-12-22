@@ -183,6 +183,7 @@ class CustomerDaoTest {
                    .withDisplayName(randomString())
                    .withCreatedDate(randomInstant())
                    .withRorId(randomUri())
+                   .withServiceCenterUri(randomUri())
                    .withVocabularySettings(randomVocabularySettings())
                    .withPublicationWorkflow(randomPublicationWorkflow())
                    .withDoiAgent(randomDoiAgent(randomString()))

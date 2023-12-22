@@ -51,6 +51,7 @@ public class CustomerDto implements Context {
     private ApplicationDomain customerOf;
     private List<VocabularyDto> vocabularies;
     private URI rorId;
+    private URI serviceCenterUri;
     private PublicationWorkflow publicationWorkflow;
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
@@ -202,6 +203,14 @@ public class CustomerDto implements Context {
         this.rorId = rorId;
     }
 
+    public URI getServiceCenterUri() {
+        return serviceCenterUri;
+    }
+
+    public void setServiceCenterUri(URI serviceCenterUri) {
+        this.serviceCenterUri = serviceCenterUri;
+    }
+
     public PublicationWorkflow getPublicationWorkflow() {
         return publicationWorkflow;
     }
@@ -284,6 +293,7 @@ public class CustomerDto implements Context {
                 .withName(getName())
                 .withPublicationWorkflow(getPublicationWorkflow())
                 .withRorId(getRorId())
+                .withServiceCenterUri(getServiceCenterUri())
                 .withShortName(getShortName())
                 .withDoiAgent(getDoiAgent())
                 .withNviInstitution(isNviInstitution())
@@ -300,8 +310,8 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(), getDoiAgent(), getRightsRetentionStrategy(),
-                            getAllowFileUploadForTypes());
+                            getRorId(), getServiceCenterUri(), getPublicationWorkflow(), getDoiAgent(),
+                            getRightsRetentionStrategy(), getAllowFileUploadForTypes());
     }
 
     @Override
@@ -328,6 +338,7 @@ public class CustomerDto implements Context {
                 && Objects.equals(getModifiedDate(), that.getModifiedDate())
                 && Objects.equals(getName(), that.getName())
                 && Objects.equals(getRorId(), that.getRorId())
+               && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
                 && Objects.equals(getShortName(), that.getShortName())
                 && Objects.equals(getVocabularies(), that.getVocabularies())
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
@@ -448,6 +459,11 @@ public class CustomerDto implements Context {
 
         public Builder withRorId(URI rorId) {
             customerDto.setRorId(rorId);
+            return this;
+        }
+
+        public Builder withServiceCenterUri(URI servceCenterUri) {
+            customerDto.setServiceCenterUri(servceCenterUri);
             return this;
         }
 

@@ -752,6 +752,10 @@ components:
           type: string
           format: uri
           description: the customers persistent identifier in the Research Organization Registry (ROR)
+        serviceCenterUri:
+          type: string
+          format: uri
+          description: the customers institution service centre
         doiAgent:
           $ref: '#/components/schemas/DoiAgent'
         '@context':
@@ -961,6 +965,7 @@ components:
             name: 'Example VOC'
             active: 'default'
         rorId: 'https://ror.org/026eeyk15'
+        serviceCenterUri: 'https://servicecenter.org/wiki/-/wiki/Orakeltjenesten'
         doiAgent:
           prefix: "1000.10"
           url: "test.nva.unit.no"

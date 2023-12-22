@@ -22,6 +22,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,9 +39,12 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.zalando.problem.Problem;
 
 public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
@@ -48,6 +52,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     private CreateCustomerHandler handler;
     private Context context;
     private ByteArrayOutputStream outputSteam;
+    private URI testServiceCenterUri = randomUri();
 
     @BeforeEach
     public void setUp() {
@@ -153,6 +158,20 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
+    void shouldReturnServiceCenterUriWhenValueIsSet() throws BadRequestException, IOException {
+        var customerDto =
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withServiceCenterUri(testServiceCenterUri)
+                .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+
+        assertThat(actualResponseBody.getServiceCenterUri(), is(equalTo(testServiceCenterUri)));
+    }
+
+    @Test
     void shouldReturnBadRequestWhenInputIsNotAValidJson() throws IOException {
         var response = executeRequest(randomString(), Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
@@ -192,6 +211,24 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         Set<PublicationInstanceTypes> actualSet = new HashSet<>(actualResponseBody.getAllowFileUploadForTypes());
 
         assertThat(actualSet, is(equalTo(expectedSet)));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void shouldReturnAllPublicationInstanceTypesWhenAllowFileUploadForTypesIsNullOrEmpty(
+        Set<PublicationInstanceTypes> allowFileUploadForTypes) throws BadRequestException,
+                                                                      IOException {
+        var customerDto =
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withAllowFileUploadForTypes(allowFileUploadForTypes)
+                .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+
+        assertThat(actualResponseBody.getAllowFileUploadForTypes(),
+                   IsIterableContainingInAnyOrder.containsInAnyOrder(PublicationInstanceTypes.values()));
     }
 
     @Test
@@ -234,6 +271,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withCustomerOf(randomElement(ApplicationDomain.values()))
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withRorId(randomUri())
+                   .withServiceCenterUri(randomUri())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(Collections.emptySet())
                    .build();

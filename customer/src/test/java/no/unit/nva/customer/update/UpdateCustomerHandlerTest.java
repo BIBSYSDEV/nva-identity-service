@@ -5,10 +5,12 @@ import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.ioutils.IoUtils.stringFromResources;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
@@ -44,6 +47,7 @@ public class UpdateCustomerHandlerTest {
     private UpdateCustomerHandler handler;
     private ByteArrayOutputStream outputStream;
     private Context context;
+    private URI testServiceCenterUri = randomUri();
 
     /**
      * Setting up test environment.
@@ -97,6 +101,19 @@ public class UpdateCustomerHandlerTest {
         customer.setInactive(true);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
         assertTrue(customer.isInactive());
+    }
+
+    @Test
+    void requestToHandlerReturnsCustomerServiceCenterUriUpdated() throws InputException, NotFoundException,
+                                                                         IOException {
+        UUID identifier = UUID.randomUUID();
+        CustomerDto customer = createCustomer(identifier);
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
+        assertThat(customer.getServiceCenterUri(), is(nullValue()));
+
+        customer.setServiceCenterUri(testServiceCenterUri);
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
+        assertThat(customer.getServiceCenterUri(), is(equalTo(testServiceCenterUri)));
     }
 
     @Test

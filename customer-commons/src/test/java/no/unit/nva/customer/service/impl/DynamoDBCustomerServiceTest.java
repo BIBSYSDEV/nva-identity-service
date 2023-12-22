@@ -369,6 +369,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
                            .withVocabularies(randomVocabularySet())
                            .withRorId(randomUri())
+                           .withServiceCenterUri(randomUri())
                            .withPublicationWorkflow(randomPublicationWorkflow())
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .withSector(randomSector())

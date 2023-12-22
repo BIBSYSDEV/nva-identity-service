@@ -22,7 +22,7 @@ import nva.commons.core.JacocoGenerated;
 
 @JsonTypeInfo(use = Id.NAME, property = "type")
 @JsonTypeName(TYPE_VALUE)
-@SuppressWarnings("PMD.TooManyFields")
+@SuppressWarnings({"PMD.TooManyFields", "PMD.GodClass"})
 public class CreateCustomerRequest {
 
     public static final String TYPE_VALUE = "Customer";
@@ -43,6 +43,7 @@ public class CreateCustomerRequest {
     private boolean inactive;
     private Sector sector;
     private URI rorId;
+    private URI serviceCenterUri;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
@@ -63,6 +64,7 @@ public class CreateCustomerRequest {
         request.setRboInstitution(customerDto.isRboInstitution());
         request.setInactive(customerDto.isInactive());
         request.setRorId(customerDto.getRorId());
+        request.setServiceCenterUri(customerDto.getServiceCenterUri());
         request.setAllowFileUploadForTypes(customerDto.getAllowFileUploadForTypes());
         if (nonNull(customerDto.getDoiAgent())) {
             request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
@@ -89,6 +91,7 @@ public class CreateCustomerRequest {
                    .withInactive(isInactive())
                    .withSector(getSector())
                    .withRorId(getRorId())
+                   .withServiceCenterUri(getServiceCenterUri())
                    .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
                    .build();
     }
@@ -238,13 +241,21 @@ public class CreateCustomerRequest {
         this.rorId = rorId;
     }
 
+    public URI getServiceCenterUri() {
+        return serviceCenterUri;
+    }
+
+    public void setServiceCenterUri(URI serviceCenterUri) {
+        this.serviceCenterUri = serviceCenterUri;
+    }
+
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
                             getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), isInactive(),
-                            getRorId(), getAllowFileUploadForTypes());
+                            getRorId(), getServiceCenterUri(), getAllowFileUploadForTypes());
     }
 
     @JacocoGenerated
@@ -268,6 +279,7 @@ public class CreateCustomerRequest {
                && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getSector(), that.getSector())
                && Objects.equals(getRorId(), that.getRorId())
+               && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(isRboInstitution(), that.isRboInstitution())
                && Objects.equals(isInactive(), that.isInactive())

@@ -110,6 +110,7 @@ class CustomerDtoTest {
                    .withModifiedDate(randomInstant())
                    .withVocabularies(randomVocabularies())
                    .withRorId(randomUri())
+                   .withServiceCenterUri(randomUri())
                    .withPublicationWorkflow(randomPublicationWorkflow())
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withSector(randomSector())

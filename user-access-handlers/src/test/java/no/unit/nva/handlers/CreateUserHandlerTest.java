@@ -364,7 +364,6 @@ class CreateUserHandlerTest extends HandlerTest {
         var customerId = randomUri();
         return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
                    .withCurrentCustomer(customerId)
-                   .withAccessRights(customerId, randomAccessRight())
                    .withBody(requestBody)
                    .build();
     }

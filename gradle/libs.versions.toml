@@ -1,5 +1,5 @@
 [versions]
-nvaCommons = { strictly = '1.36.6' }
+nvaCommons = { strictly = '1.36.8' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.20.141' }

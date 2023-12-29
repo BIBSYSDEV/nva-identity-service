@@ -10,24 +10,23 @@ import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_ROLE_NA
 import static no.unit.nva.handlers.data.DefaultRoleSource.EDITOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.INSTITUTION_ADMIN_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.NVI_CURATOR_ROLE_NAME;
-import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
-import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
-import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
-import static nva.commons.apigateway.AccessRight.EDIT_ALL_NON_DEGREE_RESOURCES;
-import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW;
-import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
-import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
-import static nva.commons.apigateway.AccessRight.MANAGE_NVI_CANDIDATE;
-import static nva.commons.apigateway.AccessRight.MANAGE_NVI_PERIODS;
-import static nva.commons.apigateway.AccessRight.MANAGE_OWN_PROJECTS;
-import static nva.commons.apigateway.AccessRight.PROCESS_IMPORT_CANDIDATE;
-import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE;
-import static nva.commons.apigateway.AccessRight.PUBLISH_DEGREE_EMBARGO_READ;
-import static nva.commons.apigateway.AccessRight.READ_DOI_REQUEST;
-import static nva.commons.apigateway.AccessRight.REJECT_DOI_REQUEST;
+import static nva.commons.apigateway.AccessRight.ACT_AS;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_DEGREE;
+import static nva.commons.apigateway.AccessRight.MANAGE_DEGREE_EMBARGO;
+import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
+import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
+import static nva.commons.apigateway.AccessRight.MANAGE_IMPORT;
+import static nva.commons.apigateway.AccessRight.MANAGE_NVI;
+import static nva.commons.apigateway.AccessRight.MANAGE_NVI_CANDIDATES;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_RESOURCES;
+import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
+import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_ALL;
+import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_STANDARD;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import java.util.List;
 import no.unit.nva.handlers.RoleSource;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -46,71 +45,71 @@ public class DefaultRoleSourceTest {
     void creatorsShouldHaveCorrectAccessRights() {
         var creatorRole = getRoleByName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT);
 
-        assertThat(creatorRole.getAccessRights(), hasItems(MANAGE_OWN_PROJECTS));
+        assertThat(creatorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_RESOURCES));
     }
 
     @Test
     void curatorsShouldHaveCorrectAccessRights() {
         var curatorRole = getRoleByName(CURATOR_ROLE_NAME);
 
-        assertThat(curatorRole.getAccessRights(), hasItems(APPROVE_DOI_REQUEST,
-                                                                     REJECT_DOI_REQUEST,
-                                                                     READ_DOI_REQUEST,
-                                                                     EDIT_OWN_INSTITUTION_RESOURCES,
-                                                                     APPROVE_PUBLISH_REQUEST));
+        assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI,
+                                                                     MANAGE_RESOURCES_STANDARD,
+                                                                     MANAGE_PUBLISHING_REQUESTS));
     }
 
     @Test
     void importCandidateCuratorsShouldHaveCorrectAccessRights() {
         var importCandidateCuratorRole = getRoleByName(INTERNAL_IMPORTER_ROLE_NAME);
 
-        assertThat(importCandidateCuratorRole.getAccessRights(), hasItems(PROCESS_IMPORT_CANDIDATE));
+        assertThat(importCandidateCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_IMPORT));
     }
 
     @Test
     void thesisCuratorsShouldHaveCorrectAccessRights() {
         var thesisCuratorRole = getRoleByName(CURATOR_THESIS_ROLE_NAME);
 
-        assertThat(thesisCuratorRole.getAccessRights(), hasItems(PUBLISH_DEGREE));
+        assertThat(thesisCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_DEGREE));
     }
 
     @Test
     void thesisEmbargoCuratorsShouldHaveCorrectAccessRights() {
         var thesisEmbargoCuratorRole = getRoleByName(CURATOR_THESIS_EMBARGO_ROLE_NAME);
 
-        assertThat(thesisEmbargoCuratorRole.getAccessRights(), hasItems(PUBLISH_DEGREE_EMBARGO_READ));
+        assertThat(thesisEmbargoCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_DEGREE_EMBARGO));
     }
 
     @Test
     void institutionAdminsShouldHaveCorrectAccessRights() {
         var institutionAdminRole = getRoleByName(INSTITUTION_ADMIN_ROLE_NAME);
 
-        assertThat(institutionAdminRole.getAccessRights(), hasItems(EDIT_OWN_INSTITUTION_RESOURCES,
-                                                                              EDIT_OWN_INSTITUTION_USERS));
+        assertThat(institutionAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_RESOURCES_STANDARD,
+                                                                              MANAGE_OWN_AFFILIATION));
     }
 
     @Test
     void appAdminsShouldHaveCorrectAccessRights() {
         var appAdminRole = getRoleByName(APP_ADMIN_ROLE_NAME);
 
-        assertThat(appAdminRole.getAccessRights(), hasItems(ADMINISTRATE_APPLICATION,
-                                                                      PROCESS_IMPORT_CANDIDATE,
-                                                                      MANAGE_NVI_PERIODS));
+        assertThat(appAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_CUSTOMERS,
+                                                                      MANAGE_EXTERNAL_CLIENTS,
+                                                                      ACT_AS,
+                                                                      MANAGE_NVI,
+                                                                      MANAGE_IMPORT));
     }
 
     @Test
     void editorsShouldHaveCorrectAccessRights() {
         var editorRole = getRoleByName(EDITOR_ROLE_NAME);
 
-        assertThat(editorRole.getAccessRights(), hasItems(EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW,
-                                                                    EDIT_ALL_NON_DEGREE_RESOURCES));
+        assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION,
+                                                                    MANAGE_RESOURCES_ALL));
     }
 
     @Test
     void nviCuratorsShouldHaveCorrectAccessRights() {
         var editorRole = getRoleByName(NVI_CURATOR_ROLE_NAME);
 
-        assertThat(editorRole.getAccessRights(), hasItems(MANAGE_NVI_CANDIDATE));
+        assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_NVI_CANDIDATES));
     }
 
     @Test

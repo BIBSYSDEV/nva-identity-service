@@ -11,7 +11,7 @@ public final class EntityUtils {
     public static final String SOME_ROLENAME = "SomeRole";
 
     public static RoleDto createRole(String roleName) throws InvalidEntryInternalException {
-        return createRole(roleName, AccessRight.APPROVE_DOI_REQUEST);
+        return createRole(roleName, AccessRight.MANAGE_DOI);
     }
 
     public static RoleDto createRole(String roleName, AccessRight... accessRights) {

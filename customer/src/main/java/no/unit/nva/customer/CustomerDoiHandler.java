@@ -2,8 +2,9 @@ package no.unit.nva.customer;
 
 import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_RESOURCES;
-import static nva.commons.apigateway.AccessRight.EDIT_OWN_INSTITUTION_USERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
+import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_STANDARD;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -77,27 +78,27 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
     }
 
     protected void authorizeDoiAgentChange(RequestInfo requestInfo) throws ForbiddenException {
-        if (notApplicationAdmin(requestInfo)) {
+        if (notCustomerManager(requestInfo)) {
             throw new ForbiddenException();
         }
     }
 
     protected void authorizeDoiAgentRead(RequestInfo requestInfo) throws ForbiddenException {
-        if (notApplicationAdmin(requestInfo) && notInstAdmin(requestInfo) && notEditor(requestInfo)) {
+        if (notCustomerManager(requestInfo) && notInstAdmin(requestInfo) && notEditor(requestInfo)) {
             throw new ForbiddenException();
         }
     }
 
     private boolean notEditor(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(EDIT_OWN_INSTITUTION_RESOURCES);
+        return !requestInfo.userIsAuthorized(MANAGE_RESOURCES_STANDARD);
     }
 
     private boolean notInstAdmin(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(EDIT_OWN_INSTITUTION_USERS);
+        return !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
     }
 
-    private boolean notApplicationAdmin(RequestInfo requestInfo) {
-        return !requestInfo.userIsApplicationAdmin();
+    private boolean notCustomerManager(RequestInfo requestInfo) {
+        return !requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 
     private UUID toUuid(URI customerId) {

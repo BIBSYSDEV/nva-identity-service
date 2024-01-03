@@ -5,7 +5,7 @@ import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCus
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.USER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
@@ -186,7 +186,7 @@ class UpdateCustomerDoiHandlerTest {
                    .withPathParameters(Map.of(IDENTIFIER, identifier.toString()))
                    .withBody(body)
                    .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION)
+                   .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
                    .build();
     }
 
@@ -197,7 +197,7 @@ class UpdateCustomerDoiHandlerTest {
                    .withPathParameters(Map.of(IDENTIFIER, randomString()))
                    .withBody(body)
                    .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION)
+                   .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
                    .build();
     }
 

@@ -2,8 +2,8 @@ package no.unit.nva.database;
 
 import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
-import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
+import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
+import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -61,16 +61,16 @@ public class IdentityServiceImplTest extends LocalIdentityService {
 
     @Test
     void shouldSucceedUpdatingAnExistingRole() throws InvalidInputException, ConflictException, NotFoundException {
-        var existingRole = EntityUtils.createRole(randomString(), APPROVE_DOI_REQUEST);
+        var existingRole = EntityUtils.createRole(randomString(), MANAGE_DOI);
         databaseService.addRole(existingRole);
 
-        var updatedAccessRights = Set.of(APPROVE_DOI_REQUEST, APPROVE_PUBLISH_REQUEST);
+        var updatedAccessRights = Set.of(MANAGE_DOI, MANAGE_PUBLISHING_REQUESTS);
         var roleToUpdate = existingRole.copy().withAccessRights(updatedAccessRights).build();
 
         databaseService.updateRole(roleToUpdate);
 
         var updatedRole = databaseService.getRole(roleToUpdate);
-        assertThat(updatedRole.getAccessRights(), containsInAnyOrder(APPROVE_DOI_REQUEST, APPROVE_PUBLISH_REQUEST));
+        assertThat(updatedRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI, MANAGE_PUBLISHING_REQUESTS));
     }
 
     @Test

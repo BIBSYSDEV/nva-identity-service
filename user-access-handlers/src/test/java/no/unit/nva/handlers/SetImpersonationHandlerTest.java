@@ -6,7 +6,7 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.handlers.SetImpersonationHandler.IMPERSONATION;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
+import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -15,7 +15,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import no.unit.nva.FakeCognito;
 import no.unit.nva.handlers.models.ImpersonationRequest;
 import no.unit.nva.stubs.FakeContext;
@@ -83,7 +82,7 @@ class SetImpersonationHandlerTest {
         return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
                    .withBody(new ImpersonationRequest(impersonatingFnr))
                    .withCurrentCustomer(customer)
-                   .withAccessRights(customer, ADMINISTRATE_APPLICATION)
+                   .withAccessRights(customer, ACT_AS)
                    .withAuthorizerClaim(USERNAME, randomString())
                    .withIssuer(randomString())
                    .withUserName(randomString())
@@ -108,7 +107,7 @@ class SetImpersonationHandlerTest {
         return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
                    .withBody(new ImpersonationRequest(impersonatingFnr))
                    .withCurrentCustomer(customer)
-                   .withAccessRights(customer, ADMINISTRATE_APPLICATION)
+                   .withAccessRights(customer, ACT_AS)
                    .withAuthorizerClaim(IMPERSONATION, randomString())
                    .withAuthorizerClaim(USERNAME, randomString())
                    .withIssuer(randomString())

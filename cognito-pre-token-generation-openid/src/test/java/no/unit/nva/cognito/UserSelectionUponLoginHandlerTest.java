@@ -16,7 +16,6 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.LoginEventType.FEIDE;
-import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
@@ -34,7 +33,6 @@ import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinP
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -42,8 +40,6 @@ import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasLength;
-import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -88,7 +84,6 @@ import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.AccessRight;
-import nva.commons.apigateway.AccessRightEntry;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
@@ -103,7 +98,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.EnumSource.Mode;
-import org.mockito.hamcrest.MockitoHamcrest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
@@ -540,7 +534,7 @@ class UserSelectionUponLoginHandlerTest {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutionsWithoutFeideDomain();
         var role = persistRandomRole();
         createUsersWithRolesForPerson(person, role);
-        addAccessRightToExistingRole(role, AccessRight.PUBLISH_DEGREE);
+        addAccessRightToExistingRole(role, AccessRight.MANAGE_DEGREE);
 
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
@@ -720,8 +714,8 @@ class UserSelectionUponLoginHandlerTest {
     void shouldUpdateUsersAccessRightsWhenRoleHasNewAccessRight()
         throws InvalidInputException, ConflictException, NotFoundException {
         var person = scenarios.personWithExactlyOneActiveEmployment();
-        var approveDoiAccessRight = AccessRight.APPROVE_DOI_REQUEST;
-        var approvePublishAccessRight = AccessRight.APPROVE_PUBLISH_REQUEST;
+        var approveDoiAccessRight = AccessRight.MANAGE_DOI;
+        var approvePublishAccessRight = AccessRight.MANAGE_PUBLISHING_REQUESTS;
 
         var user = scenarios.createUsersForAllActiveAffiliations(person, identityService)
                        .stream()
@@ -770,7 +764,7 @@ class UserSelectionUponLoginHandlerTest {
 
         var newRole = RoleDto.newBuilder()
                           .withRoleName(APP_ADMIN_SOMEWHERE)
-                          .withAccessRights(List.of(AccessRight.ADMINISTRATE_APPLICATION))
+                          .withAccessRights(List.of(AccessRight.ACT_AS))
                           .build();
         persistRole(newRole);
         createUserWithRolesForPerson(adminNin, newRole);
@@ -808,7 +802,7 @@ class UserSelectionUponLoginHandlerTest {
 
         var newRole = RoleDto.newBuilder()
                           .withRoleName(APP_ADMIN_SOMEWHERE)
-                          .withAccessRights(List.of(AccessRight.ADMINISTRATE_APPLICATION))
+                          .withAccessRights(List.of(AccessRight.ACT_AS))
                           .build();
         persistRole(newRole);
         createUserWithRolesForPerson(adminNin, newRole);

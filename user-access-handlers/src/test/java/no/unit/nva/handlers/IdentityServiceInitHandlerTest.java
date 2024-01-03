@@ -2,8 +2,8 @@ package no.unit.nva.handlers;
 
 import static no.unit.nva.handlers.IdentityServiceInitHandler.SIKT_CRISTIN_ID;
 import static no.unit.nva.useraccessservice.model.RoleDto.MISSING_ROLE_NAME_ERROR;
-import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
-import static nva.commons.apigateway.AccessRight.APPROVE_PUBLISH_REQUEST;
+import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
+import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
@@ -45,8 +45,8 @@ import org.junit.jupiter.api.Test;
 class IdentityServiceInitHandlerTest {
 
     private static final String ROLE_NAME = "My-role";
-    private static final List<AccessRight> ACCESS_RIGHTS = List.of(APPROVE_DOI_REQUEST,
-                                                                   APPROVE_PUBLISH_REQUEST);
+    private static final List<AccessRight> ACCESS_RIGHTS = List.of(MANAGE_DOI,
+                                                                   MANAGE_PUBLISHING_REQUESTS);
     private static final RoleSource ROLE_SOURCE = () -> List.of(RoleDto.newBuilder()
                                                                     .withRoleName(ROLE_NAME)
                                                                     .withAccessRights(ACCESS_RIGHTS)
@@ -121,7 +121,7 @@ class IdentityServiceInitHandlerTest {
         throws InvalidInputException, ConflictException, IOException, NotFoundException {
         var role = RoleDto.newBuilder()
                        .withRoleName(ROLE_NAME)
-                       .withAccessRights(List.of(APPROVE_DOI_REQUEST))
+                       .withAccessRights(List.of(MANAGE_DOI))
                        .build();
         identityService.addRole(role);
 
@@ -129,7 +129,7 @@ class IdentityServiceInitHandlerTest {
         handler.handleRequest(createRequest(), output, context);
 
         var updatedRole = identityService.getRole(role);
-        assertThat(updatedRole.getAccessRights(), containsInAnyOrder(APPROVE_DOI_REQUEST, APPROVE_PUBLISH_REQUEST));
+        assertThat(updatedRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI, MANAGE_PUBLISHING_REQUESTS));
     }
 
     @Test

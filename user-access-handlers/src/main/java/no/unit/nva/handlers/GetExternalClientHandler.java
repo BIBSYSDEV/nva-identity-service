@@ -1,6 +1,7 @@
 
 package no.unit.nva.handlers;
 
+import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
@@ -66,6 +67,6 @@ public class GetExternalClientHandler
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
         return !(requestInfo.clientIsInternalBackend()
-                 || requestInfo.userIsApplicationAdmin());
+                 || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
     }
 }

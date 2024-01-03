@@ -5,11 +5,9 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.handlers.SetImpersonationHandler.IMPERSONATION;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNull.nullValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
@@ -70,7 +68,6 @@ class StopImpersonationHandlerTest {
         var customer = randomUri();
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
                    .withCurrentCustomer(customer)
-                   .withAccessRights(customer, ADMINISTRATE_APPLICATION)
                    .withAuthorizerClaim(USERNAME, username)
                    .withIssuer(randomString())
                    .build();

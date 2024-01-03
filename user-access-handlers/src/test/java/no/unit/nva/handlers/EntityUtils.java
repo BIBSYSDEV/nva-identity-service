@@ -1,7 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static nva.commons.apigateway.AccessRight.APPROVE_DOI_REQUEST;
+import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Collections;
@@ -21,7 +21,7 @@ public final class EntityUtils {
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final String EMPTY_STRING = "";
     public static final Set<AccessRight> SAMPLE_ACCESS_RIGHTS =
-        Collections.singleton(APPROVE_DOI_REQUEST);
+        Collections.singleton(MANAGE_DOI);
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
 

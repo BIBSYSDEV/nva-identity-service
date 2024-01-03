@@ -3,6 +3,8 @@ package no.unit.nva.handlers;
 
 import static java.util.Objects.isNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
@@ -26,7 +28,6 @@ import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
-import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -173,7 +174,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
         return !(requestInfo.clientIsInternalBackend()
-                 || requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_USERS)
-                 || requestInfo.userIsApplicationAdmin());
+                 || requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION)
+                 || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS));
     }
 }

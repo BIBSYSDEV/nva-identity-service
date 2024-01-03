@@ -53,8 +53,8 @@ class UserDtoTest extends DtoTest {
     public static final String SOME_OTHER_ROLENAME = randomString();
     public static final int ROLE_PART = 0;
     protected static final String USER_TYPE_LITERAL = "User";
-    private static final AccessRight FIRST_ACCESS_RIGHT = AccessRight.APPROVE_DOI_REQUEST;
-    private static final AccessRight SECOND_ACCESS_RIGHT = AccessRight.REJECT_DOI_REQUEST;
+    private static final AccessRight FIRST_ACCESS_RIGHT = AccessRight.MANAGE_DOI;
+    private static final AccessRight SECOND_ACCESS_RIGHT = AccessRight.MANAGE_CUSTOMERS;
     
     @DisplayName("UserDto object contains type with value \"User\"")
     @Test

@@ -72,7 +72,7 @@ public class RoleDbTest {
     @Test
     void equalsReturnsFalseWhenAccessRightListIsDifferent() throws InvalidEntryInternalException {
 
-        Set<AccessRight> differentAccessRights = Collections.singleton(AccessRight.REJECT_DOI_REQUEST);
+        Set<AccessRight> differentAccessRights = Collections.singleton(AccessRight.MANAGE_DEGREE);
         assertThat(sampleRole.getAccessRights().containsAll(differentAccessRights), is(equalTo(false)));
         RoleDb differentRole = sampleRole.copy().withAccessRights(differentAccessRights).build();
 
@@ -166,7 +166,7 @@ public class RoleDbTest {
     }
 
     private RoleDb createSampleRole() throws InvalidEntryInternalException {
-        Set<AccessRight> accessRights = Collections.singleton(AccessRight.APPROVE_DOI_REQUEST);
+        Set<AccessRight> accessRights = Collections.singleton(AccessRight.MANAGE_DOI);
         return RoleDb.newBuilder()
             .withName(SOME_ROLE_NAME)
             .withAccessRights(accessRights)

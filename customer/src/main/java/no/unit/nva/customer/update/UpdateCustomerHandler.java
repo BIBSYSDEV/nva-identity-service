@@ -2,6 +2,8 @@ package no.unit.nva.customer.update;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import static nva.commons.apigateway.RequestInfoConstants.SCOPES_CLAIM;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
@@ -14,7 +16,6 @@ import no.unit.nva.customer.CustomerHandler;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -72,14 +73,14 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
 
     private void authorizePublicationWorkflowChange(RequestInfo requestInfo) throws ForbiddenException {
         if (notAuthorizedToChangePublicationWorkflow(requestInfo)
-            && isNotApplicationAdmin(requestInfo)
+            && cantManageAllCustomers(requestInfo)
             && isNotCognitoAdmin(requestInfo)) {
             throw new ForbiddenException();
         }
     }
 
-    private boolean isNotApplicationAdmin(RequestInfo requestInfo) {
-        return !requestInfo.userIsApplicationAdmin();
+    private boolean cantManageAllCustomers(RequestInfo requestInfo) {
+        return !requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 
     private boolean isNotCognitoAdmin(RequestInfo requestInfo) {
@@ -88,7 +89,7 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     }
 
     private boolean notAuthorizedToChangePublicationWorkflow(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(AccessRight.EDIT_OWN_INSTITUTION_PUBLICATION_WORKFLOW);
+        return !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
     }
 
     @Override

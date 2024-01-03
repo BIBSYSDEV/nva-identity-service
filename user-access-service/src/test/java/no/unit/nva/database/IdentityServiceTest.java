@@ -249,7 +249,7 @@ class IdentityServiceTest extends LocalIdentityService {
 
     @Test
     void roleDbWithAccessRightsIsSavedInDatabase() throws InvalidEntryInternalException {
-        var accessRights = Set.of(AccessRight.APPROVE_DOI_REQUEST, AccessRight.REJECT_DOI_REQUEST);
+        var accessRights = Set.of(AccessRight.MANAGE_DOI, AccessRight.MANAGE_CUSTOMERS);
 
         RoleDb roleWithAccessRights = RoleDb.newBuilder()
                                           .withAccessRights(accessRights)

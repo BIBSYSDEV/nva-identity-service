@@ -1,7 +1,7 @@
 package no.unit.nva.customer.get;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static nva.commons.apigateway.AccessRight.ADMINISTRATE_APPLICATION;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.USER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -155,7 +155,7 @@ class GetCustomerDoiHandlerTest {
                    .withPathParameters(Map.of("identifier", identifier.toString()))
                    .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
                    .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), ADMINISTRATE_APPLICATION)
+                   .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
                    .build();
     }
 

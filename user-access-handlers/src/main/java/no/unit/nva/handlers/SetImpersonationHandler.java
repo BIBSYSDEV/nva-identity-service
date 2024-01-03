@@ -1,6 +1,7 @@
 
 package no.unit.nva.handlers;
 
+import static nva.commons.apigateway.AccessRight.ACT_AS;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonPointer;
 import java.net.HttpURLConnection;
@@ -72,7 +73,7 @@ public class SetImpersonationHandler extends HandlerWithEventualConsistency<Impe
     }
 
     private void authorize(RequestInfo requestInfo) throws ForbiddenException {
-        if (!requestInfo.userIsApplicationAdmin() || userIsAlreadyImpersonating(requestInfo)) {
+        if (!requestInfo.userIsAuthorized(ACT_AS) || userIsAlreadyImpersonating(requestInfo)) {
             throw new ForbiddenException();
         }
     }

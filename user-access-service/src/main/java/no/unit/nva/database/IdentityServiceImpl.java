@@ -48,6 +48,11 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
+    public List<UserDto> listAllUsers() {
+        return userService.listAllUsers();
+    }
+
+    @Override
     public List<UserDto> listUsers(URI institutionId) {
         return userService.listUsers(institutionId);
     }

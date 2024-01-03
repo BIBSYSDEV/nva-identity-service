@@ -28,7 +28,7 @@ public interface IdentityService {
     }
     
     UserDto getUser(UserDto queryObject) throws NotFoundException;
-    
+    List<UserDto> listAllUsers();
     List<UserDto> listUsers(URI institutionId);
     
     UserDto addUser(UserDto user) throws ConflictException;

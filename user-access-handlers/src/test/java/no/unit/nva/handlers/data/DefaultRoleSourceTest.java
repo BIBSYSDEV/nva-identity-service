@@ -2,14 +2,15 @@ package no.unit.nva.handlers.data;
 
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
+import static no.unit.nva.handlers.data.DefaultRoleSource.DOI_CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.FILE_CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.INTERNAL_IMPORTER_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_EMBARGO_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.EDITOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.INSTITUTION_ADMIN_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.NVI_CURATOR_ROLE_NAME;
+import static no.unit.nva.handlers.data.DefaultRoleSource.SUPPORT_CURATOR_ROLE_NAME;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DEGREE;
@@ -24,6 +25,7 @@ import static nva.commons.apigateway.AccessRight.MANAGE_OWN_RESOURCES;
 import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
 import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_ALL;
 import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_STANDARD;
+import static nva.commons.apigateway.AccessRight.SUPPORT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
@@ -49,12 +51,35 @@ public class DefaultRoleSourceTest {
     }
 
     @Test
-    void curatorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(CURATOR_ROLE_NAME);
+    void doiCuratorsShouldHaveCorrectAccessRights() {
+        var curatorRole = getRoleByName(DOI_CURATOR_ROLE_NAME);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI,
-                                                                     MANAGE_RESOURCES_STANDARD,
-                                                                     MANAGE_PUBLISHING_REQUESTS));
+                                                                     MANAGE_RESOURCES_STANDARD));
+    }
+
+    @Test
+    void supportCuratorsShouldHaveCorrectAccessRights() {
+        var curatorRole = getRoleByName(SUPPORT_CURATOR_ROLE_NAME);
+
+        assertThat(curatorRole.getAccessRights(), containsInAnyOrder(SUPPORT,
+                                                                     MANAGE_RESOURCES_STANDARD));
+    }
+
+    @Test
+    void fileCuratorsShouldHaveCorrectAccessRights() {
+        var curatorRole = getRoleByName(FILE_CURATOR_ROLE_NAME);
+
+        assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_PUBLISHING_REQUESTS,
+                                                                     MANAGE_RESOURCES_STANDARD));
+    }
+
+    @Test
+    void nviCuratorsShouldHaveCorrectAccessRights() {
+        var curatorRole = getRoleByName(NVI_CURATOR_ROLE_NAME);
+
+        assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_NVI_CANDIDATES,
+                                                                     MANAGE_RESOURCES_STANDARD));
     }
 
     @Test
@@ -106,24 +131,18 @@ public class DefaultRoleSourceTest {
     }
 
     @Test
-    void nviCuratorsShouldHaveCorrectAccessRights() {
-        var editorRole = getRoleByName(NVI_CURATOR_ROLE_NAME);
-
-        assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_NVI_CANDIDATES));
-    }
-
-    @Test
     void shouldReturnExpectedNumberOfRoles() {
         var expectedNumberOfRoles = List.of(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT,
-                                            CURATOR_ROLE_NAME,
+                                            NVI_CURATOR_ROLE_NAME,
+                                            DOI_CURATOR_ROLE_NAME,
+                                            SUPPORT_CURATOR_ROLE_NAME,
                                             FILE_CURATOR_ROLE_NAME,
                                             CURATOR_THESIS_ROLE_NAME,
                                             CURATOR_THESIS_EMBARGO_ROLE_NAME,
                                             INTERNAL_IMPORTER_ROLE_NAME,
                                             INSTITUTION_ADMIN_ROLE_NAME,
                                             APP_ADMIN_ROLE_NAME,
-                                            EDITOR_ROLE_NAME,
-                                            NVI_CURATOR_ROLE_NAME).size();
+                                            EDITOR_ROLE_NAME).size();
 
         assertThat(roleSource.roles(), hasSize(expectedNumberOfRoles));
     }

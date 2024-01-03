@@ -764,7 +764,7 @@ class UserSelectionUponLoginHandlerTest {
 
         var newRole = RoleDto.newBuilder()
                           .withRoleName(APP_ADMIN_SOMEWHERE)
-                          .withAccessRights(List.of(AccessRight.MANAGE_CUSTOMERS))
+                          .withAccessRights(List.of(AccessRight.ACT_AS))
                           .build();
         persistRole(newRole);
         createUserWithRolesForPerson(adminNin, newRole);
@@ -802,7 +802,7 @@ class UserSelectionUponLoginHandlerTest {
 
         var newRole = RoleDto.newBuilder()
                           .withRoleName(APP_ADMIN_SOMEWHERE)
-                          .withAccessRights(List.of(AccessRight.MANAGE_CUSTOMERS))
+                          .withAccessRights(List.of(AccessRight.ACT_AS))
                           .build();
         persistRole(newRole);
         createUserWithRolesForPerson(adminNin, newRole);

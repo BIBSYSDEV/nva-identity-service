@@ -20,6 +20,7 @@ import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -158,10 +159,16 @@ public class UserSelectionUponLoginHandler
 
         var customerForImpersonators = fetchCustomersWithActiveAffiliations(impersonator.getAffiliations());
         var usersForImpersonator = createUsers(impersonator, customerForImpersonators, authenticationDetails);
-        var rolesForImpersonator = rolesPerCustomer(usersForImpersonator);
-        var allowed = rolesForImpersonator.stream().anyMatch(s -> s.startsWith(APP_ADMIN_ROLE_NAME));
+        var impersonatorsAccessRights = usersForImpersonator
+                           .stream()
+                           .map(user -> UserAccessRightForCustomer.fromUser(user, customerForImpersonators))
+                           .flatMap(Collection::stream)
+                           .map(UserAccessRightForCustomer::getAccessRight)
+                           .collect(Collectors.toSet());
 
-        if (!allowed) {
+        var isAllowedToImpersonate = impersonatorsAccessRights.contains(ACT_AS);
+
+        if (!isAllowedToImpersonate) {
             LOGGER.warn(USER_NOT_ALLOWED_TO_IMPERSONATE);
             throw new IllegalStateException(USER_NOT_ALLOWED_TO_IMPERSONATE);
         }

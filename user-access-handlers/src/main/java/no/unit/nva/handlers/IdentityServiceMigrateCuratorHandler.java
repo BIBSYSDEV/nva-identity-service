@@ -43,6 +43,7 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
 
         return null;
     }
+
     @Override
     protected Integer getSuccessStatusCode(Void input, Void output) {
         return HttpURLConnection.HTTP_OK;
@@ -55,6 +56,7 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     private UserDto attemptUpdateRolesForUser(UserDto user) {
         return attempt(() -> updateRolesForUser(user)).orElseThrow();
     }
+
     private UserDto updateRolesForUser(UserDto user) throws NotFoundException {
         logger.info("Updating roles for {}", user.getUsername());
         var roles = user.getRoles();

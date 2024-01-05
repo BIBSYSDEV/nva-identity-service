@@ -15,40 +15,48 @@ import static nva.commons.apigateway.AccessRight.MANAGE_OWN_RESOURCES;
 import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
 import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_ALL;
 import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_STANDARD;
+import static nva.commons.apigateway.AccessRight.SUPPORT;
 import java.util.List;
 import no.unit.nva.handlers.RoleSource;
 import no.unit.nva.useraccessservice.model.RoleDto;
 
 public class DefaultRoleSource implements RoleSource {
 
-    protected static final String CURATOR_ROLE_NAME = "Curator";
     protected static final String FILE_CURATOR_ROLE_NAME = "File-Curator";
+    protected static final String DOI_CURATOR_ROLE_NAME = "Doi-Curator";
+    protected static final String NVI_CURATOR_ROLE_NAME = "Nvi-Curator";
+    protected static final String SUPPORT_CURATOR_ROLE_NAME = "Support-Curator";
     protected static final String INSTITUTION_ADMIN_ROLE_NAME = "Institution-admin";
     protected static final String INTERNAL_IMPORTER_ROLE_NAME = "Internal-importer";
     protected static final String CURATOR_THESIS_ROLE_NAME = "Curator-thesis";
     protected static final String CURATOR_THESIS_EMBARGO_ROLE_NAME = "Curator-thesis-embargo";
     protected static final String APP_ADMIN_ROLE_NAME = "App-admin";
     protected static final String EDITOR_ROLE_NAME = "Editor";
-    protected static final String NVI_CURATOR_ROLE_NAME = "Nvi-curator";
 
     private static final RoleDto CREATOR_ROLE = RoleDto.newBuilder()
                                                     .withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
                                                     .withAccessRights(List.of(MANAGE_OWN_RESOURCES))
                                                     .build();
-
-    private static final RoleDto CURATOR_ROLE = RoleDto.newBuilder()
-                                                    .withRoleName(CURATOR_ROLE_NAME)
-                                                    .withAccessRights(List.of(MANAGE_DOI,
-                                                                              MANAGE_RESOURCES_STANDARD,
-                                                                              MANAGE_PUBLISHING_REQUESTS
-                                                                              ))
-                                                    .build();
-
-    private static final RoleDto FILE_CURATOR_ROLE = RoleDto.newBuilder()
+    public static final RoleDto FILE_CURATOR_ROLE = RoleDto.newBuilder()
                                                     .withRoleName(FILE_CURATOR_ROLE_NAME)
-                                                    .withAccessRights(List.of(MANAGE_PUBLISHING_REQUESTS))
+                                                    .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
+                                                                              MANAGE_PUBLISHING_REQUESTS))
                                                     .build();
-
+    public static final RoleDto NVI_CURATOR_ROLE = RoleDto.newBuilder()
+                                                   .withRoleName(NVI_CURATOR_ROLE_NAME)
+                                                   .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
+                                                                             MANAGE_NVI_CANDIDATES))
+                                                   .build();
+    public static final RoleDto DOI_CURATOR_ROLE = RoleDto.newBuilder()
+                                                   .withRoleName(DOI_CURATOR_ROLE_NAME)
+                                                   .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
+                                                                             MANAGE_DOI))
+                                                   .build();
+    public static final RoleDto SUPPORT_CURATOR_ROLE = RoleDto.newBuilder()
+                                                   .withRoleName(SUPPORT_CURATOR_ROLE_NAME)
+                                                   .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
+                                                                             SUPPORT))
+                                                   .build();
     private static final RoleDto INSTITUTION_ADMIN_ROLE = RoleDto.newBuilder()
                                                               .withRoleName(INSTITUTION_ADMIN_ROLE_NAME)
                                                               .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
@@ -87,22 +95,20 @@ public class DefaultRoleSource implements RoleSource {
                                                                              MANAGE_RESOURCES_ALL))
                                                    .build();
 
-    private static final RoleDto NVI_CURATOR = RoleDto.newBuilder()
-                                                   .withRoleName(NVI_CURATOR_ROLE_NAME)
-                                                   .withAccessRights(List.of(MANAGE_NVI_CANDIDATES))
-                                                   .build();
+
 
     @Override
     public List<RoleDto> roles() {
         return List.of(CREATOR_ROLE,
-                       CURATOR_ROLE,
                        FILE_CURATOR_ROLE,
+                       NVI_CURATOR_ROLE,
+                       DOI_CURATOR_ROLE,
+                       SUPPORT_CURATOR_ROLE,
                        INSTITUTION_ADMIN_ROLE,
                        APPLICATION_ADMIN_ROLE,
                        EDITOR_ROLE,
                        INTERNAL_IMPORTER,
                        CURATOR_THESIS_ROLE,
-                       CURATOR_THESIS_EMBARGO_ROLE,
-                       NVI_CURATOR);
+                       CURATOR_THESIS_EMBARGO_ROLE);
     }
 }

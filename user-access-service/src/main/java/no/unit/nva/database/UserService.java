@@ -3,6 +3,8 @@ package no.unit.nva.database;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
+import static no.unit.nva.useraccessservice.dao.UserDao.TYPE_VALUE;
+import static no.unit.nva.useraccessservice.interfaces.Typed.TYPE_FIELD;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Collection;
@@ -21,11 +23,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class UserService extends DatabaseSubService {
 
@@ -58,6 +63,31 @@ public class UserService extends DatabaseSubService {
     public UserDto getUser(UserDto queryObject) throws NotFoundException {
         return getUserAsOptional(queryObject)
                    .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
+    }
+
+    /**
+     * List all users at all institutions. Uses an expansive scan-operation and should not be used outside of
+     * migration-code
+     */
+    public List<UserDto> listAllUsers() {
+
+        return this.table
+                   .scan(buildScanRequestForAllUsers())
+                   .stream()
+                   .map(Page::items)
+                   .flatMap(Collection::stream)
+                   .filter(dao -> dao.getType().equals(TYPE_VALUE))
+                   .map(UserDao::toUserDto)
+                   .toList();
+    }
+
+    private static ScanEnhancedRequest buildScanRequestForAllUsers() {
+        var expression = Expression.builder().expression("#type = :type")
+                             .putExpressionValue(":type",
+                                                 AttributeValue.builder().s(TYPE_VALUE).build())
+                             .putExpressionName("#type", TYPE_FIELD)
+                             .build();
+        return ScanEnhancedRequest.builder().filterExpression(expression).build();
     }
 
     /**

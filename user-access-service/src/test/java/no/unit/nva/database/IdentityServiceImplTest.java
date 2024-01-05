@@ -8,6 +8,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -80,6 +81,16 @@ public class IdentityServiceImplTest extends LocalIdentityService {
         assertThrows(NotFoundException.class, () -> databaseService.updateRole(role));
         assertThat(testAppender.getMessages(),
                    StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
+    }
+
+    @Test
+    void shouldListAllUsersWhenDatabseAlsoIncludesRoles() throws ConflictException, InvalidInputException {
+        databaseService.addUser(EntityUtils.createUser());
+        databaseService.addUser(EntityUtils.createUser());
+        databaseService.addRole(EntityUtils.createRole(randomString()));
+
+        var users = databaseService.listAllUsers();
+        assertThat(users, hasSize(2));
     }
 
     private IdentityService mockServiceThrowsExceptionWhenLoadingRole() {

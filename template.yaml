@@ -512,6 +512,23 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
 
+  MigrateCuratorsIdenitityServiceHandler:
+    Type: AWS::Serverless::Function
+    Description: 'Migrated users that has Curator role to instead have support, doi, nvi, and file-curator'
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.IdentityServiceMigrateCuratorHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          SIKT_CRISTIN_ID: !Ref SiktCristinId
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserRoleMappings
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+
   SetImpersonationHandler:
     Type: AWS::Serverless::Function
     Properties:

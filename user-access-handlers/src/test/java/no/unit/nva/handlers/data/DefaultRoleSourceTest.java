@@ -3,13 +3,13 @@ package no.unit.nva.handlers.data;
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.DOI_CURATOR_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.FILE_CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.INTERNAL_IMPORTER_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_EMBARGO_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.EDITOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.INSTITUTION_ADMIN_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.NVI_CURATOR_ROLE_NAME;
+import static no.unit.nva.handlers.data.DefaultRoleSource.PUBLISHING_CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.SUPPORT_CURATOR_ROLE_NAME;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
@@ -67,8 +67,8 @@ public class DefaultRoleSourceTest {
     }
 
     @Test
-    void fileCuratorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(FILE_CURATOR_ROLE_NAME);
+    void publishingCuratorsShouldHaveCorrectAccessRights() {
+        var curatorRole = getRoleByName(PUBLISHING_CURATOR_ROLE_NAME);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_PUBLISHING_REQUESTS,
                                                                      MANAGE_RESOURCES_STANDARD));
@@ -136,7 +136,7 @@ public class DefaultRoleSourceTest {
                                             NVI_CURATOR_ROLE_NAME,
                                             DOI_CURATOR_ROLE_NAME,
                                             SUPPORT_CURATOR_ROLE_NAME,
-                                            FILE_CURATOR_ROLE_NAME,
+                                            PUBLISHING_CURATOR_ROLE_NAME,
                                             CURATOR_THESIS_ROLE_NAME,
                                             CURATOR_THESIS_EMBARGO_ROLE_NAME,
                                             INTERNAL_IMPORTER_ROLE_NAME,

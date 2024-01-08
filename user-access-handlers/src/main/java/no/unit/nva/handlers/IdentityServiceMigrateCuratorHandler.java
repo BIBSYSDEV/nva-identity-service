@@ -1,8 +1,8 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.handlers.data.DefaultRoleSource.DOI_CURATOR_ROLE;
-import static no.unit.nva.handlers.data.DefaultRoleSource.FILE_CURATOR_ROLE;
 import static no.unit.nva.handlers.data.DefaultRoleSource.NVI_CURATOR_ROLE;
+import static no.unit.nva.handlers.data.DefaultRoleSource.PUBLISHING_CURATOR_ROLE;
 import static no.unit.nva.handlers.data.DefaultRoleSource.SUPPORT_CURATOR_ROLE;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -67,7 +67,7 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     }
 
     private Set<RoleDto> updateRoleSet(Set<RoleDto> roleSet) {
-        roleSet.add(FILE_CURATOR_ROLE);
+        roleSet.add(PUBLISHING_CURATOR_ROLE);
         roleSet.add(DOI_CURATOR_ROLE);
         roleSet.add(SUPPORT_CURATOR_ROLE);
         roleSet.add(NVI_CURATOR_ROLE);

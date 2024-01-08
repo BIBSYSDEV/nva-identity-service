@@ -22,7 +22,7 @@ import no.unit.nva.useraccessservice.model.RoleDto;
 
 public class DefaultRoleSource implements RoleSource {
 
-    protected static final String FILE_CURATOR_ROLE_NAME = "File-Curator";
+    protected static final String PUBLISHING_CURATOR_ROLE_NAME = "Publishing-Curator";
     protected static final String DOI_CURATOR_ROLE_NAME = "Doi-Curator";
     protected static final String NVI_CURATOR_ROLE_NAME = "Nvi-Curator";
     protected static final String SUPPORT_CURATOR_ROLE_NAME = "Support-Curator";
@@ -37,8 +37,8 @@ public class DefaultRoleSource implements RoleSource {
                                                     .withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
                                                     .withAccessRights(List.of(MANAGE_OWN_RESOURCES))
                                                     .build();
-    public static final RoleDto FILE_CURATOR_ROLE = RoleDto.newBuilder()
-                                                    .withRoleName(FILE_CURATOR_ROLE_NAME)
+    public static final RoleDto PUBLISHING_CURATOR_ROLE = RoleDto.newBuilder()
+                                                    .withRoleName(PUBLISHING_CURATOR_ROLE_NAME)
                                                     .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
                                                                               MANAGE_PUBLISHING_REQUESTS))
                                                     .build();
@@ -100,7 +100,7 @@ public class DefaultRoleSource implements RoleSource {
     @Override
     public List<RoleDto> roles() {
         return List.of(CREATOR_ROLE,
-                       FILE_CURATOR_ROLE,
+                       PUBLISHING_CURATOR_ROLE,
                        NVI_CURATOR_ROLE,
                        DOI_CURATOR_ROLE,
                        SUPPORT_CURATOR_ROLE,

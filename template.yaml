@@ -109,6 +109,7 @@ Globals:
       AllowMethods: '''POST, PUT, GET,OPTIONS'''
       AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
       AllowOrigin: '''*'''
+    OpenApiVersion: 3.0.1
 
 Resources:
 
@@ -324,13 +325,21 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-
+  
+  UsersAndRolesAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      RetentionInDays: 180
+  
   UsersAndRolesApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
       EndpointConfiguration:
         Type: REGIONAL
+      AccessLogSetting:
+        DestinationArn: !GetAtt UsersAndRolesAccessLogGroup.Arn
+        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
       DefinitionBody:
         'Fn::Transform':
           Name: AWS::Include

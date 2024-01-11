@@ -2,11 +2,14 @@ package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.handlers.HandlerTest.DEFAULT_INSTITUTION;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
@@ -22,8 +25,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import no.unit.nva.RandomUserDataGenerator;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import no.unit.nva.testutils.RandomDataGenerator;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -75,18 +80,42 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     }
 
     @Test
-    void handleRequestReturnsListOfUsersGivenAnInstitutionAndRole()
+    void handleRequestReturnsListOfUsersGivenAnInstitutionAndSingleRole()
         throws IOException, ConflictException, InvalidEntryInternalException {
 
         var expectedUser = insertTwoUsersOfSameInstitution().getUsers().get(0);
         var roleName = ((RoleDto) expectedUser.getRoles().toArray()[0]).getRoleName();
-        var validRequest = createListWithFilterRequest(DEFAULT_INSTITUTION, roleName);
+        var validRequest = createListWithFilterRequest(DEFAULT_INSTITUTION, List.of(roleName));
 
         var response = sendRequestToHandler(validRequest, UserList.class);
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
 
         var actualUsers = parseResponseBody(response).getUsers();
         assertThat(actualUsers.get(0), is(equalTo(expectedUser)));
+    }
+
+    @Test
+    void handleRequestReturnsListOfUsersGivenAnInstitutionAndMultipleRoles()
+        throws IOException, ConflictException, InvalidEntryInternalException {
+
+        var user1 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION);
+        var user2 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION);
+        var user3 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION);
+
+        var rolesOfFirstTwoUsers = List.of(
+            user1.getRoles().stream().findFirst().get().getRoleName(),
+            user2.getRoles().stream().findFirst().get().getRoleName()
+        );
+
+        var validRequest = createListWithFilterRequest(DEFAULT_INSTITUTION, rolesOfFirstTwoUsers);
+
+        var response = sendRequestToHandler(validRequest, UserList.class);
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
+
+        var actualUsers = parseResponseBody(response).getUsers();
+        assertThat(actualUsers, hasItem(user1));
+        assertThat(actualUsers, hasItem(user2));
+        assertThat(actualUsers, not(hasItem(user3)));
     }
 
     @Test
@@ -167,7 +196,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
 
     private UserList expectedUsersOfInstitution(UserList insertedUsers) {
         List<UserDto> users = insertedUsers.getUsers().stream()
-                                  .filter(userDto -> userDto.getInstitution().equals(HandlerTest.DEFAULT_INSTITUTION))
+                                  .filter(userDto -> userDto.getInstitution().equals(DEFAULT_INSTITUTION))
                                   .collect(Collectors.toList());
         return UserList.fromList(users);
     }
@@ -175,7 +204,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     private UserList insertTwoUsersOfDifferentInstitutions()
         throws InvalidEntryInternalException, ConflictException {
         UserList users = new UserList();
-        users.getUsers().add(insertSampleUserToDatabase(DEFAULT_USERNAME, HandlerTest.DEFAULT_INSTITUTION));
+        users.getUsers().add(insertSampleUserToDatabase(DEFAULT_USERNAME, DEFAULT_INSTITUTION));
         users.getUsers().add(insertSampleUserToDatabase(SOME_OTHER_USERNAME, SOME_OTHER_INSTITUTION));
 
         return users;
@@ -208,13 +237,15 @@ class ListByInstitutionHandlerTest extends HandlerTest {
                    .build();
     }
 
-    private InputStream createListWithFilterRequest(URI institutionId, String role) throws JsonProcessingException {
+    private InputStream createListWithFilterRequest(URI institutionId, List<String> roles) throws JsonProcessingException {
         var queryParams = Map.of(
-            INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString(),
-            ROLE, role);
+            INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString()
+            );
+        var multiValueParams = Map.of(ROLE, roles);
 
         return new HandlerRequestBuilder<>(dtoObjectMapper)
                    .withQueryParameters(queryParams)
+                   .withMultiValueQueryParameters(multiValueParams)
                    .build();
     }
 

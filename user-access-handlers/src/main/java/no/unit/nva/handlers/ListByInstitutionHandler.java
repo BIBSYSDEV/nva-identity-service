@@ -3,10 +3,14 @@ package no.unit.nva.handlers;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.UserList;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -19,6 +23,8 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
     public static final String INSTITUTION_ID_QUERY_PARAMETER = "institution";
     public static final String MISSING_QUERY_PARAMETER_ERROR = "Institution Id query parameter is not a URI. "
                                                                + "Probably error in the Lambda function definition.";
+    public static final String QUERY_PARAM_ROLE = "role";
+    public static final String QUERY_PARAM_NAME = "name";
     private final IdentityService databaseService;
 
     public ListByInstitutionHandler(IdentityService databaseService) {
@@ -40,13 +46,13 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
     @Override
     protected UserList processInput(Void body, RequestInfo input, Context context) throws BadRequestException {
         var institutionId = extractInstitutionIdFromRequest(input);
-        var role = input.getQueryParameterOpt("role");
-        var userName = input.getQueryParameterOpt("name");
+        var roles = new HashSet<>(input.getMultiValueQueryParameter(QUERY_PARAM_ROLE));
+        var userName = input.getQueryParameterOpt(QUERY_PARAM_NAME);
         var users =
             databaseService
                 .listUsers(institutionId).stream()
                 .filter(user -> likeUserOrEmpty(user, userName))
-                .filter(user -> hasRoleOrEmpty(user, role))
+                .filter(user -> roles.isEmpty() || hasOneRole(user, roles))
                 .collect(Collectors.toList());
         return UserList.fromList(users);
     }
@@ -63,9 +69,8 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
                    .orElse(true);
     }
 
-    private boolean hasRoleOrEmpty(UserDto userDto, Optional<String> roleName) {
-        return roleName
-                   .map(s -> userDto.getRoles().stream().anyMatch(f -> f.getRoleName().equals(s)))
-                   .orElse(true);
+    private boolean hasOneRole(UserDto userDto, Set<String> checkedRoles) {
+        var userRoles = userDto.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
+        return !Collections.disjoint(userRoles, checkedRoles);
     }
 }

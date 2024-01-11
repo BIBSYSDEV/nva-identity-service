@@ -2,6 +2,7 @@ package no.unit.nva.handlers.data;
 
 import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
+import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.DOI_CURATOR_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.INTERNAL_IMPORTER_ROLE_NAME;
 import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_EMBARGO_ROLE_NAME;
@@ -133,6 +134,7 @@ public class DefaultRoleSourceTest {
     @Test
     void shouldReturnExpectedNumberOfRoles() {
         var expectedNumberOfRoles = List.of(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT,
+                                            CURATOR_ROLE_NAME,
                                             NVI_CURATOR_ROLE_NAME,
                                             DOI_CURATOR_ROLE_NAME,
                                             SUPPORT_CURATOR_ROLE_NAME,

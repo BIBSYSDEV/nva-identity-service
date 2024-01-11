@@ -237,7 +237,8 @@ class ListByInstitutionHandlerTest extends HandlerTest {
                    .build();
     }
 
-    private InputStream createListWithFilterRequest(URI institutionId, List<String> roles) throws JsonProcessingException {
+    private InputStream createListWithFilterRequest(URI institutionId, List<String> roles)
+        throws JsonProcessingException {
         var queryParams = Map.of(
             INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString()
             );

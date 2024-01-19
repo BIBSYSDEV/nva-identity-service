@@ -31,7 +31,7 @@ public class DefaultRoleSource implements RoleSource {
     protected static final String INTERNAL_IMPORTER_ROLE_NAME = "Internal-importer";
     protected static final String CURATOR_THESIS_ROLE_NAME = "Curator-thesis";
     protected static final String CURATOR_THESIS_EMBARGO_ROLE_NAME = "Curator-thesis-embargo";
-    protected static final String APP_ADMIN_ROLE_NAME = "App-admin";
+    public static final String APP_ADMIN_ROLE_NAME = "App-admin";
     protected static final String EDITOR_ROLE_NAME = "Editor";
 
     private static final RoleDto CREATOR_ROLE = RoleDto.newBuilder()

@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_NAME;
@@ -186,6 +187,28 @@ class CreateUserHandlerTest extends HandlerTest {
         var request = createRequestWithoutAccessRights(requestBody);
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    @Test
+    void shouldDenyAccessWhenInstitutionAdminTriesToCreateAnAppAdmin() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = fetchSomeCustomerForThePerson(person);
+        var requestBody = new CreateUserRequest(person, customer.getId(), appAdminRole());
+
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        var response = sendRequest(request, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    @Test
+    void shouldAllowAccessWhenAppAdminTriesToCreateAnAppAdmin() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = fetchSomeCustomerForThePerson(person);
+        var requestBody = new CreateUserRequest(person, customer.getId(), appAdminRole());
+
+        var request = createRequest(requestBody, customer, MANAGE_CUSTOMERS);
+        var response = sendRequest(request, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
     @Test
@@ -379,6 +402,12 @@ class CreateUserHandlerTest extends HandlerTest {
 
     private Set<RoleDto> randomRoles() {
         var role = RoleDto.newBuilder().withRoleName(randomString()).build();
+        addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
+        return Set.of(role);
+    }
+
+    private Set<RoleDto> appAdminRole() {
+        var role = RoleDto.newBuilder().withRoleName(APP_ADMIN_ROLE_NAME).build();
         addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
         return Set.of(role);
     }

@@ -122,7 +122,7 @@ class CustomerDtoTest {
                    .build();
     }
 
-    private CustomerDto randomActiveCustomer(){
+    private CustomerDto randomActiveCustomer() {
         var customer = randomInactiveCustomer();
         customer.setInactiveFrom(null);
         return customer;

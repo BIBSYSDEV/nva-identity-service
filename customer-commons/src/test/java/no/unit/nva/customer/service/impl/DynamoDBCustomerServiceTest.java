@@ -385,7 +385,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         return customer;
     }
 
-    private CustomerDto newActiveCustomerDto(){
+    private CustomerDto newActiveCustomerDto() {
         var customer = newInactiveCustomerDto();
         customer.setInactiveFrom(null);
         return customer;

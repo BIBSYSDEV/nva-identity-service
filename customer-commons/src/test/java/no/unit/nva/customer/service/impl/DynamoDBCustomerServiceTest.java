@@ -11,9 +11,11 @@ import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,7 +70,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     @Test
     void createNewCustomerReturnsTheCustomer() throws NotFoundException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
 
         assertNotNull(createdCustomer.getIdentifier());
@@ -80,7 +82,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     @Test
     void updateExistingCustomerWithNewName() throws NotFoundException, InputException, ConflictException {
         String newName = "New name";
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         assertNotEquals(newName, createdCustomer.getName());
 
@@ -92,7 +94,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     @Test
     void shouldUpdateRboInstitutionWhenRboInstitutionIsSetToTrue()
         throws NotFoundException, InputException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         customer.setRboInstitution(false);
         var createdCustomer = service.createCustomer(customer);
         assertFalse(createdCustomer.isRboInstitution());
@@ -103,21 +105,21 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldUpdateInactiveWhenInactiveIsSetToTrue()
+    void shouldUpdateInactiveFromWhenInactiveIsSet()
         throws NotFoundException, InputException, ConflictException {
-        var customer = newCustomerDto();
-        customer.setInactive(false);
+        var customer = newActiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
-        assertFalse(createdCustomer.isInactive());
+        assertThat(createdCustomer.getInactiveFrom(), is(nullValue()));
 
-        createdCustomer.setInactive(true);
+        var now = Instant.now();
+        createdCustomer.setInactiveFrom(now);
         var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
-        assertTrue(updatedCustomer.isInactive());
+        assertThat(updatedCustomer.getInactiveFrom(), is(equalTo(now)));
     }
 
     @Test
     void updateExistingCustomerChangesModifiedDate() throws NotFoundException, InputException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
 
         var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
@@ -126,7 +128,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     @Test
     void updateExistingCustomerPreservesCreatedDate() throws NotFoundException, InputException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
         assertEquals(createdCustomer.getCreatedDate(), updatedCustomer.getCreatedDate());
@@ -134,7 +136,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     @Test
     void updateExistingCustomerWithDifferentIdentifiersThrowsException() throws NotFoundException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         var differentIdentifier = UUID.randomUUID();
         var exception = assertThrows(InputException.class,
@@ -146,7 +148,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     @Test
     void getExistingCustomerReturnsTheCustomer() throws NotFoundException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         CustomerDto getCustomer = null;
         try {
@@ -159,7 +161,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldReturnCustomerById() throws NotFoundException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         CustomerDto retrievedCustomer = null;
         try {
@@ -172,7 +174,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     @Test
     void getCustomerByOrgDomainReturnsTheCustomer() throws NotFoundException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         CustomerDto getCustomer = null;
         try {
@@ -185,7 +187,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     @Test
     void getCustomerByCristinIdReturnsTheCustomer() throws NotFoundException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newInactiveCustomerDto();
         var createdCustomer = service.createCustomer(customer);
         assertThat(createdCustomer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
         var retrievedCustomer = service.getCustomerByCristinId(createdCustomer.getCristinId());
@@ -194,7 +196,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldThrowNotFoundExceptionWhenQueryResultIsEmpty() throws NotFoundException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         service.createCustomer(customer);
         assertThrows(NotFoundException.class, () -> service.getCustomerByCristinId(randomUri()));
     }
@@ -202,9 +204,9 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     @Test
     void getAllCustomersReturnsListOfCustomers() throws NotFoundException, ConflictException {
         // create three customers
-        service.createCustomer(newCustomerDto());
-        service.createCustomer(newCustomerDto());
-        service.createCustomer(newCustomerDto());
+        service.createCustomer(newActiveCustomerDto());
+        service.createCustomer(newActiveCustomerDto());
+        service.createCustomer(newActiveCustomerDto());
 
         var customers = service.getCustomers();
         assertEquals(3, customers.size());
@@ -254,7 +256,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
             .when(failingTable).putItem(any(CustomerDao.class));
         var failingService = new DynamoDBCustomerService(failingTable);
         var exception = assertThrows(RuntimeException.class,
-                                     () -> failingService.createCustomer(newCustomerDto()));
+                                     () -> failingService.createCustomer(newInactiveCustomerDto()));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -267,7 +269,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         })
             .when(failingTable).putItem(any(CustomerDao.class));
         var failingService = new DynamoDBCustomerService(failingTable);
-        var customer = newCustomerDto();
+        var customer = newActiveCustomerDto();
         customer.setIdentifier(UUID.randomUUID());
         var exception = assertThrows(RuntimeException.class,
                                      () -> failingService.updateCustomer(customer.getIdentifier(),
@@ -292,11 +294,11 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     void shouldThrowConflictErrorWhenCustomerWithSameInstitutionIdExists() throws NotFoundException, ConflictException {
         var existingCustomer = createCustomerWithSingleVocabularyEntry();
         var customerDuplicate = CustomerDto.builder()
-            .withCristinId(existingCustomer.getCristinId())
-            .withCname(randomString())
-            .withArchiveName(randomString())
-            .withName(randomString())
-            .build();
+                                    .withCristinId(existingCustomer.getCristinId())
+                                    .withCname(randomString())
+                                    .withArchiveName(randomString())
+                                    .withName(randomString())
+                                    .build();
         Executable action = () -> service.createCustomer(customerDuplicate);
         assertThrows(ConflictException.class, action);
     }
@@ -318,7 +320,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
         Map<String, AttributeValue> updatedEntry) {
         return updatedEntry.get(CustomerDao.VOCABULARIES_FIELD).l().get(SINGLE_VOCABULARY)
-            .m().get(VocabularyDao.STATUS_FIELD).s();
+                   .m().get(VocabularyDao.STATUS_FIELD).s();
     }
 
     private void updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(Map<String, AttributeValue> entry) {
@@ -343,7 +345,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     private CustomerDto createCustomerWithSingleVocabularyEntry() throws NotFoundException, ConflictException {
-        var customer = newCustomerDto();
+        var customer = newInactiveCustomerDto();
         customer.setVocabularies(List.of(randomVocabulary()));
         return service.createCustomer(customer);
     }
@@ -352,8 +354,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         return "AlLoWed";
     }
 
-
-    private CustomerDto newCustomerDto() {
+    private CustomerDto newInactiveCustomerDto() {
         var oneMinuteInThePast = Instant.now().minusSeconds(60L);
         var customer = CustomerDto.builder()
                            .withName(randomString())
@@ -375,12 +376,18 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withSector(randomSector())
                            .withNviInstitution(randomBoolean())
                            .withRboInstitution(randomBoolean())
-                           .withInactive(randomBoolean())
+                           .withInactiveFrom(randomInstant())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password","doiAgent.id")));
+        return customer;
+    }
+
+    private CustomerDto newActiveCustomerDto(){
+        var customer = newInactiveCustomerDto();
+        customer.setInactiveFrom(null);
         return customer;
     }
 

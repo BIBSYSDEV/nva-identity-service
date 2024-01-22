@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -40,7 +41,7 @@ public class CreateCustomerRequest {
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
-    private boolean inactive;
+    private Instant inactiveFrom;
     private Sector sector;
     private URI rorId;
     private URI serviceCenterUri;
@@ -62,7 +63,7 @@ public class CreateCustomerRequest {
         request.setSector(customerDto.getSector());
         request.setNviInstitution(customerDto.isNviInstitution());
         request.setRboInstitution(customerDto.isRboInstitution());
-        request.setInactive(customerDto.isInactive());
+        request.setInactiveFrom(customerDto.getInactiveFrom());
         request.setRorId(customerDto.getRorId());
         request.setServiceCenterUri(customerDto.getServiceCenterUri());
         request.setAllowFileUploadForTypes(customerDto.getAllowFileUploadForTypes());
@@ -88,7 +89,7 @@ public class CreateCustomerRequest {
                    .withDoiAgent(getDoiAgent())
                    .withNviInstitution(isNviInstitution())
                    .withRboInstitution(isRboInstitution())
-                   .withInactive(isInactive())
+                   .withInactiveFrom(getInactiveFrom())
                    .withSector(getSector())
                    .withRorId(getRorId())
                    .withServiceCenterUri(getServiceCenterUri())
@@ -209,12 +210,12 @@ public class CreateCustomerRequest {
         this.rboInstitution = rboInstitution;
     }
 
-    public boolean isInactive() {
-        return inactive;
+    public Instant getInactiveFrom() {
+        return inactiveFrom;
     }
 
-    public void setInactive(boolean inactive) {
-        this.inactive = inactive;
+    public void setInactiveFrom(Instant inactiveFrom) {
+        this.inactiveFrom = inactiveFrom;
     }
 
     public Sector getSector() {
@@ -254,7 +255,7 @@ public class CreateCustomerRequest {
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
-                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), isInactive(),
+                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getInactiveFrom(),
                             getRorId(), getServiceCenterUri(), getAllowFileUploadForTypes());
     }
 
@@ -282,7 +283,7 @@ public class CreateCustomerRequest {
                && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(isRboInstitution(), that.isRboInstitution())
-               && Objects.equals(isInactive(), that.isInactive())
+               && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
     }

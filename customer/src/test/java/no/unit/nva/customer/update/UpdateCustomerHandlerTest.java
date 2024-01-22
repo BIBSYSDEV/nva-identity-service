@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
@@ -96,11 +97,12 @@ public class UpdateCustomerHandlerTest {
         UUID identifier = UUID.randomUUID();
         CustomerDto customer = createCustomer(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
-        assertFalse(customer.isInactive());
+        assertThat(customer.getInactiveFrom(), is(nullValue()));
 
-        customer.setInactive(true);
+        var now = Instant.now();
+        customer.setInactiveFrom(now);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
-        assertTrue(customer.isInactive());
+        assertThat(customer.getInactiveFrom(), is(equalTo(now)));
     }
 
     @Test

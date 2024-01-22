@@ -59,7 +59,7 @@ class UpdateCustomerDoiHandlerTest {
         var secretsReaderMock = mock(SecretsReader.class);
 
         handler = new UpdateCustomerDoiHandler(customerServiceMock, mock(SecretsWriter.class), secretsReaderMock);
-        existingCustomer = CustomerDataGenerator.createSampleCustomerDao().toCustomerDto();
+        existingCustomer = CustomerDataGenerator.createSampleActiveCustomerDao().toCustomerDto();
         existingDoiAgent = existingCustomer.getDoiAgent().addPassword(randomString());
 
         var doiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());

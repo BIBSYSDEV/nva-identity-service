@@ -67,7 +67,7 @@ public class CustomerDao implements Typed {
     private DoiAgentDao doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
-    private boolean inactive;
+    private Instant inactiveFrom;
     private Sector sector;
     @JsonAlias("rightRetentionStrategy")
     private RightsRetentionStrategyDao rightsRetentionStrategy;
@@ -103,7 +103,7 @@ public class CustomerDao implements Typed {
                    .withDoiAgent(dto.getDoiAgent())
                    .withNviInstitution(dto.isNviInstitution())
                    .withRboInstitution(dto.isRboInstitution())
-                   .withInactive(dto.isInactive())
+                   .withInactiveFrom(dto.getInactiveFrom())
                    .withSector(dto.getSector())
                    .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(extractPublicationInstanceTypes(dto))
@@ -118,12 +118,12 @@ public class CustomerDao implements Typed {
         this.rboInstitution = rboInstitution;
     }
 
-    public boolean isInactive() {
-        return inactive;
+    public Instant getInactiveFrom() {
+        return inactiveFrom;
     }
 
-    public void setInactive(boolean inactive) {
-        this.inactive = inactive;
+    public void setInactiveFrom(Instant inactiveFrom) {
+        this.inactiveFrom = inactiveFrom;
     }
 
     @JacocoGenerated
@@ -132,7 +132,7 @@ public class CustomerDao implements Typed {
         return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
                             institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
                             serviceCenterUri, publicationWorkflow, doiAgent, nviInstitution, rboInstitution,
-                            inactive, sector, rightsRetentionStrategy, allowFileUploadForTypes);
+                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes);
     }
 
     @JacocoGenerated
@@ -147,7 +147,7 @@ public class CustomerDao implements Typed {
         CustomerDao that = (CustomerDao) o;
         return nviInstitution == that.nviInstitution
                && rboInstitution == that.rboInstitution
-               && inactive == that.inactive
+               && Objects.equals(inactiveFrom, that.inactiveFrom)
                && Objects.equals(identifier, that.identifier)
                && Objects.equals(createdDate, that.createdDate)
                && Objects.equals(modifiedDate, that.modifiedDate)
@@ -383,7 +383,7 @@ public class CustomerDao implements Typed {
                                       .withDoiAgent(getDoiAgent())
                                       .withNviInstitution(isNviInstitution())
                                       .withRboInstitution(isRboInstitution())
-                                      .withInactive(isInactive())
+                                      .withInactiveFrom(getInactiveFrom())
                                       .withSector(getSector())
                                       .withRightsRetentionStrategy(getRightsRetentionStrategy())
                                       .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
@@ -564,8 +564,8 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withInactive(boolean inactive) {
-            customerDb.setInactive(inactive);
+        public Builder withInactiveFrom(Instant inactiveFrom) {
+            customerDb.setInactiveFrom(inactiveFrom);
             return this;
         }
 

@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
+import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.PublicationWorkflow;
-import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
 import no.unit.nva.customer.model.RightsRetentionStrategyType;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.model.VocabularyDao;
@@ -34,10 +34,10 @@ import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 
 public class CustomerDataGenerator {
-    
+
     private static final String API_DOMAIN = new Environment().readEnv("API_DOMAIN");
     private static final String CRISTIN_PATH = "/cristin/organization";
-    
+
     public static CustomerDto createSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
@@ -64,7 +64,7 @@ public class CustomerDataGenerator {
                                    .withSector(randomSector())
                                    .withNviInstitution(randomBoolean())
                                    .withRboInstitution(randomBoolean())
-                                   .withInactive(randomBoolean())
+                                   .withInactiveFrom(randomInstant())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .build();
@@ -80,7 +80,7 @@ public class CustomerDataGenerator {
                    .collect(Collectors.toSet());
     }
 
-    public static CustomerDao createSampleCustomerDao() {
+    public static CustomerDao createSampleInactiveCustomerDao() {
         VocabularyDao vocabulary = randomVocabularyDao();
         CustomerDao customer = CustomerDao.builder()
                                    .withIdentifier(randomIdentifier())
@@ -102,6 +102,7 @@ public class CustomerDataGenerator {
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withNviInstitution(randomBoolean())
                                    .withSector(randomSector())
+                                   .withInactiveFrom(randomInstant())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .build();
@@ -109,10 +110,16 @@ public class CustomerDataGenerator {
         return customer;
     }
 
+    public static CustomerDao createSampleActiveCustomerDao() {
+        var customer = createSampleInactiveCustomerDao();
+        customer.setInactiveFrom(null);
+        return customer;
+    }
+
     public static RightsRetentionStrategy randomRightsRetentionStrategy() {
         var elements = Arrays.stream(RightsRetentionStrategyType.values())
-                .filter(f -> f.ordinal() > 0)
-                .collect(Collectors.toList());
+                           .filter(f -> f.ordinal() > 0)
+                           .collect(Collectors.toList());
         return
             new RightsRetentionStrategyDao(randomElement(elements), randomUri());
     }
@@ -135,10 +142,6 @@ public class CustomerDataGenerator {
                 return "user-name-" + randomString;
             }
         };
-    }
-
-    private static ApplicationDomain randomApplicationDomain() {
-        return ApplicationDomain.NVA;
     }
 
     public static URI randomApplicationDomainUri() {
@@ -185,6 +188,10 @@ public class CustomerDataGenerator {
     public static Set<PublicationInstanceTypes> randomAllowFileUploadForTypes() {
         return new HashSet<>(Arrays.asList(randomAllowFileUploadForTypesDto(), randomAllowFileUploadForTypesDto(),
                                            randomAllowFileUploadForTypesDto()));
+    }
+
+    private static ApplicationDomain randomApplicationDomain() {
+        return ApplicationDomain.NVA;
     }
 }
 

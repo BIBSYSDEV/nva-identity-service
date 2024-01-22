@@ -9,6 +9,7 @@ import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -88,7 +89,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withSector(randomSector())
                            .withNviInstitution(randomBoolean())
                            .withRboInstitution(randomBoolean())
-                           .withInactive(randomBoolean())
+                           .withInactiveFrom(randomInstant())
                            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                            .build();

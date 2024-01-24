@@ -35,25 +35,30 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
+import no.unit.nva.database.RoleService;
 import no.unit.nva.handlers.models.CreateUserRequest;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeSecretsManagerClient;
 import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
+import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.secrets.SecretsReader;
@@ -78,6 +83,8 @@ class CreateUserHandlerTest extends HandlerTest {
     private CustomerService customerService;
     private AuthenticationScenarios scenarios;
     private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
+    private UserEntriesCreatorForPerson userCreator;
+    private PersonRegistry personRegistry;
 
     @BeforeEach
     public void init(WireMockRuntimeInfo wireMockRuntimeInfo) throws InvalidInputException, ConflictException {
@@ -100,10 +107,10 @@ class CreateUserHandlerTest extends HandlerTest {
 
         this.scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
 
-        var userCreator = new UserEntriesCreatorForPerson(identityService);
+        userCreator = new UserEntriesCreatorForPerson(identityService);
 
         var httpClient = WiremockHttpClient.create();
-        var personRegistry = CristinPersonRegistry.customPersonRegistry(
+        personRegistry = CristinPersonRegistry.customPersonRegistry(
             httpClient,
             wiremockUri,
             ServiceConstants.API_DOMAIN,
@@ -418,5 +425,20 @@ class CreateUserHandlerTest extends HandlerTest {
         } catch (ConflictException | InvalidInputException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private IdentityServiceImpl databaseServiceWithSyncDelay() {
+        return new IdentityServiceImpl(localDynamo) {
+            private int counter = 0;
+
+            @Override
+            public RoleDto getRole(RoleDto queryObject) throws InvalidEntryInternalException, NotFoundException {
+                if (counter == 0) {
+                    counter++;
+                    throw new NotFoundException(RoleService.ROLE_NOT_FOUND_MESSAGE);
+                }
+                return super.getRole(queryObject);
+            }
+        };
     }
 }

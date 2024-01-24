@@ -24,30 +24,6 @@ paths:
         responses: { }
         httpMethod: POST
         type: aws_proxy
-  /roles:
-    post:
-      summary: Adds new Role
-      security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Role'
-      responses:
-        '200':
-          description: Successful creation of role. Returns the generated role
-          content:
-            "application/json":
-              schema:
-                $ref: '#/components/schemas/Role'
-      x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddRoleHandler.Arn}/invocations
-        responses: {}
-        httpMethod: POST
-        type: aws_proxy
   /roles/{role}:
     get:
       summary: Gets an existing Role

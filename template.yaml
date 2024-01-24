@@ -346,25 +346,6 @@ Resources:
           Parameters:
             Location: ./docs/users-and-roles-swagger.yaml
 
-  AddRoleHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.AddRoleHandler::handleRequest
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserRoleMappings
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /roles
-            Method: post
-            RestApiId: !Ref UsersAndRolesApi
-
   GetRoleHandler:
     Type: AWS::Serverless::Function
     Properties:

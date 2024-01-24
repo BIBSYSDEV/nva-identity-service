@@ -30,11 +30,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import no.unit.nva.database.IdentityServiceImpl;
-import no.unit.nva.handlers.models.CreateUserRequest;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.GatewayResponse;
@@ -157,8 +157,8 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @Test
     void processInputReturnsInternalServerErrorWhenHandlerIsCalledWithoutPathParameter()
         throws ApiGatewayException, IOException {
-        
-        UserDto userUpdate = createUserUpdateOnExistingUser();
+
+        var userUpdate = createUserUpdateOnExistingUser();
         
         var gatewayResponse = sendUpdateRequestWithoutPathParameters(userUpdate);
         
@@ -182,7 +182,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @Test
     void shouldDenyAccessForUserWhenItDoesNotHaveAccessRights() throws IOException, ConflictException,
                                                                        NotFoundException {
-        UserDto userUpdate = createUserUpdateForElevatingRole();
+        var userUpdate = createUserUpdateForElevatingRole();
         var gatewayResponse = sendUpdateRequestWithoutAccessRights(userUpdate.getUsername(), userUpdate, UserDto.class);
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
     }
@@ -190,15 +190,27 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @Test
     void shouldDenyAccessWhenInstitutionAdminTriesToCreateAnAppAdmin()
         throws IOException, ConflictException, NotFoundException {
-        UserDto userUpdate = createUserUpdateForElevatingRole();
+        var userUpdate = createUserUpdateForElevatingRole();
         var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
     }
 
     @Test
+    void shouldDenyAccessWhenInstitutionAdminTriesToRemoveAppAdmin()
+        throws ConflictException, NotFoundException, IOException, InvalidInputException {
+        databaseService.addRole(getAppAdminRole());
+        var existingUser = storeUserInDatabase(sampleUserWithAppAdmin());
+        var userUpdate = createUserUpdateRemoveAllRoles(existingUser);
+
+        var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
+    }
+
+
+    @Test
     void shouldAllowAccessWhenAppAdminTriesToCreateAnAppAdmin() throws IOException, ConflictException,
                                                                        NotFoundException {
-        UserDto userUpdate = createUserUpdateForElevatingRole();
+        var userUpdate = createUserUpdateForElevatingRole();
         var gatewayResponse = sendUpdateRequest(userUpdate.getUsername(), userUpdate, UserDto.class);
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_ACCEPTED)));
     }
@@ -308,7 +320,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
     
     private UserDto sampleUser() throws InvalidEntryInternalException {
-        RoleDto someRole = RoleDto.newBuilder().withRoleName(SAMPLE_ROLE).build();
+        var someRole = RoleDto.newBuilder().withRoleName(SAMPLE_ROLE).build();
         return UserDto.newBuilder()
             .withUsername(SAMPLE_USERNAME)
             .withInstitution(SAMPLE_INSTITUTION)
@@ -316,9 +328,23 @@ public class UpdateUserHandlerTest extends HandlerTest {
             .withViewingScope(randomViewingScope())
             .build();
     }
-    
+
+    private UserDto sampleUserWithAppAdmin() throws InvalidEntryInternalException {
+        var adminRole = getAppAdminRole();
+        return UserDto.newBuilder()
+                   .withUsername(SAMPLE_USERNAME)
+                   .withInstitution(SAMPLE_INSTITUTION)
+                   .withRoles(Collections.singletonList(adminRole))
+                   .withViewingScope(randomViewingScope())
+                   .build();
+    }
+
+    private static RoleDto getAppAdminRole() {
+        return RoleDto.newBuilder().withRoleName(APP_ADMIN_ROLE_NAME).build();
+    }
+
     private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {
-        RoleDto someOtherRole = RoleDto.newBuilder().withRoleName(ANOTHER_ROLE).build();
+        var someOtherRole = RoleDto.newBuilder().withRoleName(ANOTHER_ROLE).build();
         return userDto.copy()
             .withRoles(Collections.singletonList(someOtherRole))
             .withViewingScope(randomViewingScope())
@@ -326,9 +352,16 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
 
     private UserDto createUserUpdateAppAdmin(UserDto userDto) throws InvalidEntryInternalException {
-        RoleDto someOtherRole = RoleDto.newBuilder().withRoleName(APP_ADMIN_ROLE_NAME).build();
+        RoleDto someOtherRole = getAppAdminRole();
         return userDto.copy()
                    .withRoles(Collections.singletonList(someOtherRole))
+                   .withViewingScope(randomViewingScope())
+                   .build();
+    }
+
+    private UserDto createUserUpdateRemoveAllRoles(UserDto userDto) {
+        return userDto.copy()
+                   .withRoles(Collections.emptyList())
                    .withViewingScope(randomViewingScope())
                    .build();
     }

@@ -57,10 +57,10 @@ class IdentityServiceMigrateCuratorHandlerTest {
     }
 
     @Test
-    void shouldUpdateUserWhenItHasLegacyCuratorRole()
+    void shouldUpdateUserWhenItHasLegacyNviCuratorRole()
         throws NotFoundException, ConflictException, IOException, InvalidInputException {
-        var oldRole = legacyCuratorRole();
-        var newRole = newDoiCuratorRole();
+        var oldRole = legacyNviCuratorRole();
+        var newRole = newNviCuratorRole();
         identityService.addRole(oldRole);
         identityService.addRole(newRole);
 
@@ -82,7 +82,7 @@ class IdentityServiceMigrateCuratorHandlerTest {
     void shouldNotUpdateAlreadyMigratedUsers() throws InvalidInputException, ConflictException,
                                                       IOException, NotFoundException {
         var randomRole = RoleDto.newBuilder().withRoleName(randomString()).build();
-        var newRole = newDoiCuratorRole();
+        var newRole = newNviCuratorRole();
         identityService.addRole(randomRole);
         identityService.addRole(newRole);
 
@@ -99,12 +99,12 @@ class IdentityServiceMigrateCuratorHandlerTest {
         assertThat(roles, containsInAnyOrder(randomRole.getRoleName(), newRole.getRoleName()));
     }
 
-    private RoleDto legacyCuratorRole() {
-        return RoleDto.newBuilder().withRoleName("Curator").build();
+    private RoleDto legacyNviCuratorRole() {
+        return RoleDto.newBuilder().withRoleName("Nvi-curator").build();
     }
 
-    private RoleDto newDoiCuratorRole() {
-        return RoleDto.newBuilder().withRoleName("Doi-Curator").build();
+    private RoleDto newNviCuratorRole() {
+        return RoleDto.newBuilder().withRoleName("Nvi-Curator").build();
     }
 
     private InputStream createRequest() throws com.fasterxml.jackson.core.JsonProcessingException {

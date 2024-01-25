@@ -15,7 +15,10 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -102,20 +105,32 @@ public class UpdateCustomerHandlerTest {
         var now = Instant.now();
         customer.setInactiveFrom(now);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
-        assertThat(customer.getInactiveFrom(), is(equalTo(now)));
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
+        var input = createInput(customer, pathParameters);
+
+        var response = sendRequest(input, CustomerDto.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        verify( customerServiceMock, times(1)).updateCustomer(any(UUID.class), eq(customer));
     }
 
     @Test
-    void requestToHandlerReturnsCustomerServiceCenterUriUpdated() throws InputException, NotFoundException,
-                                                                         IOException {
+    void requestToHandlerReturnsCustomerServiceCenterUriUpdated()
+        throws InputException, NotFoundException, IOException {
         UUID identifier = UUID.randomUUID();
         CustomerDto customer = createCustomer(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
         assertThat(customer.getServiceCenterUri(), is(nullValue()));
 
+
+
         customer.setServiceCenterUri(testServiceCenterUri);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
+        var input = createInput(customer, pathParameters);
+
+        sendRequest(input, CustomerDto.class);
         assertThat(customer.getServiceCenterUri(), is(equalTo(testServiceCenterUri)));
+        verify(customerServiceMock, times(1)).updateCustomer(any(UUID.class), eq(customer));
     }
 
     @Test

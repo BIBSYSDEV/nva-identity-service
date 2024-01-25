@@ -51,7 +51,7 @@ public class UpdateCustomerHandlerTest {
     private UpdateCustomerHandler handler;
     private ByteArrayOutputStream outputStream;
     private Context context;
-    private URI testServiceCenterUri = randomUri();
+    private final URI testServiceCenterUri = randomUri();
 
     /**
      * Setting up test environment.
@@ -110,7 +110,7 @@ public class UpdateCustomerHandlerTest {
 
         var response = sendRequest(input, CustomerDto.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-        verify( customerServiceMock, times(1)).updateCustomer(any(UUID.class), eq(customer));
+        verify(customerServiceMock, times(1)).updateCustomer(any(UUID.class), eq(customer));
     }
 
     @Test
@@ -120,8 +120,6 @@ public class UpdateCustomerHandlerTest {
         CustomerDto customer = createCustomer(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
         assertThat(customer.getServiceCenterUri(), is(nullValue()));
-
-
 
         customer.setServiceCenterUri(testServiceCenterUri);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);

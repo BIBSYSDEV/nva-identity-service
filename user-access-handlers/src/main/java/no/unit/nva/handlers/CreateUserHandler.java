@@ -3,6 +3,7 @@ package no.unit.nva.handlers;
 
 import static java.util.Objects.isNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import static nva.commons.core.attempt.Try.attempt;
@@ -71,7 +72,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     protected UserDto processInput(CreateUserRequest input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
-        authorize(requestInfo);
+        authorize(input, requestInfo);
 
         var newUser = createNewUser(input);
 
@@ -166,15 +167,20 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
                    .collect(Collectors.toSet());
     }
 
-    private void authorize(RequestInfo requestInfo) throws ForbiddenException {
-        if (userIsNotAuthorized(requestInfo)) {
+    private void authorize(CreateUserRequest input, RequestInfo requestInfo) throws ForbiddenException {
+        if (userIsInternalBackendOrHasManageOwnAffiliationAccess(requestInfo)) {
+            return;
+        }
+
+        var roles = input.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
+
+        if (roles.contains(APP_ADMIN_ROLE_NAME) || !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION)) {
             throw new ForbiddenException();
         }
     }
 
-    private boolean userIsNotAuthorized(RequestInfo requestInfo) {
-        return !(requestInfo.clientIsInternalBackend()
-                 || requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION)
-                 || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS));
+    private boolean userIsInternalBackendOrHasManageOwnAffiliationAccess(RequestInfo requestInfo) {
+        return requestInfo.clientIsInternalBackend()
+                || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 }

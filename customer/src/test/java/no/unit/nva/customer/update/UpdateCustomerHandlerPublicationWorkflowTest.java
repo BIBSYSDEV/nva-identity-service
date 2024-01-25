@@ -8,6 +8,7 @@ import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.HandlerRequestBuilder.SCOPE_CLAIM;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
@@ -159,8 +160,11 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     }
 
     private InputStream createCustomerInDbRequest(CustomerDto customer) throws JsonProcessingException {
+        var authorizedCustomerId = randomUri();
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
                    .withHeaders(getRequestHeaders())
+                   .withCurrentCustomer(authorizedCustomerId)
+                   .withAccessRights(authorizedCustomerId, AccessRight.MANAGE_CUSTOMERS)
                    .build();
     }
 

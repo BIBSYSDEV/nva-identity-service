@@ -12,6 +12,7 @@ import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -37,6 +38,7 @@ import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
@@ -174,6 +176,13 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
+    void shouldReturnForbiddenWhenNotAuthorized() throws IOException {
+        var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
+        var response = executeRequestWithoutAuthorization(requestBody, randomUri(), CustomerDto.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    @Test
     void shouldReturnPublicationInstanceTypesWhenValueIsSet() throws BadRequestException, IOException {
         var randomAllowFileUploadFor = randomAllowFileUploadForTypes();
         var customerDto =
@@ -229,7 +238,28 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         return executeRequest(requestBody, CustomerDto.class);
     }
 
-    private <I, O> GatewayResponse<O> executeRequest(I request, Class<O> responseType)
+    private <I, O> GatewayResponse<O> executeRequest(I request, Class<O> responseType) throws IOException {
+        return executeRequestWithAuthorization(request, randomUri(), responseType);
+    }
+
+    private <I, O> GatewayResponse<O> executeRequestWithAuthorization(I request,
+                                                  URI authorizedCustomer,
+                                                  Class<O> responseType)
+        throws IOException {
+        outputSteam = new ByteArrayOutputStream();
+        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
+                        .withBody(request)
+                        .withAccessRights(authorizedCustomer, MANAGE_CUSTOMERS)
+                        .withCurrentCustomer(authorizedCustomer)
+                        .withHeaders(getRequestHeaders())
+                        .build();
+        handler.handleRequest(input, outputSteam, context);
+        return GatewayResponse.fromOutputStream(outputSteam, responseType);
+    }
+
+    private <I, O> GatewayResponse<O> executeRequestWithoutAuthorization(I request,
+                                                                      URI authorizedCustomer,
+                                                                      Class<O> responseType)
         throws IOException {
         outputSteam = new ByteArrayOutputStream();
         var input = new HandlerRequestBuilder<I>(dtoObjectMapper)

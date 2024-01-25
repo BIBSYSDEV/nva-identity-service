@@ -8,13 +8,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
 import org.junit.jupiter.api.Test;
 
 class HandlerWithEventualConsistencyTest {
@@ -39,9 +37,9 @@ class HandlerWithEventualConsistencyTest {
 
     @Test
     void errorsShouldBeLogged() {
-        TestAppender testingAppender = LogUtils.getTestingAppenderForRootLogger();
+        var testingAppender = LogUtils.getTestingAppenderForRootLogger();
 
-        AtomicInteger counter = new AtomicInteger();
+        var counter = new AtomicInteger();
         Callable callable = () -> {
             counter.getAndIncrement();
             if (counter.get() < 3) {

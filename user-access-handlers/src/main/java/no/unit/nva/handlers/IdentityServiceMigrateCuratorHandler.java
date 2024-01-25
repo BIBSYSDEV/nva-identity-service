@@ -1,9 +1,6 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.handlers.data.DefaultRoleSource.DOI_CURATOR_ROLE;
 import static no.unit.nva.handlers.data.DefaultRoleSource.NVI_CURATOR_ROLE;
-import static no.unit.nva.handlers.data.DefaultRoleSource.PUBLISHING_CURATOR_ROLE;
-import static no.unit.nva.handlers.data.DefaultRoleSource.SUPPORT_CURATOR_ROLE;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
@@ -21,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void, Void> {
 
     private static final Logger logger = LoggerFactory.getLogger(IdentityServiceMigrateCuratorHandler.class);
-    public static final String CURATOR = "Curator";
+    public static final String LEGACY_NVI_CURATOR_NAME = "Nvi-curator";
 
     private final IdentityService identityService;
 
@@ -38,7 +35,7 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     @Override
     protected Void processInput(Void input, RequestInfo requestInfo, Context context) {
         identityService.listAllUsers().stream()
-            .filter(this::userIsLegacyCurator)
+            .filter(this::userIsLegacyNviCurator)
             .forEach(this::attemptUpdateRolesForUser);
 
         return null;
@@ -49,8 +46,8 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
         return HttpURLConnection.HTTP_OK;
     }
     
-    private boolean userIsLegacyCurator(UserDto user) {
-        return user.getRoles().stream().map(RoleDto::getRoleName).anyMatch(CURATOR::equals);
+    private boolean userIsLegacyNviCurator(UserDto user) {
+        return user.getRoles().stream().map(RoleDto::getRoleName).anyMatch(LEGACY_NVI_CURATOR_NAME::equals);
     }
 
     private UserDto attemptUpdateRolesForUser(UserDto user) {
@@ -58,7 +55,7 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     }
 
     private UserDto updateRolesForUser(UserDto user) throws NotFoundException {
-        logger.info("Updating roles for {}", user.getUsername());
+        logger.info("Updating nvi roles for {}", user.getUsername());
         var roles = user.getRoles();
         user.setRoles(updateRoleSet(roles));
 
@@ -67,11 +64,8 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     }
 
     private Set<RoleDto> updateRoleSet(Set<RoleDto> roleSet) {
-        roleSet.add(PUBLISHING_CURATOR_ROLE);
-        roleSet.add(DOI_CURATOR_ROLE);
-        roleSet.add(SUPPORT_CURATOR_ROLE);
         roleSet.add(NVI_CURATOR_ROLE);
-        roleSet.removeIf(role -> CURATOR.equals(role.getRoleName()));
+        roleSet.removeIf(role -> LEGACY_NVI_CURATOR_NAME.equals(role.getRoleName()));
         return roleSet;
     }
 }

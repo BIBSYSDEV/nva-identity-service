@@ -4,6 +4,7 @@ import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_AL
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,13 @@ public class AuthenticationScenarios {
         var personNin = personRegistry.personWithTwoActiveEmploymentsInDifferentInstitutions();
         var withFeideDomain = false;
         registerTopOrganizationsAsCustomers(personNin, withFeideDomain);
+        return personNin;
+    }
+
+    public String personWithExactlyInCustomerWithInactiveFromSetInThePast() {
+        var personNin = personRegistry.personWithExactlyOneActiveEmployment();
+        var withFeideDomain = true;
+        registerTopOrganizationsAsCustomersWithInactiveFromInThePast(personNin, withFeideDomain);
         return personNin;
     }
 
@@ -106,13 +114,6 @@ public class AuthenticationScenarios {
         return personRegistry.personWithoutAffiliations();
     }
 
-    private void addCreatorRoleToIdentityService(IdentityService identityService)
-        throws InvalidInputException, ConflictException {
-        var creatorRole = RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
-                              .build();
-        identityService.addRole(creatorRole);
-    }
-
     public Set<URI> getCristinUriForInstitutionAffiliations(String nin, boolean active) {
         return personRegistry.getInstitutionUnitCristinUrisByState(nin, active);
     }
@@ -137,46 +138,6 @@ public class AuthenticationScenarios {
         return Optional.ofNullable(personNinToCustomers.get(nin)).orElse(Collections.emptyList());
     }
 
-    private void registerTopOrganizationAsCustomerAlternatingFeideDomainSet(String personNin) {
-        var customers = newCustomerRequests(personNin, true)
-                            .collect(Collectors.toList());
-        boolean withFeideDomain = true;
-        for (var customer : customers) {
-            if (!withFeideDomain) {
-                customer.setFeideOrganizationDomain(null);
-            }
-            withFeideDomain = !withFeideDomain;
-        }
-        var persistedCustomers = customers.stream().map(this::persistCustomer).collect(Collectors.toList());
-        personNinToCustomers.put(personNin, persistedCustomers);
-    }
-
-    private void registerTopOrganizationsAsCustomers(String personNin, boolean withFeideDomain) {
-        var customers = newCustomerRequests(personNin, withFeideDomain)
-                            .map(this::persistCustomer)
-                            .collect(Collectors.toList());
-        personNinToCustomers.put(personNin, customers);
-    }
-
-    private CustomerDto persistCustomer(CustomerDto customer) {
-        return attempt(() -> customerService.createCustomer(customer)).orElseThrow();
-    }
-
-    private Stream<CustomerDto> newCustomerRequests(String personNin, boolean withFeideDomain) {
-        return personRegistry.getInstitutionUnitCristinUrisByState(personNin, true)
-                   .stream()
-                   .distinct()
-                   .map(orgId -> buildCustomerDto(withFeideDomain, orgId));
-    }
-
-    private CustomerDto buildCustomerDto(boolean withFeideDomain, URI orgId) {
-        var builder = CustomerDto.builder().withCristinId(orgId);
-        if (withFeideDomain) {
-            builder.withFeideOrganizationDomain(randomString());
-        }
-        return builder.build();
-    }
-
     public List<UserDto> createUsersForAllActiveAffiliations(String nin, IdentityService identityService) {
         var personFromRegistry = getPersonFromRegistry(nin);
 
@@ -196,6 +157,78 @@ public class AuthenticationScenarios {
                    .map(affiliation -> createLegacyUserForAffiliation(feideIdentifier, affiliation,
                                                                       identityService))
                    .collect(Collectors.toList());
+    }
+
+    private void addCreatorRoleToIdentityService(IdentityService identityService)
+        throws InvalidInputException, ConflictException {
+        var creatorRole = RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
+                              .build();
+        identityService.addRole(creatorRole);
+    }
+
+    private void registerTopOrganizationAsCustomerAlternatingFeideDomainSet(String personNin) {
+        var customers = newCustomerRequests(personNin, true).toList();
+        boolean withFeideDomain = true;
+        for (var customer : customers) {
+            if (!withFeideDomain) {
+                customer.setFeideOrganizationDomain(null);
+            }
+            withFeideDomain = !withFeideDomain;
+        }
+        var persistedCustomers = customers.stream().map(this::persistCustomer).collect(Collectors.toList());
+        personNinToCustomers.put(personNin, persistedCustomers);
+    }
+
+    private void registerTopOrganizationsAsCustomers(String personNin, boolean withFeideDomain) {
+        var customers = newCustomerRequests(personNin, withFeideDomain)
+                            .map(this::persistCustomer)
+                            .collect(Collectors.toList());
+        personNinToCustomers.put(personNin, customers);
+    }
+
+    private void registerTopOrganizationsAsCustomersWithInactiveFromInThePast(String personNin,
+                                                                              boolean withFeideDomain) {
+        var customers = newCustomerRequestsWithInactiveFromInThePast(personNin, withFeideDomain)
+                            .map(this::persistCustomer)
+                            .collect(Collectors.toList());
+        personNinToCustomers.put(personNin, customers);
+    }
+
+    private CustomerDto persistCustomer(CustomerDto customer) {
+        return attempt(() -> customerService.createCustomer(customer)).orElseThrow();
+    }
+
+    private Stream<CustomerDto> newCustomerRequests(String personNin, boolean withFeideDomain) {
+        return personRegistry.getInstitutionUnitCristinUrisByState(personNin, true)
+                   .stream()
+                   .distinct()
+                   .map(orgId -> buildCustomerDto(withFeideDomain, orgId));
+    }
+
+    private Stream<CustomerDto> newCustomerRequestsWithInactiveFromInThePast(String personNin,
+                                                                             boolean withFeideDomain) {
+        return personRegistry.getInstitutionUnitCristinUrisByState(personNin, true)
+                   .stream()
+                   .distinct()
+                   .map(orgId -> buildCustomerDtoWithInactiveFromInThePast(withFeideDomain, orgId));
+    }
+
+    private CustomerDto buildCustomerDtoWithInactiveFromInThePast(boolean withFeideDomain, URI orgId) {
+        var builder = CustomerDto.builder()
+                          .withCristinId(orgId)
+                          .withInactiveFrom(OffsetDateTime.now().minusDays(3).toInstant());
+        if (withFeideDomain) {
+            builder.withFeideOrganizationDomain(randomString());
+        }
+        return builder.build();
+    }
+
+    private CustomerDto buildCustomerDto(boolean withFeideDomain, URI orgId) {
+        var builder = CustomerDto.builder().withCristinId(orgId);
+        if (withFeideDomain) {
+            builder.withFeideOrganizationDomain(randomString());
+        }
+        return builder.build();
     }
 
     private UserDto createUserForAffiliation(String nin,

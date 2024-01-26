@@ -4,6 +4,7 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
 import static nva.commons.core.attempt.Try.attempt;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.net.URI;
@@ -257,6 +258,18 @@ public class CustomerDto implements Context {
             return defaultAllowFileUploadForTypes();
         }
         return allowFileUploadForTypes;
+    }
+
+    @JsonIgnore
+    public boolean isActive() {
+        return !nonNull(inactiveFrom) || isInactiveFromInFuture();
+
+    }
+
+    @JsonIgnore
+    private boolean isInactiveFromInFuture() {
+        var now = Instant.now();
+        return now.isBefore(inactiveFrom);
     }
 
     private Set<PublicationInstanceTypes> defaultAllowFileUploadForTypes() {

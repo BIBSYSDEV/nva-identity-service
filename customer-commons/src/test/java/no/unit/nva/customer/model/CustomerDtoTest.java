@@ -10,6 +10,7 @@ import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -19,6 +20,7 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -39,7 +41,6 @@ class CustomerDtoTest {
         doiSecret.merge(doiAgent);
 
         assertEquals(doiSecret.getPassword(), doiAgent.getPassword());
-
     }
 
     @Test
@@ -60,7 +61,6 @@ class CustomerDtoTest {
         assertEquals(deserializedDoiAgent.hashCode(), customer.getDoiAgent().hashCode());
         assertNotEquals(null, deserializedDoiAgent);
     }
-
 
     @Test
     void shouldThrowBadRequestWhenFailingToDeserializeDoiAgent() {
@@ -92,6 +92,25 @@ class CustomerDtoTest {
         assertThat(exception.getMessage(), containsString(invalidJson));
     }
 
+    @Test
+    void shouldReturnIsActiveWhenInactiveFromIsSetInTheFuture() {
+        var randomInactiveCustomer = randomInactiveCustomer();
+        randomInactiveCustomer.setInactiveFrom(OffsetDateTime.now().plusDays(3).toInstant());
+        assertThat(randomInactiveCustomer.isActive(), is(true));
+    }
+
+    @Test
+    void shouldReturnIsInactiveWhenInactiveIsSetInThePast() {
+        var randomInactiveCustomer = randomInactiveCustomer();
+        assertThat(randomInactiveCustomer.isActive(), is(false));
+    }
+
+    @Test
+    void shouldReturnIsActiveWhenInactiveFromIsNotSet() {
+        var randomActiveCustomer = randomActiveCustomer();
+        assertThat(randomActiveCustomer.isActive(), is(true));
+    }
+
     private CustomerDto randomInactiveCustomer() {
         return CustomerDto.builder()
                    .withCname(randomString())
@@ -116,7 +135,7 @@ class CustomerDtoTest {
                    .withSector(randomSector())
                    .withNviInstitution(randomBoolean())
                    .withRboInstitution(randomBoolean())
-                   .withInactiveFrom(randomInstant())
+                   .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();

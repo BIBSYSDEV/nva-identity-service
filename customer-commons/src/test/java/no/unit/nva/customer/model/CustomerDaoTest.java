@@ -1,7 +1,7 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -20,8 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +38,7 @@ class CustomerDaoTest {
 
     @Test
     void toCustomerDtoReturnsDtoWithoutLossOfInformation() {
-        CustomerDao expected = CustomerDataGenerator.createSampleCustomerDao();
+        CustomerDao expected = CustomerDataGenerator.createSampleInactiveCustomerDao();
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
@@ -71,7 +69,7 @@ class CustomerDaoTest {
 
     @Test
     void toCustomerDaoToDtoAndBackReturnsWithLossOfSecret() {
-        var expectedDao = CustomerDataGenerator.createSampleCustomerDao();
+        var expectedDao = CustomerDataGenerator.createSampleInactiveCustomerDao();
         var customerDto = expectedDao.toCustomerDto();
         customerDto
             .getDoiAgent()
@@ -144,6 +142,7 @@ class CustomerDaoTest {
                   },
                   "nviInstitution" : true,
                   "rboInstitution" : false,
+                  "inactive" : false,
                   "sector" : "INSTITUTE",
                   "rightRetentionStrategy" : {
                     "retentionStrategy" : "%s",
@@ -189,12 +188,12 @@ class CustomerDaoTest {
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withNviInstitution(randomBoolean())
                    .withRboInstitution(randomBoolean())
+                   .withInactiveFrom(randomInstant())
                    .withSector(randomSector())
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();
     }
-
 
     private ApplicationDomain randomApplicationDomain() {
         return ApplicationDomain.NVA;

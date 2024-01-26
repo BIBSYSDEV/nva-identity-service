@@ -56,6 +56,7 @@ public class CustomerDto implements Context {
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
+    private Instant inactiveFrom;
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
@@ -235,6 +236,14 @@ public class CustomerDto implements Context {
         this.rboInstitution = rboInstitution;
     }
 
+    public Instant getInactiveFrom() {
+        return inactiveFrom;
+    }
+
+    public void setInactiveFrom(Instant inactiveFrom) {
+        this.inactiveFrom = inactiveFrom;
+    }
+
     public Sector getSector() {
         return sector;
     }
@@ -298,6 +307,7 @@ public class CustomerDto implements Context {
                 .withDoiAgent(getDoiAgent())
                 .withNviInstitution(isNviInstitution())
                 .withRboInstitution(isRboInstitution())
+                .withInactiveFrom(getInactiveFrom())
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
                 .withRightsRetentionStrategy(getRightsRetentionStrategy())
@@ -311,7 +321,7 @@ public class CustomerDto implements Context {
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
                             getRorId(), getServiceCenterUri(), getPublicationWorkflow(), getDoiAgent(),
-                            getRightsRetentionStrategy(), getAllowFileUploadForTypes());
+                            getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom());
     }
 
     @Override
@@ -336,9 +346,10 @@ public class CustomerDto implements Context {
                 && Objects.equals(getIdentifier(), that.getIdentifier())
                 && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
                 && Objects.equals(getModifiedDate(), that.getModifiedDate())
+                && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
                 && Objects.equals(getName(), that.getName())
                 && Objects.equals(getRorId(), that.getRorId())
-               && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
+                && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
                 && Objects.equals(getShortName(), that.getShortName())
                 && Objects.equals(getVocabularies(), that.getVocabularies())
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
@@ -484,6 +495,11 @@ public class CustomerDto implements Context {
 
         public Builder withRboInstitution(boolean rboInstitution) {
             customerDto.setRboInstitution(rboInstitution);
+            return this;
+        }
+
+        public Builder withInactiveFrom(Instant inactiveFrom) {
+            customerDto.setInactiveFrom(inactiveFrom);
             return this;
         }
 

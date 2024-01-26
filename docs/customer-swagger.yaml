@@ -769,6 +769,10 @@ components:
         rboInstitution:
           type: boolean
           description: whether or not the institution is part of result-based redistribution
+        inactiveFrom:
+          type: string
+          format: date-time
+          description: the date the customer became inactive, if null the customer is still active
         sector:
           type: string
           enum:
@@ -973,6 +977,7 @@ components:
         publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
         nviInstitution: false
         rboInstitution: false
+        inactiveFrom: '2021-05-07T14:29:04.144Z'
         sector: UHI
         rightsRetentionStrategy:
           type: OverridableRightsRetentionStrategy

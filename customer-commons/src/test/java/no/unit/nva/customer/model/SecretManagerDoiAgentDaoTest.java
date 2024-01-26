@@ -1,6 +1,6 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDao;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleInactiveCustomerDao;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomIdentifier;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -22,7 +22,7 @@ class SecretManagerDoiAgentDaoTest {
 
     @Test
     void shouldDeserialize() {
-        var doiAgentDto = createSampleCustomerDao().getDoiAgent().toDoiAgentDto()
+        var doiAgentDto = createSampleInactiveCustomerDao().getDoiAgent().toDoiAgentDto()
             .addPassword(randomString())
             .addIdByIdentifier(randomIdentifier());
         var expected = new SecretManagerDoiAgentDao(doiAgentDto);

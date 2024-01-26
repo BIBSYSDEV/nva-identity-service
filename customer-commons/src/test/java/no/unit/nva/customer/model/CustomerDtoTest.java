@@ -1,8 +1,8 @@
 package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -31,10 +31,10 @@ class CustomerDtoTest {
 
     @Test
     void shouldUpdateCustomerWithCustomersDoiSecret() {
-        var doiAgent = randomCustomer().getDoiAgent()
+        var doiAgent = randomActiveCustomer().getDoiAgent()
                            .addPassword(randomString());
 
-        var doiSecret = new SecretManagerDoiAgentDao(randomCustomer().getDoiAgent());
+        var doiSecret = new SecretManagerDoiAgentDao(randomActiveCustomer().getDoiAgent());
 
         doiSecret.merge(doiAgent);
 
@@ -44,7 +44,7 @@ class CustomerDtoTest {
 
     @Test
     void dtoSerializesToJsonAndBack() throws BadRequestException {
-        CustomerDto customer = randomCustomer();
+        CustomerDto customer = randomInactiveCustomer();
         customer.getDoiAgent().addPassword("****");
         assertThat(customer, doesNotHaveEmptyValues());
         var json = customer.toString();
@@ -72,7 +72,7 @@ class CustomerDtoTest {
 
     @Test
     void dtoSerializesToJsonAndBackWithSecret() throws BadRequestException {
-        CustomerDto customer = randomCustomer();
+        CustomerDto customer = randomInactiveCustomer();
         customer.getDoiAgent().addPassword("******");
         var json = customer.toString();
         var deserialized = CustomerDto.fromJson(json);
@@ -92,7 +92,7 @@ class CustomerDtoTest {
         assertThat(exception.getMessage(), containsString(invalidJson));
     }
 
-    private CustomerDto randomCustomer() {
+    private CustomerDto randomInactiveCustomer() {
         return CustomerDto.builder()
                    .withCname(randomString())
                    .withIdentifier(UUID.randomUUID())
@@ -116,9 +116,16 @@ class CustomerDtoTest {
                    .withSector(randomSector())
                    .withNviInstitution(randomBoolean())
                    .withRboInstitution(randomBoolean())
+                   .withInactiveFrom(randomInstant())
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();
+    }
+
+    private CustomerDto randomActiveCustomer() {
+        var customer = randomInactiveCustomer();
+        customer.setInactiveFrom(null);
+        return customer;
     }
 
     private Collection<VocabularyDto> randomVocabularies() {

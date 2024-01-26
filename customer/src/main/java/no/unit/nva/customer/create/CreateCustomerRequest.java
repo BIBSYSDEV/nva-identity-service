@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -22,7 +23,7 @@ import nva.commons.core.JacocoGenerated;
 
 @JsonTypeInfo(use = Id.NAME, property = "type")
 @JsonTypeName(TYPE_VALUE)
-@SuppressWarnings("PMD.TooManyFields")
+@SuppressWarnings({"PMD.TooManyFields", "PMD.GodClass"})
 public class CreateCustomerRequest {
 
     public static final String TYPE_VALUE = "Customer";
@@ -40,6 +41,7 @@ public class CreateCustomerRequest {
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
+    private Instant inactiveFrom;
     private Sector sector;
     private URI rorId;
     private URI serviceCenterUri;
@@ -61,6 +63,7 @@ public class CreateCustomerRequest {
         request.setSector(customerDto.getSector());
         request.setNviInstitution(customerDto.isNviInstitution());
         request.setRboInstitution(customerDto.isRboInstitution());
+        request.setInactiveFrom(customerDto.getInactiveFrom());
         request.setRorId(customerDto.getRorId());
         request.setServiceCenterUri(customerDto.getServiceCenterUri());
         request.setAllowFileUploadForTypes(customerDto.getAllowFileUploadForTypes());
@@ -86,6 +89,7 @@ public class CreateCustomerRequest {
                    .withDoiAgent(getDoiAgent())
                    .withNviInstitution(isNviInstitution())
                    .withRboInstitution(isRboInstitution())
+                   .withInactiveFrom(getInactiveFrom())
                    .withSector(getSector())
                    .withRorId(getRorId())
                    .withServiceCenterUri(getServiceCenterUri())
@@ -206,6 +210,14 @@ public class CreateCustomerRequest {
         this.rboInstitution = rboInstitution;
     }
 
+    public Instant getInactiveFrom() {
+        return inactiveFrom;
+    }
+
+    public void setInactiveFrom(Instant inactiveFrom) {
+        this.inactiveFrom = inactiveFrom;
+    }
+
     public Sector getSector() {
         return nonNull(sector) ? sector : Sector.UHI;
     }
@@ -243,8 +255,8 @@ public class CreateCustomerRequest {
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
-                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getRorId(),
-                            getServiceCenterUri(), getAllowFileUploadForTypes());
+                            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getInactiveFrom(),
+                            getRorId(), getServiceCenterUri(), getAllowFileUploadForTypes());
     }
 
     @JacocoGenerated
@@ -271,6 +283,7 @@ public class CreateCustomerRequest {
                && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(isRboInstitution(), that.isRboInstitution())
+               && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
     }

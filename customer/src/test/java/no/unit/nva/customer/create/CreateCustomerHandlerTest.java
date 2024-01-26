@@ -15,6 +15,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -106,6 +108,29 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
         assertThat(actualResponseBody.isRboInstitution(), is(equalTo(false)));
+    }
+
+    @Test
+    void shouldReturnDefaultInactiveFromEqualToNullWhenNoneIsSet() throws BadRequestException, IOException {
+        var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+        assertThat(actualResponseBody.getInactiveFrom(), is(nullValue()));
+    }
+
+    @Test
+    void shouldReturnInactiveFromWhenValueIsSet() throws BadRequestException, IOException {
+        var inactiveFrom = Instant.now();
+        var customerDto =
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withInactiveFrom(inactiveFrom)
+                .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+
+        assertThat(actualResponseBody.getInactiveFrom(), is(equalTo(inactiveFrom)));
     }
 
     @Test

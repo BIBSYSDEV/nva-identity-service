@@ -80,7 +80,7 @@ public class UserSelectionUponLoginHandler
     public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
     private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
     public static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE = "Customer is inactive {}";
-    public static final String FAILED_TO_RETRIEVE_INSTITUTION_ERROR_MESSAGE = "Failed to retrieve institution";
+    public static final String FAILED_TO_RETRIEVE_INSTITUTION_ERROR_MESSAGE = "Failed to retrieve institution {}";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;

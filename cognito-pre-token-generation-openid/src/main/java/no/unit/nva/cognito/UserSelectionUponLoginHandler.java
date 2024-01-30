@@ -522,12 +522,14 @@ public class UserSelectionUponLoginHandler
                    .collect(Collectors.toList());
     }
 
+    @JacocoGenerated
     private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride) {
         var groups = GroupConfiguration.builder()
                          .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
                          .build();
         return ClaimsOverrideDetails.builder()
                    .withGroupOverrideDetails(groups)
+                   .withClaimsToAddOrOverride(Map.of("custom:tmp","some-value", "custom:accessRights", "test-sondre"))
                    .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
                    .build();
     }

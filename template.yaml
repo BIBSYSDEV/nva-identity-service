@@ -1344,6 +1344,8 @@ Resources:
           ScopeName: ticket-upsert
         - ScopeDescription: Upload file
           ScopeName: file-upload
+        - ScopeDescription: Read reporting data for publications and nvi candidates
+          ScopeName: reporting-read
       UserPoolId: !Ref ExternalUserPool
 
   BackendApplicationClient:

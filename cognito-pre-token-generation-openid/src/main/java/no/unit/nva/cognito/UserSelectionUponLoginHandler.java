@@ -55,7 +55,7 @@ import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.StringUtils;
-import nva.commons.core.attempt.Try;
+import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
@@ -70,6 +70,7 @@ public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
+
     public static final Environment ENVIRONMENT = new Environment();
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideIdNin";
@@ -79,6 +80,8 @@ public class UserSelectionUponLoginHandler
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
     public static final String APP_ADMIN_ROLE_NAME = "App-admin";
     public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
+    public static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE = "Customer is inactive {}";
+    public static final String FAILED_TO_RETRIEVE_INSTITUTION_ERROR_MESSAGE = "Failed to retrieve institution {}";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -144,8 +147,32 @@ public class UserSelectionUponLoginHandler
         return input;
     }
 
+    private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {
+        return new NationalIdentityNumber(
+            Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
+                .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS)))
+                .orElseThrow());
+    }
+
+    private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
+        return userAttributes.get(ORG_FEIDE_DOMAIN);
+    }
+
+    private static String extractFeideIdentifier(Map<String, String> userAttributes) {
+        return userAttributes.get(FEIDE_ID);
+    }
+
+    @JacocoGenerated
+    private static CognitoIdentityProviderClient defaultCognitoClient() {
+        return CognitoIdentityProviderClient.builder()
+                   .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                   .httpClient(UrlConnectionHttpClient.create())
+                   .region(AWS_REGION)
+                   .build();
+    }
+
     private NationalIdentityNumber getCurrentNin(String impersonating,
-            AuthenticationDetails authenticationDetails) {
+                                                 AuthenticationDetails authenticationDetails) {
 
         if (isNull(impersonating)) {
             return authenticationDetails.getNin();
@@ -160,11 +187,12 @@ public class UserSelectionUponLoginHandler
         var customerForImpersonators = fetchCustomersWithActiveAffiliations(impersonator.getAffiliations());
         var usersForImpersonator = createUsers(impersonator, customerForImpersonators, authenticationDetails);
         var impersonatorsAccessRights = usersForImpersonator
-                           .stream()
-                           .map(user -> UserAccessRightForCustomer.fromUser(user, customerForImpersonators))
-                           .flatMap(Collection::stream)
-                           .map(UserAccessRightForCustomer::getAccessRight)
-                           .collect(Collectors.toSet());
+                                            .stream()
+                                            .map(user -> UserAccessRightForCustomer.fromUser(user,
+                                                                                             customerForImpersonators))
+                                            .flatMap(Collection::stream)
+                                            .map(UserAccessRightForCustomer::getAccessRight)
+                                            .collect(Collectors.toSet());
 
         var isAllowedToImpersonate = impersonatorsAccessRights.contains(ACT_AS);
 
@@ -287,35 +315,29 @@ public class UserSelectionUponLoginHandler
     }
 
     private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {
-        return affiliations.stream()
-                   .map(Affiliation::getInstitutionId)
-                   .map(attempt(customerService::getCustomerByCristinId))
-                   .flatMap(Try::stream)
+        return affiliations.stream().map(Affiliation::getInstitutionId)
+                   .map(this::getCustomerByCristinIdOrLogError)
+                   .flatMap(Optional::stream)
+                   .filter(this::logInactiveInstitutions)
                    .collect(Collectors.toSet());
     }
 
-    private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {
-        return new NationalIdentityNumber(
-            Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
-                .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS)))
-                .orElseThrow());
+    private boolean logInactiveInstitutions(CustomerDto customerDto) {
+        if (!customerDto.isActive()) {
+            LOGGER.info(CUSTOMER_IS_INACTIVE_ERROR_MESSAGE, customerDto);
+        }
+        return customerDto.isActive();
     }
 
-    private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
-        return userAttributes.get(ORG_FEIDE_DOMAIN);
+    private Optional<CustomerDto> getCustomerByCristinIdOrLogError(URI cristinId) {
+        return attempt(() -> customerService.getCustomerByCristinId(cristinId))
+                   .map(Optional::of)
+                   .orElse(this::logFailure);
     }
 
-    private static String extractFeideIdentifier(Map<String, String> userAttributes) {
-        return userAttributes.get(FEIDE_ID);
-    }
-
-    @JacocoGenerated
-    private static CognitoIdentityProviderClient defaultCognitoClient() {
-        return CognitoIdentityProviderClient.builder()
-                   .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                   .httpClient(UrlConnectionHttpClient.create())
-                   .region(AWS_REGION)
-                   .build();
+    private Optional<CustomerDto> logFailure(Failure<Optional<CustomerDto>> fail) {
+        LOGGER.error(FAILED_TO_RETRIEVE_INSTITUTION_ERROR_MESSAGE, fail.getException());
+        return Optional.empty();
     }
 
     private Set<String> rolesPerCustomer(List<UserDto> usersForPerson) {
@@ -495,8 +517,8 @@ public class UserSelectionUponLoginHandler
     }
 
     private List<UserAccessRightForCustomer> createAccessRightForCustomer(List<UserDto> personUsers,
-                                         Set<CustomerDto> customers,
-                                         CustomerDto currentCustomer) {
+                                                                          Set<CustomerDto> customers,
+                                                                          CustomerDto currentCustomer) {
         return personUsers.stream()
                    .map(user -> UserAccessRightForCustomer.fromUser(user, customers))
                    .flatMap(Collection::stream)
@@ -505,8 +527,8 @@ public class UserSelectionUponLoginHandler
     }
 
     private List<String> createAccessRightsWithCustomerForCurrentCustomer(List<UserDto> personUsers,
-                                                                   Set<CustomerDto> customers,
-                                                       CustomerDto currentCustomer) {
+                                                                          Set<CustomerDto> customers,
+                                                                          CustomerDto currentCustomer) {
         return createAccessRightForCustomer(personUsers, customers, currentCustomer)
                    .stream()
                    .map(UserAccessRightForCustomer::toString)

@@ -69,6 +69,8 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
+
     public static final Environment ENVIRONMENT = new Environment();
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideIdNin";
@@ -78,7 +80,6 @@ public class UserSelectionUponLoginHandler
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
     public static final String APP_ADMIN_ROLE_NAME = "App-admin";
     public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
     public static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE = "Customer is inactive {}";
     public static final String FAILED_TO_RETRIEVE_INSTITUTION_ERROR_MESSAGE = "Failed to retrieve institution {}";
     private final CustomerService customerService;

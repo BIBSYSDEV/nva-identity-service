@@ -237,7 +237,7 @@ class UserSelectionUponLoginHandlerTest {
     @DisplayName("should not create user for the person's institution if the institution is an inactive customer")
     @EnumSource(LoginEventType.class)
     void shouldNotCreateUsersWithNoCustomerWhenCustomerHasSetInactiveFromDateToThePast(LoginEventType loginEventType) {
-        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        final var testAppender = LogUtils.getTestingAppenderForRootLogger();
         var personLoggingIn = scenarios.personWithExactlyInCustomerWithInactiveFromSetInThePast();
         var event = newLoginEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);

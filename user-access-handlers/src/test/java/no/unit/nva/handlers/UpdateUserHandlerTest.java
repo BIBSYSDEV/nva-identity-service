@@ -9,6 +9,7 @@ import static no.unit.nva.handlers.UpdateUserHandler.INCONSISTENT_USERNAME_IN_PA
 import static no.unit.nva.handlers.UpdateUserHandler.LOCATION_HEADER;
 import static no.unit.nva.handlers.UpdateUserHandler.USERNAME_PATH_PARAMETER;
 import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.model.UserDto.VIEWING_SCOPE_FIELD;
 import static no.unit.nva.useraccessservice.model.ViewingScope.INCLUDED_UNITS;
@@ -28,6 +29,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.identityservice.json.JsonConfig;
@@ -199,7 +201,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     void shouldDenyAccessWhenInstitutionAdminTriesToRemoveAppAdmin()
         throws ConflictException, NotFoundException, IOException, InvalidInputException {
         databaseService.addRole(getAppAdminRole());
-        var existingUser = storeUserInDatabase(sampleUserWithAppAdmin());
+        var existingUser = storeUserInDatabase(sampleUserWithRoles(List.of(getAppAdminRole())));
         var userUpdate = createUserUpdateRemoveAllRoles(existingUser);
 
         var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
@@ -212,6 +214,23 @@ public class UpdateUserHandlerTest extends HandlerTest {
                                                                        NotFoundException {
         var userUpdate = createUserUpdateForElevatingRole();
         var gatewayResponse = sendUpdateRequest(userUpdate.getUsername(), userUpdate, UserDto.class);
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_ACCEPTED)));
+    }
+
+    @Test
+    void shouldAllowAccessWhenInstitutionAdminTriesToEditAnAppAdminsOtherRoles()
+        throws InvalidInputException, ConflictException, NotFoundException, IOException {
+
+        var adminRole = getAppAdminRole();
+        var otherRole = getRandomRole();
+
+        databaseService.addRole(adminRole);
+        databaseService.addRole(otherRole);
+
+        var existingUser = storeUserInDatabase(sampleUserWithRoles(List.of(adminRole, otherRole)));
+        var userUpdate = createUserUpdateWithRoles(existingUser, List.of(adminRole));
+
+        var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_ACCEPTED)));
     }
     
@@ -329,18 +348,21 @@ public class UpdateUserHandlerTest extends HandlerTest {
             .build();
     }
 
-    private UserDto sampleUserWithAppAdmin() throws InvalidEntryInternalException {
-        var adminRole = getAppAdminRole();
+    private UserDto sampleUserWithRoles(List<RoleDto> roleDtos) throws InvalidEntryInternalException {
         return UserDto.newBuilder()
                    .withUsername(SAMPLE_USERNAME)
                    .withInstitution(SAMPLE_INSTITUTION)
-                   .withRoles(Collections.singletonList(adminRole))
+                   .withRoles(roleDtos)
                    .withViewingScope(randomViewingScope())
                    .build();
     }
 
     private static RoleDto getAppAdminRole() {
         return RoleDto.newBuilder().withRoleName(APP_ADMIN_ROLE_NAME).build();
+    }
+
+    private static RoleDto getRandomRole() {
+        return RoleDto.newBuilder().withRoleName(randomString()).build();
     }
 
     private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {
@@ -352,11 +374,19 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
 
     private UserDto createUserUpdateAppAdmin(UserDto userDto) throws InvalidEntryInternalException {
-        RoleDto someOtherRole = getAppAdminRole();
+        var appAdminRole = getAppAdminRole();
         return userDto.copy()
-                   .withRoles(Collections.singletonList(someOtherRole))
+                   .withRoles(Collections.singletonList(appAdminRole))
                    .withViewingScope(randomViewingScope())
                    .build();
+    }
+
+    private UserDto createUserUpdateWithRoles(UserDto userDto, List<RoleDto> roles) {
+        return userDto.copy()
+                   .withRoles(roles)
+                   .withViewingScope(randomViewingScope())
+                   .build();
+
     }
 
     private UserDto createUserUpdateRemoveAllRoles(UserDto userDto) {

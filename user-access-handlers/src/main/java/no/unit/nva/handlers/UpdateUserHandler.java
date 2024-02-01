@@ -80,8 +80,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
         var newRoles = input.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
         var existingRoles =
             databaseService.getUser(input).getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
-        var isAlteringAppAdmin = newRoles.contains(APP_ADMIN_ROLE_NAME) != existingRoles.contains(APP_ADMIN_ROLE_NAME);
-        return isAlteringAppAdmin;
+        return newRoles.contains(APP_ADMIN_ROLE_NAME) != existingRoles.contains(APP_ADMIN_ROLE_NAME);
     }
 
     private void validateRequest(UserDto input, RequestInfo requestInfo) throws InvalidInputException {

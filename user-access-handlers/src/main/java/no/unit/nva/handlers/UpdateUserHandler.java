@@ -67,19 +67,21 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
     }
 
     private boolean isAuthorizedUser(UserDto input, RequestInfo requestInfo) throws NotFoundException {
-        var newRoles = input.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
-        if (newRoles.contains(APP_ADMIN_ROLE_NAME)) {
-            return false;
-        }
+        var isAlteringAppAdmin = isAlteringAppAdmin(input);
 
-        var existingRoles =
-            databaseService.getUser(input).getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
-
-        if (existingRoles.contains(APP_ADMIN_ROLE_NAME) && !newRoles.contains(APP_ADMIN_ROLE_NAME)) {
+        if (isAlteringAppAdmin) {
             return false;
         }
 
         return requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
+    }
+
+    private boolean isAlteringAppAdmin(UserDto input) throws NotFoundException {
+        var newRoles = input.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
+        var existingRoles =
+            databaseService.getUser(input).getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
+        var isAlteringAppAdmin = newRoles.contains(APP_ADMIN_ROLE_NAME) != existingRoles.contains(APP_ADMIN_ROLE_NAME);
+        return isAlteringAppAdmin;
     }
 
     private void validateRequest(UserDto input, RequestInfo requestInfo) throws InvalidInputException {

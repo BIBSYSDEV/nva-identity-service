@@ -1,6 +1,5 @@
 package no.unit.nva.customer.update;
 
-import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
@@ -9,7 +8,6 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerHandler;
@@ -55,41 +53,30 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     protected CustomerDto processInput(CustomerDto input, RequestInfo requestInfo, Context context)
         throws InputException, NotFoundException, ForbiddenException {
 
-        UUID identifier = getIdentifier(requestInfo);
-        var currentCustomer = customerService.getCustomer(identifier);
-        if (isPublicationWorkflowChange(currentCustomer, input)) {
-            authorizePublicationWorkflowChange(requestInfo);
+        if (!isAuthorized(requestInfo)) {
+            throw new ForbiddenException();
         }
-
+        UUID identifier = getIdentifier(requestInfo);
         return customerService.updateCustomer(identifier, input);
     }
 
-    private boolean isPublicationWorkflowChange(CustomerDto currentCustomer, CustomerDto input) {
-        if (nonNull(currentCustomer) && nonNull(input)) {
-            return !Objects.equals(currentCustomer.getPublicationWorkflow(), input.getPublicationWorkflow());
-        }
-        return false;
+    private boolean isAuthorized(RequestInfo requestInfo) {
+        return canManageOwnAffiliations(requestInfo)
+               || canManageAllCustomers(requestInfo)
+               || requestInfo.clientIsInternalBackend()
+               || isCognitoAdmin(requestInfo);
     }
 
-    private void authorizePublicationWorkflowChange(RequestInfo requestInfo) throws ForbiddenException {
-        if (notAuthorizedToChangePublicationWorkflow(requestInfo)
-            && cantManageAllCustomers(requestInfo)
-            && isNotCognitoAdmin(requestInfo)) {
-            throw new ForbiddenException();
-        }
+    private boolean canManageAllCustomers(RequestInfo requestInfo) {
+        return requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
+    }
+    private boolean canManageOwnAffiliations(RequestInfo requestInfo) {
+        return requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
     }
 
-    private boolean cantManageAllCustomers(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
-    }
-
-    private boolean isNotCognitoAdmin(RequestInfo requestInfo) {
-        return !requestInfo.getRequestContextParameterOpt(SCOPES_CLAIM).map(
+    private boolean isCognitoAdmin(RequestInfo requestInfo) {
+        return requestInfo.getRequestContextParameterOpt(SCOPES_CLAIM).map(
             value -> value.contains(AWS_COGNITO_SIGNIN_USER_ADMIN)).orElse(false);
-    }
-
-    private boolean notAuthorizedToChangePublicationWorkflow(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
     }
 
     @Override

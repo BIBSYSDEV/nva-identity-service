@@ -3,8 +3,6 @@ package no.unit.nva.customer;
 import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
-import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_STANDARD;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -77,24 +75,10 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
         return new InputException(IDENTIFIER_IS_NOT_A_VALID_UUID + identifier, fail.getException());
     }
 
-    protected void authorizeDoiAgentChange(RequestInfo requestInfo) throws ForbiddenException {
+    protected void authorizeDoiAgentRead(RequestInfo requestInfo) throws ForbiddenException {
         if (notCustomerManager(requestInfo)) {
             throw new ForbiddenException();
         }
-    }
-
-    protected void authorizeDoiAgentRead(RequestInfo requestInfo) throws ForbiddenException {
-        if (notCustomerManager(requestInfo) && notInstAdmin(requestInfo) && notEditor(requestInfo)) {
-            throw new ForbiddenException();
-        }
-    }
-
-    private boolean notEditor(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(MANAGE_RESOURCES_STANDARD);
-    }
-
-    private boolean notInstAdmin(RequestInfo requestInfo) {
-        return !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
     }
 
     private boolean notCustomerManager(RequestInfo requestInfo) {

@@ -7,7 +7,6 @@ import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.HandlerRequestBuilder.SCOPE_CLAIM;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
@@ -102,16 +101,6 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
     }
 
-    @Test
-    void shouldStillAllowUpdateOfOtherFieldsThanPublicationWorkflow() throws IOException {
-        createCustomerInLocalDb();
-        var updateCustomer = preExistingCustomer.copy().withDisplayName(randomString()).build();
-        var request = updateRequestWithoutCorrectAuthorization(updateCustomer, getIdentifierPathParam(updateCustomer));
-        var response = sendUpdateRequest(request, CustomerDto.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-    }
-
     private Map<String, String> getIdentifierPathParam(CustomerDto customerDto) {
         return Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
     }
@@ -124,7 +113,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
                                                               Map<String, String> pathParameters)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withPathParameters(pathParameters)
-                   .withCustomerId(updateCustomer.getId())
+                   .withCurrentCustomer(updateCustomer.getId())
                    .withAccessRights(updateCustomer.getId(),
                                      AccessRight.MANAGE_OWN_AFFILIATION)
                    .withBody(updateCustomer)
@@ -135,7 +124,7 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
                                                               Map<String, String> pathParameters)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withPathParameters(pathParameters)
-                   .withCustomerId(updateCustomer.getId())
+                   .withCurrentCustomer(updateCustomer.getId())
                    .withAuthorizerClaim(SCOPE_CLAIM, AWS_COGNITO_SIGNIN_USER_ADMIN)
                    .withBody(updateCustomer)
                    .build();

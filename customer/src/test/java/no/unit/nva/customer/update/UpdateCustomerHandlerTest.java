@@ -6,7 +6,7 @@ import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static nva.commons.core.ioutils.IoUtils.stringFromResources;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -68,14 +67,23 @@ public class UpdateCustomerHandlerTest {
         CustomerDto customer = createCustomer(UUID.randomUUID());
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
 
-        var request = new HandlerRequestBuilder<String>(dtoObjectMapper).withPathParameters(
-                Map.of("identifier", "b8c3e125-cadb-43d5-823a-2daa7768c3f9"))
-                          .withBody(stringFromResources(Path.of("update_request.json")))
-                          .build();
+        var request = createInput(customer, Map.of("identifier", "b8c3e125-cadb-43d5-823a-2daa7768c3f9"));
 
         var response = sendRequest(request, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    }
+
+    @Test
+    void shouldReturnForbiddenWhenNoAccess() throws InputException, NotFoundException, IOException {
+        CustomerDto customer = createCustomer(UUID.randomUUID());
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
+
+        var request = createInputWithoutAccessRights(customer, Map.of());
+
+        var response = sendRequest(request, CustomerDto.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
     }
 
     @Test
@@ -175,6 +183,15 @@ public class UpdateCustomerHandlerTest {
     }
 
     private InputStream createInput(CustomerDto customer, Map<String, String> pathParameters)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
+                   .withHeaders(getRequestHeaders())
+                   .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+                   .withPathParameters(pathParameters)
+                   .build();
+    }
+
+    private InputStream createInputWithoutAccessRights(CustomerDto customer, Map<String, String> pathParameters)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
                    .withHeaders(getRequestHeaders())

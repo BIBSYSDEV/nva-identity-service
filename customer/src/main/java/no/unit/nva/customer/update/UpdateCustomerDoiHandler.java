@@ -1,6 +1,7 @@
 package no.unit.nva.customer.update;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
@@ -17,6 +18,7 @@ import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.secrets.SecretsReader;
@@ -105,5 +107,15 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
         secretsWriter.updateSecretKey(SECRETS_KEY_AND_NAME, SECRETS_KEY_AND_NAME, allSecretsJsonString);
 
         return allSecrets.get(customerId).toDoiAgentDto();
+    }
+
+    protected void authorizeDoiAgentChange(RequestInfo requestInfo) throws ForbiddenException {
+        if (notCustomerManager(requestInfo)) {
+            throw new ForbiddenException();
+        }
+    }
+
+    private boolean notCustomerManager(RequestInfo requestInfo) {
+        return !requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 }

@@ -38,10 +38,10 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
+class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
     private CustomerService customerService;
-    private GetAllCustomersHandler handler;
+    private ListAllCustomersHandler handler;
     private Context context;
     private ByteArrayOutputStream outputStream;
 
@@ -52,7 +52,7 @@ class GetAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     public void setUp() {
         this.setupDatabase();
         customerService = new DynamoDBCustomerService(this.dynamoClient);
-        handler = new GetAllCustomersHandler(customerService);
+        handler = new ListAllCustomersHandler(customerService);
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }

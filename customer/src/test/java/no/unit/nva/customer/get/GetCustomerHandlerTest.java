@@ -33,6 +33,8 @@ import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
@@ -70,6 +72,7 @@ class GetCustomerHandlerTest {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withHeaders(supportedHeaders.getRequestHeaders())
+                        .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
                         .withPathParameters(pathParameters)
                         .build();
 
@@ -78,6 +81,22 @@ class GetCustomerHandlerTest {
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
         assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE),
                    is(MediaTypes.APPLICATION_JSON_LD.toString()));
+    }
+
+    @Test
+    void returnsForbiddenWhenMissingManageCustomersAccessRight() throws IOException, NotFoundException {
+        UUID identifier = UUID.randomUUID();
+        prepareServiceWithCustomer(identifier);
+        var supportedHeaders = new RequestHeaders(MediaTypes.APPLICATION_JSON_LD);
+        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
+        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
+                        .withHeaders(supportedHeaders.getRequestHeaders())
+                        .withPathParameters(pathParameters)
+                        .build();
+
+        var response = sendRequest(input, Problem.class);
+
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_FORBIDDEN));
     }
 
     @Test
@@ -101,6 +120,7 @@ class GetCustomerHandlerTest {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
                         .withHeaders(getRequestHeaders())
+                        .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
                         .withPathParameters(pathParameters)
                         .build();
 
@@ -117,6 +137,7 @@ class GetCustomerHandlerTest {
         RequestHeaders unsupportedRequestHeaders = new RequestHeaders(UNSUPPORTED_MEDIA_TYPE);
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var request = new HandlerRequestBuilder<Void>(dtoObjectMapper)
+                          .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
                           .withHeaders(unsupportedRequestHeaders.getRequestHeaders())
                           .withPathParameters(pathParameters)
                           .build();
@@ -136,6 +157,7 @@ class GetCustomerHandlerTest {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
                    .withBody(customerDto)
+                   .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
                    .withHeaders(getRequestHeaders())
                    .withPathParameters(pathParameters)
                    .build();

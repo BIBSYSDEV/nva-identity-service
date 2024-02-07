@@ -8,7 +8,6 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +29,7 @@ class VocabularyListTest {
     @Test
     void shouldThrowExceptionWhenFailingToParse() {
         var illegalString = randomString();
-        var exception = assertThrows(Exception.class, () -> VocabularyList.fromJson(illegalString));
-        assertThat(exception.getMessage(), containsString(illegalString));
+        assertThrows(Exception.class, () -> VocabularyList.fromJson(illegalString));
     }
 
     private VocabularyList randomVocabularyList() {

@@ -1,12 +1,11 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
 import static nva.commons.core.attempt.Try.attempt;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
@@ -262,7 +260,7 @@ public class CustomerDto implements Context {
 
     @JsonIgnore
     public boolean isActive() {
-        return !nonNull(inactiveFrom) || isInactiveFromInFuture();
+        return isNull(inactiveFrom) || isInactiveFromInFuture();
 
     }
 

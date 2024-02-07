@@ -2,6 +2,8 @@ package no.unit.nva.customer.testing;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.ControlledVocabularyHandler.IDENTIFIER_PATH_PARAMETER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.Is.is;
@@ -85,6 +87,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
         throws JsonProcessingException {
         return new HandlerRequestBuilder<T>(dtoObjectMapper)
             .withPathParameters(identifierToPathParameter(customerIdentifier))
+            .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
             .withBody(expectedBody)
             .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()))
             .build();
@@ -97,9 +100,10 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     protected InputStream createGetRequest(UUID identifier, MediaType acceptHeader)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-            .withPathParameters(Map.of("identifier", identifier.toString()))
-            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
-            .build();
+                   .withPathParameters(Map.of("identifier", identifier.toString()))
+                   .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+                   .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
+                   .build();
     }
 
     protected void assertThatExistingUserHasEmptyVocabularySettings() throws IOException {

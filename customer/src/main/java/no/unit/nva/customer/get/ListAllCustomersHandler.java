@@ -13,7 +13,7 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.core.JacocoGenerated;
 
-public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList> {
+public class ListAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList> {
 
     private final CustomerService customerService;
 
@@ -21,7 +21,7 @@ public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList
      * Default Constructor for GetAllCustomersHandler.
      */
     @JacocoGenerated
-    public GetAllCustomersHandler() {
+    public ListAllCustomersHandler() {
         this(defaultCustomerService());
     }
 
@@ -30,7 +30,7 @@ public class GetAllCustomersHandler extends ApiGatewayHandler<Void, CustomerList
      *
      * @param customerService customerService
      */
-    public GetAllCustomersHandler(CustomerService customerService) {
+    public ListAllCustomersHandler(CustomerService customerService) {
         super(Void.class);
         this.customerService = customerService;
     }

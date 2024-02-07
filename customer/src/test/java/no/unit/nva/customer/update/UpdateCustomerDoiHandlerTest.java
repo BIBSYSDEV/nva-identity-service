@@ -6,7 +6,7 @@ import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.apigateway.AccessRight.USER;
+import static nva.commons.apigateway.AccessRight.MANAGE_NVI;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
@@ -208,7 +208,7 @@ class UpdateCustomerDoiHandlerTest {
                    .withPathParameters(Map.of(IDENTIFIER, randomString()))
                    .withBody(body)
                    .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), USER)
+                   .withAccessRights(existingCustomer.getId(), MANAGE_NVI)
                    .build();
     }
 

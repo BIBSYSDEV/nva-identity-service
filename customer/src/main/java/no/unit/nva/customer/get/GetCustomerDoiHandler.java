@@ -19,7 +19,7 @@ import nva.commons.secrets.SecretsReader;
 public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
 
     /**
-     * Default Constructor for GetCustomerHandler.
+     * Default Constructor for ListCustomerHandler.
      */
     @JacocoGenerated
     @SuppressWarnings("unused")

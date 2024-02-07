@@ -79,9 +79,11 @@ public class UserSelectionUponLoginHandler
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
     public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
-    private static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE = "Customer is inactive {} when logging in as {}";
+    private static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE
+        = "Customer is inactive {} when logging in as {} with the following affiliations: {}";
     private static final String FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION
-        = "Failed to retrieve customer for active affiliation %s when logging in as %s";
+        = "Failed to retrieve customer for active affiliation %s when logging in as %s with the following "
+          + "affiliations: %s";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -316,27 +318,30 @@ public class UserSelectionUponLoginHandler
 
     private Set<CustomerDto> fetchCustomersWithActiveAffiliations(final Person person) {
         return person.getAffiliations().stream().map(Affiliation::getInstitutionId)
-                   .map(institutionId -> getCustomerByCristinIdOrLogError(institutionId, person.getId()))
+                   .map(institutionId -> getCustomerByCristinIdOrLogError(institutionId, person))
                    .flatMap(Optional::stream)
-                   .filter(customer -> logInactiveInstitutions(customer, person.getId()))
+                   .filter(customer -> logInactiveInstitutions(customer, person))
                    .collect(Collectors.toSet());
     }
 
-    private boolean logInactiveInstitutions(CustomerDto customerDto, URI personId) {
+    private boolean logInactiveInstitutions(CustomerDto customerDto, Person person) {
         if (!customerDto.isActive()) {
-            LOGGER.info(CUSTOMER_IS_INACTIVE_ERROR_MESSAGE, customerDto, personId);
+            LOGGER.info(CUSTOMER_IS_INACTIVE_ERROR_MESSAGE, customerDto, person.getId(), person.getAffiliations());
         }
         return customerDto.isActive();
     }
 
-    private Optional<CustomerDto> getCustomerByCristinIdOrLogError(URI organizationId, URI personId) {
+    private Optional<CustomerDto> getCustomerByCristinIdOrLogError(URI organizationId, Person person) {
         return attempt(() -> customerService.getCustomerByCristinId(organizationId))
                    .map(Optional::of)
-                   .orElse(fail -> logFailure(fail, organizationId, personId));
+                   .orElse(fail -> logFailure(fail, organizationId, person));
     }
 
-    private Optional<CustomerDto> logFailure(Failure<Optional<CustomerDto>> fail, URI organizationId, URI personId) {
-        var message = String.format(FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION, organizationId, personId);
+    private Optional<CustomerDto> logFailure(Failure<Optional<CustomerDto>> fail, URI organizationId, Person person) {
+        var message = String.format(FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION,
+                                    organizationId,
+                                    person.getId(),
+                                    person.getAffiliations());
         LOGGER.info(message, fail.getException());
         return Optional.empty();
     }

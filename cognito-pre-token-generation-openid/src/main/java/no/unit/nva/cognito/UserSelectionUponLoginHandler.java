@@ -79,9 +79,11 @@ public class UserSelectionUponLoginHandler
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
     public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
-    public static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE = "Customer is inactive {}";
+    private static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE
+        = "Customer is inactive {} when logging in as {} with the following affiliations: {}";
     private static final String FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION
-        = "Failed to retrieve customer for active affiliation: %s";
+        = "Failed to retrieve customer for active affiliation %s when logging in as %s with the following "
+          + "affiliations: %s";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -184,7 +186,7 @@ public class UserSelectionUponLoginHandler
                     authenticationDetails.getUsername(),
                     impersonating);
 
-        var customerForImpersonators = fetchCustomersWithActiveAffiliations(impersonator.getAffiliations());
+        var customerForImpersonators = fetchCustomersWithActiveAffiliations(impersonator);
         var usersForImpersonator = createUsers(impersonator, customerForImpersonators, authenticationDetails);
         var impersonatorsAccessRights = usersForImpersonator
                                             .stream()
@@ -212,7 +214,7 @@ public class UserSelectionUponLoginHandler
                                                                           AuthenticationDetails authenticationDetails,
                                                                           String impersonatedBy) {
         var start = Instant.now();
-        var customersForPerson = fetchCustomersWithActiveAffiliations(person.getAffiliations());
+        var customersForPerson = fetchCustomersWithActiveAffiliations(person);
         var usersForPerson = createUsers(person, customersForPerson, authenticationDetails);
 
         if (LOGGER.isDebugEnabled()) {
@@ -314,29 +316,32 @@ public class UserSelectionUponLoginHandler
                || feideDomain.equals(customer.getFeideOrganizationDomain());
     }
 
-    private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {
-        return affiliations.stream().map(Affiliation::getInstitutionId)
-                   .map(this::getCustomerByCristinIdOrLogError)
+    private Set<CustomerDto> fetchCustomersWithActiveAffiliations(final Person person) {
+        return person.getAffiliations().stream().map(Affiliation::getInstitutionId)
+                   .map(institutionId -> getCustomerByCristinIdOrLogError(institutionId, person))
                    .flatMap(Optional::stream)
-                   .filter(this::logInactiveInstitutions)
+                   .filter(customer -> logInactiveInstitutions(customer, person))
                    .collect(Collectors.toSet());
     }
 
-    private boolean logInactiveInstitutions(CustomerDto customerDto) {
+    private boolean logInactiveInstitutions(CustomerDto customerDto, Person person) {
         if (!customerDto.isActive()) {
-            LOGGER.info(CUSTOMER_IS_INACTIVE_ERROR_MESSAGE, customerDto);
+            LOGGER.info(CUSTOMER_IS_INACTIVE_ERROR_MESSAGE, customerDto, person.getId(), person.getAffiliations());
         }
         return customerDto.isActive();
     }
 
-    private Optional<CustomerDto> getCustomerByCristinIdOrLogError(URI cristinId) {
-        return attempt(() -> customerService.getCustomerByCristinId(cristinId))
+    private Optional<CustomerDto> getCustomerByCristinIdOrLogError(URI organizationId, Person person) {
+        return attempt(() -> customerService.getCustomerByCristinId(organizationId))
                    .map(Optional::of)
-                   .orElse(fail -> logFailure(fail, cristinId));
+                   .orElse(fail -> logFailure(fail, organizationId, person));
     }
 
-    private Optional<CustomerDto> logFailure(Failure<Optional<CustomerDto>> fail, URI cristinId) {
-        var message = String.format(FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION, cristinId);
+    private Optional<CustomerDto> logFailure(Failure<Optional<CustomerDto>> fail, URI organizationId, Person person) {
+        var message = String.format(FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION,
+                                    organizationId,
+                                    person.getId(),
+                                    person.getAffiliations());
         LOGGER.info(message, fail.getException());
         return Optional.empty();
     }

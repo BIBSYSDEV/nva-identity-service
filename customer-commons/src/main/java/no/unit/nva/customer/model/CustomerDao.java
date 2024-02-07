@@ -404,6 +404,35 @@ public class CustomerDao implements Typed {
         }
     }
 
+    @Override
+    public String toString() {
+        return "CustomerDao{" +
+               "identifier=" + identifier +
+               ", createdDate=" + createdDate +
+               ", modifiedDate=" + modifiedDate +
+               ", name='" + name + '\'' +
+               ", displayName='" + displayName + '\'' +
+               ", shortName='" + shortName + '\'' +
+               ", archiveName='" + archiveName + '\'' +
+               ", cname='" + cname + '\'' +
+               ", institutionDns='" + institutionDns + '\'' +
+               ", feideOrganizationDomain='" + feideOrganizationDomain + '\'' +
+               ", cristinId=" + cristinId +
+               ", customerOf=" + customerOf +
+               ", vocabularies=" + vocabularies +
+               ", rorId=" + rorId +
+               ", serviceCenterUri=" + serviceCenterUri +
+               ", publicationWorkflow=" + publicationWorkflow +
+               ", doiAgent=" + doiAgent +
+               ", nviInstitution=" + nviInstitution +
+               ", rboInstitution=" + rboInstitution +
+               ", inactiveFrom=" + inactiveFrom +
+               ", sector=" + sector +
+               ", rightsRetentionStrategy=" + rightsRetentionStrategy +
+               ", allowFileUploadForTypes=" + allowFileUploadForTypes +
+               '}';
+    }
+
     private static URI extractCustomerOf(CustomerDto dto) {
         return Optional.ofNullable(dto)
                    .map(CustomerDto::getCustomerOf)

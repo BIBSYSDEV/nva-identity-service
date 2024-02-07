@@ -78,10 +78,10 @@ public class UserSelectionUponLoginHandler
     public static final String FEIDE_ID = "custom:feideId";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
-    public static final String APP_ADMIN_ROLE_NAME = "App-admin";
     public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
     public static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE = "Customer is inactive {}";
-    public static final String FAILED_TO_RETRIEVE_INSTITUTION_ERROR_MESSAGE = "Failed to retrieve institution {}";
+    private static final String FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION
+        = "Failed to retrieve customer for active affiliation: %s";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -332,11 +332,12 @@ public class UserSelectionUponLoginHandler
     private Optional<CustomerDto> getCustomerByCristinIdOrLogError(URI cristinId) {
         return attempt(() -> customerService.getCustomerByCristinId(cristinId))
                    .map(Optional::of)
-                   .orElse(this::logFailure);
+                   .orElse(fail -> logFailure(fail, cristinId));
     }
 
-    private Optional<CustomerDto> logFailure(Failure<Optional<CustomerDto>> fail) {
-        LOGGER.error(FAILED_TO_RETRIEVE_INSTITUTION_ERROR_MESSAGE, fail.getException());
+    private Optional<CustomerDto> logFailure(Failure<Optional<CustomerDto>> fail, URI cristinId) {
+        var message = String.format(FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION, cristinId);
+        LOGGER.info(message, fail.getException());
         return Optional.empty();
     }
 

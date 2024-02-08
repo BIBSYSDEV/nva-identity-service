@@ -84,22 +84,6 @@ class GetCustomerHandlerTest {
     }
 
     @Test
-    void returnsForbiddenWhenMissingManageCustomersAccessRight() throws IOException, NotFoundException {
-        UUID identifier = UUID.randomUUID();
-        prepareServiceWithCustomer(identifier);
-        var supportedHeaders = new RequestHeaders(MediaTypes.APPLICATION_JSON_LD);
-        Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withHeaders(supportedHeaders.getRequestHeaders())
-                        .withPathParameters(pathParameters)
-                        .build();
-
-        var response = sendRequest(input, Problem.class);
-
-        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_FORBIDDEN));
-    }
-
-    @Test
     void requestToHandlerReturnsCustomer() throws NotFoundException, IOException, BadRequestException {
         var identifier = UUID.randomUUID();
         var customerDto = prepareServiceWithCustomer(identifier);

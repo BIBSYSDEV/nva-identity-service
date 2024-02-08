@@ -1,7 +1,6 @@
 package no.unit.nva.customer.get;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
 import java.net.HttpURLConnection;
@@ -46,15 +45,7 @@ public class GetCustomerHandler extends CustomerHandler<Void> {
     @Override
     protected CustomerDto processInput(Void input, RequestInfo requestInfo, Context context)
         throws InputException, NotFoundException, ForbiddenException {
-        if (!userIsAuthorized(requestInfo)) {
-            throw new ForbiddenException();
-        }
         return customerService.getCustomer(getIdentifier(requestInfo));
-    }
-
-    private boolean userIsAuthorized(RequestInfo requestInfo) {
-        return requestInfo.clientIsInternalBackend()
-               || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 
     @Override

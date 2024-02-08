@@ -31,6 +31,7 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -61,7 +62,7 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     void requestToHandlerReturnsCustomerList() throws IOException, ApiGatewayException {
 
         final var savedCustomer = insertRandomCustomer();
-        var input = sampleRequest();
+        var input = sampleRequestWithAccess();
         var response = sendRequest(input, CustomerList.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
 
@@ -74,10 +75,17 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
+    void requestToHandlerReturnsForbiddenWhenNotAppAdmin() throws IOException {
+        var input = sampleRequestWithoutAccess();
+        var response = sendRequest(input, CustomerList.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    @Test
     void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate()
         throws IOException, ApiGatewayException {
         var existingCustomer = insertRandomCustomer();
-        var input = sampleRequest();
+        var input = sampleRequestWithAccess();
         var response = sendRequest(input, CustomerList.class);
         var customerList = CustomerList.fromString(response.getBody());
         assertThat(customerList.getId(), notNullValue());
@@ -95,8 +103,8 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     void shouldReturnAListOfCustomersContainingCustomerDoiPrefix()
         throws ConflictException, NotFoundException, IOException {
         var doiPrefix = randomString();
-        var s = insertRandomCustomerWithDoiPrefix(doiPrefix);
-        var input = sampleRequest();
+        insertRandomCustomerWithDoiPrefix(doiPrefix);
+        var input = sampleRequestWithAccess();
         var response = sendRequest(input, CustomerList.class);
         var customerList = CustomerList.fromString(response.getBody());
         assertThat(customerList.getCustomers(), hasSize(1));
@@ -129,8 +137,17 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
 
-    private InputStream sampleRequest() throws JsonProcessingException {
-        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withHeaders(getRequestHeaders()).build();
+    private InputStream sampleRequestWithAccess() throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
+                   .withAccessRights(randomUri(), AccessRight.MANAGE_CUSTOMERS)
+                   .withHeaders(getRequestHeaders())
+                   .build();
+    }
+
+    private InputStream sampleRequestWithoutAccess() throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
+                   .withHeaders(getRequestHeaders())
+                   .build();
     }
 
     private CustomerDto insertRandomCustomer() throws ApiGatewayException {

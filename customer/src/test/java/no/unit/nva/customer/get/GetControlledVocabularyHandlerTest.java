@@ -29,7 +29,6 @@ import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import org.junit.jupiter.api.BeforeEach;

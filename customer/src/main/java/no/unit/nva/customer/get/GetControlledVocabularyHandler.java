@@ -1,7 +1,6 @@
 package no.unit.nva.customer.get;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.util.UUID;
@@ -33,16 +32,9 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
     @Override
     protected VocabularyList processInput(Void input, RequestInfo requestInfo, Context context)
         throws NotFoundException, ForbiddenException {
-        if (!userIsAuthorized(requestInfo)) {
-            throw new ForbiddenException();
-        }
+
         UUID identifier = extractIdentifier(requestInfo);
         CustomerDto customerDto = customerService.getCustomer(identifier);
         return VocabularyList.fromCustomerDto(customerDto);
-    }
-
-    private boolean userIsAuthorized(RequestInfo requestInfo) {
-        return requestInfo.clientIsInternalBackend()
-               || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 }

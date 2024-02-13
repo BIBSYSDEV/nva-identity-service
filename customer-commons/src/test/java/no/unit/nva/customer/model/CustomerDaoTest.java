@@ -169,6 +169,7 @@ class CustomerDaoTest {
         UUID identifier = UUID.randomUUID();
         return CustomerDao
                    .builder()
+                   .withAlternativeNames(randomAlternativeNames())
                    .withName(randomString())
                    .withCristinId(randomUri())
                    .withCustomerOf(randomApplicationDomain().getUri())
@@ -193,6 +194,10 @@ class CustomerDaoTest {
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();
+    }
+
+    private Map<String, String> randomAlternativeNames() {
+        return Map.of("eng", randomString());
     }
 
     private ApplicationDomain randomApplicationDomain() {

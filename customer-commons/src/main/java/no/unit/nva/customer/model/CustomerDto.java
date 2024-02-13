@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -59,6 +60,7 @@ public class CustomerDto implements Context {
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
+    private Map<String, String> alternativeNames;
 
     public CustomerDto() {
         super();
@@ -286,6 +288,14 @@ public class CustomerDto implements Context {
         this.rightsRetentionStrategy = rightsRetentionStrategy;
     }
 
+    public Map<String, String> getAlternativeNames() {
+        return alternativeNames;
+    }
+
+    public void setAlternativeNames(Map<String, String> alternativeNames) {
+        this.alternativeNames = alternativeNames;
+    }
+
     @Override
     public URI getContext() {
         return context;
@@ -320,6 +330,7 @@ public class CustomerDto implements Context {
                 .withRboInstitution(isRboInstitution())
                 .withInactiveFrom(getInactiveFrom())
                 .withSector(getSector())
+                .withAlternativeNames(getAlternativeNames())
                 .withVocabularies(getVocabularies())
                 .withRightsRetentionStrategy(getRightsRetentionStrategy())
                 .withAllowFileUploadForTypes(getAllowFileUploadForTypes());
@@ -331,7 +342,8 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getServiceCenterUri(), getPublicationWorkflow(), getDoiAgent(),
+                            getRorId(),getAlternativeNames(),  getServiceCenterUri(), getPublicationWorkflow(),
+                            getDoiAgent(),
                             getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom());
     }
 
@@ -347,6 +359,7 @@ public class CustomerDto implements Context {
         CustomerDto that = (CustomerDto) o;
         return Objects.equals(getArchiveName(), that.getArchiveName())
                 && Objects.equals(getContext(), that.getContext())
+                && Objects.equals(getAlternativeNames(), that.getAlternativeNames())
                 && Objects.equals(getCname(), that.getCname())
                 && Objects.equals(getCreatedDate(), that.getCreatedDate())
                 && Objects.equals(getCristinId(), that.getCristinId())
@@ -439,6 +452,11 @@ public class CustomerDto implements Context {
 
         public Builder withArchiveName(String archiveName) {
             customerDto.setArchiveName(archiveName);
+            return this;
+        }
+
+        public Builder withAlternativeNames(Map<String, String> alternativeNames) {
+            customerDto.setAlternativeNames(alternativeNames);
             return this;
         }
 

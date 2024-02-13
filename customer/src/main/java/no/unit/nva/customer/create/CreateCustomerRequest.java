@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import no.unit.nva.customer.model.ApplicationDomain;
@@ -23,7 +24,7 @@ import nva.commons.core.JacocoGenerated;
 
 @JsonTypeInfo(use = Id.NAME, property = "type")
 @JsonTypeName(TYPE_VALUE)
-@SuppressWarnings({"PMD.TooManyFields", "PMD.GodClass"})
+@SuppressWarnings({"PMD.TooManyFields", "PMD.GodClass", "PMD.ExcessivePublicCount"})
 public class CreateCustomerRequest {
 
     public static final String TYPE_VALUE = "Customer";
@@ -45,6 +46,7 @@ public class CreateCustomerRequest {
     private Sector sector;
     private URI rorId;
     private URI serviceCenterUri;
+    private Map<String, String> alternativeNames;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
@@ -65,6 +67,7 @@ public class CreateCustomerRequest {
         request.setRboInstitution(customerDto.isRboInstitution());
         request.setInactiveFrom(customerDto.getInactiveFrom());
         request.setRorId(customerDto.getRorId());
+        request.setAlternativeNames(customerDto.getAlternativeNames());
         request.setServiceCenterUri(customerDto.getServiceCenterUri());
         request.setAllowFileUploadForTypes(customerDto.getAllowFileUploadForTypes());
         if (nonNull(customerDto.getDoiAgent())) {
@@ -250,10 +253,19 @@ public class CreateCustomerRequest {
         this.serviceCenterUri = serviceCenterUri;
     }
 
+    public Map<String, String> getAlternativeNames() {
+        return alternativeNames;
+    }
+
+    public void setAlternativeNames(Map<String, String> alternativeNames) {
+        this.alternativeNames = alternativeNames;
+    }
+
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
+        return Objects.hash(getName(), getAlternativeNames(), getDisplayName(), getShortName(), getArchiveName(),
+                            getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
                             getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getInactiveFrom(),
                             getRorId(), getServiceCenterUri(), getAllowFileUploadForTypes());
@@ -270,6 +282,7 @@ public class CreateCustomerRequest {
         }
         CreateCustomerRequest that = (CreateCustomerRequest) o;
         return Objects.equals(getName(), that.getName())
+               && Objects.equals(getAlternativeNames(), that.getAlternativeNames())
                && Objects.equals(getDisplayName(), that.getDisplayName())
                && Objects.equals(getShortName(), that.getShortName())
                && Objects.equals(getArchiveName(), that.getArchiveName())

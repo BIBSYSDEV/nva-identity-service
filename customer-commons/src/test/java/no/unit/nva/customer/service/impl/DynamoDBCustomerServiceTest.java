@@ -357,6 +357,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     private CustomerDto newInactiveCustomerDto() {
         var oneMinuteInThePast = Instant.now().minusSeconds(60L);
         var customer = CustomerDto.builder()
+                           .withAlternativeNames(randomAlternativeNames())
                            .withName(randomString())
                            .withShortName(randomString())
                            .withCreatedDate(oneMinuteInThePast)
@@ -383,6 +384,10 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password","doiAgent.id")));
         return customer;
+    }
+
+    private Map<String, String> randomAlternativeNames() {
+        return Map.of("eng", randomString());
     }
 
     private CustomerDto newActiveCustomerDto() {

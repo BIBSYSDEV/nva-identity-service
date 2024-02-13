@@ -12,6 +12,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -42,6 +43,7 @@ public class CustomerDataGenerator {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
+                                   .withAlternativeNames(randomAlternativeNames())
                                    .withName(randomString())
                                    .withCristinId(randomUri())
                                    .withCustomerOf(randomApplicationDomain())
@@ -73,6 +75,10 @@ public class CustomerDataGenerator {
         return customer;
     }
 
+    private static Map<String, String> randomAlternativeNames() {
+        return Map.of("eng", randomString());
+    }
+
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
         VocabularyDao vocabulary = randomVocabularyDao();
         return Stream.of(vocabulary)
@@ -83,6 +89,7 @@ public class CustomerDataGenerator {
     public static CustomerDao createSampleInactiveCustomerDao() {
         VocabularyDao vocabulary = randomVocabularyDao();
         CustomerDao customer = CustomerDao.builder()
+                                   .withAlternativeNames(randomAlternativeNames())
                                    .withIdentifier(randomIdentifier())
                                    .withName(randomString())
                                    .withModifiedDate(randomInstant())

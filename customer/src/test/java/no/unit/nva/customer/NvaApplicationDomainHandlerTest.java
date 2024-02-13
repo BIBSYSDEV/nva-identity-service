@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.is;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.URI;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -58,7 +59,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                                               .map(Try::orElseThrow)
                                               .map(customer -> updateCustomerOfNvaAttribute(customer).getCustomerOf())
                                               .collect(Collectors.toList());
-    
+
         var actualCustomersAppDomains = handler.handleRequest(input, context)
                                             .stream()
                                             .map(CustomerDto::getCustomerOf)
@@ -71,6 +72,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
         var oneMinuteInThePast = Instant.now().minusSeconds(60L);
         var customer = CustomerDto.builder()
                            .withName(randomString())
+                           .withAlternativeNames(randomAlternativeNames())
                            .withShortName(randomString())
                            .withCreatedDate(oneMinuteInThePast)
                            .withModifiedDate(oneMinuteInThePast)
@@ -96,6 +98,10 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password", "doiAgent.id")));
         return customer;
+    }
+
+    private Map<String, String> randomAlternativeNames() {
+        return Map.of("eng", randomString());
     }
 
     private Set<VocabularyDto> randomVocabularySet() {

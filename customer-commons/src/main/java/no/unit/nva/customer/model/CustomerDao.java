@@ -9,6 +9,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -69,6 +70,7 @@ public class CustomerDao implements Typed {
     private boolean rboInstitution;
     private Instant inactiveFrom;
     private Sector sector;
+    private Map<String, String> alternativeNames;
     @JsonAlias("rightRetentionStrategy")
     private RightsRetentionStrategyDao rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
@@ -85,6 +87,7 @@ public class CustomerDao implements Typed {
     public static CustomerDao fromCustomerDto(CustomerDto dto) {
         return builder()
                    .withArchiveName(dto.getArchiveName())
+                   .withAlternativeNames(dto.getAlternativeNames())
                    .withCname(dto.getCname())
                    .withCreatedDate(dto.getCreatedDate())
                    .withCristinId(dto.getCristinId())
@@ -129,7 +132,8 @@ public class CustomerDao implements Typed {
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
+        return Objects.hash(identifier, alternativeNames, createdDate, modifiedDate, name, displayName, shortName,
+                            archiveName, cname,
                             institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
                             serviceCenterUri, publicationWorkflow, doiAgent, nviInstitution, rboInstitution,
                             inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes);
@@ -147,6 +151,7 @@ public class CustomerDao implements Typed {
         CustomerDao that = (CustomerDao) o;
         return nviInstitution == that.nviInstitution
                && rboInstitution == that.rboInstitution
+               && Objects.equals(alternativeNames, that.alternativeNames)
                && Objects.equals(inactiveFrom, that.inactiveFrom)
                && Objects.equals(identifier, that.identifier)
                && Objects.equals(createdDate, that.createdDate)
@@ -238,6 +243,14 @@ public class CustomerDao implements Typed {
 
     public String getInstitutionDns() {
         return institutionDns;
+    }
+
+    public Map<String, String> getAlternativeNames() {
+        return alternativeNames;
+    }
+
+    public void setAlternativeNames(Map<String, String> alternativeNames) {
+        this.alternativeNames = alternativeNames;
     }
 
     public void setInstitutionDns(String institutionDns) {
@@ -367,6 +380,7 @@ public class CustomerDao implements Typed {
                                       .withCname(getCname())
                                       .withName(getName())
                                       .withIdentifier(getIdentifier())
+                                      .withAlternativeNames(getAlternativeNames())
                                       .withArchiveName(getArchiveName())
                                       .withCreatedDate(getCreatedDate())
                                       .withDisplayName(getDisplayName())
@@ -597,10 +611,16 @@ public class CustomerDao implements Typed {
             customerDb.setInactiveFrom(inactiveFrom);
             return this;
         }
+        public Builder withAlternativeNames(Map<String, String> alternativeNames) {
+            customerDb.setAlternativeNames(alternativeNames);
+            return this;
+        }
 
         public CustomerDao build() {
             return customerDb;
         }
+
+
     }
 
     @DynamoDbBean

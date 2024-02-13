@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -114,6 +115,7 @@ class CustomerDtoTest {
     private CustomerDto randomInactiveCustomer() {
         return CustomerDto.builder()
                    .withCname(randomString())
+                   .withAlternativeNames(randomAlternativeNames())
                    .withIdentifier(UUID.randomUUID())
                    .withId(randomUri())
                    .withDisplayName(randomString())
@@ -139,6 +141,10 @@ class CustomerDtoTest {
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();
+    }
+
+    private Map<String, String> randomAlternativeNames() {
+        return Map.of("eng", randomString());
     }
 
     private CustomerDto randomActiveCustomer() {

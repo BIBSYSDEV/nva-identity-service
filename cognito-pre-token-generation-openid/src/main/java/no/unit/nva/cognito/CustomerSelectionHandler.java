@@ -23,6 +23,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.useraccessservice.database.DatabaseConfig;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.JacocoGenerated;
@@ -108,7 +109,8 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
                     .orElseThrow()
                     .stream()
                     .filter(ac -> ac.getCustomer().getId().equals(user.getInstitution()))
-                    .map(UserAccessRightForCustomer::toString)
+                    .map(UserAccessRightForCustomer::getAccessRight)
+                    .map(AccessRight::toPersistedString)
                     .collect(Collectors.joining(ELEMENTS_DELIMITER));
     }
 

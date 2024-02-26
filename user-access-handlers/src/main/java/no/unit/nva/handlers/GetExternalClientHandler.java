@@ -32,12 +32,13 @@ public class GetExternalClientHandler
 
     @Override
     protected GetExternalClientResponse processInput(Void input, RequestInfo requestInfo,
-                                                        Context context)
+                                                     Context context)
         throws ApiGatewayException {
 
         authorize(requestInfo);
 
-        var resourceIdentifier = requestInfo.getPathParameter(CLIENT_ID_PATH_PARAMETER_NAME);
+        var resourceIdentifier =
+            requestInfo.getClientId().orElseGet(() -> requestInfo.getPathParameter(CLIENT_ID_PATH_PARAMETER_NAME));
 
         var query = ClientDto.newBuilder().withClientId(resourceIdentifier).build();
         var result = databaseService.getClient(query);

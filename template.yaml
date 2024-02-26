@@ -598,6 +598,12 @@ Resources:
             Path: /external-clients/{clientId}
             Method: get
             RestApiId: !Ref UsersAndRolesApi
+        ApiEventWithoutClientId:
+          Type: Api
+          Properties:
+            Path: /external-clients
+            Method: get
+            RestApiId: !Ref UsersAndRolesApi
 
   UsersAndRolesApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping

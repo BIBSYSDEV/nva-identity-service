@@ -61,6 +61,22 @@ class GetExternalClientHandlerTest extends HandlerTest {
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_OK)));
     }
 
+    @Test
+    public void shouldReturnTheClientWithoutProvidingClientId() throws IOException, ConflictException {
+        var client =
+            ClientDto.newBuilder()
+                .withClientId("someClientId")
+                .withCristinOrgUri(RandomDataGenerator.randomUri())
+                .withCustomer(RandomDataGenerator.randomUri())
+                .withActingUser("someone@123")
+                .build();
+
+        insertClientToDatabase(client);
+        var gatewayResponse = sendRequest(createBackendRequestWithoutClientId("someClientId"), Problem.class);
+
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_OK)));
+    }
+
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, context);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
@@ -76,4 +92,12 @@ class GetExternalClientHandlerTest extends HandlerTest {
                    .build();
     }
 
+    private InputStream createBackendRequestWithoutClientId(String clientId)
+        throws JsonProcessingException {
+
+        return new HandlerRequestBuilder<CreateExternalClientRequest>(dtoObjectMapper)
+                   .withScope(RequestInfoConstants.BACKEND_SCOPE_AS_DEFINED_IN_IDENTITY_SERVICE)
+                   .withClientId(clientId)
+                   .build();
+    }
 }

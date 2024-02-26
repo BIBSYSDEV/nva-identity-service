@@ -207,7 +207,7 @@ paths:
     get:
       summary: Get a stored client and its associated customer
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - ExternalCognitoUserPool: []
       responses:
         '200':
           description: Returns the externalClient
@@ -307,6 +307,15 @@ components:
         type: cognito_user_pools
         providerARNs:
           - Fn::GetAtt: UserPool.Arn
+    ExternalCognitoUserPool:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools
+        providerARNs:
+          - Fn::GetAtt: ExternalUserPool.Arn
   schemas:
     AccessRight:
       type: string

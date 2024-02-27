@@ -583,7 +583,7 @@ Resources:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetExternalClientUserinfoHandler::handleRequest
       Role: !GetAtt CreateUsersRole.Arn
-      Description: Get a store external client and its details
+      Description: Access stored external client info by its token
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
@@ -595,7 +595,7 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /external-client-userinfo
+            Path: /external-client
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 

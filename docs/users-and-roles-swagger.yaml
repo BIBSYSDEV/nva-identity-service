@@ -175,6 +175,35 @@ paths:
         httpMethod: POST
         type: aws_proxy
   /external-clients:
+    get:
+      summary: Access stored external client info by its token
+      security:
+        - ExternalCognitoUserPool:
+            - "https://api.nva.unit.no/scopes/third-party/file-upload"
+            - "https://api.nva.unit.no/scopes/third-party/ticket-upsert"
+            - "https://api.nva.unit.no/scopes/third-party/publication-read"
+            - "https://api.nva.unit.no/scopes/third-party/ticket-read"
+            - "https://api.nva.unit.no/scopes/third-party/reporting-read"
+            - "https://api.nva.unit.no/scopes/third-party/publication-upsert"
+      responses:
+        '200':
+          description: Returns the externalClient
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/ExternalClient'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetExternalClientUserinfoHandler.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: aws_proxy
     post:
       summary: Adds new external client
       security:
@@ -202,36 +231,6 @@ paths:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateExternalClientHandler.Arn}/invocations
         responses: {}
-        httpMethod: POST
-        type: aws_proxy
-  /external-client-userinfo:
-    get:
-      summary: Get a stored client and its associated customer
-      security:
-        - ExternalCognitoUserPool:
-            - "https://api.nva.unit.no/scopes/third-party/file-upload"
-            - "https://api.nva.unit.no/scopes/third-party/ticket-upsert"
-            - "https://api.nva.unit.no/scopes/third-party/publication-read"
-            - "https://api.nva.unit.no/scopes/third-party/ticket-read"
-            - "https://api.nva.unit.no/scopes/third-party/reporting-read"
-            - "https://api.nva.unit.no/scopes/third-party/publication-upsert"
-      responses:
-        '200':
-          description: Returns the externalClient
-          content:
-            "application/json":
-              schema:
-                $ref: '#/components/schemas/ExternalClient'
-        400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-      x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetExternalClientUserinfoHandler.Arn}/invocations
-        responses: { }
         httpMethod: POST
         type: aws_proxy
   /external-clients/{clientId}:

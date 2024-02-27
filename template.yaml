@@ -595,7 +595,7 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /external-client
+            Path: /external-clients
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 

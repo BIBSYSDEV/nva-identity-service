@@ -1,7 +1,6 @@
 
 package no.unit.nva.handlers;
 
-import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
@@ -9,23 +8,21 @@ import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.GetExternalClientResponse;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.JacocoGenerated;
 
-public class GetExternalClientHandler
+public class GetExternalClientUserinfoHandler
     extends HandlerWithEventualConsistency<Void, GetExternalClientResponse> {
 
-    public static final String CLIENT_ID_PATH_PARAMETER_NAME = "clientId";
     private IdentityService databaseService;
 
     @JacocoGenerated
-    public GetExternalClientHandler() {
+    public GetExternalClientUserinfoHandler() {
         this(
             IdentityService.defaultIdentityService()
         );
     }
 
-    public GetExternalClientHandler(IdentityService databaseService) {
+    public GetExternalClientUserinfoHandler(IdentityService databaseService) {
         super(Void.class);
         this.databaseService = databaseService;
     }
@@ -35,11 +32,7 @@ public class GetExternalClientHandler
                                                      Context context)
         throws ApiGatewayException {
 
-        authorize(requestInfo);
-
-        var resourceIdentifier = requestInfo.getPathParameter(CLIENT_ID_PATH_PARAMETER_NAME);
-
-        var query = ClientDto.newBuilder().withClientId(resourceIdentifier).build();
+        var query = ClientDto.newBuilder().withClientId(requestInfo.getClientId().orElseThrow()).build();
         var result = databaseService.getClient(query);
 
         return formatResponse(result);
@@ -57,16 +50,5 @@ public class GetExternalClientHandler
     @Override
     protected Integer getSuccessStatusCode(Void input, GetExternalClientResponse output) {
         return HttpURLConnection.HTTP_OK;
-    }
-
-    private void authorize(RequestInfo requestInfo) throws ForbiddenException {
-        if (userIsNotAuthorized(requestInfo)) {
-            throw new ForbiddenException();
-        }
-    }
-
-    private boolean userIsNotAuthorized(RequestInfo requestInfo) {
-        return !(requestInfo.clientIsInternalBackend()
-                 || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
     }
 }

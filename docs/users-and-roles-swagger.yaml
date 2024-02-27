@@ -204,13 +204,11 @@ paths:
         responses: {}
         httpMethod: POST
         type: aws_proxy
+  /external-client-userinfo:
     get:
       summary: Get a stored client and its associated customer
       security:
         - ExternalCognitoUserPool:
-            - "https://api.nva.unit.no/scopes/backend"
-            - "https://api.nva.unit.no/scopes/frontend"
-            - "aws.cognito.signin.user.admin"
             - "https://api.nva.unit.no/scopes/third-party/file-upload"
             - "https://api.nva.unit.no/scopes/third-party/ticket-upsert"
             - "https://api.nva.unit.no/scopes/third-party/publication-read"
@@ -232,7 +230,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetExternalClientHandler.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetExternalClientUserinfoHandler.Arn}/invocations
         responses: { }
         httpMethod: POST
         type: aws_proxy

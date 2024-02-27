@@ -15,13 +15,13 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.testutils.RandomDataGenerator;
 import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.CreateExternalClientRequest;
+import no.unit.nva.useraccessservice.model.GetExternalClientResponse;
 import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.exceptions.ConflictException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.zalando.problem.Problem;
 
 public class GetExternalClientUserinfoHandlerTest extends HandlerTest {
+
     private FakeContext context;
     private ByteArrayOutputStream outputStream;
     private GetExternalClientUserinfoHandler handler;
@@ -35,7 +35,7 @@ public class GetExternalClientUserinfoHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void shouldReturnTheClientWithOnlyExternalToken() throws IOException, ConflictException {
+    public void shouldReturnTheClientWithOnlyExternalToken() throws IOException {
         var client =
             ClientDto.newBuilder()
                 .withClientId("someClientId")
@@ -45,12 +45,12 @@ public class GetExternalClientUserinfoHandlerTest extends HandlerTest {
                 .build();
 
         insertClientToDatabase(client);
-        var gatewayResponse = sendRequest(createRequestWithClientInToken("someClientId"), Problem.class);
+        var gatewayResponse = sendRequest(createRequestWithClientInToken("someClientId"),
+                                          GetExternalClientResponse.class);
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_OK)));
         assertThat(gatewayResponse.getBody(), containsString("customerUri"));
     }
-
 
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, context);

@@ -577,6 +577,28 @@ Resources:
             Method: post
             RestApiId: !Ref UsersAndRolesApi
 
+  GetExternalClientUserinfoHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.GetExternalClientUserinfoHandler::handleRequest
+      Role: !GetAtt CreateUsersRole.Arn
+      Description: Access stored external client info by its token
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          API_DOMAIN: !Ref ApiDomain
+          EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
+          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+          EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /external-clients
+            Method: get
+            RestApiId: !Ref UsersAndRolesApi
+
   GetExternalClientHandler:
     Type: AWS::Serverless::Function
     Properties:

@@ -64,7 +64,7 @@ paths:
         type: aws_proxy
   /users:
     post:
-      summary: Adds new user
+      summary: Create user
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
@@ -72,14 +72,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/CreateUserRequest'
       responses:
         '200':
-          description: Successful creation of role. Returns the generated role
+          description: Ok, user already exists
           content:
             "application/json":
               schema:
                 $ref: '#/components/schemas/User'
+        '201':
+          description: Successful creation of user
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/User'
+        '409':
+          description: Conflict
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '502':
+          description: Bad gateway
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateUserHandler.Arn}/invocations
@@ -339,9 +357,8 @@ components:
           items:
             $ref: '#/components/schemas/AccessRight'
     User:
+      type: object
       properties:
-        type:
-          type: string
         username:
           type: string
         givenName:
@@ -358,6 +375,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccessRight'
+        viewingScope:
+          $ref: '#/components/schemas/ViewingScope'
+    CreateUserRequest:
+      type: object
+      required:
+        - nationalIdentityNumber
+        - customerId
+      properties:
+        nationalIdentityNumber:
+          type: string
+        customerId:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
         viewingScope:
           $ref: '#/components/schemas/ViewingScope'
     NationalIdentificationNumberBody:

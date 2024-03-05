@@ -1,6 +1,8 @@
 
 package no.unit.nva.handlers;
 
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Objects.isNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
@@ -8,10 +10,11 @@ import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -31,18 +34,25 @@ import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
+import nva.commons.core.attempt.Failure;
 import nva.commons.core.attempt.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUserRequest, UserDto> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserHandler.class);
+    public static final String BAD_GATEWAY_ERROR_MESSAGE = "Something went wrong, contact application administrator!";
     private final UserEntriesCreatorForPerson userCreator;
     private final IdentityService identityService;
     private final CustomerService customerService;
     private final PersonRegistry personRegistry;
+    private int statusCode;
 
     @JacocoGenerated
     public CreateUserHandler() {
@@ -74,16 +84,37 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
         authorize(input, requestInfo);
 
-        var newUser = createNewUser(input);
+        var existingUser = fetchExistingUser(input);
+        if (existingUser.isPresent()) {
+            this.statusCode = HTTP_OK;
+            return existingUser.get();
+        } else {
+            this.statusCode = HTTP_CREATED;
+            return persistNewUser(input);
+        }
+    }
 
-        var userWithUpdatedRoles = addRolesToCreatedUser(input, newUser);
-        identityService.updateUser(userWithUpdatedRoles);
-        return userWithUpdatedRoles;
+    private UserDto persistNewUser(CreateUserRequest input) throws ApiGatewayException {
+        return attempt(() -> createNewUser(input))
+                   .map(userDto -> addRolesAndViewingScope(userDto, input))
+                   .map(identityService::updateUser)
+                   .orElseThrow(CreateUserHandler::castToCorrectRuntimeException);
+    }
+
+    private Optional<UserDto> fetchExistingUser(CreateUserRequest input) throws ConflictException {
+        return personRegistry.fetchPersonByNin(NationalIdentityNumber.fromString(input.nationalIdentityNumber()))
+                   .map(person -> fetchUserAtCustomer(person, input.customerId()))
+                   .orElseThrow(() -> new ConflictException(personIsNotRegisteredError(input.nationalIdentityNumber())));
+    }
+
+    private Optional<UserDto> fetchUserAtCustomer(Person person, URI customerId) {
+        var users =  identityService.getUsersByCristinId(person.getId());
+        return users.stream().filter(userDto -> userDto.getInstitution().equals(customerId)).findFirst();
     }
 
     @Override
     protected Integer getSuccessStatusCode(CreateUserRequest input, UserDto output) {
-        return HttpURLConnection.HTTP_OK;
+        return statusCode;
     }
 
     @JacocoGenerated
@@ -92,9 +123,8 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private UserDto createNewUser(CreateUserRequest input) throws ConflictException {
-        var nin = new NationalIdentityNumber(input.getNin());
-        var person = personRegistry.fetchPersonByNin(nin)
-                         .orElseThrow(() -> new ConflictException(personIsNotRegisteredError(input.getNin())));
+        var nin = NationalIdentityNumber.fromString(input.nationalIdentityNumber());
+        var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
 
         var customersWithActiveAffiliations = fetchCustomersWithActiveAffiliations(
             person.getAffiliations());
@@ -113,7 +143,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private Predicate<CustomerDto> customerByIdOrCristinId(CreateUserRequest input) {
-        return c -> c.getId().equals(input.getCustomerId()) || c.getCristinId().equals(input.getCustomerId());
+        return c -> c.getId().equals(input.customerId()) || c.getCristinId().equals(input.customerId());
     }
 
     private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {
@@ -152,17 +182,17 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
         return isNull(collection) || collection.isEmpty();
     }
 
-    private UserDto addRolesToCreatedUser(CreateUserRequest input, UserDto newUser) {
-        var allRoles = createUnionOfRoleSets(input, newUser);
+    private UserDto addRolesAndViewingScope(UserDto newUser, CreateUserRequest input) {
         return getEventuallyConsistent(() -> identityService.getUser(newUser))
                    .map(UserDto::copy)
-                   .map(user -> user.withRoles(allRoles))
+                   .map(user -> user.withRoles(createUnionOfRoleSets(input, newUser)))
+                   .map(user -> user.withViewingScope(input.viewingScope()))
                    .map(UserDto.Builder::build)
                    .orElseThrow();
     }
 
     private Set<RoleDto> createUnionOfRoleSets(CreateUserRequest input, UserDto newUser) {
-        return Stream.of(input.getRoles(), newUser.getRoles())
+        return Stream.of(input.roles(), newUser.getRoles())
                    .flatMap(Collection::stream)
                    .collect(Collectors.toSet());
     }
@@ -172,7 +202,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
             return;
         }
 
-        var roles = input.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
+        var roles = input.roles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
 
         if (roles.contains(APP_ADMIN_ROLE_NAME) || !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION)) {
             throw new ForbiddenException();
@@ -182,5 +212,15 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     private boolean userIsInternalBackendOrHasManageOwnAffiliationAccess(RequestInfo requestInfo) {
         return requestInfo.clientIsInternalBackend()
                 || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
+    }
+
+    public static ApiGatewayException castToCorrectRuntimeException(Failure<?> failure) {
+        var exception = failure.getException();
+        if (exception instanceof ConflictException) {
+            return (ConflictException) exception;
+        } else {
+            LOGGER.error(failure.getException().getMessage());
+            return new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
+        }
     }
 }

@@ -1,15 +1,13 @@
 package no.unit.nva.handlers.models;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import nva.commons.core.JacocoGenerated;
 
 public class ImpersonationRequest {
 
-    protected static final String NATIONAL_IDENTITY_NUMBER_FIELD = "nin";
+    protected static final String NATIONAL_IDENTITY_NUMBER_FIELD = "nationalIdentityNumber";
 
     @JsonProperty(NATIONAL_IDENTITY_NUMBER_FIELD)
-    @JsonAlias("nin")
     private String nin;
 
     public ImpersonationRequest(String nin) {

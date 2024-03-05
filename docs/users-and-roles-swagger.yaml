@@ -358,13 +358,7 @@ components:
             $ref: '#/components/schemas/AccessRight'
     User:
       type: object
-      required:
-        - type
       properties:
-        type:
-          type: string
-          enum:
-            - 'User'
         username:
           type: string
         givenName:
@@ -386,15 +380,10 @@ components:
     CreateUserRequest:
       type: object
       required:
-        - type
-        - nin
+        - nationalIdentityNumber
         - customerId
       properties:
-        type:
-          type: string
-          enum:
-            - CreateUserRequest
-        nin:
+        nationalIdentityNumber:
           type: string
         customerId:
           type: string

@@ -91,7 +91,7 @@ public class CristinPersonRegistryTest {
                                                                     ServiceConstants.API_DOMAIN,
                                                                     defaultRequestHeaders,
                                                                     new SecretsReader(secretsManagerClient));
-        var nin = new NationalIdentityNumber(randomString());
+        var nin = NationalIdentityNumber.fromString(randomString());
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
     }
 

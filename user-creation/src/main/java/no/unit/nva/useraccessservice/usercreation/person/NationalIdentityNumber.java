@@ -8,6 +8,10 @@ public class NationalIdentityNumber {
         this.nin = nin;
     }
 
+    public static NationalIdentityNumber fromString(final String nin) {
+        return new NationalIdentityNumber(nin);
+    }
+
     public String getNin() {
         return nin;
     }

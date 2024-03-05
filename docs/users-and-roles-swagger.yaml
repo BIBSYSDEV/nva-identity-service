@@ -72,7 +72,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/CreateUserRequest'
       responses:
         '200':
           description: Successful creation of role. Returns the generated role
@@ -358,6 +358,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccessRight'
+        viewingScope:
+          $ref: '#/components/schemas/ViewingScope'
+    CreateUserRequest:
+      properties:
+        type:
+          type: string
+          required: true
+          enum:
+            - 'CreateUserRequest'
+        nin:
+          required: true
+          type: string
+        customerId:
+          required: true
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
         viewingScope:
           $ref: '#/components/schemas/ViewingScope'
     NationalIdentificationNumberBody:

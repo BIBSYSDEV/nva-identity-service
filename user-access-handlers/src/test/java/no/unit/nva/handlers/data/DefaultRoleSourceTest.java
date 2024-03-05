@@ -108,8 +108,7 @@ public class DefaultRoleSourceTest {
     void institutionAdminsShouldHaveCorrectAccessRights() {
         var institutionAdminRole = getRoleByName(INSTITUTION_ADMIN_ROLE_NAME);
 
-        assertThat(institutionAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_RESOURCES_STANDARD,
-                                                                              MANAGE_OWN_AFFILIATION));
+        assertThat(institutionAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION));
     }
 
     @Test

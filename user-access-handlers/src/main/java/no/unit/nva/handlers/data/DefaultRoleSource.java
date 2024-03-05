@@ -60,8 +60,7 @@ public class DefaultRoleSource implements RoleSource {
                                                    .build();
     private static final RoleDto INSTITUTION_ADMIN_ROLE = RoleDto.newBuilder()
                                                               .withRoleName(INSTITUTION_ADMIN_ROLE_NAME)
-                                                              .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
-                                                                                        MANAGE_OWN_AFFILIATION))
+                                                              .withAccessRights(List.of(MANAGE_OWN_AFFILIATION))
                                                               .build();
 
     private static final RoleDto INTERNAL_IMPORTER = RoleDto.newBuilder()

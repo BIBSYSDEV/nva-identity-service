@@ -1,6 +1,8 @@
 
 package no.unit.nva.handlers;
 
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Objects.isNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
@@ -8,7 +10,6 @@ import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,6 +52,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     private final IdentityService identityService;
     private final CustomerService customerService;
     private final PersonRegistry personRegistry;
+    private int statusCode;
 
     @JacocoGenerated
     public CreateUserHandler() {
@@ -83,8 +85,13 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
         authorize(input, requestInfo);
 
         var existingUser = fetchExistingUser(input);
-
-        return existingUser.isPresent() ? existingUser.get() : persistNewUser(input);
+        if (existingUser.isPresent()) {
+            this.statusCode = HTTP_OK;
+            return existingUser.get();
+        } else {
+            this.statusCode = HTTP_CREATED;
+            return persistNewUser(input);
+        }
     }
 
     private UserDto persistNewUser(CreateUserRequest input) throws ApiGatewayException {
@@ -102,12 +109,12 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private Optional<UserDto> fetchUserAtCustomer(Person person, URI customerId) {
         var users =  identityService.getUsersByCristinId(person.getId());
-        return users.stream().filter(userDto -> userDto.getInstitutionCristinId().equals(customerId)).findFirst();
+        return users.stream().filter(userDto -> userDto.getInstitution().equals(customerId)).findFirst();
     }
 
     @Override
     protected Integer getSuccessStatusCode(CreateUserRequest input, UserDto output) {
-        return HttpURLConnection.HTTP_OK;
+        return statusCode;
     }
 
     @JacocoGenerated

@@ -145,7 +145,7 @@ class CreateUserHandlerTest extends HandlerTest {
         var request = createRequest(requestBody, someCustomer, MANAGE_OWN_AFFILIATION);
         var response = sendRequest(request, UserDto.class);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
 
         var actualUser = identityService.listUsers(requestBody.customerId())
                              .stream().collect(SingletonCollector.collect());
@@ -177,21 +177,24 @@ class CreateUserHandlerTest extends HandlerTest {
 
         var expectedRoles = createExpectedRoleSet(requestBody);
 
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
         assertThat(actualUser.getInstitution(), is(equalTo(customer.getId())));
         assertThat(actualUser.getRoles(), is(equalTo(expectedRoles)));
     }
 
     @Test
-    void shouldReturnOkWhenTryingToCreateExistingUser() throws IOException {
-        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+    void shouldReturnOkAndReturnExistingUserWithStatusCode200WhenTryingToCreateExistingUser() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
         var customer = fetchSomeCustomerForThePerson(person);
+        var organizationId = randomCristinOrganization();
         var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
                                                                          ViewingScope.defaultViewingScope(
-                                                                             randomCristinOrganization()));
+                                                                             organizationId));
 
         var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
         sendRequest(request, UserDto.class);
+        var actualUser = identityService.listUsers(customer.getId())
+                             .stream().collect(SingletonCollector.collect());
         outputStream = new ByteArrayOutputStream();
         request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
         var response = sendRequest(request, UserDto.class);
@@ -228,7 +231,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
         var request = createRequest(requestBody, customer, MANAGE_CUSTOMERS);
         var response = sendRequest(request, Problem.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
     }
 
     @Test

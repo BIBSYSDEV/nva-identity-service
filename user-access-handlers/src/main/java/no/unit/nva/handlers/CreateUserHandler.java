@@ -123,7 +123,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private UserDto createNewUser(CreateUserRequest input) throws ConflictException {
-        var nin = new NationalIdentityNumber(input.nationalIdentityNumber());
+        var nin = NationalIdentityNumber.fromString(input.nationalIdentityNumber());
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
 
         var customersWithActiveAffiliations = fetchCustomersWithActiveAffiliations(

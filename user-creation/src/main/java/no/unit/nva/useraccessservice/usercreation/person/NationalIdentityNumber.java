@@ -1,10 +1,10 @@
 package no.unit.nva.useraccessservice.usercreation.person;
 
-public class NationalIdentityNumber {
+public final class NationalIdentityNumber {
     private static final String MASK_PATTERN = "XXXX";
     private final String nin;
 
-    public NationalIdentityNumber(final String nin) {
+    private NationalIdentityNumber(final String nin) {
         this.nin = nin;
     }
 

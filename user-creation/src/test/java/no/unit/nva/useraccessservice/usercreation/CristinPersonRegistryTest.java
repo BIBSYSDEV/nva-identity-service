@@ -98,7 +98,7 @@ public class CristinPersonRegistryTest {
     @Test
     void shouldThrowExceptionIfCristinRespondsWithUnexpectedJson() {
         var personNin = scenarios.failingPersonRegistryRequestBadJson();
-        var nin = new NationalIdentityNumber(personNin);
+        var nin = NationalIdentityNumber.fromString(personNin);
 
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
     }
@@ -106,7 +106,7 @@ public class CristinPersonRegistryTest {
     @Test
     void shouldThrowExceptionIfCristinRespondsWithNonOkStatusCode() {
         var personNin = scenarios.failingPersonRegistryRequestBadGateway();
-        var nin = new NationalIdentityNumber(personNin);
+        var nin = NationalIdentityNumber.fromString(personNin);
 
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
     }
@@ -114,7 +114,7 @@ public class CristinPersonRegistryTest {
     @Test
     void shouldMaskNationalIdentityNumberInLog() {
         var personNin = "12345678901";
-        var nin = new NationalIdentityNumber(personNin);
+        var nin = NationalIdentityNumber.fromString(personNin);
 
         var appender = LogUtils.getTestingAppenderForRootLogger();
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
@@ -124,7 +124,7 @@ public class CristinPersonRegistryTest {
     @Test
     void shouldReturnEmptyListOfAffiliationsIfFieldIsMissingInCristinOnGetPerson() {
         var personNin = scenarios.personWithoutAffiliations();
-        var nin = new NationalIdentityNumber(personNin);
+        var nin = NationalIdentityNumber.fromString(personNin);
 
         var person = personRegistry.fetchPersonByNin(nin);
         assertThat(person.isPresent(), is(equalTo(true)));

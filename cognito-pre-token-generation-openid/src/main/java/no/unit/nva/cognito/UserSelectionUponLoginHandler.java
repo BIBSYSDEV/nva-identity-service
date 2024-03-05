@@ -150,10 +150,11 @@ public class UserSelectionUponLoginHandler
     }
 
     private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {
-        return new NationalIdentityNumber(
+        return
             Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
-                .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS)))
-                .orElseThrow());
+                .map(NationalIdentityNumber::fromString)
+                .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS)).map(NationalIdentityNumber::fromString))
+                .orElseThrow();
     }
 
     private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
@@ -203,7 +204,7 @@ public class UserSelectionUponLoginHandler
             throw new IllegalStateException(USER_NOT_ALLOWED_TO_IMPERSONATE);
         }
 
-        return new NationalIdentityNumber(impersonating);
+        return NationalIdentityNumber.fromString(impersonating);
     }
 
     private String getImpersonatedBy(String impersonating, AuthenticationDetails authenticationDetails) {

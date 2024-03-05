@@ -357,10 +357,12 @@ components:
           items:
             $ref: '#/components/schemas/AccessRight'
     User:
+      type: object
+      required:
+        - type
       properties:
         type:
           type: string
-          required: true
           enum:
             - 'User'
         username:
@@ -382,17 +384,19 @@ components:
         viewingScope:
           $ref: '#/components/schemas/ViewingScope'
     CreateUserRequest:
+      type: object
+      required:
+        - type
+        - nin
+        - customerId
       properties:
         type:
           type: string
-          required: true
           enum:
-            - 'CreateUserRequest'
+            - CreateUserRequest
         nin:
-          required: true
           type: string
         customerId:
-          required: true
           type: string
         roles:
           type: array

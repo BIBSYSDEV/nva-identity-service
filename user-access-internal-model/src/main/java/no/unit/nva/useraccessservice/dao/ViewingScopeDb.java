@@ -1,6 +1,5 @@
 package no.unit.nva.useraccessservice.dao;
 
-import static java.util.Objects.isNull;
 import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
@@ -40,7 +39,6 @@ public class ViewingScopeDb implements Typed {
     public ViewingScopeDb(Set<URI> includedUnits, Set<URI> excludedUnits) {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
-        validate(includedUnits);
     }
     
     public static ViewingScopeDb fromViewingScope(ViewingScope dto) {
@@ -93,10 +91,9 @@ public class ViewingScopeDb implements Typed {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ViewingScopeDb)) {
+        if (!(o instanceof ViewingScopeDb that)) {
             return false;
         }
-        ViewingScopeDb that = (ViewingScopeDb) o;
         return Objects.equals(getIncludedUnits(), that.getIncludedUnits())
                && Objects.equals(getExcludedUnits(), that.getExcludedUnits());
     }
@@ -105,15 +102,7 @@ public class ViewingScopeDb implements Typed {
         var dao = new ViewingScopeDb();
         dao.setExcludedUnits(dto.getExcludedUnits());
         dao.setIncludedUnits(dto.getIncludedUnits());
-        validate(dao.getIncludedUnits());
         return dao;
-    }
-
-    private static Void validate(Set<URI> includedUnits) {
-        if (isNull(includedUnits) || includedUnits.isEmpty()) {
-            throw new IllegalArgumentException("Invalid Viewing Scope: \"includedUnits\" cannot be empty");
-        }
-        return null;
     }
 
     private Set<URI> nonEmptyOrDefault(Set<URI> units) {

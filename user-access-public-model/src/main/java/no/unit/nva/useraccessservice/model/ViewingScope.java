@@ -50,9 +50,19 @@ public class ViewingScope {
         validate(this.excludedUnits);
     }
 
+    private ViewingScope() {
+
+        this.includedUnits = Set.of();
+        this.excludedUnits = Set.of();
+    }
+
     public static ViewingScope defaultViewingScope(URI organizationId) {
         attempt(() -> validate(organizationId)).orElseThrow();
         return attempt(() -> ViewingScope.create(Set.of(organizationId), Collections.emptySet())).orElseThrow();
+    }
+
+    public static ViewingScope emptyViewingScope()  {
+        return new ViewingScope();
     }
 
     public static ViewingScope create(Collection<URI> includedUnits, Collection<URI> excludedUnits)

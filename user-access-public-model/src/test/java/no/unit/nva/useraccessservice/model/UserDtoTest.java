@@ -19,6 +19,7 @@ import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.IsSame.sameInstance;
 import static org.hamcrest.core.StringContains.containsString;
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import nva.commons.apigateway.AccessRight;
@@ -92,6 +94,17 @@ class UserDtoTest extends DtoTest {
         
         assertThat(deserializedItem, is(equalTo(sampleUser)));
         assertThat(deserializedItem, is(not(sameInstance(sampleUser))));
+    }
+
+    @Test
+    void userDtoShouldContainEmptyViewingScopeWhenViewingScopeIsNotProvided()
+        throws InvalidEntryInternalException, IOException {
+        UserDto sampleUser = UserDto.newBuilder().build();
+        var json = toMap(sampleUser);
+
+        var viewingScope = toMap(JsonUtils.dtoObjectMapper.writeValueAsString(json.get("viewingScope")));
+        assertThat(viewingScope.get("includedUnits"), is(notNullValue()));
+        assertThat(viewingScope.get("excludedUnits"), is(notNullValue()));
     }
     
     @Test
@@ -227,10 +240,10 @@ class UserDtoTest extends DtoTest {
     }
     
     @Test
-    void shouldReturnEmptyViewingScopeSetWhenScopeIsNotExplicitlyDefinedAndUserIsNotConnectedToSomeTopLevelOrg() {
+    void shouldReturnViewingScopeWithEmptySetsWhenScopeIsNotExplicitlyDefinedAndUserIsNotConnectedToSomeTopLevelOrg() {
         var user = createUserWithRoleWithoutInstitution();
         var viewingScope = user.getViewingScope();
-        assertThat(viewingScope, is(equalTo(null)));
+        assertThat(viewingScope, is(notNullValue()));
     }
     
     private UserDto createUserWithRoleAndInstitutionWithoutViewingScope() {

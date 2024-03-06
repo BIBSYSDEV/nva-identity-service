@@ -248,6 +248,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
         includedUnits.add(illegalUri);
         var viewingScope = new HashMap<>();
         viewingScope.put(INCLUDED_UNITS, includedUnits);
+        viewingScope.put("type", "ViewingScope");
         return viewingScope;
     }
     

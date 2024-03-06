@@ -58,6 +58,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     
     public UserDto() {
         roles = Collections.emptySet();
+        viewingScope = ViewingScope.emptyViewingScope();
     }
     
     /**

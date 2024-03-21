@@ -89,16 +89,12 @@ public class UserSelectionUponLoginHandler
     private final UserEntriesCreatorForPerson userCreator;
     private final PersonRegistry personRegistry;
 
-    //TODO: only for testing purposes of alarm DO NOT MERGE!!
-    private final  boolean failDuringActualExcecution;
-
     @JacocoGenerated
     public UserSelectionUponLoginHandler() {
         this.cognitoClient = defaultCognitoClient();
         this.customerService = defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
         this.userCreator = new UserEntriesCreatorForPerson(defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
         this.personRegistry = CristinPersonRegistry.defaultPersonRegistry();
-        this.failDuringActualExcecution = true;
     }
 
     public UserSelectionUponLoginHandler(CognitoIdentityProviderClient cognitoClient,
@@ -110,7 +106,6 @@ public class UserSelectionUponLoginHandler
         this.customerService = customerService;
         this.personRegistry = personRegistry;
         this.userCreator = new UserEntriesCreatorForPerson(identityService);
-        this.failDuringActualExcecution = false;
     }
 
     @Override
@@ -150,16 +145,8 @@ public class UserSelectionUponLoginHandler
             LOGGER.debug("Leaving request handler having spent {} ms.",
                          Instant.now().toEpochMilli() - start.toEpochMilli());
         }
-        crashAndBurn();
 
         return input;
-    }
-
-    @JacocoGenerated
-    private void crashAndBurn() {
-        if(failDuringActualExcecution) {
-            throw new RuntimeException("Crash and burn");
-        }
     }
 
     private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {

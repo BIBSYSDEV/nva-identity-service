@@ -77,6 +77,9 @@ Parameters:
     Type: String
     Default: ''
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
+  SlackSnsArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: '/NVA/Monitoring/SlackSnsArn'
 
 Mappings:
   Constants:
@@ -1708,6 +1711,26 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Sub '${PreTokenGenerationHandler.Arn}'
       Principal: cognito-idp.amazonaws.com
+
+  PreTokenGenerationFailedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Too many pre token generation requests failed
+      AlarmDescription: If this alarm is triggered, then check cloudwatch logs for pre token generation lambda.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PreTokenGenerationHandler
+      Period: 60
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: missing
 
 
 ### Outputs ############################################################################################################

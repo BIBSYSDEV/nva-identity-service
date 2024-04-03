@@ -111,6 +111,15 @@ public class UserSelectionUponLoginHandler
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
                                                                 Context context) {
+        try {
+            return processInput(input);
+        } catch (Exception e) {
+            LOGGER.error("Failed to process input due to", e);
+            throw e;
+        }
+    }
+
+    private CognitoUserPoolPreTokenGenerationEvent processInput(CognitoUserPoolPreTokenGenerationEvent input) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Entering request handler...");
         }
@@ -318,7 +327,8 @@ public class UserSelectionUponLoginHandler
     }
 
     private Set<CustomerDto> fetchCustomersWithActiveAffiliations(final Person person) {
-        return person.getAffiliations().stream().map(Affiliation::getInstitutionId)
+        return person.getAffiliations().stream()
+                   .map(Affiliation::getInstitutionId)
                    .map(institutionId -> getCustomerByCristinIdOrLogError(institutionId, person))
                    .flatMap(Optional::stream)
                    .filter(customer -> logInactiveInstitutions(customer, person))

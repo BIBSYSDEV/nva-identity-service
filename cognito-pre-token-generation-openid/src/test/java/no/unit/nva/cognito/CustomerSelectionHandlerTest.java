@@ -6,6 +6,7 @@ import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.CustomerSelectionHandler.AUTHORIZATION_HEADER;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
@@ -77,6 +78,7 @@ class CustomerSelectionHandlerTest {
     private LocalIdentityService usersDatabase;
     private ByteArrayOutputStream outputStream;
     private AccessRight accessRight;
+    private RoleDto role;
     
     @BeforeEach
     public void init() throws InvalidInputException, ConflictException {
@@ -84,7 +86,7 @@ class CustomerSelectionHandlerTest {
         setupCustomerService();
         setupIdentityService();
         accessRight = randomElement(AccessRight.values());
-        var role = randomRoleWithAccessRight(accessRight).toRoleDto();
+        role = randomRoleWithAccessRight(accessRight).toRoleDto();
         addRole(role);
         personAccessToken = randomString();
         var person = randomUri();
@@ -124,6 +126,18 @@ class CustomerSelectionHandlerTest {
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(updatedAccessRights, is(equalTo(expectedAccessRights)));
+    }
+
+    @Test
+    void shouldUpdateRoleInCognitoUserEntry()
+        throws IOException {
+        var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
+        var input = createRequest(selectedCustomer);
+        var response = sendRequest(input, Void.class);
+        var updatedRoles = extractAttributeUpdate(ROLES_CLAIM);
+        var expectedRoles = role.getRoleName();
+        assertThat(updatedRoles, is(equalTo(expectedRoles)));
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
     
     @Test

@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
@@ -153,7 +154,8 @@ public class UserSelectionUponLoginHandler
         return
             Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
                 .map(NationalIdentityNumber::fromString)
-                .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS)).map(NationalIdentityNumber::fromString))
+                .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS))
+                              .map(NationalIdentityNumber::fromString))
                 .orElseThrow();
     }
 
@@ -243,13 +245,13 @@ public class UserSelectionUponLoginHandler
                                                        AuthenticationDetails authenticationDetails,
                                                        String impersonatedBy) {
 
-        var rolesPerCustomerForPerson = rolesPerCustomer(users);
         var currentCustomer
             = returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer(
             authenticationDetails.getFeideDomain(), customers);
         var currentUser = nonNull(currentCustomer)
                               ? getCurrentUser(currentCustomer, users)
                               : null;
+        var rolesPerCustomerForPerson = rolesForCustomer(users, currentCustomer);
 
         var accessRights = createAccessRightsWithCustomerForCurrentCustomer(users, customers, currentCustomer);
         var accessRightsWithoutCustomer = createAccessRightsForCurrentCustomer(users, customers, currentCustomer);
@@ -347,9 +349,15 @@ public class UserSelectionUponLoginHandler
         return Optional.empty();
     }
 
-    private Set<String> rolesPerCustomer(List<UserDto> usersForPerson) {
+    private Set<String> rolesForCustomer(List<UserDto> usersForPerson, CustomerDto customer) {
+        if (isNull(customer)) {
+            return Collections.emptySet();
+        }
         return usersForPerson.stream()
-                   .flatMap(UserDto::generateRoleClaims)
+                   .filter(user -> user.getInstitution().equals(customer.getId()))
+                   .map(UserDto::getRoles)
+                   .flatMap(Collection::stream)
+                   .map(RoleDto::getRoleName)
                    .collect(Collectors.toSet());
     }
 

@@ -16,6 +16,7 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.LoginEventType.FEIDE;
+import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
@@ -470,19 +471,24 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualAllowedCustomerIds, containsInAnyOrder(expectedCustomerIds.toArray(URI[]::new)));
     }
 
-    @ParameterizedTest(name = "should store all user's roles for each active top level affiliation in cognito "
-                              + "user attributes")
-    @EnumSource(LoginEventType.class)
-    void shouldStoreAllUserRolesForEachActiveTopLevelAffiliationInCognitoUserAttributes(LoginEventType loginEventType) {
+    @Test
+    void shouldStoreAllUserRolesForActiveTopLevelAffiliationInCognitoUserAttributesForFeide() throws NotFoundException {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
         var usersWithRoles = createUsersWithRolesForPerson(person);
 
+        var event = newLoginEvent(person, FEIDE);
+        handler.handleRequest(event, context);
+
+        var orgFeideDomain = extractFeideDomainFromInputEvent(event);
+        var currentCustomer = customerService.getCustomerByOrgDomain(orgFeideDomain);
+
         var expectedRoles = usersWithRoles.stream()
-                                .flatMap(this::createScopedRoles)
+                                .filter(u -> u.getInstitution().equals(currentCustomer.getId()))
+                                .map(UserDto::getRoles)
+                                .flatMap(Collection::stream)
+                                .map(RoleDto::getRoleName)
                                 .collect(Collectors.toSet());
 
-        var event = newLoginEvent(person, loginEventType);
-        handler.handleRequest(event, context);
         var actualRoles = cognitoClient.getAdminUpdateUserRequest().userAttributes().stream()
                               .filter(attribute -> attribute.name().equals(ROLES_CLAIM))
                               .map(AttributeType::value)
@@ -490,6 +496,21 @@ class UserSelectionUponLoginHandlerTest {
                               .flatMap(Arrays::stream)
                               .collect(Collectors.toList());
         assertThat(actualRoles, containsInAnyOrder(expectedRoles.toArray(String[]::new)));
+    }
+
+    @Test
+    void shouldStoreNoRolesInCognitoUserAttributesForNonFeide() {
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        createUsersWithRolesForPerson(person);
+
+        var event = newLoginEvent(person, NON_FEIDE);
+        handler.handleRequest(event, context);
+        var actualRoles = cognitoClient.getAdminUpdateUserRequest().userAttributes().stream()
+                              .filter(attribute -> attribute.name().equals(ROLES_CLAIM))
+                              .findFirst()
+                              .map(AttributeType::value)
+                              .get();
+        assertThat(actualRoles, is(emptyString()));
     }
 
     @ParameterizedTest(name = "should store person's cristin Id in cognito user attributes")
@@ -1047,13 +1068,6 @@ class UserSelectionUponLoginHandlerTest {
                    .map(attempt(user -> addRoleToUser(user, role)))
                    .map(Try::orElseThrow)
                    .collect(Collectors.toList());
-    }
-
-    private Stream<String> createScopedRoles(UserDto user) {
-        var customerId = user.getInstitution();
-        return user.getRoles().stream()
-                   .map(RoleDto::getRoleName)
-                   .map(rolename -> String.join(AT, rolename, customerId.toString()));
     }
 
     private UserDto addRoleToUser(UserDto user, RoleDto persistRandomRole) throws NotFoundException {

@@ -11,11 +11,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class CustomerMigrationTest {
 
     public static Stream<Arguments> serviceCenterProvider() {
-        return Stream.of(
-                        Arguments.of(customerWithServiceCenterUri()),
-                                     Arguments.of(customerWithServiceCenterObject()),
-                                     Arguments.of(customerWithEmptyServiceCenter()),
-            Arguments.of(customerWithMissingServiceCenter()));
+        return Stream.of(Arguments.of(customerWithServiceCenterUri()),
+                         Arguments.of(customerWithServiceCenterObject()),
+                         Arguments.of(customerWithEmptyServiceCenter()),
+                         Arguments.of(customerWithMissingServiceCenter()),
+                         Arguments.of(customerWithNullServiceCenter()));
     }
 
     @ParameterizedTest
@@ -23,6 +23,42 @@ public class CustomerMigrationTest {
     void shouldMigrateServiceCenterUriToObject(String customer) throws JsonProcessingException {
         var customerDto = JsonUtils.dtoObjectMapper.readValue(customer, CustomerDto.class);
         assertDoesNotThrow(() -> CustomerDao.fromCustomerDto(customerDto));
+    }
+
+    private static String customerWithNullServiceCenter() {
+        return """
+                           {
+              "id": "https://localhost/47ee1fe2-fbe7-4e13-bb71-c78c4f31e7dd",
+              "identifier": "47ee1fe2-fbe7-4e13-bb71-c78c4f31e7dd",
+              "createdDate": "2003-03-27T20:59:02.725Z",
+              "modifiedDate": "2010-03-12T11:22:33.135Z",
+              "name": "V1cyvCG8ChtM",
+              "displayName": "9knaaGRSFr9gM0j",
+              "shortName": "nmkPoRSQzc7vURa",
+              "archiveName": "BYgxqwqfBjD17KgosJ",
+              "cname": "LKjlM7dzZ3ZHw1hGu",
+              "institutionDns": "2NwOzIEM2tTv",
+              "feideOrganizationDomain": "b58v2c4tNmjwbC2",
+              "cristinId": "https://www.example.com/E7nWFINRiV",
+              "customerOf": "nva.unit.no",
+              "serviceCenterUri": null,
+              "vocabularies": [
+                {
+                  "type": "Vocabulary",
+                  "name": "6q02lavfZkad",
+                  "id": "https://www.example.com/3vWcHKglac",
+                  "status": "Default"
+                }
+              ],
+              "rorId": "https://www.example.com/9CCuwMlwrHA5",
+              "nviInstitution": false,
+              "rboInstitution": false,
+              "allowFileUploadForTypes": [
+                "ReportWorkingPaper"
+              ],
+              "type": "Customer"
+            }
+            """;
     }
 
     private static String customerWithMissingServiceCenter() {

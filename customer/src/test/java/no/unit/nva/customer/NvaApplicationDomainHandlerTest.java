@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -83,7 +84,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
                            .withVocabularies(randomVocabularySet())
                            .withRorId(randomUri())
-                           .withServiceCenter(randomUri())
+                           .withServiceCenter(new ServiceCenter(randomUri(), randomString()))
                            .withPublicationWorkflow(randomPublicationWorkflow())
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .withSector(randomSector())

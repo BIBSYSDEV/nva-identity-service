@@ -120,12 +120,13 @@ public class UpdateCustomerHandlerTest {
     }
 
     @Test
-    void requestToHandlerReturnsCustomerServiceCenterUriUpdated()
+    void requestToHandlerReturnsCustomerServiceCenterUpdated()
         throws InputException, NotFoundException, IOException {
         UUID identifier = UUID.randomUUID();
         CustomerDto customer = createCustomer(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
-        assertThat(customer.getServiceCenter(), is(nullValue()));
+        assertThat(customer.getServiceCenter().uri(), is(nullValue()));
+        assertThat(customer.getServiceCenter().text(), is(nullValue()));
 
         customer.setServiceCenter(testServiceCenterUri);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
@@ -133,7 +134,7 @@ public class UpdateCustomerHandlerTest {
         var input = createInput(customer, pathParameters);
 
         sendRequest(input, CustomerDto.class);
-        assertThat(customer.getServiceCenter(), is(equalTo(testServiceCenterUri)));
+        assertThat(customer.getServiceCenter().uri(), is(equalTo(testServiceCenterUri)));
         verify(customerServiceMock, times(1)).updateCustomer(any(UUID.class), eq(customer));
     }
 

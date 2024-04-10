@@ -4,8 +4,8 @@ import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
 import static no.unit.nva.customer.model.PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_ONLY;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.testing.TestHeaders.getResponseHeaders;
@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.service.CustomerService;
@@ -162,17 +163,17 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldReturnServiceCenterUriWhenValueIsSet() throws BadRequestException, IOException {
+    void shouldReturnServiceCenterWhenValueIsSet() throws BadRequestException, IOException {
         var customerDto =
             CustomerDto.builder()
                 .withName("New Customer")
-                .withServiceCenter(testServiceCenterUri)
+                .withServiceCenter(new ServiceCenter(testServiceCenterUri, randomString()))
                 .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
 
-        assertThat(actualResponseBody.getServiceCenter(), is(equalTo(testServiceCenterUri)));
+        assertThat(actualResponseBody.getServiceCenter().uri(), is(equalTo(testServiceCenterUri)));
     }
 
     @Test
@@ -303,7 +304,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withCustomerOf(randomElement(ApplicationDomain.values()))
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withRorId(randomUri())
-                   .withServiceCenter(randomUri())
+                   .withServiceCenter(new ServiceCenter(randomUri(), randomString()))
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(Collections.emptySet())
                    .build();

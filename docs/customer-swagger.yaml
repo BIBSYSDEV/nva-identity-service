@@ -752,9 +752,14 @@ components:
           type: string
           format: uri
           description: the customers persistent identifier in the Research Organization Registry (ROR)
-        serviceCenterUri:
-          type: string
-          format: uri
+        serviceCenter:
+          type: object
+          properties:
+            uri:
+              type: string
+              format: uri
+            text:
+              type: string
           description: the customers institution service centre
         doiAgent:
           $ref: '#/components/schemas/DoiAgent'
@@ -969,7 +974,9 @@ components:
             name: 'Example VOC'
             active: 'default'
         rorId: 'https://ror.org/026eeyk15'
-        serviceCenterUri: 'https://servicecenter.org/wiki/-/wiki/Orakeltjenesten'
+        serviceCenter:
+          - uri: 'https://servicecenter.org/wiki/-/wiki/Orakeltjenesten'
+            text: 'safaegrg'
         doiAgent:
           prefix: "1000.10"
           url: "test.nva.unit.no"

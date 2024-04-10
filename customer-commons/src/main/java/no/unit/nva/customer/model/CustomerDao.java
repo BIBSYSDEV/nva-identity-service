@@ -6,6 +6,8 @@ import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
 import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
@@ -14,9 +16,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.annotation.JsonAlias;
 import no.unit.nva.commons.json.JsonSerializable;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
@@ -291,12 +292,14 @@ public class CustomerDao implements Typed {
         this.rorId = rorId;
     }
 
+    @JsonAlias("serviceCenterUri")
+    @JsonProperty("serviceCenter")
     public ServiceCenterDao getServiceCenter() {
         return nonNull(serviceCenter) ? serviceCenter : ServiceCenterDao.emptyServiceCenter();
     }
 
-    public void setServiceCenter(ServiceCenterDao serviceCenterDao) {
-        this.serviceCenter = nonNull(serviceCenterDao) ? serviceCenterDao : ServiceCenterDao.emptyServiceCenter();
+    public void setServiceCenter(ServiceCenterDao serviceCenter) {
+        this.serviceCenter = nonNull(serviceCenter) ? serviceCenter : ServiceCenterDao.emptyServiceCenter();
     }
 
     public PublicationWorkflow getPublicationWorkflow() {
@@ -407,31 +410,7 @@ public class CustomerDao implements Typed {
 
     @Override
     public String toString() {
-        return "CustomerDao{" +
-               "identifier=" + identifier +
-               ", createdDate=" + createdDate +
-               ", modifiedDate=" + modifiedDate +
-               ", name='" + name + '\'' +
-               ", displayName='" + displayName + '\'' +
-               ", shortName='" + shortName + '\'' +
-               ", archiveName='" + archiveName + '\'' +
-               ", cname='" + cname + '\'' +
-               ", institutionDns='" + institutionDns + '\'' +
-               ", feideOrganizationDomain='" + feideOrganizationDomain + '\'' +
-               ", cristinId=" + cristinId +
-               ", customerOf=" + customerOf +
-               ", vocabularies=" + vocabularies +
-               ", rorId=" + rorId +
-               ", serviceCenterUri=" + serviceCenter +
-               ", publicationWorkflow=" + publicationWorkflow +
-               ", doiAgent=" + doiAgent +
-               ", nviInstitution=" + nviInstitution +
-               ", rboInstitution=" + rboInstitution +
-               ", inactiveFrom=" + inactiveFrom +
-               ", sector=" + sector +
-               ", rightsRetentionStrategy=" + rightsRetentionStrategy +
-               ", allowFileUploadForTypes=" + allowFileUploadForTypes +
-               '}';
+        return attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(this)).orElseThrow();
     }
 
     private static URI extractCustomerOf(CustomerDto dto) {
@@ -755,23 +734,59 @@ public class CustomerDao implements Typed {
 
         }
 
-        public static ServiceCenterDao emptyServiceCenter() {
-            return new ServiceCenterDao();
-        }
-
         public ServiceCenterDao(URI uri, String text) {
             this.uri = uri;
             this.text = text;
+        }
+
+        public static ServiceCenterDao emptyServiceCenter() {
+            return new ServiceCenterDao();
+        }
+        @DynamoDbAttribute("uri")
+        public URI getUri() {
+            return uri;
+        }
+
+        public void setUri(URI uri) {
+            this.uri = uri;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        @DynamoDbAttribute("text")
+        public String getText() {
+            return text;
+        }
+
+        @JacocoGenerated
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ServiceCenterDao that = (ServiceCenterDao) o;
+            return Objects.equals(uri, that.uri) && Objects.equals(text, that.text);
+        }
+
+        @JacocoGenerated
+        @Override
+        public int hashCode() {
+            return Objects.hash(uri, text);
         }
 
         public ServiceCenter toDto() {
             return new ServiceCenter(uri, text);
         }
 
-        @Override
         @JacocoGenerated
+        @Override
         public String toString() {
-            return toJsonString();
+            return this.toJsonString();
         }
     }
 }

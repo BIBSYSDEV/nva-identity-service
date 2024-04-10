@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
@@ -208,19 +209,23 @@ public class CustomerDto implements Context {
     }
 
     @JsonAlias("serviceCenterUri")
+    @JsonProperty("serviceCenter")
     public ServiceCenter getServiceCenter() {
         return nonNull(serviceCenter) ? serviceCenter : ServiceCenter.emptyServiceCenter();
     }
 
+    @JsonAlias("serviceCenterUri")
+    @JsonProperty("serviceCenter")
     public void setServiceCenter(Object serviceCenter) {
         if (serviceCenter instanceof Map<?,?>) {
             var map = (HashMap) serviceCenter;
             var uri = attempt(() -> URI.create(map.get("uri").toString())).orElse(failure -> null);
             var text = attempt(() -> map.get("text").toString()).orElse(failure -> null);
             this.serviceCenter = new ServiceCenter(uri, text);
-        }
-        if (serviceCenter instanceof String) {
+        } else if (serviceCenter instanceof String || serviceCenter instanceof URI) {
             this.serviceCenter = new ServiceCenter(URI.create(serviceCenter.toString()), null);
+        } else if (serviceCenter instanceof ServiceCenter) {
+            this.serviceCenter = (ServiceCenter) serviceCenter;
         } else {
             this.serviceCenter = ServiceCenter.emptyServiceCenter();
         }
@@ -680,13 +685,20 @@ public class CustomerDto implements Context {
             return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
         }
     }
-    public static record ServiceCenter(URI uri, String text) {
+    public record ServiceCenter(URI uri, String text) implements JsonSerializable {
 
         public static ServiceCenter emptyServiceCenter() {
             return new ServiceCenter(null, null);
         }
+
         public ServiceCenterDao toDao() {
             return new ServiceCenterDao(uri, text);
+        }
+
+        @JacocoGenerated
+        @Override
+        public String toString() {
+            return this.toJsonString();
         }
     }
 }

@@ -14,6 +14,7 @@ import java.util.Set;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.Sector;
@@ -44,7 +45,7 @@ public class CreateCustomerRequest {
     private Instant inactiveFrom;
     private Sector sector;
     private URI rorId;
-    private URI serviceCenterUri;
+    private ServiceCenter serviceCenter;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
 
     public static CreateCustomerRequest fromCustomerDto(CustomerDto customerDto) {
@@ -65,7 +66,7 @@ public class CreateCustomerRequest {
         request.setRboInstitution(customerDto.isRboInstitution());
         request.setInactiveFrom(customerDto.getInactiveFrom());
         request.setRorId(customerDto.getRorId());
-        request.setServiceCenterUri(customerDto.getServiceCenterUri());
+        request.setServiceCenter(customerDto.getServiceCenter());
         request.setAllowFileUploadForTypes(customerDto.getAllowFileUploadForTypes());
         if (nonNull(customerDto.getDoiAgent())) {
             request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
@@ -92,7 +93,7 @@ public class CreateCustomerRequest {
                    .withInactiveFrom(getInactiveFrom())
                    .withSector(getSector())
                    .withRorId(getRorId())
-                   .withServiceCenterUri(getServiceCenterUri())
+                   .withServiceCenter(getServiceCenter())
                    .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
                    .build();
     }
@@ -242,12 +243,12 @@ public class CreateCustomerRequest {
         this.rorId = rorId;
     }
 
-    public URI getServiceCenterUri() {
-        return serviceCenterUri;
+    public ServiceCenter getServiceCenter() {
+        return serviceCenter;
     }
 
-    public void setServiceCenterUri(URI serviceCenterUri) {
-        this.serviceCenterUri = serviceCenterUri;
+    public void setServiceCenter(ServiceCenter serviceCenter) {
+        this.serviceCenter = serviceCenter;
     }
 
     @JacocoGenerated
@@ -256,7 +257,7 @@ public class CreateCustomerRequest {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
                             getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
                             getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getInactiveFrom(),
-                            getRorId(), getServiceCenterUri(), getAllowFileUploadForTypes());
+                            getRorId(), getServiceCenter(), getAllowFileUploadForTypes());
     }
 
     @JacocoGenerated
@@ -280,7 +281,7 @@ public class CreateCustomerRequest {
                && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getSector(), that.getSector())
                && Objects.equals(getRorId(), that.getRorId())
-               && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
+               && Objects.equals(getServiceCenter(), that.getServiceCenter())
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(isRboInstitution(), that.isRboInstitution())
                && Objects.equals(getInactiveFrom(), that.getInactiveFrom())

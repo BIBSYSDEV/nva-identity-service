@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.identityservice.json.JsonConfig;
 import org.javers.core.Javers;
@@ -182,7 +184,7 @@ class CustomerDaoTest {
                    .withDisplayName(randomString())
                    .withCreatedDate(randomInstant())
                    .withRorId(randomUri())
-                   .withServiceCenterUri(randomUri())
+                   .withServiceCenter(randomServiceCenter())
                    .withVocabularySettings(randomVocabularySettings())
                    .withPublicationWorkflow(randomPublicationWorkflow())
                    .withDoiAgent(randomDoiAgent(randomString()))
@@ -193,6 +195,10 @@ class CustomerDaoTest {
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .build();
+    }
+
+    private ServiceCenterDao randomServiceCenter() {
+        return new ServiceCenterDao(randomUri(), randomString());
     }
 
     private ApplicationDomain randomApplicationDomain() {

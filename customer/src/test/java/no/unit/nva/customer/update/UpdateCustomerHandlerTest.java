@@ -125,15 +125,15 @@ public class UpdateCustomerHandlerTest {
         UUID identifier = UUID.randomUUID();
         CustomerDto customer = createCustomer(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
-        assertThat(customer.getServiceCenterUri(), is(nullValue()));
+        assertThat(customer.getServiceCenter(), is(nullValue()));
 
-        customer.setServiceCenterUri(testServiceCenterUri);
+        customer.setServiceCenter(testServiceCenterUri);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var input = createInput(customer, pathParameters);
 
         sendRequest(input, CustomerDto.class);
-        assertThat(customer.getServiceCenterUri(), is(equalTo(testServiceCenterUri)));
+        assertThat(customer.getServiceCenter(), is(equalTo(testServiceCenterUri)));
         verify(customerServiceMock, times(1)).updateCustomer(any(UUID.class), eq(customer));
     }
 

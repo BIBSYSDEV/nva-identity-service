@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -129,7 +130,7 @@ class CustomerDtoTest {
                    .withModifiedDate(randomInstant())
                    .withVocabularies(randomVocabularies())
                    .withRorId(randomUri())
-                   .withServiceCenterUri(randomUri())
+                   .withServiceCenter(new ServiceCenter(randomUri(), randomString()))
                    .withPublicationWorkflow(randomPublicationWorkflow())
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withSector(randomSector())

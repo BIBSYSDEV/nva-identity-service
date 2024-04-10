@@ -19,7 +19,9 @@ import java.util.stream.Stream;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
+import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.PublicationWorkflow;
@@ -58,7 +60,7 @@ public class CustomerDataGenerator {
                                    .withCreatedDate(randomInstant())
                                    .withVocabularies(randomVocabularyDtoSettings())
                                    .withRorId(randomUri())
-                                   .withServiceCenterUri(randomUri())
+                                   .withServiceCenter(randomServiceCenter())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withSector(randomSector())
@@ -97,7 +99,7 @@ public class CustomerDataGenerator {
                                    .withCname(randomString())
                                    .withArchiveName(randomString())
                                    .withRorId(randomUri())
-                                   .withServiceCenterUri(randomUri())
+                                   .withServiceCenter(randomServiceCenterDao())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withNviInstitution(randomBoolean())
@@ -108,6 +110,14 @@ public class CustomerDataGenerator {
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;
+    }
+
+    private static ServiceCenterDao randomServiceCenterDao() {
+        return new ServiceCenterDao(randomUri(), randomString());
+    }
+
+    private static ServiceCenter randomServiceCenter() {
+        return new ServiceCenter(randomUri(), randomString());
     }
 
     public static CustomerDao createSampleActiveCustomerDao() {

@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
 import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
@@ -11,10 +12,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
@@ -50,7 +54,7 @@ public class CustomerDto implements Context {
     private ApplicationDomain customerOf;
     private List<VocabularyDto> vocabularies;
     private URI rorId;
-    private URI serviceCenterUri;
+    private ServiceCenter serviceCenter;
     private PublicationWorkflow publicationWorkflow;
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
@@ -203,12 +207,23 @@ public class CustomerDto implements Context {
         this.rorId = rorId;
     }
 
-    public URI getServiceCenterUri() {
-        return serviceCenterUri;
+    @JsonAlias("serviceCenterUri")
+    public ServiceCenter getServiceCenter() {
+        return nonNull(serviceCenter) ? serviceCenter : ServiceCenter.emptyServiceCenter();
     }
 
-    public void setServiceCenterUri(URI serviceCenterUri) {
-        this.serviceCenterUri = serviceCenterUri;
+    public void setServiceCenter(Object serviceCenter) {
+        if (serviceCenter instanceof Map<?,?>) {
+            var map = (HashMap) serviceCenter;
+            var uri = attempt(() -> URI.create(map.get("uri").toString())).orElse(failure -> null);
+            var text = attempt(() -> map.get("text").toString()).orElse(failure -> null);
+            this.serviceCenter = new ServiceCenter(uri, text);
+        }
+        if (serviceCenter instanceof String) {
+            this.serviceCenter = new ServiceCenter(URI.create(serviceCenter.toString()), null);
+        } else {
+            this.serviceCenter = ServiceCenter.emptyServiceCenter();
+        }
     }
 
     public PublicationWorkflow getPublicationWorkflow() {
@@ -313,7 +328,7 @@ public class CustomerDto implements Context {
                 .withName(getName())
                 .withPublicationWorkflow(getPublicationWorkflow())
                 .withRorId(getRorId())
-                .withServiceCenterUri(getServiceCenterUri())
+                .withServiceCenter(getServiceCenter())
                 .withShortName(getShortName())
                 .withDoiAgent(getDoiAgent())
                 .withNviInstitution(isNviInstitution())
@@ -331,7 +346,7 @@ public class CustomerDto implements Context {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getServiceCenterUri(), getPublicationWorkflow(), getDoiAgent(),
+                            getRorId(), getServiceCenter(), getPublicationWorkflow(), getDoiAgent(),
                             getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom());
     }
 
@@ -360,7 +375,7 @@ public class CustomerDto implements Context {
                 && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
                 && Objects.equals(getName(), that.getName())
                 && Objects.equals(getRorId(), that.getRorId())
-                && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
+                && Objects.equals(getServiceCenter(), that.getServiceCenter())
                 && Objects.equals(getShortName(), that.getShortName())
                 && Objects.equals(getVocabularies(), that.getVocabularies())
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
@@ -484,8 +499,8 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withServiceCenterUri(URI servceCenterUri) {
-            customerDto.setServiceCenterUri(servceCenterUri);
+        public Builder withServiceCenter(ServiceCenter serviceCenter) {
+            customerDto.setServiceCenter(serviceCenter);
             return this;
         }
 
@@ -663,6 +678,15 @@ public class CustomerDto implements Context {
         @JacocoGenerated
         public String toString() {
             return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
+        }
+    }
+    public static record ServiceCenter(URI uri, String text) {
+
+        public static ServiceCenter emptyServiceCenter() {
+            return new ServiceCenter(null, null);
+        }
+        public ServiceCenterDao toDao() {
+            return new ServiceCenterDao(uri, text);
         }
     }
 }

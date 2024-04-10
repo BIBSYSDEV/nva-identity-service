@@ -39,6 +39,7 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
@@ -370,7 +371,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
                            .withVocabularies(randomVocabularySet())
                            .withRorId(randomUri())
-                           .withServiceCenterUri(randomUri())
+                           .withServiceCenter(new ServiceCenter(randomUri(), randomString()))
                            .withPublicationWorkflow(randomPublicationWorkflow())
                            .withDoiAgent(randomDoiAgent(randomString()))
                            .withSector(randomSector())

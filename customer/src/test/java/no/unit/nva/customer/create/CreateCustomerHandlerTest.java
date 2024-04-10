@@ -40,7 +40,6 @@ import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
@@ -167,13 +166,13 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         var customerDto =
             CustomerDto.builder()
                 .withName("New Customer")
-                .withServiceCenterUri(testServiceCenterUri)
+                .withServiceCenter(testServiceCenterUri)
                 .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
 
-        assertThat(actualResponseBody.getServiceCenterUri(), is(equalTo(testServiceCenterUri)));
+        assertThat(actualResponseBody.getServiceCenter(), is(equalTo(testServiceCenterUri)));
     }
 
     @Test
@@ -304,7 +303,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withCustomerOf(randomElement(ApplicationDomain.values()))
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withRorId(randomUri())
-                   .withServiceCenterUri(randomUri())
+                   .withServiceCenter(randomUri())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(Collections.emptySet())
                    .build();

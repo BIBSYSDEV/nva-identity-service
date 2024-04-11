@@ -105,6 +105,7 @@ public class CustomerDataGenerator {
                                    .withInactiveFrom(randomInstant())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                                   .withAllowsGeneralSupport(true)
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;

@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
 import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
@@ -67,6 +68,7 @@ public class CustomerDao implements Typed {
     private DoiAgentDao doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
+    private Boolean allowsGeneralSupport;
     private Instant inactiveFrom;
     private Sector sector;
     @JsonAlias("rightRetentionStrategy")
@@ -107,6 +109,7 @@ public class CustomerDao implements Typed {
                    .withSector(dto.getSector())
                    .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(extractPublicationInstanceTypes(dto))
+                   .withAllowsGeneralSupport(dto.isAllowsGeneralSupport())
                    .build();
     }
 
@@ -126,13 +129,21 @@ public class CustomerDao implements Typed {
         this.inactiveFrom = inactiveFrom;
     }
 
+    public boolean isAllowsGeneralSupport() {
+        return isNull(allowsGeneralSupport) || allowsGeneralSupport;
+    }
+
+    public void setAllowsGeneralSupport(Boolean allowsGeneralSupport) {
+        this.allowsGeneralSupport = isNull(allowsGeneralSupport) || allowsGeneralSupport;
+    }
+
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
                             institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
                             serviceCenterUri, publicationWorkflow, doiAgent, nviInstitution, rboInstitution,
-                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes);
+                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes, allowsGeneralSupport);
     }
 
     @JacocoGenerated
@@ -148,6 +159,7 @@ public class CustomerDao implements Typed {
         return nviInstitution == that.nviInstitution
                && rboInstitution == that.rboInstitution
                && Objects.equals(inactiveFrom, that.inactiveFrom)
+               && Objects.equals(allowsGeneralSupport, that.allowsGeneralSupport)
                && Objects.equals(identifier, that.identifier)
                && Objects.equals(createdDate, that.createdDate)
                && Objects.equals(modifiedDate, that.modifiedDate)
@@ -387,6 +399,7 @@ public class CustomerDao implements Typed {
                                       .withSector(getSector())
                                       .withRightsRetentionStrategy(getRightsRetentionStrategy())
                                       .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
+                                      .withAllowsGeneralSupport(allowsGeneralSupport)
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -595,6 +608,11 @@ public class CustomerDao implements Typed {
 
         public Builder withInactiveFrom(Instant inactiveFrom) {
             customerDb.setInactiveFrom(inactiveFrom);
+            return this;
+        }
+
+        public Builder withAllowsGeneralSupport(Boolean allowsGeneralSupport) {
+            customerDb.setAllowsGeneralSupport(isNull(allowsGeneralSupport) || allowsGeneralSupport);
             return this;
         }
 

@@ -80,6 +80,14 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
+    void createNewCustomerWithoutAllowsGeneralSupportBeingSetReturnCustomerAllowingGeneralSupport() throws NotFoundException, ConflictException {
+        var customer = CustomerDto.builder().withName(randomString()).build();
+        var createdCustomer = service.createCustomer(customer);
+
+        assertThat(createdCustomer.isAllowsGeneralSupport(), is(true));
+    }
+
+    @Test
     void updateExistingCustomerWithNewName() throws NotFoundException, InputException, ConflictException {
         String newName = "New name";
         var customer = newActiveCustomerDto();

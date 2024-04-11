@@ -56,6 +56,7 @@ public class CustomerDto implements Context {
     private boolean nviInstitution;
     private boolean rboInstitution;
     private Instant inactiveFrom;
+    private Boolean allowsGeneralSupport;
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
@@ -258,6 +259,14 @@ public class CustomerDto implements Context {
         return allowFileUploadForTypes;
     }
 
+    public boolean isAllowsGeneralSupport() {
+        return isNull(allowsGeneralSupport) || allowsGeneralSupport;
+    }
+
+    public void setAllowsGeneralSupport(boolean allowsGeneralSupport) {
+        this.allowsGeneralSupport = allowsGeneralSupport;
+    }
+
     @JsonIgnore
     public boolean isActive() {
         return isNull(inactiveFrom) || isInactiveFromInFuture();
@@ -322,7 +331,8 @@ public class CustomerDto implements Context {
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
                 .withRightsRetentionStrategy(getRightsRetentionStrategy())
-                .withAllowFileUploadForTypes(getAllowFileUploadForTypes());
+                .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
+                   .withAllowsGeneralSupport(isAllowsGeneralSupport());
     }
 
     @Override
@@ -332,7 +342,7 @@ public class CustomerDto implements Context {
                             getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
                             getRorId(), getServiceCenterUri(), getPublicationWorkflow(), getDoiAgent(),
-                            getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom());
+                            getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom(), isAllowsGeneralSupport());
     }
 
     @Override
@@ -366,7 +376,8 @@ public class CustomerDto implements Context {
                 && Objects.equals(getDoiAgent(), that.getDoiAgent())
                 && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
                 && getPublicationWorkflow() == that.getPublicationWorkflow()
-                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
+                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
+               && Objects.equals(isAllowsGeneralSupport(), that.isAllowsGeneralSupport());
     }
 
     @Override
@@ -526,6 +537,11 @@ public class CustomerDto implements Context {
 
         public Builder withRightsRetentionStrategy(RightsRetentionStrategy rightsRetentionStrategy) {
             customerDto.setRightsRetentionStrategy(buildRetentionStrategyDto(rightsRetentionStrategy));
+            return this;
+        }
+
+        public Builder withAllowsGeneralSupport(Boolean allowsGeneralSupport) {
+            customerDto.setAllowsGeneralSupport(isNull(allowsGeneralSupport) || allowsGeneralSupport);
             return this;
         }
 

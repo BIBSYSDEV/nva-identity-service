@@ -2,9 +2,9 @@ package no.unit.nva.customer.service.impl;
 
 import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -89,6 +89,16 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         createdCustomer.setName(newName);
         var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
         assertEquals(newName, updatedCustomer.getName());
+    }
+
+    @Test
+    void shouldRefreshCustomerByUpdatingVersion() throws NotFoundException, ConflictException {
+        var customer = newActiveCustomerDto();
+        var createdCustomer = service.createCustomer(customer);
+        service.refreshCustomers();
+
+        var refreshedCustomer = service.getCustomer(createdCustomer.getIdentifier());
+        assertNotEquals(customer.getVersion(), refreshedCustomer.getVersion());
     }
 
     @Test
@@ -303,20 +313,6 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         assertThrows(ConflictException.class, action);
     }
 
-    @Test
-    void shouldUpdateCustomerOfAttributeToExistingNvaCustomers() throws ConflictException, NotFoundException {
-        var existingCustomer = createCustomerWithSingleVocabularyEntry();
-        var expectedCustomer = addCustomerOfNvaAttribute(existingCustomer);
-        var actualCustomer = service.updateCustomersWithNvaAttribute().get(0);
-
-        assertThat(expectedCustomer.getCustomerOf(), is(equalTo(actualCustomer.getCustomerOf())));
-    }
-
-    private CustomerDto addCustomerOfNvaAttribute(CustomerDto customerDto) {
-        customerDto.setCustomerOf(randomElement(List.of(ApplicationDomain.values())));
-        return customerDto;
-    }
-
     private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
         Map<String, AttributeValue> updatedEntry) {
         return updatedEntry.get(CustomerDao.VOCABULARIES_FIELD).l().get(SINGLE_VOCABULARY)
@@ -379,6 +375,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withInactiveFrom(randomInstant())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                           .withVersion(UUID.randomUUID())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password","doiAgent.id")));

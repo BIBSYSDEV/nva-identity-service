@@ -9,7 +9,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -102,6 +101,7 @@ public class DynamoDBCustomerService implements CustomerService {
     public CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws InputException, NotFoundException {
         validateIdentifier(identifier, customer);
         customer.setModifiedDate(Instant.now().toString());
+        customer.setVersion(UUID.randomUUID());
         table.putItem(CustomerDao.fromCustomerDto(customer));
         return getCustomer(identifier);
     }
@@ -112,13 +112,11 @@ public class DynamoDBCustomerService implements CustomerService {
         return sendQueryToIndex(queryObject, BY_CRISTIN_ID_INDEX_NAME, customer -> customer.getCristinId().toString());
     }
 
-    public List<CustomerDto> updateCustomersWithNvaAttribute() {
-        return table.scan()
-                   .items()
-                   .stream()
+    @Override
+    public List<CustomerDto> refreshCustomers() {
+        return table.scan().items().stream()
                    .map(CustomerDao::toCustomerDto)
-                   .map(this::attachCustomerOfNvaAttributeToCustomerDto)
-                   .map(attempt(item -> updateCustomer(item.getIdentifier(), item)))
+                   .map(customer -> attempt(() -> updateCustomer(customer.getIdentifier(), customer)))
                    .map(Try::orElseThrow)
                    .collect(Collectors.toList());
     }
@@ -128,14 +126,9 @@ public class DynamoDBCustomerService implements CustomerService {
         return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
     }
 
-    private CustomerDto attachCustomerOfNvaAttributeToCustomerDto(CustomerDto customerDto) {
-        customerDto.setCustomerOf(ApplicationDomain.NVA);
-        return customerDto;
-    }
-
     private CustomerDto addInternalDetails(CustomerDto customer) {
         Instant now = Instant.now();
-        return customer.copy().withIdentifier(UUID.randomUUID()).withCreatedDate(now).withModifiedDate(now).build();
+        return customer.copy().withIdentifier(UUID.randomUUID()).withCreatedDate(now).withModifiedDate(now).withVersion(UUID.randomUUID()).build();
     }
 
     private void checkForConflict(URI institutionId) throws ConflictException {

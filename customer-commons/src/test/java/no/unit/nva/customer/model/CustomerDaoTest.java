@@ -192,6 +192,7 @@ class CustomerDaoTest {
                    .withSector(randomSector())
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                   .withVersion(UUID.randomUUID())
                    .build();
     }
 

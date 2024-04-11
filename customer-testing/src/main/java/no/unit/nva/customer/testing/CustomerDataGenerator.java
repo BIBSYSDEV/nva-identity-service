@@ -67,6 +67,7 @@ public class CustomerDataGenerator {
                                    .withInactiveFrom(randomInstant())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                                   .withVersion(UUID.randomUUID())
                                    .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
@@ -105,6 +106,7 @@ public class CustomerDataGenerator {
                                    .withInactiveFrom(randomInstant())
                                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                                   .withVersion(UUID.randomUUID())
                                    .build();
         assertThat(customer, doesNotHaveEmptyValues());
         return customer;

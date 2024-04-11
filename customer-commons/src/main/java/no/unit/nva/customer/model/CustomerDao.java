@@ -747,7 +747,10 @@ public class CustomerDao implements Typed {
         private String text;
 
         public ServiceCenterDao() {
+        }
 
+        public ServiceCenterDao(String value) {
+            this.uri = URI.create(value);
         }
 
         public ServiceCenterDao(URI uri, String text) {

@@ -12,9 +12,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -216,19 +214,8 @@ public class CustomerDto implements Context {
 
     @JsonAlias("serviceCenterUri")
     @JsonProperty("serviceCenter")
-    public void setServiceCenter(Object serviceCenter) {
-        if (serviceCenter instanceof Map<?,?>) {
-            var map = (HashMap) serviceCenter;
-            var uri = attempt(() -> URI.create(map.get("uri").toString())).orElse(failure -> null);
-            var text = attempt(() -> map.get("text").toString()).orElse(failure -> null);
-            this.serviceCenter = new ServiceCenter(uri, text);
-        } else if (serviceCenter instanceof String || serviceCenter instanceof URI) {
-            this.serviceCenter = new ServiceCenter(URI.create(serviceCenter.toString()), null);
-        } else if (serviceCenter instanceof ServiceCenter) {
-            this.serviceCenter = (ServiceCenter) serviceCenter;
-        } else {
-            this.serviceCenter = ServiceCenter.emptyServiceCenter();
-        }
+    public void setServiceCenter(ServiceCenter serviceCenter) {
+        this.serviceCenter = serviceCenter;
     }
 
     public PublicationWorkflow getPublicationWorkflow() {
@@ -687,6 +674,7 @@ public class CustomerDto implements Context {
     }
     public record ServiceCenter(URI uri, String text) implements JsonSerializable {
 
+        @JacocoGenerated
         public static ServiceCenter emptyServiceCenter() {
             return new ServiceCenter(null, null);
         }

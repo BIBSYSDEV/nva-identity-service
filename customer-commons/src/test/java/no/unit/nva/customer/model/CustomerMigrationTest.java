@@ -15,14 +15,15 @@ public class CustomerMigrationTest {
                          Arguments.of(customerWithServiceCenterObject()),
                          Arguments.of(customerWithEmptyServiceCenter()),
                          Arguments.of(customerWithMissingServiceCenter()),
-                         Arguments.of(customerWithNullServiceCenter()));
+                         Arguments.of(customerWithNullServiceCenter())
+        );
     }
 
     @ParameterizedTest
     @MethodSource("serviceCenterProvider")
     void shouldMigrateServiceCenterUriToObject(String customer) throws JsonProcessingException {
-        var customerDto = JsonUtils.dtoObjectMapper.readValue(customer, CustomerDto.class);
-        assertDoesNotThrow(() -> CustomerDao.fromCustomerDto(customerDto));
+        var customerDao = JsonUtils.dtoObjectMapper.readValue(customer, CustomerDao.class);
+        assertDoesNotThrow(customerDao::toCustomerDto);
     }
 
     private static String customerWithNullServiceCenter() {

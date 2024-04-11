@@ -32,6 +32,7 @@ import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -128,7 +129,7 @@ public class UpdateCustomerHandlerTest {
         assertThat(customer.getServiceCenter().uri(), is(nullValue()));
         assertThat(customer.getServiceCenter().text(), is(nullValue()));
 
-        customer.setServiceCenter(testServiceCenterUri);
+        customer.setServiceCenter(new ServiceCenter(testServiceCenterUri, null));
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var input = createInput(customer, pathParameters);

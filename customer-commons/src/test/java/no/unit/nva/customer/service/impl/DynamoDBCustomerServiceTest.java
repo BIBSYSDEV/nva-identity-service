@@ -99,12 +99,6 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldRefreshCustomer() throws ConflictException, NotFoundException {
-        var createdCustomer = service.createCustomer(newActiveCustomerDto());
-        assertDoesNotThrow(() -> service.refreshCustomer(createdCustomer));
-    }
-
-    @Test
     void shouldUpdateRboInstitutionWhenRboInstitutionIsSetToTrue()
         throws NotFoundException, InputException, ConflictException {
         var customer = newActiveCustomerDto();

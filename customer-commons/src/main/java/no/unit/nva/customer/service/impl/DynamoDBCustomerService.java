@@ -104,8 +104,7 @@ public class DynamoDBCustomerService implements CustomerService {
         return getCustomer(identifier);
     }
 
-    @Override
-    public CustomerDto refreshCustomer(CustomerDto customer) {
+    private CustomerDto refreshCustomer(CustomerDto customer) {
         table.putItem(CustomerDao.fromCustomerDto(customer));
         return attempt(() -> getCustomer(customer.getIdentifier())).orElseThrow();
     }

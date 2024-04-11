@@ -2,9 +2,9 @@ package no.unit.nva.customer.service.impl;
 
 import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
@@ -18,6 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -90,6 +91,12 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         createdCustomer.setName(newName);
         var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
         assertEquals(newName, updatedCustomer.getName());
+    }
+
+    @Test
+    void shouldRefreshCustomers() throws ConflictException, NotFoundException {
+        service.createCustomer(newActiveCustomerDto());
+        assertDoesNotThrow(() -> service.refreshCustomers());
     }
 
     @Test
@@ -302,20 +309,6 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                                     .build();
         Executable action = () -> service.createCustomer(customerDuplicate);
         assertThrows(ConflictException.class, action);
-    }
-
-    @Test
-    void shouldUpdateCustomerOfAttributeToExistingNvaCustomers() throws ConflictException, NotFoundException {
-        var existingCustomer = createCustomerWithSingleVocabularyEntry();
-        var expectedCustomer = addCustomerOfNvaAttribute(existingCustomer);
-        var actualCustomer = service.updateCustomersWithNvaAttribute().get(0);
-
-        assertThat(expectedCustomer.getCustomerOf(), is(equalTo(actualCustomer.getCustomerOf())));
-    }
-
-    private CustomerDto addCustomerOfNvaAttribute(CustomerDto customerDto) {
-        customerDto.setCustomerOf(randomElement(List.of(ApplicationDomain.values())));
-        return customerDto;
     }
 
     private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(

@@ -1,9 +1,9 @@
 package no.unit.nva.customer;
 
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
@@ -15,8 +15,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.containsString;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.URI;
 import java.time.Instant;
@@ -24,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.unit.nva.customer.model.ApplicationDomain;
+import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.VocabularyDto;
@@ -32,12 +32,13 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.core.attempt.Try;
+import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabase {
+public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
 
-    private NvaApplicationDomainHandler handler;
+    private CustomerBatchScanHandler handler;
     private DynamoDBCustomerService service;
     private Context context;
     private Void input;
@@ -46,26 +47,26 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
     public void setUp() {
         super.setupDatabase();
         service = new DynamoDBCustomerService(this.dynamoClient);
-        handler = new NvaApplicationDomainHandler(service);
+        handler = new CustomerBatchScanHandler(service);
         context = new FakeContext();
     }
 
     @Test
-    void shouldUpdateAttributeCustomerOf() {
-        var expectedCustomersAppDomains = IntStream.of(1, randomInteger(10))
-                                              .boxed()
-                                              .map(i -> newCustomerDto())
-                                              .map(attempt(c -> service.createCustomer(c)))
-                                              .map(Try::orElseThrow)
-                                              .map(customer -> updateCustomerOfNvaAttribute(customer).getCustomerOf())
-                                              .collect(Collectors.toList());
-    
-        var actualCustomersAppDomains = handler.handleRequest(input, context)
-                                            .stream()
-                                            .map(CustomerDto::getCustomerOf)
-                                            .collect(Collectors.toList());
+    void shouldUpdateCustomers() {
+        var existingCustomers = IntStream.of(1, randomInteger(10))
+                                    .boxed()
+                                    .map(i -> newCustomerDto())
+                                    .map(attempt(c -> service.createCustomer(c)))
+                                    .map(Try::orElseThrow)
+                                    .map(CustomerDao::fromCustomerDto)
+                                    .collect(Collectors.toList());
 
-        assertThat(expectedCustomersAppDomains, is(equalTo(actualCustomersAppDomains)));
+        final var logAppender = LogUtils.getTestingAppender(CustomerBatchScanHandler.class);
+        handler.handleRequest(input, context);
+
+        existingCustomers.forEach(customerDao -> {
+            assertThat(logAppender.getMessages(), containsString(customerDao.getIdentifier().toString()));
+        });
     }
 
     private CustomerDto newCustomerDto() {
@@ -105,10 +106,5 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
 
     private VocabularyDto randomVocabulary() {
         return new VocabularyDto(randomString(), randomUri(), randomElement(VocabularyStatus.values()));
-    }
-
-    private CustomerDto updateCustomerOfNvaAttribute(CustomerDto customerDto) {
-        customerDto.setCustomerOf(ApplicationDomain.NVA);
-        return customerDto;
     }
 }

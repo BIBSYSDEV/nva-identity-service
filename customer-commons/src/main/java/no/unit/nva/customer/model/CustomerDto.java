@@ -59,7 +59,6 @@ public class CustomerDto implements Context {
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
-    private UUID version;
 
     public CustomerDto() {
         super();
@@ -287,14 +286,6 @@ public class CustomerDto implements Context {
         this.rightsRetentionStrategy = rightsRetentionStrategy;
     }
 
-    public UUID getVersion() {
-        return version;
-    }
-
-    public void setVersion(UUID version) {
-        this.version = version;
-    }
-
     @Override
     public URI getContext() {
         return context;
@@ -331,8 +322,7 @@ public class CustomerDto implements Context {
                 .withSector(getSector())
                 .withVocabularies(getVocabularies())
                 .withRightsRetentionStrategy(getRightsRetentionStrategy())
-                .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
-                   .withVersion(getVersion());
+                .withAllowFileUploadForTypes(getAllowFileUploadForTypes());
     }
 
     @Override
@@ -536,11 +526,6 @@ public class CustomerDto implements Context {
 
         public Builder withRightsRetentionStrategy(RightsRetentionStrategy rightsRetentionStrategy) {
             customerDto.setRightsRetentionStrategy(buildRetentionStrategyDto(rightsRetentionStrategy));
-            return this;
-        }
-
-        public Builder withVersion(UUID uuid) {
-            customerDto.setVersion(uuid);
             return this;
         }
 

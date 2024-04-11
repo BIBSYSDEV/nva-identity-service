@@ -18,6 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -92,13 +93,15 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldRefreshCustomerByUpdatingVersion() throws NotFoundException, ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-        service.refreshCustomers();
+    void shouldRefreshCustomers() throws ConflictException, NotFoundException {
+        service.createCustomer(newActiveCustomerDto());
+        assertDoesNotThrow(() -> service.refreshCustomers());
+    }
 
-        var refreshedCustomer = service.getCustomer(createdCustomer.getIdentifier());
-        assertNotEquals(customer.getVersion(), refreshedCustomer.getVersion());
+    @Test
+    void shouldRefreshCustomer() throws ConflictException, NotFoundException {
+        var createdCustomer = service.createCustomer(newActiveCustomerDto());
+        assertDoesNotThrow(() -> service.refreshCustomer(createdCustomer));
     }
 
     @Test
@@ -375,7 +378,6 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
                            .withInactiveFrom(randomInstant())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                           .withVersion(UUID.randomUUID())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password","doiAgent.id")));

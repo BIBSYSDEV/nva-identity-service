@@ -16,7 +16,6 @@ import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,9 +100,14 @@ public class DynamoDBCustomerService implements CustomerService {
     public CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws InputException, NotFoundException {
         validateIdentifier(identifier, customer);
         customer.setModifiedDate(Instant.now().toString());
-        customer.setVersion(UUID.randomUUID());
         table.putItem(CustomerDao.fromCustomerDto(customer));
         return getCustomer(identifier);
+    }
+
+    @Override
+    public CustomerDto refreshCustomer(CustomerDto customer) {
+        table.putItem(CustomerDao.fromCustomerDto(customer));
+        return attempt(() -> getCustomer(customer.getIdentifier())).orElseThrow();
     }
 
     @Override
@@ -116,8 +120,7 @@ public class DynamoDBCustomerService implements CustomerService {
     public List<CustomerDto> refreshCustomers() {
         return table.scan().items().stream()
                    .map(CustomerDao::toCustomerDto)
-                   .map(customer -> attempt(() -> updateCustomer(customer.getIdentifier(), customer)))
-                   .map(Try::orElseThrow)
+                   .map(this::refreshCustomer)
                    .collect(Collectors.toList());
     }
 
@@ -128,7 +131,7 @@ public class DynamoDBCustomerService implements CustomerService {
 
     private CustomerDto addInternalDetails(CustomerDto customer) {
         Instant now = Instant.now();
-        return customer.copy().withIdentifier(UUID.randomUUID()).withCreatedDate(now).withModifiedDate(now).withVersion(UUID.randomUUID()).build();
+        return customer.copy().withIdentifier(UUID.randomUUID()).withCreatedDate(now).withModifiedDate(now).build();
     }
 
     private void checkForConflict(URI institutionId) throws ConflictException {

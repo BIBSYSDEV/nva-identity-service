@@ -72,7 +72,6 @@ public class CustomerDao implements Typed {
     @JsonAlias("rightRetentionStrategy")
     private RightsRetentionStrategyDao rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
-    private UUID version;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -108,7 +107,6 @@ public class CustomerDao implements Typed {
                    .withSector(dto.getSector())
                    .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(extractPublicationInstanceTypes(dto))
-                   .withVersion(dto.getVersion())
                    .build();
     }
 
@@ -128,21 +126,13 @@ public class CustomerDao implements Typed {
         this.inactiveFrom = inactiveFrom;
     }
 
-    public UUID getVersion() {
-        return version;
-    }
-
-    public void setVersion(UUID version) {
-        this.version = version;
-    }
-
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
                             institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
                             serviceCenterUri, publicationWorkflow, doiAgent, nviInstitution, rboInstitution,
-                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes, version);
+                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes);
     }
 
     @JacocoGenerated
@@ -177,8 +167,7 @@ public class CustomerDao implements Typed {
                && Objects.equals(doiAgent, that.doiAgent)
                && sector == that.sector
                && Objects.equals(rightsRetentionStrategy, that.rightsRetentionStrategy)
-               && Objects.equals(allowFileUploadForTypes, that.allowFileUploadForTypes)
-               && Objects.equals(version, that.version);
+               && Objects.equals(allowFileUploadForTypes, that.allowFileUploadForTypes);
     }
 
     @DynamoDbAttribute(IDENTIFIER)
@@ -398,7 +387,6 @@ public class CustomerDao implements Typed {
                                       .withSector(getSector())
                                       .withRightsRetentionStrategy(getRightsRetentionStrategy())
                                       .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
-                                      .withVersion(getVersion())
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -610,13 +598,7 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withVersion(UUID uuid) {
-            customerDb.setVersion(uuid);
-            return this;
-        }
-
         public CustomerDao build() {
-
             return customerDb;
         }
     }

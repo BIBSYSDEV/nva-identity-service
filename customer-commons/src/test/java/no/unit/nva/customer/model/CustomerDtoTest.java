@@ -138,7 +138,6 @@ class CustomerDtoTest {
                    .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                   .withVersion(UUID.randomUUID())
                    .build();
     }
 

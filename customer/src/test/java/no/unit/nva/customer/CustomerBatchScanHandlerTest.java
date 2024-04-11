@@ -15,14 +15,11 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.containsString;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.unit.nva.customer.model.ApplicationDomain;
@@ -34,6 +31,7 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.core.attempt.Try;
+import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -62,12 +60,11 @@ public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
                                     .map(CustomerDao::fromCustomerDto)
                                     .collect(Collectors.toList());
 
+        final var logAppender = LogUtils.getTestingAppender(CustomerBatchScanHandler.class);
         handler.handleRequest(input, context);
 
         existingCustomers.forEach(customerDao -> {
-            var updatedDto = attempt(() -> service.getCustomer(customerDao.getIdentifier())).orElseThrow();
-            var updatedDao = CustomerDao.fromCustomerDto(updatedDto);
-            assertThat(updatedDao.getVersion(), is(not(nullValue())));
+            assertThat(logAppender.getMessages(), containsString(customerDao.getIdentifier().toString()));
         });
     }
 
@@ -96,7 +93,6 @@ public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
                            .withInactiveFrom(randomInstant())
                            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                           .withVersion(UUID.randomUUID())
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password", "doiAgent.id")));

@@ -919,6 +919,8 @@ Resources:
       Environment:
         Variables:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE:
+            Fn::Sub: https://${ApiDomain}/${CustomerDomainBasePath}
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable

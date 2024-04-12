@@ -23,6 +23,8 @@ import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.RightsRetentionStrategyConverter;
 import no.unit.nva.customer.model.dynamo.converters.ServiceCenterConverterProvider;
+import no.unit.nva.customer.model.dynamo.converters.ServiceCenterStringProvider;
+import no.unit.nva.customer.model.dynamo.converters.ServiceCenterUriProvider;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
@@ -37,9 +39,13 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
-@DynamoDbBean(converterProviders = {ServiceCenterConverterProvider.class, VocabularyConverterProvider.class,
+@DynamoDbBean(converterProviders = {
+    ServiceCenterConverterProvider.class,
+    ServiceCenterStringProvider.class,
+    ServiceCenterUriProvider.class,
+    VocabularyConverterProvider.class,
     DefaultAttributeConverterProvider.class})
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields", "PMD.CouplingBetweenObjects"})
 public class CustomerDao implements Typed {
 
     public static final String IDENTIFIER = "identifier";
@@ -727,7 +733,8 @@ public class CustomerDao implements Typed {
         }
     }
 
-    @DynamoDbBean(converterProviders = {ServiceCenterConverterProvider.class})
+    @DynamoDbBean(converterProviders = {ServiceCenterConverterProvider.class, ServiceCenterUriProvider.class,
+        ServiceCenterStringProvider.class})
     public static class ServiceCenterDao implements JsonSerializable {
 
         private URI uri;

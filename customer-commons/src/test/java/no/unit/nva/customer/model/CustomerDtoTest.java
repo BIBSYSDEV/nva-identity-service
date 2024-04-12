@@ -114,7 +114,7 @@ class CustomerDtoTest {
     @Test
     void shouldReturnAllowsGeneralSupportSetToTrueWhenNotSet() {
         var customer = CustomerDto.builder().build();
-        assertThat(customer.isAllowsGeneralSupport(), is(true));
+        assertThat(customer.isGeneralSupportEnabled(), is(true));
     }
 
     private CustomerDto randomInactiveCustomer() {

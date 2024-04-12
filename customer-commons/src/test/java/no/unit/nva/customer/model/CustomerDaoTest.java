@@ -115,7 +115,7 @@ class CustomerDaoTest {
     void shouldCreateCustomerDaoWithIsAllowsGeneralSupportSetToTrueWhenNotSet() {
         var dao = CustomerDao.builder().build();
 
-        assertThat(dao.isAllowsGeneralSupport(), is(true));
+        assertThat(dao.isGeneralSupportEnabled(), is(true));
     }
 
     @Test
@@ -199,7 +199,7 @@ class CustomerDaoTest {
                    .withSector(randomSector())
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                   .withAllowsGeneralSupport(true)
+                   .withGeneralSupportEnabled(true)
                    .build();
     }
 

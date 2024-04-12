@@ -68,7 +68,7 @@ public class CustomerDao implements Typed {
     private DoiAgentDao doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
-    private Boolean allowsGeneralSupport;
+    private Boolean generalSupportEnabled;
     private Instant inactiveFrom;
     private Sector sector;
     @JsonAlias("rightRetentionStrategy")
@@ -109,7 +109,7 @@ public class CustomerDao implements Typed {
                    .withSector(dto.getSector())
                    .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(extractPublicationInstanceTypes(dto))
-                   .withAllowsGeneralSupport(dto.isAllowsGeneralSupport())
+                   .withGeneralSupportEnabled(dto.isGeneralSupportEnabled())
                    .build();
     }
 
@@ -129,12 +129,12 @@ public class CustomerDao implements Typed {
         this.inactiveFrom = inactiveFrom;
     }
 
-    public boolean isAllowsGeneralSupport() {
-        return isNull(allowsGeneralSupport) || allowsGeneralSupport;
+    public boolean isGeneralSupportEnabled() {
+        return isNull(generalSupportEnabled) || generalSupportEnabled;
     }
 
-    public void setAllowsGeneralSupport(Boolean allowsGeneralSupport) {
-        this.allowsGeneralSupport = isNull(allowsGeneralSupport) || allowsGeneralSupport;
+    public void setGeneralSupportEnabled(Boolean generalSupportEnabled) {
+        this.generalSupportEnabled = isNull(generalSupportEnabled) || generalSupportEnabled;
     }
 
     @JacocoGenerated
@@ -143,7 +143,8 @@ public class CustomerDao implements Typed {
         return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
                             institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
                             serviceCenterUri, publicationWorkflow, doiAgent, nviInstitution, rboInstitution,
-                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes, allowsGeneralSupport);
+                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes,
+                            generalSupportEnabled);
     }
 
     @JacocoGenerated
@@ -159,7 +160,7 @@ public class CustomerDao implements Typed {
         return nviInstitution == that.nviInstitution
                && rboInstitution == that.rboInstitution
                && Objects.equals(inactiveFrom, that.inactiveFrom)
-               && Objects.equals(allowsGeneralSupport, that.allowsGeneralSupport)
+               && Objects.equals(generalSupportEnabled, that.generalSupportEnabled)
                && Objects.equals(identifier, that.identifier)
                && Objects.equals(createdDate, that.createdDate)
                && Objects.equals(modifiedDate, that.modifiedDate)
@@ -399,7 +400,7 @@ public class CustomerDao implements Typed {
                                       .withSector(getSector())
                                       .withRightsRetentionStrategy(getRightsRetentionStrategy())
                                       .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
-                                      .withAllowsGeneralSupport(allowsGeneralSupport)
+                                      .withGeneralSupportEnabled(generalSupportEnabled)
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -443,6 +444,7 @@ public class CustomerDao implements Typed {
                ", sector=" + sector +
                ", rightsRetentionStrategy=" + rightsRetentionStrategy +
                ", allowFileUploadForTypes=" + allowFileUploadForTypes +
+               ", generalSupportEnabled=" + generalSupportEnabled +
                '}';
     }
 
@@ -611,8 +613,8 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withAllowsGeneralSupport(Boolean allowsGeneralSupport) {
-            customerDb.setAllowsGeneralSupport(isNull(allowsGeneralSupport) || allowsGeneralSupport);
+        public Builder withGeneralSupportEnabled(Boolean generalSupportEnabled) {
+            customerDb.setGeneralSupportEnabled(isNull(generalSupportEnabled) || generalSupportEnabled);
             return this;
         }
 

@@ -84,7 +84,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         var customer = CustomerDto.builder().withName(randomString()).build();
         var createdCustomer = service.createCustomer(customer);
 
-        assertThat(createdCustomer.isAllowsGeneralSupport(), is(true));
+        assertThat(createdCustomer.isGeneralSupportEnabled(), is(true));
     }
 
     @Test

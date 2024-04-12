@@ -92,7 +92,7 @@ public class NvaApplicationDomainHandlerTest extends LocalCustomerServiceDatabas
                            .withInactiveFrom(randomInstant())
                            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                           .withAllowsGeneralSupport(true)
+                           .withGeneralSupportEnabled(true)
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password", "doiAgent.id")));

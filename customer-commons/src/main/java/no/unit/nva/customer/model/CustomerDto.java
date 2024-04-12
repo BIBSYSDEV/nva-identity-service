@@ -56,7 +56,7 @@ public class CustomerDto implements Context {
     private boolean nviInstitution;
     private boolean rboInstitution;
     private Instant inactiveFrom;
-    private Boolean generalSupportEnabled;
+    private boolean generalSupportEnabled;
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
@@ -260,7 +260,7 @@ public class CustomerDto implements Context {
     }
 
     public boolean isGeneralSupportEnabled() {
-        return isNull(generalSupportEnabled) || generalSupportEnabled;
+        return generalSupportEnabled;
     }
 
     public void setGeneralSupportEnabled(boolean generalSupportEnabled) {
@@ -540,8 +540,8 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withGeneralSupportEnabled(Boolean generalSupportEnabled) {
-            customerDto.setGeneralSupportEnabled(isNull(generalSupportEnabled) || generalSupportEnabled);
+        public Builder withGeneralSupportEnabled(boolean generalSupportEnabled) {
+            customerDto.setGeneralSupportEnabled(generalSupportEnabled);
             return this;
         }
 

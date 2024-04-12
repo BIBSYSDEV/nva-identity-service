@@ -111,12 +111,6 @@ class CustomerDtoTest {
         assertThat(randomActiveCustomer.isActive(), is(true));
     }
 
-    @Test
-    void shouldReturnAllowsGeneralSupportSetToTrueWhenNotSet() {
-        var customer = CustomerDto.builder().build();
-        assertThat(customer.isGeneralSupportEnabled(), is(true));
-    }
-
     private CustomerDto randomInactiveCustomer() {
         return CustomerDto.builder()
                    .withCname(randomString())

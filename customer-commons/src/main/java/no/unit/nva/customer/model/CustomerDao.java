@@ -1,12 +1,12 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
 import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
 import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
@@ -15,8 +15,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.annotation.JsonAlias;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
@@ -68,7 +66,7 @@ public class CustomerDao implements Typed {
     private DoiAgentDao doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
-    private Boolean generalSupportEnabled;
+    private boolean generalSupportEnabled;
     private Instant inactiveFrom;
     private Sector sector;
     @JsonAlias("rightRetentionStrategy")
@@ -130,11 +128,11 @@ public class CustomerDao implements Typed {
     }
 
     public boolean isGeneralSupportEnabled() {
-        return isNull(generalSupportEnabled) || generalSupportEnabled;
+        return true;
     }
 
-    public void setGeneralSupportEnabled(Boolean generalSupportEnabled) {
-        this.generalSupportEnabled = isNull(generalSupportEnabled) || generalSupportEnabled;
+    public void setGeneralSupportEnabled(boolean generalSupportEnabled) {
+        this.generalSupportEnabled = generalSupportEnabled;
     }
 
     @JacocoGenerated
@@ -613,8 +611,8 @@ public class CustomerDao implements Typed {
             return this;
         }
 
-        public Builder withGeneralSupportEnabled(Boolean generalSupportEnabled) {
-            customerDb.setGeneralSupportEnabled(isNull(generalSupportEnabled) || generalSupportEnabled);
+        public Builder withGeneralSupportEnabled(boolean generalSupportEnabled) {
+            customerDb.setGeneralSupportEnabled(generalSupportEnabled);
             return this;
         }
 

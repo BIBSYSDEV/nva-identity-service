@@ -28,8 +28,6 @@ import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
@@ -44,7 +42,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
 public class CustomerDao implements Typed {
 
-    private static final Logger logger = LoggerFactory.getLogger(CustomerDao.class);
     public static final String IDENTIFIER = "identifier";
     public static final String ORG_DOMAIN = "feideOrganizationDomain";
     public static final String CRISTIN_ID = "cristinId";
@@ -301,13 +298,11 @@ public class CustomerDao implements Typed {
     @JsonAlias("serviceCenterUri")
     @JsonProperty("serviceCenter")
     public ServiceCenterDao getServiceCenter() {
-        logger.info("ServiceCenterUri getter: {}", serviceCenter);
         return nonNull(serviceCenter) ? serviceCenter : ServiceCenterDao.emptyServiceCenter();
     }
 
     public void setServiceCenter(ServiceCenterDao serviceCenter) {
         this.serviceCenter = nonNull(serviceCenter) ? serviceCenter : ServiceCenterDao.emptyServiceCenter();
-        logger.info("ServiceCenterUri setter: {}", serviceCenter);
     }
 
     public PublicationWorkflow getPublicationWorkflow() {
@@ -742,12 +737,10 @@ public class CustomerDao implements Typed {
         }
 
         public ServiceCenterDao(String value) {
-            logger.info("ServiceCenterUri value constructor: {}", value);
             this.uri = URI.create(value);
         }
 
         public ServiceCenterDao(URI uri, String name) {
-            logger.info("ServiceCenterUri dao constructor: {} {}", uri, name);
             this.uri = uri;
             this.name = name;
         }
@@ -768,7 +761,7 @@ public class CustomerDao implements Typed {
             this.name = name;
         }
 
-        @DynamoDbAttribute("text")
+        @DynamoDbAttribute("name")
         public String getName() {
             return name;
         }

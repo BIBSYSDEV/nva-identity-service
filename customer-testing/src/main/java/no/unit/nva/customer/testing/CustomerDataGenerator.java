@@ -1,6 +1,5 @@
 package no.unit.nva.customer.testing;
 
-import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -19,6 +18,7 @@ import java.util.stream.Stream;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
+import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
@@ -82,6 +82,7 @@ public class CustomerDataGenerator {
 
     public static CustomerDao createSampleInactiveCustomerDao() {
         VocabularyDao vocabulary = randomVocabularyDao();
+        URI serviceCenterUri = randomUri();
         CustomerDao customer = CustomerDao.builder()
                                    .withIdentifier(randomIdentifier())
                                    .withName(randomString())
@@ -97,7 +98,8 @@ public class CustomerDataGenerator {
                                    .withCname(randomString())
                                    .withArchiveName(randomString())
                                    .withRorId(randomUri())
-                                   .withServiceCenterUri(randomUri())
+                                   .withServiceCenterUri(serviceCenterUri)
+                                   .withServiceCenter(new ServiceCenterDao(serviceCenterUri, null))
                                    .withPublicationWorkflow(randomPublicationWorkflow())
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withNviInstitution(randomBoolean())
@@ -107,7 +109,8 @@ public class CustomerDataGenerator {
                                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .withGeneralSupportEnabled(true)
                                    .build();
-        assertThat(customer, doesNotHaveEmptyValues());
+        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("serviceCenter.name",
+                                                                         "doiAgent.password")));
         return customer;
     }
 

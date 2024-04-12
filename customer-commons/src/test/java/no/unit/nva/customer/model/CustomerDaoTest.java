@@ -112,6 +112,13 @@ class CustomerDaoTest {
     }
 
     @Test
+    void shouldCreateCustomerDaoWithIsAllowsGeneralSupportSetToTrueWhenNotSet() {
+        var dao = CustomerDao.builder().build();
+
+        assertThat(dao.isGeneralSupportEnabled(), is(true));
+    }
+
+    @Test
     void shouldMigrateOldStyleDao() throws IOException {
         var template = """
                 {
@@ -192,6 +199,7 @@ class CustomerDaoTest {
                    .withSector(randomSector())
                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                   .withGeneralSupportEnabled(true)
                    .build();
     }
 

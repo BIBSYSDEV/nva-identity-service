@@ -6,6 +6,7 @@ import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
 import static nva.commons.core.attempt.Try.attempt;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
@@ -14,8 +15,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.annotation.JsonAlias;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
@@ -67,6 +66,7 @@ public class CustomerDao implements Typed {
     private DoiAgentDao doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
+    private boolean generalSupportEnabled;
     private Instant inactiveFrom;
     private Sector sector;
     @JsonAlias("rightRetentionStrategy")
@@ -107,6 +107,7 @@ public class CustomerDao implements Typed {
                    .withSector(dto.getSector())
                    .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(extractPublicationInstanceTypes(dto))
+                   .withGeneralSupportEnabled(dto.isGeneralSupportEnabled())
                    .build();
     }
 
@@ -126,13 +127,22 @@ public class CustomerDao implements Typed {
         this.inactiveFrom = inactiveFrom;
     }
 
+    public boolean isGeneralSupportEnabled() {
+        return true;
+    }
+
+    public void setGeneralSupportEnabled(boolean generalSupportEnabled) {
+        this.generalSupportEnabled = generalSupportEnabled;
+    }
+
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
                             institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
                             serviceCenterUri, publicationWorkflow, doiAgent, nviInstitution, rboInstitution,
-                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes);
+                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes,
+                            generalSupportEnabled);
     }
 
     @JacocoGenerated
@@ -148,6 +158,7 @@ public class CustomerDao implements Typed {
         return nviInstitution == that.nviInstitution
                && rboInstitution == that.rboInstitution
                && Objects.equals(inactiveFrom, that.inactiveFrom)
+               && Objects.equals(generalSupportEnabled, that.generalSupportEnabled)
                && Objects.equals(identifier, that.identifier)
                && Objects.equals(createdDate, that.createdDate)
                && Objects.equals(modifiedDate, that.modifiedDate)
@@ -387,6 +398,7 @@ public class CustomerDao implements Typed {
                                       .withSector(getSector())
                                       .withRightsRetentionStrategy(getRightsRetentionStrategy())
                                       .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
+                                      .withGeneralSupportEnabled(generalSupportEnabled)
                                       .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
@@ -430,6 +442,7 @@ public class CustomerDao implements Typed {
                ", sector=" + sector +
                ", rightsRetentionStrategy=" + rightsRetentionStrategy +
                ", allowFileUploadForTypes=" + allowFileUploadForTypes +
+               ", generalSupportEnabled=" + generalSupportEnabled +
                '}';
     }
 
@@ -595,6 +608,11 @@ public class CustomerDao implements Typed {
 
         public Builder withInactiveFrom(Instant inactiveFrom) {
             customerDb.setInactiveFrom(inactiveFrom);
+            return this;
+        }
+
+        public Builder withGeneralSupportEnabled(boolean generalSupportEnabled) {
+            customerDb.setGeneralSupportEnabled(generalSupportEnabled);
             return this;
         }
 

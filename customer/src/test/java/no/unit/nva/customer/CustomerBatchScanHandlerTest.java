@@ -93,6 +93,7 @@ public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
                            .withInactiveFrom(randomInstant())
                            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                           .withGeneralSupportEnabled(true)
                            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
                                                                          "doiAgent.password", "doiAgent.id")));

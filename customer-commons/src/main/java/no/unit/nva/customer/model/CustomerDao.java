@@ -11,8 +11,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -66,7 +64,7 @@ public class CustomerDao implements Typed {
     private URI customerOf;
     private Set<VocabularyDao> vocabularies;
     private URI rorId;
-    private Object serviceCenter;
+    private ServiceCenterDao serviceCenter;
     private PublicationWorkflow publicationWorkflow;
     private DoiAgentDao doiAgent;
     private boolean nviInstitution;
@@ -298,20 +296,7 @@ public class CustomerDao implements Typed {
     @JsonAlias("serviceCenterUri")
     @JsonProperty("serviceCenter")
     public ServiceCenterDao getServiceCenter() {
-        if (serviceCenter instanceof Map<?,?>) {
-            var map = (HashMap<String, String>) serviceCenter;
-            var uri = map.getOrDefault("uri", null);
-            var serviceCenterUri = nonNull(uri) ? URI.create(uri) : null;
-            var text = map.getOrDefault("text", null);
-            this.serviceCenter = new ServiceCenterDao(serviceCenterUri, text);
-        } else if (serviceCenter instanceof String || serviceCenter instanceof URI) {
-            this.serviceCenter = new ServiceCenterDao(URI.create(serviceCenter.toString()), null);
-        } else if (serviceCenter instanceof ServiceCenterDao) {
-            this.serviceCenter = (ServiceCenterDao) serviceCenter;
-        } else {
-            this.serviceCenter = ServiceCenterDao.emptyServiceCenter();
-        }
-        return nonNull(serviceCenter) ? (ServiceCenterDao) serviceCenter : ServiceCenterDao.emptyServiceCenter();
+        return nonNull(serviceCenter) ? serviceCenter : ServiceCenterDao.emptyServiceCenter();
     }
 
     public void setServiceCenter(ServiceCenterDao serviceCenter) {

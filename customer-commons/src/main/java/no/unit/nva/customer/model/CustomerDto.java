@@ -672,7 +672,7 @@ public class CustomerDto implements Context {
             return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
         }
     }
-    public record ServiceCenter(URI uri, String text) implements JsonSerializable {
+    public record ServiceCenter(URI uri, String name) implements JsonSerializable {
 
         @JacocoGenerated
         public static ServiceCenter emptyServiceCenter() {
@@ -680,7 +680,7 @@ public class CustomerDto implements Context {
         }
 
         public ServiceCenterDao toDao() {
-            return new ServiceCenterDao(uri, text);
+            return new ServiceCenterDao(uri, name);
         }
 
         @JacocoGenerated

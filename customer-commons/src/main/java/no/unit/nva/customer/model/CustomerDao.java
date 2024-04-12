@@ -22,6 +22,7 @@ import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.RightsRetentionStrategyConverter;
+import no.unit.nva.customer.model.dynamo.converters.ServiceCenterConverterProvider;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
@@ -38,7 +39,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
-@DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
+@DynamoDbBean(converterProviders = {ServiceCenterConverterProvider.class, VocabularyConverterProvider.class,
+    DefaultAttributeConverterProvider.class})
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
 public class CustomerDao implements Typed {
 
@@ -730,11 +732,11 @@ public class CustomerDao implements Typed {
         }
     }
 
-    @DynamoDbBean
+    @DynamoDbBean(converterProviders = {ServiceCenterConverterProvider.class})
     public static class ServiceCenterDao implements JsonSerializable {
 
         private URI uri;
-        private String text;
+        private String name;
 
         public ServiceCenterDao() {
         }
@@ -744,10 +746,10 @@ public class CustomerDao implements Typed {
             this.uri = URI.create(value);
         }
 
-        public ServiceCenterDao(URI uri, String text) {
-            logger.info("ServiceCenterUri dao constructor: {} {}", uri, text);
+        public ServiceCenterDao(URI uri, String name) {
+            logger.info("ServiceCenterUri dao constructor: {} {}", uri, name);
             this.uri = uri;
-            this.text = text;
+            this.name = name;
         }
 
         public static ServiceCenterDao emptyServiceCenter() {
@@ -762,13 +764,13 @@ public class CustomerDao implements Typed {
             this.uri = uri;
         }
 
-        public void setText(String text) {
-            this.text = text;
+        public void setName(String name) {
+            this.name = name;
         }
 
         @DynamoDbAttribute("text")
-        public String getText() {
-            return text;
+        public String getName() {
+            return name;
         }
 
         @JacocoGenerated
@@ -781,17 +783,17 @@ public class CustomerDao implements Typed {
                 return false;
             }
             ServiceCenterDao that = (ServiceCenterDao) o;
-            return Objects.equals(uri, that.uri) && Objects.equals(text, that.text);
+            return Objects.equals(uri, that.uri) && Objects.equals(name, that.name);
         }
 
         @JacocoGenerated
         @Override
         public int hashCode() {
-            return Objects.hash(uri, text);
+            return Objects.hash(uri, name);
         }
 
         public ServiceCenter toDto() {
-            return new ServiceCenter(uri, text);
+            return new ServiceCenter(uri, name);
         }
 
         @JacocoGenerated

@@ -104,11 +104,6 @@ public class DynamoDBCustomerService implements CustomerService {
         return getCustomer(identifier);
     }
 
-    private CustomerDto refreshCustomer(CustomerDto customer) {
-        table.putItem(CustomerDao.fromCustomerDto(customer));
-        return attempt(() -> getCustomer(customer.getIdentifier())).orElseThrow();
-    }
-
     @Override
     public CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException {
         CustomerDao queryObject = createQueryForCristinNumber(cristinId);
@@ -121,6 +116,11 @@ public class DynamoDBCustomerService implements CustomerService {
                    .map(CustomerDao::toCustomerDto)
                    .map(this::refreshCustomer)
                    .collect(Collectors.toList());
+    }
+
+    private CustomerDto refreshCustomer(CustomerDto customer) {
+        table.putItem(CustomerDao.fromCustomerDto(customer));
+        return attempt(() -> getCustomer(customer.getIdentifier())).orElseThrow();
     }
 
     private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {

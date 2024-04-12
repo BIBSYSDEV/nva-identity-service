@@ -127,7 +127,7 @@ public class UpdateCustomerHandlerTest {
         CustomerDto customer = createCustomer(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
         assertThat(customer.getServiceCenter().uri(), is(nullValue()));
-        assertThat(customer.getServiceCenter().text(), is(nullValue()));
+        assertThat(customer.getServiceCenter().name(), is(nullValue()));
 
         customer.setServiceCenter(new ServiceCenter(testServiceCenterUri, null));
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);

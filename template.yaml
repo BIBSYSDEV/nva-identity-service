@@ -911,14 +911,16 @@ Resources:
             Path: /{identifier}
             Method: put
             RestApiId: !Ref NvaCustomerApi
-  NvaUpdateCustomerAppDomainFunction:
+  CustomerBatchScanHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: customer
-      Handler: no.unit.nva.customer.NvaApplicationDomainHandler::handleRequest
+      Handler: no.unit.nva.customer.CustomerBatchScanHandler::handleRequest
       Environment:
         Variables:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE:
+            Fn::Sub: https://${ApiDomain}/${CustomerDomainBasePath}
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable

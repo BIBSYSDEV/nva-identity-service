@@ -9,7 +9,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -17,7 +16,6 @@ import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,31 +104,28 @@ public class DynamoDBCustomerService implements CustomerService {
         return getCustomer(identifier);
     }
 
+    private CustomerDto refreshCustomer(CustomerDto customer) {
+        table.putItem(CustomerDao.fromCustomerDto(customer));
+        return attempt(() -> getCustomer(customer.getIdentifier())).orElseThrow();
+    }
+
     @Override
     public CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException {
         CustomerDao queryObject = createQueryForCristinNumber(cristinId);
         return sendQueryToIndex(queryObject, BY_CRISTIN_ID_INDEX_NAME, customer -> customer.getCristinId().toString());
     }
 
-    public List<CustomerDto> updateCustomersWithNvaAttribute() {
-        return table.scan()
-                   .items()
-                   .stream()
+    @Override
+    public List<CustomerDto> refreshCustomers() {
+        return table.scan().items().stream()
                    .map(CustomerDao::toCustomerDto)
-                   .map(this::attachCustomerOfNvaAttributeToCustomerDto)
-                   .map(attempt(item -> updateCustomer(item.getIdentifier(), item)))
-                   .map(Try::orElseThrow)
+                   .map(this::refreshCustomer)
                    .collect(Collectors.toList());
     }
 
     private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
         return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
-    }
-
-    private CustomerDto attachCustomerOfNvaAttributeToCustomerDto(CustomerDto customerDto) {
-        customerDto.setCustomerOf(ApplicationDomain.NVA);
-        return customerDto;
     }
 
     private CustomerDto addInternalDetails(CustomerDto customer) {

@@ -64,6 +64,7 @@ public class CustomerDao implements Typed {
     private URI serviceCenterUri;
     private PublicationWorkflow publicationWorkflow;
     private DoiAgentDao doiAgent;
+    private ServiceCenterDao serviceCenter;
     private boolean nviInstitution;
     private boolean rboInstitution;
     private boolean generalSupportEnabled;
@@ -98,6 +99,7 @@ public class CustomerDao implements Typed {
                    .withPublicationWorkflow(dto.getPublicationWorkflow())
                    .withRorId(dto.getRorId())
                    .withServiceCenterUri(dto.getServiceCenterUri())
+                   .withServiceCenter(dto.getServiceCenter().toDao())
                    .withShortName(dto.getShortName())
                    .withVocabularySettings(extractVocabularySettings(dto))
                    .withDoiAgent(dto.getDoiAgent())
@@ -133,52 +135,6 @@ public class CustomerDao implements Typed {
 
     public void setGeneralSupportEnabled(boolean generalSupportEnabled) {
         this.generalSupportEnabled = generalSupportEnabled;
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(identifier, createdDate, modifiedDate, name, displayName, shortName, archiveName, cname,
-                            institutionDns, feideOrganizationDomain, cristinId, customerOf, vocabularies, rorId,
-                            serviceCenterUri, publicationWorkflow, doiAgent, nviInstitution, rboInstitution,
-                            inactiveFrom, sector, rightsRetentionStrategy, allowFileUploadForTypes,
-                            generalSupportEnabled);
-    }
-
-    @JacocoGenerated
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        CustomerDao that = (CustomerDao) o;
-        return nviInstitution == that.nviInstitution
-               && rboInstitution == that.rboInstitution
-               && Objects.equals(inactiveFrom, that.inactiveFrom)
-               && Objects.equals(generalSupportEnabled, that.generalSupportEnabled)
-               && Objects.equals(identifier, that.identifier)
-               && Objects.equals(createdDate, that.createdDate)
-               && Objects.equals(modifiedDate, that.modifiedDate)
-               && Objects.equals(name, that.name)
-               && Objects.equals(displayName, that.displayName)
-               && Objects.equals(shortName, that.shortName)
-               && Objects.equals(archiveName, that.archiveName)
-               && Objects.equals(cname, that.cname)
-               && Objects.equals(institutionDns, that.institutionDns)
-               && Objects.equals(feideOrganizationDomain, that.feideOrganizationDomain)
-               && Objects.equals(cristinId, that.cristinId)
-               && Objects.equals(customerOf, that.customerOf)
-               && Objects.equals(vocabularies, that.vocabularies)
-               && Objects.equals(rorId, that.rorId)
-               && Objects.equals(serviceCenterUri, that.serviceCenterUri)
-               && publicationWorkflow == that.publicationWorkflow
-               && Objects.equals(doiAgent, that.doiAgent)
-               && sector == that.sector
-               && Objects.equals(rightsRetentionStrategy, that.rightsRetentionStrategy)
-               && Objects.equals(allowFileUploadForTypes, that.allowFileUploadForTypes);
     }
 
     @DynamoDbAttribute(IDENTIFIER)
@@ -373,6 +329,55 @@ public class CustomerDao implements Typed {
         this.rightsRetentionStrategy = rightsRetentionStrategy;
     }
 
+    @JacocoGenerated
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CustomerDao that = (CustomerDao) o;
+        return isNviInstitution() == that.isNviInstitution()
+               && isRboInstitution() == that.isRboInstitution()
+               && isGeneralSupportEnabled() == that.isGeneralSupportEnabled()
+               && Objects.equals(getIdentifier(), that.getIdentifier())
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getCname(), that.getCname())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getCustomerOf(), that.getCustomerOf())
+               && Objects.equals(getVocabularies(), that.getVocabularies())
+               && Objects.equals(getRorId(), that.getRorId())
+               && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
+               && getPublicationWorkflow() == that.getPublicationWorkflow()
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
+               && Objects.equals(getServiceCenter(), that.getServiceCenter())
+               && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
+               && getSector() == that.getSector()
+               && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
+               && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(),
+                            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(), getServiceCenterUri(),
+                            getPublicationWorkflow(), getDoiAgent(), getServiceCenter(), isNviInstitution(),
+                            isRboInstitution(), isGeneralSupportEnabled(), getInactiveFrom(), getSector(),
+                            getRightsRetentionStrategy(), getAllowFileUploadForTypes());
+    }
+
     public CustomerDto toCustomerDto() {
         CustomerDto customerDto = CustomerDto.builder()
                                       .withCname(getCname())
@@ -443,7 +448,16 @@ public class CustomerDao implements Typed {
                ", rightsRetentionStrategy=" + rightsRetentionStrategy +
                ", allowFileUploadForTypes=" + allowFileUploadForTypes +
                ", generalSupportEnabled=" + generalSupportEnabled +
+               ", serviceCenter=" + serviceCenter +
                '}';
+    }
+
+    public ServiceCenterDao getServiceCenter() {
+        return new ServiceCenterDao(serviceCenterUri, null);
+    }
+
+    public void setServiceCenter(ServiceCenterDao serviceCenter) {
+        this.serviceCenter = serviceCenter;
     }
 
     private static URI extractCustomerOf(CustomerDto dto) {
@@ -567,6 +581,11 @@ public class CustomerDao implements Typed {
 
         public Builder withServiceCenterUri(URI serviceCenterUri) {
             customerDb.setServiceCenterUri(serviceCenterUri);
+            return this;
+        }
+
+        public Builder withServiceCenter(ServiceCenterDao serviceCenterDao) {
+            customerDb.setServiceCenter(serviceCenterDao);
             return this;
         }
 
@@ -761,4 +780,63 @@ public class CustomerDao implements Typed {
             return toJsonString();
         }
     }
+
+    @DynamoDbBean
+    public static class ServiceCenterDao implements JsonSerializable{
+
+        private URI uri;
+        private String name;
+
+        public ServiceCenterDao() {
+        }
+
+        @JacocoGenerated
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ServiceCenterDao that = (ServiceCenterDao) o;
+            return Objects.equals(getUri(), that.getUri()) && Objects.equals(getName(), that.getName());
+        }
+
+        @JacocoGenerated
+        @Override
+        public int hashCode() {
+            return Objects.hash(getUri(), getName());
+        }
+
+        public ServiceCenterDao(URI uri, String name) {
+            this.uri = uri;
+            this.name = name;
+        }
+
+        public URI getUri() {
+            return uri;
+        }
+
+        @JacocoGenerated
+        public void setUri(URI uri) {
+            this.uri = uri;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @JacocoGenerated
+        @Override
+        public String toString() {
+            return this.toJsonString();
+        }
+
+        @JacocoGenerated
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
 }

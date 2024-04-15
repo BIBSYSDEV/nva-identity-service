@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.identityservice.json.JsonConfig;
 import org.javers.core.Javers;
@@ -42,7 +43,8 @@ class CustomerDaoTest {
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(customerDto, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
+        assertThat(customerDto, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password",
+                                                                            "serviceCenterDao.name")));
 
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
@@ -86,7 +88,7 @@ class CustomerDaoTest {
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(actual, doesNotHaveEmptyValues());
+        assertThat(actual, doesNotHaveEmptyValuesIgnoringFields(Set.of("serviceCenter.name")));
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
     }
@@ -173,7 +175,8 @@ class CustomerDaoTest {
     }
 
     private CustomerDao createSampleCustomerDao() {
-        UUID identifier = UUID.randomUUID();
+        var identifier = UUID.randomUUID();
+        var serviceCenterUri = randomUri();
         return CustomerDao
                    .builder()
                    .withName(randomString())
@@ -189,7 +192,8 @@ class CustomerDaoTest {
                    .withDisplayName(randomString())
                    .withCreatedDate(randomInstant())
                    .withRorId(randomUri())
-                   .withServiceCenterUri(randomUri())
+                   .withServiceCenterUri(serviceCenterUri)
+                   .withServiceCenter(new ServiceCenterDao(serviceCenterUri, null))
                    .withVocabularySettings(randomVocabularySettings())
                    .withPublicationWorkflow(randomPublicationWorkflow())
                    .withDoiAgent(randomDoiAgent(randomString()))

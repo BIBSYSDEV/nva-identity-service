@@ -55,16 +55,18 @@ public class MockPersonRegistry {
         this.defaultRequestHeaders = defaultRequestHeaders;
     }
 
-    public String mockResponseForBadGateway() {
+    public MockedPersonData mockResponseForBadGateway() {
         var nin = randomString();
+        var cristinId = randomString();
         createPersonSearchStubBadGateway(nin);
-        return nin;
+        return new MockedPersonData(nin, cristinId);
     }
 
-    public String mockResponseForIllegalJson() {
+    public MockedPersonData mockResponseForIllegalJson() {
         var nin = randomString();
+        var cristinId = randomString();
         createPersonSearchStubIllegalJson(nin);
-        return nin;
+        return new MockedPersonData(nin, cristinId);
     }
 
     private String generateBasicAuthorizationHeaderValue(String username, String password) {
@@ -76,69 +78,75 @@ public class MockPersonRegistry {
         return people.get(nin);
     }
 
-    public String personWithoutAffiliations() {
+    public MockedPersonData personWithoutAffiliations() {
         var nin = randomString();
+        var cristinId = randomString();
 
         createPersonWithoutAffiliations(nin);
 
-        return nin;
+        return new MockedPersonData(nin, cristinId);
     }
 
-    public String personWithExactlyOneActiveEmployment() {
+    public MockedPersonData personWithExactlyOneActiveEmployment() {
         var nin = randomString();
+        var cristinId = randomString();
 
         var affiliations = List.of(createCristinAffiliation(ACTIVE));
 
-        createPersonWithAffiliations(nin, affiliations);
+        createPersonWithAffiliations(nin, cristinId, affiliations);
 
-        return nin;
+        return new MockedPersonData(nin, cristinId);
     }
 
-    public String personWithExactlyOneInactiveEmployment() {
+    public MockedPersonData personWithExactlyOneInactiveEmployment() {
         var nin = randomString();
+        var cristinId = randomString();
 
         var affiliations = List.of(createCristinAffiliation(INACTIVE));
 
-        createPersonWithAffiliations(nin, affiliations);
+        createPersonWithAffiliations(nin, cristinId, affiliations);
 
-        return nin;
+        return new MockedPersonData(nin, cristinId);
     }
 
-    public String personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions() {
+    public MockedPersonData personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions() {
         var nin = randomString();
+        var cristinId = randomString();
 
         var affiliations = List.of(
             createCristinAffiliation(ACTIVE),
             createCristinAffiliation(INACTIVE));
 
-        createPersonWithAffiliations(nin, affiliations);
+        createPersonWithAffiliations(nin, cristinId, affiliations);
 
-        return nin;
+        return new MockedPersonData(nin,cristinId);
     }
 
-    public String personWithOneActiveAndOneInactiveEmploymentInSameInstitution() {
+    public MockedPersonData personWithOneActiveAndOneInactiveEmploymentInSameInstitution() {
         var nin = randomString();
+        var cristinId = randomString();
 
         var activeAffiliation = createCristinAffiliation(ACTIVE);
         var affiliations = List.of(
             activeAffiliation,
             createCristinAffiliation(activeAffiliation.getInstitution(), INACTIVE));
 
-        createPersonWithAffiliations(nin, affiliations);
+        createPersonWithAffiliations(nin, cristinId, affiliations);
 
-        return nin;
+        return new MockedPersonData(nin,cristinId);
     }
 
-    public String personWithTwoActiveEmploymentsInDifferentInstitutions() {
+    public MockedPersonData personWithTwoActiveEmploymentsInDifferentInstitutions() {
         var nin = randomString();
+        var cristinId = randomString();
 
         var affiliations = List.of(
             createCristinAffiliation(ACTIVE),
             createCristinAffiliation(ACTIVE));
 
-        createPersonWithAffiliations(nin, affiliations);
+        createPersonWithAffiliations(nin, cristinId, affiliations);
 
-        return nin;
+        return new MockedPersonData(nin,cristinId);
     }
 
     public URI getCristinIdForInstitution(String identifier) {
@@ -197,8 +205,9 @@ public class MockPersonRegistry {
     }
 
     private void createPersonWithAffiliations(String nin,
+                                              String cristinId,
                                               List<CristinAffiliation> cristinAffiliations) {
-        var person = new CristinPerson(randomString(), randomString(), randomString(), cristinAffiliations);
+        var person = new CristinPerson(cristinId, randomString(), randomString(), cristinAffiliations);
 
         var institutions = cristinAffiliations.stream()
                                .map(CristinAffiliation::getInstitution)
@@ -268,10 +277,11 @@ public class MockPersonRegistry {
         createPersonGetStub(cristinPerson);
     }
 
-    public String mockResponseForPersonNotFound() {
+    public MockedPersonData mockResponseForPersonNotFound() {
         var nin = randomString();
+        var cristinId = randomString();
         createPersonSearchStub(nin, Collections.emptyList());
-        return nin;
+        return new MockedPersonData(nin, cristinId);
     }
 
     private void createPersonSearchStub(String nin, List<PersonSearchResultItem> searchResults) {

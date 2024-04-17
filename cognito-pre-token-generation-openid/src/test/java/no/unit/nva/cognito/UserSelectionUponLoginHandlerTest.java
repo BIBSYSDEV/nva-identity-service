@@ -166,7 +166,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOneActiveEmployment(
         LoginEventType loginEventType) {
-        var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment();
+        var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
         List<UserDto> allUsers = scanAllUsers();
@@ -184,7 +184,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldLogAndThrowExceptionWhenCristinIsUnavailableDuringLogin(LoginEventType loginEventType,
                                                                        WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-        var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment();
+        var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
 
         var httpClient = WiremockHttpClient.create();
@@ -211,7 +211,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldLogAndThrowExceptionWhenCristinReturnsBadJsonDuringLogin(LoginEventType loginEventType) {
 
-        var personLoggingIn = scenarios.failingPersonRegistryRequestBadJson();
+        var personLoggingIn = scenarios.failingPersonRegistryRequestBadJson().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
 
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
@@ -227,7 +227,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldNotCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOnlyInactiveEmployment(
         LoginEventType loginEventType) {
 
-        var personLoggingIn = scenarios.personWithExactlyOneInactiveEmployment();
+        var personLoggingIn = scenarios.personWithExactlyOneInactiveEmployment().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
         var actualUsers = scanAllUsers();
@@ -239,7 +239,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldNotCreateUsersWithNoCustomerWhenCustomerHasSetInactiveFromDateToThePast(LoginEventType loginEventType) {
         final var testAppender = LogUtils.getTestingAppenderForRootLogger();
-        var personLoggingIn = scenarios.personWithExactlyInCustomerWithInactiveFromSetInThePast();
+        var personLoggingIn = scenarios.personWithExactlyInCustomerWithInactiveFromSetInThePast().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
         var allUsers = scanAllUsers();
@@ -254,7 +254,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldNotCreateUserForTopOrgsWithInactiveEmployments(LoginEventType loginEventType) {
 
         var personLoggingIn =
-            scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+            scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
 
@@ -277,7 +277,7 @@ class UserSelectionUponLoginHandlerTest {
         LoginEventType loginEventType) {
 
         var personLoggingIn = scenarios
-                                  .personWithOneActiveAndOneInactiveEmploymentInSameInstitution();
+                                  .personWithOneActiveAndOneInactiveEmploymentInSameInstitution().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
         var activeEmployments
@@ -299,7 +299,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldMaintainUsernameInPreexistingUserEntriesForBothActiveAndInactiveEmployments(LoginEventType eventType) {
         var personLoggingIn =
-            scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+            scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
         var preExistingUsers = scenarios.createUsersForAllActiveAffiliations(personLoggingIn, identityService);
         var expectedUsernames = preExistingUsers.stream().map(UserDto::getUsername).toList();
         var event = newLoginEvent(personLoggingIn, eventType);
@@ -314,7 +314,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldReturnAccessRightsForUserConcatenatedWithCustomerNvaIdentifierForUsersActiveTopOrgs(
         LoginEventType eventType) throws ConflictException, NotFoundException, InvalidInputException {
-        var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment();
+        var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment().nin();
         var existingUserInitiallyWithoutRoles
             = scenarios.createUsersForAllActiveAffiliations(personLoggingIn, identityService).stream()
                   .collect(SingletonCollector.collect());
@@ -334,7 +334,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldAddCustomerIdAsChosenCustomerIdWhenUserLogsInAndHasOnlyOneActiveEmployment(
         LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var expectedCustomerId = scenarios.fetchCustomersForPerson(person)
                                      .stream()
                                      .collect(SingletonCollector.collect())
@@ -353,7 +353,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldAddFeideSpecifiedCustomerIdAsCurrentCustomerIdWhenUserLogsInWithFeide(LoginEventType
                                                                                          loginEventType)
         throws NotFoundException {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var event = newLoginEvent(person, loginEventType);
         var customerFeideDomain = extractFeideDomainFromInputEvent(event);
         var expectedCustomerId = customerService.getCustomerByOrgDomain(customerFeideDomain).getId();
@@ -365,7 +365,7 @@ class UserSelectionUponLoginHandlerTest {
     @ParameterizedTest(name = "should add firstName and lastName in claims when logging in")
     @EnumSource(value = LoginEventType.class)
     void shouldStoreGivenNameAndFamilyNameInUserTableWhenLoggingIn(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
 
@@ -384,7 +384,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"}, mode = Mode.INCLUDE)
     void shouldClearCustomerSelectionClaimsIdWhenUserHasManyAffiliationsAndLogsInWithPersonalNumber(
         LoginEventType loginEventType) {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var event = newLoginEvent(person, loginEventType);
 
         handler.handleRequest(event, context);
@@ -397,7 +397,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldNotAssignAccessRightsForActiveAffiliationsWhenTopLevelOrgIsNotARegisteredCustomerInNva(
         LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmploymentInNonCustomer();
+        var person = scenarios.personWithExactlyOneActiveEmploymentInNonCustomer().nin();
         var event = newLoginEvent(person, loginEventType);
         var response = handler.handleRequest(event, context);
         var allUsers = scanAllUsers();
@@ -413,7 +413,7 @@ class UserSelectionUponLoginHandlerTest {
                               + "and  'institutionCristinId' (cristinCustomerId). ")
     @EnumSource(LoginEventType.class)
     void shouldFailWhenSelectedUserHasWrongCustomerId(LoginEventType loginEventType) throws NotFoundException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var existingUser = scenarios.createUsersForAllActiveAffiliations(person, identityService).stream()
                                .collect(SingletonCollector.collect());
@@ -430,7 +430,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldIncludeAllCustomersWithActiveEmploymentsInCognitoFieldAllowedCustomersWhenLoggingInWithNonFeide(
         LoginEventType loginEventType) {
 
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var expectedCustomerIds = scenarios.fetchCustomersForPerson(person)
                                       .stream()
                                       .map(CustomerDto::getId)
@@ -448,7 +448,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldIncludeOnlyFeideCustomerInCognitoFieldAllowedCustomersWhenLoggingInWithFeide(
         LoginEventType loginEventType) throws NotFoundException {
 
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var orgFeideDomain = extractFeideDomainFromInputEvent(event);
@@ -462,7 +462,7 @@ class UserSelectionUponLoginHandlerTest {
                               + "custom:allowedCustomers")
     @EnumSource(LoginEventType.class)
     void shouldNotIncludeCustomersWithInactiveEmploymentsInCognitoField(LoginEventType loginEventType) {
-        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
         var expectedCustomerIds = fetchCustomersWithActiveEmploymentsForPerson(person);
         assertThat(expectedCustomerIds, hasSize(1));
         var event = newLoginEvent(person, loginEventType);
@@ -473,7 +473,7 @@ class UserSelectionUponLoginHandlerTest {
 
     @Test
     void shouldStoreAllUserRolesForActiveTopLevelAffiliationInCognitoUserAttributesForFeide() throws NotFoundException {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var usersWithRoles = createUsersWithRolesForPerson(person);
 
         var event = newLoginEvent(person, FEIDE);
@@ -500,7 +500,7 @@ class UserSelectionUponLoginHandlerTest {
 
     @Test
     void shouldStoreNoRolesInCognitoUserAttributesForNonFeide() {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         createUsersWithRolesForPerson(person);
 
         var event = newLoginEvent(person, NON_FEIDE);
@@ -516,7 +516,7 @@ class UserSelectionUponLoginHandlerTest {
     @ParameterizedTest(name = "should store person's cristin Id in cognito user attributes")
     @EnumSource(LoginEventType.class)
     void shouldStorePersonCristinIdInCognitoUserAttributes(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var expectedCristinId = scenarios.getCristinIdForPerson(person);
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
@@ -529,7 +529,7 @@ class UserSelectionUponLoginHandlerTest {
                               + "user has only one active affiliation")
     @EnumSource(LoginEventType.class)
     void shouldStoreUsersTopLevelAffiliationWhenUserHasOnlyOneActiveAffiliation(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var personTopLevelOrgAffiliation
             = scenarios.getCristinUriForInstitutionAffiliations(person).stream()
                   .collect(SingletonCollector.tryCollect()).orElseThrow();
@@ -546,7 +546,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
     void shouldStoreUsersTopLevelAffiliationWhenUserHasManyActiveAffiliationsAndLoggedInWithFeide(
         LoginEventType loginEventType) throws NotFoundException {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var event = newLoginEvent(person, loginEventType);
         var orgFeideDomain = extractFeideDomainFromInputEvent(event);
         var currentCustomer = customerService.getCustomerByOrgDomain(orgFeideDomain);
@@ -563,7 +563,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldNotStoreAccessRightsInCognitoWhenUserHasSeveralActiveAffiliationsAndNoActiveCustomer(
         LoginEventType loginEventType)
         throws NotFoundException, InvalidInputException {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutionsWithoutFeideDomain();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutionsWithoutFeideDomain().nin();
         var role = persistRandomRole();
         createUsersWithRolesForPerson(person, role);
         addAccessRightToExistingRole(role, AccessRight.MANAGE_DEGREE);
@@ -578,7 +578,7 @@ class UserSelectionUponLoginHandlerTest {
     @Test
     void shouldOnlyStoreAccessRightsInCognitoOfCurrentCustomerWhenUserHasSeveralActiveAffiliationsAndActiveCustomer()
         throws NotFoundException, InvalidInputException {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var role = persistRandomRole();
         createUsersWithRolesForPerson(person, role);
         addAccessRightToExistingRole(role, AccessRight.MANAGE_DOI);
@@ -597,7 +597,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldStoreAccessRightsInCognitoWhenUserHasOneActiveAffiliations(LoginEventType loginEventType)
         throws NotFoundException, InvalidInputException, ConflictException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var user = scenarios.createUsersForAllActiveAffiliations(person, identityService)
                        .stream()
@@ -618,7 +618,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldStoreAccessRightsToDatabaseWhenUserHasSeveralActiveAffiliations(LoginEventType loginEventType)
         throws InvalidInputException, NotFoundException {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var role = persistRandomRole();
         var users = createUsersWithRolesForPerson(person, role);
         var accessRight = randomElement(AccessRight.values());
@@ -638,7 +638,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
     void shouldStoreUsersUsernameWhenUserHasManyActiveAffiliationsAndLoggedInWithFeide(
         LoginEventType loginEventType) throws NotFoundException {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var event = newLoginEvent(person, loginEventType);
         var orgFeideDomain = extractFeideDomainFromInputEvent(event);
         var currentCustomer = customerService.getCustomerByOrgDomain(orgFeideDomain);
@@ -653,7 +653,7 @@ class UserSelectionUponLoginHandlerTest {
                               + "user has only one active affiliation")
     @EnumSource(LoginEventType.class)
     void shouldStoreUsersUsernameWhenUserHasOnlyOneActiveAffiliation(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var currentCustomer = customerService.getCustomers().stream().collect(SingletonCollector.collect());
@@ -668,7 +668,7 @@ class UserSelectionUponLoginHandlerTest {
                            + "employments and logged in people without active employments to new user entries")
     @EnumSource(LoginEventType.class)
     void shouldAddRoleCreatorToNewUserEntries(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var users = scanAllUsers();
@@ -681,7 +681,7 @@ class UserSelectionUponLoginHandlerTest {
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
     void shouldAddUserAffiliationToNewUserEntryWhenUserEntryDoesNotPreexist(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var employment = scenarios.getCristinUriForUnitAffiliations(person)
                              .stream()
                              .collect(SingletonCollector.collect());
@@ -697,7 +697,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldAddUserEmploymentMentionedInPersonRegistryToExistingUserDatabaseEntryWhenUserEntryPreexists(
         LoginEventType loginEventType)
         throws NotFoundException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var existingUser = scenarios.createUsersForAllActiveAffiliations(person, identityService)
                                .stream().collect(SingletonCollector.collect());
         removeEmployment(existingUser);
@@ -717,7 +717,7 @@ class UserSelectionUponLoginHandlerTest {
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
     void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(person)
@@ -731,7 +731,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldAllowPeopleWhoAreNotRegisteredInPersonRegistryToLoginButNotGiveThemAnyRole(
         LoginEventType loginEventType) {
-        var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
+        var person = scenarios.personThatIsNotRegisteredInPersonRegistry().nin();
         var event = newLoginEvent(person, loginEventType);
         var response = handler.handleRequest(event, context);
 
@@ -742,7 +742,7 @@ class UserSelectionUponLoginHandlerTest {
     @Test
     void shouldUpdateUsersAccessRightsWhenRoleHasNewAccessRight()
         throws InvalidInputException, ConflictException, NotFoundException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var approveDoiAccessRight = AccessRight.MANAGE_DOI;
         var approvePublishAccessRight = AccessRight.MANAGE_PUBLISHING_REQUESTS;
 
@@ -767,7 +767,7 @@ class UserSelectionUponLoginHandlerTest {
     @Test
     void shouldSetCustomerSelectionClaimsOnFeideLoginWithEmploymentInBothFeideAndNonFeideCustomers() {
 
-        var person = scenarios.personWithTwoActiveEmploymentsInNonFeideAndFeideCustomers();
+        var person = scenarios.personWithTwoActiveEmploymentsInNonFeideAndFeideCustomers().nin();
         var event = newLoginEvent(person, LoginEventType.FEIDE);
 
         var selectedCustomer = scenarios.fetchCustomersForPerson(person)
@@ -788,8 +788,8 @@ class UserSelectionUponLoginHandlerTest {
     void shouldReturnTokenWithImpersonatedUsersAttributeWhenImpersonationIsSetAndUserIsAppAdmin()
         throws InvalidInputException, ConflictException {
         var adminName = randomString();
-        var adminNin = scenarios.personWithExactlyOneActiveEmployment();
-        var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment();
+        var adminNin = scenarios.personWithExactlyOneActiveEmployment().nin();
+        var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var newRole = RoleDto.newBuilder()
                           .withRoleName(APP_ADMIN_SOMEWHERE)
@@ -813,8 +813,8 @@ class UserSelectionUponLoginHandlerTest {
 
     @Test
     void shouldThrowExceptionWhenAttemptingToImpersonateAndUserIsNotAppAdmin() {
-        var notAdmin = scenarios.personWithExactlyOneActiveEmployment();
-        var otherPerson = scenarios.personWithExactlyOneActiveEmployment();
+        var notAdmin = scenarios.personWithExactlyOneActiveEmployment().nin();
+        var otherPerson = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var event = feideLoginWithImpersonation(randomString(), notAdmin, otherPerson);
 
@@ -826,8 +826,8 @@ class UserSelectionUponLoginHandlerTest {
     @Test
     void shouldSetImpersonatedByClaimWhenImpersonating() throws InvalidInputException, ConflictException {
         var adminName = randomString();
-        var adminNin = scenarios.personWithExactlyOneActiveEmployment();
-        var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment();
+        var adminNin = scenarios.personWithExactlyOneActiveEmployment().nin();
+        var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var newRole = RoleDto.newBuilder()
                           .withRoleName(APP_ADMIN_SOMEWHERE)

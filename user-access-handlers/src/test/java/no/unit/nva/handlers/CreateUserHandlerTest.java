@@ -53,6 +53,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
+import no.unit.nva.useraccessservice.userceation.testing.cristin.MockedPersonData;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
@@ -133,14 +134,40 @@ class CreateUserHandlerTest extends HandlerTest {
     }
 
     @Test
-    void shouldCreateUserWithRequestedRolesAndViewingScope()
+    void shouldCreateUserWithRequestedRolesAndViewingScopeWhenCreatedWithNin()
         throws IOException {
 
-        var personNin = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
 
-        var someCustomer = fetchSomeCustomerForThePerson(personNin);
+        var someCustomer = fetchSomeCustomerForThePerson(person);
         var providedViewingScope = ViewingScope.defaultViewingScope(randomCristinOrganization());
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(personNin, someCustomer.getId(),
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, someCustomer.getId(),
+                                                                         providedViewingScope);
+        var request = createRequest(requestBody, someCustomer, MANAGE_OWN_AFFILIATION);
+        var response = sendRequest(request, UserDto.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
+
+        var actualUser = identityService.listUsers(requestBody.customerId())
+                             .stream().collect(SingletonCollector.collect());
+
+        var expectedRoles = createExpectedRoleSet(requestBody);
+        var persistedViewingScope = actualUser.getViewingScope();
+
+        assertThat(persistedViewingScope, is(equalTo(providedViewingScope)));
+        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.customerId())));
+        assertThat(actualUser.getRoles(), is(equalTo(expectedRoles)));
+    }
+
+    @Test
+    void shouldCreateUserWithRequestedRolesAndViewingScopeWhenCreatedWithCristinId()
+        throws IOException {
+
+        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+
+        var someCustomer = fetchSomeCustomerForThePerson(person);
+        var providedViewingScope = ViewingScope.defaultViewingScope(randomCristinOrganization());
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, someCustomer.getId(),
                                                                          providedViewingScope);
         var request = createRequest(requestBody, someCustomer, MANAGE_OWN_AFFILIATION);
         var response = sendRequest(request, UserDto.class);
@@ -215,7 +242,7 @@ class CreateUserHandlerTest extends HandlerTest {
     void shouldDenyAccessWhenInstitutionAdminTriesToCreateAnAppAdmin() throws IOException {
         var person = scenarios.personWithExactlyOneActiveEmployment();
         var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = new CreateUserRequest(person, customer.getId(), appAdminRole(),
+        var requestBody = new CreateUserRequest(person.nin(), customer.getId(), appAdminRole(),
                                                 ViewingScope.defaultViewingScope(randomCristinOrganization()));
 
         var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
@@ -227,7 +254,8 @@ class CreateUserHandlerTest extends HandlerTest {
     void shouldAllowAccessWhenAppAdminTriesToCreateAnAppAdmin() throws IOException {
         var person = scenarios.personWithExactlyOneActiveEmployment();
         var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = new CreateUserRequest(person, customer.getId(), appAdminRole(), ViewingScope.defaultViewingScope(randomCristinOrganization()));
+        var requestBody = new CreateUserRequest(person.nin(), customer.getId(), appAdminRole(),
+                                                ViewingScope.defaultViewingScope(randomCristinOrganization()));
 
         var request = createRequest(requestBody, customer, MANAGE_CUSTOMERS);
         var response = sendRequest(request, Problem.class);
@@ -423,13 +451,13 @@ class CreateUserHandlerTest extends HandlerTest {
                    .build();
     }
 
-    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRoles(String personNin,
+    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRoles(MockedPersonData person,
                                                                              URI customerId, ViewingScope viewingScope) {
-        return new CreateUserRequest(personNin, customerId, randomRoles(), viewingScope);
+        return new CreateUserRequest(person.nin(), customerId, randomRoles(), viewingScope);
     }
 
-    private CustomerDto fetchSomeCustomerForThePerson(String personNin) {
-        var cristinIds = scenarios.getCristinUriForInstitutionAffiliations(personNin, true);
+    private CustomerDto fetchSomeCustomerForThePerson(MockedPersonData person) {
+        var cristinIds = scenarios.getCristinUriForInstitutionAffiliations(person.nin(), true);
 
         LOGGER.info("Cristin ids: {}", cristinIds);
 
@@ -443,8 +471,8 @@ class CreateUserHandlerTest extends HandlerTest {
         return customer;
     }
 
-    private String randomPerson() {
-        return randomString();
+    private MockedPersonData randomPerson() {
+        return new MockedPersonData(randomString(), randomString());
     }
 
     private DynamoDBCustomerService initializeCustomerService() {

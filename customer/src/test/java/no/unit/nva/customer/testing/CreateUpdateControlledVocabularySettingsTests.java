@@ -23,6 +23,7 @@ import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -61,6 +62,16 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
         return new ExpectedBodyActualResponseTuple(expectedBody, response);
     }
 
+    protected ExpectedBodyActualResponseTuple sendRequestWithAccessRight(UUID uuid, AccessRight accessRight)
+        throws IOException {
+        VocabularyList expectedBody = createRandomVocabularyList();
+        var request = createRequest(uuid, expectedBody, accessRight);
+        output = new ByteArrayOutputStream();
+        handler.handleRequest(request, output, CONTEXT);
+        var response = GatewayResponse.fromOutputStream(output, VocabularyList.class);
+        return new ExpectedBodyActualResponseTuple(expectedBody, response);
+    }
+
     protected <T> GatewayResponse<T> sendRequest(ControlledVocabularyHandler<?, ?> getHandler,
                                                  InputStream getRequest,
                                                  Class<T> responseType)
@@ -91,6 +102,15 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
             .withBody(expectedBody)
             .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()))
             .build();
+    }
+
+    protected <T> InputStream createRequest(UUID customerIdentifier, T expectedBody, AccessRight accessRight)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<T>(dtoObjectMapper)
+                   .withPathParameters(identifierToPathParameter(customerIdentifier))
+                   .withAccessRights(randomUri(), accessRight)
+                   .withBody(expectedBody)
+                   .build();
     }
 
     protected Map<String, String> identifierToPathParameter(UUID identifier) {

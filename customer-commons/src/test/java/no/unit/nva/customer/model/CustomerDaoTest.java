@@ -43,8 +43,7 @@ class CustomerDaoTest {
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(customerDto, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password",
-                                                                            "serviceCenterDao.name")));
+        assertThat(customerDto, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
 
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
@@ -88,7 +87,7 @@ class CustomerDaoTest {
         CustomerDto customerDto = expected.toCustomerDto();
         CustomerDao actual = CustomerDao.fromCustomerDto(customerDto);
         Diff diff = JAVERS.compare(expected, actual);
-        assertThat(actual, doesNotHaveEmptyValuesIgnoringFields(Set.of("serviceCenter.name")));
+        assertThat(actual, doesNotHaveEmptyValues());
         assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
         assertThat(actual, is(equalTo(expected)));
     }
@@ -111,13 +110,6 @@ class CustomerDaoTest {
         var jsonString = JsonConfig.writeValueAsString(jsonMap);
         CustomerDao deserialized = JsonConfig.readValue(jsonString, CustomerDao.class);
         assertThat(deserialized, is(equalTo(someDao)));
-    }
-
-    @Test
-    void shouldCreateCustomerDaoWithIsAllowsGeneralSupportSetToTrueWhenNotSet() {
-        var dao = CustomerDao.builder().build();
-
-        assertThat(dao.isGeneralSupportEnabled(), is(true));
     }
 
     @Test
@@ -176,7 +168,6 @@ class CustomerDaoTest {
 
     private CustomerDao createSampleCustomerDao() {
         var identifier = UUID.randomUUID();
-        var serviceCenterUri = randomUri();
         return CustomerDao
                    .builder()
                    .withName(randomString())
@@ -192,8 +183,7 @@ class CustomerDaoTest {
                    .withDisplayName(randomString())
                    .withCreatedDate(randomInstant())
                    .withRorId(randomUri())
-                   .withServiceCenterUri(serviceCenterUri)
-                   .withServiceCenter(new ServiceCenterDao(serviceCenterUri, null))
+                   .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
                    .withVocabularySettings(randomVocabularySettings())
                    .withPublicationWorkflow(randomPublicationWorkflow())
                    .withDoiAgent(randomDoiAgent(randomString()))

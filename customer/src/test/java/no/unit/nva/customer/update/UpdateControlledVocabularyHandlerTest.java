@@ -17,6 +17,7 @@ import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
 import no.unit.nva.stubs.FakeContext;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -105,6 +106,14 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
         String responseBody = response.getBody();
         assertThat(responseBody, containsString(VOCABULARY_SETTINGS_NOT_DEFINED_ERROR));
+    }
+
+    @Test
+    public void handleRequestReturnsUpdatedVocabularyListWhenUserWithAccessRightManageOwnAffiliationsUpdatesVocabulary()
+        throws IOException {
+        var result = sendRequestWithAccessRight(existingIdentifier(), AccessRight.MANAGE_OWN_AFFILIATION);
+        var actualBody = VocabularyList.fromJson(result.getResponse().getBody());
+        assertThat(actualBody, is(equalTo(result.getExpectedBody())));
     }
 
     private CustomerDto createCustomerWithoutVocabularySettings() {

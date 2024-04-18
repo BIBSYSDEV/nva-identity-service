@@ -58,7 +58,6 @@ public class CustomerDataGenerator {
                                    .withCreatedDate(randomInstant())
                                    .withVocabularies(randomVocabularyDtoSettings())
                                    .withRorId(randomUri())
-                                   .withServiceCenterUri(randomUri())
                                    .withPublicationWorkflow(randomPublicationWorkflow())
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withSector(randomSector())
@@ -82,7 +81,6 @@ public class CustomerDataGenerator {
 
     public static CustomerDao createSampleInactiveCustomerDao() {
         VocabularyDao vocabulary = randomVocabularyDao();
-        URI serviceCenterUri = randomUri();
         CustomerDao customer = CustomerDao.builder()
                                    .withIdentifier(randomIdentifier())
                                    .withName(randomString())
@@ -98,8 +96,7 @@ public class CustomerDataGenerator {
                                    .withCname(randomString())
                                    .withArchiveName(randomString())
                                    .withRorId(randomUri())
-                                   .withServiceCenterUri(serviceCenterUri)
-                                   .withServiceCenter(new ServiceCenterDao(serviceCenterUri, null))
+                                   .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
                                    .withPublicationWorkflow(randomPublicationWorkflow())
                                    .withDoiAgent(randomDoiAgent(randomString()))
                                    .withNviInstitution(randomBoolean())
@@ -109,8 +106,7 @@ public class CustomerDataGenerator {
                                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .withGeneralSupportEnabled(true)
                                    .build();
-        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("serviceCenter.name",
-                                                                         "doiAgent.password")));
+        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
         return customer;
     }
 

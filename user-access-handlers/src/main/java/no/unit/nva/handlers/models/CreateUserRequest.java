@@ -7,8 +7,13 @@ import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
 
 @JsonSerialize
-public record CreateUserRequest(String nationalIdentityNumber, URI customerId, Set<RoleDto> roles,
-                                ViewingScope viewingScope) {
+public record CreateUserRequest(
+    String nationalIdentityNumber,
+    String cristinIdentifier,
+    URI customerId,
+    Set<RoleDto> roles,
+    ViewingScope viewingScope
+) {
 
 
 }

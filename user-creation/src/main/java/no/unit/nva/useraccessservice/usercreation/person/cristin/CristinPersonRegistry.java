@@ -132,6 +132,20 @@ public final class CristinPersonRegistry implements PersonRegistry {
                    .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
     }
 
+    @Override
+    public Optional<Person> fetchPersonByIdentifier(String cristinIdentifier) {
+        var start = Instant.now();
+        var cristinCredentials = this.cristinCredentialsSupplier.get();
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Read cristin credentials from secrets manager in {} ms.",
+                         Instant.now().toEpochMilli() - start.toEpochMilli());
+        }
+
+        return fetchPersonByIdentifierFromCristin(cristinIdentifier, cristinCredentials)
+                   .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+    }
+
     private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem,
                                                  CristinCredentials cristinCredentials) {
         var request = createRequest(URI.create(personSearchResultItem.getUrl()), cristinCredentials);
@@ -214,10 +228,23 @@ public final class CristinPersonRegistry implements PersonRegistry {
         return Arrays.stream(results).collect(SingletonCollector.tryCollect()).toOptional();
     }
 
+    private Optional<CristinPerson> fetchPersonByIdentifierFromCristin(String identifier,
+                                                                         CristinCredentials cristinCredentials) {
+        var request = createRequest(createPersonByIdentifierQueryUri(identifier), cristinCredentials);
+        return attempt(() -> executeRequest(request, CristinPerson.class)).toOptional();
+    }
+
     private URI createPersonByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {
         return UriWrapper.fromUri(cristinBaseUri)
                    .addChild("persons")
                    .addQueryParameter("national_id", nin.getNin())
+                   .getUri();
+    }
+
+    private URI createPersonByIdentifierQueryUri(String identifier) {
+        return UriWrapper.fromUri(cristinBaseUri)
+                   .addChild("persons")
+                   .addChild(identifier)
                    .getUri();
     }
 

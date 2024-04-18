@@ -1,5 +1,5 @@
 package no.unit.nva.useraccessservice.userceation.testing.cristin;
 
-public record MockedPersonData(String nin, String cristinId) {
+public record MockedPersonData(String nin, String cristinIdentifier) {
 
 }

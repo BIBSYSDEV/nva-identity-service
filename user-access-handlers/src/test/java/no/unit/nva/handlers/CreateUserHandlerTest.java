@@ -141,7 +141,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
         var someCustomer = fetchSomeCustomerForThePerson(person);
         var providedViewingScope = ViewingScope.defaultViewingScope(randomCristinOrganization());
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, someCustomer.getId(),
+        var requestBody = sampleRequestForExistingPersonCustomerAndRolesWithoutCristinId(person, someCustomer.getId(),
                                                                          providedViewingScope);
         var request = createRequest(requestBody, someCustomer, MANAGE_OWN_AFFILIATION);
         var response = sendRequest(request, UserDto.class);
@@ -167,7 +167,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
         var someCustomer = fetchSomeCustomerForThePerson(person);
         var providedViewingScope = ViewingScope.defaultViewingScope(randomCristinOrganization());
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, someCustomer.getId(),
+        var requestBody = sampleRequestForExistingPersonCustomerAndRolesWithoutNin(person, someCustomer.getId(),
                                                                          providedViewingScope);
         var request = createRequest(requestBody, someCustomer, MANAGE_OWN_AFFILIATION);
         var response = sendRequest(request, UserDto.class);
@@ -242,7 +242,7 @@ class CreateUserHandlerTest extends HandlerTest {
     void shouldDenyAccessWhenInstitutionAdminTriesToCreateAnAppAdmin() throws IOException {
         var person = scenarios.personWithExactlyOneActiveEmployment();
         var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = new CreateUserRequest(person.nin(), customer.getId(), appAdminRole(),
+        var requestBody = new CreateUserRequest(person.nin(), person.cristinIdentifier(), customer.getId(), appAdminRole(),
                                                 ViewingScope.defaultViewingScope(randomCristinOrganization()));
 
         var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
@@ -254,7 +254,7 @@ class CreateUserHandlerTest extends HandlerTest {
     void shouldAllowAccessWhenAppAdminTriesToCreateAnAppAdmin() throws IOException {
         var person = scenarios.personWithExactlyOneActiveEmployment();
         var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = new CreateUserRequest(person.nin(), customer.getId(), appAdminRole(),
+        var requestBody = new CreateUserRequest(person.nin(), person.cristinIdentifier(), customer.getId(), appAdminRole(),
                                                 ViewingScope.defaultViewingScope(randomCristinOrganization()));
 
         var request = createRequest(requestBody, customer, MANAGE_CUSTOMERS);
@@ -453,7 +453,17 @@ class CreateUserHandlerTest extends HandlerTest {
 
     private CreateUserRequest sampleRequestForExistingPersonCustomerAndRoles(MockedPersonData person,
                                                                              URI customerId, ViewingScope viewingScope) {
-        return new CreateUserRequest(person.nin(), customerId, randomRoles(), viewingScope);
+        return new CreateUserRequest(person.nin(), person.cristinIdentifier(), customerId, randomRoles(), viewingScope);
+    }
+
+    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRolesWithoutNin(MockedPersonData person,
+                                                                             URI customerId, ViewingScope viewingScope) {
+        return new CreateUserRequest(null, person.cristinIdentifier(), customerId, randomRoles(), viewingScope);
+    }
+
+    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRolesWithoutCristinId(MockedPersonData person,
+                                                                             URI customerId, ViewingScope viewingScope) {
+        return new CreateUserRequest(person.nin(), null, customerId, randomRoles(), viewingScope);
     }
 
     private CustomerDto fetchSomeCustomerForThePerson(MockedPersonData person) {

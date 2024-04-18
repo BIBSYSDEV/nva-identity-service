@@ -39,7 +39,8 @@ public class MockPersonRegistry {
     private static final String ORGANIZATION_PATH = "organization";
     private static final String AUTHORIZATION_HEADER_NAME = "authorization";
     private URI cristinBaseUri;
-    private final Map<String, CristinPerson> people;
+    private final Map<String, CristinPerson> ninToPeople;
+    private final Map<String, CristinPerson> cristinIdToPeople;
     private final Map<String, URI> cristinInstitutionIdToUnitUriMap;
     private final String basicAuthorizationHeaderValue;
     private final HttpHeaders defaultRequestHeaders;
@@ -48,7 +49,8 @@ public class MockPersonRegistry {
                               String password,
                               URI cristinBaseUri,
                               HttpHeaders defaultRequestHeaders) {
-        this.people = new ConcurrentHashMap<>();
+        this.ninToPeople = new ConcurrentHashMap<>();
+        this.cristinIdToPeople = new ConcurrentHashMap<>();
         this.cristinInstitutionIdToUnitUriMap = new ConcurrentHashMap<>();
         this.cristinBaseUri = cristinBaseUri;
         this.basicAuthorizationHeaderValue = generateBasicAuthorizationHeaderValue(username, password);
@@ -75,14 +77,15 @@ public class MockPersonRegistry {
     }
 
     public CristinPerson getPerson(String nin) {
-        return people.get(nin);
+        return ninToPeople.get(nin);
     }
 
     public MockedPersonData personWithoutAffiliations() {
         var nin = randomString();
         var cristinId = randomString();
 
-        createPersonWithoutAffiliations(nin);
+
+        createPersonWithoutAffiliations(nin, cristinId);
 
         return new MockedPersonData(nin, cristinId);
     }
@@ -197,9 +200,9 @@ public class MockPersonRegistry {
         return UriWrapper.fromUri(cristinBaseUri).addChild("institutions", identifier).getUri().toString();
     }
 
-    private void createPersonWithoutAffiliations(String nin) {
-        var person = new CristinPerson(randomString(), randomString(), randomString(), null);
+    private void createPersonWithoutAffiliations(String nin, String cristinId) {
 
+        var person = new CristinPerson(cristinId, randomString(), randomString(), null);
         var institutions = Collections.<String>emptyList();
         updateBuffersAndStubs(nin, person, institutions);
     }
@@ -224,7 +227,8 @@ public class MockPersonRegistry {
     private void updateBuffersAndStubs(String nin,
                                        CristinPerson cristinPerson,
                                        List<String> institutionIds) {
-        people.put(nin, cristinPerson);
+        ninToPeople.put(nin, cristinPerson);
+        cristinIdToPeople.put(cristinPerson.getId(), cristinPerson);
         createStubsForPerson(nin, cristinPerson);
         institutionIds.forEach(this::createStubForInstitution);
     }

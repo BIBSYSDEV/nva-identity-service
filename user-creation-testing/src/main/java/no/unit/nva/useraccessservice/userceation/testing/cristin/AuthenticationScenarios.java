@@ -39,78 +39,78 @@ public class AuthenticationScenarios {
         addCreatorRoleToIdentityService(identityService);
     }
 
-    public String personWithTwoActiveEmploymentsInDifferentInstitutions() {
-        var personNin = personRegistry.personWithTwoActiveEmploymentsInDifferentInstitutions();
+    public MockedPersonData personWithTwoActiveEmploymentsInDifferentInstitutions() {
+        var person = personRegistry.personWithTwoActiveEmploymentsInDifferentInstitutions();
         var withFeideDomain = true;
-        registerTopOrganizationsAsCustomers(personNin, withFeideDomain);
-        return personNin;
+        registerTopOrganizationsAsCustomers(person.nin(), withFeideDomain);
+        return person;
     }
 
-    public String personWithTwoActiveEmploymentsInDifferentInstitutionsWithoutFeideDomain() {
-        var personNin = personRegistry.personWithTwoActiveEmploymentsInDifferentInstitutions();
+    public MockedPersonData personWithTwoActiveEmploymentsInDifferentInstitutionsWithoutFeideDomain() {
+        var person = personRegistry.personWithTwoActiveEmploymentsInDifferentInstitutions();
         var withFeideDomain = false;
-        registerTopOrganizationsAsCustomers(personNin, withFeideDomain);
-        return personNin;
+        registerTopOrganizationsAsCustomers(person.nin(), withFeideDomain);
+        return person;
     }
 
-    public String personWithExactlyInCustomerWithInactiveFromSetInThePast() {
-        var personNin = personRegistry.personWithExactlyOneActiveEmployment();
+    public MockedPersonData personWithExactlyInCustomerWithInactiveFromSetInThePast() {
+        var person = personRegistry.personWithExactlyOneActiveEmployment();
         var withFeideDomain = true;
-        registerTopOrganizationsAsCustomersWithInactiveFromInThePast(personNin, withFeideDomain);
-        return personNin;
+        registerTopOrganizationsAsCustomersWithInactiveFromInThePast(person.nin(), withFeideDomain);
+        return person;
     }
 
-    public String personWithExactlyOneActiveEmployment() {
-        var personNin = personRegistry.personWithExactlyOneActiveEmployment();
+    public MockedPersonData personWithExactlyOneActiveEmployment() {
+        var person = personRegistry.personWithExactlyOneActiveEmployment();
         var withFeideDomain = true;
-        registerTopOrganizationsAsCustomers(personNin, withFeideDomain);
-        return personNin;
+        registerTopOrganizationsAsCustomers(person.nin(), withFeideDomain);
+        return person;
     }
 
-    public String personWithTwoActiveEmploymentsInNonFeideAndFeideCustomers() {
-        var personNin = personRegistry.personWithTwoActiveEmploymentsInDifferentInstitutions();
-        registerTopOrganizationAsCustomerAlternatingFeideDomainSet(personNin);
-        return personNin;
+    public MockedPersonData personWithTwoActiveEmploymentsInNonFeideAndFeideCustomers() {
+        var person = personRegistry.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        registerTopOrganizationAsCustomerAlternatingFeideDomainSet(person.nin());
+        return person;
     }
 
-    public String personWithExactlyOneActiveEmploymentInNonCustomer() {
+    public MockedPersonData personWithExactlyOneActiveEmploymentInNonCustomer() {
         return personRegistry.personWithExactlyOneActiveEmployment();
     }
 
-    public String personWithExactlyOneInactiveEmployment() {
-        var personNin = personRegistry.personWithExactlyOneInactiveEmployment();
+    public MockedPersonData personWithExactlyOneInactiveEmployment() {
+        var person = personRegistry.personWithExactlyOneInactiveEmployment();
         var withFeideDomain = true;
-        registerTopOrganizationsAsCustomers(personNin, withFeideDomain);
-        return personNin;
+        registerTopOrganizationsAsCustomers(person.nin(), withFeideDomain);
+        return person;
     }
 
-    public String personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions() {
-        var personNin = personRegistry.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+    public MockedPersonData personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions() {
+        var person = personRegistry.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
         var withFeideDomain = true;
-        registerTopOrganizationsAsCustomers(personNin, withFeideDomain);
-        return personNin;
+        registerTopOrganizationsAsCustomers(person.nin(), withFeideDomain);
+        return person;
     }
 
-    public String personWithOneActiveAndOneInactiveEmploymentInSameInstitution() {
-        var personNin = personRegistry.personWithOneActiveAndOneInactiveEmploymentInSameInstitution();
+    public MockedPersonData personWithOneActiveAndOneInactiveEmploymentInSameInstitution() {
+        var person = personRegistry.personWithOneActiveAndOneInactiveEmploymentInSameInstitution();
         var withFeideDomain = true;
-        registerTopOrganizationsAsCustomers(personNin, withFeideDomain);
-        return personNin;
+        registerTopOrganizationsAsCustomers(person.nin(), withFeideDomain);
+        return person;
     }
 
-    public String personThatIsNotRegisteredInPersonRegistry() {
+    public MockedPersonData personThatIsNotRegisteredInPersonRegistry() {
         return personRegistry.mockResponseForPersonNotFound();
     }
 
-    public String failingPersonRegistryRequestBadGateway() {
+    public MockedPersonData failingPersonRegistryRequestBadGateway() {
         return personRegistry.mockResponseForBadGateway();
     }
 
-    public String failingPersonRegistryRequestBadJson() {
+    public MockedPersonData failingPersonRegistryRequestBadJson() {
         return personRegistry.mockResponseForIllegalJson();
     }
 
-    public String personWithoutAffiliations() {
+    public MockedPersonData personWithoutAffiliations() {
         return personRegistry.personWithoutAffiliations();
     }
 

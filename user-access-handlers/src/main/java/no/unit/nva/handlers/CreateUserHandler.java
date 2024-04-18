@@ -4,6 +4,7 @@ package no.unit.nva.handlers;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
@@ -102,9 +103,17 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private Optional<UserDto> fetchExistingUser(CreateUserRequest input) throws ConflictException {
-        return personRegistry.fetchPersonByNin(NationalIdentityNumber.fromString(input.nationalIdentityNumber()))
+        return fetchCristinPersonFromIdentifierOrNin(input)
                    .map(person -> fetchUserAtCustomer(person, input.customerId()))
                    .orElseThrow(() -> new ConflictException(personIsNotRegisteredError(input.nationalIdentityNumber())));
+    }
+
+    private Optional<Person> fetchCristinPersonFromIdentifierOrNin(CreateUserRequest input) {
+        return nonNull(input.cristinIdentifier()) ?
+                   personRegistry.fetchPersonByIdentifier(input.cristinIdentifier()) :
+                                                                                         personRegistry.fetchPersonByNin(
+                                                                                             NationalIdentityNumber.fromString(
+                                                                                                 input.nationalIdentityNumber()));
     }
 
     private Optional<UserDto> fetchUserAtCustomer(Person person, URI customerId) {
@@ -123,8 +132,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private UserDto createNewUser(CreateUserRequest input) throws ConflictException {
-        var nin = NationalIdentityNumber.fromString(input.nationalIdentityNumber());
-        var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
+        var person = fetchCristinPersonFromIdentifierOrNin(input).orElseThrow();
 
         var customersWithActiveAffiliations = fetchCustomersWithActiveAffiliations(
             person.getAffiliations());

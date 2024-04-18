@@ -116,7 +116,7 @@ class UserEntriesCreatorForPersonTest {
                  + "and the Person has no other Affiliations active or inactive"
     )
     void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleActiveAffiliation() {
-        var personNin = scenarios.personWithExactlyOneActiveEmployment();
+        var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
@@ -136,7 +136,7 @@ class UserEntriesCreatorForPersonTest {
                  + "and the Person has no other Affiliations active or inactive"
     )
     void shouldNotCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleInactiveAffiliation() {
-        var personNin = scenarios.personWithExactlyOneInactiveEmployment();
+        var personNin = scenarios.personWithExactlyOneInactiveEmployment().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
@@ -153,7 +153,7 @@ class UserEntriesCreatorForPersonTest {
                  + "Then it should create a User for each Institution where the Person has an active affiliation with"
     )
     void shouldCreateUsersOnlyForActiveAffiliations() {
-        var personNin = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+        var personNin = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
@@ -180,7 +180,7 @@ class UserEntriesCreatorForPersonTest {
                  + "Then the username of the existing User is maintained by all means"
     )
     void shouldNotOverwriteUsernameOfExistingUsers() {
-        var personNin = scenarios.personWithExactlyOneActiveEmployment();
+        var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
@@ -196,7 +196,7 @@ class UserEntriesCreatorForPersonTest {
 
     @Test
     void shouldAddFeideIdentifierWhenFeideIdentifierIsAvailable() {
-        var personNin = scenarios.personWithExactlyOneActiveEmployment();
+        var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
@@ -211,7 +211,7 @@ class UserEntriesCreatorForPersonTest {
 
     @Test
     void shouldNotCreateUserForInstitutionThatIsNotAnNvaCustomer() {
-        var personNin = scenarios.personWithExactlyOneInactiveEmployment();
+        var personNin = scenarios.personWithExactlyOneInactiveEmployment().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
@@ -223,7 +223,7 @@ class UserEntriesCreatorForPersonTest {
 
     @Test
     void createdUserShouldHaveTheCreatorRoleByDefault() {
-        var personNin = scenarios.personWithExactlyOneActiveEmployment();
+        var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
@@ -237,7 +237,7 @@ class UserEntriesCreatorForPersonTest {
 
     @Test
     void shouldUpdateLegacyFeideUserWithNecessaryDetailsWhenSuchUserExists() {
-        var personNin = scenarios.personWithExactlyOneActiveEmployment();
+        var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
         var feideIdentifier = randomString();
         var existingUser = scenarios.createLegacyUsersForAllActiveAffiliations(personNin,
@@ -260,7 +260,7 @@ class UserEntriesCreatorForPersonTest {
 
     @Test
     void shouldCreateUserForSpecificCustomerInstitutionWhenPersonHasActiveAffiliationWithCustomerInstitution() {
-        var personNin = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var personNin = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());

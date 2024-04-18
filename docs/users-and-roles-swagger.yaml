@@ -380,10 +380,11 @@ components:
     CreateUserRequest:
       type: object
       required:
-        - nationalIdentityNumber
         - customerId
       properties:
         nationalIdentityNumber:
+          type: string
+        cristinIdentifier:
           type: string
         customerId:
           type: string

@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.RightsRetentionStrategyConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
@@ -61,7 +62,6 @@ public class CustomerDao implements Typed {
     private URI customerOf;
     private Set<VocabularyDao> vocabularies;
     private URI rorId;
-    private URI serviceCenterUri;
     private PublicationWorkflow publicationWorkflow;
     private DoiAgentDao doiAgent;
     private ServiceCenterDao serviceCenter;
@@ -98,7 +98,6 @@ public class CustomerDao implements Typed {
                    .withName(dto.getName())
                    .withPublicationWorkflow(dto.getPublicationWorkflow())
                    .withRorId(dto.getRorId())
-                   .withServiceCenterUri(dto.getServiceCenterUri())
                    .withServiceCenter(dto.getServiceCenter().toDao())
                    .withShortName(dto.getShortName())
                    .withVocabularySettings(extractVocabularySettings(dto))
@@ -130,7 +129,7 @@ public class CustomerDao implements Typed {
     }
 
     public boolean isGeneralSupportEnabled() {
-        return true;
+        return generalSupportEnabled;
     }
 
     public void setGeneralSupportEnabled(boolean generalSupportEnabled) {
@@ -257,14 +256,6 @@ public class CustomerDao implements Typed {
         this.rorId = rorId;
     }
 
-    public URI getServiceCenterUri() {
-        return serviceCenterUri;
-    }
-
-    public void setServiceCenterUri(URI serviceCenterUri) {
-        this.serviceCenterUri = serviceCenterUri;
-    }
-
     public PublicationWorkflow getPublicationWorkflow() {
         return nonNull(publicationWorkflow) ? publicationWorkflow
                    : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
@@ -356,7 +347,6 @@ public class CustomerDao implements Typed {
                && Objects.equals(getCustomerOf(), that.getCustomerOf())
                && Objects.equals(getVocabularies(), that.getVocabularies())
                && Objects.equals(getRorId(), that.getRorId())
-               && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
                && getPublicationWorkflow() == that.getPublicationWorkflow()
                && Objects.equals(getDoiAgent(), that.getDoiAgent())
                && Objects.equals(getServiceCenter(), that.getServiceCenter())
@@ -372,7 +362,7 @@ public class CustomerDao implements Typed {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
                             getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
                             getFeideOrganizationDomain(),
-                            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(), getServiceCenterUri(),
+                            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(),
                             getPublicationWorkflow(), getDoiAgent(), getServiceCenter(), isNviInstitution(),
                             isRboInstitution(), isGeneralSupportEnabled(), getInactiveFrom(), getSector(),
                             getRightsRetentionStrategy(), getAllowFileUploadForTypes());
@@ -394,7 +384,7 @@ public class CustomerDao implements Typed {
                                       .withCristinId(getCristinId())
                                       .withCustomerOf(fromUri(getCustomerOf()))
                                       .withRorId(getRorId())
-                                      .withServiceCenterUri(getServiceCenterUri())
+                                      .withServiceCenter(getServiceCenter().toDto())
                                       .withPublicationWorkflow(getPublicationWorkflow())
                                       .withDoiAgent(getDoiAgent())
                                       .withNviInstitution(isNviInstitution())
@@ -438,7 +428,6 @@ public class CustomerDao implements Typed {
                ", customerOf=" + customerOf +
                ", vocabularies=" + vocabularies +
                ", rorId=" + rorId +
-               ", serviceCenterUri=" + serviceCenterUri +
                ", publicationWorkflow=" + publicationWorkflow +
                ", doiAgent=" + doiAgent +
                ", nviInstitution=" + nviInstitution +
@@ -453,7 +442,7 @@ public class CustomerDao implements Typed {
     }
 
     public ServiceCenterDao getServiceCenter() {
-        return new ServiceCenterDao(serviceCenterUri, null);
+        return nonNull(serviceCenter) ? serviceCenter : new ServiceCenterDao();
     }
 
     public void setServiceCenter(ServiceCenterDao serviceCenter) {
@@ -576,11 +565,6 @@ public class CustomerDao implements Typed {
 
         public Builder withRorId(URI rorId) {
             customerDb.setRorId(rorId);
-            return this;
-        }
-
-        public Builder withServiceCenterUri(URI serviceCenterUri) {
-            customerDb.setServiceCenterUri(serviceCenterUri);
             return this;
         }
 
@@ -787,6 +771,7 @@ public class CustomerDao implements Typed {
         private URI uri;
         private String name;
 
+        @JacocoGenerated
         public ServiceCenterDao() {
         }
 
@@ -801,6 +786,10 @@ public class CustomerDao implements Typed {
             }
             ServiceCenterDao that = (ServiceCenterDao) o;
             return Objects.equals(getUri(), that.getUri()) && Objects.equals(getName(), that.getName());
+        }
+
+        public ServiceCenter toDto() {
+            return new ServiceCenter(uri, name);
         }
 
         @JacocoGenerated

@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.Sector;
 import no.unit.nva.customer.service.CustomerService;
@@ -166,7 +167,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         var customerDto =
             CustomerDto.builder()
                 .withName("New Customer")
-                .withServiceCenterUri(testServiceCenterUri)
+                .withServiceCenter(new ServiceCenter(testServiceCenterUri, randomString()))
                 .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
@@ -303,7 +304,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
                    .withCustomerOf(randomElement(ApplicationDomain.values()))
                    .withDoiAgent(randomDoiAgent(randomString()))
                    .withRorId(randomUri())
-                   .withServiceCenterUri(randomUri())
+                   .withServiceCenter(new ServiceCenter(randomUri(), randomString()))
                    .withRightsRetentionStrategy(randomRightsRetentionStrategy())
                    .withAllowFileUploadForTypes(Collections.emptySet())
                    .build();

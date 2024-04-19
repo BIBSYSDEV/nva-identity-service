@@ -1,6 +1,7 @@
 package no.unit.nva.customer;
 
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
@@ -37,6 +38,7 @@ public abstract class WriteControlledVocabularyHandler
 
     private boolean userIsAuthorized(RequestInfo requestInfo) {
         return requestInfo.clientIsInternalBackend()
-            || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
+               || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS)
+               || requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
     }
 }

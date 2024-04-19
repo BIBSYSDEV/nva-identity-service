@@ -14,6 +14,7 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.testing.CreateUpdateControlledVocabularySettingsTests;
 import no.unit.nva.customer.testing.CustomerDataGenerator;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -99,6 +100,12 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
 
         assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+    }
+
+    @Test
+    void handleRequestReturnsCreatedVocabularyListWhenUserWithAccessRightManageOwnAffiliationsCreatesVocabulary() throws IOException {
+        var result = sendRequestWithAccessRight(existingIdentifier(), AccessRight.MANAGE_OWN_AFFILIATION);
+        assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
     }
 
     @Override

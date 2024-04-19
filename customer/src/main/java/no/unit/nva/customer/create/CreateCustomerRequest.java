@@ -24,7 +24,7 @@ import nva.commons.core.JacocoGenerated;
 
 @JsonTypeInfo(use = Id.NAME, property = "type")
 @JsonTypeName(TYPE_VALUE)
-@SuppressWarnings({"PMD.TooManyFields", "PMD.GodClass"})
+@SuppressWarnings({"PMD.TooManyFields", "PMD.GodClass", "PMD.ExcessivePublicCount"})
 public class CreateCustomerRequest {
 
     public static final String TYPE_VALUE = "Customer";
@@ -42,6 +42,7 @@ public class CreateCustomerRequest {
     private DoiAgentDto doiAgent;
     private boolean nviInstitution;
     private boolean rboInstitution;
+    private boolean generalSupportEnabled;
     private Instant inactiveFrom;
     private Sector sector;
     private URI rorId;
@@ -68,6 +69,7 @@ public class CreateCustomerRequest {
         request.setRorId(customerDto.getRorId());
         request.setServiceCenter(customerDto.getServiceCenter());
         request.setAllowFileUploadForTypes(customerDto.getAllowFileUploadForTypes());
+        request.setGeneralSupportEnabled(customerDto.isGeneralSupportEnabled());
         if (nonNull(customerDto.getDoiAgent())) {
             request.setDoiAgent(new DoiAgentDto(customerDto.getDoiAgent()));
         }
@@ -95,6 +97,7 @@ public class CreateCustomerRequest {
                    .withRorId(getRorId())
                    .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
                    .withServiceCenter(getServiceCenter())
+                   .withGeneralSupportEnabled(isGeneralSupportEnabled())
                    .build();
     }
 
@@ -211,6 +214,14 @@ public class CreateCustomerRequest {
         this.rboInstitution = rboInstitution;
     }
 
+    public boolean isGeneralSupportEnabled() {
+        return generalSupportEnabled;
+    }
+
+    public void setGeneralSupportEnabled(boolean generalSupportEnabled) {
+        this.generalSupportEnabled = generalSupportEnabled;
+    }
+
     public Instant getInactiveFrom() {
         return inactiveFrom;
     }
@@ -286,7 +297,8 @@ public class CreateCustomerRequest {
                && Objects.equals(isRboInstitution(), that.isRboInstitution())
                && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
                && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
+               && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
+               && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled());
     }
 
     @Override

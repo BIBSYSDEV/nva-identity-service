@@ -752,10 +752,8 @@ components:
           type: string
           format: uri
           description: the customers persistent identifier in the Research Organization Registry (ROR)
-        serviceCenterUri:
-          type: string
-          format: uri
-          description: the customers institution service centre
+        serviceCenter:
+          $ref: '#/components/schemas/ServiceCenter'
         doiAgent:
           $ref: '#/components/schemas/DoiAgent'
         '@context':
@@ -769,6 +767,9 @@ components:
         rboInstitution:
           type: boolean
           description: whether or not the institution is part of result-based redistribution
+        generalSupportEnabled:
+          type: boolean
+          description: whether or not institution supports creation og GeneralSupportRequests in NVA
         inactiveFrom:
           type: string
           format: date-time
@@ -892,6 +893,14 @@ components:
           type: string
         password:
           type: string
+    ServiceCenter:
+      type: object
+      properties:
+        uri:
+          type: string
+          format: url
+        name:
+          type: string
     VocabularyList:
       type: object
       properties:
@@ -969,7 +978,9 @@ components:
             name: 'Example VOC'
             active: 'default'
         rorId: 'https://ror.org/026eeyk15'
-        serviceCenterUri: 'https://servicecenter.org/wiki/-/wiki/Orakeltjenesten'
+        serviceCenter:
+          uri: 'https://servicecenter.org/wiki/-/wiki/Orakeltjenesten'
+          name: 'Sikt supportsenter'
         doiAgent:
           prefix: "1000.10"
           url: "test.nva.unit.no"
@@ -977,6 +988,7 @@ components:
         publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
         nviInstitution: false
         rboInstitution: false
+        generalSupportEnabled: true
         inactiveFrom: '2021-05-07T14:29:04.144Z'
         sector: UHI
         rightsRetentionStrategy:

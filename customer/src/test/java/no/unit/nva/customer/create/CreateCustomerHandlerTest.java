@@ -177,6 +177,20 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
+    void shouldReturnGeneralSupportEnabledWhenValueIsSet() throws BadRequestException, IOException {
+        var customerDto =
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withGeneralSupportEnabled(true)
+                .build();
+        var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
+        var response = executeRequest(requestBody, CustomerDto.class);
+        var actualResponseBody = CustomerDto.fromJson(response.getBody());
+
+        assertThat(actualResponseBody.isGeneralSupportEnabled(), is(true));
+    }
+
+    @Test
     void shouldReturnBadRequestWhenInputIsNotAValidJson() throws IOException {
         var response = executeRequest(randomString(), Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));

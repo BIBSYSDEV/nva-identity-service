@@ -1460,7 +1460,7 @@ Resources:
         - custom:impersonatedBy
       AccessTokenValidity: 1
       IdTokenValidity: 1
-      RefreshTokenValidity: 2
+      RefreshTokenValidity: 9
       TokenValidityUnits:
         AccessToken: hours
         IdToken: hours

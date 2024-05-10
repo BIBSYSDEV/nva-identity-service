@@ -449,24 +449,6 @@ Resources:
             Method: post
             RestApiId: !Ref UsersAndRolesApi
 
-  CognitoUserInfoHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.CognitoUserInfoEndpoint::handleRequest
-      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /userinfo
-            Method: get
-            RestApiId: !Ref UsersAndRolesApi
-
   ListByInstitutionHandler:
     Type: AWS::Serverless::Function
     Properties:

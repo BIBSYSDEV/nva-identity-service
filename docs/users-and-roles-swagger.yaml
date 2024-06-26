@@ -7,6 +7,7 @@ paths:
   /login:
     post:
       summary: Selects Customer for User
+      operationId: setLoginCustomer
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
@@ -27,6 +28,7 @@ paths:
   /roles/{role}:
     get:
       summary: Gets an existing Role
+      operationId: getRole
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
@@ -51,6 +53,7 @@ paths:
   /userinfo:
     get:
       summary: Selects Customer for User
+      operationId: getUserinfo
       security:
         - CognitoUserPool: [ "aws.cognito.signin.user.admin" ]
       responses:
@@ -65,6 +68,7 @@ paths:
   /users:
     post:
       summary: Create user
+      operationId: createUser
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
@@ -107,6 +111,7 @@ paths:
   /users/{username}:
     get:
       summary: Gets an existing User
+      operationId: getUser
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
@@ -160,6 +165,7 @@ paths:
         type: aws_proxy
   /impersonation/stop:
     post:
+      operationId: impersonationStop
       summary: Stops impersonating as another user. Used by admins for support.
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
@@ -175,6 +181,7 @@ paths:
   /impersonation:
     post:
       summary: Impersonate as another user. Used by admins for support. Will generate login claims as if you were someone else.
+      operationId: impersonationStart
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
@@ -195,6 +202,7 @@ paths:
   /external-clients:
     get:
       summary: Access stored external client info by its token
+      operationId: getExternalClientByToken
       security:
         - ExternalCognitoUserPool:
             - "https://api.nva.unit.no/scopes/third-party/file-upload"
@@ -224,6 +232,7 @@ paths:
         type: aws_proxy
     post:
       summary: Adds new external client
+      operationId: createExternalClient
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
@@ -260,6 +269,7 @@ paths:
         required: true
     get:
       summary: Get a stored client and its associated customer
+      operationId: getExternalClient
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       responses:
@@ -284,6 +294,7 @@ paths:
   /institutions/users:
     get:
       summary: Lists users of specified
+      operationId: listInstitutionUsers
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:

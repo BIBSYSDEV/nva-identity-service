@@ -24,6 +24,7 @@ paths:
   /:
     post:
       summary: Create Customer
+      operationId: createCustomer
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:
@@ -82,6 +83,7 @@ paths:
                   $ref: '#/components/examples/BadGatewayProblemExample'
     get:
       summary: Get All Customers
+      operationId: listCustomers
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       x-amazon-apigateway-integration:
@@ -136,6 +138,7 @@ paths:
   /{identifier}:
     get:
       summary: Get Customer
+      operationId: getCustomer
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
@@ -196,6 +199,7 @@ paths:
                   $ref: '#/components/examples/BadGatewayProblemExample'
     put:
       summary: Update Customer
+      operationId: updateCustomer
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
@@ -263,6 +267,7 @@ paths:
   /{identifier}/doiagent:
     get:
       summary: Get Customer doi agent with secret
+      operationId: getDoiAgent
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
@@ -357,6 +362,7 @@ paths:
   /{identifier}/vocabularies:
     get:
       summary: Gets vocabulary definition for a customer
+      operationId: getVocabularies
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
@@ -390,6 +396,7 @@ paths:
         type: AWS_PROXY
     post:
       summary: Create vocabulary definition for customer
+      operationId: createVocabularies
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
@@ -456,6 +463,7 @@ paths:
                   $ref: '#/components/examples/BadGatewayProblemExample'
     put:
       summary: Update Vocabularies
+      operationId: updateVocabularies
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
@@ -526,6 +534,7 @@ paths:
   /orgDomain/{orgDomain}:
     get:
       summary: Get CustomerIdentifiers by orgDomain
+      operationId: getCustomerIdentifierByOrgDomain
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
@@ -581,6 +590,7 @@ paths:
   /cristinId/{cristinId}:
     get:
       summary: Get Customer by cristinId
+      operationId: getCustomerByCristinId
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:

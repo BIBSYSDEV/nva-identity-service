@@ -33,6 +33,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -44,11 +45,10 @@ import org.junit.jupiter.api.Test;
 
 class IdentityServiceInitHandlerTest {
 
-    private static final String ROLE_NAME = "My-role";
     private static final List<AccessRight> ACCESS_RIGHTS = List.of(MANAGE_DOI,
                                                                    MANAGE_PUBLISHING_REQUESTS);
     private static final RoleSource ROLE_SOURCE = () -> List.of(RoleDto.newBuilder()
-                                                                    .withRoleName(ROLE_NAME)
+                                                                    .withRoleName(RoleName.PUBLISHING_CURATOR)
                                                                     .withAccessRights(ACCESS_RIGHTS)
                                                                     .build());
 
@@ -111,7 +111,7 @@ class IdentityServiceInitHandlerTest {
 
     private RoleDto invalidRole() {
         var role = new RoleDto();
-        role.setRoleName("");
+        role.setRoleName(null);
         role.setAccessRights(Collections.emptyList());
         return role;
     }
@@ -120,7 +120,7 @@ class IdentityServiceInitHandlerTest {
     void shouldUpdateRoleIfAlreadyExists()
         throws InvalidInputException, ConflictException, IOException, NotFoundException {
         var role = RoleDto.newBuilder()
-                       .withRoleName(ROLE_NAME)
+                       .withRoleName(RoleName.DOI_CURATOR)
                        .withAccessRights(List.of(MANAGE_DOI))
                        .build();
         identityService.addRole(role);

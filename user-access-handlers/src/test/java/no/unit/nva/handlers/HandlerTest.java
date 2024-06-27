@@ -1,7 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import java.net.URI;
@@ -13,6 +13,7 @@ import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 
@@ -48,12 +49,16 @@ public class HandlerTest extends LocalIdentityService {
     }
 
     protected UserDto createSampleUser(String username, URI institution) throws InvalidEntryInternalException {
-        RoleDto someRole = RoleDto.newBuilder().withRoleName(randomString()).build();
+        RoleDto someRole = RoleDto.newBuilder().withRoleName(randomRoleName()).build();
         return UserDto.newBuilder()
             .withUsername(username)
             .withRoles(Collections.singletonList(someRole))
             .withInstitution(institution)
             .build();
+    }
+
+    private RoleName randomRoleName() {
+        return RoleName.values()[randomInteger(RoleName.values().length)];
     }
 
     protected ClientDto insertClientToDatabase(ClientDto clientDto)

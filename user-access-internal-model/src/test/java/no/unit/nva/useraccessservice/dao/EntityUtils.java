@@ -1,18 +1,19 @@
 package no.unit.nva.useraccessservice.dao;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
 
 public final class EntityUtils {
 
     public static final String SOME_USERNAME = "SomeUsername";
-    public static final String SOME_ROLENAME = "SomeRole";
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
 
     public static final Set<AccessRight> SAMPLE_ACCESS_RIGHTS =
@@ -35,7 +36,7 @@ public final class EntityUtils {
      * @return {@link UserDto}
      */
     public static UserDto createUserWithRoleWithoutInstitution() {
-        RoleDto sampleRole = createRole(SOME_ROLENAME);
+        RoleDto sampleRole = createRole(randomRoleName());
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)
             .withGivenName(SOME_GIVEN_NAME)
@@ -47,13 +48,17 @@ public final class EntityUtils {
     /**
      * Creates a sample role.
      *
-     * @param someRole the role name.
+     * @param roleName the role name.
      * @return the sample role.
      */
-    public static RoleDto createRole(String someRole) {
+    public static RoleDto createRole(RoleName roleName) {
         return RoleDto.newBuilder()
-            .withRoleName(someRole)
+            .withRoleName(roleName)
             .withAccessRights(SAMPLE_ACCESS_RIGHTS)
             .build();
+    }
+
+    private static RoleName randomRoleName() {
+        return RoleName.values()[randomInteger(RoleName.values().length)];
     }
 }

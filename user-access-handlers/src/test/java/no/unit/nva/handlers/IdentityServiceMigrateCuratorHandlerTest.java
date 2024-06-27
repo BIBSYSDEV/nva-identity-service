@@ -20,6 +20,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -81,7 +82,7 @@ class IdentityServiceMigrateCuratorHandlerTest {
     @Test
     void shouldNotUpdateAlreadyMigratedUsers() throws InvalidInputException, ConflictException,
                                                       IOException, NotFoundException {
-        var randomRole = RoleDto.newBuilder().withRoleName(randomString()).build();
+        var randomRole = RoleDto.newBuilder().withRoleName(RoleName.EDITOR).build();
         var newRole = newNviCuratorRole();
         identityService.addRole(randomRole);
         identityService.addRole(newRole);
@@ -100,11 +101,11 @@ class IdentityServiceMigrateCuratorHandlerTest {
     }
 
     private RoleDto legacyNviCuratorRole() {
-        return RoleDto.newBuilder().withRoleName("Nvi-curator").build();
+        return RoleDto.newBuilder().withRoleName(RoleName.NVI_CURATOR).build();
     }
 
     private RoleDto newNviCuratorRole() {
-        return RoleDto.newBuilder().withRoleName("Nvi-Curator").build();
+        return RoleDto.newBuilder().withRoleName(RoleName.NVI_CURATOR).build();
     }
 
     private InputStream createRequest() throws com.fasterxml.jackson.core.JsonProcessingException {

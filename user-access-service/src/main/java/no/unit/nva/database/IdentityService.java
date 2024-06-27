@@ -55,7 +55,6 @@ public interface IdentityService {
     
     class Constants {
         
-        public static final String ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT = "Creator";
         public static final String USERS_AND_ROLES_TABLE =
             new Environment().readEnv("USERS_AND_ROLES_TABLE");
         

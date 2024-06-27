@@ -12,10 +12,10 @@ import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
-import nva.commons.core.attempt.Try;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
@@ -33,7 +33,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
     public static final String TYPE_VALUE = "ROLE";
     public static final TableSchema<RoleDb> TABLE_SCHEMA = TableSchema.fromBean(RoleDb.class);
     private Set<AccessRight> accessRights;
-    private String name;
+    private RoleName name;
 
     public RoleDb() {
         super();
@@ -66,12 +66,12 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
 
     @JacocoGenerated
     @DynamoDbAttribute(NAME_FIELD)
-    public String getName() {
+    public RoleName getName() {
         return name;
     }
 
     @JacocoGenerated
-    public void setName(String name) {
+    public void setName(RoleName name) {
         this.name = name;
     }
 
@@ -92,7 +92,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
     @DynamoDbPartitionKey
     @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
     public String getPrimaryKeyHashKey() {
-        return this.getType() + FIELD_DELIMITER + getName();
+        return this.getType() + FIELD_DELIMITER + getName().getValue();
     }
 
     @Override
@@ -151,26 +151,24 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
     }
 
     public RoleDto toRoleDto() {
-
-        return Try.attempt(() -> RoleDto.newBuilder()
+        return RoleDto.newBuilder()
                 .withRoleName(this.getName())
                 .withAccessRights(getAccessRights())
-                .build())
-            .orElseThrow(fail -> new InvalidEntryInternalException(fail.getException()));
+                .build();
     }
 
     public static class Builder {
 
         public static final String EMPTY_ROLE_NAME_ERROR = "Rolename cannot be null or blank";
-        private String name;
+        private RoleName name;
         private Set<AccessRight> accessRights;
 
         protected Builder() {
             accessRights = Collections.emptySet();
         }
 
-        public Builder withName(String val) {
-            name = val;
+        public Builder withName(RoleName name) {
+            this.name = name;
             return this;
         }
 
@@ -180,7 +178,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         }
 
         public RoleDb build() {
-            if (StringUtils.isNotBlank(name)) {
+            if (nonNull(name) && StringUtils.isNotBlank(name.getValue())) {
                 return new RoleDb(this);
             }
             throw new InvalidEntryInternalException(EMPTY_ROLE_NAME_ERROR);

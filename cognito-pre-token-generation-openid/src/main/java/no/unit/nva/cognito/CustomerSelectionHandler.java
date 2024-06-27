@@ -23,6 +23,7 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.useraccessservice.database.DatabaseConfig;
 import nva.commons.apigateway.AccessRight;
@@ -108,7 +109,10 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
     }
 
     private String getActiveRoles(UserDto user) {
-        return user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.joining(ELEMENTS_DELIMITER));
+        return user.getRoles().stream()
+                   .map(RoleDto::getRoleName)
+                   .map(RoleName::getValue)
+                   .collect(Collectors.joining(ELEMENTS_DELIMITER));
     }
 
     private String getActiveAccessRights(UserDto user, CustomerDto customer) {

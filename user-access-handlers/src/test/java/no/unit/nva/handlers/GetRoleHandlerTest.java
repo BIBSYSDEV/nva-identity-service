@@ -24,6 +24,7 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -116,7 +117,7 @@ class GetRoleHandlerTest extends LocalIdentityService implements WithEnvironment
 
     private void addSampleRoleToDatabase()
         throws InvalidEntryInternalException, ConflictException, InvalidInputException {
-        RoleDto existingRole = RoleDto.newBuilder().withRoleName(GetRoleHandlerTest.THE_ROLE).build();
+        RoleDto existingRole = RoleDto.newBuilder().withRoleName(RoleName.CREATOR).build();
         databaseService.addRole(existingRole);
     }
 }

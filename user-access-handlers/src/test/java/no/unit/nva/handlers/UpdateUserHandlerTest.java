@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
@@ -8,8 +9,7 @@ import static no.unit.nva.handlers.EntityUtils.createUserWithoutUsername;
 import static no.unit.nva.handlers.UpdateUserHandler.INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR;
 import static no.unit.nva.handlers.UpdateUserHandler.LOCATION_HEADER;
 import static no.unit.nva.handlers.UpdateUserHandler.USERNAME_PATH_PARAMETER;
-import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.model.UserDto.VIEWING_SCOPE_FIELD;
 import static no.unit.nva.useraccessservice.model.ViewingScope.INCLUDED_UNITS;
@@ -38,6 +38,7 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -52,12 +53,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.zalando.problem.Problem;
 
 public class UpdateUserHandlerTest extends HandlerTest {
-    
-    public static final String SAMPLE_ROLE = "someRole";
+
     public static final String SAMPLE_USERNAME = "some@somewhere";
     public static final URI SAMPLE_INSTITUTION = randomCristinOrgId();
-    
-    public static final String ANOTHER_ROLE = "ANOTHER_ROLE";
     public static final String SOME_OTHER_USERNAME = "SomeOtherUsername";
     private IdentityServiceImpl databaseService;
     private Context context;
@@ -340,7 +338,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
     
     private UserDto sampleUser() throws InvalidEntryInternalException {
-        var someRole = RoleDto.newBuilder().withRoleName(SAMPLE_ROLE).build();
+        var someRole = RoleDto.newBuilder().withRoleName(RoleName.CREATOR).build();
         return UserDto.newBuilder()
             .withUsername(SAMPLE_USERNAME)
             .withInstitution(SAMPLE_INSTITUTION)
@@ -359,15 +357,23 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
 
     private static RoleDto getAppAdminRole() {
-        return RoleDto.newBuilder().withRoleName(APP_ADMIN_ROLE_NAME).build();
+        return RoleDto.newBuilder().withRoleName(RoleName.APPLICATION_ADMIN).build();
     }
 
     private static RoleDto getRandomRole() {
-        return RoleDto.newBuilder().withRoleName(randomString()).build();
+        return RoleDto.newBuilder().withRoleName(randomRoleName()).build();
+    }
+
+    private static RoleName randomRoleName() {
+        return RoleName.values()[randomInteger(RoleName.values().length)];
     }
 
     private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {
-        var someOtherRole = RoleDto.newBuilder().withRoleName(ANOTHER_ROLE).build();
+        var anotherRoleName = userDto.getRoles().isEmpty()
+                                  ? randomRoleName()
+                                  : randomRoleNameButNot(userDto.getRoles().iterator().next().getRoleName());
+        var someOtherRole =
+            RoleDto.newBuilder().withRoleName(anotherRoleName).build();
         return userDto.copy()
             .withRoles(Collections.singletonList(someOtherRole))
             .withViewingScope(randomViewingScope())

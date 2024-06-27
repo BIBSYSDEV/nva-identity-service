@@ -1,6 +1,8 @@
 package no.unit.nva.cognito;
 
 import static java.util.Objects.nonNull;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
@@ -22,7 +24,6 @@ import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_US
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.USER_NOT_ALLOWED_TO_IMPERSONATE;
-import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -78,6 +79,7 @@ import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
@@ -95,6 +97,7 @@ import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -108,7 +111,6 @@ class UserSelectionUponLoginHandlerTest {
     public static final int SINGLE_EXPECTED_USER = 1;
     public static final boolean ACTIVE = true;
     public static final boolean INACTIVE = false;
-    public static final String APP_ADMIN_SOMEWHERE = "App-admin@somewhere";
 
     private final Context context = new FakeContext();
     private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
@@ -487,6 +489,7 @@ class UserSelectionUponLoginHandlerTest {
                                 .map(UserDto::getRoles)
                                 .flatMap(Collection::stream)
                                 .map(RoleDto::getRoleName)
+                                .map(RoleName::getValue)
                                 .collect(Collectors.toSet());
 
         var actualRoles = cognitoClient.getAdminUpdateUserRequest().userAttributes().stream()
@@ -674,7 +677,7 @@ class UserSelectionUponLoginHandlerTest {
         var users = scanAllUsers();
         for (var user : users) {
             var roleNames = user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
-            assertThat(roleNames, hasItem(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT));
+            assertThat(roleNames, hasItem(RoleName.CREATOR));
         }
     }
 
@@ -792,7 +795,7 @@ class UserSelectionUponLoginHandlerTest {
         var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var newRole = RoleDto.newBuilder()
-                          .withRoleName(APP_ADMIN_SOMEWHERE)
+                          .withRoleName(RoleName.APPLICATION_ADMIN)
                           .withAccessRights(List.of(AccessRight.ACT_AS))
                           .build();
         persistRole(newRole);
@@ -830,7 +833,7 @@ class UserSelectionUponLoginHandlerTest {
         var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var newRole = RoleDto.newBuilder()
-                          .withRoleName(APP_ADMIN_SOMEWHERE)
+                          .withRoleName(RoleName.APPLICATION_ADMIN)
                           .withAccessRights(List.of(AccessRight.ACT_AS))
                           .build();
         persistRole(newRole);
@@ -1001,7 +1004,7 @@ class UserSelectionUponLoginHandlerTest {
 
     private RoleDto persistRoleToDatabase(Collection<AccessRight> accessRights)
         throws InvalidInputException, ConflictException, NotFoundException {
-        var role = RoleDto.newBuilder().withRoleName(randomString()).withAccessRights(accessRights).build();
+        var role = RoleDto.newBuilder().withRoleName(randomRoleName()).withAccessRights(accessRights).build();
         persistRole(role);
         return identityService.getRole(role);
     }
@@ -1078,10 +1081,15 @@ class UserSelectionUponLoginHandlerTest {
 
     private RoleDto persistRandomRole() {
         var newRole = RoleDto.newBuilder()
-                          .withRoleName(randomString())
+                          .withRoleName(randomRoleName())
                           .withAccessRights(randomAccessRights())
                           .build();
-        attempt(() -> persistRole(newRole)).orElseThrow();
+        var existingRole = attempt(() -> identityService.getRole(newRole)).toOptional();
+        if (existingRole.isPresent()) {
+            attempt(() -> persistRole(newRole.copy().withRoleName(randomRoleNameButNot(newRole.getRoleName())).build())).orElseThrow();
+        } else {
+            attempt(() -> persistRole(newRole)).orElseThrow();
+        }
         return attempt(() -> identityService.getRole(newRole)).orElseThrow();
     }
 

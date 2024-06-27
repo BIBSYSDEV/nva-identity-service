@@ -2,7 +2,6 @@ package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.handlers.HandlerTest.DEFAULT_INSTITUTION;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,12 +24,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import no.unit.nva.RandomUserDataGenerator;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.testutils.RandomDataGenerator;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.UserList;
 import nva.commons.apigateway.GatewayResponse;
@@ -237,12 +235,12 @@ class ListByInstitutionHandlerTest extends HandlerTest {
                    .build();
     }
 
-    private InputStream createListWithFilterRequest(URI institutionId, List<String> roles)
+    private InputStream createListWithFilterRequest(URI institutionId, List<RoleName> roles)
         throws JsonProcessingException {
         var queryParams = Map.of(
             INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString()
             );
-        var multiValueParams = Map.of(ROLE, roles);
+        var multiValueParams = Map.of(ROLE, roles.stream().map(RoleName::getValue).toList());
 
         return new HandlerRequestBuilder<>(dtoObjectMapper)
                    .withQueryParameters(queryParams)

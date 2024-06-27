@@ -301,6 +301,7 @@ paths:
         type: AWS_PROXY
     put:
       summary: Update Customer doi agent with secret
+      operationId: updateCustomerDoiAgent
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:

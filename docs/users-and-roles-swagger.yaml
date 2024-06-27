@@ -135,6 +135,7 @@ paths:
         type: aws_proxy
     put:
       summary: Updates an existing User
+      operationId: updateUser
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:

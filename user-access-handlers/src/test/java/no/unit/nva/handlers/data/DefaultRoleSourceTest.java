@@ -1,15 +1,5 @@
 package no.unit.nva.handlers.data;
 
-import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_EMBARGO_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.DOI_CURATOR_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.EDITOR_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.INSTITUTION_ADMIN_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.INTERNAL_IMPORTER_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.NVI_CURATOR_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.PUBLISHING_CURATOR_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.SUPPORT_CURATOR_ROLE_NAME;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DEGREE;
@@ -133,16 +123,16 @@ public class DefaultRoleSourceTest {
     @Test
     void shouldReturnExpectedNumberOfRoles() {
         var expectedNumberOfRoles = List.of(RoleName.CREATOR,
-                                            NVI_CURATOR_ROLE_NAME,
-                                            DOI_CURATOR_ROLE_NAME,
-                                            SUPPORT_CURATOR_ROLE_NAME,
-                                            PUBLISHING_CURATOR_ROLE_NAME,
-                                            CURATOR_THESIS_ROLE_NAME,
-                                            CURATOR_THESIS_EMBARGO_ROLE_NAME,
-                                            INTERNAL_IMPORTER_ROLE_NAME,
-                                            INSTITUTION_ADMIN_ROLE_NAME,
-                                            APP_ADMIN_ROLE_NAME,
-                                            EDITOR_ROLE_NAME).size();
+                                            RoleName.NVI_CURATOR,
+                                            RoleName.DOI_CURATOR,
+                                            RoleName.SUPPORT_CURATOR,
+                                            RoleName.PUBLISHING_CURATOR,
+                                            RoleName.THESIS_CURATOR,
+                                            RoleName.EMBARGO_THESIS_CURATOR,
+                                            RoleName.INTERNAL_IMPORTER,
+                                            RoleName.INSTITUTION_ADMIN,
+                                            RoleName.APPLICATION_ADMIN,
+                                            RoleName.EDITOR).size();
 
         assertThat(roleSource.roles(), hasSize(expectedNumberOfRoles));
     }

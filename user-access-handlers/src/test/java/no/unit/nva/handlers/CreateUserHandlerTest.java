@@ -67,7 +67,6 @@ import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -521,7 +520,7 @@ class CreateUserHandlerTest extends HandlerTest {
     }
 
     private Set<RoleDto> randomRoles() {
-        var role = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(randomRoleName())).build();
+        var role = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.APPLICATION_ADMIN)).build();
         addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
         return Set.of(role);
     }

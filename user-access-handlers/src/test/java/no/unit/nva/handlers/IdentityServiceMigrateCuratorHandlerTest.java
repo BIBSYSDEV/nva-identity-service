@@ -101,7 +101,7 @@ class IdentityServiceMigrateCuratorHandlerTest {
     }
 
     private RoleDto legacyNviCuratorRole() {
-        return RoleDto.newBuilder().withRoleName(RoleName.NVI_CURATOR).build();
+        return RoleDto.newBuilder().withRoleName(RoleName.DEPRECATED_NVI_CURATOR).build();
     }
 
     private RoleDto newNviCuratorRole() {

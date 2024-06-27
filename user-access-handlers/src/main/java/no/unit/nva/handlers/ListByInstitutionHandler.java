@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.UserList;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -70,7 +71,7 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
     }
 
     private boolean hasOneRole(UserDto userDto, Set<String> checkedRoles) {
-        var userRoles = userDto.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
+        var userRoles = userDto.getRoles().stream().map(RoleDto::getRoleName).map(RoleName::getValue).collect(Collectors.toSet());
         return !Collections.disjoint(userRoles, checkedRoles);
     }
 }

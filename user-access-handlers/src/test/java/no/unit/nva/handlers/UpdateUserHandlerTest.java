@@ -370,7 +370,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {
         var anotherRoleName = userDto.getRoles().isEmpty()
-                                  ? randomRoleName()
+                                  ? randomRoleNameButNot(RoleName.APPLICATION_ADMIN)
                                   : randomRoleNameButNot(userDto.getRoles().iterator().next().getRoleName());
         var someOtherRole =
             RoleDto.newBuilder().withRoleName(anotherRoleName).build();

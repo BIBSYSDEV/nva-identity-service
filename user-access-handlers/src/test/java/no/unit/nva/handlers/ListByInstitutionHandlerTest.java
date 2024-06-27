@@ -1,6 +1,8 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -35,6 +37,7 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
@@ -81,7 +84,10 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     void handleRequestReturnsListOfUsersGivenAnInstitutionAndSingleRole()
         throws IOException, ConflictException, InvalidEntryInternalException {
 
-        var expectedUser = insertTwoUsersOfSameInstitution().getUsers().get(0);
+        var name = randomRoleName();
+        insertUserOfSameInstitution(DEFAULT_USERNAME, name);
+        var expectedUser =
+            insertUserOfSameInstitution(SOME_OTHER_USERNAME, randomRoleNameButNot(name)).getUsers().get(0);
         var roleName = ((RoleDto) expectedUser.getRoles().toArray()[0]).getRoleName();
         var validRequest = createListWithFilterRequest(DEFAULT_INSTITUTION, List.of(roleName));
 
@@ -218,6 +224,13 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     private void assertThatListsAreEquivalent(UserList expectedUsers, UserList actualUsers) {
         assertThat(actualUsers.getUsers(), containsInAnyOrder(expectedUsers.getUsers().toArray(UserDto[]::new)));
         assertThat(expectedUsers.getUsers(), containsInAnyOrder(actualUsers.getUsers().toArray()));
+    }
+
+    private UserList insertUserOfSameInstitution(String username, RoleName roleName)
+        throws InvalidEntryInternalException, ConflictException {
+        UserList users = new UserList();
+        users.getUsers().add(insertSampleUserToDatabase(username, DEFAULT_INSTITUTION, roleName));
+        return users;
     }
 
     private UserList insertTwoUsersOfSameInstitution()

@@ -50,7 +50,7 @@ public class GetRoleHandler extends ApiGatewayHandler<Void, RoleDto> {
         return Optional.ofNullable(requestInfo.getPathParameters())
                    .map(pathParams -> pathParams.get(ROLE_PATH_PARAMETER))
                    .filter(not(String::isBlank))
-                   .map(RoleName::valueOf)
+                   .map(RoleName::fromValue)
                    .orElseThrow();
     }
 }

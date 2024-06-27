@@ -6,7 +6,6 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import static nva.commons.core.attempt.Try.attempt;
@@ -25,6 +24,7 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.handlers.models.CreateUserRequest;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
@@ -212,7 +212,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
         var roles = input.roles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
 
-        if (roles.contains(APP_ADMIN_ROLE_NAME) || !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION)) {
+        if (roles.contains(RoleName.APPLICATION_ADMIN) || !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION)) {
             throw new ForbiddenException();
         }
     }

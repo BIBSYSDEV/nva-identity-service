@@ -48,7 +48,7 @@ class IdentityServiceInitHandlerTest {
     private static final List<AccessRight> ACCESS_RIGHTS = List.of(MANAGE_DOI,
                                                                    MANAGE_PUBLISHING_REQUESTS);
     private static final RoleSource ROLE_SOURCE = () -> List.of(RoleDto.newBuilder()
-                                                                    .withRoleName(RoleName.PUBLISHING_CURATOR)
+                                                                    .withRoleName(RoleName.DOI_CURATOR)
                                                                     .withAccessRights(ACCESS_RIGHTS)
                                                                     .build());
 

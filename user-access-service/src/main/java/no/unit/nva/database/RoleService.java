@@ -69,7 +69,7 @@ public class RoleService extends DatabaseSubService {
 
     private static NotFoundException handleRoleNotFound(RoleDto queryObject) {
         logger.debug(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName());
-        return new NotFoundException(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName());
+        return new NotFoundException(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName().getValue());
     }
 
     private Optional<RoleDto> getRoleAsOptional(RoleDto queryObject) {

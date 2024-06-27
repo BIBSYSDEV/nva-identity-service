@@ -22,17 +22,6 @@ import no.unit.nva.useraccessservice.model.RoleName;
 
 public class DefaultRoleSource implements RoleSource {
 
-    protected static final String PUBLISHING_CURATOR_ROLE_NAME = "Publishing-Curator";
-    protected static final String DOI_CURATOR_ROLE_NAME = "Doi-Curator";
-    protected static final String NVI_CURATOR_ROLE_NAME = "Nvi-Curator";
-    protected static final String SUPPORT_CURATOR_ROLE_NAME = "Support-Curator";
-    protected static final String INSTITUTION_ADMIN_ROLE_NAME = "Institution-admin";
-    protected static final String INTERNAL_IMPORTER_ROLE_NAME = "Internal-importer";
-    protected static final String CURATOR_THESIS_ROLE_NAME = "Curator-thesis";
-    protected static final String CURATOR_THESIS_EMBARGO_ROLE_NAME = "Curator-thesis-embargo";
-    public static final String APP_ADMIN_ROLE_NAME = "App-admin";
-    protected static final String EDITOR_ROLE_NAME = "Editor";
-
     private static final RoleDto CREATOR_ROLE = RoleDto.newBuilder()
                                                     .withRoleName(RoleName.CREATOR)
                                                     .withAccessRights(List.of(MANAGE_OWN_RESOURCES))
@@ -83,7 +72,7 @@ public class DefaultRoleSource implements RoleSource {
                                                                    .build();
 
     private static final RoleDto APPLICATION_ADMIN_ROLE = RoleDto.newBuilder()
-                                                              .withRoleName(RoleName.SUPPORT_CURATOR)
+                                                              .withRoleName(RoleName.APPLICATION_ADMIN)
                                                               .withAccessRights(List.of(MANAGE_CUSTOMERS,
                                                                                         MANAGE_EXTERNAL_CLIENTS,
                                                                                         ACT_AS,

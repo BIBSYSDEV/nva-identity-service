@@ -15,7 +15,9 @@ public enum RoleName {
     EMBARGO_THESIS_CURATOR("Curator-thesis-embargo"),
     APPLICATION_ADMIN("App-admin"),
     EDITOR("Editor"),
-    CREATOR("Creator");
+    CREATOR("Creator"),
+    @Deprecated
+    DEPRECATED_NVI_CURATOR("Nvi-curator");
 
     private final String value;
 

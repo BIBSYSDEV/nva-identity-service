@@ -1,7 +1,8 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
+import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import java.net.URI;
@@ -25,6 +26,13 @@ public class HandlerTest extends LocalIdentityService {
     private static final String SPECIAL_CHARACTER = "@";
     private static final String ENCODED_SPECIAL_CHARACTER = "%40";
 
+    protected UserDto insertSampleUserToDatabase(String username, URI institution, RoleName roleName)
+        throws InvalidEntryInternalException, ConflictException {
+        UserDto sampleUser = createSampleUserAndInsertUserRoles(username, institution, roleName);
+        databaseService.addUser(sampleUser);
+        return sampleUser;
+    }
+
     protected UserDto insertSampleUserToDatabase(String username, URI institution)
         throws InvalidEntryInternalException, ConflictException {
         UserDto sampleUser = createSampleUserAndInsertUserRoles(username, institution);
@@ -44,12 +52,19 @@ public class HandlerTest extends LocalIdentityService {
         return sampleUser;
     }
 
+    protected UserDto createSampleUserAndInsertUserRoles(String username, URI institution, RoleName roleName)
+        throws InvalidEntryInternalException {
+        UserDto sampleUser = createSampleUser(username, institution, roleName);
+        sampleUser.getRoles().forEach((this::insertRole));
+        return sampleUser;
+    }
+
     protected UserDto createSampleUserAndInsertUserRoles() throws InvalidEntryInternalException {
         return createSampleUserAndInsertUserRoles(DEFAULT_USERNAME, DEFAULT_INSTITUTION);
     }
 
     protected UserDto createSampleUser(String username, URI institution) throws InvalidEntryInternalException {
-        RoleDto someRole = RoleDto.newBuilder().withRoleName(randomRoleName()).build();
+        RoleDto someRole = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.APPLICATION_ADMIN)).build();
         return UserDto.newBuilder()
             .withUsername(username)
             .withRoles(Collections.singletonList(someRole))
@@ -57,8 +72,13 @@ public class HandlerTest extends LocalIdentityService {
             .build();
     }
 
-    private RoleName randomRoleName() {
-        return RoleName.values()[randomInteger(RoleName.values().length)];
+    protected UserDto createSampleUser(String username, URI institution, RoleName roleName) throws InvalidEntryInternalException {
+        RoleDto someRole = RoleDto.newBuilder().withRoleName(roleName).build();
+        return UserDto.newBuilder()
+                   .withUsername(username)
+                   .withRoles(Collections.singletonList(someRole))
+                   .withInstitution(institution)
+                   .build();
     }
 
     protected ClientDto insertClientToDatabase(ClientDto clientDto)
@@ -77,7 +97,10 @@ public class HandlerTest extends LocalIdentityService {
 
     private void insertRole(RoleDto role) {
         try {
-            databaseService.addRole(role);
+            var existingRole = attempt(() -> databaseService.getRole(role)).toOptional();
+            if (existingRole.isEmpty()) {
+                databaseService.addRole(role);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

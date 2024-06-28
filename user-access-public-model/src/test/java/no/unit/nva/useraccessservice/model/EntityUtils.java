@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -30,7 +31,7 @@ public final class EntityUtils {
      */
     public static UserDto createUserWithRolesAndInstitutionAndViewingScope()
         throws InvalidEntryInternalException {
-        var user = createUserWithRoleWithoutInstitution().copy()
+        var user = createUserWithRoleWithoutInstitution(randomRoleName()).copy()
             .withInstitution(SOME_INSTITUTION)
             .withViewingScope(randomViewingScope())
             .withCristinId(randomUri())
@@ -48,9 +49,9 @@ public final class EntityUtils {
      * @return {@link UserDto}
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
-    public static UserDto createUserWithRoleWithoutInstitution()
+    public static UserDto createUserWithRoleWithoutInstitution(RoleName roleName)
         throws InvalidEntryInternalException {
-        RoleDto sampleRole = createRole(SOME_ROLENAME);
+        RoleDto sampleRole = createRole(roleName);
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)
             .withGivenName(SOME_GIVEN_NAME)
@@ -62,14 +63,14 @@ public final class EntityUtils {
     /**
      * Creates a sample role.
      *
-     * @param someRole The sample role role name.
+     * @param roleName The sample role role name.
      * @return the sample role
      * @throws InvalidEntryInternalException when the generated role is invalid.
      */
-    public static RoleDto createRole(String someRole) throws InvalidEntryInternalException {
+    public static RoleDto createRole(RoleName roleName) throws InvalidEntryInternalException {
         return
             RoleDto.newBuilder()
-                .withRoleName(someRole)
+                .withRoleName(roleName)
                 .withAccessRights(SAMPLE_ACCESS_RIGHTS)
                 .build();
     }

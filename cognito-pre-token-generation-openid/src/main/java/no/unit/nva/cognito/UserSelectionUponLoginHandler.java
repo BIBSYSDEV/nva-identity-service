@@ -43,6 +43,7 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
@@ -359,7 +360,7 @@ public class UserSelectionUponLoginHandler
         return Optional.empty();
     }
 
-    private Set<String> rolesForCustomer(List<UserDto> usersForPerson, CustomerDto customer) {
+    private Set<RoleName> rolesForCustomer(List<UserDto> usersForPerson, CustomerDto customer) {
         if (isNull(customer)) {
             return Collections.emptySet();
         }
@@ -378,7 +379,7 @@ public class UserSelectionUponLoginHandler
         UserDto currentUser,
         Set<CustomerDto> customers,
         Collection<String> accessRights,
-        Collection<String> roles,
+        Collection<RoleName> roles,
         String impersonatedBy) {
 
         final var updateUserAttributesRequest = createUpdateUserAttributesRequest(
@@ -401,7 +402,7 @@ public class UserSelectionUponLoginHandler
         UserDto currentUser,
         Set<CustomerDto> customers,
         Collection<String> accessRights,
-        Collection<String> roles,
+        Collection<RoleName> roles,
         String impersonatedBy) {
 
         Collection<AttributeType> userAttributes = updatedPersonAttributes(person,
@@ -426,7 +427,7 @@ public class UserSelectionUponLoginHandler
                                                               UserDto currentUser,
                                                               Set<CustomerDto> customers,
                                                               Collection<String> accessRights,
-                                                              Collection<String> roles,
+                                                              Collection<RoleName> roles,
                                                               String impersonatedBy) {
 
         var allowedCustomersString = createAllowedCustomersString(customers, feideDomain);
@@ -445,7 +446,7 @@ public class UserSelectionUponLoginHandler
         CustomerDto currentCustomer,
         UserDto currentUser,
         Collection<String> accessRights,
-        Collection<String> roles,
+        Collection<RoleName> roles,
         String allowedCustomersString,
         String impersonatedBy) {
 
@@ -453,7 +454,7 @@ public class UserSelectionUponLoginHandler
         claims.add(createAttribute(FIRST_NAME_CLAIM, person.getFirstname()));
         claims.add(createAttribute(LAST_NAME_CLAIM, person.getSurname()));
         claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, accessRights)));
-        claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles)));
+        claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, roles.stream().map(RoleName::getValue).toList())));
         claims.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString));
         claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
         claims.add(createAttribute(IMPERSONATED_BY_CLAIM, isNull(impersonatedBy) ? "" : impersonatedBy));

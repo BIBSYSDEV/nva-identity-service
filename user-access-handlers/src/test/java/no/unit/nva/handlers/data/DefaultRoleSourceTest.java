@@ -1,16 +1,5 @@
 package no.unit.nva.handlers.data;
 
-import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
-import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.DOI_CURATOR_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.INTERNAL_IMPORTER_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_EMBARGO_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.CURATOR_THESIS_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.EDITOR_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.INSTITUTION_ADMIN_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.NVI_CURATOR_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.PUBLISHING_CURATOR_ROLE_NAME;
-import static no.unit.nva.handlers.data.DefaultRoleSource.SUPPORT_CURATOR_ROLE_NAME;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DEGREE;
@@ -32,6 +21,7 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import java.util.List;
 import no.unit.nva.handlers.RoleSource;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import nva.commons.core.SingletonCollector;
 import org.junit.jupiter.api.Test;
 
@@ -45,14 +35,14 @@ public class DefaultRoleSourceTest {
 
     @Test
     void creatorsShouldHaveCorrectAccessRights() {
-        var creatorRole = getRoleByName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT);
+        var creatorRole = getRoleByName(RoleName.CREATOR);
 
         assertThat(creatorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_RESOURCES));
     }
 
     @Test
     void doiCuratorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(DOI_CURATOR_ROLE_NAME);
+        var curatorRole = getRoleByName(RoleName.DOI_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI,
                                                                      MANAGE_RESOURCES_STANDARD));
@@ -60,7 +50,7 @@ public class DefaultRoleSourceTest {
 
     @Test
     void supportCuratorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(SUPPORT_CURATOR_ROLE_NAME);
+        var curatorRole = getRoleByName(RoleName.SUPPORT_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(SUPPORT,
                                                                      MANAGE_RESOURCES_STANDARD));
@@ -68,7 +58,7 @@ public class DefaultRoleSourceTest {
 
     @Test
     void publishingCuratorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(PUBLISHING_CURATOR_ROLE_NAME);
+        var curatorRole = getRoleByName(RoleName.PUBLISHING_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_PUBLISHING_REQUESTS,
                                                                      MANAGE_RESOURCES_STANDARD));
@@ -76,7 +66,7 @@ public class DefaultRoleSourceTest {
 
     @Test
     void nviCuratorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(NVI_CURATOR_ROLE_NAME);
+        var curatorRole = getRoleByName(RoleName.NVI_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_NVI_CANDIDATES,
                                                                      MANAGE_RESOURCES_STANDARD));
@@ -84,21 +74,21 @@ public class DefaultRoleSourceTest {
 
     @Test
     void importCandidateCuratorsShouldHaveCorrectAccessRights() {
-        var importCandidateCuratorRole = getRoleByName(INTERNAL_IMPORTER_ROLE_NAME);
+        var importCandidateCuratorRole = getRoleByName(RoleName.INTERNAL_IMPORTER);
 
         assertThat(importCandidateCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_IMPORT));
     }
 
     @Test
     void thesisCuratorsShouldHaveCorrectAccessRights() {
-        var thesisCuratorRole = getRoleByName(CURATOR_THESIS_ROLE_NAME);
+        var thesisCuratorRole = getRoleByName(RoleName.THESIS_CURATOR);
 
         assertThat(thesisCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_RESOURCES_STANDARD, MANAGE_DEGREE));
     }
 
     @Test
     void thesisEmbargoCuratorsShouldHaveCorrectAccessRights() {
-        var thesisEmbargoCuratorRole = getRoleByName(CURATOR_THESIS_EMBARGO_ROLE_NAME);
+        var thesisEmbargoCuratorRole = getRoleByName(RoleName.EMBARGO_THESIS_CURATOR);
 
         assertThat(thesisEmbargoCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_RESOURCES_STANDARD,
                                                                                   MANAGE_DEGREE_EMBARGO));
@@ -106,14 +96,14 @@ public class DefaultRoleSourceTest {
 
     @Test
     void institutionAdminsShouldHaveCorrectAccessRights() {
-        var institutionAdminRole = getRoleByName(INSTITUTION_ADMIN_ROLE_NAME);
+        var institutionAdminRole = getRoleByName(RoleName.INSTITUTION_ADMIN);
 
         assertThat(institutionAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION));
     }
 
     @Test
     void appAdminsShouldHaveCorrectAccessRights() {
-        var appAdminRole = getRoleByName(APP_ADMIN_ROLE_NAME);
+        var appAdminRole = getRoleByName(RoleName.APPLICATION_ADMIN);
 
         assertThat(appAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_CUSTOMERS,
                                                                       MANAGE_EXTERNAL_CLIENTS,
@@ -124,7 +114,7 @@ public class DefaultRoleSourceTest {
 
     @Test
     void editorsShouldHaveCorrectAccessRights() {
-        var editorRole = getRoleByName(EDITOR_ROLE_NAME);
+        var editorRole = getRoleByName(RoleName.EDITOR);
 
         assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION,
                                                                     MANAGE_RESOURCES_ALL));
@@ -132,24 +122,24 @@ public class DefaultRoleSourceTest {
 
     @Test
     void shouldReturnExpectedNumberOfRoles() {
-        var expectedNumberOfRoles = List.of(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT,
-                                            NVI_CURATOR_ROLE_NAME,
-                                            DOI_CURATOR_ROLE_NAME,
-                                            SUPPORT_CURATOR_ROLE_NAME,
-                                            PUBLISHING_CURATOR_ROLE_NAME,
-                                            CURATOR_THESIS_ROLE_NAME,
-                                            CURATOR_THESIS_EMBARGO_ROLE_NAME,
-                                            INTERNAL_IMPORTER_ROLE_NAME,
-                                            INSTITUTION_ADMIN_ROLE_NAME,
-                                            APP_ADMIN_ROLE_NAME,
-                                            EDITOR_ROLE_NAME).size();
+        var expectedNumberOfRoles = List.of(RoleName.CREATOR,
+                                            RoleName.NVI_CURATOR,
+                                            RoleName.DOI_CURATOR,
+                                            RoleName.SUPPORT_CURATOR,
+                                            RoleName.PUBLISHING_CURATOR,
+                                            RoleName.THESIS_CURATOR,
+                                            RoleName.EMBARGO_THESIS_CURATOR,
+                                            RoleName.INTERNAL_IMPORTER,
+                                            RoleName.INSTITUTION_ADMIN,
+                                            RoleName.APPLICATION_ADMIN,
+                                            RoleName.EDITOR).size();
 
         assertThat(roleSource.roles(), hasSize(expectedNumberOfRoles));
     }
 
-    private RoleDto getRoleByName(String roleName) {
+    private RoleDto getRoleByName(RoleName roleName) {
         return roleSource.roles().stream()
-                   .filter(role -> roleName.equals(role.getRoleName()))
+                   .filter(role -> role.getRoleName().equals(roleName))
                    .collect(SingletonCollector.collect());
     }
 }

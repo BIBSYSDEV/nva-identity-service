@@ -1,6 +1,5 @@
 package no.unit.nva.useraccessservice.userceation.testing.cristin;
 
-import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
@@ -19,6 +18,7 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
@@ -161,7 +161,7 @@ public class AuthenticationScenarios {
 
     private void addCreatorRoleToIdentityService(IdentityService identityService)
         throws InvalidInputException, ConflictException {
-        var creatorRole = RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
+        var creatorRole = RoleDto.newBuilder().withRoleName(RoleName.CREATOR)
                               .build();
         identityService.addRole(creatorRole);
     }

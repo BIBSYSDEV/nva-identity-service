@@ -10,13 +10,13 @@ import java.util.Set;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
 
 public final class EntityUtils {
 
     public static final String SOME_USERNAME = "SomeUsername";
-    public static final String SOME_ROLENAME = "SomeRole";
 
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final String EMPTY_STRING = "";
@@ -59,7 +59,7 @@ public final class EntityUtils {
      */
     public static UserDto createUserWithRoleWithoutInstitution()
         throws InvalidEntryInternalException {
-        RoleDto sampleRole = createRole(SOME_ROLENAME);
+        RoleDto sampleRole = createRole(RoleName.CREATOR);
         return UserDto.newBuilder()
             .withUsername(SOME_USERNAME)
             .withGivenName(SOME_GIVEN_NAME)
@@ -71,14 +71,14 @@ public final class EntityUtils {
     /**
      * Creates a sample role.
      *
-     * @param someRole the role.
+     * @param roleName the role.
      * @return the role.
      * @throws InvalidEntryInternalException when generated role is invalid.
      */
-    public static RoleDto createRole(String someRole) throws InvalidEntryInternalException {
+    public static RoleDto createRole(RoleName roleName) throws InvalidEntryInternalException {
         return
             RoleDto.newBuilder()
-                .withRoleName(someRole)
+                .withRoleName(roleName)
                 .withAccessRights(SAMPLE_ACCESS_RIGHTS)
                 .build();
     }

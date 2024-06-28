@@ -1,7 +1,8 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.API_DOMAIN;
@@ -37,18 +38,16 @@ import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.database.IdentityService;
-import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
-import no.unit.nva.database.RoleService;
 import no.unit.nva.handlers.models.CreateUserRequest;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeSecretsManagerClient;
 import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
@@ -62,7 +61,6 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
 import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
@@ -522,37 +520,25 @@ class CreateUserHandlerTest extends HandlerTest {
     }
 
     private Set<RoleDto> randomRoles() {
-        var role = RoleDto.newBuilder().withRoleName(randomString()).build();
+        var role = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.APPLICATION_ADMIN)).build();
         addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
         return Set.of(role);
     }
 
     private Set<RoleDto> appAdminRole() {
-        var role = RoleDto.newBuilder().withRoleName(APP_ADMIN_ROLE_NAME).build();
+        var role = RoleDto.newBuilder().withRoleName(RoleName.APPLICATION_ADMIN).build();
         addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
         return Set.of(role);
     }
 
     private void addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(RoleDto role) {
+        var existingRole = attempt(() -> identityService.getRole(role)).toOptional();
         try {
-            identityService.addRole(role);
+            if (existingRole.isEmpty()) {
+                identityService.addRole(role);
+            }
         } catch (ConflictException | InvalidInputException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private IdentityServiceImpl databaseServiceWithSyncDelay() {
-        return new IdentityServiceImpl(localDynamo) {
-            private int counter = 0;
-
-            @Override
-            public RoleDto getRole(RoleDto queryObject) throws InvalidEntryInternalException, NotFoundException {
-                if (counter == 0) {
-                    counter++;
-                    throw new NotFoundException(RoleService.ROLE_NOT_FOUND_MESSAGE);
-                }
-                return super.getRole(queryObject);
-            }
-        };
     }
 }

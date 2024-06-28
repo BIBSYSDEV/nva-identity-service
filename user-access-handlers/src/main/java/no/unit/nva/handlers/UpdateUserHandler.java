@@ -1,6 +1,5 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.handlers.data.DefaultRoleSource.APP_ADMIN_ROLE_NAME;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -14,6 +13,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ForbiddenException;
@@ -80,7 +80,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
         var newRoles = input.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
         var existingRoles =
             databaseService.getUser(input).getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
-        return newRoles.contains(APP_ADMIN_ROLE_NAME) != existingRoles.contains(APP_ADMIN_ROLE_NAME);
+        return newRoles.contains(RoleName.APPLICATION_ADMIN) != existingRoles.contains(RoleName.APPLICATION_ADMIN);
     }
 
     private void validateRequest(UserDto input, RequestInfo requestInfo) throws InvalidInputException {

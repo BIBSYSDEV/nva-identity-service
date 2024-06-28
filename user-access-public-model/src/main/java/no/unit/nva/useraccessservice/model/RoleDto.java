@@ -1,6 +1,5 @@
 package no.unit.nva.useraccessservice.model;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
@@ -12,6 +11,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
@@ -31,7 +31,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
 
     @JsonAlias("name")
     @JsonProperty("rolename")
-    private String roleName;
+    private RoleName roleName;
     @JsonProperty("accessRights")
     private Set<AccessRight> accessRights;
 
@@ -64,12 +64,11 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
             .withRoleName(this.getRoleName());
     }
 
-    public String getRoleName() {
+    public RoleName getRoleName() {
         return roleName;
     }
 
-    public void setRoleName(String roleName) {
-
+    public void setRoleName(RoleName roleName) {
         this.roleName = roleName;
     }
 
@@ -84,7 +83,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     @Override
     @JsonIgnore
     public boolean isValid() {
-        return !(isNull(this.getRoleName()) || this.getRoleName().isBlank());
+        return Optional.ofNullable(getRoleName()).map(RoleName::getValue).filter(value -> !value.isBlank()).isPresent();
     }
 
     @Override
@@ -132,7 +131,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
             roleDto = new RoleDto();
         }
 
-        public Builder withRoleName(String roleName) {
+        public Builder withRoleName(RoleName roleName) {
             roleDto.setRoleName(roleName);
             if (roleDto.isInvalid()) {
                 throw new InvalidEntryInternalException(MISSING_ROLE_NAME_ERROR);
@@ -148,5 +147,11 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         public RoleDto build() {
             return roleDto;
         }
+    }
+
+    @JacocoGenerated
+    @JsonIgnore
+    public boolean isNotDeprecated() {
+        return !getRoleName().isDeprecated();
     }
 }

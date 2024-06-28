@@ -1,10 +1,10 @@
 package no.unit.nva.useraccessservice.model;
 
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.model.EntityUtils.SAMPLE_ACCESS_RIGHTS;
-import static no.unit.nva.useraccessservice.model.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.useraccessservice.model.EntityUtils.createRole;
 import static no.unit.nva.useraccessservice.model.RoleDto.MISSING_ROLE_NAME_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,12 +34,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.NullSource;
 
 class RoleDtoTest extends DtoTest {
 
-    public static final String SOME_ROLE_NAME = "someRoleName";
     protected static final String ROLE_TYPE_LITERAL = "Role";
 
     @Test
@@ -50,32 +48,25 @@ class RoleDtoTest extends DtoTest {
 
     @Test
     void builderShouldAllowSettingRoleName() throws InvalidEntryInternalException {
-        RoleDto role = RoleDto.newBuilder().withRoleName(SOME_ROLE_NAME).build();
-        assertThat(role.getRoleName(), is(equalTo(SOME_ROLE_NAME)));
+        RoleName roleName = randomRoleName();
+        RoleDto role = RoleDto.newBuilder().withRoleName(roleName).build();
+        assertThat(role.getRoleName(), is(equalTo(roleName)));
     }
 
     @Test
     void builderAllowsSettingAccessRights() throws InvalidEntryInternalException {
         RoleDto sampleRole = RoleDto.newBuilder()
-            .withRoleName(SOME_ROLE_NAME)
+            .withRoleName(randomRoleName())
             .withAccessRights(SAMPLE_ACCESS_RIGHTS)
             .build();
 
         assertThat(sampleRole.getAccessRights(), containsInAnyOrder(SAMPLE_ACCESS_RIGHTS.toArray(AccessRight[]::new)));
     }
 
-    @ParameterizedTest(name = "builder should throw exception when rolename is:\"{0}\"")
-    @NullAndEmptySource
-    @ValueSource(strings = {"", " "})
-    void builderShouldNotAllowEmptyRoleName(String rolename) {
-        Executable action = () -> RoleDto.newBuilder().withRoleName(rolename).build();
-        assertThrows(InvalidEntryInternalException.class, action);
-    }
-
     @Test
     void toStringReturnsStringContainingTheNameOfTheRole() {
-        RoleDto role = RoleDto.newBuilder().withRoleName(SOME_ROLE_NAME).build();
-        assertThat(role.toString(), containsString(role.getRoleName()));
+        RoleDto role = RoleDto.newBuilder().withRoleName(randomRoleName()).build();
+        assertThat(role.toString(), containsString(role.getRoleName().getValue()));
     }
 
     @Test
@@ -83,7 +74,7 @@ class RoleDtoTest extends DtoTest {
         throws InvalidEntryInternalException {
         RoleDto original = RoleDto
             .newBuilder()
-            .withRoleName(SOME_ROLE_NAME)
+            .withRoleName(randomRoleName())
             .withAccessRights(SAMPLE_ACCESS_RIGHTS)
             .build();
         RoleDto copy = original.copy().build();
@@ -92,21 +83,21 @@ class RoleDtoTest extends DtoTest {
         assertThat(copy, is(equalTo(original)));
     }
 
-    @ParameterizedTest(name = "isValid() returns false when username is \"{0}\"")
-    @NullAndEmptySource
-    void isValidReturnsFalseWhenUsernameIsNullOrBlank(String emptyOrNullRoleName)
+    @ParameterizedTest(name = "isValid() returns false when username is null")
+    @NullSource
+    void isValidReturnsFalseWhenUsernameIsNullOrBlank(String NullRoleName)
         throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         RoleDto roleDto = new RoleDto();
-        Method setter = RoleDto.class.getDeclaredMethod("setRoleName", String.class);
+        Method setter = RoleDto.class.getDeclaredMethod("setRoleName", RoleName.class);
         setter.setAccessible(true);
-        setter.invoke(roleDto, emptyOrNullRoleName);
+        setter.invoke(roleDto, NullRoleName);
         assertThat(roleDto.isValid(), is(equalTo(false)));
     }
 
     @DisplayName("RoleDto object contains type with value \"Role\"")
     @Test
     void roleDtoSerializedObjectContainsTypeWithValueRole() throws InvalidEntryInternalException, IOException {
-        RoleDto sampleRole = createRole(SOME_ROLENAME);
+        RoleDto sampleRole = createRole(randomRoleName());
         var jsonMap = toMap(sampleRole);
 
         String actualType = jsonMap.get(JSON_TYPE_ATTRIBUTE).toString();
@@ -117,7 +108,7 @@ class RoleDtoTest extends DtoTest {
     @Test
     @Disabled("We cannot do this when we are using Jackson-jr")
     void userDtoCannotBeCreatedWithoutTypeValue() throws InvalidEntryInternalException, IOException {
-        RoleDto sampleUser = createRole(SOME_ROLE_NAME);
+        RoleDto sampleUser = createRole(randomRoleName());
         var jsonMap = toMap(sampleUser);
         var objectWithoutType = jsonMap.remove(JSON_TYPE_ATTRIBUTE);
         String jsonStringWithoutType = JsonConfig.writeValueAsString(objectWithoutType);
@@ -131,7 +122,7 @@ class RoleDtoTest extends DtoTest {
     @Test
     void roleDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
         throws InvalidEntryInternalException, IOException, InvalidInputException, BadRequestException {
-        var someRole = createRole(SOME_ROLE_NAME);
+        var someRole = createRole(randomRoleName());
         var jsonMap = JsonConfig.mapFrom(someRole.toString());
         assertThatSerializedItemContainsType(jsonMap, ROLE_TYPE_LITERAL);
 
@@ -144,7 +135,7 @@ class RoleDtoTest extends DtoTest {
 
     @Test
     void exceptionWhenInvalidReturnsInvalidInputException() throws InvalidEntryInternalException {
-        RoleDto roleDto = createRole(SOME_ROLE_NAME);
+        RoleDto roleDto = createRole(randomRoleName());
         InvalidInputException exception = roleDto.exceptionWhenInvalid();
 
         assertThat(exception.getMessage(), StringContains.containsString(MISSING_ROLE_NAME_ERROR));
@@ -159,7 +150,7 @@ class RoleDtoTest extends DtoTest {
         }
         var randomAccessRights = Set.of(firstAccessRight, secondAccessRight);
         var sample = RoleDto.newBuilder()
-            .withRoleName(randomString())
+            .withRoleName(randomRoleName())
             .withAccessRights(randomAccessRights)
             .build();
 

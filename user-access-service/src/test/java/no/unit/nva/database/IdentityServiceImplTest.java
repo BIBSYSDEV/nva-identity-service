@@ -44,7 +44,7 @@ public class IdentityServiceImplTest extends LocalIdentityService {
         throws InvalidEntryInternalException {
 
         IdentityService serviceThrowingException = mockServiceThrowsExceptionWhenLoadingRole();
-        RoleDto sampleRole = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
+        RoleDto sampleRole = EntityUtils.createRole(EntityUtils.randomRoleName());
         Executable action = () -> serviceThrowingException.getRole(sampleRole);
         RuntimeException exception = assertThrows(RuntimeException.class, action);
 
@@ -54,7 +54,7 @@ public class IdentityServiceImplTest extends LocalIdentityService {
     @Test
     public void getRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
         TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
-        RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
+        RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.randomRoleName());
         attempt(() -> databaseService.getRole(nonExistingRole));
         assertThat(testAppender.getMessages(),
                    StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
@@ -62,7 +62,7 @@ public class IdentityServiceImplTest extends LocalIdentityService {
 
     @Test
     void shouldSucceedUpdatingAnExistingRole() throws InvalidInputException, ConflictException, NotFoundException {
-        var existingRole = EntityUtils.createRole(randomString(), MANAGE_DOI);
+        var existingRole = EntityUtils.createRole(EntityUtils.randomRoleName(), MANAGE_DOI);
         databaseService.addRole(existingRole);
 
         var updatedAccessRights = Set.of(MANAGE_DOI, MANAGE_PUBLISHING_REQUESTS);
@@ -77,7 +77,7 @@ public class IdentityServiceImplTest extends LocalIdentityService {
     @Test
     void updateRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
         TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
-        RoleDto role = EntityUtils.createRole(EntityUtils.SOME_ROLENAME);
+        RoleDto role = EntityUtils.createRole(EntityUtils.randomRoleName());
         assertThrows(NotFoundException.class, () -> databaseService.updateRole(role));
         assertThat(testAppender.getMessages(),
                    StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
@@ -87,7 +87,7 @@ public class IdentityServiceImplTest extends LocalIdentityService {
     void shouldListAllUsersWhenDatabseAlsoIncludesRoles() throws ConflictException, InvalidInputException {
         databaseService.addUser(EntityUtils.createUser());
         databaseService.addUser(EntityUtils.createUser());
-        databaseService.addRole(EntityUtils.createRole(randomString()));
+        databaseService.addRole(EntityUtils.createRole(EntityUtils.randomRoleName()));
 
         var users = databaseService.listAllUsers();
         assertThat(users, hasSize(2));

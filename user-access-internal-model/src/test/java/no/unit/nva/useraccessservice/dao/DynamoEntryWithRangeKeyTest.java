@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessservice.dao;
 
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -13,7 +14,7 @@ class DynamoEntryWithRangeKeyTest {
 
     @Test
     void setTypeHasNoEffect() throws InvalidEntryInternalException {
-        RoleDb roleDbEntry = RoleDb.newBuilder().withName("SomeName").build();
+        RoleDb roleDbEntry = RoleDb.newBuilder().withName(randomRoleName()).build();
         RoleDb copy = roleDbEntry.copy().build();
         copy.setType(SOME_TYPE);
 
@@ -22,7 +23,7 @@ class DynamoEntryWithRangeKeyTest {
 
     @Test
     void setPrimaryRangeKeyIsNotActivatedWhenRangeKeyHasBeenSet() throws InvalidEntryInternalException {
-        RoleDb roleDbEntry = RoleDb.newBuilder().withName("SomeName").build();
+        RoleDb roleDbEntry = RoleDb.newBuilder().withName(randomRoleName()).build();
         RoleDb copy = roleDbEntry.copy().build();
         copy.setPrimaryKeyRangeKey(SOME_INVALID_KEY);
         assertThat(copy, is(equalTo(roleDbEntry)));

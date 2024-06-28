@@ -1,6 +1,5 @@
 package no.unit.nva.useraccessservice.usercreation;
 
-import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.Collections;
@@ -9,6 +8,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -17,7 +17,7 @@ import nva.commons.core.paths.UriWrapper;
 
 public class UserEntriesCreatorForPerson {
     public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
-        RoleDto.newBuilder().withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT).build();
+        RoleDto.newBuilder().withRoleName(RoleName.CREATOR).build();
     private static final String AT = "@";
     private final IdentityService identityService;
 

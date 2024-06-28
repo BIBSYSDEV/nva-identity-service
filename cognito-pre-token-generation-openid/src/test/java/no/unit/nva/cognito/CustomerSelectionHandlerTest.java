@@ -1,5 +1,6 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
@@ -58,7 +59,6 @@ import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequest;
@@ -136,7 +136,7 @@ class CustomerSelectionHandlerTest {
         var response = sendRequest(input, Void.class);
         var updatedRoles = extractAttributeUpdate(ROLES_CLAIM);
         var expectedRoles = role.getRoleName();
-        assertThat(updatedRoles, is(equalTo(expectedRoles)));
+        assertThat(updatedRoles, is(equalTo(expectedRoles.getValue())));
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
     
@@ -232,7 +232,7 @@ class CustomerSelectionHandlerTest {
 
     private static RoleDb randomRoleWithAccessRight(AccessRight accessRight) {
         return RoleDb.newBuilder()
-                   .withName(randomString())
+                   .withName(randomRoleName())
                    .withAccessRights(Set.of(accessRight))
                    .build();
     }

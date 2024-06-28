@@ -1,8 +1,9 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.handlers.HandlerTest.DEFAULT_INSTITUTION;
 import static no.unit.nva.handlers.ListByInstitutionHandler.INSTITUTION_ID_QUERY_PARAMETER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,18 +26,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import no.unit.nva.RandomUserDataGenerator;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.testutils.RandomDataGenerator;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.UserList;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
@@ -83,7 +84,10 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     void handleRequestReturnsListOfUsersGivenAnInstitutionAndSingleRole()
         throws IOException, ConflictException, InvalidEntryInternalException {
 
-        var expectedUser = insertTwoUsersOfSameInstitution().getUsers().get(0);
+        var name = randomRoleName();
+        insertUserOfSameInstitution(DEFAULT_USERNAME, name);
+        var expectedUser =
+            insertUserOfSameInstitution(SOME_OTHER_USERNAME, randomRoleNameButNot(name)).getUsers().get(0);
         var roleName = ((RoleDto) expectedUser.getRoles().toArray()[0]).getRoleName();
         var validRequest = createListWithFilterRequest(DEFAULT_INSTITUTION, List.of(roleName));
 
@@ -98,9 +102,9 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     void handleRequestReturnsListOfUsersGivenAnInstitutionAndMultipleRoles()
         throws IOException, ConflictException, InvalidEntryInternalException {
 
-        var user1 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION);
-        var user2 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION);
-        var user3 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION);
+        var user1 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION, RoleName.SUPPORT_CURATOR);
+        var user2 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION, RoleName.SUPPORT_CURATOR);
+        var user3 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION, RoleName.DOI_CURATOR);
 
         var rolesOfFirstTwoUsers = List.of(
             user1.getRoles().stream().findFirst().get().getRoleName(),
@@ -222,6 +226,13 @@ class ListByInstitutionHandlerTest extends HandlerTest {
         assertThat(expectedUsers.getUsers(), containsInAnyOrder(actualUsers.getUsers().toArray()));
     }
 
+    private UserList insertUserOfSameInstitution(String username, RoleName roleName)
+        throws InvalidEntryInternalException, ConflictException {
+        UserList users = new UserList();
+        users.getUsers().add(insertSampleUserToDatabase(username, DEFAULT_INSTITUTION, roleName));
+        return users;
+    }
+
     private UserList insertTwoUsersOfSameInstitution()
         throws InvalidEntryInternalException, ConflictException {
         UserList users = new UserList();
@@ -237,12 +248,12 @@ class ListByInstitutionHandlerTest extends HandlerTest {
                    .build();
     }
 
-    private InputStream createListWithFilterRequest(URI institutionId, List<String> roles)
+    private InputStream createListWithFilterRequest(URI institutionId, List<RoleName> roles)
         throws JsonProcessingException {
         var queryParams = Map.of(
             INSTITUTION_ID_QUERY_PARAMETER, institutionId.toString()
             );
-        var multiValueParams = Map.of(ROLE, roles);
+        var multiValueParams = Map.of(ROLE, roles.stream().map(RoleName::getValue).toList());
 
         return new HandlerRequestBuilder<>(dtoObjectMapper)
                    .withQueryParameters(queryParams)

@@ -1,6 +1,5 @@
 package no.unit.nva.handlers.data;
 
-import static no.unit.nva.database.IdentityService.Constants.ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DEGREE;
@@ -19,71 +18,61 @@ import static nva.commons.apigateway.AccessRight.SUPPORT;
 import java.util.List;
 import no.unit.nva.handlers.RoleSource;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 
 public class DefaultRoleSource implements RoleSource {
 
-    protected static final String PUBLISHING_CURATOR_ROLE_NAME = "Publishing-Curator";
-    protected static final String DOI_CURATOR_ROLE_NAME = "Doi-Curator";
-    protected static final String NVI_CURATOR_ROLE_NAME = "Nvi-Curator";
-    protected static final String SUPPORT_CURATOR_ROLE_NAME = "Support-Curator";
-    protected static final String INSTITUTION_ADMIN_ROLE_NAME = "Institution-admin";
-    protected static final String INTERNAL_IMPORTER_ROLE_NAME = "Internal-importer";
-    protected static final String CURATOR_THESIS_ROLE_NAME = "Curator-thesis";
-    protected static final String CURATOR_THESIS_EMBARGO_ROLE_NAME = "Curator-thesis-embargo";
-    public static final String APP_ADMIN_ROLE_NAME = "App-admin";
-    protected static final String EDITOR_ROLE_NAME = "Editor";
-
     private static final RoleDto CREATOR_ROLE = RoleDto.newBuilder()
-                                                    .withRoleName(ROLE_ACQUIRED_BY_ALL_PEOPLE_WITH_ACTIVE_EMPLOYMENT)
+                                                    .withRoleName(RoleName.CREATOR)
                                                     .withAccessRights(List.of(MANAGE_OWN_RESOURCES))
                                                     .build();
 
     public static final RoleDto PUBLISHING_CURATOR_ROLE = RoleDto.newBuilder()
-                                                    .withRoleName(PUBLISHING_CURATOR_ROLE_NAME)
+                                                    .withRoleName(RoleName.PUBLISHING_CURATOR)
                                                     .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
                                                                               MANAGE_PUBLISHING_REQUESTS))
                                                     .build();
     public static final RoleDto NVI_CURATOR_ROLE = RoleDto.newBuilder()
-                                                   .withRoleName(NVI_CURATOR_ROLE_NAME)
+                                                   .withRoleName(RoleName.NVI_CURATOR)
                                                    .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
                                                                              MANAGE_NVI_CANDIDATES))
                                                    .build();
     public static final RoleDto DOI_CURATOR_ROLE = RoleDto.newBuilder()
-                                                   .withRoleName(DOI_CURATOR_ROLE_NAME)
+                                                   .withRoleName(RoleName.DOI_CURATOR)
                                                    .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
                                                                              MANAGE_DOI))
                                                    .build();
     public static final RoleDto SUPPORT_CURATOR_ROLE = RoleDto.newBuilder()
-                                                   .withRoleName(SUPPORT_CURATOR_ROLE_NAME)
+                                                   .withRoleName(RoleName.SUPPORT_CURATOR)
                                                    .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
                                                                              SUPPORT))
                                                    .build();
     private static final RoleDto INSTITUTION_ADMIN_ROLE = RoleDto.newBuilder()
-                                                              .withRoleName(INSTITUTION_ADMIN_ROLE_NAME)
+                                                              .withRoleName(RoleName.INSTITUTION_ADMIN)
                                                               .withAccessRights(List.of(MANAGE_OWN_AFFILIATION))
                                                               .build();
 
     private static final RoleDto INTERNAL_IMPORTER = RoleDto.newBuilder()
-                                                                     .withRoleName(INTERNAL_IMPORTER_ROLE_NAME)
+                                                                     .withRoleName(RoleName.INTERNAL_IMPORTER)
                                                                      .withAccessRights(
                                                                          List.of(MANAGE_IMPORT))
                                                                      .build();
 
     private static final RoleDto CURATOR_THESIS_ROLE = RoleDto.newBuilder()
-                                                           .withRoleName(CURATOR_THESIS_ROLE_NAME)
+                                                           .withRoleName(RoleName.THESIS_CURATOR)
                                                            .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
                                                                                      MANAGE_DEGREE))
                                                            .build();
 
     private static final RoleDto CURATOR_THESIS_EMBARGO_ROLE = RoleDto.newBuilder()
-                                                                   .withRoleName(CURATOR_THESIS_EMBARGO_ROLE_NAME)
+                                                                   .withRoleName(RoleName.EMBARGO_THESIS_CURATOR)
                                                                    .withAccessRights(
                                                                        List.of(MANAGE_RESOURCES_STANDARD,
                                                                                MANAGE_DEGREE_EMBARGO))
                                                                    .build();
 
     private static final RoleDto APPLICATION_ADMIN_ROLE = RoleDto.newBuilder()
-                                                              .withRoleName(APP_ADMIN_ROLE_NAME)
+                                                              .withRoleName(RoleName.APPLICATION_ADMIN)
                                                               .withAccessRights(List.of(MANAGE_CUSTOMERS,
                                                                                         MANAGE_EXTERNAL_CLIENTS,
                                                                                         ACT_AS,
@@ -92,7 +81,7 @@ public class DefaultRoleSource implements RoleSource {
                                                               .build();
 
     private static final RoleDto EDITOR_ROLE = RoleDto.newBuilder()
-                                                   .withRoleName(EDITOR_ROLE_NAME)
+                                                   .withRoleName(RoleName.EDITOR)
                                                    .withAccessRights(List.of(MANAGE_OWN_AFFILIATION,
                                                                              MANAGE_RESOURCES_ALL))
                                                    .build();

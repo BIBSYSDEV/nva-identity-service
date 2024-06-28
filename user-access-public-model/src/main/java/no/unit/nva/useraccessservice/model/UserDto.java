@@ -179,6 +179,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public Stream<String> generateRoleClaims() {
         return roles.stream()
                    .map(RoleDto::getRoleName)
+                   .map(RoleName::getValue)
                    .map(rolename -> rolename + AT + institution.toString());
     }
     

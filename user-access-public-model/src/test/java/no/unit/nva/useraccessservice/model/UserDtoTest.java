@@ -1,11 +1,12 @@
 package no.unit.nva.useraccessservice.model;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static no.unit.nva.useraccessservice.model.EntityUtils.SOME_ROLENAME;
 import static no.unit.nva.useraccessservice.model.EntityUtils.SOME_USERNAME;
 import static no.unit.nva.useraccessservice.model.EntityUtils.createRole;
 import static no.unit.nva.useraccessservice.model.EntityUtils.createUserWithRoleWithoutInstitution;
@@ -52,7 +53,6 @@ class UserDtoTest extends DtoTest {
     public static final Set<RoleDto> sampleRoles = createSampleRoles();
     
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
-    public static final String SOME_OTHER_ROLENAME = randomString();
     public static final int ROLE_PART = 0;
     protected static final String USER_TYPE_LITERAL = "User";
     private static final AccessRight FIRST_ACCESS_RIGHT = AccessRight.MANAGE_DOI;
@@ -109,7 +109,7 @@ class UserDtoTest extends DtoTest {
     
     @Test
     void getAccessRightsReturnsAccessRightsWithoutDuplicates() {
-        final UserDto user = createUserWithRoleWithoutInstitution();
+        final UserDto user = createUserWithRoleWithoutInstitution(sampleRoles.iterator().next().getRoleName());
         final var expectedAccessRights = new HashSet<>(user.getAccessRights());
         List<RoleDto> newRoles = duplicateRoles(user);
         UserDto newUser = user.copy().withRoles(newRoles).build();
@@ -120,9 +120,10 @@ class UserDtoTest extends DtoTest {
     
     @Test
     void getAccessRightsReturnsAllAccessRightsContainedInTheUsersRoles() {
-        
-        RoleDto firstRole = sampleRole(FIRST_ACCESS_RIGHT, SOME_ROLENAME);
-        RoleDto secondRole = sampleRole(SECOND_ACCESS_RIGHT, SOME_OTHER_ROLENAME);
+
+        RoleName someRolename = randomRoleName();
+        RoleDto firstRole = sampleRole(FIRST_ACCESS_RIGHT, someRolename);
+        RoleDto secondRole = sampleRole(SECOND_ACCESS_RIGHT, randomRoleNameButNot(someRolename));
         
         List<RoleDto> roles = List.of(firstRole, secondRole);
         UserDto user = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(roles).build();
@@ -141,7 +142,7 @@ class UserDtoTest extends DtoTest {
     
     @Test
     void builderReturnsUserDtoWhenInstitutionIsEmpty() {
-        UserDto user = createUserWithRoleWithoutInstitution();
+        UserDto user = createUserWithRoleWithoutInstitution(sampleRoles.iterator().next().getRoleName());
         assertThat(user.getUsername(), is(equalTo(SOME_USERNAME)));
         assertThat(user.getRoles(), containsInAnyOrder(sampleRoles.toArray(RoleDto[]::new)));
         assertThat(user.getInstitution(), is(equalTo(null)));
@@ -226,6 +227,7 @@ class UserDtoTest extends DtoTest {
         var roleClaims = user.generateRoleClaims().collect(Collectors.toSet());
         var expectedRolenames = user.getRoles().stream()
                                     .map(RoleDto::getRoleName)
+                                    .map(RoleName::getValue)
                                     .collect(Collectors.toSet());
         assertThatAllClaimContainTheInstitutionId(user, roleClaims);
         assertThatThereIsARoleClaimForEachRole(user, expectedRolenames);
@@ -241,13 +243,13 @@ class UserDtoTest extends DtoTest {
     
     @Test
     void shouldReturnViewingScopeWithEmptySetsWhenScopeIsNotExplicitlyDefinedAndUserIsNotConnectedToSomeTopLevelOrg() {
-        var user = createUserWithRoleWithoutInstitution();
+        var user = createUserWithRoleWithoutInstitution(sampleRoles.iterator().next().getRoleName());
         var viewingScope = user.getViewingScope();
         assertThat(viewingScope, is(notNullValue()));
     }
     
     private UserDto createUserWithRoleAndInstitutionWithoutViewingScope() {
-        var user = createUserWithRoleWithoutInstitution()
+        var user = createUserWithRoleWithoutInstitution(sampleRoles.iterator().next().getRoleName())
                        .copy()
                        .withInstitutionCristinId(randomCristinOrgId())
                        .withInstitution(randomUri())
@@ -262,7 +264,7 @@ class UserDtoTest extends DtoTest {
     
     private static Set<RoleDto> createSampleRoles() {
         try {
-            return Collections.singleton(createRole(SOME_ROLENAME));
+            return Collections.singleton(createRole(randomRoleName()));
         } catch (InvalidEntryInternalException e) {
             throw new RuntimeException(e);
         }
@@ -281,7 +283,7 @@ class UserDtoTest extends DtoTest {
         }
     }
     
-    private RoleDto sampleRole(AccessRight accessRight, String someRolename)
+    private RoleDto sampleRole(AccessRight accessRight, RoleName someRolename)
         throws InvalidEntryInternalException {
         var accessRights = Collections.singleton(accessRight);
         return RoleDto.newBuilder()
@@ -292,7 +294,7 @@ class UserDtoTest extends DtoTest {
     
     private List<RoleDto> duplicateRoles(UserDto user) {
         List<RoleDto> duplicateRoles = user.getRoles().stream()
-                                           .map(attempt(r -> r.copy().withRoleName(r.getRoleName() + "_copy").build()))
+                                           .map(attempt(r -> r.copy().withRoleName(r.getRoleName()).build()))
                                            .flatMap(Try::stream)
                                            .collect(Collectors.toList());
         ArrayList<RoleDto> newRoles = new ArrayList<>(user.getRoles());

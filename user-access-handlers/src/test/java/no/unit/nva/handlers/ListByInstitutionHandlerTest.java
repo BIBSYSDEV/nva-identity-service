@@ -102,9 +102,9 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     void handleRequestReturnsListOfUsersGivenAnInstitutionAndMultipleRoles()
         throws IOException, ConflictException, InvalidEntryInternalException {
 
-        var user1 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION);
-        var user2 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION);
-        var user3 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION);
+        var user1 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION, RoleName.SUPPORT_CURATOR);
+        var user2 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION, RoleName.SUPPORT_CURATOR);
+        var user3 = insertSampleUserToDatabase(randomString(), DEFAULT_INSTITUTION, RoleName.DOI_CURATOR);
 
         var rolesOfFirstTwoUsers = List.of(
             user1.getRoles().stream().findFirst().get().getRoleName(),

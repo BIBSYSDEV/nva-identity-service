@@ -564,7 +564,7 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldNotStoreAccessRightsInCognitoWhenUserHasSeveralActiveAffiliationsAndNoActiveCustomer(
         LoginEventType loginEventType)
-        throws NotFoundException, InvalidInputException {
+        throws NotFoundException, InvalidInputException, ConflictException {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutionsWithoutFeideDomain().nin();
         var role = persistRandomRole();
         createUsersWithRolesForPerson(person, role);
@@ -579,7 +579,7 @@ class UserSelectionUponLoginHandlerTest {
 
     @Test
     void shouldOnlyStoreAccessRightsInCognitoOfCurrentCustomerWhenUserHasSeveralActiveAffiliationsAndActiveCustomer()
-        throws NotFoundException, InvalidInputException {
+        throws NotFoundException, InvalidInputException, ConflictException {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var role = persistRandomRole();
         createUsersWithRolesForPerson(person, role);
@@ -619,7 +619,7 @@ class UserSelectionUponLoginHandlerTest {
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
     void shouldStoreAccessRightsToDatabaseWhenUserHasSeveralActiveAffiliations(LoginEventType loginEventType)
-        throws InvalidInputException, NotFoundException {
+        throws InvalidInputException, NotFoundException, ConflictException {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var role = persistRandomRole();
         var users = createUsersWithRolesForPerson(person, role);
@@ -797,7 +797,7 @@ class UserSelectionUponLoginHandlerTest {
                           .withRoleName(RoleName.APPLICATION_ADMIN)
                           .withAccessRights(List.of(AccessRight.ACT_AS))
                           .build();
-        persistRole(newRole);
+        persistRoleIfNotExist(newRole);
         createUserWithRolesForPerson(adminNin, newRole);
 
         var event = feideLoginWithImpersonation(adminName, adminNin, otherPersonNin);
@@ -835,7 +835,7 @@ class UserSelectionUponLoginHandlerTest {
                           .withRoleName(RoleName.APPLICATION_ADMIN)
                           .withAccessRights(List.of(AccessRight.ACT_AS))
                           .build();
-        persistRole(newRole);
+        persistRoleIfNotExist(newRole);
         createUserWithRolesForPerson(adminNin, newRole);
 
         var event = feideLoginWithImpersonation(adminName, adminNin, otherPersonNin);
@@ -1004,7 +1004,7 @@ class UserSelectionUponLoginHandlerTest {
     private RoleDto persistRoleToDatabase(Collection<AccessRight> accessRights)
         throws InvalidInputException, ConflictException, NotFoundException {
         var roleDto = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.CREATOR)).withAccessRights(accessRights).build();
-        persistRole(roleDto);
+        persistRoleIfNotExist(roleDto);
         return identityService.getRole(roleDto);
     }
 
@@ -1078,23 +1078,19 @@ class UserSelectionUponLoginHandlerTest {
         return identityService.getUser(user);
     }
 
-    private RoleDto persistRandomRole() {
+    private RoleDto persistRandomRole() throws InvalidInputException, ConflictException {
         var newRole = RoleDto.newBuilder()
                           .withRoleName(randomRoleName())
                           .withAccessRights(randomAccessRights())
                           .build();
-        var existingRole = attempt(() -> identityService.getRole(newRole)).toOptional();
-        if (existingRole.isPresent()) {
-            attempt(() -> persistRole(newRole.copy().withRoleName(randomRoleNameButNot(newRole.getRoleName())).build())).orElseThrow();
-        } else {
-            attempt(() -> persistRole(newRole)).orElseThrow();
-        }
+        persistRoleIfNotExist(newRole.copy().withRoleName(newRole.getRoleName()).build());
         return attempt(() -> identityService.getRole(newRole)).orElseThrow();
     }
 
-    private Void persistRole(RoleDto newRole) throws ConflictException, InvalidInputException {
-        identityService.addRole(newRole);
-        return null;
+    private void persistRoleIfNotExist(RoleDto newRole) throws ConflictException, InvalidInputException {
+        if (attempt(() -> identityService.getRole(newRole)).toOptional().isEmpty()) {
+            identityService.addRole(newRole);
+        }
     }
 
     private void updateRole(RoleDto updatedRole) throws InvalidInputException, NotFoundException {

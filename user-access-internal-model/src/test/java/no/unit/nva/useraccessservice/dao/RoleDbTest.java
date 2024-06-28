@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.dao;
 
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -20,6 +21,7 @@ import java.util.Set;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleName;
 import nva.commons.apigateway.AccessRight;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
@@ -62,7 +64,7 @@ public class RoleDbTest {
     @Test
     void equalsReturnsFalseWhenNameIsDifferent() throws InvalidEntryInternalException {
         RoleDb left = sampleRole;
-        RoleDb right = sampleRole.copy().withName(RoleName.PUBLISHING_CURATOR).build();
+        RoleDb right = sampleRole.copy().withName(randomRoleNameButNot(sampleRole.getName())).build();
         assertThat(left, is(not(equalTo(right))));
     }
 

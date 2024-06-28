@@ -22,7 +22,6 @@ public enum RoleName {
     private final String value;
 
     RoleName(String value) {
-
         this.value = value;
     }
 
@@ -36,5 +35,10 @@ public enum RoleName {
     @JsonValue
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return getValue();
     }
 }

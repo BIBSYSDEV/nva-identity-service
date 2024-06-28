@@ -21,7 +21,9 @@ public enum RoleName {
     @Deprecated
     DEPRECATED_NVI_CURATOR("Nvi-curator"),
     @Deprecated
-    DEPRECATED_CURATOR("Curator");
+    DEPRECATED_CURATOR("Curator"),
+    @Deprecated
+    DEPRECATED_INTERNAL_IMPORT("Curator-Import-candidate");
 
     private final String value;
 
@@ -49,6 +51,8 @@ public enum RoleName {
     @JacocoGenerated
     @JsonIgnore
     public boolean isDeprecated() {
-        return this.equals(DEPRECATED_NVI_CURATOR) || this.equals(DEPRECATED_CURATOR);
+        return this.equals(DEPRECATED_NVI_CURATOR)
+               || this.equals(DEPRECATED_CURATOR)
+               || this.equals(DEPRECATED_INTERNAL_IMPORT);
     }
 }

@@ -48,6 +48,7 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -362,7 +363,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
 
     private static RoleDto getRandomRole() {
-        return RoleDto.newBuilder().withRoleName(randomRoleName()).build();
+        return RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.APPLICATION_ADMIN)).build();
     }
 
     private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {

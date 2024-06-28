@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.dao;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
 import java.net.URI;
@@ -56,9 +57,5 @@ public final class EntityUtils {
             .withRoleName(roleName)
             .withAccessRights(SAMPLE_ACCESS_RIGHTS)
             .build();
-    }
-
-    private static RoleName randomRoleName() {
-        return RoleName.values()[randomInteger(RoleName.values().length)];
     }
 }

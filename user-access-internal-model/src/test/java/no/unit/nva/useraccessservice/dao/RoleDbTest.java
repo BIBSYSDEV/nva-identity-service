@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessservice.dao;
 
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -122,15 +123,6 @@ public class RoleDbTest {
         assertThat(sampleRole.getPrimaryKeyHashKey(), containsString(RoleDb.TYPE_VALUE));
     }
 
-//    @ParameterizedTest(name = "setPrimaryHashKey throws exception when input is:\"{0}\"")
-//    @NullAndEmptySource
-//    @ValueSource(strings = {" ", "\t", "\n", "\r"})
-//    void setPrimaryHashKeyThrowsExceptionWhenInputIsBlankOrNullString(String blankString) {
-//        Executable action = () -> RoleDb.newBuilder().withName(blankString).build();
-//        InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
-//        assertThat(exception.getMessage(), containsString(EMPTY_ROLE_NAME_ERROR));
-//    }
-
     @Test
     void setPrimaryRangeKeyHasNoEffect() throws InvalidEntryInternalException {
         RoleDb originalRole = RoleDb.newBuilder().withName(randomRoleName()).build();
@@ -169,9 +161,5 @@ public class RoleDbTest {
             .withName(RoleName.fromValue(roleNameValue))
             .withAccessRights(accessRights)
             .build();
-    }
-
-    private RoleName randomRoleName() {
-        return RoleName.values()[randomInteger(RoleName.values().length)];
     }
 }

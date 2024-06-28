@@ -525,10 +525,6 @@ class CreateUserHandlerTest extends HandlerTest {
         return Set.of(role);
     }
 
-    private RoleName randomRoleName() {
-        return RoleName.values()[randomInteger(RoleName.values().length)];
-    }
-
     private Set<RoleDto> appAdminRole() {
         var role = RoleDto.newBuilder().withRoleName(RoleName.APPLICATION_ADMIN).build();
         addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);

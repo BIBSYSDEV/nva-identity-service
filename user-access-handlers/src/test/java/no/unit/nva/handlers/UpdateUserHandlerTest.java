@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
@@ -362,10 +363,6 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
     private static RoleDto getRandomRole() {
         return RoleDto.newBuilder().withRoleName(randomRoleName()).build();
-    }
-
-    private static RoleName randomRoleName() {
-        return RoleName.values()[randomInteger(RoleName.values().length)];
     }
 
     private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {

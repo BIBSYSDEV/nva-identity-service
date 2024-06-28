@@ -148,4 +148,10 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
             return roleDto;
         }
     }
+
+    @JacocoGenerated
+    @JsonIgnore
+    public boolean isNotDeprecated() {
+        return !getRoleName().isDeprecated();
+    }
 }

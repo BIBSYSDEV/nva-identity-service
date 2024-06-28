@@ -1,13 +1,12 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.handlers.data.DefaultRoleSource.NVI_CURATOR_ROLE;
-import static no.unit.nva.useraccessservice.model.RoleName.DEPRECATED_NVI_CURATOR;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
-import java.util.Set;
+import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
@@ -35,9 +34,8 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     @Override
     protected Void processInput(Void input, RequestInfo requestInfo, Context context) {
         identityService.listAllUsers().stream()
-            .filter(this::userIsLegacyNviCurator)
-            .forEach(this::attemptUpdateRolesForUser);
-
+            .filter(this::hasDeprecatedRole)
+            .forEach(this::removeDeprecatedRoles);
         return null;
     }
 
@@ -46,26 +44,19 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
         return HttpURLConnection.HTTP_OK;
     }
     
-    private boolean userIsLegacyNviCurator(UserDto user) {
-        return user.getRoles().stream().map(RoleDto::getRoleName).anyMatch(DEPRECATED_NVI_CURATOR::equals);
+    private boolean hasDeprecatedRole(UserDto user) {
+        return user.getRoles().stream().map(RoleDto::getRoleName).anyMatch(RoleName::isDeprecated);
     }
 
-    private UserDto attemptUpdateRolesForUser(UserDto user) {
-        return attempt(() -> updateRolesForUser(user)).orElseThrow();
+    private void removeDeprecatedRoles(UserDto user) {
+        attempt(() -> updateRolesForUser(user)).orElseThrow();
+        logger.info("User roles has been updated: {}", user.getUsername());
     }
 
     private UserDto updateRolesForUser(UserDto user) throws NotFoundException {
-        logger.info("Updating nvi roles for {}", user.getUsername());
-        var roles = user.getRoles();
-        user.setRoles(updateRoleSet(roles));
-
+        var rolesToKeep = user.getRoles().stream().filter(RoleDto::isNotDeprecated).collect(Collectors.toSet());
+        user.setRoles(rolesToKeep);
         identityService.updateUser(user);
         return user;
-    }
-
-    private Set<RoleDto> updateRoleSet(Set<RoleDto> roleSet) {
-        roleSet.add(NVI_CURATOR_ROLE);
-        roleSet.removeIf(role -> DEPRECATED_NVI_CURATOR.equals(role.getRoleName()));
-        return roleSet;
     }
 }

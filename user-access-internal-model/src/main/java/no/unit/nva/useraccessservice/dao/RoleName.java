@@ -1,7 +1,9 @@
 package no.unit.nva.useraccessservice.dao;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
+import nva.commons.core.JacocoGenerated;
 
 public enum RoleName {
 
@@ -15,7 +17,11 @@ public enum RoleName {
     EMBARGO_THESIS_CURATOR("Curator-thesis-embargo"),
     APPLICATION_ADMIN("App-admin"),
     EDITOR("Editor"),
-    CREATOR("Creator");
+    CREATOR("Creator"),
+    @Deprecated
+    DEPRECATED_NVI_CURATOR("Nvi-curator"),
+    @Deprecated
+    DEPRECATED_CURATOR("Curator");
 
     private final String value;
 
@@ -39,5 +45,11 @@ public enum RoleName {
     @Override
     public String toString() {
         return value;
+    }
+
+    @JacocoGenerated
+    @JsonIgnore
+    public boolean isDeprecated() {
+        return this.equals(DEPRECATED_NVI_CURATOR) || this.equals(DEPRECATED_CURATOR);
     }
 }

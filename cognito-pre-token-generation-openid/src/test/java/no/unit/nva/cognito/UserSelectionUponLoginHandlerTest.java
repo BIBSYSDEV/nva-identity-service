@@ -97,7 +97,6 @@ import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -1004,9 +1003,9 @@ class UserSelectionUponLoginHandlerTest {
 
     private RoleDto persistRoleToDatabase(Collection<AccessRight> accessRights)
         throws InvalidInputException, ConflictException, NotFoundException {
-        var role = RoleDto.newBuilder().withRoleName(randomRoleName()).withAccessRights(accessRights).build();
-        persistRole(role);
-        return identityService.getRole(role);
+        var roleDto = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.CREATOR)).withAccessRights(accessRights).build();
+        persistRole(roleDto);
+        return identityService.getRole(roleDto);
     }
 
     private void addAccessRightToExistingRole(RoleDto role, AccessRight accessRight)

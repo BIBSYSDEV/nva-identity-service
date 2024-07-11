@@ -46,9 +46,7 @@ public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest
     protected CustomerDto processInput(CreateCustomerRequest input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
-        if (!userIsAuthorized(requestInfo)) {
-            throw new ForbiddenException();
-        }
+
 
         return customerService.createCustomer(input.toCustomerDto());
     }
@@ -61,5 +59,14 @@ public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest
     @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
+    }
+
+    @Override
+    protected void validateRequest(CreateCustomerRequest createCustomerRequest, RequestInfo requestInfo,
+                                   Context context) throws ApiGatewayException {
+        if (!userIsAuthorized(requestInfo)) {
+            throw new ForbiddenException();
+        }
+
     }
 }

@@ -17,6 +17,7 @@ import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
@@ -46,7 +47,12 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
         this.customerService = customerService;
         this.roleSource = roleSource;
     }
-    
+
+    @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
+    }
+
     @Override
     protected RoleList processInput(Void input, RequestInfo requestInfo, Context context) {
         var defaultRoles = roleSource.roles()

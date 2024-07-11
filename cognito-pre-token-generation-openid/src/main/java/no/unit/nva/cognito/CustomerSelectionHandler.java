@@ -28,6 +28,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.useraccessservice.database.DatabaseConfig;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
@@ -58,6 +59,12 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
         this.cognito = cognito;
         this.customerService = customerService;
         this.identityService = identityService;
+    }
+
+    @Override
+    protected void validateRequest(CustomerSelection customerSelection, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+        //Do nothing
     }
 
     @Override

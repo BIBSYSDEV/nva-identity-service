@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.Test;
 
@@ -57,6 +58,12 @@ class HandlerWithEventualConsistencyTest {
 
     private static HandlerWithEventualConsistency<String, String> getHandlerWithEventualConsistency() {
         return new HandlerWithEventualConsistency<>(String.class) {
+
+            @Override
+            protected void validateRequest(String s, RequestInfo requestInfo, Context context)
+                throws ApiGatewayException {
+                //Do nothing
+            }
 
             @Override
             protected String processInput(String input, RequestInfo requestInfo, Context context) {

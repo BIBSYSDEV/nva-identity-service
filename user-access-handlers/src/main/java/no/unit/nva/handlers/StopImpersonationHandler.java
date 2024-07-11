@@ -38,6 +38,11 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
     }
 
     @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
+    }
+
+    @Override
     protected Void processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 

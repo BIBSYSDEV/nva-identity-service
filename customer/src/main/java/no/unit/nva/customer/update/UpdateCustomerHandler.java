@@ -15,6 +15,7 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
@@ -53,9 +54,6 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     protected CustomerDto processInput(CustomerDto input, RequestInfo requestInfo, Context context)
         throws InputException, NotFoundException, ForbiddenException {
 
-        if (!isAuthorized(requestInfo)) {
-            throw new ForbiddenException();
-        }
         UUID identifier = getIdentifier(requestInfo);
         return customerService.updateCustomer(identifier, input);
     }
@@ -82,5 +80,13 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
+    }
+
+    @Override
+    protected void validateRequest(CustomerDto customerDto, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+        if (!isAuthorized(requestInfo)) {
+            throw new ForbiddenException();
+        }
     }
 }

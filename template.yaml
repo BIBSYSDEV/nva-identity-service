@@ -80,6 +80,10 @@ Parameters:
   SlackSnsArn:
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/NVA/Monitoring/SlackSnsArn'
+  AllowedOrigins:
+    Type: String
+    Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
+    Default: '*'
 
 Mappings:
   Constants:
@@ -356,7 +360,7 @@ Resources:
       Handler: no.unit.nva.handlers.GetRoleHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UserRoleMappings
@@ -376,7 +380,7 @@ Resources:
       Role: !GetAtt CreateUsersRole.Arn
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           API_DOMAIN: !Ref ApiDomain
           CRISTIN_API_URL: !Ref CristinApiUrl
           COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
@@ -399,7 +403,7 @@ Resources:
       Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
@@ -418,7 +422,7 @@ Resources:
       Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UserRoleMappings
@@ -438,7 +442,7 @@ Resources:
       Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Events:
@@ -457,7 +461,7 @@ Resources:
       Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Events:
         ApiEvent:
@@ -474,7 +478,7 @@ Resources:
       Handler: no.unit.nva.handlers.ListByInstitutionHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UserRoleMappings
@@ -496,7 +500,7 @@ Resources:
       Handler: no.unit.nva.handlers.IdentityServiceInitHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           SIKT_CRISTIN_ID: !Ref SiktCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -513,7 +517,7 @@ Resources:
       Handler: no.unit.nva.handlers.IdentityServiceMigrateCuratorHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           SIKT_CRISTIN_ID: !Ref SiktCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -530,7 +534,7 @@ Resources:
       Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           USER_POOL_ID: !GetAtt UserPool.UserPoolId
       Events:
         ApiEvent:
@@ -548,7 +552,7 @@ Resources:
       Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           USER_POOL_ID: !GetAtt UserPool.UserPoolId
       Events:
         ApiEvent:
@@ -567,7 +571,7 @@ Resources:
       Description: Creates a new Cognito Client assosicated with the external user pool
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           API_DOMAIN: !Ref ApiDomain
           EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
           EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
@@ -589,7 +593,7 @@ Resources:
       Description: Access stored external client info by its token
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           API_DOMAIN: !Ref ApiDomain
           EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
           EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
@@ -611,7 +615,7 @@ Resources:
       Description: Get a store external client and its details
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           API_DOMAIN: !Ref ApiDomain
           EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
           EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
@@ -696,7 +700,7 @@ Resources:
       Handler: no.unit.nva.customer.create.CreateCustomerHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -717,7 +721,7 @@ Resources:
       Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -739,7 +743,7 @@ Resources:
       Handler: no.unit.nva.customer.get.GetCustomerDoiHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Events:
         GetCustomerDoiEvent:
@@ -757,7 +761,7 @@ Resources:
       Handler: no.unit.nva.customer.update.UpdateCustomerDoiHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -778,7 +782,7 @@ Resources:
       Handler: no.unit.nva.customer.get.GetControlledVocabularyHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -798,7 +802,7 @@ Resources:
       Handler: no.unit.nva.customer.create.CreateControlledVocabularyHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -818,7 +822,7 @@ Resources:
       Handler: no.unit.nva.customer.update.UpdateControlledVocabularyHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -838,7 +842,7 @@ Resources:
       Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -858,7 +862,7 @@ Resources:
       Handler: no.unit.nva.customer.get.GetCustomerByCristinIdHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -878,7 +882,7 @@ Resources:
       Handler: no.unit.nva.customer.get.ListAllCustomersHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
@@ -898,7 +902,7 @@ Resources:
       Handler: no.unit.nva.customer.update.UpdateCustomerHandler::handleRequest
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:

@@ -80,10 +80,15 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     @Override
+    protected void validateRequest(CreateUserRequest createUserRequest, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+        authorize(createUserRequest, requestInfo);
+    }
+
+    @Override
     protected UserDto processInput(CreateUserRequest input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
-        authorize(input, requestInfo);
 
         var existingUser = fetchExistingUser(input);
         if (existingUser.isPresent()) {

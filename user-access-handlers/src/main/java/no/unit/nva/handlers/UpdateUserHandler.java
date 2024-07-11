@@ -16,6 +16,7 @@ import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
@@ -39,11 +40,16 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
     }
 
     @Override
+    protected void validateRequest(UserDto userDto, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+        authorizeRequest(userDto, requestInfo);
+        validateRequest(userDto, requestInfo);
+    }
+
+    @Override
     protected Void processInput(UserDto input, RequestInfo requestInfo, Context context)
         throws NotFoundException, InvalidInputException, ForbiddenException {
 
-        authorizeRequest(input, requestInfo);
-        validateRequest(input, requestInfo);
         databaseService.updateUser(input);
         addAdditionalHeaders(addLocationHeaderToResponseSupplier(input));
         return null;

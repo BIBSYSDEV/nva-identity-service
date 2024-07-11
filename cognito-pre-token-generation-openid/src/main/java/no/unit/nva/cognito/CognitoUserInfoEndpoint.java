@@ -6,6 +6,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 import java.util.stream.Collectors;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
@@ -24,6 +25,11 @@ public class CognitoUserInfoEndpoint extends CognitoCommunicationHandler<Void, M
     public CognitoUserInfoEndpoint(CognitoIdentityProviderClient cognitoClient) {
         super(Void.class);
         this.cognito = cognitoClient;
+    }
+
+    @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
     }
 
     @Override

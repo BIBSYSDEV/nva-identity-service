@@ -9,6 +9,7 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
@@ -27,6 +28,11 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
     @Override
     protected Integer getSuccessStatusCode(Void input, VocabularyList output) {
         return HttpURLConnection.HTTP_OK;
+    }
+
+    @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
     }
 
     @Override

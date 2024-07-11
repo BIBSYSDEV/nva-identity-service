@@ -58,10 +58,14 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
     }
 
     @Override
+    protected void validateRequest(String s, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        authorizeDoiAgentChange(requestInfo);
+    }
+
+    @Override
     protected String processInput(String input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
-        authorizeDoiAgentChange(requestInfo);
 
         var customerId = getIdentifier(requestInfo);
 

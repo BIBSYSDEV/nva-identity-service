@@ -45,9 +45,14 @@ public class SetImpersonationHandler extends HandlerWithEventualConsistency<Impe
     }
 
     @Override
-    protected Void processInput(ImpersonationRequest input, RequestInfo requestInfo, Context context)
+    protected void validateRequest(ImpersonationRequest impersonationRequest, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         authorize(requestInfo);
+    }
+
+    @Override
+    protected Void processInput(ImpersonationRequest input, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
 
 
         var nin = input.getNin();

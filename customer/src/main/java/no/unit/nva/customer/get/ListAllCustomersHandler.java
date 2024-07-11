@@ -12,6 +12,7 @@ import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.JacocoGenerated;
 
@@ -45,9 +46,7 @@ public class ListAllCustomersHandler extends ApiGatewayHandler<Void, CustomerLis
     @Override
     protected CustomerList processInput(Void input, RequestInfo requestInfo, Context context)
         throws ForbiddenException {
-        if (!userIsAuthorized(requestInfo)) {
-            throw new ForbiddenException();
-        }
+
         List<CustomerDto> customers = customerService.getCustomers();
         return new CustomerList(customers);
     }
@@ -60,5 +59,12 @@ public class ListAllCustomersHandler extends ApiGatewayHandler<Void, CustomerLis
     @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
+    }
+
+    @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        if (!userIsAuthorized(requestInfo)) {
+            throw new ForbiddenException();
+        }
     }
 }

@@ -10,6 +10,7 @@ import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
@@ -30,7 +31,12 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
         super(Void.class);
         this.identityService = identityService;
     }
-    
+
+    @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
+    }
+
     @Override
     protected Void processInput(Void input, RequestInfo requestInfo, Context context) {
         identityService.listAllUsers().stream()

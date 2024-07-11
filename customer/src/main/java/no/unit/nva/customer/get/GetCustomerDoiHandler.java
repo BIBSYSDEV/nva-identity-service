@@ -42,10 +42,15 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
     }
 
     @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        authorizeDoiAgentRead(requestInfo);
+    }
+
+    @Override
     protected String processInput(Void input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
-        authorizeDoiAgentRead(requestInfo);
+
 
         var identifier = getIdentifier(requestInfo);
 

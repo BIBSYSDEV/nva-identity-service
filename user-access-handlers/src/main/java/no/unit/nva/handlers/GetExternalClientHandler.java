@@ -31,11 +31,15 @@ public class GetExternalClientHandler
     }
 
     @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        authorize(requestInfo);
+    }
+
+    @Override
     protected GetExternalClientResponse processInput(Void input, RequestInfo requestInfo,
                                                      Context context)
         throws ApiGatewayException {
 
-        authorize(requestInfo);
 
         var resourceIdentifier = requestInfo.getPathParameter(CLIENT_ID_PATH_PARAMETER_NAME);
 

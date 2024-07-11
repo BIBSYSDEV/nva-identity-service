@@ -47,13 +47,17 @@ public class CreateExternalClientHandler
     }
 
     @Override
+    protected void validateRequest(CreateExternalClientRequest createExternalClientRequest, RequestInfo requestInfo,
+                                   Context context) throws ApiGatewayException {
+        authorize(requestInfo);
+        validateRequest(createExternalClientRequest);
+
+    }
+
+    @Override
     protected CreateExternalClientResponse processInput(CreateExternalClientRequest input, RequestInfo requestInfo,
                                                         Context context)
         throws ApiGatewayException {
-
-        authorize(requestInfo);
-
-        validateRequest(input);
 
         var cognitoResponse = this.cognitoService.createUserPoolClient(input.getClientName(), input.getScopes());
         var clientDto =

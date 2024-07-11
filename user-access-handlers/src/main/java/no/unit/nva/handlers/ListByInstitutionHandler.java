@@ -16,6 +16,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.UserList;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 
@@ -42,6 +43,11 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
     @Override
     protected Integer getSuccessStatusCode(Void body, UserList output) {
         return HttpURLConnection.HTTP_OK;
+    }
+
+    @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
     }
 
     @Override

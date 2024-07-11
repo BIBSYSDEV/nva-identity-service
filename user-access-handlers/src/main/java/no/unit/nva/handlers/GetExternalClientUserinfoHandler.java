@@ -28,6 +28,11 @@ public class GetExternalClientUserinfoHandler
     }
 
     @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
+    }
+
+    @Override
     protected GetExternalClientResponse processInput(Void input, RequestInfo requestInfo,
                                                      Context context)
         throws ApiGatewayException {

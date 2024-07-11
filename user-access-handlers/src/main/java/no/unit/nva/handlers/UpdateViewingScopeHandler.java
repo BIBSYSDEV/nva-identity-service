@@ -6,6 +6,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 
 public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope, Void> {
@@ -15,6 +16,12 @@ public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope
     public UpdateViewingScopeHandler(IdentityService databaseService) {
         super(ViewingScope.class);
         this.databaseService = databaseService;
+    }
+
+    @Override
+    protected void validateRequest(ViewingScope viewingScope, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+        //Do nothing
     }
 
     @Override

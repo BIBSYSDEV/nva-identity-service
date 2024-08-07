@@ -14,6 +14,7 @@ import static nva.commons.apigateway.AccessRight.MANAGE_OWN_RESOURCES;
 import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
 import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_ALL;
 import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_STANDARD;
+import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCE_FILES;
 import static nva.commons.apigateway.AccessRight.SUPPORT;
 import java.util.List;
 import no.unit.nva.handlers.RoleSource;
@@ -30,7 +31,8 @@ public class DefaultRoleSource implements RoleSource {
     public static final RoleDto PUBLISHING_CURATOR_ROLE = RoleDto.newBuilder()
                                                     .withRoleName(RoleName.PUBLISHING_CURATOR)
                                                     .withAccessRights(List.of(MANAGE_RESOURCES_STANDARD,
-                                                                              MANAGE_PUBLISHING_REQUESTS))
+                                                                              MANAGE_PUBLISHING_REQUESTS,
+                                                                              MANAGE_RESOURCE_FILES))
                                                     .build();
     public static final RoleDto NVI_CURATOR_ROLE = RoleDto.newBuilder()
                                                    .withRoleName(RoleName.NVI_CURATOR)

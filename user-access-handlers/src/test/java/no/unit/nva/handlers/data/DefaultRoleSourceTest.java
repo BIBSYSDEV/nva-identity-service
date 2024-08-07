@@ -14,6 +14,7 @@ import static nva.commons.apigateway.AccessRight.MANAGE_OWN_RESOURCES;
 import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
 import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_ALL;
 import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_STANDARD;
+import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCE_FILES;
 import static nva.commons.apigateway.AccessRight.SUPPORT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -22,6 +23,7 @@ import java.util.List;
 import no.unit.nva.handlers.RoleSource;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
+import nva.commons.apigateway.AccessRight;
 import nva.commons.core.SingletonCollector;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +63,7 @@ public class DefaultRoleSourceTest {
         var curatorRole = getRoleByName(RoleName.PUBLISHING_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_PUBLISHING_REQUESTS,
-                                                                     MANAGE_RESOURCES_STANDARD));
+                                                                     MANAGE_RESOURCES_STANDARD, MANAGE_RESOURCE_FILES));
     }
 
     @Test

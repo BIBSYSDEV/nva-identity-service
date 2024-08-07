@@ -1,9 +1,7 @@
 package no.unit.nva.useraccessservice.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
-import nva.commons.core.JacocoGenerated;
 
 public enum RoleName {
 
@@ -46,13 +44,5 @@ public enum RoleName {
     @Override
     public String toString() {
         return value;
-    }
-
-    @JacocoGenerated
-    @JsonIgnore
-    public boolean isDeprecated() {
-        return this.equals(DEPRECATED_NVI_CURATOR)
-               || this.equals(DEPRECATED_CURATOR)
-               || this.equals(DEPRECATED_INTERNAL_IMPORT);
     }
 }

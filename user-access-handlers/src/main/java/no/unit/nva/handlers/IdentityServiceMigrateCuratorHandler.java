@@ -3,8 +3,9 @@ package no.unit.nva.handlers;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
-import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.handlers.data.DefaultRoleSource;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -38,10 +39,12 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     }
 
     @Override
-    protected Void processInput(Void input, RequestInfo requestInfo, Context context) {
+    protected Void processInput(Void input, RequestInfo requestInfo, Context context)
+        throws InvalidInputException, NotFoundException {
+        identityService.updateRole(DefaultRoleSource.PUBLISHING_CURATOR_ROLE);
         identityService.listAllUsers().stream()
-            .filter(this::hasDeprecatedRole)
-            .forEach(this::removeDeprecatedRoles);
+            .filter(this::hasPublishingCuratorRole)
+            .forEach(this::updatePublishingCuratorAccessRights);
         return null;
     }
 
@@ -50,19 +53,26 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
         return HttpURLConnection.HTTP_OK;
     }
     
-    private boolean hasDeprecatedRole(UserDto user) {
-        return user.getRoles().stream().map(RoleDto::getRoleName).anyMatch(RoleName::isDeprecated);
+    private boolean hasPublishingCuratorRole(UserDto user) {
+        return user.getRoles().stream().map(RoleDto::getRoleName).anyMatch(RoleName.PUBLISHING_CURATOR::equals);
     }
 
-    private void removeDeprecatedRoles(UserDto user) {
+    private void updatePublishingCuratorAccessRights(UserDto user) {
         attempt(() -> updateRolesForUser(user)).orElseThrow();
         logger.info("User roles has been updated: {}", user.getUsername());
     }
 
     private UserDto updateRolesForUser(UserDto user) throws NotFoundException {
-        var rolesToKeep = user.getRoles().stream().filter(RoleDto::isNotDeprecated).collect(Collectors.toSet());
-        user.setRoles(rolesToKeep);
-        identityService.updateUser(user);
+        var roles = user.getRoles();
+        var roleToUpdate = roles.stream().filter(this::isPublishingCurator).findFirst().orElseThrow();
+        roles.remove(roleToUpdate);
+        roles.add(DefaultRoleSource.PUBLISHING_CURATOR_ROLE);
+        var updatedUser = user.copy().withRoles(roles).build();
+        identityService.updateUser(updatedUser);
         return user;
+    }
+
+    private boolean isPublishingCurator(RoleDto role) {
+        return RoleName.PUBLISHING_CURATOR.equals(role.getRoleName());
     }
 }

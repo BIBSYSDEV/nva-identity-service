@@ -4,19 +4,18 @@ import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.Matchers.hasItem;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Set;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
+import no.unit.nva.handlers.data.DefaultRoleSource;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -59,48 +58,19 @@ class IdentityServiceMigrateCuratorHandlerTest {
     }
 
     @Test
-    void shouldRemoveAllDeprecatedRolesFromUser()
+    void shouldAddManageResourceFilesRoleToPublishingCurator()
         throws NotFoundException, ConflictException, IOException, InvalidInputException {
-        var deprecatedNviRole = RoleDto.newBuilder().withRoleName(RoleName.DEPRECATED_NVI_CURATOR).build();
-        var deprecatedCuratorRole = RoleDto.newBuilder().withRoleName(RoleName.DEPRECATED_CURATOR).build();
-        var roleToKeep = RoleDto.newBuilder().withRoleName(RoleName.CREATOR).build();
-        identityService.addRole(deprecatedNviRole);
-        identityService.addRole(deprecatedCuratorRole);
-        identityService.addRole(roleToKeep);
-        var user = createUserWithRoles(Set.of(deprecatedNviRole, deprecatedCuratorRole, roleToKeep));
+        var oldRole = RoleDto.newBuilder().withRoleName(RoleName.PUBLISHING_CURATOR)
+                          .withAccessRights(Collections.emptySet()).build();
+        identityService.addRole(oldRole);
+        var user = createUserWithRoles(Set.of(oldRole));
         identityService.addUser(user);
 
         handler.handleRequest(createRequest(), output, context);
 
         var fetchedUser = this.identityService.getUser(user);
 
-        assertTrue(fetchedUser.getRoles().stream().allMatch(RoleDto::isNotDeprecated));
-        assertThat(fetchedUser.getRoles(), is(equalTo(Set.of(roleToKeep))));
-    }
-
-    @Test
-    void shouldNotUpdateAlreadyMigratedUsers() throws InvalidInputException, ConflictException,
-                                                      IOException, NotFoundException {
-        var randomRole = RoleDto.newBuilder().withRoleName(RoleName.EDITOR).build();
-        var newRole = newNviCuratorRole();
-        identityService.addRole(randomRole);
-        identityService.addRole(newRole);
-
-        var user = createUserWithRoles(
-            Set.of(randomRole, newRole)
-        );
-        identityService.addUser(user);
-
-        handler.handleRequest(createRequest(), output, context);
-
-        var fetchedUser = this.identityService.getUser(user);
-        var roles = fetchedUser.getRoles().stream().map(RoleDto::getRoleName).toList();
-
-        assertThat(roles, containsInAnyOrder(randomRole.getRoleName(), newRole.getRoleName()));
-    }
-
-    private RoleDto newNviCuratorRole() {
-        return RoleDto.newBuilder().withRoleName(RoleName.NVI_CURATOR).build();
+        assertThat(fetchedUser.getRoles(), hasItem(DefaultRoleSource.PUBLISHING_CURATOR_ROLE));
     }
 
     private InputStream createRequest() throws com.fasterxml.jackson.core.JsonProcessingException {

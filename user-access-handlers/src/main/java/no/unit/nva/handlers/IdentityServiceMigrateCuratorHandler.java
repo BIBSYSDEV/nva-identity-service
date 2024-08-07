@@ -5,6 +5,8 @@ import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.handlers.data.DefaultRoleSource;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -38,9 +40,11 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     }
 
     @Override
-    protected Void processInput(Void input, RequestInfo requestInfo, Context context) {
+    protected Void processInput(Void input, RequestInfo requestInfo, Context context)
+        throws InvalidInputException, NotFoundException {
+        identityService.updateRole(DefaultRoleSource.PUBLISHING_CURATOR_ROLE);
         identityService.listAllUsers().stream()
-            .filter(this::hasDeprecatedRole)
+            .filter(this::hasPublishingCuratorRole)
             .forEach(this::removeDeprecatedRoles);
         return null;
     }
@@ -50,8 +54,8 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
         return HttpURLConnection.HTTP_OK;
     }
     
-    private boolean hasDeprecatedRole(UserDto user) {
-        return user.getRoles().stream().map(RoleDto::getRoleName).anyMatch(RoleName::isDeprecated);
+    private boolean hasPublishingCuratorRole(UserDto user) {
+        return user.getRoles().stream().map(RoleDto::getRoleName).anyMatch(RoleName.PUBLISHING_CURATOR::equals);
     }
 
     private void removeDeprecatedRoles(UserDto user) {
@@ -60,9 +64,14 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     }
 
     private UserDto updateRolesForUser(UserDto user) throws NotFoundException {
-        var rolesToKeep = user.getRoles().stream().filter(RoleDto::isNotDeprecated).collect(Collectors.toSet());
-        user.setRoles(rolesToKeep);
-        identityService.updateUser(user);
+        var roles = user.getRoles().stream().filter(this::isNotPublishingCurator).collect(Collectors.toSet());
+        roles.add(DefaultRoleSource.PUBLISHING_CURATOR_ROLE);
+        var updatedUser = user.copy().withRoles(roles).build();
+        identityService.updateUser(updatedUser);
         return user;
+    }
+
+    private boolean isNotPublishingCurator(RoleDto role) {
+        return !RoleName.PUBLISHING_CURATOR.equals(role.getRoleName());
     }
 }

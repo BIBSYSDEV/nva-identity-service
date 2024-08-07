@@ -5,6 +5,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -74,6 +75,23 @@ class IdentityServiceMigrateCuratorHandlerTest {
         var fetchedUser = this.identityService.getUser(user);
 
         assertThat(fetchedUser.getRoles(), hasItem(DefaultRoleSource.PUBLISHING_CURATOR_ROLE));
+        assertThat(fetchedUser.getRoles(), hasItem(roleToKeep));
+    }
+
+    @Test
+    void shouldNotAddManageResourceFilesRoleToNonPublishingCurator()
+        throws NotFoundException, ConflictException, IOException, InvalidInputException {
+        var roleToKeep = RoleDto.newBuilder().withRoleName(RoleName.SUPPORT_CURATOR)
+                             .withAccessRights(Collections.emptySet()).build();
+        identityService.addRole(roleToKeep);
+        var user = createUserWithRoles(Set.of(roleToKeep));
+        identityService.addUser(user);
+
+        handler.handleRequest(createRequest(), output, context);
+
+        var fetchedUser = this.identityService.getUser(user);
+
+        assertThat(fetchedUser.getRoles(), not(hasItem(DefaultRoleSource.PUBLISHING_CURATOR_ROLE)));
         assertThat(fetchedUser.getRoles(), hasItem(roleToKeep));
     }
 

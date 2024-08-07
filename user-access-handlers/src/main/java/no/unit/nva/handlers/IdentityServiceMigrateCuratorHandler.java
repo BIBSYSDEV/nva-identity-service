@@ -3,7 +3,6 @@ package no.unit.nva.handlers;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
-import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.handlers.data.DefaultRoleSource;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -45,7 +44,7 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
         identityService.updateRole(DefaultRoleSource.PUBLISHING_CURATOR_ROLE);
         identityService.listAllUsers().stream()
             .filter(this::hasPublishingCuratorRole)
-            .forEach(this::removeDeprecatedRoles);
+            .forEach(this::updatePublishingCuratorAccessRights);
         return null;
     }
 
@@ -58,20 +57,22 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
         return user.getRoles().stream().map(RoleDto::getRoleName).anyMatch(RoleName.PUBLISHING_CURATOR::equals);
     }
 
-    private void removeDeprecatedRoles(UserDto user) {
+    private void updatePublishingCuratorAccessRights(UserDto user) {
         attempt(() -> updateRolesForUser(user)).orElseThrow();
         logger.info("User roles has been updated: {}", user.getUsername());
     }
 
     private UserDto updateRolesForUser(UserDto user) throws NotFoundException {
-        var roles = user.getRoles().stream().filter(this::isNotPublishingCurator).collect(Collectors.toSet());
+        var roles = user.getRoles();
+        var roleToUpdate = roles.stream().filter(this::isPublishingCurator).findFirst().orElseThrow();
+        roles.remove(roleToUpdate);
         roles.add(DefaultRoleSource.PUBLISHING_CURATOR_ROLE);
         var updatedUser = user.copy().withRoles(roles).build();
         identityService.updateUser(updatedUser);
         return user;
     }
 
-    private boolean isNotPublishingCurator(RoleDto role) {
-        return !RoleName.PUBLISHING_CURATOR.equals(role.getRoleName());
+    private boolean isPublishingCurator(RoleDto role) {
+        return RoleName.PUBLISHING_CURATOR.equals(role.getRoleName());
     }
 }

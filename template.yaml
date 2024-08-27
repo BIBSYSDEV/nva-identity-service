@@ -1734,7 +1734,7 @@ Resources:
       Period: 60
       EvaluationPeriods: 5
       DatapointsToAlarm: 1
-      Threshold: 0
+      Threshold: 10
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: missing
 

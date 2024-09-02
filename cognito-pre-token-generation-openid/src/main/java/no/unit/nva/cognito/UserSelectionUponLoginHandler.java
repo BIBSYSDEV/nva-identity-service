@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -298,7 +297,7 @@ public class UserSelectionUponLoginHandler
             var username = input.getUserName();
 
             return new AuthenticationDetails(nin, feideIdentifier, feideDomain, userPoolId, username);
-        } catch (NoSuchElementException e) {
+        } catch (Exception e) {
             LOGGER.error("Could not extract required data from request", e);
             LOGGER.error("User name: {}, userPoolId: {}, input request: {}",input.getUserName(), input.getUserPoolId(),
                          input.getRequest());

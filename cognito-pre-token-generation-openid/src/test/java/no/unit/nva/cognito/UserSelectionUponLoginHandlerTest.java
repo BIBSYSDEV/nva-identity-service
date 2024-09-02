@@ -245,7 +245,8 @@ class UserSelectionUponLoginHandlerTest {
         assertThrows(NoSuchElementException.class, () -> handler.handleRequest(event, context));
 
         assertThat(testAppender.getMessages(), containsString("Could not extract required data from request"));
-        assertThat(testAppender.getMessages(), containsString("User request: CognitoUserPoolPreTokenGenerationEvent.Request"));
+        assertThat(testAppender.getMessages(), containsString(
+            "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEvent.Request"));
     }
 
     @ParameterizedTest(name = "Login event type: {0}")
@@ -913,14 +914,12 @@ class UserSelectionUponLoginHandlerTest {
 
     private static CognitoUserPoolPreTokenGenerationEvent nonFeideLogin(String nin) {
         Request request;
-        if (nonNull(nin))
-        {
+        if (nonNull(nin)) {
             request = Request.builder()
-                              .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin)).build();
-        }
-        else {
+                          .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin)).build();
+        } else {
             request = Request.builder()
-                              .withUserAttributes(Map.of("SOME", "VALUE")).build();
+                          .withUserAttributes(Map.of("SOME", "VALUE")).build();
         }
         var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
         loginEvent.setRequest(request);
@@ -1024,7 +1023,10 @@ class UserSelectionUponLoginHandlerTest {
 
     private RoleDto persistRoleToDatabase(Collection<AccessRight> accessRights)
         throws InvalidInputException, ConflictException, NotFoundException {
-        var roleDto = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.CREATOR)).withAccessRights(accessRights).build();
+        var roleDto = RoleDto.newBuilder()
+                          .withRoleName(randomRoleNameButNot(RoleName.CREATOR))
+                          .withAccessRights(accessRights)
+                          .build();
         persistRoleIfNotExist(roleDto);
         return identityService.getRole(roleDto);
     }

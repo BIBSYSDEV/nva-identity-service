@@ -300,7 +300,8 @@ public class UserSelectionUponLoginHandler
             return new AuthenticationDetails(nin, feideIdentifier, feideDomain, userPoolId, username);
         } catch (NoSuchElementException e) {
             LOGGER.error("Could not extract required data from request", e);
-            LOGGER.error("User request: {}", input.getRequest());
+            LOGGER.error("User name: {}, userPoolId: {}, input request: {}",input.getUserName(), input.getUserPoolId(),
+                         input.getRequest());
             throw e;
         }
     }

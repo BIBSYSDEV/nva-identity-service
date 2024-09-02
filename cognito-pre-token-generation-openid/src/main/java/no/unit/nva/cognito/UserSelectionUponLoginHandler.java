@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -289,13 +290,19 @@ public class UserSelectionUponLoginHandler
     }
 
     private AuthenticationDetails extractAuthenticationDetails(CognitoUserPoolPreTokenGenerationEvent input) {
-        var nin = extractNin(input.getRequest().getUserAttributes());
-        var feideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
-        var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
-        var userPoolId = input.getUserPoolId();
-        var username = input.getUserName();
+        try {
+            var nin = extractNin(input.getRequest().getUserAttributes());
+            var feideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
+            var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
+            var userPoolId = input.getUserPoolId();
+            var username = input.getUserName();
 
-        return new AuthenticationDetails(nin, feideIdentifier, feideDomain, userPoolId, username);
+            return new AuthenticationDetails(nin, feideIdentifier, feideDomain, userPoolId, username);
+        } catch (NoSuchElementException e) {
+            LOGGER.error("Could not extract required data from request", e);
+            LOGGER.error("User request: {}", input.getRequest());
+            throw e;
+        }
     }
 
     private UserDto getCurrentUser(CustomerDto currentCustomer, Collection<UserDto> users) {

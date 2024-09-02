@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static java.util.Objects.nonNull;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
@@ -111,6 +112,15 @@ public class MockPersonRegistry {
 
         return new MockedPersonData(nin, cristinId);
     }
+
+    public MockedPersonData personWithoutNin() {
+        var cristinId = randomString();
+
+        createPersonWithoutAffiliations(null, cristinId);
+
+        return new MockedPersonData(null, cristinId);
+    }
+
 
     public MockedPersonData personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions() {
         var nin = randomString();
@@ -227,7 +237,9 @@ public class MockPersonRegistry {
     private void updateBuffersAndStubs(String nin,
                                        CristinPerson cristinPerson,
                                        List<String> institutionIds) {
-        ninToPeople.put(nin, cristinPerson);
+        if (nonNull(nin)) {
+            ninToPeople.put(nin, cristinPerson);
+        }
         cristinIdToPeople.put(cristinPerson.getId(), cristinPerson);
         createStubsForPerson(nin, cristinPerson);
         institutionIds.forEach(this::createStubForInstitution);

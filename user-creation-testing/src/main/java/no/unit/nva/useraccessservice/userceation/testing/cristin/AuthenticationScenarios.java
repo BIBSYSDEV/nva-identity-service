@@ -114,6 +114,10 @@ public class AuthenticationScenarios {
         return personRegistry.personWithoutAffiliations();
     }
 
+    public MockedPersonData personWithoutNin() {
+        return personRegistry.personWithoutNin();
+    }
+
     public Set<URI> getCristinUriForInstitutionAffiliations(String nin, boolean active) {
         return personRegistry.getInstitutionUnitCristinUrisByState(nin, active);
     }

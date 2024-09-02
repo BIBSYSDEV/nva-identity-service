@@ -246,7 +246,9 @@ class UserSelectionUponLoginHandlerTest {
 
         assertThat(testAppender.getMessages(), containsString("Could not extract required data from request"));
         assertThat(testAppender.getMessages(), containsString(
-            "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEvent.Request"));
+            "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEvent.Request"
+            + "(super=CognitoUserPoolEvent.Request(userAttributes={SOME=VALUE}), clientMetadata=null, "
+            + "groupConfiguration=null)"));
     }
 
     @ParameterizedTest(name = "Login event type: {0}")

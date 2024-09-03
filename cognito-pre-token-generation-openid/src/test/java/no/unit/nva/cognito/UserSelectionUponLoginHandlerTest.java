@@ -61,6 +61,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -233,6 +234,21 @@ class UserSelectionUponLoginHandlerTest {
         handler.handleRequest(event, context);
         var actualUsers = scanAllUsers();
         assertThat(actualUsers, is(empty()));
+    }
+
+    @Test
+    void shouldLogUserAttributesIfNinExtractFails() {
+        var personLoggingIn = scenarios.personWithoutNin();
+        var event = newLoginEvent(personLoggingIn.nin(), NON_FEIDE);
+        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+
+        assertThrows(NoSuchElementException.class, () -> handler.handleRequest(event, context));
+
+        assertThat(testAppender.getMessages(), containsString("Could not extract required data from request"));
+        assertThat(testAppender.getMessages(), containsString(
+            "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEvent.Request"
+            + "(super=CognitoUserPoolEvent.Request(userAttributes={SOME=VALUE}), clientMetadata=null, "
+            + "groupConfiguration=null)"));
     }
 
     @ParameterizedTest(name = "Login event type: {0}")
@@ -899,8 +915,14 @@ class UserSelectionUponLoginHandlerTest {
     }
 
     private static CognitoUserPoolPreTokenGenerationEvent nonFeideLogin(String nin) {
-        var request = Request.builder()
+        Request request;
+        if (nonNull(nin)) {
+            request = Request.builder()
                           .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin)).build();
+        } else {
+            request = Request.builder()
+                          .withUserAttributes(Map.of("SOME", "VALUE")).build();
+        }
         var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
         loginEvent.setRequest(request);
         return loginEvent;
@@ -1003,7 +1025,10 @@ class UserSelectionUponLoginHandlerTest {
 
     private RoleDto persistRoleToDatabase(Collection<AccessRight> accessRights)
         throws InvalidInputException, ConflictException, NotFoundException {
-        var roleDto = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.CREATOR)).withAccessRights(accessRights).build();
+        var roleDto = RoleDto.newBuilder()
+                          .withRoleName(randomRoleNameButNot(RoleName.CREATOR))
+                          .withAccessRights(accessRights)
+                          .build();
         persistRoleIfNotExist(roleDto);
         return identityService.getRole(roleDto);
     }

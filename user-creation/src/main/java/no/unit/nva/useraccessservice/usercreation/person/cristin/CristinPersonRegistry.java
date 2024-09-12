@@ -288,7 +288,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private String generateErrorMessageForResponse(HttpRequest request, HttpResponse<String> response) {
         return String.format(ERROR_MESSAGE_FORMAT,
                              request.method(),
-                             request.uri(),
+                             maskSensitiveData(request.uri()),
                              response.statusCode(),
                              response.body());
     }

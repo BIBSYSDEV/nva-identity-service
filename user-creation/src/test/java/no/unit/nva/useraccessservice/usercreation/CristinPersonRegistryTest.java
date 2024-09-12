@@ -2,11 +2,13 @@ package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
+import static no.unit.nva.useraccessservice.userceation.testing.cristin.RandomNin.randomNin;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_CREDENTIALS_SECRET_NAME;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_PASSWORD_SECRET_KEY;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -37,7 +39,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @WireMockTest(httpsEnabled = true)
-public class CristinPersonRegistryTest {
+class CristinPersonRegistryTest {
     private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
     private PersonRegistry personRegistry;
     private FakeSecretsManagerClient secretsManagerClient;
@@ -80,6 +82,7 @@ public class CristinPersonRegistryTest {
 
     @Test
     void shouldThrowExceptionIfCristinIsUnavailable(WireMockRuntimeInfo wireMockRuntimeInfo) {
+        var appender = LogUtils.getTestingAppenderForRootLogger();
         var httpClient = WiremockHttpClient.create();
         var uriWhereCristinIsUnavailable
             = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
@@ -91,8 +94,10 @@ public class CristinPersonRegistryTest {
                                                                     ServiceConstants.API_DOMAIN,
                                                                     defaultRequestHeaders,
                                                                     new SecretsReader(secretsManagerClient));
-        var nin = NationalIdentityNumber.fromString(randomString());
-        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
+        var nin = NationalIdentityNumber.fromString(randomNin());
+        var exception = assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
+        assertThat(exception.getMessage(), not(containsString(nin.toString())));
+        assertThat(appender.getMessages(), not(containsString(nin.toString())));
     }
 
     @Test
@@ -119,18 +124,21 @@ public class CristinPersonRegistryTest {
 
     @Test
     void shouldThrowExceptionIfCristinRespondsWithNonOkStatusCode() {
+        var appender = LogUtils.getTestingAppenderForRootLogger();
         var personNin = scenarios.failingPersonRegistryRequestBadGateway().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
 
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
+        var expectedMaskedNin = "XXXXXXXXX" + personNin.substring(personNin.length() -2);
+        assertThat(appender.getMessages(), containsString(expectedMaskedNin));
     }
 
     @Test
     void shouldMaskNationalIdentityNumberInLog() {
+        var appender = LogUtils.getTestingAppenderForRootLogger();
         var personNin = "12345678901";
         var nin = NationalIdentityNumber.fromString(personNin);
 
-        var appender = LogUtils.getTestingAppenderForRootLogger();
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
         assertThat(appender.getMessages(), containsString("XXXXXXXXX01"));
     }

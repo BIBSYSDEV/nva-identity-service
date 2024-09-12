@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccessservice.userceation.testing.cristin.RandomNin.randomNin;
 import static nva.commons.core.attempt.Try.attempt;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import java.net.HttpURLConnection;
@@ -59,14 +60,14 @@ public class MockPersonRegistry {
     }
 
     public MockedPersonData mockResponseForBadGateway() {
-        var nin = randomString();
+        var nin = randomNin();
         var cristinId = randomString();
         createPersonSearchStubBadGateway(nin);
         return new MockedPersonData(nin, cristinId);
     }
 
     public MockedPersonData mockResponseForIllegalJson() {
-        var nin = randomString();
+        var nin = randomNin();
         var cristinId = randomString();
         createPersonSearchStubIllegalJson(nin);
         return new MockedPersonData(nin, cristinId);
@@ -82,7 +83,7 @@ public class MockPersonRegistry {
     }
 
     public MockedPersonData personWithoutAffiliations() {
-        var nin = randomString();
+        var nin = randomNin();
         var cristinId = randomString();
 
 
@@ -92,7 +93,7 @@ public class MockPersonRegistry {
     }
 
     public MockedPersonData personWithExactlyOneActiveEmployment() {
-        var nin = randomString();
+        var nin = randomNin();
         var cristinId = randomString();
 
         var affiliations = List.of(createCristinAffiliation(ACTIVE));
@@ -103,7 +104,7 @@ public class MockPersonRegistry {
     }
 
     public MockedPersonData personWithExactlyOneInactiveEmployment() {
-        var nin = randomString();
+        var nin = randomNin();
         var cristinId = randomString();
 
         var affiliations = List.of(createCristinAffiliation(INACTIVE));
@@ -123,7 +124,7 @@ public class MockPersonRegistry {
 
 
     public MockedPersonData personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions() {
-        var nin = randomString();
+        var nin = randomNin();
         var cristinId = randomString();
 
         var affiliations = List.of(
@@ -136,7 +137,7 @@ public class MockPersonRegistry {
     }
 
     public MockedPersonData personWithOneActiveAndOneInactiveEmploymentInSameInstitution() {
-        var nin = randomString();
+        var nin = randomNin();
         var cristinId = randomString();
 
         var activeAffiliation = createCristinAffiliation(ACTIVE);
@@ -150,7 +151,7 @@ public class MockPersonRegistry {
     }
 
     public MockedPersonData personWithTwoActiveEmploymentsInDifferentInstitutions() {
-        var nin = randomString();
+        var nin = randomNin();
         var cristinId = randomString();
 
         var affiliations = List.of(
@@ -294,7 +295,7 @@ public class MockPersonRegistry {
     }
 
     public MockedPersonData mockResponseForPersonNotFound() {
-        var nin = randomString();
+        var nin = randomNin();
         var cristinId = randomString();
         createPersonSearchStub(nin, Collections.emptyList());
         return new MockedPersonData(nin, cristinId);

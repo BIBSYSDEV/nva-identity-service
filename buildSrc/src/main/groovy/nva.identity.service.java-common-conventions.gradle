@@ -11,6 +11,8 @@ group = 'com.github.bibsysdev'
 
 dependencies {
     testImplementation libs.bundles.testing
+    testImplementation libs.junit.jupiter.api
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     //To support dynamodb local when testing, using mac m1
     if (System.getProperty("os.arch") == "aarch64") {
@@ -18,9 +20,10 @@ dependencies {
     }
 }
 
-sourceCompatibility = JavaVersion.VERSION_17  // source-code version and must be <= targetCompatibility
-targetCompatibility = JavaVersion.VERSION_17 // bytecode target version
-
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }

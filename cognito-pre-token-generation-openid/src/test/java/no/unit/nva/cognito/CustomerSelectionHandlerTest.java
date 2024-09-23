@@ -45,6 +45,7 @@ import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
+import no.unit.nva.testutils.JwtTestToken;
 import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
@@ -88,7 +89,7 @@ class CustomerSelectionHandlerTest {
         accessRight = randomElement(AccessRight.values());
         role = randomRoleWithAccessRight(accessRight).toRoleDto();
         addRole(role);
-        personAccessToken = randomString();
+        personAccessToken = JwtTestToken.randomToken();
         var person = randomUri();
         setupCognitoAndPersonInformation(person);
         

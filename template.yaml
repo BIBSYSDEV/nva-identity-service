@@ -332,7 +332,10 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-  
+      Tags:
+        - Key: IncludedInBackup
+          Value: 'true'
+
   UsersAndRolesAccessLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
@@ -674,6 +677,9 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+      Tags:
+        - Key: IncludedInBackup
+          Value: 'true'
 
   ApiAccessLogGroup:
     Type: AWS::Logs::LogGroup

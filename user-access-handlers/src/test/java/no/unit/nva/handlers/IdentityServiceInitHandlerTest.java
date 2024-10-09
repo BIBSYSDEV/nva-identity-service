@@ -13,6 +13,10 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -153,10 +157,18 @@ class IdentityServiceInitHandlerTest {
         assertThat(client.getActingUser(), is(equalTo(SIKT_ACTING_USER)));
     }
 
+    @Test
+    void shouldNotCreateDuplicateSiktBackendClientDBRow() throws IOException {
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
+        handler.handleRequest(createRequest(), output, context);
+        handler.handleRequest(createRequest(), output, context);
+        verify(identityService, atMostOnce()).addExternalClient(any());
+    }
+
     private void initializeIdentityService() {
         this.identityServiceLocalDb = new LocalIdentityService();
         this.identityServiceLocalDb.initializeTestDatabase();
-        this.identityService = new IdentityServiceImpl(this.identityServiceLocalDb.getDynamoDbClient());
+        this.identityService = spy(new IdentityServiceImpl(this.identityServiceLocalDb.getDynamoDbClient()));
     }
 
     private void setupCustomerService() {

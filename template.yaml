@@ -506,6 +506,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           SIKT_CRISTIN_ID: !Ref SiktCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          BACKEND_CLIENT_ID: !Ref BackendApplicationClient
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings

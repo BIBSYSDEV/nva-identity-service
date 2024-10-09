@@ -14,6 +14,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.handlers.data.DefaultRoleSource;
 import no.unit.nva.handlers.models.RoleList;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
@@ -26,20 +27,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList> {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(IdentityServiceInitHandler.class);
     public static final URI SIKT_CRISTIN_ID = URI.create(new Environment().readEnv("SIKT_CRISTIN_ID"));
     public static final String SIKT = "Sikt";
-    
+    public static final String SIKT_ACTING_USER = "nva-backend@20754.0.0.0";
+    public static final String BACKEND_CLIENT_ID_ENV = "BACKEND_CLIENT_ID";
+    public static final String SIKT_NO = "sikt.no";
+
     private final IdentityService identityService;
     private final CustomerService customerService;
     private final RoleSource roleSource;
-    
+
     @JacocoGenerated
     public IdentityServiceInitHandler() {
         this(IdentityService.defaultIdentityService(), defaultCustomerService(), new DefaultRoleSource());
     }
-    
+
     public IdentityServiceInitHandler(IdentityService identityService, CustomerService customerService,
                                       RoleSource roleSource) {
         super(Void.class);
@@ -56,38 +60,63 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
     @Override
     protected RoleList processInput(Void input, RequestInfo requestInfo, Context context) {
         var defaultRoles = roleSource.roles()
-            .stream()
-            .map(attempt(this::addOrUpdateRole))
-            .map(attempt -> attempt.toOptional(fail -> logError(fail.getException())))
-            .flatMap(Optional::stream)
-            .collect(Collectors.toSet());
-        
-        createDefaultCustomer();
-        
+                               .stream()
+                               .map(attempt(this::addOrUpdateRole))
+                               .map(attempt -> attempt.toOptional(fail -> logError(fail.getException())))
+                               .flatMap(Optional::stream)
+                               .collect(Collectors.toSet());
+
+        var sikt = createDefaultCustomer();
+
+        addSiktBackendClientUser(sikt);
+
         return new RoleList(defaultRoles);
     }
-    
-    private void createDefaultCustomer() {
+
+    private void addSiktBackendClientUser(CustomerDto sikt) {
+        // The Cognito user pool client credentials have already been set up in Cognito. However, the client still
+        // needs to be added to the database.
+        var backendClientId = environment.readEnv(BACKEND_CLIENT_ID_ENV);
+
+        attempt(() -> identityService.getClient(ClientDto.newBuilder().withClientId(backendClientId).build()))
+            .or(() -> {
+                var clientDto =
+                    ClientDto.newBuilder()
+                        .withClientId(backendClientId)
+                        .withCustomer(sikt.getId())
+                        .withCristinOrgUri(sikt.getCristinId())
+                        .withActingUser(SIKT_ACTING_USER)
+                        .build();
+
+                identityService.addExternalClient(clientDto);
+                return clientDto;
+            }).orElseThrow();
+    }
+
+    private CustomerDto createDefaultCustomer() {
         var customer = CustomerDto.builder().withCristinId(SIKT_CRISTIN_ID)
-                           .withFeideOrganizationDomain("sikt.no")
+                           .withFeideOrganizationDomain(SIKT_NO)
                            .withCname(SIKT)
                            .withName(SIKT)
                            .withDisplayName(SIKT)
                            .withShortName(SIKT)
                            .withCustomerOf(ApplicationDomain.NVA)
-            .build();
-        attempt(() -> customerService.createCustomer(customer)).orElseThrow();
+                           .build();
+
+        return attempt(() -> customerService.createCustomer(customer))
+                   .or(() -> customerService.getCustomerByOrgDomain(SIKT_NO))
+                   .orElseThrow();
     }
-    
+
     @Override
     protected Integer getSuccessStatusCode(Void input, RoleList output) {
         return HttpURLConnection.HTTP_OK;
     }
-    
+
     private void logError(Exception exception) {
         logger.warn(exception.getMessage());
     }
-    
+
     private RoleDto addOrUpdateRole(RoleDto role) throws InvalidInputException, NotFoundException {
         try {
             identityService.addRole(role);

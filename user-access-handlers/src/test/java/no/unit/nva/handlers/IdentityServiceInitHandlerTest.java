@@ -1,5 +1,6 @@
 package no.unit.nva.handlers;
 
+import static no.unit.nva.handlers.IdentityServiceInitHandler.SIKT_ACTING_USER;
 import static no.unit.nva.handlers.IdentityServiceInitHandler.SIKT_CRISTIN_ID;
 import static no.unit.nva.useraccessservice.model.RoleDto.MISSING_ROLE_NAME_ERROR;
 import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
@@ -32,6 +33,7 @@ import no.unit.nva.handlers.models.RoleList;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import nva.commons.apigateway.AccessRight;
@@ -51,6 +53,7 @@ class IdentityServiceInitHandlerTest {
                                                                     .withRoleName(RoleName.DOI_CURATOR)
                                                                     .withAccessRights(ACCESS_RIGHTS)
                                                                     .build());
+    public static final String BACKEND_CLIENT_ID = "some-client-id";
 
     private IdentityService identityService;
     private ByteArrayOutputStream output;
@@ -139,6 +142,15 @@ class IdentityServiceInitHandlerTest {
         var customer = customerService.getCustomerByCristinId(SIKT_CRISTIN_ID);
         assertThat(customer, is(not(nullValue())));
         assertThat(customer.getCristinId(), is(equalTo(SIKT_CRISTIN_ID)));
+    }
+
+    @Test
+    void shouldCreateSiktBackendClientDBRow() throws NotFoundException, IOException {
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
+        handler.handleRequest(createRequest(), output, context);
+        var client = identityService.getClient(ClientDto.newBuilder().withClientId(BACKEND_CLIENT_ID).build());
+        assertThat(client, is(not(nullValue())));
+        assertThat(client.getActingUser(), is(equalTo(SIKT_ACTING_USER)));
     }
 
     private void initializeIdentityService() {

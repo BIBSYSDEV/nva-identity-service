@@ -74,27 +74,32 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
     }
 
     private void addSiktBackendClientUser(CustomerDto sikt) {
+        logger.info("Attempting to add Sikt Backend Client User...");
         // The Cognito user pool client credentials have already been set up in Cognito. However, the client still
         // needs to be added to the database.
         var backendClientId = environment.readEnv(BACKEND_CLIENT_ID_ENV);
 
-        attempt(() -> identityService.getClient(ClientDto.newBuilder().withClientId(backendClientId).build()))
-            .or(() -> {
-                var clientDto =
-                    ClientDto.newBuilder()
-                        .withClientId(backendClientId)
-                        .withCustomer(sikt.getId())
-                        .withCristinOrgUri(sikt.getCristinId())
-                        .withActingUser(SIKT_ACTING_USER)
-                        .build();
+        attempt(() -> {
+            logger.info("Getting client with ClientId: {}", backendClientId);
+            return identityService.getClient(ClientDto.newBuilder().withClientId(backendClientId).build());
+        }).or(() -> {
+            logger.info("Client not found. Creating new client...");
+            var clientDto = ClientDto.newBuilder()
+                                .withClientId(backendClientId)
+                                .withCustomer(sikt.getId())
+                                .withCristinOrgUri(sikt.getCristinId())
+                                .withActingUser(SIKT_ACTING_USER)
+                                .build();
 
-                identityService.addExternalClient(clientDto);
-                return clientDto;
-            }).orElseThrow();
+            identityService.addExternalClient(clientDto);
+            return clientDto;
+        }).orElseThrow();
     }
 
     private CustomerDto createDefaultCustomer() {
-        var customer = CustomerDto.builder().withCristinId(SIKT_CRISTIN_ID)
+        logger.info("Attempting to create default customer...");
+        var customer = CustomerDto.builder()
+                           .withCristinId(SIKT_CRISTIN_ID)
                            .withFeideOrganizationDomain(SIKT_NO)
                            .withCname(SIKT)
                            .withName(SIKT)
@@ -103,10 +108,15 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
                            .withCustomerOf(ApplicationDomain.NVA)
                            .build();
 
-        return attempt(() -> customerService.createCustomer(customer))
-                   .or(() -> customerService.getCustomerByOrgDomain(SIKT_NO))
-                   .orElseThrow();
+        return attempt(() -> {
+            logger.info("Creating customer...");
+            return customerService.createCustomer(customer);
+        }).or(() -> {
+            logger.info("Customer already exists. Fetching customer by org domain: {}", SIKT_NO);
+            return customerService.getCustomerByOrgDomain(SIKT_NO);
+        }).orElseThrow();
     }
+
 
     @Override
     protected Integer getSuccessStatusCode(Void input, RoleList output) {

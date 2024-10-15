@@ -1,28 +1,9 @@
 package no.unit.nva.useraccessservice.dao;
 
-import static java.util.Objects.nonNull;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
-import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
-import static nva.commons.core.attempt.Try.attempt;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import no.unit.nva.useraccessservice.dao.UserDao.Builder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
+import no.unit.nva.useraccessservice.model.LicenseDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
@@ -43,6 +24,31 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
+import java.net.URI;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
+import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
+import static nva.commons.core.attempt.Try.attempt;
+
 @SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount"})
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
@@ -51,7 +57,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String TYPE_VALUE = "USER";
     public static final String INVALID_USER_EMPTY_USERNAME = "Invalid user entry: Empty username is not allowed";
     public static final String ERROR_DUE_TO_INVALID_ROLE =
-        "Failure while trying to create user with role without role-name";
+            "Failure while trying to create user with role without role-name";
     public static final String USERNAME_FIELD = "username";
     public static final String GIVEN_NAME_FIELD = "givenName";
     public static final String FAMILY_NAME_FIELD = "familyName";
@@ -60,6 +66,9 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String CRISTIN_ID = "cristinId";
     public static final String FEIDE_IDENTIFIER = "feideIdentifier";
     public static final String AFFILIATION_FIELD = "affiliation";
+    public static final String SIGNED_TERMS_OF_USE_LICENSE_URI = "signedTermsOfUseLicenseUri";
+    public static final String SIGNED_TERMS_OF_USE_DATE = "signedTermsOfUseDate";
+
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
     private String username;
@@ -72,9 +81,12 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     private String feideIdentifier;
     private URI institutionCristinId;
     private URI affiliation;
+    private URI signedTermsOfUseLicenseUri;
+    private Instant signedTermsOfUseDate;
 
     public UserDao() {
         super();
+
     }
 
     public static Builder newBuilder() {
@@ -83,20 +95,20 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public static UserDao fromUserDto(UserDto userDto) {
         UserDao.Builder userDb = UserDao.newBuilder()
-            .withUsername(userDto.getUsername())
-            .withGivenName(userDto.getGivenName())
-            .withFamilyName(userDto.getFamilyName())
-            .withInstitution(userDto.getInstitution())
-            .withRoles(createRoleDbSet(userDto))
-            .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
-            .withCristinId(userDto.getCristinId())
-            .withFeideIdentifier(userDto.getFeideIdentifier())
-            .withInstitutionCristinId(userDto.getInstitutionCristinId())
-            .withAffiliation(userDto.getAffiliation());
+                .withUsername(userDto.getUsername())
+                .withGivenName(userDto.getGivenName())
+                .withFamilyName(userDto.getFamilyName())
+                .withInstitution(userDto.getInstitution())
+                .withRoles(createRoleDbSet(userDto))
+                .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
+                .withCristinId(userDto.getCristinId())
+                .withFeideIdentifier(userDto.getFeideIdentifier())
+                .withInstitutionCristinId(userDto.getInstitutionCristinId())
+                .withAffiliation(userDto.getAffiliation())
+                .withLicenseInfo(userDto.getLicenseInfo());
 
         return userDb.build();
     }
-
 
 
     public ViewingScopeDb getViewingScope() {
@@ -115,19 +127,21 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public UserDto toUserDto() {
 
         UserDto.Builder userDto = UserDto.newBuilder()
-            .withUsername(this.getUsername())
-            .withGivenName(this.getGivenName())
-            .withFamilyName(this.getFamilyName())
-            .withRoles(extractRoles(this))
-            .withInstitution(this.getInstitution())
-            .withViewingScope(convertViewingScope())
-            .withCristinId(getCristinId())
-            .withFeideIdentifier(getFeideIdentifier())
-            .withInstitutionCristinId(getInstitutionCristinId())
-            .withAffiliation(getAffiliation());
+                .withUsername(this.getUsername())
+                .withGivenName(this.getGivenName())
+                .withFamilyName(this.getFamilyName())
+                .withRoles(extractRoles(this))
+                .withInstitution(this.getInstitution())
+                .withViewingScope(convertViewingScope())
+                .withCristinId(getCristinId())
+                .withFeideIdentifier(getFeideIdentifier())
+                .withInstitutionCristinId(getInstitutionCristinId())
+                .withAffiliation(getAffiliation())
+                .withLicenseInfo(new LicenseDto(LocalDateTime.from(getSignedTermsOfUseDate()), getSignedTermsOfUseLicenseUri()));
 
         return userDto.build();
     }
+
 
     @JacocoGenerated
     @Override
@@ -320,19 +334,40 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         this.affiliation = affiliation;
     }
 
+    @DynamoDbAttribute(SIGNED_TERMS_OF_USE_LICENSE_URI)
+    public URI getSignedTermsOfUseLicenseUri() {
+        return signedTermsOfUseLicenseUri;
+    }
+
+    public void setSignedTermsOfUseLicenseUri(URI signedTermsOfUseLicenseUri) {
+        this.signedTermsOfUseLicenseUri = signedTermsOfUseLicenseUri;
+    }
+
+    @DynamoDbAttribute(SIGNED_TERMS_OF_USE_DATE)
+    public Instant getSignedTermsOfUseDate() {
+        return signedTermsOfUseDate;
+    }
+
+    public void setSignedTermsOfUseDate(Instant signedTermsOfUseDate) {
+        this.signedTermsOfUseDate = signedTermsOfUseDate;
+    }
+
+
     @Override
     public UserDao.Builder copy() {
         return newBuilder()
-            .withUsername(this.getUsername())
-            .withGivenName(this.getGivenName())
-            .withFamilyName(this.getFamilyName())
-            .withInstitution(this.getInstitution())
-            .withViewingScope(this.getViewingScope())
-            .withCristinId(this.cristinId)
-            .withRoles(this.getRolesNonNull())
-            .withFeideIdentifier(this.getFeideIdentifier())
-            .withInstitutionCristinId(this.getInstitutionCristinId())
-            .withAffiliation(this.getAffiliation());
+                .withUsername(this.getUsername())
+                .withGivenName(this.getGivenName())
+                .withFamilyName(this.getFamilyName())
+                .withInstitution(this.getInstitution())
+                .withViewingScope(this.getViewingScope())
+                .withCristinId(this.cristinId)
+                .withRoles(this.getRolesNonNull())
+                .withFeideIdentifier(this.getFeideIdentifier())
+                .withInstitutionCristinId(this.getInstitutionCristinId())
+                .withAffiliation(this.getAffiliation())
+                .withSignedTermsOfUseDate(this.getSignedTermsOfUseDate())
+                .withSignedTermsOfUseLicenseUri(this.getSignedTermsOfUseLicenseUri());
     }
 
     @DynamoDbAttribute(FEIDE_IDENTIFIER)
@@ -348,8 +383,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
-                            getViewingScope(),
-                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId(),getAffiliation());
+                getViewingScope(), getCristinId(), getFeideIdentifier(), getInstitutionCristinId(),
+                getAffiliation(), getSignedTermsOfUseLicenseUri(), getSignedTermsOfUseDate());
     }
 
     @Override
@@ -358,20 +393,22 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof UserDao)) {
+        if (!(o instanceof UserDao userDao)) {
             return false;
         }
-        UserDao userDao = (UserDao) o;
         return Objects.equals(getUsername(), userDao.getUsername())
-               && Objects.equals(getInstitution(), userDao.getInstitution())
-               && Objects.equals(getRoles(), userDao.getRoles())
-               && Objects.equals(getGivenName(), userDao.getGivenName())
-               && Objects.equals(getFamilyName(), userDao.getFamilyName())
-               && Objects.equals(getViewingScope(), userDao.getViewingScope())
-               && Objects.equals(getCristinId(), userDao.getCristinId())
-               && Objects.equals(getFeideIdentifier(), userDao.getFeideIdentifier())
-               && Objects.equals(getInstitutionCristinId(), userDao.getInstitutionCristinId())
-               && Objects.equals(getAffiliation(),userDao.getAffiliation());
+                && Objects.equals(getInstitution(), userDao.getInstitution())
+                && Objects.equals(getRoles(), userDao.getRoles())
+                && Objects.equals(getGivenName(), userDao.getGivenName())
+                && Objects.equals(getFamilyName(), userDao.getFamilyName())
+                && Objects.equals(getViewingScope(), userDao.getViewingScope())
+                && Objects.equals(getCristinId(), userDao.getCristinId())
+                && Objects.equals(getFeideIdentifier(), userDao.getFeideIdentifier())
+                && Objects.equals(getInstitutionCristinId(), userDao.getInstitutionCristinId())
+                && Objects.equals(getAffiliation(), userDao.getAffiliation())
+                && Objects.equals(getSignedTermsOfUseLicenseUri(), userDao.getSignedTermsOfUseLicenseUri())
+                && Objects.equals(getSignedTermsOfUseDate(), userDao.getSignedTermsOfUseDate())
+                ;
     }
 
     @DynamoDbAttribute("institutionCristinId")
@@ -385,18 +422,18 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
         return userDto.getRoles().stream()
-            .map(attempt(RoleDb::fromRoleDto))
-            .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
-            .collect(Collectors.toSet());
+                .map(attempt(RoleDb::fromRoleDto))
+                .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
+                .collect(Collectors.toSet());
     }
 
     private static List<RoleDto> extractRoles(UserDao userDao) {
         return Optional.ofNullable(userDao)
-            .stream()
-            .flatMap(user -> user.getRolesNonNull().stream())
-            .map(attempt(RoleDb::toRoleDto))
-            .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
-            .collect(Collectors.toList());
+                .stream()
+                .flatMap(user -> user.getRolesNonNull().stream())
+                .map(attempt(RoleDb::toRoleDto))
+                .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
+                .collect(Collectors.toList());
     }
 
     /*This exception should not happen as a RoleDb should always convert to a RoleDto */
@@ -484,6 +521,23 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         public Builder withAffiliation(URI affiliation) {
             userDao.setAffiliation(affiliation);
+            return this;
+        }
+
+
+        public Builder withLicenseInfo(LicenseDto licenseInfo) {
+            userDao.setSignedTermsOfUseDate(licenseInfo.signedDate().toInstant(ZoneOffset.UTC));
+            userDao.setSignedTermsOfUseLicenseUri(licenseInfo.licenseUri());
+            return this;
+        }
+
+        public Builder withSignedTermsOfUseLicenseUri(URI signedTermsOfUseLicenseUri) {
+            userDao.setSignedTermsOfUseLicenseUri(signedTermsOfUseLicenseUri);
+            return this;
+        }
+
+        public Builder withSignedTermsOfUseDate(Instant signedTermsOfUseDate) {
+            userDao.setSignedTermsOfUseDate(signedTermsOfUseDate);
             return this;
         }
     }

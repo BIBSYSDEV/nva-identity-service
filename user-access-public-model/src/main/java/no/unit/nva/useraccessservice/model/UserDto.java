@@ -5,6 +5,8 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -55,10 +57,12 @@ public class UserDto implements WithCopy<Builder>, Typed {
     private URI institutionCristinId;
     @JsonProperty("affiliation")
     private URI affiliation;
-    
+    private LicenseDto licenseDto;
+
     public UserDto() {
         roles = Collections.emptySet();
         viewingScope = ViewingScope.emptyViewingScope();
+        licenseDto = new LicenseDto();
     }
     
     /**
@@ -82,7 +86,15 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public void setAffiliation(URI affiliation) {
         this.affiliation = affiliation;
     }
-    
+
+    public LicenseDto getLicenseInfo() {
+        return licenseDto;
+    }
+
+    public void setLicenseInfo(LicenseDto licenseDto) {
+        this.licenseDto = licenseDto;
+    }
+
     public String getFeideIdentifier() {
         return feideIdentifier;
     }
@@ -186,16 +198,17 @@ public class UserDto implements WithCopy<Builder>, Typed {
     @Override
     public UserDto.Builder copy() {
         return new Builder()
-                   .withUsername(getUsername())
-                   .withGivenName(getGivenName())
-                   .withFamilyName(getFamilyName())
-                   .withInstitution(getInstitution())
-                   .withRoles(new HashSet<>(getRoles()))
-                   .withViewingScope(getViewingScope())
-                   .withCristinId(getCristinId())
-                   .withInstitutionCristinId(getInstitutionCristinId())
-                   .withFeideIdentifier(getFeideIdentifier())
-                   .withAffiliation(getAffiliation());
+                .withUsername(getUsername())
+                .withGivenName(getGivenName())
+                .withFamilyName(getFamilyName())
+                .withInstitution(getInstitution())
+                .withRoles(new HashSet<>(getRoles()))
+                .withViewingScope(getViewingScope())
+                .withCristinId(getCristinId())
+                .withInstitutionCristinId(getInstitutionCristinId())
+                .withFeideIdentifier(getFeideIdentifier())
+                .withAffiliation(getAffiliation())
+                .withLicenseInfo(getLicenseInfo());
     }
     
     public ViewingScope getViewingScope() {
@@ -208,8 +221,8 @@ public class UserDto implements WithCopy<Builder>, Typed {
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getUsername(), getInstitution(), getGivenName(), getFamilyName(), getViewingScope(),
-            getRoles(),
-            getCristinId(), getFeideIdentifier(), getInstitutionCristinId(), getAffiliation());
+                getRoles(),
+                getCristinId(), getFeideIdentifier(), getInstitutionCristinId(), getAffiliation(), getLicenseInfo());
     }
     
     public void setViewingScope(ViewingScope viewingScope) {
@@ -222,20 +235,20 @@ public class UserDto implements WithCopy<Builder>, Typed {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof UserDto)) {
+        if (!(o instanceof UserDto userDto)) {
             return false;
         }
-        UserDto userDto = (UserDto) o;
         return Objects.equals(getUsername(), userDto.getUsername())
-               && Objects.equals(getInstitution(), userDto.getInstitution())
-               && Objects.equals(getGivenName(), userDto.getGivenName())
-               && Objects.equals(getFamilyName(), userDto.getFamilyName())
-               && Objects.equals(getViewingScope(), userDto.getViewingScope())
-               && Objects.equals(getRoles(), userDto.getRoles())
-               && Objects.equals(getCristinId(), userDto.getCristinId())
-               && Objects.equals(getFeideIdentifier(), userDto.getFeideIdentifier())
-               && Objects.equals(getInstitutionCristinId(), userDto.getInstitutionCristinId())
-               && Objects.equals(getAffiliation(), userDto.getAffiliation());
+                && Objects.equals(getInstitution(), userDto.getInstitution())
+                && Objects.equals(getGivenName(), userDto.getGivenName())
+                && Objects.equals(getFamilyName(), userDto.getFamilyName())
+                && Objects.equals(getViewingScope(), userDto.getViewingScope())
+                && Objects.equals(getRoles(), userDto.getRoles())
+                && Objects.equals(getCristinId(), userDto.getCristinId())
+                && Objects.equals(getFeideIdentifier(), userDto.getFeideIdentifier())
+                && Objects.equals(getInstitutionCristinId(), userDto.getInstitutionCristinId())
+                && Objects.equals(getAffiliation(), userDto.getAffiliation())
+                && Objects.equals(getLicenseInfo(), userDto.getLicenseInfo());
     }
     
     private Optional<ViewingScope> defaultViewingScopeForUsersWithInstitution() {
@@ -311,7 +324,18 @@ public class UserDto implements WithCopy<Builder>, Typed {
             userDto.setAffiliation(affiliation);
             return this;
         }
-        
+
+        public Builder withLicenseInfo(LicenseDto licenseDto) {
+            userDto.setLicenseInfo(licenseDto);
+            return this;
+        }
+
+        public Builder withLicenseInfo(Instant signedDate, URI licenseUri) {
+            var signed =  nonNull(signedDate) ? LocalDateTime.from(signedDate) : null;
+            userDto.setLicenseInfo(new LicenseDto(signed, licenseUri));
+            return this;
+        }
+
         public UserDto build() {
             return userDto;
         }

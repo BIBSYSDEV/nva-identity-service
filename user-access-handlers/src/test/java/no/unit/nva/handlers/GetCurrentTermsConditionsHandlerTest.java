@@ -31,10 +31,9 @@ class GetCurrentTermsConditionsHandlerTest  extends HandlerTest {
 
     @BeforeEach
     public void setup() {
-        databaseService = createDatabaseServiceUsingLocalStorage();
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-        handler = new GetCurrentTermsConditionsHandler(databaseService);
+        handler = new GetCurrentTermsConditionsHandler();
     }
 
     @Test

@@ -7,11 +7,10 @@ import java.time.LocalDateTime;
 
 public record TermsConditionsResponse(
     URI id,
-    LocalDateTime validFrom,
-    String agreement) implements JsonSerializable {
+    LocalDateTime validFrom
+) implements JsonSerializable {
 
     public static final class TermsConditionsResponseBuilder {
-        private String agreement;
         private URI id;
         private LocalDateTime validFrom;
 
@@ -22,10 +21,6 @@ public record TermsConditionsResponse(
             return new TermsConditionsResponseBuilder();
         }
 
-        public TermsConditionsResponseBuilder withAgreement(String agreement) {
-            this.agreement = agreement;
-            return this;
-        }
 
         public TermsConditionsResponseBuilder withId(URI id) {
             this.id = id;
@@ -38,7 +33,7 @@ public record TermsConditionsResponse(
         }
 
         public TermsConditionsResponse build() {
-            return new TermsConditionsResponse(id, validFrom, agreement);
+            return new TermsConditionsResponse(id, validFrom);
         }
     }
 }

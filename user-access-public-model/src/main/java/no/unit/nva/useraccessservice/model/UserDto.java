@@ -5,6 +5,8 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -325,6 +327,12 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
         public Builder withLicenseInfo(LicenseDto licenseDto) {
             userDto.setLicenseInfo(licenseDto);
+            return this;
+        }
+
+        public Builder withLicenseInfo(Instant signedDate, URI licenseUri) {
+            var signed =  nonNull(signedDate) ? LocalDateTime.from(signedDate) : null;
+            userDto.setLicenseInfo(new LicenseDto(signed, licenseUri));
             return this;
         }
 

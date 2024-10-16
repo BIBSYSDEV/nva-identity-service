@@ -26,7 +26,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 
 import java.net.URI;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
@@ -86,7 +85,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public UserDao() {
         super();
-
     }
 
     public static Builder newBuilder() {
@@ -109,7 +107,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         return userDb.build();
     }
-
 
     public ViewingScopeDb getViewingScope() {
         return viewingScope;
@@ -137,7 +134,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                 .withFeideIdentifier(getFeideIdentifier())
                 .withInstitutionCristinId(getInstitutionCristinId())
                 .withAffiliation(getAffiliation())
-                .withLicenseInfo(new LicenseDto(LocalDateTime.from(getSignedTermsOfUseDate()), getSignedTermsOfUseLicenseUri()));
+                .withLicenseInfo(getSignedTermsOfUseDate(), getSignedTermsOfUseLicenseUri());
 
         return userDto.build();
     }
@@ -526,7 +523,9 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
 
         public Builder withLicenseInfo(LicenseDto licenseInfo) {
-            userDao.setSignedTermsOfUseDate(licenseInfo.signedDate().toInstant(ZoneOffset.UTC));
+            if (nonNull(licenseInfo.signedDate())) {
+                userDao.setSignedTermsOfUseDate(licenseInfo.signedDate().toInstant(ZoneOffset.UTC));
+            }
             userDao.setSignedTermsOfUseLicenseUri(licenseInfo.licenseUri());
             return this;
         }

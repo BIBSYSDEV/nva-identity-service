@@ -10,17 +10,16 @@ public record TermsConditionsResponse(
     LocalDateTime validFrom
 ) implements JsonSerializable {
 
+    public static TermsConditionsResponseBuilder builder() {
+        return new TermsConditionsResponseBuilder();
+    }
+
     public static final class TermsConditionsResponseBuilder {
         private URI id;
         private LocalDateTime validFrom;
 
         private TermsConditionsResponseBuilder() {
         }
-
-        public static TermsConditionsResponseBuilder aTermsConditionsResponse() {
-            return new TermsConditionsResponseBuilder();
-        }
-
 
         public TermsConditionsResponseBuilder withId(URI id) {
             this.id = id;

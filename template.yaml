@@ -445,9 +445,6 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref UserRoleMappings
       Events:
         ApiEvent:
           Type: Api

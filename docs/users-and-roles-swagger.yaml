@@ -164,6 +164,7 @@ paths:
         responses: {}
         httpMethod: POST
         type: aws_proxy
+
   /impersonation/stop:
     post:
       operationId: impersonationStop
@@ -200,6 +201,38 @@ paths:
         responses: {}
         httpMethod: POST
         type: aws_proxy
+  /terms-and-conditions/current:
+    get:
+      summary: Access current terms & conditions
+      operationId: GetCurrentTermsConditionsHandler
+      security:
+        - ExternalCognitoUserPool:
+            - "https://api.nva.unit.no/scopes/third-party/file-upload"
+            - "https://api.nva.unit.no/scopes/third-party/ticket-upsert"
+            - "https://api.nva.unit.no/scopes/third-party/publication-read"
+            - "https://api.nva.unit.no/scopes/third-party/ticket-read"
+            - "https://api.nva.unit.no/scopes/third-party/reporting-read"
+            - "https://api.nva.unit.no/scopes/third-party/publication-upsert"
+      responses:
+        '200':
+          description: Returns the externalClient
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/TermsConditions'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetCurrentTermsConditionsHandler.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: aws_proxy
+
   /external-clients:
     get:
       summary: Access stored external client info by its token
@@ -477,6 +510,19 @@ components:
         type:
           type: string
           default: CustomerSelection
+    TermsConditions:
+      type: object
+      description: NVA license agreement
+      required:
+        - id
+        - validFrom
+      properties:
+        id:
+          type: string
+          description: URI to our license agreement
+        validFrom:
+          type: string
+          description: LocalDateTime
     Problem:
       type: object
       description: NVA error reporting object

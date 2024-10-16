@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomLocalDateTime;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static no.unit.nva.useraccessservice.model.TermsConditionsResponse.TermsConditionsResponseBuilder.aTermsConditionsResponse;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 
@@ -16,7 +15,7 @@ class TermsConditionsResponseTest {
         var id = randomUri();
         var validFrom = randomLocalDateTime();
 
-        var response = aTermsConditionsResponse()
+        var response = TermsConditionsResponse.builder()
             .withId(id)
             .withValidFrom(validFrom)
             .build();

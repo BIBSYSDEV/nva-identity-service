@@ -1430,7 +1430,6 @@ Resources:
         - implicit
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
         - openid
         - email
         - phone
@@ -1511,7 +1510,6 @@ Resources:
         - implicit
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
         - openid
         - email
         - phone
@@ -1578,7 +1576,6 @@ Resources:
         - implicit
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
-        - aws.cognito.signin.user.admin
         - openid
         - email
         - phone

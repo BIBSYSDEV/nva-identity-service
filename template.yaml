@@ -437,6 +437,22 @@ Resources:
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 
+  GetCurrentTermsConditionsHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.GetCurrentTermsConditionsHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /terms-and-conditions/current
+            Method: get
+            RestApiId: !Ref UsersAndRolesApi
+
   CustomerSelectionHandler:
     Type: AWS::Serverless::Function
     Properties:

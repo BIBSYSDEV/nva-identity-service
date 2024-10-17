@@ -205,14 +205,6 @@ paths:
     get:
       summary: Access current terms & conditions
       operationId: GetCurrentTermsConditionsHandler
-      security:
-        - ExternalCognitoUserPool:
-            - "https://api.nva.unit.no/scopes/third-party/file-upload"
-            - "https://api.nva.unit.no/scopes/third-party/ticket-upsert"
-            - "https://api.nva.unit.no/scopes/third-party/publication-read"
-            - "https://api.nva.unit.no/scopes/third-party/ticket-read"
-            - "https://api.nva.unit.no/scopes/third-party/reporting-read"
-            - "https://api.nva.unit.no/scopes/third-party/publication-upsert"
       responses:
         '200':
           description: Returns the externalClient

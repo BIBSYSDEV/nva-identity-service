@@ -232,7 +232,8 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
         if (exception instanceof ConflictException) {
             return (ConflictException) exception;
         } else {
-            LOGGER.error("Failed to create or update user!", failure.getException());
+            final Throwable cause = failure.getException();
+            LOGGER.error("Failed to create or update user!", cause);
             return new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
         }
     }

@@ -232,7 +232,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
         if (exception instanceof ConflictException) {
             return (ConflictException) exception;
         } else {
-            LOGGER.error(failure.getException().getMessage());
+            LOGGER.error("Failed to create or update user!", failure.getException());
             return new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
         }
     }

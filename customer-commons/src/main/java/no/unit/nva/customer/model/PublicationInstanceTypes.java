@@ -65,7 +65,8 @@ public enum PublicationInstanceTypes {
     VISUAL_ARTS("VisualArts"),
     MAP("Map"),
     LITERARY_ARTS("LiteraryArts"),
-    EXHIBITION_PRODUCTION("ExhibitionProduction");
+    EXHIBITION_PRODUCTION("ExhibitionProduction"),
+    ACADEMIC_COMMENTARY("AcademicCommentary");
 
     @JsonValue
     private final String displayValue;

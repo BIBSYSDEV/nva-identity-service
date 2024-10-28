@@ -1,22 +1,24 @@
 package no.unit.nva.useraccessservice.model;
 
-import static java.util.Objects.nonNull;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.useraccessservice.constants.ServiceConstants;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.JacocoGenerated;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import no.unit.nva.identityservice.json.JsonConfig;
-import no.unit.nva.useraccessservice.constants.ServiceConstants;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.core.JacocoGenerated;
+
+import static java.util.Objects.nonNull;
+import static nva.commons.core.attempt.Try.attempt;
 
 /**
  * This is a Curator's default viewing scope expressed as a set of included and excluded Cristin Units. The Curator's
@@ -61,18 +63,18 @@ public class ViewingScope {
         return attempt(() -> ViewingScope.create(Set.of(organizationId), Collections.emptySet())).orElseThrow();
     }
 
-    public static ViewingScope emptyViewingScope()  {
+    public static ViewingScope emptyViewingScope() {
         return new ViewingScope();
     }
 
     public static ViewingScope create(Collection<URI> includedUnits, Collection<URI> excludedUnits)
-        throws BadRequestException {
+            throws BadRequestException {
         return new ViewingScope(toSet(includedUnits), toSet(excludedUnits));
     }
 
     public static ViewingScope fromJson(String input) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(input, ViewingScope.class)).orElseThrow(
-            fail -> new BadRequestException("Could not read viewing scope:" + input));
+                fail -> new BadRequestException("Could not read viewing scope:" + input));
     }
 
     public static Void validate(URI uri) throws BadRequestException {
@@ -111,7 +113,7 @@ public class ViewingScope {
             return false;
         }
         return Objects.equals(getIncludedUnits(), that.getIncludedUnits()) && Objects.equals(getExcludedUnits(),
-                                                                                             that.getExcludedUnits());
+                that.getExcludedUnits());
     }
 
     @Override

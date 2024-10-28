@@ -3,16 +3,12 @@ package no.unit.nva.useraccessservice.model;
 import no.unit.nva.commons.json.JsonSerializable;
 
 import java.net.URI;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 public record LicenseDto(
-        LocalDateTime signedDate,
+        ZonedDateTime signedDate,
         URI licenseUri
 ) implements JsonSerializable {
 
-
-    public LicenseDto() {
-        this(null, null);
-    }
 }
 

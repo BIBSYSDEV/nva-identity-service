@@ -26,7 +26,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 
 import java.net.URI;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -524,7 +523,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         public Builder withLicenseInfo(LicenseDto licenseInfo) {
             if (nonNull(licenseInfo.signedDate())) {
-                userDao.setSignedTermsOfUseDate(licenseInfo.signedDate().toInstant(ZoneOffset.UTC));
+                userDao.setSignedTermsOfUseDate(licenseInfo.signedDate().toInstant());
             }
             userDao.setSignedTermsOfUseLicenseUri(licenseInfo.licenseUri());
             return this;

@@ -1,7 +1,6 @@
 package no.unit.nva.useraccessservice.dao;
 
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.model.LicenseDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -22,7 +21,6 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.net.URI;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -233,7 +231,7 @@ class UserDaoTest {
 
     @Test
     void shouldContainListOfCristinOrganizationIdsThatDefineCuratorsScope()
-            throws InvalidEntryInternalException, BadRequestException {
+            throws InvalidEntryInternalException {
         URI someCristinUnit = randomCristinOrgId();
         URI someOtherCristinUnit = randomCristinOrgId();
         Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
@@ -298,7 +296,6 @@ class UserDaoTest {
                 .withInstitutionCristinId(randomCristinOrgId())
                 .withFeideIdentifier(randomString())
                 .withAffiliation(randomCristinOrgId())
-                .withLicenseInfo(new LicenseDto(ZonedDateTime.now(), randomUri()))
                 .build();
         assertThat(randomUser, doesNotHaveEmptyValues());
         return randomUser;

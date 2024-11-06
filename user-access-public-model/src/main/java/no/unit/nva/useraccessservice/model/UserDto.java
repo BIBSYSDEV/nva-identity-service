@@ -13,7 +13,6 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 
 import java.net.URI;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -24,7 +23,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 
@@ -60,12 +58,10 @@ public class UserDto implements WithCopy<Builder>, Typed {
     private URI institutionCristinId;
     @JsonProperty("affiliation")
     private URI affiliation;
-    private LicenseDto licenseDto;
 
     public UserDto() {
         roles = Collections.emptySet();
         viewingScope = ViewingScope.emptyViewingScope();
-        licenseDto = new LicenseDto(null, null);
     }
 
     /**
@@ -88,14 +84,6 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
     public void setAffiliation(URI affiliation) {
         this.affiliation = affiliation;
-    }
-
-    public LicenseDto getLicenseInfo() {
-        return licenseDto;
-    }
-
-    public void setLicenseInfo(LicenseDto licenseDto) {
-        this.licenseDto = licenseDto;
     }
 
     public String getFeideIdentifier() {
@@ -221,8 +209,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
                 .withCristinId(getCristinId())
                 .withInstitutionCristinId(getInstitutionCristinId())
                 .withFeideIdentifier(getFeideIdentifier())
-                .withAffiliation(getAffiliation())
-                .withLicenseInfo(getLicenseInfo());
+                .withAffiliation(getAffiliation());
     }
 
     @Override
@@ -230,7 +217,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public int hashCode() {
         return Objects.hash(getUsername(), getInstitution(), getGivenName(), getFamilyName(), getViewingScope(),
                 getRoles(),
-                getCristinId(), getFeideIdentifier(), getInstitutionCristinId(), getAffiliation(), getLicenseInfo());
+                getCristinId(), getFeideIdentifier(), getInstitutionCristinId(), getAffiliation());
     }
 
     @Override
@@ -251,8 +238,7 @@ public class UserDto implements WithCopy<Builder>, Typed {
                 && Objects.equals(getCristinId(), userDto.getCristinId())
                 && Objects.equals(getFeideIdentifier(), userDto.getFeideIdentifier())
                 && Objects.equals(getInstitutionCristinId(), userDto.getInstitutionCristinId())
-                && Objects.equals(getAffiliation(), userDto.getAffiliation())
-                && Objects.equals(getLicenseInfo(), userDto.getLicenseInfo());
+                && Objects.equals(getAffiliation(), userDto.getAffiliation());
     }
 
     @Override
@@ -328,17 +314,6 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
         public Builder withAffiliation(URI affiliation) {
             userDto.setAffiliation(affiliation);
-            return this;
-        }
-
-        public Builder withLicenseInfo(LicenseDto licenseDto) {
-            userDto.setLicenseInfo(licenseDto);
-            return this;
-        }
-
-        public Builder withLicenseInfo(Instant signedDate, URI licenseUri) {
-            var signed = nonNull(signedDate) ? signedDate.atZone(UTC) : null;
-            userDto.setLicenseInfo(new LicenseDto(signed, licenseUri));
             return this;
         }
 

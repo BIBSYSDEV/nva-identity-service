@@ -1,38 +1,30 @@
 package no.unit.nva.useraccessservice.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import no.unit.nva.commons.json.JsonSerializable;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 
+@JsonSerialize
 public record TermsConditionsResponse(
-    URI id,
-    LocalDateTime validFrom
+    URI termsConditionsUri
 ) implements JsonSerializable {
 
-    public static TermsConditionsResponseBuilder builder() {
-        return new TermsConditionsResponseBuilder();
+    public static TermsConditionsResponse.Builder builder() {
+        return new TermsConditionsResponse.Builder();
     }
 
-    public static final class TermsConditionsResponseBuilder {
-        private URI id;
-        private LocalDateTime validFrom;
+    public static class Builder {
 
-        private TermsConditionsResponseBuilder() {
-        }
+        private URI termsConditionsUri;
 
-        public TermsConditionsResponseBuilder withId(URI id) {
-            this.id = id;
-            return this;
-        }
-
-        public TermsConditionsResponseBuilder withValidFrom(LocalDateTime validFrom) {
-            this.validFrom = validFrom;
+        public TermsConditionsResponse.Builder withTermsConditionsUri(URI termsConditionsUri) {
+            this.termsConditionsUri = termsConditionsUri;
             return this;
         }
 
         public TermsConditionsResponse build() {
-            return new TermsConditionsResponse(id, validFrom);
+            return new TermsConditionsResponse(termsConditionsUri);
         }
     }
 }

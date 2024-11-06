@@ -19,6 +19,9 @@ public final class CognitoClaims {
     public static final String FIRST_NAME_CLAIM = "custom:firstName";
     public static final String IMPERSONATING_CLAIM = "custom:impersonating";
     public static final String IMPERSONATED_BY_CLAIM = "custom:impersonatedBy";
+    public static final String CURRENT_TERMS = "custom:currentTerms";
+    public static final String CUSTOMER_ACCEPTED_TERMS = "custom:acceptedTerms";
+
 
     public static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FOR_NON_FEIDE_USERS,
         NIN_FOR_FEIDE_USERS, IMPERSONATING_CLAIM};

@@ -10,7 +10,6 @@ import no.unit.nva.useraccessservice.dao.ViewingScopeDb;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.ClientDto;
-import no.unit.nva.useraccessservice.model.LicenseDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -36,7 +35,6 @@ import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
 import java.net.URI;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -354,7 +352,6 @@ class IdentityServiceTest extends LocalIdentityService {
                 .withFeideIdentifier(randomString())
                 .withInstitutionCristinId(randomCristinOrgId())
                 .withAffiliation(randomCristinOrgId())
-                .withLicenseInfo(new LicenseDto(ZonedDateTime.now(), randomUri()))
                 .build();
 
         usersTable.putItem(insertedUser);

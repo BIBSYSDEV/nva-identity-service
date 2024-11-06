@@ -3,7 +3,6 @@ package no.unit.nva.useraccessservice.dao;
 import no.unit.nva.useraccessservice.dao.UserDao.Builder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
-import no.unit.nva.useraccessservice.model.LicenseDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
@@ -25,7 +24,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 import java.net.URI;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -64,8 +62,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String CRISTIN_ID = "cristinId";
     public static final String FEIDE_IDENTIFIER = "feideIdentifier";
     public static final String AFFILIATION_FIELD = "affiliation";
-    public static final String SIGNED_TERMS_OF_USE_LICENSE_URI = "signedTermsOfUseLicenseUri";
-    public static final String SIGNED_TERMS_OF_USE_DATE = "signedTermsOfUseDate";
 
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
@@ -79,8 +75,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     private String feideIdentifier;
     private URI institutionCristinId;
     private URI affiliation;
-    private URI signedTermsOfUseLicenseUri;
-    private Instant signedTermsOfUseDate;
+
 
     public UserDao() {
         super();
@@ -101,8 +96,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                 .withCristinId(userDto.getCristinId())
                 .withFeideIdentifier(userDto.getFeideIdentifier())
                 .withInstitutionCristinId(userDto.getInstitutionCristinId())
-                .withAffiliation(userDto.getAffiliation())
-                .withLicenseInfo(userDto.getLicenseInfo());
+                .withAffiliation(userDto.getAffiliation());
 
         return userDb.build();
     }
@@ -132,8 +126,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                 .withCristinId(getCristinId())
                 .withFeideIdentifier(getFeideIdentifier())
                 .withInstitutionCristinId(getInstitutionCristinId())
-                .withAffiliation(getAffiliation())
-                .withLicenseInfo(getSignedTermsOfUseDate(), getSignedTermsOfUseLicenseUri());
+                .withAffiliation(getAffiliation());
 
         return userDto.build();
     }
@@ -330,23 +323,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         this.affiliation = affiliation;
     }
 
-    @DynamoDbAttribute(SIGNED_TERMS_OF_USE_LICENSE_URI)
-    public URI getSignedTermsOfUseLicenseUri() {
-        return signedTermsOfUseLicenseUri;
-    }
-
-    public void setSignedTermsOfUseLicenseUri(URI signedTermsOfUseLicenseUri) {
-        this.signedTermsOfUseLicenseUri = signedTermsOfUseLicenseUri;
-    }
-
-    @DynamoDbAttribute(SIGNED_TERMS_OF_USE_DATE)
-    public Instant getSignedTermsOfUseDate() {
-        return signedTermsOfUseDate;
-    }
-
-    public void setSignedTermsOfUseDate(Instant signedTermsOfUseDate) {
-        this.signedTermsOfUseDate = signedTermsOfUseDate;
-    }
 
 
     @Override
@@ -361,9 +337,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                 .withRoles(this.getRolesNonNull())
                 .withFeideIdentifier(this.getFeideIdentifier())
                 .withInstitutionCristinId(this.getInstitutionCristinId())
-                .withAffiliation(this.getAffiliation())
-                .withSignedTermsOfUseDate(this.getSignedTermsOfUseDate())
-                .withSignedTermsOfUseLicenseUri(this.getSignedTermsOfUseLicenseUri());
+                .withAffiliation(this.getAffiliation());
     }
 
     @DynamoDbAttribute(FEIDE_IDENTIFIER)
@@ -380,7 +354,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public int hashCode() {
         return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
                 getViewingScope(), getCristinId(), getFeideIdentifier(), getInstitutionCristinId(),
-                getAffiliation(), getSignedTermsOfUseLicenseUri(), getSignedTermsOfUseDate());
+                getAffiliation());
     }
 
     @Override
@@ -402,8 +376,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                 && Objects.equals(getFeideIdentifier(), userDao.getFeideIdentifier())
                 && Objects.equals(getInstitutionCristinId(), userDao.getInstitutionCristinId())
                 && Objects.equals(getAffiliation(), userDao.getAffiliation())
-                && Objects.equals(getSignedTermsOfUseLicenseUri(), userDao.getSignedTermsOfUseLicenseUri())
-                && Objects.equals(getSignedTermsOfUseDate(), userDao.getSignedTermsOfUseDate())
                 ;
     }
 
@@ -517,25 +489,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         public Builder withAffiliation(URI affiliation) {
             userDao.setAffiliation(affiliation);
-            return this;
-        }
-
-
-        public Builder withLicenseInfo(LicenseDto licenseInfo) {
-            if (nonNull(licenseInfo.signedDate())) {
-                userDao.setSignedTermsOfUseDate(licenseInfo.signedDate().toInstant());
-            }
-            userDao.setSignedTermsOfUseLicenseUri(licenseInfo.licenseUri());
-            return this;
-        }
-
-        public Builder withSignedTermsOfUseLicenseUri(URI signedTermsOfUseLicenseUri) {
-            userDao.setSignedTermsOfUseLicenseUri(signedTermsOfUseLicenseUri);
-            return this;
-        }
-
-        public Builder withSignedTermsOfUseDate(Instant signedTermsOfUseDate) {
-            userDao.setSignedTermsOfUseDate(signedTermsOfUseDate);
             return this;
         }
     }

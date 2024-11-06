@@ -12,6 +12,8 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @JacocoGenerated
 public final class Constants {
 
+    public static final String PERSISTED_ENTITY = "PersistedEntity";
+
     public static final List<MediaType> DEFAULT_RESPONSE_MEDIA_TYPES = List.of(
         MediaType.JSON_UTF_8,
         MediaTypes.APPLICATION_JSON_LD

@@ -1,7 +1,7 @@
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import no.unit.nva.customer.service.impl.TermsAndConditionsService;
+import no.unit.nva.database.TermsAndConditionsService;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;

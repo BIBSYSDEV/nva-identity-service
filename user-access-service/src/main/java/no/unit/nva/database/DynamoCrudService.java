@@ -1,8 +1,9 @@
-package no.unit.nva.customer.service.impl;
+package no.unit.nva.database;
 
 
-import no.unit.nva.customer.model.interfaces.DataAccessClass;
-import no.unit.nva.customer.model.interfaces.DataAccessService;
+
+import no.unit.nva.useraccessservice.interfaces.DataAccessClass;
+import no.unit.nva.useraccessservice.interfaces.DataAccessService;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -51,7 +52,7 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
     public T fetch(T item) throws NotFoundException {
         Key key = Key.builder().partitionValue(item.withId().toString()).sortValue(item.withType()).build();
         return Optional.ofNullable(table.getItem(r -> r.key(key)))
-                .orElseThrow(() -> new NotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
+                .orElseThrow(() -> new NotFoundException(DataAccessService.RESOURCE_NOT_FOUND_MESSAGE));
     }
 }
 

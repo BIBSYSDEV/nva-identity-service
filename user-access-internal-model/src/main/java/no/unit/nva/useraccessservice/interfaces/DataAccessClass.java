@@ -1,4 +1,4 @@
-package no.unit.nva.customer.model.interfaces;
+package no.unit.nva.useraccessservice.interfaces;
 
 import java.net.URI;
 import java.time.Instant;

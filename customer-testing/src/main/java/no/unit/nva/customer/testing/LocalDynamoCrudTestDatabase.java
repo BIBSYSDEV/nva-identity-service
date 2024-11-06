@@ -5,11 +5,11 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class LocalDynamoCrudTestDatabase {
 
-    protected static DynamoDbClient client;
+    protected static DynamoDbClient dynamoClient;
 
     public void init(String tableName) {
-        client = DynamoDbTestClientProvider.geClient();
-        new DynamoDbTableCreator(client).createTable(tableName);
+        dynamoClient = DynamoDbTestClientProvider.geClient();
+        new DynamoDbTableCreator(dynamoClient).createTable(tableName);
     }
 
 }

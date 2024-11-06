@@ -1,10 +1,11 @@
-package no.unit.nva.customer.model;
+package no.unit.nva.useraccessservice.dao;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import no.unit.nva.commons.json.JsonSerializable;
-import no.unit.nva.customer.model.interfaces.DataAccessClass;
-import no.unit.nva.customer.model.interfaces.DataAccessLayer;
-import no.unit.nva.customer.model.interfaces.DataAccessService;
+
+import no.unit.nva.useraccessservice.interfaces.DataAccessClass;
+import no.unit.nva.useraccessservice.interfaces.DataAccessLayer;
+import no.unit.nva.useraccessservice.interfaces.DataAccessService;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;

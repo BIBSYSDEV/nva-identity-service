@@ -29,8 +29,8 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @param item the object to validate
      **/
-    static void validateForPersist(DataAccessClass<?> item) throws IllegalArgumentException {
-        validateForFetch(item);
+    static void validateBeforePersist(DataAccessClass<?> item) throws IllegalArgumentException {
+        validateBeforeFetch(item);
         if (isNull(item.created())) {
             throw new IllegalArgumentException("created not set");
         }
@@ -42,7 +42,12 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
         }
     }
 
-    static void validateForFetch(DataAccessClass<?> item) throws IllegalArgumentException {
+    /**
+     * Validates that every field needed to fetch the object is present.
+     *
+     * @param item the object to validate
+     **/
+    static void validateBeforeFetch(DataAccessClass<?> item) throws IllegalArgumentException {
         if (isNull(item.id())) {
             throw new IllegalArgumentException("id not set");
         }

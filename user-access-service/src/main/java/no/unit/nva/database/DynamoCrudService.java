@@ -33,7 +33,7 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
 
     @Override
     public void persist(T newItem) throws IllegalArgumentException {
-        T.validateForPersist(newItem);
+        T.validateBeforePersist(newItem);
         optionalFetchBy(newItem).ifPresentOrElse(
                 oldItem -> table.putItem(oldItem.merge(newItem)),
                 () -> table.putItem(newItem)
@@ -42,7 +42,7 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
 
     @Override
     public T fetch(T item) throws NotFoundException {
-        T.validateForFetch(item);
+        T.validateBeforeFetch(item);
         return optionalFetchBy(item)
                 .orElseThrow(() -> new NotFoundException(DataAccessService.RESOURCE_NOT_FOUND_MESSAGE));
     }

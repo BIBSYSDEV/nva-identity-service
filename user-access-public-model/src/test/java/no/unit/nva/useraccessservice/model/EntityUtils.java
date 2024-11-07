@@ -4,7 +4,6 @@ import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import nva.commons.apigateway.AccessRight;
 
 import java.net.URI;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
 

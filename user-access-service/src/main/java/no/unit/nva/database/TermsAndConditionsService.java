@@ -7,7 +7,6 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -17,7 +16,6 @@ public class TermsAndConditionsService {
 
     public static final String PERSISTED_ENTITY = "PersistedEntity";
     private static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
-    private static final LocalDateTime VALID_FROM = LocalDateTime.of(2024, 10, 1, 0, 0, 0);
 
     private final DynamoCrudService<TermsConditions> crudService;
 

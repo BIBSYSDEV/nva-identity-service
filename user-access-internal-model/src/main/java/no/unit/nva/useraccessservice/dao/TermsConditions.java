@@ -1,7 +1,6 @@
 package no.unit.nva.useraccessservice.dao;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import no.unit.nva.commons.json.JsonSerializable;
 
 import no.unit.nva.useraccessservice.interfaces.DataAccessClass;
 import no.unit.nva.useraccessservice.interfaces.DataAccessLayer;

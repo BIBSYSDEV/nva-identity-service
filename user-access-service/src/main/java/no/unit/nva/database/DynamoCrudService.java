@@ -13,7 +13,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.Optional;
 
-import static java.util.Objects.isNull;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAccessService<T> {
@@ -33,26 +32,25 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
     }
 
     @Override
-    public void persist(T item) throws NotFoundException {
-        if (isNull(item.modifiedBy())) {
-            throw new IllegalArgumentException("modifiedBy must be set before persisting");
-        }
-        optionalFetch(item).ifPresentOrElse(
-                existingItem -> table.putItem(existingItem.merge(item)),
-                () -> table.putItem(item)
+    public void persist(T newItem) throws IllegalArgumentException {
+
+        T.validate(newItem);
+
+        optionalFetchBy(newItem).ifPresentOrElse(
+                oldItem -> table.putItem(oldItem.merge(newItem)),
+                () -> table.putItem(newItem)
         );
     }
 
-
     @Override
     public T fetch(T item) throws NotFoundException {
-        return optionalFetch(item).orElseThrow(() -> new NotFoundException(DataAccessService.RESOURCE_NOT_FOUND_MESSAGE));
+        return optionalFetchBy(item).orElseThrow(() -> new NotFoundException(DataAccessService.RESOURCE_NOT_FOUND_MESSAGE));
     }
 
-    private Optional<T> optionalFetch(T item) {
+    private Optional<T> optionalFetchBy(T item) {
         var key = Key.builder()
-                .partitionValue(item.withId().toString())
-                .sortValue(item.withType())
+                .partitionValue(item.id().toString())
+                .sortValue(item.type())
                 .build();
         return Optional.ofNullable(table.getItem(r -> r.key(key)));
     }

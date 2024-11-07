@@ -32,14 +32,14 @@ public class TermsAndConditionsServiceTest {
     void shouldUpdateTermsConditions() throws NotFoundException {
         var userIdentifier = randomUri();
         var termsConditionsDao = TermsConditions.builder()
-                .withId(userIdentifier)
+                .id(userIdentifier)
                 .modifiedBy(userIdentifier)
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(termsConditionsService);
 
         var termsConditions = TermsConditions.builder()
-                .withId(userIdentifier)
+                .id(userIdentifier)
                 .build()
                 .fetch(termsConditionsService);
 
@@ -51,7 +51,7 @@ public class TermsAndConditionsServiceTest {
     void shouldThrowExceptionWhenFetchingNonExistentTermsConditions() {
         assertThrows(NotFoundException.class,
                 () -> TermsConditions.builder()
-                        .withId(randomUri())
+                        .id(randomUri())
                         .build()
                         .fetch(termsConditionsService));
     }

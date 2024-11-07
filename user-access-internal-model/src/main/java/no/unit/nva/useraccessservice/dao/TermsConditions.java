@@ -1,7 +1,5 @@
 package no.unit.nva.useraccessservice.dao;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 import no.unit.nva.useraccessservice.interfaces.DataAccessClass;
 import no.unit.nva.useraccessservice.interfaces.DataAccessLayer;
 import no.unit.nva.useraccessservice.interfaces.DataAccessService;
@@ -17,18 +15,14 @@ import java.time.Instant;
 import static java.util.Objects.isNull;
 
 @DynamoDbImmutable(builder = TermsConditions.Builder.class)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = TermsConditions.WITH_TYPE, visible = true)
 public record TermsConditions(
-        @DynamoDbPartitionKey URI withId,
-        @DynamoDbSortKey String withType,
+        @DynamoDbPartitionKey URI id,
+        @DynamoDbSortKey String type,
         Instant created,
         Instant modified,
         URI modifiedBy,
         URI termsConditionsUri
 ) implements DataAccessLayer<TermsConditions>, DataAccessClass<TermsConditions> {
-
-
-    public static final String WITH_TYPE = "withType";
 
     @DynamoDbIgnore
     @Override
@@ -47,8 +41,8 @@ public record TermsConditions(
     @Override
     public TermsConditions merge(TermsConditions item) {
         return TermsConditions.builder()
-                .withId(withId())
-                .withType(withType())
+                .id(id())
+                .type(type())
                 .created(created())
                 .modified(Instant.now())
                 .modifiedBy(item.modifiedBy())
@@ -69,12 +63,12 @@ public record TermsConditions(
         private URI modifiedByUserId;
         private URI termsUri;
 
-        public Builder withId(URI withId) {
+        public Builder id(URI withId) {
             this.id = withId;
             return this;
         }
 
-        public Builder withType(String withType) {
+        public Builder type(String withType) {
             this.type = withType;
             return this;
         }
@@ -101,7 +95,7 @@ public record TermsConditions(
 
         public TermsConditions build() {
             if (isNull(type)) {
-                withType(this.getClass().getSimpleName());
+                type(this.getClass().getSimpleName());
             }
             if(isNull(modifiedInstant)) {
                 modified(Instant.now());

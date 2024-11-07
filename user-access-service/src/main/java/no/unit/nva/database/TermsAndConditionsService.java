@@ -37,7 +37,7 @@ public class TermsAndConditionsService {
         var fetchedUri =
                 attempt(
                         () -> TermsConditions.builder()
-                                .withId(cristinId)
+                                .id(cristinId)
                                 .build()
                                 .fetch(crudService)
                                 .termsConditionsUri()
@@ -50,7 +50,7 @@ public class TermsAndConditionsService {
 
     public TermsConditionsResponse updateTermsAndConditions(URI cristinId, URI termsConditions) throws NotFoundException {
         var upserted = TermsConditions.builder()
-                .withId(cristinId)
+                .id(cristinId)
                 .termsConditionsUri(termsConditions)
                 .build()
                 .upsert(crudService);

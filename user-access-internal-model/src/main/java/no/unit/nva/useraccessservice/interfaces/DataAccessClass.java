@@ -3,10 +3,12 @@ package no.unit.nva.useraccessservice.interfaces;
 import java.net.URI;
 import java.time.Instant;
 
-public interface DataAccessClass<T extends DataAccessClass<T>> {
-    URI withId();
+import static java.util.Objects.isNull;
 
-    String withType();
+public interface DataAccessClass<T extends DataAccessClass<T>> {
+    URI id();
+
+    String type();
 
     Instant created();
 
@@ -14,5 +16,34 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
 
     URI modifiedBy();
 
+    /**
+     * Merge the current object with the new object.
+     *
+     * @param item the new object to merge with
+     * @return the merged object
+     */
     T merge(T item);
+
+    /**
+     * Validates that every field needed to persist the object is present.
+     *
+     * @param item the object to validate
+     **/
+     static void validate(DataAccessClass<?> item) throws IllegalArgumentException {
+        if (isNull(item.id())) {
+            throw new IllegalArgumentException("id not set");
+        }
+        if (isNull(item.type())) {
+            throw new IllegalArgumentException("type not set");
+        }
+        if (isNull(item.created())) {
+            throw new IllegalArgumentException("created not set");
+        }
+        if (isNull(item.modified())) {
+            throw new IllegalArgumentException("modified not set");
+        }
+        if (isNull(item.modifiedBy())) {
+            throw new IllegalArgumentException("modifiedBy not set");
+        }
+    }
 }

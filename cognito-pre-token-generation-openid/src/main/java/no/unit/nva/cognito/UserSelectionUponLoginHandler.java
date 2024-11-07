@@ -1,52 +1,5 @@
 package no.unit.nva.cognito;
 
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.ClaimsOverrideDetails;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.GroupConfiguration;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Response;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.database.TermsAndConditionsService;
-import no.unit.nva.database.IdentityService;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.model.RoleName;
-import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
-import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
-import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
-import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
-import no.unit.nva.useraccessservice.usercreation.person.Person;
-import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
-import nva.commons.apigateway.AccessRight;
-import nva.commons.core.Environment;
-import nva.commons.core.JacocoGenerated;
-import nva.commons.core.SingletonCollector;
-import nva.commons.core.StringUtils;
-import nva.commons.core.attempt.Failure;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
-
-import java.net.URI;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
@@ -71,6 +24,54 @@ import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.core.attempt.Try.attempt;
+
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.ClaimsOverrideDetails;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.GroupConfiguration;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Response;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.TermsAndConditionsService;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
+import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
+import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
+import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
+import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.person.Person;
+import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
+import nva.commons.apigateway.AccessRight;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
+import nva.commons.core.SingletonCollector;
+import nva.commons.core.StringUtils;
+import nva.commons.core.attempt.Failure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
 @SuppressWarnings({"PMD.GodClass"})
 public class UserSelectionUponLoginHandler
@@ -113,6 +114,32 @@ public class UserSelectionUponLoginHandler
         this.customerService = customerService;
         this.personRegistry = personRegistry;
         this.userCreator = new UserEntriesCreatorForPerson(identityService);
+    }
+
+    private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {
+        return
+                Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
+                        .map(NationalIdentityNumber::fromString)
+                        .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS))
+                                .map(NationalIdentityNumber::fromString))
+                        .orElseThrow();
+    }
+
+    private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
+        return userAttributes.get(ORG_FEIDE_DOMAIN);
+    }
+
+    private static String extractFeideIdentifier(Map<String, String> userAttributes) {
+        return userAttributes.get(FEIDE_ID);
+    }
+
+    @JacocoGenerated
+    private static CognitoIdentityProviderClient defaultCognitoClient() {
+        return CognitoIdentityProviderClient.builder()
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .httpClient(UrlConnectionHttpClient.create())
+                .region(AWS_REGION)
+                .build();
     }
 
     @Override
@@ -163,32 +190,6 @@ public class UserSelectionUponLoginHandler
         }
 
         return input;
-    }
-
-    private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {
-        return
-                Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
-                        .map(NationalIdentityNumber::fromString)
-                        .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS))
-                                .map(NationalIdentityNumber::fromString))
-                        .orElseThrow();
-    }
-
-    private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
-        return userAttributes.get(ORG_FEIDE_DOMAIN);
-    }
-
-    private static String extractFeideIdentifier(Map<String, String> userAttributes) {
-        return userAttributes.get(FEIDE_ID);
-    }
-
-    @JacocoGenerated
-    private static CognitoIdentityProviderClient defaultCognitoClient() {
-        return CognitoIdentityProviderClient.builder()
-                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                .httpClient(UrlConnectionHttpClient.create())
-                .region(AWS_REGION)
-                .build();
     }
 
     private NationalIdentityNumber getCurrentNin(String impersonating,

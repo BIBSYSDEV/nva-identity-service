@@ -1,33 +1,5 @@
 package no.unit.nva.useraccessservice.dao;
 
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.model.RoleName;
-import no.unit.nva.useraccessservice.model.UserDto;
-import nva.commons.apigateway.AccessRight;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.core.attempt.Try;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
-import org.hamcrest.core.StringContains;
-import org.javers.core.Javers;
-import org.javers.core.JaversBuilder;
-import org.javers.core.diff.Diff;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
@@ -50,9 +22,39 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
+import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.attempt.Try;
+import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.TestAppender;
+import org.hamcrest.core.StringContains;
+import org.javers.core.Javers;
+import org.javers.core.JaversBuilder;
+import org.javers.core.diff.Diff;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+
 class UserDaoTest {
 
     public static final String SOME_USERNAME = "someUser";
+    public static final String SOME_ROLENAME = "someRole";
     public static final String SOME_GIVEN_NAME = "givenName";
     public static final String SOME_FAMILY_NAME = "familyName";
 
@@ -62,6 +64,17 @@ class UserDaoTest {
 
     private UserDao userDao;
     private UserDao sampleUser;
+
+    private static List<RoleDb> createSampleRoles() {
+        return Stream.of(randomRoleName(), randomRoleName())
+                .map(attempt(UserDaoTest::newRole))
+                .map(Try::get)
+                .collect(Collectors.toList());
+    }
+
+    private static RoleDb newRole(RoleName roleName) throws InvalidEntryInternalException {
+        return RoleDb.newBuilder().withName(roleName).build();
+    }
 
     @BeforeEach
     public void init() throws InvalidEntryInternalException {
@@ -152,29 +165,6 @@ class UserDaoTest {
         assertThrows(InvalidEntryInternalException.class, () -> userDao.setUsername(invalidUsername));
     }
 
-    @Test
-    void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException {
-        UserDao originalUser = randomUserDb();
-        UserDao copy = originalUser.copy().build();
-        assertThat(copy, is(equalTo(originalUser)));
-
-        assertThat(copy, is(not(sameInstance(originalUser))));
-    }
-
-    @Test
-    void shouldConvertToDtoAndBackWithoutInformationLoss() {
-        UserDao originalUser = randomUserDb();
-        UserDao converted = Try.of(originalUser)
-                .map(UserDao::toUserDto)
-                .map(UserDao::fromUserDto)
-                .orElseThrow();
-
-        assertThat(originalUser, is(equalTo(converted)));
-        Diff diff = JAVERS.compare(originalUser, converted);
-        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
-        assertThat(converted, doesNotHaveEmptyValues());
-    }
-
 //    @ParameterizedTest(name = "fromUserDb throws Exception user contains invalidRole. Rolename:\"{0}\"")
 //    @NullAndEmptySource
 //    void fromUserDbThrowsExceptionWhenUserDbContainsInvalidRole(String invalidRoleName)
@@ -205,6 +195,29 @@ class UserDaoTest {
 //        RuntimeException exception = assertThrows(RuntimeException.class, action);
 //        assertThat(exception.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
 //    }
+
+    @Test
+    void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException {
+        UserDao originalUser = randomUserDb();
+        UserDao copy = originalUser.copy().build();
+        assertThat(copy, is(equalTo(originalUser)));
+
+        assertThat(copy, is(not(sameInstance(originalUser))));
+    }
+
+    @Test
+    void shouldConvertToDtoAndBackWithoutInformationLoss() {
+        UserDao originalUser = randomUserDb();
+        UserDao converted = Try.of(originalUser)
+                .map(UserDao::toUserDto)
+                .map(UserDao::fromUserDto)
+                .orElseThrow();
+
+        assertThat(originalUser, is(equalTo(converted)));
+        Diff diff = JAVERS.compare(originalUser, converted);
+        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
+        assertThat(converted, doesNotHaveEmptyValues());
+    }
 
     @Test
     void roleValidationMethodLogsError()
@@ -271,17 +284,6 @@ class UserDaoTest {
         var copy = source.copy().build();
         assertThat(copy, doesNotHaveEmptyValues());
         assertThat(copy, is(equalTo(source)));
-    }
-
-    private static List<RoleDb> createSampleRoles() {
-        return Stream.of(randomRoleName(), randomRoleName())
-                .map(attempt(UserDaoTest::newRole))
-                .map(Try::get)
-                .collect(Collectors.toList());
-    }
-
-    private static RoleDb newRole(RoleName roleName) throws InvalidEntryInternalException {
-        return RoleDb.newBuilder().withName(roleName).build();
     }
 
     private UserDao randomUserDb() {

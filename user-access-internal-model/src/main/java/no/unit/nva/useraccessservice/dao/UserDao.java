@@ -1,5 +1,27 @@
 package no.unit.nva.useraccessservice.dao;
 
+import static java.util.Objects.nonNull;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
+import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
+import static nva.commons.core.attempt.Try.attempt;
+
+import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import no.unit.nva.useraccessservice.dao.UserDao.Builder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
@@ -23,28 +45,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
-import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.nonNull;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
-import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
-import static nva.commons.core.attempt.Try.attempt;
-
 @SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount"})
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
@@ -62,7 +62,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String CRISTIN_ID = "cristinId";
     public static final String FEIDE_IDENTIFIER = "feideIdentifier";
     public static final String AFFILIATION_FIELD = "affiliation";
-
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
     private String username;
@@ -75,7 +74,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     private String feideIdentifier;
     private URI institutionCristinId;
     private URI affiliation;
-
 
     public UserDao() {
         super();
@@ -99,6 +97,28 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                 .withAffiliation(userDto.getAffiliation());
 
         return userDb.build();
+    }
+
+    private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
+        return userDto.getRoles().stream()
+                .map(attempt(RoleDb::fromRoleDto))
+                .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
+                .collect(Collectors.toSet());
+    }
+
+    private static List<RoleDto> extractRoles(UserDao userDao) {
+        return Optional.ofNullable(userDao)
+                .stream()
+                .flatMap(user -> user.getRolesNonNull().stream())
+                .map(attempt(RoleDb::toRoleDto))
+                .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
+                .collect(Collectors.toList());
+    }
+
+    /*This exception should not happen as a RoleDb should always convert to a RoleDto */
+    private static <T> IllegalStateException unexpectedException(Failure<T> failure) {
+        logger.error(ERROR_DUE_TO_INVALID_ROLE);
+        return new IllegalStateException(failure.getException());
     }
 
     public ViewingScopeDb getViewingScope() {
@@ -130,7 +150,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
         return userDto.build();
     }
-
 
     @JacocoGenerated
     @Override
@@ -313,7 +332,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         DynamoEntryWithRangeKey.super.setType(type);
     }
 
-
     @DynamoDbAttribute(AFFILIATION_FIELD)
     public URI getAffiliation() {
         return affiliation;
@@ -322,8 +340,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public void setAffiliation(URI affiliation) {
         this.affiliation = affiliation;
     }
-
-
 
     @Override
     public UserDao.Builder copy() {
@@ -386,28 +402,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public void setInstitutionCristinId(URI institutionCristinId) {
         this.institutionCristinId = institutionCristinId;
-    }
-
-    private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
-        return userDto.getRoles().stream()
-                .map(attempt(RoleDb::fromRoleDto))
-                .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
-                .collect(Collectors.toSet());
-    }
-
-    private static List<RoleDto> extractRoles(UserDao userDao) {
-        return Optional.ofNullable(userDao)
-                .stream()
-                .flatMap(user -> user.getRolesNonNull().stream())
-                .map(attempt(RoleDb::toRoleDto))
-                .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
-                .collect(Collectors.toList());
-    }
-
-    /*This exception should not happen as a RoleDb should always convert to a RoleDto */
-    private static <T> IllegalStateException unexpectedException(Failure<T> failure) {
-        logger.error(ERROR_DUE_TO_INVALID_ROLE);
-        return new IllegalStateException(failure.getException());
     }
 
     private ViewingScope convertViewingScope() {

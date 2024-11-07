@@ -82,6 +82,29 @@ class IdentityServiceTest extends LocalIdentityService {
     private DynamoDbTable<RoleDb> rolesTable;
     private DynamoDbTable<UserDao> usersTable;
 
+    private static List<RoleDb> createSampleRoles() {
+        try {
+            return Collections.singletonList(randomRole());
+        } catch (InvalidEntryInternalException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static RoleDb randomRole() {
+        return RoleDb.newBuilder()
+                .withName(randomRoleName())
+                .withAccessRights(Set.of(randomElement(AccessRight.values())))
+                .build();
+    }
+
+    private static RoleDto randomRoleDtoWithRoleName(RoleName roleName) {
+        return RoleDb.newBuilder()
+                .withName(roleName)
+                .withAccessRights(Set.of(randomElement(AccessRight.values())))
+                .build()
+                .toRoleDto();
+    }
+
     @BeforeEach
     public void init() {
         identityService = createDatabaseServiceUsingLocalStorage();
@@ -442,21 +465,6 @@ class IdentityServiceTest extends LocalIdentityService {
         assertThat(databaseClient, is(equalTo(expectedClient)));
     }
 
-    private static List<RoleDb> createSampleRoles() {
-        try {
-            return Collections.singletonList(randomRole());
-        } catch (InvalidEntryInternalException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static RoleDb randomRole() {
-        return RoleDb.newBuilder()
-                .withName(randomRoleName())
-                .withAccessRights(Set.of(randomElement(AccessRight.values())))
-                .build();
-    }
-
     private UserDto createUserAndAddUserToDb(URI cristinId, URI cristinOrgId, String feideIdentifier,
                                              RoleName roleName)
             throws ConflictException, NotFoundException, InvalidInputException {
@@ -479,14 +487,6 @@ class IdentityServiceTest extends LocalIdentityService {
         assertThat(user, doesNotHaveEmptyValues());
         assertThat(savedUser, doesNotHaveEmptyValues());
         return user;
-    }
-
-    private static RoleDto randomRoleDtoWithRoleName(RoleName roleName) {
-        return RoleDb.newBuilder()
-                .withName(roleName)
-                .withAccessRights(Set.of(randomElement(AccessRight.values())))
-                .build()
-                .toRoleDto();
     }
 
     private void createSampleUsers(int numberOfUsers)

@@ -1,6 +1,5 @@
 package no.unit.nva.database;
 
-
 import no.unit.nva.useraccessservice.dao.TermsConditions;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -9,8 +8,8 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import java.net.URI;
 import java.util.List;
 
-
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class TermsAndConditionsService {
 
@@ -34,13 +33,18 @@ public class TermsAndConditionsService {
                 .build();
     }
 
-    public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) throws NotFoundException {
-        var fetched = TermsConditions.builder()
-                .withId(cristinId)
-                .build()
-                .fetch(crudService);
+    public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) {
+        var fetchedUri =
+                attempt(
+                        () -> TermsConditions.builder()
+                                .withId(cristinId)
+                                .build()
+                                .fetch(crudService)
+                                .termsConditionsUri()
+                );
+
         return TermsConditionsResponse.builder()
-                .withTermsConditionsUri(fetched.termsConditionsUri())
+                .withTermsConditionsUri(fetchedUri.or(() -> null).get())
                 .build();
     }
 

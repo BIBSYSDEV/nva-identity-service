@@ -12,7 +12,7 @@ import nva.commons.core.paths.UriWrapper;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static nva.commons.core.attempt.Try.attempt;
@@ -27,15 +27,15 @@ public class UserEntriesCreatorForPerson {
         this.identityService = identityService;
     }
 
-    public List<UserDto> createUsers(UserCreationContext context) {
+    public Set<UserDto> createUsers(UserCreationContext context) {
         return createOrFetchUserEntriesForPerson(context);
     }
 
-    private List<UserDto> createOrFetchUserEntriesForPerson(UserCreationContext context) {
+    private Set<UserDto> createOrFetchUserEntriesForPerson(UserCreationContext context) {
         return context.getCustomers().stream()
                 .map(customer -> createNewUserObject(customer, context))
                 .map(user -> getExistingUserOrCreateNew(user, context))
-                .collect(Collectors.toList());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     private UserDto createNewUserObject(CustomerDto customer, UserCreationContext context) {

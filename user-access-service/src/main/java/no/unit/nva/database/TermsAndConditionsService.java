@@ -15,7 +15,7 @@ import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_C
 
 public class TermsAndConditionsService {
 
-    private static final String PERSISTED_ENTITY = "PersistedEntity";
+    public static final String PERSISTED_ENTITY = "PersistedEntity";
     private static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
     private static final LocalDateTime VALID_FROM = LocalDateTime.of(2024, 10, 1, 0, 0, 0);
 

@@ -1,10 +1,11 @@
-package no.unit.nva.customer.service.impl;
+package no.unit.nva.database;
 
-import no.unit.nva.customer.testing.LocalDynamoCrudTestDatabase;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static no.unit.nva.customer.Constants.PERSISTED_ENTITY;
+import static no.unit.nva.database.TermsAndConditionsService.PERSISTED_ENTITY;
+
 
 class DynamoCrudServiceTest extends LocalDynamoCrudTestDatabase {
 

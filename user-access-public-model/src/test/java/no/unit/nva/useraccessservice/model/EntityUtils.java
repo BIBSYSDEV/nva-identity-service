@@ -40,7 +40,6 @@ public final class EntityUtils {
                 .withFeideIdentifier(randomString())
                 .withInstitutionCristinId(randomCristinOrgId())
                 .withAffiliation(randomCristinOrgId())
-                .withLicenseInfo(Instant.now(), randomUri())
                 .build();
         assertThat(user, doesNotHaveEmptyValues());
         return user;

@@ -1,7 +1,6 @@
 package no.unit.nva.database;
 
 
-
 import no.unit.nva.useraccessservice.interfaces.DataAccessClass;
 import no.unit.nva.useraccessservice.interfaces.DataAccessService;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -15,7 +14,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAccessService<T> {
@@ -37,22 +35,26 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
     @Override
     public void persist(T item) throws NotFoundException {
         if (isNull(item.modifiedBy())) {
-            throw new IllegalArgumentException("UserId is required for persisting");
+            throw new IllegalArgumentException("modifiedBy must be set before persisting");
         }
-        var existingItem = fetch(item);
-        if (nonNull(existingItem)) {
-            table.putItem(existingItem.merge(item));
-        } else {
-            table.putItem(item);
-        }
+        optionalFetch(item).ifPresentOrElse(
+                existingItem -> table.putItem(existingItem.merge(item)),
+                () -> table.putItem(item)
+        );
     }
 
 
     @Override
     public T fetch(T item) throws NotFoundException {
-        Key key = Key.builder().partitionValue(item.withId().toString()).sortValue(item.withType()).build();
-        return Optional.ofNullable(table.getItem(r -> r.key(key)))
-                .orElseThrow(() -> new NotFoundException(DataAccessService.RESOURCE_NOT_FOUND_MESSAGE));
+        return optionalFetch(item).orElseThrow(() -> new NotFoundException(DataAccessService.RESOURCE_NOT_FOUND_MESSAGE));
+    }
+
+    private Optional<T> optionalFetch(T item) {
+        var key = Key.builder()
+                .partitionValue(item.withId().toString())
+                .sortValue(item.withType())
+                .build();
+        return Optional.ofNullable(table.getItem(r -> r.key(key)));
     }
 }
 

@@ -1,9 +1,7 @@
-package no.unit.nva.customer.service.impl;
+package no.unit.nva.database;
 
 
-import no.unit.nva.customer.model.TermsConditions;
-import no.unit.nva.customer.testing.DynamoDbTableCreator;
-import no.unit.nva.customer.testing.DynamoDbTestClientProvider;
+import no.unit.nva.useraccessservice.dao.TermsConditions;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -35,6 +33,7 @@ public class TermsAndConditionsServiceTest {
         var userIdentifier = randomUri();
         var termsConditionsDao = TermsConditions.builder()
                 .withId(userIdentifier)
+                .modifiedBy(userIdentifier)
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(termsConditionsService);

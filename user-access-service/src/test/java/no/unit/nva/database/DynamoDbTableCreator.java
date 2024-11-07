@@ -1,4 +1,4 @@
-package no.unit.nva.customer.testing;
+package no.unit.nva.database;
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;

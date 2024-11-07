@@ -7,6 +7,7 @@ import no.unit.nva.useraccessservice.interfaces.DataAccessClass;
 import no.unit.nva.useraccessservice.interfaces.DataAccessLayer;
 import no.unit.nva.useraccessservice.interfaces.DataAccessService;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
@@ -25,22 +26,25 @@ public record TermsConditions(
         Instant modified,
         URI modifiedBy,
         URI termsConditionsUri
-) implements JsonSerializable, DataAccessLayer<TermsConditions>, DataAccessClass<TermsConditions> {
+) implements DataAccessLayer<TermsConditions>, DataAccessClass<TermsConditions> {
 
 
     public static final String WITH_TYPE = "withType";
 
+    @DynamoDbIgnore
     @Override
     public TermsConditions upsert(DataAccessService<TermsConditions> service) throws NotFoundException {
         service.persist(this);
         return fetch(service);
     }
 
+    @DynamoDbIgnore
     @Override
     public TermsConditions fetch(DataAccessService<TermsConditions> service) throws NotFoundException {
         return service.fetch(this);
     }
 
+    @DynamoDbIgnore
     @Override
     public TermsConditions merge(TermsConditions item) {
         return TermsConditions.builder()
@@ -59,55 +63,54 @@ public record TermsConditions(
 
     public static class Builder {
 
-        private URI withId;
-        private String withType;
-        private Instant created;
-        private Instant modified;
-        private URI modifiedBy;
-        private URI termsConditionsUri;
+        private URI id;
+        private String type;
+        private Instant createdInstant;
+        private Instant modifiedInstant;
+        private URI modifiedByUserId;
+        private URI termsUri;
 
         public Builder withId(URI withId) {
-            this.withId = withId;
+            this.id = withId;
             return this;
         }
 
         public Builder withType(String withType) {
-            this.withType = withType;
+            this.type = withType;
             return this;
         }
 
         public Builder created(Instant created) {
-            this.created = created;
+            this.createdInstant = created;
             return this;
         }
 
         public Builder modified(Instant modified) {
-            this.modified = modified;
+            this.modifiedInstant = modified;
             return this;
         }
 
         public Builder modifiedBy(URI modifiedBy) {
-            this.modifiedBy = modifiedBy;
+            this.modifiedByUserId = modifiedBy;
             return this;
         }
 
         public Builder termsConditionsUri(URI termsConditionsUri) {
-            this.termsConditionsUri = termsConditionsUri;
+            this.termsUri = termsConditionsUri;
             return this;
         }
 
-
         public TermsConditions build() {
-            if (isNull(withType)) {
+            if (isNull(type)) {
                 withType(this.getClass().getSimpleName());
             }
-            if(isNull(modified)) {
+            if(isNull(modifiedInstant)) {
                 modified(Instant.now());
             }
-            if(isNull(created)) {
-                created(modified);
+            if(isNull(createdInstant)) {
+                created(modifiedInstant);
             }
-            return new TermsConditions(withId, withType, created, modified, modifiedBy, termsConditionsUri);
+            return new TermsConditions(id, type, createdInstant, modifiedInstant, modifiedByUserId, termsUri);
         }
     }
 

@@ -1,6 +1,5 @@
 package no.unit.nva.database;
 
-
 import no.unit.nva.useraccessservice.dao.TermsConditions;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;

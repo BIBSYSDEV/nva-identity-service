@@ -10,4 +10,5 @@ public interface DataAccessService<T extends DataAccessClass<T>> {
 
     T fetch(T item) throws NotFoundException;
 
+    void delete(T item) throws NotFoundException;
 }

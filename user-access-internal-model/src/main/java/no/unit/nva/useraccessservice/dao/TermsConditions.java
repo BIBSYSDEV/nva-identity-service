@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessservice.dao;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import no.unit.nva.useraccessservice.interfaces.DataAccessClass;
 import no.unit.nva.useraccessservice.interfaces.DataAccessLayer;
 import no.unit.nva.useraccessservice.interfaces.DataAccessService;
@@ -15,6 +16,7 @@ import java.time.Instant;
 import static java.util.Objects.isNull;
 
 @DynamoDbImmutable(builder = TermsConditions.Builder.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
 public record TermsConditions(
         @DynamoDbPartitionKey URI id,
         @DynamoDbSortKey String type,
@@ -95,13 +97,11 @@ public record TermsConditions(
 
         public TermsConditions build() {
             if (isNull(type)) {
-                type(this.getClass().getSimpleName());
+                type("TermsConditions");
             }
-            if(isNull(modifiedInstant)) {
-                modified(Instant.now());
-            }
-            if(isNull(createdInstant)) {
-                created(modifiedInstant);
+            if (isNull(createdInstant)) {
+                created(Instant.now());
+                modified(createdInstant);
             }
             return new TermsConditions(id, type, createdInstant, modifiedInstant, modifiedByUserId, termsUri);
         }

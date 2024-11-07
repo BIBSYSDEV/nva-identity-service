@@ -29,13 +29,8 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @param item the object to validate
      **/
-     static void validate(DataAccessClass<?> item) throws IllegalArgumentException {
-        if (isNull(item.id())) {
-            throw new IllegalArgumentException("id not set");
-        }
-        if (isNull(item.type())) {
-            throw new IllegalArgumentException("type not set");
-        }
+    static void validateForPersist(DataAccessClass<?> item) throws IllegalArgumentException {
+        validateForFetch(item);
         if (isNull(item.created())) {
             throw new IllegalArgumentException("created not set");
         }
@@ -46,4 +41,14 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
             throw new IllegalArgumentException("modifiedBy not set");
         }
     }
+
+    static void validateForFetch(DataAccessClass<?> item) throws IllegalArgumentException {
+        if (isNull(item.id())) {
+            throw new IllegalArgumentException("id not set");
+        }
+        if (isNull(item.type())) {
+            throw new IllegalArgumentException("type not set");
+        }
+    }
+
 }

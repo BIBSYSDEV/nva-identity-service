@@ -5,8 +5,8 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 
 public class DynamoDbTableCreator {
 
-    public static final String PRIMARY_KEY = "withId";
-    public static final String SECONDARY_KEY = "withType";
+    public static final String PRIMARY_KEY = "id";
+    public static final String SECONDARY_KEY = "type";
     private final DynamoDbClient dynamoDbClient;
 
 

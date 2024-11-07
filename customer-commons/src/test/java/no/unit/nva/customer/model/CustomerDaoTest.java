@@ -1,5 +1,19 @@
 package no.unit.nva.customer.model;
 
+import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
+import no.unit.nva.identityservice.json.JsonConfig;
+import org.javers.core.Javers;
+import org.javers.core.JaversBuilder;
+import org.javers.core.diff.Diff;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
@@ -20,18 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
-import no.unit.nva.customer.testing.CustomerDataGenerator;
-import no.unit.nva.identityservice.json.JsonConfig;
-import org.javers.core.Javers;
-import org.javers.core.JaversBuilder;
-import org.javers.core.diff.Diff;
-import org.junit.jupiter.api.Test;
 
 class CustomerDaoTest {
 
@@ -50,21 +52,21 @@ class CustomerDaoTest {
         assertNotEquals(null, actual);
 
         var actualDoiAgent = actual.getDoiAgent();
-        assertThat(actualDoiAgent.toString(),doesNotHaveEmptyValues());
-        assertEquals(actualDoiAgent,expected.getDoiAgent());
-        assertEquals(actualDoiAgent.hashCode(),expected.getDoiAgent().hashCode());
+        assertThat(actualDoiAgent.toString(), doesNotHaveEmptyValues());
+        assertEquals(actualDoiAgent, expected.getDoiAgent());
+        assertEquals(actualDoiAgent.hashCode(), expected.getDoiAgent().hashCode());
         assertNotEquals(null, actualDoiAgent);
 
-        assertThrows(IllegalStateException.class,() -> actual.setType("NOT A TYPE"));
+        assertThrows(IllegalStateException.class, () -> actual.setType("NOT A TYPE"));
     }
 
     @Test
     void testingJacocoCoverageAssignNullWorking() {
         var fullAvTull =
-            CustomerDao.builder()
-                .withCreatedDate((String) null)
-                .withModifiedDate((String) null)
-                .build();
+                CustomerDao.builder()
+                        .withCreatedDate((String) null)
+                        .withModifiedDate((String) null)
+                        .build();
         assertNotNull(fullAvTull);
     }
 
@@ -73,12 +75,12 @@ class CustomerDaoTest {
         var expectedDao = CustomerDataGenerator.createSampleInactiveCustomerDao();
         var customerDto = expectedDao.toCustomerDto();
         customerDto
-            .getDoiAgent()
-            .addPassword(randomString());
+                .getDoiAgent()
+                .addPassword(randomString());
         var actualDao = CustomerDao.fromCustomerDto(customerDto);
         var actualDoiAgent = actualDao.getDoiAgent();
 
-        assertEquals(actualDoiAgent,expectedDao.getDoiAgent());
+        assertEquals(actualDoiAgent, expectedDao.getDoiAgent());
     }
 
     @Test
@@ -169,32 +171,32 @@ class CustomerDaoTest {
     private CustomerDao createSampleCustomerDao() {
         var identifier = UUID.randomUUID();
         return CustomerDao
-                   .builder()
-                   .withName(randomString())
-                   .withCristinId(randomUri())
-                   .withCustomerOf(randomApplicationDomain().getUri())
-                   .withFeideOrganizationDomain(randomString())
-                   .withModifiedDate(randomInstant())
-                   .withIdentifier(identifier)
-                   .withCname(randomString())
-                   .withArchiveName(randomString())
-                   .withShortName(randomString())
-                   .withInstitutionDns(randomString())
-                   .withDisplayName(randomString())
-                   .withCreatedDate(randomInstant())
-                   .withRorId(randomUri())
-                   .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
-                   .withVocabularySettings(randomVocabularySettings())
-                   .withPublicationWorkflow(randomPublicationWorkflow())
-                   .withDoiAgent(randomDoiAgent(randomString()))
-                   .withNviInstitution(randomBoolean())
-                   .withRboInstitution(randomBoolean())
-                   .withInactiveFrom(randomInstant())
-                   .withSector(randomSector())
-                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                   .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                   .withGeneralSupportEnabled(true)
-                   .build();
+                .builder()
+                .withName(randomString())
+                .withCristinId(randomUri())
+                .withCustomerOf(randomApplicationDomain().getUri())
+                .withFeideOrganizationDomain(randomString())
+                .withModifiedDate(randomInstant())
+                .withIdentifier(identifier)
+                .withCname(randomString())
+                .withArchiveName(randomString())
+                .withShortName(randomString())
+                .withInstitutionDns(randomString())
+                .withDisplayName(randomString())
+                .withCreatedDate(randomInstant())
+                .withRorId(randomUri())
+                .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
+                .withVocabularySettings(randomVocabularySettings())
+                .withPublicationWorkflow(randomPublicationWorkflow())
+                .withDoiAgent(randomDoiAgent(randomString()))
+                .withNviInstitution(randomBoolean())
+                .withRboInstitution(randomBoolean())
+                .withInactiveFrom(randomInstant())
+                .withSector(randomSector())
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                .withGeneralSupportEnabled(true)
+                .build();
     }
 
     private ApplicationDomain randomApplicationDomain() {
@@ -203,13 +205,13 @@ class CustomerDaoTest {
 
     private Set<VocabularyDto> randomVocabularyDtoSettings() {
         return randomVocabularySettings().stream()
-                   .map(VocabularyDao::toVocabularySettingsDto)
-                   .collect(Collectors.toSet());
+                .map(VocabularyDao::toVocabularySettingsDto)
+                .collect(Collectors.toSet());
     }
 
     private Set<VocabularyDao> randomVocabularySettings() {
         VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
-                                                     randomElement(VocabularyStatus.values()));
+                randomElement(VocabularyStatus.values()));
         return Set.of(vocabulary);
     }
 }

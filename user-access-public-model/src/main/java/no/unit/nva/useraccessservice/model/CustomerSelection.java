@@ -1,9 +1,11 @@
 package no.unit.nva.useraccessservice.model;
 
-import static nva.commons.core.attempt.Try.attempt;
-import java.net.URI;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.URI;
+
+import static nva.commons.core.attempt.Try.attempt;
 
 public class CustomerSelection {
 

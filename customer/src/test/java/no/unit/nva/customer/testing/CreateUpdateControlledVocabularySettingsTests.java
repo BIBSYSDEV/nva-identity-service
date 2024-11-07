@@ -1,21 +1,9 @@
 package no.unit.nva.customer.testing;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.customer.ControlledVocabularyHandler.IDENTIFIER_PATH_PARAMETER;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.hamcrest.core.Is.is;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.get.GetControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
@@ -27,6 +15,20 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.UUID;
+
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.ControlledVocabularyHandler.IDENTIFIER_PATH_PARAMETER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.core.Is.is;
 
 public abstract class CreateUpdateControlledVocabularySettingsTests extends LocalCustomerServiceDatabase {
 
@@ -53,7 +55,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     }
 
     protected ExpectedBodyActualResponseTuple sendRequest(UUID uuid, MediaType acceptedContentType)
-        throws IOException {
+            throws IOException {
         VocabularyList expectedBody = createRandomVocabularyList();
         var request = createRequest(uuid, expectedBody, acceptedContentType);
         output = new ByteArrayOutputStream();
@@ -63,7 +65,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     }
 
     protected ExpectedBodyActualResponseTuple sendRequestWithAccessRight(UUID uuid, AccessRight accessRight)
-        throws IOException {
+            throws IOException {
         VocabularyList expectedBody = createRandomVocabularyList();
         var request = createRequest(uuid, expectedBody, accessRight);
         output = new ByteArrayOutputStream();
@@ -75,7 +77,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     protected <T> GatewayResponse<T> sendRequest(ControlledVocabularyHandler<?, ?> getHandler,
                                                  InputStream getRequest,
                                                  Class<T> responseType)
-        throws IOException {
+            throws IOException {
         getHandler.handleRequest(getRequest, output, CONTEXT);
         return GatewayResponse.fromOutputStream(output, responseType);
     }
@@ -95,22 +97,22 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     protected <T> InputStream createRequest(UUID customerIdentifier,
                                             T expectedBody,
                                             MediaType acceptedMediaType)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         return new HandlerRequestBuilder<T>(dtoObjectMapper)
-            .withPathParameters(identifierToPathParameter(customerIdentifier))
-            .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-            .withBody(expectedBody)
-            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()))
-            .build();
+                .withPathParameters(identifierToPathParameter(customerIdentifier))
+                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+                .withBody(expectedBody)
+                .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()))
+                .build();
     }
 
     protected <T> InputStream createRequest(UUID customerIdentifier, T expectedBody, AccessRight accessRight)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         return new HandlerRequestBuilder<T>(dtoObjectMapper)
-                   .withPathParameters(identifierToPathParameter(customerIdentifier))
-                   .withAccessRights(randomUri(), accessRight)
-                   .withBody(expectedBody)
-                   .build();
+                .withPathParameters(identifierToPathParameter(customerIdentifier))
+                .withAccessRights(randomUri(), accessRight)
+                .withBody(expectedBody)
+                .build();
     }
 
     protected Map<String, String> identifierToPathParameter(UUID identifier) {
@@ -118,12 +120,12 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     }
 
     protected InputStream createGetRequest(UUID identifier, MediaType acceptHeader)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                   .withPathParameters(Map.of("identifier", identifier.toString()))
-                   .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                   .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
-                   .build();
+                .withPathParameters(Map.of("identifier", identifier.toString()))
+                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+                .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
+                .build();
     }
 
     protected void assertThatExistingUserHasEmptyVocabularySettings() throws IOException {
@@ -140,7 +142,7 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
         private final GatewayResponse<VocabularyList> response;
 
         public ExpectedBodyActualResponseTuple(
-            VocabularyList expectedBody, GatewayResponse<VocabularyList> response) {
+                VocabularyList expectedBody, GatewayResponse<VocabularyList> response) {
 
             this.expectedBody = expectedBody;
             this.response = response;

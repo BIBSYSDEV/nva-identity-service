@@ -1,10 +1,7 @@
-
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonPointer;
-import java.net.HttpURLConnection;
-import java.util.List;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
@@ -16,16 +13,19 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
+import java.net.HttpURLConnection;
+import java.util.List;
+
 public class StopImpersonationHandler extends HandlerWithEventualConsistency<Void, Void> {
 
+    public static final Environment ENVIRONMENT = new Environment();
+    public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
+    public static final String USER_POOL_ID = ENVIRONMENT.readEnv("USER_POOL_ID");
     private static final String CLAIMS_PATH = "/authorizer/claims/";
     private static final String USERNAME = "username";
     private static final String IMPERSONATION = "custom:impersonating";
     private static final JsonPointer USERNAME_POINTER = JsonPointer.compile(CLAIMS_PATH + USERNAME);
     private final CognitoIdentityProviderClient cognitoClient;
-    public static final Environment ENVIRONMENT = new Environment();
-    public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
-    public static final String USER_POOL_ID = ENVIRONMENT.readEnv("USER_POOL_ID");
 
     @JacocoGenerated
     public StopImpersonationHandler() {
@@ -37,6 +37,15 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
         this.cognitoClient = cognitoClient;
     }
 
+    @JacocoGenerated
+    private static CognitoIdentityProviderClient defaultCognitoClient() {
+        return CognitoIdentityProviderClient.builder()
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .httpClient(UrlConnectionHttpClient.create())
+                .region(AWS_REGION)
+                .build();
+    }
+
     @Override
     protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         //Do nothing
@@ -44,18 +53,18 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
 
     @Override
     protected Void processInput(Void input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
+            throws ApiGatewayException {
 
         var username = requestInfo.getRequestContextParameterOpt(USERNAME_POINTER).orElseThrow();
         var attributes = List.of(
-            AttributeType.builder().name(IMPERSONATION).value("").build()
+                AttributeType.builder().name(IMPERSONATION).value("").build()
         );
 
-        var request =  AdminUpdateUserAttributesRequest.builder()
-                                         .userPoolId(USER_POOL_ID)
-                                         .username(username)
-                                         .userAttributes(attributes)
-                                         .build();
+        var request = AdminUpdateUserAttributesRequest.builder()
+                .userPoolId(USER_POOL_ID)
+                .username(username)
+                .userAttributes(attributes)
+                .build();
         this.cognitoClient.adminUpdateUserAttributes(request);
         return null;
     }
@@ -63,14 +72,5 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
     @Override
     protected Integer getSuccessStatusCode(Void input, Void output) {
         return HttpURLConnection.HTTP_OK;
-    }
-
-    @JacocoGenerated
-    private static CognitoIdentityProviderClient defaultCognitoClient() {
-        return CognitoIdentityProviderClient.builder()
-                   .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                   .httpClient(UrlConnectionHttpClient.create())
-                   .region(AWS_REGION)
-                   .build();
     }
 }

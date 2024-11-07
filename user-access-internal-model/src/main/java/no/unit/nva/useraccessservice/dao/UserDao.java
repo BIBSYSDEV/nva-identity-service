@@ -11,6 +11,7 @@ import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECON
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
 import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import no.unit.nva.useraccessservice.dao.UserDao.Builder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
@@ -51,7 +53,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public static final String TYPE_VALUE = "USER";
     public static final String INVALID_USER_EMPTY_USERNAME = "Invalid user entry: Empty username is not allowed";
     public static final String ERROR_DUE_TO_INVALID_ROLE =
-        "Failure while trying to create user with role without role-name";
+            "Failure while trying to create user with role without role-name";
     public static final String USERNAME_FIELD = "username";
     public static final String GIVEN_NAME_FIELD = "givenName";
     public static final String FAMILY_NAME_FIELD = "familyName";
@@ -83,21 +85,41 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public static UserDao fromUserDto(UserDto userDto) {
         UserDao.Builder userDb = UserDao.newBuilder()
-            .withUsername(userDto.getUsername())
-            .withGivenName(userDto.getGivenName())
-            .withFamilyName(userDto.getFamilyName())
-            .withInstitution(userDto.getInstitution())
-            .withRoles(createRoleDbSet(userDto))
-            .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
-            .withCristinId(userDto.getCristinId())
-            .withFeideIdentifier(userDto.getFeideIdentifier())
-            .withInstitutionCristinId(userDto.getInstitutionCristinId())
-            .withAffiliation(userDto.getAffiliation());
+                .withUsername(userDto.getUsername())
+                .withGivenName(userDto.getGivenName())
+                .withFamilyName(userDto.getFamilyName())
+                .withInstitution(userDto.getInstitution())
+                .withRoles(createRoleDbSet(userDto))
+                .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
+                .withCristinId(userDto.getCristinId())
+                .withFeideIdentifier(userDto.getFeideIdentifier())
+                .withInstitutionCristinId(userDto.getInstitutionCristinId())
+                .withAffiliation(userDto.getAffiliation());
 
         return userDb.build();
     }
 
+    private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
+        return userDto.getRoles().stream()
+                .map(attempt(RoleDb::fromRoleDto))
+                .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
+                .collect(Collectors.toSet());
+    }
 
+    private static List<RoleDto> extractRoles(UserDao userDao) {
+        return Optional.ofNullable(userDao)
+                .stream()
+                .flatMap(user -> user.getRolesNonNull().stream())
+                .map(attempt(RoleDb::toRoleDto))
+                .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
+                .collect(Collectors.toList());
+    }
+
+    /*This exception should not happen as a RoleDb should always convert to a RoleDto */
+    private static <T> IllegalStateException unexpectedException(Failure<T> failure) {
+        logger.error(ERROR_DUE_TO_INVALID_ROLE);
+        return new IllegalStateException(failure.getException());
+    }
 
     public ViewingScopeDb getViewingScope() {
         return viewingScope;
@@ -115,16 +137,16 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public UserDto toUserDto() {
 
         UserDto.Builder userDto = UserDto.newBuilder()
-            .withUsername(this.getUsername())
-            .withGivenName(this.getGivenName())
-            .withFamilyName(this.getFamilyName())
-            .withRoles(extractRoles(this))
-            .withInstitution(this.getInstitution())
-            .withViewingScope(convertViewingScope())
-            .withCristinId(getCristinId())
-            .withFeideIdentifier(getFeideIdentifier())
-            .withInstitutionCristinId(getInstitutionCristinId())
-            .withAffiliation(getAffiliation());
+                .withUsername(this.getUsername())
+                .withGivenName(this.getGivenName())
+                .withFamilyName(this.getFamilyName())
+                .withRoles(extractRoles(this))
+                .withInstitution(this.getInstitution())
+                .withViewingScope(convertViewingScope())
+                .withCristinId(getCristinId())
+                .withFeideIdentifier(getFeideIdentifier())
+                .withInstitutionCristinId(getInstitutionCristinId())
+                .withAffiliation(getAffiliation());
 
         return userDto.build();
     }
@@ -310,7 +332,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         DynamoEntryWithRangeKey.super.setType(type);
     }
 
-
     @DynamoDbAttribute(AFFILIATION_FIELD)
     public URI getAffiliation() {
         return affiliation;
@@ -323,16 +344,16 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @Override
     public UserDao.Builder copy() {
         return newBuilder()
-            .withUsername(this.getUsername())
-            .withGivenName(this.getGivenName())
-            .withFamilyName(this.getFamilyName())
-            .withInstitution(this.getInstitution())
-            .withViewingScope(this.getViewingScope())
-            .withCristinId(this.cristinId)
-            .withRoles(this.getRolesNonNull())
-            .withFeideIdentifier(this.getFeideIdentifier())
-            .withInstitutionCristinId(this.getInstitutionCristinId())
-            .withAffiliation(this.getAffiliation());
+                .withUsername(this.getUsername())
+                .withGivenName(this.getGivenName())
+                .withFamilyName(this.getFamilyName())
+                .withInstitution(this.getInstitution())
+                .withViewingScope(this.getViewingScope())
+                .withCristinId(this.cristinId)
+                .withRoles(this.getRolesNonNull())
+                .withFeideIdentifier(this.getFeideIdentifier())
+                .withInstitutionCristinId(this.getInstitutionCristinId())
+                .withAffiliation(this.getAffiliation());
     }
 
     @DynamoDbAttribute(FEIDE_IDENTIFIER)
@@ -348,8 +369,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
-                            getViewingScope(),
-                            getCristinId(), getFeideIdentifier(), getInstitutionCristinId(),getAffiliation());
+                getViewingScope(),
+                getCristinId(), getFeideIdentifier(), getInstitutionCristinId(), getAffiliation());
     }
 
     @Override
@@ -363,15 +384,15 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         }
         UserDao userDao = (UserDao) o;
         return Objects.equals(getUsername(), userDao.getUsername())
-               && Objects.equals(getInstitution(), userDao.getInstitution())
-               && Objects.equals(getRoles(), userDao.getRoles())
-               && Objects.equals(getGivenName(), userDao.getGivenName())
-               && Objects.equals(getFamilyName(), userDao.getFamilyName())
-               && Objects.equals(getViewingScope(), userDao.getViewingScope())
-               && Objects.equals(getCristinId(), userDao.getCristinId())
-               && Objects.equals(getFeideIdentifier(), userDao.getFeideIdentifier())
-               && Objects.equals(getInstitutionCristinId(), userDao.getInstitutionCristinId())
-               && Objects.equals(getAffiliation(),userDao.getAffiliation());
+                && Objects.equals(getInstitution(), userDao.getInstitution())
+                && Objects.equals(getRoles(), userDao.getRoles())
+                && Objects.equals(getGivenName(), userDao.getGivenName())
+                && Objects.equals(getFamilyName(), userDao.getFamilyName())
+                && Objects.equals(getViewingScope(), userDao.getViewingScope())
+                && Objects.equals(getCristinId(), userDao.getCristinId())
+                && Objects.equals(getFeideIdentifier(), userDao.getFeideIdentifier())
+                && Objects.equals(getInstitutionCristinId(), userDao.getInstitutionCristinId())
+                && Objects.equals(getAffiliation(), userDao.getAffiliation());
     }
 
     @DynamoDbAttribute("institutionCristinId")
@@ -381,28 +402,6 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public void setInstitutionCristinId(URI institutionCristinId) {
         this.institutionCristinId = institutionCristinId;
-    }
-
-    private static Set<RoleDb> createRoleDbSet(UserDto userDto) {
-        return userDto.getRoles().stream()
-            .map(attempt(RoleDb::fromRoleDto))
-            .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
-            .collect(Collectors.toSet());
-    }
-
-    private static List<RoleDto> extractRoles(UserDao userDao) {
-        return Optional.ofNullable(userDao)
-            .stream()
-            .flatMap(user -> user.getRolesNonNull().stream())
-            .map(attempt(RoleDb::toRoleDto))
-            .map(attempt -> attempt.orElseThrow(UserDao::unexpectedException))
-            .collect(Collectors.toList());
-    }
-
-    /*This exception should not happen as a RoleDb should always convert to a RoleDto */
-    private static <T> IllegalStateException unexpectedException(Failure<T> failure) {
-        logger.error(ERROR_DUE_TO_INVALID_ROLE);
-        return new IllegalStateException(failure.getException());
     }
 
     private ViewingScope convertViewingScope() {

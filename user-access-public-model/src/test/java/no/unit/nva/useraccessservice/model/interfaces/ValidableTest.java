@@ -1,10 +1,11 @@
 package no.unit.nva.useraccessservice.model.interfaces;
 
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
-import org.junit.jupiter.api.Test;
 
 public class ValidableTest {
 

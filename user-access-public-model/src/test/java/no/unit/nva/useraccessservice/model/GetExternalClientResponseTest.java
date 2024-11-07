@@ -1,12 +1,13 @@
 package no.unit.nva.useraccessservice.model;
 
+import org.junit.jupiter.api.Test;
+
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.StringContains.containsString;
-import org.junit.jupiter.api.Test;
 
 public class GetExternalClientResponseTest {
 

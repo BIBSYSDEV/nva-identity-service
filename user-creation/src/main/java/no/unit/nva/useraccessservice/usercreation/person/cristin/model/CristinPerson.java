@@ -2,6 +2,7 @@ package no.unit.nva.useraccessservice.usercreation.person.cristin.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;

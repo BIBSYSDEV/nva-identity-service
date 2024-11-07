@@ -1,26 +1,9 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.core.attempt.Try.attempt;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.util.Map;
-import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -35,6 +18,25 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.Map;
+import java.util.UUID;
+
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.core.attempt.Try.attempt;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+
 class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
 
     public static final Context CONTEXT = new FakeContext();
@@ -48,8 +50,8 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
         super.setupDatabase();
         customerService = new DynamoDBCustomerService(dynamoClient);
         existingCustomer = attempt(CustomerDataGenerator::createSampleCustomerDto)
-            .map(customerInput -> customerService.createCustomer(customerInput))
-            .orElseThrow();
+                .map(customerInput -> customerService.createCustomer(customerInput))
+                .orElseThrow();
         handler = new GetControlledVocabularyHandler(customerService);
         outputStream = new ByteArrayOutputStream();
     }
@@ -77,7 +79,7 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void handleRequestReturnsListWithIdEqualToTheGetPathOfTheResource() throws IOException {
         var request =
-            createRequestWithMediaType(existingCustomer.getIdentifier(), MediaTypes.APPLICATION_JSON_LD);
+                createRequestWithMediaType(existingCustomer.getIdentifier(), MediaTypes.APPLICATION_JSON_LD);
         var response = sendRequest(request, VocabularyList.class);
 
         var body = JsonConfig.mapFrom(response.getBody());
@@ -88,7 +90,7 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void handleRequestReturnsControlledVocabulariesOfSpecifiedCustomerWhenCustomerIdIsValid()
-        throws IOException {
+            throws IOException {
         var response = sendRequest(getExistingCustomerIdentifier(), VocabularyList.class);
         VocabularyList body = VocabularyList.fromJson(response.getBody());
         var actualVocabularySettings = body.getVocabularies();
@@ -124,18 +126,18 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     private <T> GatewayResponse<T> sendRequestAcceptingJson(UUID identifier, Class<T> responseType)
-        throws IOException {
+            throws IOException {
         var request = createRequestWithMediaType(identifier, MediaType.JSON_UTF_8);
         return sendRequest(request, responseType);
     }
 
     private InputStream createRequestWithMediaType(UUID identifier, MediaType acceptHeader)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                   .withPathParameters(Map.of("identifier", identifier.toString()))
-                   .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                   .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
-                   .build();
+                .withPathParameters(Map.of("identifier", identifier.toString()))
+                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+                .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
+                .build();
     }
 
     private UUID randomCustomerIdentifier() {

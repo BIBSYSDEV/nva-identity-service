@@ -1,26 +1,7 @@
 package no.unit.identityservice.fsproxy;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.time.Year;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import no.unit.identityservice.fsproxy.model.course.FsCourse;
 import no.unit.identityservice.fsproxy.model.course.FsCourseItemContainingCourseContainer;
 import no.unit.identityservice.fsproxy.model.course.FsCoursesSearchResult;
@@ -37,6 +18,27 @@ import no.unit.identityservice.fsproxy.model.staffperson.FsRolesToPersonSearchRe
 import no.unit.identityservice.fsproxy.model.staffperson.FsUriToCourseActivity;
 import no.unit.identityservice.fsproxy.model.staffperson.FsUriToCourseActivityContainer;
 import no.unit.nva.stubs.WiremockHttpClient;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 
 public class FsMock {
 
@@ -103,13 +105,13 @@ public class FsMock {
         personRoles.put(person.getFsIdNumber(), roles);
 
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
-                                                                .map(this::createUriToCourseActivity)
-                                                                .collect(Collectors.toList());
+                .map(this::createUriToCourseActivity)
+                .collect(Collectors.toList());
         mapRolesToUri(roles, uriToCourseActivities);
 
         List<FsCourseActivity> coursesToStaffPerson = uriToCourseActivities.stream()
-                                                          .map(this::createCourseActivity)
-                                                          .collect(Collectors.toList());
+                .map(this::createCourseActivity)
+                .collect(Collectors.toList());
         mapCoursesToUri(uriToCourseActivities, coursesToStaffPerson);
 
         addAllResponsesToCreatePerson(nin, person, roles, uriToCourseActivities);
@@ -129,13 +131,13 @@ public class FsMock {
         personRoles.put(person.getFsIdNumber(), roles);
 
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
-                                                                .map(this::createUriToCourseActivity)
-                                                                .collect(Collectors.toList());
+                .map(this::createUriToCourseActivity)
+                .collect(Collectors.toList());
         mapRolesToUri(roles, uriToCourseActivities);
 
         List<FsCourseActivity> coursesToStaffPerson = uriToCourseActivities.stream()
-                                                          .map(this::createCourseActivity)
-                                                          .collect(Collectors.toList());
+                .map(this::createCourseActivity)
+                .collect(Collectors.toList());
         mapCoursesToUri(uriToCourseActivities, coursesToStaffPerson);
 
         addAllResponsesToCreatePerson(nin, person, roles, uriToCourseActivities);
@@ -155,13 +157,13 @@ public class FsMock {
         personRoles.put(student.getFsIdNumber(), roles);
 
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
-                                                                .map(this::createUriToCourseActivity)
-                                                                .collect(Collectors.toList());
+                .map(this::createUriToCourseActivity)
+                .collect(Collectors.toList());
         mapRolesToUri(roles, uriToCourseActivities);
 
         List<FsCourseActivity> coursesToStaffPerson = uriToCourseActivities.stream()
-                                                          .map(this::createCourseActivity)
-                                                          .collect(Collectors.toList());
+                .map(this::createCourseActivity)
+                .collect(Collectors.toList());
         mapCoursesToUri(uriToCourseActivities, coursesToStaffPerson);
 
         addAllResponsesToCreatePerson(nin, student, roles, uriToCourseActivities);
@@ -181,13 +183,13 @@ public class FsMock {
         personRoles.put(staffPerson.getFsIdNumber(), roles);
 
         List<FsUriToCourseActivity> uriToCourseActivities = roles.stream()
-                                                                .map(this::createUriToCourseActivity)
-                                                                .collect(Collectors.toList());
+                .map(this::createUriToCourseActivity)
+                .collect(Collectors.toList());
         mapRolesToUri(roles, uriToCourseActivities);
 
         List<FsCourseActivity> coursesToStaffPerson = uriToCourseActivities.stream()
-                                                          .map(this::createCourseActivity)
-                                                          .collect(Collectors.toList());
+                .map(this::createCourseActivity)
+                .collect(Collectors.toList());
         mapCoursesToUri(uriToCourseActivities, coursesToStaffPerson);
 
         addAllResponsesToCreatePerson(nin, staffPerson, roles, uriToCourseActivities);
@@ -207,15 +209,15 @@ public class FsMock {
 
     public List<FsCourse> getStudentCourses(NationalIdentityNumber nin) {
         return this.coursesForStudents.get(nin)
-                   .stream()
-                   .filter(c -> c.getSemester().getYear() == Year.now().getValue())
-                   .collect(Collectors.toList());
+                .stream()
+                .filter(c -> c.getSemester().getYear() == Year.now().getValue())
+                .collect(Collectors.toList());
     }
 
     public List<FsCourse> createCourses() {
         return Stream.of(createCoursesForYear(CURRENT_YEAR), createCoursesForYear(NEXT_YEAR))
-                   .flatMap(Function.identity())
-                   .collect(Collectors.toList());
+                .flatMap(Function.identity())
+                .collect(Collectors.toList());
     }
 
     public List<FsRoleToStaffPerson> createRoles() {
@@ -308,7 +310,7 @@ public class FsMock {
     private String createCoursesResponseBody(NationalIdentityNumber nin, int year) {
         var coursesForYear = studentCoursesForYear(nin, year);
         var courses
-            = FsCourseItemContainingCourseContainer.fromCourseList(coursesForYear);
+                = FsCourseItemContainingCourseContainer.fromCourseList(coursesForYear);
         return new FsCoursesSearchResult(courses).toString();
     }
 
@@ -326,9 +328,9 @@ public class FsMock {
 
     private List<FsCourse> studentCoursesForYear(NationalIdentityNumber nin, int year) {
         return coursesForStudents.get(nin)
-                   .stream()
-                   .filter(course -> course.getSemester().getYear() == year)
-                   .collect(Collectors.toList());
+                .stream()
+                .filter(course -> course.getSemester().getYear() == year)
+                .collect(Collectors.toList());
     }
 
     private String fsPersonNotFoundResponse() {
@@ -343,11 +345,11 @@ public class FsMock {
     private void addResponseWhenSearchingByNin(NationalIdentityNumber nin) {
         var fsPerson = personEntries.get(nin);
         server.stubFor(get(urlPathEqualTo(PERSON_PATH)).withQueryParam(DB_IDENTIFIER, equalTo("true"))
-                           .withQueryParam(LIMIT_IDENTIFIER, equalTo(LIMIT_VALUE))
-                           .withQueryParam(BIRTHDATE_IDENTIFIER, equalTo(nin.getBirthDate()))
-                           .withQueryParam(PERSONAL_NUMBER_IDENTIFIER, equalTo(nin.getPersonalNumber()))
-                           .willReturn(ok().withHeader("Content-Type", "application/json")
-                                           .withBody(fsPersonSearchResponse(fsPerson))));
+                .withQueryParam(LIMIT_IDENTIFIER, equalTo(LIMIT_VALUE))
+                .withQueryParam(BIRTHDATE_IDENTIFIER, equalTo(nin.getBirthDate()))
+                .withQueryParam(PERSONAL_NUMBER_IDENTIFIER, equalTo(nin.getPersonalNumber()))
+                .willReturn(ok().withHeader("Content-Type", "application/json")
+                        .withBody(fsPersonSearchResponse(fsPerson))));
     }
 
     private void addPersonToFsInstance(NationalIdentityNumber person) {
@@ -358,45 +360,45 @@ public class FsMock {
 
     private void addResponseWhenSearchingById(FsPerson fsPerson) {
         server.stubFor(get(urlPathEqualTo(PERSON_PATH + "/" + fsPerson.getFsIdNumber().toString())).willReturn(
-            ok().withHeader("Content-Type", "application/json").withBody(fsPerson.toString())));
+                ok().withHeader("Content-Type", "application/json").withBody(fsPerson.toString())));
     }
 
     private void addResponseWhenForPersonNotRegisteredInFs(NationalIdentityNumber nin) {
         server.stubFor(get(urlPathEqualTo(PERSON_PATH)).withQueryParam(DB_IDENTIFIER, equalTo("true"))
-                           .withQueryParam(LIMIT_IDENTIFIER, equalTo(LIMIT_VALUE))
-                           .withQueryParam(BIRTHDATE_IDENTIFIER, equalTo(nin.getBirthDate()))
-                           .withQueryParam(PERSONAL_NUMBER_IDENTIFIER, equalTo(nin.getPersonalNumber()))
-                           .willReturn(ok().withHeader("Content-Type", "application/json")
-                                           .withBody(fsPersonNotFoundResponse())));
+                .withQueryParam(LIMIT_IDENTIFIER, equalTo(LIMIT_VALUE))
+                .withQueryParam(BIRTHDATE_IDENTIFIER, equalTo(nin.getBirthDate()))
+                .withQueryParam(PERSONAL_NUMBER_IDENTIFIER, equalTo(nin.getPersonalNumber()))
+                .willReturn(ok().withHeader("Content-Type", "application/json")
+                        .withBody(fsPersonNotFoundResponse())));
     }
 
     private void addResponseForGettingStudentCoursesByFsIdNumber(NationalIdentityNumber nin, Integer year) {
         server.stubFor(get(urlPathEqualTo(STUDENT_TEACHING_PATH)).withQueryParam(DB_IDENTIFIER, equalTo("true"))
-                           .withQueryParam(LIMIT_IDENTIFIER, equalTo(LIMIT_VALUE))
-                           .withQueryParam(FS_PERSON_ID_NUMBER_PATH,
-                                           equalTo(personEntries.get(nin).getFsIdNumber().toString()))
-                           .withQueryParam(TEACHING_SEMESTER_AR_PATH, equalTo(year.toString()))
-                           .willReturn(ok().withHeader("Content-Type", "application/json")
-                                           .withBody(createCoursesResponseBody(nin, year))));
+                .withQueryParam(LIMIT_IDENTIFIER, equalTo(LIMIT_VALUE))
+                .withQueryParam(FS_PERSON_ID_NUMBER_PATH,
+                        equalTo(personEntries.get(nin).getFsIdNumber().toString()))
+                .withQueryParam(TEACHING_SEMESTER_AR_PATH, equalTo(year.toString()))
+                .willReturn(ok().withHeader("Content-Type", "application/json")
+                        .withBody(createCoursesResponseBody(nin, year))));
     }
 
     private void addResponseForGettingRolesToStaffPerson(FsIdNumber fsIdNumber, Integer year) {
         server.stubFor(get(urlPathEqualTo(PERSON_ROLES)).withQueryParam(FS_PERSON_ID_NUMBER_PATH,
-                                                                        WireMock.equalTo(fsIdNumber.toString()))
-                           .withQueryParam(SEMESTER_YEAR_PATH, WireMock.equalTo(year.toString()))
-                           .willReturn(ok().withHeader("Content-type", "application/json")
-                                           .withBody(createRolesResponseBody(fsIdNumber))));
+                        WireMock.equalTo(fsIdNumber.toString()))
+                .withQueryParam(SEMESTER_YEAR_PATH, WireMock.equalTo(year.toString()))
+                .willReturn(ok().withHeader("Content-type", "application/json")
+                        .withBody(createRolesResponseBody(fsIdNumber))));
     }
 
     private void addResponseForGettingCourseActivityToRoleUri(FsRoleToStaffPerson role) {
         server.stubFor(get(urlPathEqualTo(role.getUriToRole().getPath())).willReturn(
-            ok().withHeader("Content-type", "application/json")
-                .withBody(createUriToCourseActivityResponseBody(role))));
+                ok().withHeader("Content-type", "application/json")
+                        .withBody(createUriToCourseActivityResponseBody(role))));
     }
 
     private void addResponseForGettingCourseToStaffPerson(FsUriToCourseActivity courseActivity) {
         server.stubFor(get(urlPathEqualTo(courseActivity.getUri().getPath())).willReturn(
-            ok().withHeader("Content-type", "application/json")
-                .withBody(createCourseActivityResponseBody(courseActivity))));
+                ok().withHeader("Content-type", "application/json")
+                        .withBody(createCourseActivityResponseBody(courseActivity))));
     }
 }

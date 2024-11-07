@@ -3,9 +3,10 @@ package no.unit.identityservice.fsproxy.model.staffperson;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import nva.commons.core.JacocoGenerated;
+
 import java.net.URI;
 import java.util.Objects;
-import nva.commons.core.JacocoGenerated;
 
 public class FsRoleToStaffPerson {
 

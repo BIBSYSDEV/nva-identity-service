@@ -1,8 +1,5 @@
 package no.unit.nva.customer.model;
 
-import java.net.URI;
-import java.util.Objects;
-import java.util.Set;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;
 import no.unit.nva.customer.model.dynamo.converters.VocabularySetConverter;
 import no.unit.nva.customer.model.interfaces.Vocabulary;
@@ -12,6 +9,10 @@ import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvide
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+
+import java.net.URI;
+import java.util.Objects;
+import java.util.Set;
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class VocabularyDao implements Vocabulary {
@@ -32,6 +33,12 @@ public class VocabularyDao implements Vocabulary {
         this.name = name;
         this.id = id;
         this.status = status;
+    }
+
+    public static VocabularyDao fromVocabularySettingsDto(VocabularyDto vocabularySettingDto) {
+        return new VocabularyDao(vocabularySettingDto.getName(),
+                vocabularySettingDto.getId(),
+                vocabularySettingDto.getStatus());
     }
 
     @Override
@@ -82,17 +89,11 @@ public class VocabularyDao implements Vocabulary {
         }
         VocabularyDao that = (VocabularyDao) o;
         return Objects.equals(getName(), that.getName())
-               && Objects.equals(getId(), that.getId())
-               && getStatus() == that.getStatus();
+                && Objects.equals(getId(), that.getId())
+                && getStatus() == that.getStatus();
     }
 
     public VocabularyDto toVocabularySettingsDto() {
         return new VocabularyDto(this.getName(), this.getId(), this.getStatus());
-    }
-
-    public static VocabularyDao fromVocabularySettingsDto(VocabularyDto vocabularySettingDto) {
-        return new VocabularyDao(vocabularySettingDto.getName(),
-                                 vocabularySettingDto.getId(),
-                                 vocabularySettingDto.getStatus());
     }
 }

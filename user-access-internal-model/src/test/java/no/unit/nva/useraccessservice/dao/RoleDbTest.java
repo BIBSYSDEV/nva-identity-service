@@ -14,10 +14,12 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.hamcrest.text.IsEmptyString.emptyString;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.util.Collections;
 import java.util.Set;
+
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleName;
 import nva.commons.apigateway.AccessRight;
@@ -160,8 +162,8 @@ public class RoleDbTest {
     private RoleDb createSampleRole(String roleNameValue) throws InvalidEntryInternalException {
         Set<AccessRight> accessRights = Collections.singleton(AccessRight.MANAGE_DOI);
         return RoleDb.newBuilder()
-            .withName(RoleName.fromValue(roleNameValue))
-            .withAccessRights(accessRights)
-            .build();
+                .withName(RoleName.fromValue(roleNameValue))
+                .withAccessRights(accessRights)
+                .build();
     }
 }

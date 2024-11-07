@@ -1,20 +1,6 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
-import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
-import java.net.URI;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
@@ -34,6 +20,22 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
+import java.net.URI;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
+import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
+import static nva.commons.core.attempt.Try.attempt;
+
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
 public class CustomerDao implements Typed {
@@ -44,7 +46,7 @@ public class CustomerDao implements Typed {
     public static final String TYPE = "Customer";
     public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
     public static final Set<PublicationInstanceTypes>
-        ALLOW_FILE_UPLOAD_FOR_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO  = null;
+            ALLOW_FILE_UPLOAD_FOR_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
     public static final TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
     public static final String VOCABULARIES_FIELD = "vocabularies";
     public static final String ALLOW_FILE_UPLOAD_FOR_TYPES_FIELD = "allowFileUploadForTypes";
@@ -85,31 +87,54 @@ public class CustomerDao implements Typed {
 
     public static CustomerDao fromCustomerDto(CustomerDto dto) {
         return builder()
-                   .withArchiveName(dto.getArchiveName())
-                   .withCname(dto.getCname())
-                   .withCreatedDate(dto.getCreatedDate())
-                   .withCristinId(dto.getCristinId())
-                   .withCustomerOf(extractCustomerOf(dto))
-                   .withDisplayName(dto.getDisplayName())
-                   .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
-                   .withIdentifier(dto.getIdentifier())
-                   .withInstitutionDns(dto.getInstitutionDns())
-                   .withModifiedDate(dto.getModifiedDate())
-                   .withName(dto.getName())
-                   .withPublicationWorkflow(dto.getPublicationWorkflow())
-                   .withRorId(dto.getRorId())
-                   .withServiceCenter(dto.getServiceCenter().toDao())
-                   .withShortName(dto.getShortName())
-                   .withVocabularySettings(extractVocabularySettings(dto))
-                   .withDoiAgent(dto.getDoiAgent())
-                   .withNviInstitution(dto.isNviInstitution())
-                   .withRboInstitution(dto.isRboInstitution())
-                   .withInactiveFrom(dto.getInactiveFrom())
-                   .withSector(dto.getSector())
-                   .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
-                   .withAllowFileUploadForTypes(extractPublicationInstanceTypes(dto))
-                   .withGeneralSupportEnabled(dto.isGeneralSupportEnabled())
-                   .build();
+                .withArchiveName(dto.getArchiveName())
+                .withCname(dto.getCname())
+                .withCreatedDate(dto.getCreatedDate())
+                .withCristinId(dto.getCristinId())
+                .withCustomerOf(extractCustomerOf(dto))
+                .withDisplayName(dto.getDisplayName())
+                .withFeideOrganizationDomain(dto.getFeideOrganizationDomain())
+                .withIdentifier(dto.getIdentifier())
+                .withInstitutionDns(dto.getInstitutionDns())
+                .withModifiedDate(dto.getModifiedDate())
+                .withName(dto.getName())
+                .withPublicationWorkflow(dto.getPublicationWorkflow())
+                .withRorId(dto.getRorId())
+                .withServiceCenter(dto.getServiceCenter().toDao())
+                .withShortName(dto.getShortName())
+                .withVocabularySettings(extractVocabularySettings(dto))
+                .withDoiAgent(dto.getDoiAgent())
+                .withNviInstitution(dto.isNviInstitution())
+                .withRboInstitution(dto.isRboInstitution())
+                .withInactiveFrom(dto.getInactiveFrom())
+                .withSector(dto.getSector())
+                .withRightsRetentionStrategy(dto.getRightsRetentionStrategy())
+                .withAllowFileUploadForTypes(extractPublicationInstanceTypes(dto))
+                .withGeneralSupportEnabled(dto.isGeneralSupportEnabled())
+                .build();
+    }
+
+    private static URI extractCustomerOf(CustomerDto dto) {
+        return Optional.ofNullable(dto)
+                .map(CustomerDto::getCustomerOf)
+                .map(ApplicationDomain::toString)
+                .map(URI::create)
+                .orElse(null);
+    }
+
+    private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {
+        return Optional.ofNullable(dto.getVocabularies())
+                .stream()
+                .flatMap(Collection::stream)
+                .map(VocabularyDao::fromVocabularySettingsDto)
+                .collect(Collectors.toSet());
+    }
+
+    private static Set<PublicationInstanceTypes> extractPublicationInstanceTypes(CustomerDto dto) {
+        return Optional.ofNullable(dto.getAllowFileUploadForTypes())
+                .stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 
     public boolean isRboInstitution() {
@@ -258,7 +283,7 @@ public class CustomerDao implements Typed {
 
     public PublicationWorkflow getPublicationWorkflow() {
         return nonNull(publicationWorkflow) ? publicationWorkflow
-                   : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+                : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
@@ -268,8 +293,8 @@ public class CustomerDao implements Typed {
     @DynamoDbConvertedBy(DoiAgentConverter.class)
     public DoiAgentDao getDoiAgent() {
         return nonNull(doiAgent)
-                   ? doiAgent
-                   : new DoiAgentDao();
+                ? doiAgent
+                : new DoiAgentDao();
     }
 
     public void setDoiAgent(DoiAgentDao doi) {
@@ -296,24 +321,22 @@ public class CustomerDao implements Typed {
     @DynamoDbAttribute(ALLOW_FILE_UPLOAD_FOR_TYPES_FIELD)
     public Set<PublicationInstanceTypes> getAllowFileUploadForTypes() {
         return nonEmpty(allowFileUploadForTypes)
-                   ? allowFileUploadForTypes
-                   : ALLOW_FILE_UPLOAD_FOR_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
-    }
-
-    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
-        this.allowFileUploadForTypes =
-            nonEmpty(allowFileUploadForTypes)
                 ? allowFileUploadForTypes
                 : ALLOW_FILE_UPLOAD_FOR_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
-
+    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
+        this.allowFileUploadForTypes =
+                nonEmpty(allowFileUploadForTypes)
+                        ? allowFileUploadForTypes
+                        : ALLOW_FILE_UPLOAD_FOR_TYPES_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
+    }
 
     @DynamoDbConvertedBy(RightsRetentionStrategyConverter.class)
     public RightsRetentionStrategyDao getRightsRetentionStrategy() {
         return nonNull(rightsRetentionStrategy)
-                   ? rightsRetentionStrategy
-                   : new RightsRetentionStrategyDao();
+                ? rightsRetentionStrategy
+                : new RightsRetentionStrategyDao();
     }
 
     public void setRightsRetentionStrategy(RightsRetentionStrategyDao rightsRetentionStrategy) {
@@ -331,70 +354,70 @@ public class CustomerDao implements Typed {
         }
         CustomerDao that = (CustomerDao) o;
         return isNviInstitution() == that.isNviInstitution()
-               && isRboInstitution() == that.isRboInstitution()
-               && isGeneralSupportEnabled() == that.isGeneralSupportEnabled()
-               && Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getArchiveName(), that.getArchiveName())
-               && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getCustomerOf(), that.getCustomerOf())
-               && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getRorId(), that.getRorId())
-               && getPublicationWorkflow() == that.getPublicationWorkflow()
-               && Objects.equals(getDoiAgent(), that.getDoiAgent())
-               && Objects.equals(getServiceCenter(), that.getServiceCenter())
-               && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
-               && getSector() == that.getSector()
-               && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
-               && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
+                && isRboInstitution() == that.isRboInstitution()
+                && isGeneralSupportEnabled() == that.isGeneralSupportEnabled()
+                && Objects.equals(getIdentifier(), that.getIdentifier())
+                && Objects.equals(getCreatedDate(), that.getCreatedDate())
+                && Objects.equals(getModifiedDate(), that.getModifiedDate())
+                && Objects.equals(getName(), that.getName())
+                && Objects.equals(getDisplayName(), that.getDisplayName())
+                && Objects.equals(getShortName(), that.getShortName())
+                && Objects.equals(getArchiveName(), that.getArchiveName())
+                && Objects.equals(getCname(), that.getCname())
+                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+                && Objects.equals(getCristinId(), that.getCristinId())
+                && Objects.equals(getCustomerOf(), that.getCustomerOf())
+                && Objects.equals(getVocabularies(), that.getVocabularies())
+                && Objects.equals(getRorId(), that.getRorId())
+                && getPublicationWorkflow() == that.getPublicationWorkflow()
+                && Objects.equals(getDoiAgent(), that.getDoiAgent())
+                && Objects.equals(getServiceCenter(), that.getServiceCenter())
+                && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
+                && getSector() == that.getSector()
+                && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
+                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes());
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(),
-                            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(),
-                            getPublicationWorkflow(), getDoiAgent(), getServiceCenter(), isNviInstitution(),
-                            isRboInstitution(), isGeneralSupportEnabled(), getInactiveFrom(), getSector(),
-                            getRightsRetentionStrategy(), getAllowFileUploadForTypes());
+                getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                getFeideOrganizationDomain(),
+                getCristinId(), getCustomerOf(), getVocabularies(), getRorId(),
+                getPublicationWorkflow(), getDoiAgent(), getServiceCenter(), isNviInstitution(),
+                isRboInstitution(), isGeneralSupportEnabled(), getInactiveFrom(), getSector(),
+                getRightsRetentionStrategy(), getAllowFileUploadForTypes());
     }
 
     public CustomerDto toCustomerDto() {
         CustomerDto customerDto = CustomerDto.builder()
-                                      .withCname(getCname())
-                                      .withName(getName())
-                                      .withIdentifier(getIdentifier())
-                                      .withArchiveName(getArchiveName())
-                                      .withCreatedDate(getCreatedDate())
-                                      .withDisplayName(getDisplayName())
-                                      .withInstitutionDns(getInstitutionDns())
-                                      .withShortName(getShortName())
-                                      .withVocabularies(extractVocabularySettings())
-                                      .withModifiedDate(getModifiedDate())
-                                      .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                                      .withCristinId(getCristinId())
-                                      .withCustomerOf(fromUri(getCustomerOf()))
-                                      .withRorId(getRorId())
-                                      .withServiceCenter(getServiceCenter().toDto())
-                                      .withPublicationWorkflow(getPublicationWorkflow())
-                                      .withDoiAgent(getDoiAgent())
-                                      .withNviInstitution(isNviInstitution())
-                                      .withRboInstitution(isRboInstitution())
-                                      .withInactiveFrom(getInactiveFrom())
-                                      .withSector(getSector())
-                                      .withRightsRetentionStrategy(getRightsRetentionStrategy())
-                                      .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
-                                      .withGeneralSupportEnabled(generalSupportEnabled)
-                                      .build();
+                .withCname(getCname())
+                .withName(getName())
+                .withIdentifier(getIdentifier())
+                .withArchiveName(getArchiveName())
+                .withCreatedDate(getCreatedDate())
+                .withDisplayName(getDisplayName())
+                .withInstitutionDns(getInstitutionDns())
+                .withShortName(getShortName())
+                .withVocabularies(extractVocabularySettings())
+                .withModifiedDate(getModifiedDate())
+                .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                .withCristinId(getCristinId())
+                .withCustomerOf(fromUri(getCustomerOf()))
+                .withRorId(getRorId())
+                .withServiceCenter(getServiceCenter().toDto())
+                .withPublicationWorkflow(getPublicationWorkflow())
+                .withDoiAgent(getDoiAgent())
+                .withNviInstitution(isNviInstitution())
+                .withRboInstitution(isRboInstitution())
+                .withInactiveFrom(getInactiveFrom())
+                .withSector(getSector())
+                .withRightsRetentionStrategy(getRightsRetentionStrategy())
+                .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
+                .withGeneralSupportEnabled(generalSupportEnabled)
+                .build();
         return LinkedDataContextUtils.addContextAndId(customerDto);
     }
 
@@ -414,31 +437,31 @@ public class CustomerDao implements Typed {
     @Override
     public String toString() {
         return "CustomerDao{" +
-               "identifier=" + identifier +
-               ", createdDate=" + createdDate +
-               ", modifiedDate=" + modifiedDate +
-               ", name='" + name + '\'' +
-               ", displayName='" + displayName + '\'' +
-               ", shortName='" + shortName + '\'' +
-               ", archiveName='" + archiveName + '\'' +
-               ", cname='" + cname + '\'' +
-               ", institutionDns='" + institutionDns + '\'' +
-               ", feideOrganizationDomain='" + feideOrganizationDomain + '\'' +
-               ", cristinId=" + cristinId +
-               ", customerOf=" + customerOf +
-               ", vocabularies=" + vocabularies +
-               ", rorId=" + rorId +
-               ", publicationWorkflow=" + publicationWorkflow +
-               ", doiAgent=" + doiAgent +
-               ", nviInstitution=" + nviInstitution +
-               ", rboInstitution=" + rboInstitution +
-               ", inactiveFrom=" + inactiveFrom +
-               ", sector=" + sector +
-               ", rightsRetentionStrategy=" + rightsRetentionStrategy +
-               ", allowFileUploadForTypes=" + allowFileUploadForTypes +
-               ", generalSupportEnabled=" + generalSupportEnabled +
-               ", serviceCenter=" + serviceCenter +
-               '}';
+                "identifier=" + identifier +
+                ", createdDate=" + createdDate +
+                ", modifiedDate=" + modifiedDate +
+                ", name='" + name + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", shortName='" + shortName + '\'' +
+                ", archiveName='" + archiveName + '\'' +
+                ", cname='" + cname + '\'' +
+                ", institutionDns='" + institutionDns + '\'' +
+                ", feideOrganizationDomain='" + feideOrganizationDomain + '\'' +
+                ", cristinId=" + cristinId +
+                ", customerOf=" + customerOf +
+                ", vocabularies=" + vocabularies +
+                ", rorId=" + rorId +
+                ", publicationWorkflow=" + publicationWorkflow +
+                ", doiAgent=" + doiAgent +
+                ", nviInstitution=" + nviInstitution +
+                ", rboInstitution=" + rboInstitution +
+                ", inactiveFrom=" + inactiveFrom +
+                ", sector=" + sector +
+                ", rightsRetentionStrategy=" + rightsRetentionStrategy +
+                ", allowFileUploadForTypes=" + allowFileUploadForTypes +
+                ", generalSupportEnabled=" + generalSupportEnabled +
+                ", serviceCenter=" + serviceCenter +
+                '}';
     }
 
     public ServiceCenterDao getServiceCenter() {
@@ -449,35 +472,12 @@ public class CustomerDao implements Typed {
         this.serviceCenter = serviceCenter;
     }
 
-    private static URI extractCustomerOf(CustomerDto dto) {
-        return Optional.ofNullable(dto)
-                   .map(CustomerDto::getCustomerOf)
-                   .map(ApplicationDomain::toString)
-                   .map(URI::create)
-                   .orElse(null);
-    }
-
-    private static Set<VocabularyDao> extractVocabularySettings(CustomerDto dto) {
-        return Optional.ofNullable(dto.getVocabularies())
-                   .stream()
-                   .flatMap(Collection::stream)
-                   .map(VocabularyDao::fromVocabularySettingsDto)
-                   .collect(Collectors.toSet());
-    }
-
     private Set<VocabularyDto> extractVocabularySettings() {
         return Optional.ofNullable(this.getVocabularies())
-                   .stream()
-                   .flatMap(Collection::stream)
-                   .map(VocabularyDao::toVocabularySettingsDto)
-                   .collect(Collectors.toSet());
-    }
-
-    private static Set<PublicationInstanceTypes> extractPublicationInstanceTypes(CustomerDto dto) {
-        return Optional.ofNullable(dto.getAllowFileUploadForTypes())
-            .stream()
-            .flatMap(Collection::stream)
-            .collect(Collectors.toSet());
+                .stream()
+                .flatMap(Collection::stream)
+                .map(VocabularyDao::toVocabularySettingsDto)
+                .collect(Collectors.toSet());
     }
 
     public static final class Builder {
@@ -687,8 +687,8 @@ public class CustomerDao implements Typed {
                 return false;
             }
             return Objects.equals(getPrefix(), that.getPrefix())
-                   && Objects.equals(getUrl(), that.getUrl())
-                   && Objects.equals(getUsername(), that.getUsername());
+                    && Objects.equals(getUrl(), that.getUrl())
+                    && Objects.equals(getUsername(), that.getUsername());
         }
 
         @Override
@@ -726,6 +726,10 @@ public class CustomerDao implements Typed {
             return type;
         }
 
+        public void setType(RightsRetentionStrategyType rightsRetentionStrategyType) {
+            this.type = rightsRetentionStrategyType;
+        }
+
         @Override
         public URI getId() {
             return id;
@@ -733,10 +737,6 @@ public class CustomerDao implements Typed {
 
         public void setId(URI id) {
             this.id = id;
-        }
-
-        public void setType(RightsRetentionStrategyType rightsRetentionStrategyType) {
-            this.type = rightsRetentionStrategyType;
         }
 
         @Override
@@ -766,13 +766,18 @@ public class CustomerDao implements Typed {
     }
 
     @DynamoDbBean
-    public static class ServiceCenterDao implements JsonSerializable{
+    public static class ServiceCenterDao implements JsonSerializable {
 
         private URI uri;
         private String name;
 
         @JacocoGenerated
         public ServiceCenterDao() {
+        }
+
+        public ServiceCenterDao(URI uri, String name) {
+            this.uri = uri;
+            this.name = name;
         }
 
         @JacocoGenerated
@@ -798,11 +803,6 @@ public class CustomerDao implements Typed {
             return Objects.hash(getUri(), getName());
         }
 
-        public ServiceCenterDao(URI uri, String name) {
-            this.uri = uri;
-            this.name = name;
-        }
-
         public URI getUri() {
             return uri;
         }
@@ -817,14 +817,14 @@ public class CustomerDao implements Typed {
         }
 
         @JacocoGenerated
-        @Override
-        public String toString() {
-            return this.toJsonString();
+        public void setName(String name) {
+            this.name = name;
         }
 
         @JacocoGenerated
-        public void setName(String name) {
-            this.name = name;
+        @Override
+        public String toString() {
+            return this.toJsonString();
         }
     }
 

@@ -7,8 +7,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
@@ -72,7 +75,7 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
     }
 
     @ParameterizedTest(name = "should send message to Event Bridge for next scan containing the key of the last "
-                              + "scanned object.Page size:{0}")
+            + "scanned object.Page size:{0}")
     @ValueSource(ints = {1, 5, 10, 50})
     void shouldSendEventForNextScanContainingTheKeyOfLastScannedObjectAsNextScanStartMarker(int pageSize) {
         final var insertedUsers = insertRandomUsers(2 * pageSize);
@@ -111,12 +114,12 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
 
     private List<UserDto> scanAllUsersInDatabaseDirectly() {
         return localDynamo.scanPaginator(ScanRequest.builder().tableName(Constants.USERS_AND_ROLES_TABLE).build())
-                   .stream()
-                   .flatMap(page -> page.items().stream())
-                   .filter(this::isUser)
-                   .map(UserDao.TABLE_SCHEMA::mapToItem)
-                   .map(UserDao::toUserDto)
-                   .collect(Collectors.toList());
+                .stream()
+                .flatMap(page -> page.items().stream())
+                .filter(this::isUser)
+                .map(UserDao.TABLE_SCHEMA::mapToItem)
+                .map(UserDao::toUserDto)
+                .collect(Collectors.toList());
     }
 
     private boolean isUser(Map<String, AttributeValue> entry) {
@@ -140,25 +143,25 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
 
     private List<UserDto> migrateUsersDirectly(List<UserDto> insertedUsers, String expectedFilename) {
         return insertedUsers.stream()
-            .map(user -> user.copy().withFamilyName(expectedFilename).build())
-            .collect(Collectors.toList());
+                .map(user -> user.copy().withFamilyName(expectedFilename).build())
+                .collect(Collectors.toList());
     }
 
     private UserDto fetchLastScannedUserUsingTheEmittedEvent(ScanDatabaseRequestV2 emittedScanRequest) {
         return attempt(emittedScanRequest::toDynamoScanMarker)
-            .map(this::createGetItemRequest)
-            .map(getItemRequest -> localDynamo.getItem(getItemRequest))
-            .map(GetItemResponse::item)
-            .map(UserDao.TABLE_SCHEMA::mapToItem)
-            .map(UserDao::toUserDto)
-            .orElseThrow();
+                .map(this::createGetItemRequest)
+                .map(getItemRequest -> localDynamo.getItem(getItemRequest))
+                .map(GetItemResponse::item)
+                .map(UserDao.TABLE_SCHEMA::mapToItem)
+                .map(UserDao::toUserDto)
+                .orElseThrow();
     }
 
     private GetItemRequest createGetItemRequest(Map<String, AttributeValue> startMarker) {
         return GetItemRequest.builder()
-                   .tableName(Constants.USERS_AND_ROLES_TABLE)
-            .key(startMarker)
-            .build();
+                .tableName(Constants.USERS_AND_ROLES_TABLE)
+                .key(startMarker)
+                .build();
     }
 
     private UserDto calculateLastScannedUser(int pageSize, List<UserDto> insertedUsers) {
@@ -171,19 +174,19 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
 
     private ScanDatabaseRequestV2 extractScanRequestFromEmittedMessage() {
         return eventClient.getRequestEntries()
-            .stream()
-            .map(PutEventsRequestEntry::detail)
-            .map(attempt(ScanDatabaseRequestV2::fromJson))
-            .flatMap(Try::stream)
-            .collect(SingletonCollector.collect());
+                .stream()
+                .map(PutEventsRequestEntry::detail)
+                .map(attempt(ScanDatabaseRequestV2::fromJson))
+                .flatMap(Try::stream)
+                .collect(SingletonCollector.collect());
     }
 
     private List<UserDto> insertRandomUsers(int numberOfUsers) {
         var unused = IntStream.range(0, numberOfUsers)
-            .boxed()
-            .map(attempt(i -> randomUser()))
-            .map(Try::orElseThrow)
-            .collect(Collectors.toList());
+                .boxed()
+                .map(attempt(i -> randomUser()))
+                .map(Try::orElseThrow)
+                .collect(Collectors.toList());
         return scanAllUsersInDatabaseDirectly();
     }
 

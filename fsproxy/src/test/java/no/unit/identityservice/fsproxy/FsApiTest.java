@@ -1,16 +1,18 @@
 package no.unit.identityservice.fsproxy;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FsApiTest {
 
@@ -57,7 +59,7 @@ public class FsApiTest {
         var coursesIfStudent = fsMock.getStudentCourses(somePerson);
         var coursesIfStaff = fsMock.getCoursesToStaffPerson();
         var expectedCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream())
-                                  .collect(Collectors.toList());
+                .collect(Collectors.toList());
         var actualCourses = fsApi.fetchCoursesForPerson(somePerson);
 
         assertThat(actualCourses, is(equalTo(expectedCourses)));
@@ -65,12 +67,12 @@ public class FsApiTest {
 
     @Test
     void shouldReturnAllCoursesToPersonWhenPersonIsBothStudentAndStaffPerson()
-        throws IOException, InterruptedException {
+            throws IOException, InterruptedException {
         var somePerson = fsMock.createPersonWhichIsStudentAndStaffPerson();
         var coursesIfStudent = fsMock.getStudentCourses(somePerson);
         var coursesIfStaff = fsMock.getCoursesToStaffPerson();
         var expectedCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream())
-                                  .collect(Collectors.toList());
+                .collect(Collectors.toList());
         var actualCourses = fsApi.fetchCoursesForPerson(somePerson);
 
         assertThat(actualCourses, is(equalTo(expectedCourses)));

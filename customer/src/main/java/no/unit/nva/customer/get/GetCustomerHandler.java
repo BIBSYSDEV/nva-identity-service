@@ -1,10 +1,7 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
-import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerHandler;
 import no.unit.nva.customer.exception.InputException;
@@ -15,6 +12,11 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+import java.util.List;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 
 public class GetCustomerHandler extends CustomerHandler<Void> {
 
@@ -45,7 +47,7 @@ public class GetCustomerHandler extends CustomerHandler<Void> {
 
     @Override
     protected CustomerDto processInput(Void input, RequestInfo requestInfo, Context context)
-        throws InputException, NotFoundException, ForbiddenException {
+            throws InputException, NotFoundException, ForbiddenException {
         return customerService.getCustomer(getIdentifier(requestInfo));
     }
 

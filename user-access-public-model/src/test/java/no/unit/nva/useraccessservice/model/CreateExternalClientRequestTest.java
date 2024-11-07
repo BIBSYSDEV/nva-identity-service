@@ -1,13 +1,15 @@
 package no.unit.nva.useraccessservice.model;
 
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.StringContains.containsString;
-import java.util.List;
-import org.junit.jupiter.api.Test;
 
 public class CreateExternalClientRequestTest {
 
@@ -25,13 +27,13 @@ public class CreateExternalClientRequestTest {
         var scopes = List.of(randomString());
 
         var request =
-            CreateExternalClientRequest.newBuilder()
-                .withClientName(clientName)
-                .withCustomerUri(customerUri)
-                .withCristinOrgUri(cristinOrgUri)
-                .withActingUser(actingUser)
-                .withScopes(scopes)
-                .build();
+                CreateExternalClientRequest.newBuilder()
+                        .withClientName(clientName)
+                        .withCustomerUri(customerUri)
+                        .withCristinOrgUri(cristinOrgUri)
+                        .withActingUser(actingUser)
+                        .withScopes(scopes)
+                        .build();
 
         assertThat(request.toString(), containsString(clientName));
         assertThat(request.toString(), containsString(customerUri.toString()));

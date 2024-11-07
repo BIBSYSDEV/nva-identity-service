@@ -5,8 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import java.util.Set;
 import no.unit.nva.useraccessservice.model.RoleDto;
+
+import java.util.Set;
 
 @JsonTypeInfo(use = Id.NAME, property = "type")
 @JsonTypeName("RoleList")

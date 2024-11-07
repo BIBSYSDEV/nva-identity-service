@@ -1,14 +1,16 @@
 package no.unit.identityservice.fsproxy.model.person;
 
-import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import no.unit.nva.commons.json.JsonSerializable;
+import no.unit.nva.commons.json.JsonUtils;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import no.unit.nva.commons.json.JsonSerializable;
-import no.unit.nva.commons.json.JsonUtils;
+
+import static java.util.Objects.nonNull;
 
 public class FsPersonSearchResponse implements JsonSerializable {
 

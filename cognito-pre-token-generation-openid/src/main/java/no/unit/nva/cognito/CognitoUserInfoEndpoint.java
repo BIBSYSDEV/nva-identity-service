@@ -1,10 +1,12 @@
 package no.unit.nva.cognito;
 
 import com.amazonaws.services.lambda.runtime.Context;
+
 import java.net.HttpURLConnection;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
@@ -36,9 +38,9 @@ public class CognitoUserInfoEndpoint extends CognitoCommunicationHandler<Void, M
     protected Map<String, String> processInput(Void input, RequestInfo requestInfo, Context context) {
         var cognitoResponse = fetchUserInfo(extractAccessToken(requestInfo));
         return cognitoResponse.userAttributes()
-            .stream()
-            .map(this::toMapEntry)
-            .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+                .stream()
+                .map(this::toMapEntry)
+                .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
     }
 
     @Override

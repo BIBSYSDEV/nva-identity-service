@@ -1,5 +1,13 @@
 package no.unit.nva.useraccessservice.model;
 
+import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -9,16 +17,19 @@ import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsSame.sameInstance;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.io.IOException;
-import no.unit.nva.identityservice.json.JsonConfig;
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
 class ClientDtoTest extends DtoTest {
 
     protected static final String CLIENT_TYPE_LITERAL = "Client";
+
+    private static ClientDto createRandomClient() {
+        return ClientDto.newBuilder()
+                .withClientId(randomString())
+                .withCustomer(randomCristinOrgId())
+                .withCristinOrgUri(randomCristinOrgId())
+                .withActingUser(randomString())
+                .build();
+    }
 
     @DisplayName("ClientDto object contains type with value \"Client\"")
     @Test
@@ -33,7 +44,7 @@ class ClientDtoTest extends DtoTest {
     @DisplayName("ClientDto can be created when it contains the right type value")
     @Test
     void clientDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
-        throws InvalidEntryInternalException, IOException {
+            throws InvalidEntryInternalException, IOException {
         ClientDto sampleClient = createRandomClient();
         var json = toMap(sampleClient);
         assertThatSerializedItemContainsType(json, CLIENT_TYPE_LITERAL);
@@ -67,14 +78,5 @@ class ClientDtoTest extends DtoTest {
         var invalidJson = randomString();
         var exception = assertThrows(BadRequestException.class, () -> ClientDto.fromJson(invalidJson));
         assertThat(exception.getMessage(), containsString(invalidJson));
-    }
-
-    private static ClientDto createRandomClient() {
-        return ClientDto.newBuilder()
-                   .withClientId(randomString())
-                   .withCustomer(randomCristinOrgId())
-                   .withCristinOrgUri(randomCristinOrgId())
-                   .withActingUser(randomString())
-                   .build();
     }
 }

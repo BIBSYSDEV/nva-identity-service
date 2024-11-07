@@ -4,9 +4,11 @@ import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
+
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
+
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -18,7 +20,7 @@ public final class EntityUtils {
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
 
     public static final Set<AccessRight> SAMPLE_ACCESS_RIGHTS =
-        Collections.singleton(MANAGE_DOI);
+            Collections.singleton(MANAGE_DOI);
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
 
@@ -27,8 +29,8 @@ public final class EntityUtils {
      */
     public static UserDto createUserWithRolesAndInstitution() {
         return createUserWithRoleWithoutInstitution().copy()
-            .withInstitution(SOME_INSTITUTION)
-            .build();
+                .withInstitution(SOME_INSTITUTION)
+                .build();
     }
 
     /**
@@ -39,11 +41,11 @@ public final class EntityUtils {
     public static UserDto createUserWithRoleWithoutInstitution() {
         RoleDto sampleRole = createRole(randomRoleName());
         return UserDto.newBuilder()
-            .withUsername(SOME_USERNAME)
-            .withGivenName(SOME_GIVEN_NAME)
-            .withFamilyName(SOME_FAMILY_NAME)
-            .withRoles(Collections.singletonList(sampleRole))
-            .build();
+                .withUsername(SOME_USERNAME)
+                .withGivenName(SOME_GIVEN_NAME)
+                .withFamilyName(SOME_FAMILY_NAME)
+                .withRoles(Collections.singletonList(sampleRole))
+                .build();
     }
 
     /**
@@ -54,8 +56,8 @@ public final class EntityUtils {
      */
     public static RoleDto createRole(RoleName roleName) {
         return RoleDto.newBuilder()
-            .withRoleName(roleName)
-            .withAccessRights(SAMPLE_ACCESS_RIGHTS)
-            .build();
+                .withRoleName(roleName)
+                .withAccessRights(SAMPLE_ACCESS_RIGHTS)
+                .build();
     }
 }

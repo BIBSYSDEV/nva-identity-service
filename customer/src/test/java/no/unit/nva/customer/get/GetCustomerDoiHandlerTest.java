@@ -1,24 +1,8 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.apigateway.AccessRight.MANAGE_NVI;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Map;
-import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
@@ -34,6 +18,24 @@ import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Map;
+import java.util.UUID;
+
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_NVI;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class GetCustomerDoiHandlerTest {
 
@@ -61,7 +63,7 @@ class GetCustomerDoiHandlerTest {
         var secretDaoArray = "[" + new SecretManagerDoiAgentDao(secretDto) + "]";
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
-            .thenReturn(existingCustomer);
+                .thenReturn(existingCustomer);
 
         when(secretsReaderMock.fetchSecret(any(), any())
         ).thenReturn(secretDaoArray);
@@ -78,7 +80,7 @@ class GetCustomerDoiHandlerTest {
     void handleRequestReturnsDefaultDoiWhenNoSecretsExists() throws IOException, NotFoundException {
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
-            .thenReturn(existingCustomer);
+                .thenReturn(existingCustomer);
 
         when(secretsReaderMock.fetchSecret(any(), any())
         ).thenReturn(null);
@@ -107,7 +109,7 @@ class GetCustomerDoiHandlerTest {
     @Test
     void handleInvalidUserAccess1() throws NotFoundException, IOException {
         when(customerServiceMock.getCustomer(any(UUID.class)))
-            .thenThrow(NotFoundException.class);
+                .thenThrow(NotFoundException.class);
 
         var response = sendFailedRequest(randomCustomerIdentifier(), Problem.class);
 
@@ -118,7 +120,7 @@ class GetCustomerDoiHandlerTest {
     @Test
     void handleInvalidUserAccess2() throws NotFoundException, IOException {
         when(customerServiceMock.getCustomer(any(UUID.class)))
-            .thenThrow(NotFoundException.class);
+                .thenThrow(NotFoundException.class);
 
         var response = sendFailedRequest(randomCustomerIdentifier(), Problem.class);
 
@@ -137,11 +139,11 @@ class GetCustomerDoiHandlerTest {
 
     private <T> GatewayResponse<T> sendFailedRequest(UUID identifier, Class<T> responseType) throws IOException {
         var request = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                          .withPathParameters(Map.of("identifier", identifier.toString()))
-                          .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
-                          .withCurrentCustomer(existingCustomer.getId())
-                          .withAccessRights(existingCustomer.getId(), MANAGE_NVI)
-                          .build();
+                .withPathParameters(Map.of("identifier", identifier.toString()))
+                .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
+                .withCurrentCustomer(existingCustomer.getId())
+                .withAccessRights(existingCustomer.getId(), MANAGE_NVI)
+                .build();
         return sendRequest(request, responseType);
     }
 
@@ -150,13 +152,13 @@ class GetCustomerDoiHandlerTest {
     }
 
     private InputStream createRequestWithMediaType(UUID identifier)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                   .withPathParameters(Map.of("identifier", identifier.toString()))
-                   .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
-                   .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
-                   .build();
+                .withPathParameters(Map.of("identifier", identifier.toString()))
+                .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
+                .withCurrentCustomer(existingCustomer.getId())
+                .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
+                .build();
     }
 
     private UUID randomCustomerIdentifier() {

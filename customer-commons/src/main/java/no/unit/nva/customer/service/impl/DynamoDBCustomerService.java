@@ -1,13 +1,5 @@
 package no.unit.nva.customer.service.impl;
 
-import static nva.commons.core.attempt.Try.attempt;
-import java.net.URI;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
@@ -26,17 +18,27 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
+import java.net.URI;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static nva.commons.core.attempt.Try.attempt;
+
 
 public class DynamoDBCustomerService implements CustomerService {
 
     public static final String BY_ORG_DOMAIN_INDEX_NAME = "byOrgDomain";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found: ";
     public static final String IDENTIFIERS_NOT_EQUAL = "Identifier in request parameters '%s' "
-                                                       + "is not equal to identifier in customer object '%s'";
+            + "is not equal to identifier in customer object '%s'";
     public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
 
     public static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
-                                                         + "DynamoDB connection";
+            + "DynamoDB connection";
     public static final String CUSTOMER_ALREADY_EXISTS_ERROR = "Customer with Institution ID %s already exists.";
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
@@ -59,6 +61,11 @@ public class DynamoDBCustomerService implements CustomerService {
         warmupDynamoDbConnection(table);
     }
 
+    private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
+        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
+        return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
+    }
+
     @Override
     public CustomerDto getCustomer(URI customerId) throws NotFoundException {
         var customerIdentifier = UriWrapper.fromUri(customerId).getLastPathElement();
@@ -68,9 +75,9 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public CustomerDto getCustomer(UUID identifier) throws NotFoundException {
         return Optional.of(CustomerDao.builder().withIdentifier(identifier).build())
-                   .map(table::getItem)
-                   .map(CustomerDao::toCustomerDto)
-                   .orElseThrow(() -> notFoundException(identifier.toString()));
+                .map(table::getItem)
+                .map(CustomerDao::toCustomerDto)
+                .orElseThrow(() -> notFoundException(identifier.toString()));
     }
 
     @Override
@@ -82,10 +89,10 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public List<CustomerDto> getCustomers() {
         return table.scan()
-                   .stream()
-                   .flatMap(page -> page.items().stream())
-                   .map(CustomerDao::toCustomerDto)
-                   .collect(Collectors.toList());
+                .stream()
+                .flatMap(page -> page.items().stream())
+                .map(CustomerDao::toCustomerDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -118,14 +125,9 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public List<CustomerDto> refreshCustomers() {
         return table.scan().items().stream()
-                   .map(CustomerDao::toCustomerDto)
-                   .map(this::refreshCustomer)
-                   .collect(Collectors.toList());
-    }
-
-    private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
-        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
-        return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
+                .map(CustomerDao::toCustomerDto)
+                .map(this::refreshCustomer)
+                .collect(Collectors.toList());
     }
 
     private CustomerDto addInternalDetails(CustomerDto customer) {
@@ -145,10 +147,10 @@ public class DynamoDBCustomerService implements CustomerService {
         QueryEnhancedRequest query = createQuery(queryObject, indexPartitionValue);
         var results = table.index(indexName).query(query);
         return results.stream()
-                   .flatMap(page -> page.items().stream())
-                   .map(CustomerDao::toCustomerDto)
-                   .collect(SingletonCollector.tryCollect())
-                   .orElseThrow(fail -> notFoundException(queryObject.toString()));
+                .flatMap(page -> page.items().stream())
+                .map(CustomerDao::toCustomerDto)
+                .collect(SingletonCollector.tryCollect())
+                .orElseThrow(fail -> notFoundException(queryObject.toString()));
     }
 
     private CustomerDao createQueryForOrgDomain(String feideDomain) {
@@ -162,7 +164,7 @@ public class DynamoDBCustomerService implements CustomerService {
     private QueryEnhancedRequest createQuery(CustomerDao queryObject,
                                              Function<CustomerDao, String> indexPartitionValue) {
         QueryConditional queryConditional = QueryConditional.keyEqualTo(
-            Key.builder().partitionValue(indexPartitionValue.apply(queryObject)).build());
+                Key.builder().partitionValue(indexPartitionValue.apply(queryObject)).build());
         return QueryEnhancedRequest.builder().queryConditional(queryConditional).build();
     }
 

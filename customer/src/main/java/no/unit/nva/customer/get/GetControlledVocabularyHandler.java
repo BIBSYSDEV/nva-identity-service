@@ -1,9 +1,6 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
-import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
@@ -14,6 +11,11 @@ import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
+import java.net.HttpURLConnection;
+import java.util.UUID;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+
 public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<Void, VocabularyList> {
 
     @JacocoGenerated
@@ -22,7 +24,7 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
     }
 
     public GetControlledVocabularyHandler(CustomerService customerService) {
-        super(customerService,Void.class);
+        super(customerService, Void.class);
     }
 
     @Override
@@ -37,7 +39,7 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
 
     @Override
     protected VocabularyList processInput(Void input, RequestInfo requestInfo, Context context)
-        throws NotFoundException, ForbiddenException {
+            throws NotFoundException, ForbiddenException {
 
         UUID identifier = extractIdentifier(requestInfo);
         CustomerDto customerDto = customerService.getCustomer(identifier);

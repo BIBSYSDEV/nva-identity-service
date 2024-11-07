@@ -1,7 +1,8 @@
 package no.unit.nva.customer.model.interfaces;
 
-import java.net.URI;
 import no.unit.nva.customer.model.RightsRetentionStrategyType;
+
+import java.net.URI;
 
 public interface RightsRetentionStrategy {
     RightsRetentionStrategyType getType();

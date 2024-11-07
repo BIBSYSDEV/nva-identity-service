@@ -1,13 +1,14 @@
 package no.unit.nva.customer.model;
 
-import static java.lang.String.format;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.joining;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Failure;
+
+import static java.lang.String.format;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 
 public enum PublicationWorkflow {
     @JsonProperty("RegistratorPublishesMetadataOnly")
@@ -26,22 +27,22 @@ public enum PublicationWorkflow {
         this.value = value;
     }
 
-    @JsonValue
-    public String getValue() {
-        return value;
-    }
-
     @JsonCreator
     public static PublicationWorkflow lookUp(String value) {
         return stream(values())
-                    .filter(nameType -> nameType.getValue().equalsIgnoreCase(value))
-                    .collect(SingletonCollector.tryCollect())
-                    .orElseThrow(failure -> throwException(failure, value));
+                .filter(nameType -> nameType.getValue().equalsIgnoreCase(value))
+                .collect(SingletonCollector.tryCollect())
+                .orElseThrow(failure -> throwException(failure, value));
     }
 
     private static RuntimeException throwException(Failure<PublicationWorkflow> failure, String value) {
         return new IllegalArgumentException(
-            format(ERROR_MESSAGE_TEMPLATE, value, stream(PublicationWorkflow.values())
-                                                      .map(PublicationWorkflow::toString).collect(joining(DELIMITER))));
+                format(ERROR_MESSAGE_TEMPLATE, value, stream(PublicationWorkflow.values())
+                        .map(PublicationWorkflow::toString).collect(joining(DELIMITER))));
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
     }
 }

@@ -1,7 +1,16 @@
 package no.unit.nva.useraccessservice.userceation.testing.cristin;
 
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.core.attempt.Try.attempt;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
+import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
+import nva.commons.apigateway.exceptions.ConflictException;
+
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -13,16 +22,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.database.IdentityService;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.model.RoleName;
-import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
-import nva.commons.apigateway.exceptions.ConflictException;
+
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class AuthenticationScenarios {
 
@@ -146,9 +148,9 @@ public class AuthenticationScenarios {
         var personFromRegistry = getPersonFromRegistry(nin);
 
         return personFromRegistry.getAffiliations().stream()
-                   .filter(CristinAffiliation::isActive)
-                   .map(affiliation -> createUserForAffiliation(nin, affiliation, identityService))
-                   .collect(Collectors.toList());
+                .filter(CristinAffiliation::isActive)
+                .map(affiliation -> createUserForAffiliation(nin, affiliation, identityService))
+                .collect(Collectors.toList());
     }
 
     public List<UserDto> createLegacyUsersForAllActiveAffiliations(String nin,
@@ -157,16 +159,16 @@ public class AuthenticationScenarios {
         var personFromRegistry = getPersonFromRegistry(nin);
 
         return personFromRegistry.getAffiliations().stream()
-                   .filter(CristinAffiliation::isActive)
-                   .map(affiliation -> createLegacyUserForAffiliation(feideIdentifier, affiliation,
-                                                                      identityService))
-                   .collect(Collectors.toList());
+                .filter(CristinAffiliation::isActive)
+                .map(affiliation -> createLegacyUserForAffiliation(feideIdentifier, affiliation,
+                        identityService))
+                .collect(Collectors.toList());
     }
 
     private void addCreatorRoleToIdentityService(IdentityService identityService)
-        throws InvalidInputException, ConflictException {
+            throws InvalidInputException, ConflictException {
         var creatorRole = RoleDto.newBuilder().withRoleName(RoleName.CREATOR)
-                              .build();
+                .build();
         identityService.addRole(creatorRole);
     }
 
@@ -185,16 +187,16 @@ public class AuthenticationScenarios {
 
     private void registerTopOrganizationsAsCustomers(String personNin, boolean withFeideDomain) {
         var customers = newCustomerRequests(personNin, withFeideDomain)
-                            .map(this::persistCustomer)
-                            .collect(Collectors.toList());
+                .map(this::persistCustomer)
+                .collect(Collectors.toList());
         personNinToCustomers.put(personNin, customers);
     }
 
     private void registerTopOrganizationsAsCustomersWithInactiveFromInThePast(String personNin,
                                                                               boolean withFeideDomain) {
         var customers = newCustomerRequestsWithInactiveFromInThePast(personNin, withFeideDomain)
-                            .map(this::persistCustomer)
-                            .collect(Collectors.toList());
+                .map(this::persistCustomer)
+                .collect(Collectors.toList());
         personNinToCustomers.put(personNin, customers);
     }
 
@@ -204,23 +206,23 @@ public class AuthenticationScenarios {
 
     private Stream<CustomerDto> newCustomerRequests(String personNin, boolean withFeideDomain) {
         return personRegistry.getInstitutionUnitCristinUrisByState(personNin, true)
-                   .stream()
-                   .distinct()
-                   .map(orgId -> buildCustomerDto(withFeideDomain, orgId));
+                .stream()
+                .distinct()
+                .map(orgId -> buildCustomerDto(withFeideDomain, orgId));
     }
 
     private Stream<CustomerDto> newCustomerRequestsWithInactiveFromInThePast(String personNin,
                                                                              boolean withFeideDomain) {
         return personRegistry.getInstitutionUnitCristinUrisByState(personNin, true)
-                   .stream()
-                   .distinct()
-                   .map(orgId -> buildCustomerDtoWithInactiveFromInThePast(withFeideDomain, orgId));
+                .stream()
+                .distinct()
+                .map(orgId -> buildCustomerDtoWithInactiveFromInThePast(withFeideDomain, orgId));
     }
 
     private CustomerDto buildCustomerDtoWithInactiveFromInThePast(boolean withFeideDomain, URI orgId) {
         var builder = CustomerDto.builder()
-                          .withCristinId(orgId)
-                          .withInactiveFrom(OffsetDateTime.now().minusDays(3).toInstant());
+                .withCristinId(orgId)
+                .withInactiveFrom(OffsetDateTime.now().minusDays(3).toInstant());
         if (withFeideDomain) {
             builder.withFeideOrganizationDomain(randomString());
         }
@@ -242,17 +244,17 @@ public class AuthenticationScenarios {
         var institutionCristinId = personRegistry.getCristinIdForInstitution(affiliation.getInstitution().getId());
         var unitCristinId = personRegistry.getCristinIdForUnit(affiliation.getUnit().getId());
         var customerId = attempt(() -> customerService.getCustomerByCristinId(institutionCristinId)).map(
-            CustomerDto::getId).orElseThrow();
+                CustomerDto::getId).orElseThrow();
         var user = UserDto.newBuilder()
-                       .withAffiliation(unitCristinId)
-                       .withCristinId(personRegistry.getCristinIdForPerson(nin))
-                       .withUsername(randomString())
-                       .withFamilyName(randomString())
-                       .withGivenName(randomString())
-                       .withFeideIdentifier(randomString())
-                       .withInstitution(customerId)
-                       .withInstitutionCristinId(institutionCristinId)
-                       .build();
+                .withAffiliation(unitCristinId)
+                .withCristinId(personRegistry.getCristinIdForPerson(nin))
+                .withUsername(randomString())
+                .withFamilyName(randomString())
+                .withGivenName(randomString())
+                .withFeideIdentifier(randomString())
+                .withInstitution(customerId)
+                .withInstitutionCristinId(institutionCristinId)
+                .build();
         return attempt(() -> identityService.addUser(user)).orElseThrow();
     }
 
@@ -263,17 +265,17 @@ public class AuthenticationScenarios {
         var institutionCristinId = personRegistry.getCristinIdForInstitution(affiliation.getInstitution().getId());
         var unitCristinId = personRegistry.getCristinIdForUnit(affiliation.getUnit().getId());
         var customerId = attempt(() -> customerService.getCustomerByCristinId(institutionCristinId)).map(
-            CustomerDto::getId).orElseThrow();
+                CustomerDto::getId).orElseThrow();
         var user = UserDto.newBuilder()
-                       .withAffiliation(unitCristinId)
-                       .withCristinId(null)
-                       .withUsername(Objects.nonNull(feideIdentifier) ? feideIdentifier : randomString())
-                       .withFamilyName(randomString())
-                       .withGivenName(randomString())
-                       .withFeideIdentifier(Objects.nonNull(feideIdentifier) ? feideIdentifier : randomString())
-                       .withInstitution(customerId)
-                       .withInstitutionCristinId(null)
-                       .build();
+                .withAffiliation(unitCristinId)
+                .withCristinId(null)
+                .withUsername(Objects.nonNull(feideIdentifier) ? feideIdentifier : randomString())
+                .withFamilyName(randomString())
+                .withGivenName(randomString())
+                .withFeideIdentifier(Objects.nonNull(feideIdentifier) ? feideIdentifier : randomString())
+                .withInstitution(customerId)
+                .withInstitutionCristinId(null)
+                .build();
         return attempt(() -> identityService.addUser(user)).orElseThrow();
     }
 }

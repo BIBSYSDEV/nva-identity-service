@@ -1,9 +1,10 @@
 package no.unit.nva.customer.model;
 
-import java.net.URI;
-import java.util.Objects;
 import no.unit.nva.customer.model.interfaces.Vocabulary;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.URI;
+import java.util.Objects;
 
 public class VocabularyDto implements Vocabulary {
 
@@ -75,7 +76,7 @@ public class VocabularyDto implements Vocabulary {
         }
         VocabularyDto that = (VocabularyDto) o;
         return Objects.equals(getName(), that.getName())
-               && Objects.equals(getId(), that.getId())
-               && getStatus() == that.getStatus();
+                && Objects.equals(getId(), that.getId())
+                && getStatus() == that.getStatus();
     }
 }

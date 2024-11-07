@@ -27,11 +27,11 @@ public class GetCurrentTermsConditionsHandler extends ApiGatewayHandler<Void, Te
 
     @Override
     protected TermsConditionsResponse processInput(Void unused, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
+            throws ApiGatewayException {
         return TermsConditionsResponse.builder()
-            .withId(ID)
-            .withValidFrom(VALID_FROM)
-            .build();
+                .withId(ID)
+                .withValidFrom(VALID_FROM)
+                .build();
 
     }
 

@@ -1,14 +1,16 @@
 package no.unit.nva.useraccessservice.model;
 
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static nva.commons.core.attempt.Try.attempt;
 
 public class UserList implements Typed {
 
@@ -38,7 +40,6 @@ public class UserList implements Typed {
     public static UserList fromJson(String json) {
         return attempt(() -> JsonConfig.readValue(json, UserList.class)).orElseThrow();
     }
-
 
 
     @JacocoGenerated

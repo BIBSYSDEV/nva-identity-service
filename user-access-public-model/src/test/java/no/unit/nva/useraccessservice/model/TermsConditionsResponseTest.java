@@ -16,9 +16,9 @@ class TermsConditionsResponseTest {
         var validFrom = randomLocalDateTime();
 
         var response = TermsConditionsResponse.builder()
-            .withId(id)
-            .withValidFrom(validFrom)
-            .build();
+                .withId(id)
+                .withValidFrom(validFrom)
+                .build();
 
         assertThat(response.toString(), containsString(id.toString()));
         assertThat(response.toString(), containsString(validFrom.toString()));

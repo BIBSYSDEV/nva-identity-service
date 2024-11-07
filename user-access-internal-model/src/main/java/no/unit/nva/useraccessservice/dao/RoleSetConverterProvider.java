@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.dao;
 
 import java.util.Set;
+
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -20,7 +21,7 @@ public class RoleSetConverterProvider implements AttributeConverterProvider {
 
     private <T> boolean parametricTypeIsRoleDb(EnhancedType<T> enhancedType) {
         return enhancedType.rawClassParameters().size() == 1
-               && EnhancedType.of(RoleDb.class).equals(enhancedType.rawClassParameters().get(0));
+                && EnhancedType.of(RoleDb.class).equals(enhancedType.rawClassParameters().get(0));
     }
 
     private <T> boolean isSet(EnhancedType<T> enhancedType) {

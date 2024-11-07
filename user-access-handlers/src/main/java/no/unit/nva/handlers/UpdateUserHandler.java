@@ -1,14 +1,6 @@
 package no.unit.nva.handlers;
 
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -21,12 +13,22 @@ import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 
+import java.net.HttpURLConnection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
+
 public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
     public static final String LOCATION_HEADER = "Location";
 
     public static final String INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR =
-        "Path username is different from input object's user-id";
+            "Path username is different from input object's user-id";
     private final IdentityService databaseService;
 
     @JacocoGenerated
@@ -41,14 +43,14 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
     @Override
     protected void validateRequest(UserDto userDto, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
+            throws ApiGatewayException {
         authorizeRequest(userDto, requestInfo);
         validateRequest(userDto, requestInfo);
     }
 
     @Override
     protected Void processInput(UserDto input, RequestInfo requestInfo, Context context)
-        throws NotFoundException, InvalidInputException, ForbiddenException {
+            throws NotFoundException, InvalidInputException, ForbiddenException {
 
         databaseService.updateUser(input);
         addAdditionalHeaders(addLocationHeaderToResponseSupplier(input));
@@ -68,8 +70,8 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
     private boolean isAuthorized(UserDto input, RequestInfo requestInfo) throws NotFoundException {
         return requestInfo.clientIsInternalBackend()
-               || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS)
-               || isAuthorizedUser(input, requestInfo);
+                || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS)
+                || isAuthorizedUser(input, requestInfo);
     }
 
     private boolean isAuthorizedUser(UserDto input, RequestInfo requestInfo) throws NotFoundException {
@@ -85,7 +87,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
     private boolean isAlteringAppAdmin(UserDto input) throws NotFoundException {
         var newRoles = input.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
         var existingRoles =
-            databaseService.getUser(input).getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
+                databaseService.getUser(input).getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
         return newRoles.contains(RoleName.APPLICATION_ADMIN) != existingRoles.contains(RoleName.APPLICATION_ADMIN);
     }
 
@@ -96,13 +98,13 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
     private String extractUsernameFromPathParameters(RequestInfo requestInfo) {
         return Optional.ofNullable(requestInfo.getPathParameters())
-            .flatMap(pathParams -> Optional.ofNullable(pathParams.get(USERNAME_PATH_PARAMETER)))
-            .map(this::decodeUrlPart)
-            .orElseThrow(() -> new RuntimeException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
+                .flatMap(pathParams -> Optional.ofNullable(pathParams.get(USERNAME_PATH_PARAMETER)))
+                .map(this::decodeUrlPart)
+                .orElseThrow(() -> new RuntimeException(EMPTY_USERNAME_PATH_PARAMETER_ERROR));
     }
 
     private void comparePathAndInputObjectUsername(UserDto input, String userIdFromPathParameter)
-        throws InvalidInputException {
+            throws InvalidInputException {
         if (!userIdFromPathParameter.equals(input.getUsername())) {
             throw new InvalidInputException(INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR);
         }

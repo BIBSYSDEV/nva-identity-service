@@ -1,12 +1,13 @@
 package no.unit.nva.useraccessservice.interfaces;
 
+import nva.commons.apigateway.exceptions.BadRequestException;
+import org.junit.jupiter.api.Test;
+
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.AllOf.allOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import org.junit.jupiter.api.Test;
 
 class TypedTest {
 

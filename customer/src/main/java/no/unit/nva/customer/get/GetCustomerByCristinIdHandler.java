@@ -1,13 +1,7 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.RequestUtils;
 import no.unit.nva.customer.exception.InputException;
@@ -18,6 +12,14 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 
 public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, CustomerDto> {
 
@@ -46,7 +48,7 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
 
     @Override
     protected CustomerDto processInput(Void input, RequestInfo request, Context context)
-        throws NotFoundException, InputException {
+            throws NotFoundException, InputException {
         var cristinUriIdentifier = URI.create(URLDecoder.decode(getCristinId(request), StandardCharsets.UTF_8));
         return customerService.getCustomerByCristinId(cristinUriIdentifier);
     }

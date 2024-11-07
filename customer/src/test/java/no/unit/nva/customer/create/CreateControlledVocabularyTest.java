@@ -1,14 +1,6 @@
 package no.unit.nva.customer.create;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.StringContains.containsString;
 import com.google.common.net.MediaType;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.util.Collections;
-import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
@@ -21,6 +13,16 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.util.Collections;
+import java.util.UUID;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.StringContains.containsString;
 
 class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySettingsTests {
 
@@ -37,7 +39,7 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
 
     @Test
     void handleRequestReturnsCreatedVocabularyListWhenCreatingVocabularyForExistingCustomer()
-        throws IOException {
+            throws IOException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
 
         VocabularyList actualBody = VocabularyList.fromJson(result.getResponse().getBody());
@@ -46,16 +48,16 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
 
     @Test
     void handleRequestSavesVocabularySettingsToDatabaseWhenCreatingSettingsForExistingCustomer()
-        throws IOException, NotFoundException {
+            throws IOException, NotFoundException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
         var savedVocabularySettings =
-            customerService.getCustomer(existingIdentifier()).getVocabularies();
+                customerService.getCustomer(existingIdentifier()).getVocabularies();
         assertThat(savedVocabularySettings, is(equalTo(result.getExpectedBody().getVocabularies())));
     }
 
     @Test
     void handleRequestReturnsNotFoundWhenTryingToSaveSettingsForNonExistingCustomer()
-        throws IOException {
+            throws IOException {
         var result = sendRequestAcceptingJsonLd(UUID.randomUUID());
         assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
@@ -116,7 +118,7 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
     @Override
     protected CustomerDto createExistingCustomer() {
         return CustomerDataGenerator.createSampleCustomerDto().copy()
-            .withVocabularies(Collections.emptySet())
-            .build();
+                .withVocabularies(Collections.emptySet())
+                .build();
     }
 }

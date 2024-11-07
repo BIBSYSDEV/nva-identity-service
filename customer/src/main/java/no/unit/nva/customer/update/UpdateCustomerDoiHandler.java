@@ -1,14 +1,7 @@
 package no.unit.nva.customer.update;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerDoiHandler;
 import no.unit.nva.customer.exception.InputException;
@@ -23,6 +16,15 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.secrets.SecretsReader;
 import nva.commons.secrets.SecretsWriter;
+
+import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
 
@@ -64,7 +66,7 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
 
     @Override
     protected String processInput(String input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
+            throws ApiGatewayException {
 
 
         var customerId = getIdentifier(requestInfo);
@@ -82,7 +84,7 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
     }
 
     private void updateCustomer(UUID customerId, DoiAgentDto input)
-        throws NotFoundException, InputException {
+            throws NotFoundException, InputException {
 
         var customer = customerService.getCustomer(customerId);
         customer.setDoiAgent(input);
@@ -91,12 +93,12 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
     }
 
     private DoiAgentDto updateSecretManager(UUID customerId, String input)
-        throws BadRequestException {
+            throws BadRequestException {
 
         var allSecrets = attempt(this::getSecretsManagerDoiAgent).orElseThrow();
         var inputSecret = DoiAgentDto
-            .fromJson(input)
-            .addIdByIdentifier(customerId);
+                .fromJson(input)
+                .addIdByIdentifier(customerId);
 
         if (allSecrets.containsKey(customerId)) {
             allSecrets.get(customerId).merge(inputSecret);
@@ -105,9 +107,9 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
         }
 
         var allSecretsJsonString =
-            allSecrets.values().stream()
-                .map(SecretManagerDoiAgentDao::toString)
-                .collect(Collectors.joining(",", "[", "]"));
+                allSecrets.values().stream()
+                        .map(SecretManagerDoiAgentDao::toString)
+                        .collect(Collectors.joining(",", "[", "]"));
         secretsWriter.updateSecretKey(SECRETS_KEY_AND_NAME, SECRETS_KEY_AND_NAME, allSecretsJsonString);
 
         return allSecrets.get(customerId).toDoiAgentDto();

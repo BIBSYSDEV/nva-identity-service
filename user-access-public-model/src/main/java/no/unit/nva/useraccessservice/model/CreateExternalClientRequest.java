@@ -1,10 +1,12 @@
 package no.unit.nva.useraccessservice.model;
 
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.unit.nva.identityservice.json.JsonConfig;
+
 import java.net.URI;
 import java.util.List;
-import no.unit.nva.identityservice.json.JsonConfig;
+
+import static nva.commons.core.attempt.Try.attempt;
 
 public class CreateExternalClientRequest {
 
@@ -33,44 +35,48 @@ public class CreateExternalClientRequest {
     public CreateExternalClientRequest() {
     }
 
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
-    }
-
-    public void setCustomerUri(URI customerUri) {
-        this.customerUri = customerUri;
-    }
-
-    public void setCristinOrgUri(URI cristinOrgUri) {
-        this.cristinOrgUri = cristinOrgUri;
-    }
-
-    public void setActingUser(String actingUser) {
-        this.actingUser = actingUser;
-    }
-
-    public void setScopes(List<String> scopes) {
-        this.scopes = scopes;
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     public String getClientName() {
         return clientName;
     }
 
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
+    }
+
     public URI getCustomerUri() {
         return customerUri;
+    }
+
+    public void setCustomerUri(URI customerUri) {
+        this.customerUri = customerUri;
     }
 
     public URI getCristinOrgUri() {
         return cristinOrgUri;
     }
 
+    public void setCristinOrgUri(URI cristinOrgUri) {
+        this.cristinOrgUri = cristinOrgUri;
+    }
+
     public String getActingUser() {
         return actingUser;
     }
 
+    public void setActingUser(String actingUser) {
+        this.actingUser = actingUser;
+    }
+
     public List<String> getScopes() {
         return scopes;
+    }
+
+    public void setScopes(List<String> scopes) {
+        this.scopes = scopes;
     }
 
     @Override
@@ -114,10 +120,6 @@ public class CreateExternalClientRequest {
         public CreateExternalClientRequest build() {
             return request;
         }
-    }
-
-    public static Builder newBuilder() {
-        return new Builder();
     }
 
 

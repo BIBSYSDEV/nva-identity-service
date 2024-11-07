@@ -1,8 +1,10 @@
 package no.unit.nva.customer.model.dynamo.converters;
 
-import static java.util.Objects.nonNull;
-import java.util.Collection;
 import nva.commons.core.JacocoGenerated;
+
+import java.util.Collection;
+
+import static java.util.Objects.nonNull;
 
 public final class DynamoUtils {
 

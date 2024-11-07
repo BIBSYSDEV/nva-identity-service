@@ -6,8 +6,8 @@ import java.net.URI;
 import java.time.LocalDateTime;
 
 public record TermsConditionsResponse(
-    URI id,
-    LocalDateTime validFrom
+        URI id,
+        LocalDateTime validFrom
 ) implements JsonSerializable {
 
     public static TermsConditionsResponseBuilder builder() {

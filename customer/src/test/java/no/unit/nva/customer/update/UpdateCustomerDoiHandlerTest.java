@@ -1,30 +1,7 @@
 package no.unit.nva.customer.update;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDto;
-import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.apigateway.AccessRight.MANAGE_NVI;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
@@ -41,6 +18,31 @@ import nva.commons.secrets.SecretsWriter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDto;
+import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_NVI;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class UpdateCustomerDoiHandlerTest {
 
@@ -81,13 +83,13 @@ class UpdateCustomerDoiHandlerTest {
      */
     @Test
     void shouldUpdateExistingSecretWhenIdentifierFoundInSecrets()
-        throws ApiGatewayException, IOException {
+            throws ApiGatewayException, IOException {
 
         var secretPassword = randomString();
 
         var response = sendRequest(existingCustomer.getIdentifier(),
-                                   doiAgentToJson(existingDoiAgent, secretPassword),
-                                   String.class);
+                doiAgentToJson(existingDoiAgent, secretPassword),
+                String.class);
         var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
@@ -101,7 +103,7 @@ class UpdateCustomerDoiHandlerTest {
      */
     @Test
     void shouldInsertSecretWhenIdentifierNotFoundInSecrets()
-        throws ApiGatewayException, IOException {
+            throws ApiGatewayException, IOException {
 
         var expectedDoiAgent = createSampleCustomerDto().getDoiAgent().addPassword(randomString());
         var identifier = UUID.randomUUID();
@@ -116,13 +118,13 @@ class UpdateCustomerDoiHandlerTest {
 
     @Test
     void shouldReturnSecretWithEmptyUserNameWhenPersistingEmptyUserName()
-        throws ApiGatewayException, IOException {
+            throws ApiGatewayException, IOException {
 
 
         existingDoiAgent.setUsername(null);
         var response = sendRequest(existingCustomer.getIdentifier(),
-                                   existingDoiAgent.toString(),
-                                   String.class);
+                existingDoiAgent.toString(),
+                String.class);
         var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
@@ -131,14 +133,14 @@ class UpdateCustomerDoiHandlerTest {
 
     @Test
     void shouldReturnExistingValuesWhenPersistingEmptyOrMissingFields()
-        throws ApiGatewayException, IOException {
+            throws ApiGatewayException, IOException {
 
         existingDoiAgent.setUrl(null);
         existingDoiAgent.setPrefix(null);
         existingDoiAgent.setPassword(null);
         var response = sendRequest(existingCustomer.getIdentifier(),
-                                   existingDoiAgent.toString(),
-                                   String.class);
+                existingDoiAgent.toString(),
+                String.class);
         var doiAgentResponse = DoiAgentDto.fromJson(response.getBody());
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
@@ -149,9 +151,9 @@ class UpdateCustomerDoiHandlerTest {
 
     @Test
     void failUpdateRequestReturnsBadRequestWhenARequestWithAInvalidIdentifier()
-        throws ApiGatewayException, IOException {
+            throws ApiGatewayException, IOException {
         when(
-            customerServiceMock.getCustomer(any(UUID.class))
+                customerServiceMock.getCustomer(any(UUID.class))
         ).thenThrow(NotFoundException.class);
 
         var response = sendRequest(createRequestWithInvalidUuid(null), Problem.class);
@@ -160,9 +162,9 @@ class UpdateCustomerDoiHandlerTest {
 
     @Test
     void failUpdateRequestReturnsForbiddenRequestWhenARequestWithInvalidAccessRights()
-        throws ApiGatewayException, IOException {
+            throws ApiGatewayException, IOException {
         when(
-            customerServiceMock.getCustomer(any(UUID.class))
+                customerServiceMock.getCustomer(any(UUID.class))
         ).thenThrow(NotFoundException.class);
 
         var response = sendRequest(createRequestWithInvalidAccessRights(null), Problem.class);
@@ -180,48 +182,48 @@ class UpdateCustomerDoiHandlerTest {
     }
 
     private <T> InputStream createRequest(UUID identifier, T body)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         return new HandlerRequestBuilder<T>(dtoObjectMapper)
-                   .withHeaders(getRequestHeaders())
-                   .withPathParameters(Map.of(IDENTIFIER, identifier.toString()))
-                   .withBody(body)
-                   .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
-                   .build();
+                .withHeaders(getRequestHeaders())
+                .withPathParameters(Map.of(IDENTIFIER, identifier.toString()))
+                .withBody(body)
+                .withCurrentCustomer(existingCustomer.getId())
+                .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
+                .build();
     }
 
     private <T> InputStream createRequestWithInvalidUuid(T body)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         return new HandlerRequestBuilder<T>(dtoObjectMapper)
-                   .withHeaders(getRequestHeaders())
-                   .withPathParameters(Map.of(IDENTIFIER, randomString()))
-                   .withBody(body)
-                   .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
-                   .build();
+                .withHeaders(getRequestHeaders())
+                .withPathParameters(Map.of(IDENTIFIER, randomString()))
+                .withBody(body)
+                .withCurrentCustomer(existingCustomer.getId())
+                .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
+                .build();
     }
 
     private <T> InputStream createRequestWithInvalidAccessRights(T body)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         return new HandlerRequestBuilder<T>(dtoObjectMapper)
-                   .withHeaders(getRequestHeaders())
-                   .withPathParameters(Map.of(IDENTIFIER, randomString()))
-                   .withBody(body)
-                   .withCurrentCustomer(existingCustomer.getId())
-                   .withAccessRights(existingCustomer.getId(), MANAGE_NVI)
-                   .build();
+                .withHeaders(getRequestHeaders())
+                .withPathParameters(Map.of(IDENTIFIER, randomString()))
+                .withBody(body)
+                .withCurrentCustomer(existingCustomer.getId())
+                .withAccessRights(existingCustomer.getId(), MANAGE_NVI)
+                .build();
     }
 
     private String doiAgentToJson(DoiAgentDto doiAgent, String secretPassword) {
         return new DoiAgentDto(doiAgent)
-                   .addId(doiAgent.getId())
-                   .addPassword(secretPassword).toString();
+                .addId(doiAgent.getId())
+                .addPassword(secretPassword).toString();
     }
 
     private String createSampleSecretDaos(DoiAgentDto... args) {
         return Arrays.stream(args)
-                   .map(SecretManagerDoiAgentDao::new)
-                   .map(SecretManagerDoiAgentDao::toString)
-                   .collect(Collectors.joining(",", "[", "]"));
+                .map(SecretManagerDoiAgentDao::new)
+                .map(SecretManagerDoiAgentDao::toString)
+                .collect(Collectors.joining(",", "[", "]"));
     }
 }

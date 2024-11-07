@@ -2,6 +2,7 @@ package no.unit.nva.useraccessservice.internals;
 
 import java.util.List;
 import java.util.Map;
+
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;

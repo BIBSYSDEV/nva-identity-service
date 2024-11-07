@@ -12,10 +12,6 @@ public final class NationalIdentityNumber {
         return new NationalIdentityNumber(nin);
     }
 
-    public String getNin() {
-        return nin;
-    }
-
     private static String mask(String ninToMask) {
         if (ninToMask == null || ninToMask.length() < 11) {
             return MASK_PATTERN;
@@ -23,10 +19,14 @@ public final class NationalIdentityNumber {
         return ninToMask.substring(0, 2) + MASK_PATTERN + ninToMask.substring(ninToMask.length() - 2);
     }
 
+    public String getNin() {
+        return nin;
+    }
+
     @Override
     public String toString() {
         return "NationalIdentityNumber{"
-               + "nin='" + mask(nin) + '\''
-               + '}';
+                + "nin='" + mask(nin) + '\''
+                + '}';
     }
 }

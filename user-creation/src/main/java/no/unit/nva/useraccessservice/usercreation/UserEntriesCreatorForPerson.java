@@ -1,10 +1,5 @@
 package no.unit.nva.useraccessservice.usercreation;
 
-import static nva.commons.core.attempt.Try.attempt;
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -15,9 +10,16 @@ import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.paths.UriWrapper;
 
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static nva.commons.core.attempt.Try.attempt;
+
 public class UserEntriesCreatorForPerson {
     public static final RoleDto ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION =
-        RoleDto.newBuilder().withRoleName(RoleName.CREATOR).build();
+            RoleDto.newBuilder().withRoleName(RoleName.CREATOR).build();
     private static final String AT = "@";
     private final IdentityService identityService;
 
@@ -31,9 +33,9 @@ public class UserEntriesCreatorForPerson {
 
     private List<UserDto> createOrFetchUserEntriesForPerson(UserCreationContext context) {
         return context.getCustomers().stream()
-                   .map(customer -> createNewUserObject(customer, context))
-                   .map(user -> getExistingUserOrCreateNew(user, context))
-                   .collect(Collectors.toList());
+                .map(customer -> createNewUserObject(customer, context))
+                .map(user -> getExistingUserOrCreateNew(user, context))
+                .collect(Collectors.toList());
     }
 
     private UserDto createNewUserObject(CustomerDto customer, UserCreationContext context) {
@@ -43,17 +45,17 @@ public class UserEntriesCreatorForPerson {
         var personId = context.getPerson().getId();
         var customerCristinId = customer.getCristinId();
         var username = createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(person.getIdentifier(),
-                                                                                       customerCristinId);
+                customerCristinId);
         var user = UserDto.newBuilder()
-                       .withUsername(username)
-                       .withRoles(Collections.singletonList(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
-                       .withFeideIdentifier(feideIdentifier)
-                       .withInstitution(customer.getId())
-                       .withGivenName(person.getFirstname())
-                       .withFamilyName(person.getSurname())
-                       .withCristinId(personId)
-                       .withInstitutionCristinId(customer.getCristinId())
-                       .withAffiliation(affiliation);
+                .withUsername(username)
+                .withRoles(Collections.singletonList(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
+                .withFeideIdentifier(feideIdentifier)
+                .withInstitution(customer.getId())
+                .withGivenName(person.getFirstname())
+                .withFamilyName(person.getSurname())
+                .withCristinId(personId)
+                .withInstitutionCristinId(customer.getCristinId())
+                .withAffiliation(affiliation);
 
         return user.build();
     }
@@ -69,24 +71,24 @@ public class UserEntriesCreatorForPerson {
 
     private UserDto getExistingUserOrCreateNew(UserDto user, UserCreationContext context) {
         return attempt(() -> fetchUserBasedOnCristinIdentifiers(user, context.getPerson()))
-                   .or(() -> fetchLegacyUserWithFeideIdentifier(user, context))
-                   .or(() -> addUser(user))
-                   .orElseThrow();
+                .or(() -> fetchLegacyUserWithFeideIdentifier(user, context))
+                .or(() -> addUser(user))
+                .orElseThrow();
     }
 
     private UserDto fetchLegacyUserWithFeideIdentifier(UserDto userWithUpdatedInformation,
                                                        UserCreationContext context) throws NotFoundException {
         var queryObject =
-            UserDto.newBuilder().withUsername(context.getFeideIdentifier()).build();
+                UserDto.newBuilder().withUsername(context.getFeideIdentifier()).build();
         var savedUser = identityService.getUser(queryObject);
         var affiliation = context.getPerson()
-                              .getConsistentUnitAffiliation(userWithUpdatedInformation.getInstitutionCristinId());
+                .getConsistentUnitAffiliation(userWithUpdatedInformation.getInstitutionCristinId());
         var updatedUser = savedUser.copy()
-                              .withFeideIdentifier(userWithUpdatedInformation.getFeideIdentifier())
-                              .withCristinId(userWithUpdatedInformation.getCristinId())
-                              .withInstitutionCristinId(userWithUpdatedInformation.getInstitutionCristinId())
-                              .withAffiliation(affiliation)
-                              .build();
+                .withFeideIdentifier(userWithUpdatedInformation.getFeideIdentifier())
+                .withCristinId(userWithUpdatedInformation.getCristinId())
+                .withInstitutionCristinId(userWithUpdatedInformation.getInstitutionCristinId())
+                .withAffiliation(affiliation)
+                .build();
         identityService.updateUser(updatedUser);
 
         return updatedUser;
@@ -94,8 +96,8 @@ public class UserEntriesCreatorForPerson {
 
     private UserDto fetchUserBasedOnCristinIdentifiers(UserDto user, Person person) throws NotFoundException {
         var existingUser =
-            identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(),
-                                                                         user.getInstitutionCristinId());
+                identityService.getUserByPersonCristinIdAndCustomerCristinId(user.getCristinId(),
+                        user.getInstitutionCristinId());
         return updateUserAffiliation(existingUser, person);
     }
 

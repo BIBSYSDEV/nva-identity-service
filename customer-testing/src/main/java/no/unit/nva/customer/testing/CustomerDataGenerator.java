@@ -1,20 +1,5 @@
 package no.unit.nva.customer.testing;
 
-import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
-import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
-import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
-import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static org.hamcrest.MatcherAssert.assertThat;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
@@ -33,6 +18,23 @@ import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
+import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 public class CustomerDataGenerator {
 
     private static final String API_DOMAIN = new Environment().readEnv("API_DOMAIN");
@@ -42,31 +44,31 @@ public class CustomerDataGenerator {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
-                                   .withName(randomString())
-                                   .withCristinId(randomUri())
-                                   .withCustomerOf(randomApplicationDomain())
-                                   .withFeideOrganizationDomain(randomString())
-                                   .withModifiedDate(randomInstant())
-                                   .withIdentifier(identifier)
-                                   .withId(id)
-                                   .withCname(randomString())
-                                   .withContext(LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE)
-                                   .withArchiveName(randomString())
-                                   .withShortName(randomString())
-                                   .withInstitutionDns(randomString())
-                                   .withDisplayName(randomString())
-                                   .withCreatedDate(randomInstant())
-                                   .withVocabularies(randomVocabularyDtoSettings())
-                                   .withRorId(randomUri())
-                                   .withPublicationWorkflow(randomPublicationWorkflow())
-                                   .withDoiAgent(randomDoiAgent(randomString()))
-                                   .withSector(randomSector())
-                                   .withNviInstitution(randomBoolean())
-                                   .withRboInstitution(randomBoolean())
-                                   .withInactiveFrom(randomInstant())
-                                   .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                                   .build();
+                .withName(randomString())
+                .withCristinId(randomUri())
+                .withCustomerOf(randomApplicationDomain())
+                .withFeideOrganizationDomain(randomString())
+                .withModifiedDate(randomInstant())
+                .withIdentifier(identifier)
+                .withId(id)
+                .withCname(randomString())
+                .withContext(LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE)
+                .withArchiveName(randomString())
+                .withShortName(randomString())
+                .withInstitutionDns(randomString())
+                .withDisplayName(randomString())
+                .withCreatedDate(randomInstant())
+                .withVocabularies(randomVocabularyDtoSettings())
+                .withRorId(randomUri())
+                .withPublicationWorkflow(randomPublicationWorkflow())
+                .withDoiAgent(randomDoiAgent(randomString()))
+                .withSector(randomSector())
+                .withNviInstitution(randomBoolean())
+                .withRboInstitution(randomBoolean())
+                .withInactiveFrom(randomInstant())
+                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
         return customer;
@@ -75,37 +77,37 @@ public class CustomerDataGenerator {
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
         VocabularyDao vocabulary = randomVocabularyDao();
         return Stream.of(vocabulary)
-                   .map(VocabularyDao::toVocabularySettingsDto)
-                   .collect(Collectors.toSet());
+                .map(VocabularyDao::toVocabularySettingsDto)
+                .collect(Collectors.toSet());
     }
 
     public static CustomerDao createSampleInactiveCustomerDao() {
         VocabularyDao vocabulary = randomVocabularyDao();
         CustomerDao customer = CustomerDao.builder()
-                                   .withIdentifier(randomIdentifier())
-                                   .withName(randomString())
-                                   .withModifiedDate(randomInstant())
-                                   .withShortName(randomString())
-                                   .withCristinId(randomUri())
-                                   .withCustomerOf(randomApplicationDomainUri())
-                                   .withVocabularySettings(Set.of(vocabulary))
-                                   .withInstitutionDns(randomString())
-                                   .withFeideOrganizationDomain(randomString())
-                                   .withDisplayName(randomString())
-                                   .withCreatedDate(randomInstant())
-                                   .withCname(randomString())
-                                   .withArchiveName(randomString())
-                                   .withRorId(randomUri())
-                                   .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
-                                   .withPublicationWorkflow(randomPublicationWorkflow())
-                                   .withDoiAgent(randomDoiAgent(randomString()))
-                                   .withNviInstitution(randomBoolean())
-                                   .withSector(randomSector())
-                                   .withInactiveFrom(randomInstant())
-                                   .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                                   .withGeneralSupportEnabled(true)
-                                   .build();
+                .withIdentifier(randomIdentifier())
+                .withName(randomString())
+                .withModifiedDate(randomInstant())
+                .withShortName(randomString())
+                .withCristinId(randomUri())
+                .withCustomerOf(randomApplicationDomainUri())
+                .withVocabularySettings(Set.of(vocabulary))
+                .withInstitutionDns(randomString())
+                .withFeideOrganizationDomain(randomString())
+                .withDisplayName(randomString())
+                .withCreatedDate(randomInstant())
+                .withCname(randomString())
+                .withArchiveName(randomString())
+                .withRorId(randomUri())
+                .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
+                .withPublicationWorkflow(randomPublicationWorkflow())
+                .withDoiAgent(randomDoiAgent(randomString()))
+                .withNviInstitution(randomBoolean())
+                .withSector(randomSector())
+                .withInactiveFrom(randomInstant())
+                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                .withGeneralSupportEnabled(true)
+                .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
         return customer;
     }
@@ -118,10 +120,10 @@ public class CustomerDataGenerator {
 
     public static RightsRetentionStrategy randomRightsRetentionStrategy() {
         var elements = Arrays.stream(RightsRetentionStrategyType.values())
-                           .filter(f -> f.ordinal() > 0)
-                           .collect(Collectors.toList());
+                .filter(f -> f.ordinal() > 0)
+                .collect(Collectors.toList());
         return
-            new RightsRetentionStrategyDao(randomElement(elements), randomUri());
+                new RightsRetentionStrategyDao(randomElement(elements), randomUri());
     }
 
     public static DoiAgent randomDoiAgent(String randomString) {
@@ -154,19 +156,19 @@ public class CustomerDataGenerator {
 
     public static URI randomCristinOrgId() {
         return new UriWrapper("https", API_DOMAIN)
-                   .addChild(CRISTIN_PATH)
-                   .addChild(randomString())
-                   .getUri();
+                .addChild(CRISTIN_PATH)
+                .addChild(randomString())
+                .getUri();
     }
 
     public static VocabularyDao randomVocabularyDao() {
         return new VocabularyDao(randomString(), randomUri(),
-                                 randomElement(VocabularyStatus.values()));
+                randomElement(VocabularyStatus.values()));
     }
 
     public static VocabularyDto randomVocabularyDto() {
         return new VocabularyDto(randomString(), randomUri(),
-                                 randomElement(VocabularyStatus.values()));
+                randomElement(VocabularyStatus.values()));
     }
 
     public static List<VocabularyDto> randomVocabularies() {
@@ -187,7 +189,7 @@ public class CustomerDataGenerator {
 
     public static Set<PublicationInstanceTypes> randomAllowFileUploadForTypes() {
         return new HashSet<>(Arrays.asList(randomAllowFileUploadForTypesDto(), randomAllowFileUploadForTypesDto(),
-                                           randomAllowFileUploadForTypesDto()));
+                randomAllowFileUploadForTypesDto()));
     }
 
     private static ApplicationDomain randomApplicationDomain() {

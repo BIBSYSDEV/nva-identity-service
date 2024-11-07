@@ -1,18 +1,8 @@
 package no.unit.nva.useraccessservice.model;
 
-import static java.util.Objects.nonNull;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -23,6 +13,18 @@ import no.unit.nva.useraccessservice.model.interfaces.Validable;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Objects.nonNull;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class RoleDto implements WithCopy<Builder>, Validable, Typed {
 
@@ -41,7 +43,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
 
     public static RoleDto fromJson(String json) throws BadRequestException, InvalidInputException {
         RoleDto roleDto = attempt(() -> JsonConfig.readValue(json, RoleDto.class))
-            .orElseThrow(fail -> new BadRequestException("Could not parse role: " + json));
+                .orElseThrow(fail -> new BadRequestException("Could not parse role: " + json));
         if (roleDto.isInvalid()) {
             throw roleDto.exceptionWhenInvalid();
         }
@@ -60,8 +62,8 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     @Override
     public Builder copy() {
         return new Builder()
-            .withAccessRights(this.getAccessRights())
-            .withRoleName(this.getRoleName());
+                .withAccessRights(this.getAccessRights())
+                .withRoleName(this.getRoleName());
     }
 
     public RoleName getRoleName() {
@@ -108,7 +110,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         }
         RoleDto roleDto = (RoleDto) o;
         return Objects.equals(getRoleName(), roleDto.getRoleName())
-               && Objects.equals(getAccessRights(), roleDto.getAccessRights());
+                && Objects.equals(getAccessRights(), roleDto.getAccessRights());
     }
 
     @Override

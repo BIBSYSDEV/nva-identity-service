@@ -1,12 +1,12 @@
 package no.unit.nva.customer.model;
 
-import java.beans.ConstructorProperties;
-import java.net.URI;
-import java.util.Objects;
-
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import nva.commons.core.JacocoGenerated;
+
+import java.beans.ConstructorProperties;
+import java.net.URI;
+import java.util.Objects;
 
 public class RightsRetentionStrategyDto implements RightsRetentionStrategy, JsonSerializable {
 

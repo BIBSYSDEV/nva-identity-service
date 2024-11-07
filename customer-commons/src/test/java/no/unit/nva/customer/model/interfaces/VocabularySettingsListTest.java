@@ -1,5 +1,15 @@
 package no.unit.nva.customer.model.interfaces;
 
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.VocabularyList;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
+import no.unit.nva.identityservice.json.JsonConfig;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
+
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
@@ -8,14 +18,6 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
-import java.io.IOException;
-import java.net.URI;
-import java.util.Map;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.VocabularyList;
-import no.unit.nva.customer.testing.CustomerDataGenerator;
-import no.unit.nva.identityservice.json.JsonConfig;
-import org.junit.jupiter.api.Test;
 
 class VocabularySettingsListTest {
 
@@ -43,6 +45,6 @@ class VocabularySettingsListTest {
 
     private Map<String, Object> toJsonMap(VocabularyList list) throws IOException {
         String jsonString = JsonConfig.writeValueAsString(list);
-        return  JsonConfig.mapFrom(jsonString);
+        return JsonConfig.mapFrom(jsonString);
     }
 }

@@ -1,27 +1,7 @@
 package no.unit.nva.customer.get;
 
-import static java.util.Collections.singletonList;
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
-import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerList;
@@ -38,6 +18,25 @@ import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+
+import static java.util.Collections.singletonList;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
 
 class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
@@ -83,7 +82,7 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate()
-        throws IOException, ApiGatewayException {
+            throws IOException, ApiGatewayException {
         var existingCustomer = insertRandomCustomer();
         var input = sampleRequestWithAccess();
         var response = sendRequest(input, CustomerList.class);
@@ -101,7 +100,7 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldReturnAListOfCustomersContainingCustomerDoiPrefix()
-        throws ConflictException, NotFoundException, IOException {
+            throws ConflictException, NotFoundException, IOException {
         var doiPrefix = randomString();
         insertRandomCustomerWithDoiPrefix(doiPrefix);
         var input = sampleRequestWithAccess();
@@ -113,19 +112,19 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     private CustomerDto insertRandomCustomerWithDoiPrefix(String doiPrefix)
-        throws ConflictException, NotFoundException {
+            throws ConflictException, NotFoundException {
         var customer = CustomerDto.builder()
-            .withDisplayName(randomString())
-            .withCristinId(randomUri())
-            .withCustomerOf(randomElement(ApplicationDomain.values()))
-            .withDoiAgent(createDoiAgent(doiPrefix))
-            .build();
+                .withDisplayName(randomString())
+                .withCristinId(randomUri())
+                .withCustomerOf(randomElement(ApplicationDomain.values()))
+                .withDoiAgent(createDoiAgent(doiPrefix))
+                .build();
         customerService.createCustomer(customer);
         return customerService.getCustomerByCristinId(customer.getCristinId());
     }
 
     private DoiAgent createDoiAgent(String doiPrefix) {
-        var doiAgent =  new CustomerDto.DoiAgentDto();
+        var doiAgent = new CustomerDto.DoiAgentDto();
         doiAgent.setPrefix(doiPrefix);
         doiAgent.setId(randomUri());
         doiAgent.setUsername(randomString());
@@ -139,23 +138,23 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
     private InputStream sampleRequestWithAccess() throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
-                   .withAccessRights(randomUri(), AccessRight.MANAGE_CUSTOMERS)
-                   .withHeaders(getRequestHeaders())
-                   .build();
+                .withAccessRights(randomUri(), AccessRight.MANAGE_CUSTOMERS)
+                .withHeaders(getRequestHeaders())
+                .build();
     }
 
     private InputStream sampleRequestWithoutAccess() throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
-                   .withHeaders(getRequestHeaders())
-                   .build();
+                .withHeaders(getRequestHeaders())
+                .build();
     }
 
     private CustomerDto insertRandomCustomer() throws ApiGatewayException {
         var customer = CustomerDto.builder()
-            .withDisplayName(randomString())
-            .withCristinId(randomUri())
-            .withCustomerOf(randomElement(ApplicationDomain.values()))
-            .build();
+                .withDisplayName(randomString())
+                .withCristinId(randomUri())
+                .withCustomerOf(randomElement(ApplicationDomain.values()))
+                .build();
         customerService.createCustomer(customer);
         return customerService.getCustomerByCristinId(customer.getCristinId());
     }

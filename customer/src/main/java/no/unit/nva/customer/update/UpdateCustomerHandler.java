@@ -1,14 +1,7 @@
 package no.unit.nva.customer.update;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
-import static nva.commons.apigateway.RequestInfoConstants.SCOPES_CLAIM;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
-import java.util.List;
-import java.util.UUID;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerHandler;
 import no.unit.nva.customer.exception.InputException;
@@ -19,6 +12,15 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.UUID;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
+import static nva.commons.apigateway.RequestInfoConstants.SCOPES_CLAIM;
 
 public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
 
@@ -52,7 +54,7 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
 
     @Override
     protected CustomerDto processInput(CustomerDto input, RequestInfo requestInfo, Context context)
-        throws InputException, NotFoundException, ForbiddenException {
+            throws InputException, NotFoundException, ForbiddenException {
 
         UUID identifier = getIdentifier(requestInfo);
         return customerService.updateCustomer(identifier, input);
@@ -60,21 +62,22 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
 
     private boolean isAuthorized(RequestInfo requestInfo) {
         return canManageOwnAffiliations(requestInfo)
-               || canManageAllCustomers(requestInfo)
-               || requestInfo.clientIsInternalBackend()
-               || isCognitoAdmin(requestInfo);
+                || canManageAllCustomers(requestInfo)
+                || requestInfo.clientIsInternalBackend()
+                || isCognitoAdmin(requestInfo);
     }
 
     private boolean canManageAllCustomers(RequestInfo requestInfo) {
         return requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
+
     private boolean canManageOwnAffiliations(RequestInfo requestInfo) {
         return requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
     }
 
     private boolean isCognitoAdmin(RequestInfo requestInfo) {
         return requestInfo.getRequestContextParameterOpt(SCOPES_CLAIM).map(
-            value -> value.contains(AWS_COGNITO_SIGNIN_USER_ADMIN)).orElse(false);
+                value -> value.contains(AWS_COGNITO_SIGNIN_USER_ADMIN)).orElse(false);
     }
 
     @Override
@@ -84,7 +87,7 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
 
     @Override
     protected void validateRequest(CustomerDto customerDto, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
+            throws ApiGatewayException {
         if (!isAuthorized(requestInfo)) {
             throw new ForbiddenException();
         }

@@ -5,9 +5,11 @@ import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMA
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
+
 import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
+
 import no.unit.nva.useraccessservice.dao.ClientDao.Builder;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
 import no.unit.nva.useraccessservice.model.ClientDto;
@@ -48,10 +50,10 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public static ClientDao fromClientDto(ClientDto clientDto) {
         ClientDao.Builder clientDb = ClientDao.newBuilder()
-                                         .withClientId(clientDto.getClientId())
-                                         .withCustomer(clientDto.getCustomer())
-                                         .withCristinOrgUri(clientDto.getCristinOrgUri())
-                                         .withActingUser(clientDto.getActingUser());
+                .withClientId(clientDto.getClientId())
+                .withCustomer(clientDto.getCustomer())
+                .withCristinOrgUri(clientDto.getCristinOrgUri())
+                .withActingUser(clientDto.getActingUser());
 
         return clientDb.build();
     }
@@ -128,10 +130,10 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     public ClientDto toClientDto() {
 
         ClientDto.Builder clientDto = ClientDto.newBuilder()
-                                          .withClientId(this.getClientTd())
-                                          .withCustomer(this.getCustomer())
-                                          .withCristinOrgUri(this.getCristinOrgUri())
-                                          .withActingUser(this.getActingUser());
+                .withClientId(this.getClientTd())
+                .withCustomer(this.getCustomer())
+                .withCristinOrgUri(this.getCristinOrgUri())
+                .withActingUser(this.getActingUser());
 
         return clientDto.build();
     }
@@ -203,10 +205,10 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @Override
     public ClientDao.Builder copy() {
         return newBuilder()
-                   .withClientId(this.getClientTd())
-                   .withCustomer(this.getCustomer())
-                   .withCristinOrgUri(this.getCristinOrgUri())
-                   .withActingUser(this.getActingUser());
+                .withClientId(this.getClientTd())
+                .withCustomer(this.getCustomer())
+                .withCristinOrgUri(this.getCristinOrgUri())
+                .withActingUser(this.getActingUser());
     }
 
     @Override
@@ -226,9 +228,9 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         }
         ClientDao clientDao = (ClientDao) o;
         return Objects.equals(getClientTd(), clientDao.getClientTd())
-               && Objects.equals(getCustomer(), clientDao.getCustomer())
-               && Objects.equals(getCristinOrgUri(), clientDao.getCristinOrgUri())
-               && Objects.equals(getActingUser(), clientDao.getActingUser());
+                && Objects.equals(getCustomer(), clientDao.getCustomer())
+                && Objects.equals(getCristinOrgUri(), clientDao.getCristinOrgUri())
+                && Objects.equals(getActingUser(), clientDao.getActingUser());
     }
 
     /*For now the primary range key does not need to be different from the primary hash key*/

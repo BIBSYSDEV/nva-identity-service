@@ -1,9 +1,6 @@
-
 package no.unit.nva.handlers;
 
-import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.GetExternalClientResponse;
@@ -12,8 +9,12 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.JacocoGenerated;
 
+import java.net.HttpURLConnection;
+
+import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
+
 public class GetExternalClientHandler
-    extends HandlerWithEventualConsistency<Void, GetExternalClientResponse> {
+        extends HandlerWithEventualConsistency<Void, GetExternalClientResponse> {
 
     public static final String CLIENT_ID_PATH_PARAMETER_NAME = "clientId";
     private IdentityService databaseService;
@@ -21,7 +22,7 @@ public class GetExternalClientHandler
     @JacocoGenerated
     public GetExternalClientHandler() {
         this(
-            IdentityService.defaultIdentityService()
+                IdentityService.defaultIdentityService()
         );
     }
 
@@ -38,7 +39,7 @@ public class GetExternalClientHandler
     @Override
     protected GetExternalClientResponse processInput(Void input, RequestInfo requestInfo,
                                                      Context context)
-        throws ApiGatewayException {
+            throws ApiGatewayException {
 
 
         var resourceIdentifier = requestInfo.getPathParameter(CLIENT_ID_PATH_PARAMETER_NAME);
@@ -51,10 +52,10 @@ public class GetExternalClientHandler
 
     private GetExternalClientResponse formatResponse(ClientDto clientDto) {
         return new GetExternalClientResponse(
-            clientDto.getClientId(),
-            clientDto.getCustomer(),
-            clientDto.getCristinOrgUri(),
-            clientDto.getActingUser()
+                clientDto.getClientId(),
+                clientDto.getCustomer(),
+                clientDto.getCristinOrgUri(),
+                clientDto.getActingUser()
         );
     }
 
@@ -71,6 +72,6 @@ public class GetExternalClientHandler
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
         return !(requestInfo.clientIsInternalBackend()
-                 || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
+                || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
     }
 }

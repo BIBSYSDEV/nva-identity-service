@@ -1,6 +1,7 @@
 package no.unit.nva.customer.model;
 
 import java.io.IOException;
+
 import no.unit.nva.identityservice.json.JsonConfig;
 import org.junit.jupiter.api.Test;
 

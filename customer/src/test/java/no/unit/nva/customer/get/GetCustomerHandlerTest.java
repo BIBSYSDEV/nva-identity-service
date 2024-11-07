@@ -71,16 +71,16 @@ class GetCustomerHandlerTest {
         var supportedHeaders = new RequestHeaders(MediaTypes.APPLICATION_JSON_LD);
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withHeaders(supportedHeaders.getRequestHeaders())
-                        .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                        .withPathParameters(pathParameters)
-                        .build();
+                .withHeaders(supportedHeaders.getRequestHeaders())
+                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+                .withPathParameters(pathParameters)
+                .build();
 
         var response = sendRequest(input, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
         assertThat(response.getHeaders().get(HttpHeaders.CONTENT_TYPE),
-                   is(MediaTypes.APPLICATION_JSON_LD.toString()));
+                is(MediaTypes.APPLICATION_JSON_LD.toString()));
     }
 
     @Test
@@ -103,10 +103,10 @@ class GetCustomerHandlerTest {
     void requestToHandlerWithMalformedIdentifierReturnsBadRequest() throws IOException {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, MALFORMED_IDENTIFIER);
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                        .withHeaders(getRequestHeaders())
-                        .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                        .withPathParameters(pathParameters)
-                        .build();
+                .withHeaders(getRequestHeaders())
+                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+                .withPathParameters(pathParameters)
+                .build();
 
         var response = sendRequest(input, Problem.class);
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_BAD_REQUEST));
@@ -115,16 +115,16 @@ class GetCustomerHandlerTest {
 
     @Test
     void requestToHandlerWithUnsupportedAcceptHeaderReturnsUnsupportedMediaType() throws IOException,
-                                                                                         NotFoundException {
+            NotFoundException {
         UUID identifier = UUID.randomUUID();
         prepareServiceWithCustomer(identifier);
         RequestHeaders unsupportedRequestHeaders = new RequestHeaders(UNSUPPORTED_MEDIA_TYPE);
         Map<String, String> pathParameters = Map.of(IDENTIFIER, identifier.toString());
         var request = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                          .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                          .withHeaders(unsupportedRequestHeaders.getRequestHeaders())
-                          .withPathParameters(pathParameters)
-                          .build();
+                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+                .withHeaders(unsupportedRequestHeaders.getRequestHeaders())
+                .withPathParameters(pathParameters)
+                .build();
 
         var response = sendRequest(request, Problem.class);
 
@@ -137,23 +137,23 @@ class GetCustomerHandlerTest {
     }
 
     private InputStream createGetCustomerRequest(CustomerDto customerDto)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         Map<String, String> pathParameters = Map.of(IDENTIFIER, customerDto.getIdentifier().toString());
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
-                   .withBody(customerDto)
-                   .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                   .withHeaders(getRequestHeaders())
-                   .withPathParameters(pathParameters)
-                   .build();
+                .withBody(customerDto)
+                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+                .withHeaders(getRequestHeaders())
+                .withPathParameters(pathParameters)
+                .build();
     }
 
     private CustomerDto prepareServiceWithCustomer(UUID identifier) throws NotFoundException {
         CustomerDao customerDb = new CustomerDao.Builder()
-                                     .withIdentifier(identifier)
-                                     .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
-                                     .withDoiAgent(randomDoiAgent(randomString()))
-                                     .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                                     .build();
+                .withIdentifier(identifier)
+                .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
+                .withDoiAgent(randomDoiAgent(randomString()))
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                .build();
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomer(identifier)).thenReturn(customerDto);
         return customerDto;
@@ -169,8 +169,8 @@ class GetCustomerHandlerTest {
 
         public Map<String, String> getRequestHeaders() {
             return Map.of(
-                HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
-                HttpHeaders.ACCEPT, mediaType.toString()
+                    HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString(),
+                    HttpHeaders.ACCEPT, mediaType.toString()
             );
         }
     }

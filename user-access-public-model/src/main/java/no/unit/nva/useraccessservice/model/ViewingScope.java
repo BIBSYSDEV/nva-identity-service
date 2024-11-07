@@ -87,6 +87,18 @@ public class ViewingScope {
         return null;
     }
 
+    private static Set<URI> toSet(Collection<URI> collection) {
+        return nonNull(collection) ? new HashSet<>(collection) : Collections.emptySet();
+    }
+
+    private static boolean pathIsNotExpectedPath(URI uri) {
+        return !uri.getPath().startsWith(ServiceConstants.CRISTIN_PATH);
+    }
+
+    private static boolean hostIsNotExpectedHost(URI uri) {
+        return !ServiceConstants.API_DOMAIN.equals(uri.getHost());
+    }
+
     @JacocoGenerated
     public Set<URI> getIncludedUnits() {
         return includedUnits;
@@ -119,18 +131,6 @@ public class ViewingScope {
     @Override
     public String toString() {
         return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
-    }
-
-    private static Set<URI> toSet(Collection<URI> collection) {
-        return nonNull(collection) ? new HashSet<>(collection) : Collections.emptySet();
-    }
-
-    private static boolean pathIsNotExpectedPath(URI uri) {
-        return !uri.getPath().startsWith(ServiceConstants.CRISTIN_PATH);
-    }
-
-    private static boolean hostIsNotExpectedHost(URI uri) {
-        return !ServiceConstants.API_DOMAIN.equals(uri.getHost());
     }
 
     @JacocoGenerated

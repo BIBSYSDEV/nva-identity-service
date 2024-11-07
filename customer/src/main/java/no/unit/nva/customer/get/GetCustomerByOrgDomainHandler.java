@@ -1,12 +1,7 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static no.unit.nva.customer.RequestUtils.getPathParameter;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -17,6 +12,13 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.List;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static no.unit.nva.customer.RequestUtils.getPathParameter;
 
 public class GetCustomerByOrgDomainHandler extends ApiGatewayHandler<Void, CustomerIdentifiers> {
 
@@ -41,7 +43,7 @@ public class GetCustomerByOrgDomainHandler extends ApiGatewayHandler<Void, Custo
 
     @Override
     protected CustomerIdentifiers processInput(Void input, RequestInfo requestInfo, Context context)
-        throws NotFoundException {
+            throws NotFoundException {
         long start = System.currentTimeMillis();
         String orgDomain = getOrgIdentifier(requestInfo);
         CustomerDto customerDto = customerService.getCustomerByOrgDomain(orgDomain);

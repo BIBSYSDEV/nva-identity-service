@@ -2,6 +2,7 @@ package no.unit.nva.cognito;
 
 import java.util.Arrays;
 import java.util.List;
+
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.core.Environment;
@@ -25,10 +26,10 @@ public abstract class CognitoCommunicationHandler<I, O> extends ApiGatewayHandle
     @JacocoGenerated
     protected static CognitoIdentityProviderClient defaultCognitoClient() {
         return CognitoIdentityProviderClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .httpClient(UrlConnectionHttpClient.create())
-            .region(Region.of(AWS_REGION))
-            .build();
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .httpClient(UrlConnectionHttpClient.create())
+                .region(Region.of(AWS_REGION))
+                .build();
     }
 
     protected String extractAccessToken(RequestInfo event) {

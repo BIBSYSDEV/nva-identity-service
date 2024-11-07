@@ -1,7 +1,5 @@
 package no.unit.nva.database;
 
-import static java.util.Objects.nonNull;
-import java.util.Optional;
 import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -13,6 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+import java.util.Optional;
+
+import static java.util.Objects.nonNull;
 
 public class RoleService extends DatabaseSubService {
 
@@ -28,6 +30,11 @@ public class RoleService extends DatabaseSubService {
     protected RoleService(DynamoDbClient client) {
         super(client);
         this.table = this.client.table(Constants.USERS_AND_ROLES_TABLE, RoleDb.TABLE_SCHEMA);
+    }
+
+    private static NotFoundException handleRoleNotFound(RoleDto queryObject) {
+        logger.debug(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName());
+        return new NotFoundException(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName().getValue());
     }
 
     /**
@@ -50,14 +57,14 @@ public class RoleService extends DatabaseSubService {
      */
     public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
         return getRoleAsOptional(queryObject)
-            .orElseThrow(() -> handleRoleNotFound(queryObject));
+                .orElseThrow(() -> handleRoleNotFound(queryObject));
     }
 
     public void updateRole(RoleDto roleToUpdate) throws NotFoundException, InvalidInputException {
         validate(roleToUpdate);
 
         var originalRole = getRoleAsOptional(roleToUpdate)
-                   .orElseThrow(() -> handleRoleNotFound(roleToUpdate));
+                .orElseThrow(() -> handleRoleNotFound(roleToUpdate));
 
         var updatedRole = originalRole.copy().withAccessRights(roleToUpdate.getAccessRights()).build();
         table.putItem(RoleDb.fromRoleDto(updatedRole));
@@ -65,11 +72,6 @@ public class RoleService extends DatabaseSubService {
 
     protected RoleDb fetchRoleDb(RoleDb queryObject) {
         return table.getItem(queryObject);
-    }
-
-    private static NotFoundException handleRoleNotFound(RoleDto queryObject) {
-        logger.debug(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName());
-        return new NotFoundException(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName().getValue());
     }
 
     private Optional<RoleDto> getRoleAsOptional(RoleDto queryObject) {
@@ -89,9 +91,9 @@ public class RoleService extends DatabaseSubService {
 
     private RoleDto attemptFetchRole(RoleDto queryObject) {
         RoleDb roledb = Try.of(queryObject)
-            .map(RoleDb::fromRoleDto)
-            .map(this::fetchRoleDb)
-            .orElseThrow(DatabaseSubService::handleError);
+                .map(RoleDb::fromRoleDto)
+                .map(this::fetchRoleDb)
+                .orElseThrow(DatabaseSubService::handleError);
         return nonNull(roledb) ? roledb.toRoleDto() : null;
     }
 }

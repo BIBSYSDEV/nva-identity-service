@@ -1,9 +1,10 @@
 package no.unit.nva.customer.exception;
 
-import java.net.HttpURLConnection;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.net.HttpURLConnection;
 
 public class ExceptionsTest {
 

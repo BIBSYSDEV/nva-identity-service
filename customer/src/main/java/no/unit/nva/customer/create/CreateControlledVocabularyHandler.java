@@ -1,8 +1,6 @@
 package no.unit.nva.customer.create;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
 import no.unit.nva.customer.WriteControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
@@ -12,6 +10,10 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
 
 public class CreateControlledVocabularyHandler extends WriteControlledVocabularyHandler {
 
@@ -28,7 +30,7 @@ public class CreateControlledVocabularyHandler extends WriteControlledVocabulary
 
     @Override
     protected CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer)
-        throws ConflictException, BadRequestException {
+            throws ConflictException, BadRequestException {
         if (customer.getVocabularies().isEmpty()) {
             return customer.copy().withVocabularies(input.getVocabularies()).build();
         }
@@ -37,7 +39,7 @@ public class CreateControlledVocabularyHandler extends WriteControlledVocabulary
 
     @Override
     protected void validateRequest(VocabularyList vocabularyList, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
+            throws ApiGatewayException {
         //Do nothing
     }
 

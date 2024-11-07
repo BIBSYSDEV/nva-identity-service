@@ -1,5 +1,13 @@
 package no.unit.nva.handlers.data;
 
+import no.unit.nva.handlers.RoleSource;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
+import nva.commons.core.SingletonCollector;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DEGREE;
@@ -19,13 +27,6 @@ import static nva.commons.apigateway.AccessRight.SUPPORT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import java.util.List;
-import no.unit.nva.handlers.RoleSource;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.model.RoleName;
-import nva.commons.apigateway.AccessRight;
-import nva.commons.core.SingletonCollector;
-import org.junit.jupiter.api.Test;
 
 public class DefaultRoleSourceTest {
 
@@ -47,7 +48,7 @@ public class DefaultRoleSourceTest {
         var curatorRole = getRoleByName(RoleName.DOI_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI,
-                                                                     MANAGE_RESOURCES_STANDARD));
+                MANAGE_RESOURCES_STANDARD));
     }
 
     @Test
@@ -55,7 +56,7 @@ public class DefaultRoleSourceTest {
         var curatorRole = getRoleByName(RoleName.SUPPORT_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(SUPPORT,
-                                                                     MANAGE_RESOURCES_STANDARD));
+                MANAGE_RESOURCES_STANDARD));
     }
 
     @Test
@@ -63,7 +64,7 @@ public class DefaultRoleSourceTest {
         var curatorRole = getRoleByName(RoleName.PUBLISHING_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_PUBLISHING_REQUESTS,
-                                                                     MANAGE_RESOURCES_STANDARD, MANAGE_RESOURCE_FILES));
+                MANAGE_RESOURCES_STANDARD, MANAGE_RESOURCE_FILES));
     }
 
     @Test
@@ -71,7 +72,7 @@ public class DefaultRoleSourceTest {
         var curatorRole = getRoleByName(RoleName.NVI_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_NVI_CANDIDATES,
-                                                                     MANAGE_RESOURCES_STANDARD));
+                MANAGE_RESOURCES_STANDARD));
     }
 
     @Test
@@ -93,7 +94,7 @@ public class DefaultRoleSourceTest {
         var thesisEmbargoCuratorRole = getRoleByName(RoleName.EMBARGO_THESIS_CURATOR);
 
         assertThat(thesisEmbargoCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_RESOURCES_STANDARD,
-                                                                                  MANAGE_DEGREE_EMBARGO));
+                MANAGE_DEGREE_EMBARGO));
     }
 
     @Test
@@ -108,10 +109,10 @@ public class DefaultRoleSourceTest {
         var appAdminRole = getRoleByName(RoleName.APPLICATION_ADMIN);
 
         assertThat(appAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_CUSTOMERS,
-                                                                      MANAGE_EXTERNAL_CLIENTS,
-                                                                      ACT_AS,
-                                                                      MANAGE_NVI,
-                                                                      MANAGE_IMPORT));
+                MANAGE_EXTERNAL_CLIENTS,
+                ACT_AS,
+                MANAGE_NVI,
+                MANAGE_IMPORT));
     }
 
     @Test
@@ -119,29 +120,29 @@ public class DefaultRoleSourceTest {
         var editorRole = getRoleByName(RoleName.EDITOR);
 
         assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION,
-                                                                    MANAGE_RESOURCES_ALL));
+                MANAGE_RESOURCES_ALL));
     }
 
     @Test
     void shouldReturnExpectedNumberOfRoles() {
         var expectedNumberOfRoles = List.of(RoleName.CREATOR,
-                                            RoleName.NVI_CURATOR,
-                                            RoleName.DOI_CURATOR,
-                                            RoleName.SUPPORT_CURATOR,
-                                            RoleName.PUBLISHING_CURATOR,
-                                            RoleName.THESIS_CURATOR,
-                                            RoleName.EMBARGO_THESIS_CURATOR,
-                                            RoleName.INTERNAL_IMPORTER,
-                                            RoleName.INSTITUTION_ADMIN,
-                                            RoleName.APPLICATION_ADMIN,
-                                            RoleName.EDITOR).size();
+                RoleName.NVI_CURATOR,
+                RoleName.DOI_CURATOR,
+                RoleName.SUPPORT_CURATOR,
+                RoleName.PUBLISHING_CURATOR,
+                RoleName.THESIS_CURATOR,
+                RoleName.EMBARGO_THESIS_CURATOR,
+                RoleName.INTERNAL_IMPORTER,
+                RoleName.INSTITUTION_ADMIN,
+                RoleName.APPLICATION_ADMIN,
+                RoleName.EDITOR).size();
 
         assertThat(roleSource.roles(), hasSize(expectedNumberOfRoles));
     }
 
     private RoleDto getRoleByName(RoleName roleName) {
         return roleSource.roles().stream()
-                   .filter(role -> role.getRoleName().equals(roleName))
-                   .collect(SingletonCollector.collect());
+                .filter(role -> role.getRoleName().equals(roleName))
+                .collect(SingletonCollector.collect());
     }
 }

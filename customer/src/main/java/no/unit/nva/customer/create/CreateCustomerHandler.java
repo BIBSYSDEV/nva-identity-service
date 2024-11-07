@@ -1,11 +1,7 @@
 package no.unit.nva.customer.create;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
-import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerHandler;
 import no.unit.nva.customer.model.CustomerDto;
@@ -14,6 +10,12 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+import java.util.List;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 
 public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest> {
 
@@ -44,8 +46,7 @@ public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest
 
     @Override
     protected CustomerDto processInput(CreateCustomerRequest input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-
+            throws ApiGatewayException {
 
 
         return customerService.createCustomer(input.toCustomerDto());
@@ -53,7 +54,7 @@ public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest
 
     private boolean userIsAuthorized(RequestInfo requestInfo) {
         return requestInfo.clientIsInternalBackend()
-               || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
+                || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 
     @Override

@@ -14,17 +14,17 @@ public final class DatabaseConfig {
     @JacocoGenerated
     public static final DynamoDbClient DEFAULT_DYNAMO_CLIENT = defaultDynamoDbClient();
 
+    private DatabaseConfig() {
+        // NO-OP
+    }
+
     @JacocoGenerated
     private static DynamoDbClient defaultDynamoDbClient() {
         return DynamoDbClient.builder()
-            .httpClient(UrlConnectionHttpClient.create())
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .region(Region.of(AWS_REGION))
-            .build();
-    }
-
-    private DatabaseConfig() {
-        // NO-OP
+                .httpClient(UrlConnectionHttpClient.create())
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .region(Region.of(AWS_REGION))
+                .build();
     }
 
 }

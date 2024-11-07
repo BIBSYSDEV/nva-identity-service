@@ -2,6 +2,7 @@ package no.unit.nva.useraccessservice.usercreation.person.cristin;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Arrays;
 
 public class CristinCredentials {

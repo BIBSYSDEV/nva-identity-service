@@ -12,9 +12,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
+
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -68,17 +70,17 @@ class UserMigrationServiceTest {
 
     private CustomerDto createSampleCustomer() {
         return CustomerDto.builder()
-                   .withCristinId(SAMPLE_ORG_ID)
-                   .build();
+                .withCristinId(SAMPLE_ORG_ID)
+                .build();
     }
 
     private UserDto createSampleUser() {
         return UserDto.newBuilder()
-                   .withUsername(randomString())
-                   .withGivenName(randomString())
-                   .withFamilyName(randomString())
-                   .withInstitution(randomInstitutionUri())
-                   .build();
+                .withUsername(randomString())
+                .withGivenName(randomString())
+                .withFamilyName(randomString())
+                .withInstitution(randomInstitutionUri())
+                .build();
     }
 
     private URI randomInstitutionUri() {

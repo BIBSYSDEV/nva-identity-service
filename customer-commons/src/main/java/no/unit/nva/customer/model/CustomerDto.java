@@ -1,20 +1,7 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.net.URI;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
@@ -25,13 +12,28 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
+import static nva.commons.core.attempt.Try.attempt;
+
 //Overriding setters and getters is necessary for Jackson-Jr
 @SuppressWarnings({"PMD.ExcessivePublicCount",
-    "PMD.UselessOverridingMethod",
-    "PMD.TooManyFields",
-    "PMD.GodClass",
-    "PMD.NullAssignment",
-    "PMD.SingularField"})
+        "PMD.UselessOverridingMethod",
+        "PMD.TooManyFields",
+        "PMD.GodClass",
+        "PMD.NullAssignment",
+        "PMD.SingularField"})
 public class CustomerDto implements Context {
 
     public static final String TYPE = "Customer";
@@ -71,7 +73,7 @@ public class CustomerDto implements Context {
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(json, CustomerDto.class)).orElseThrow(
-            fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
+                fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
     public static Builder builder() {
@@ -253,6 +255,10 @@ public class CustomerDto implements Context {
         return allowFileUploadForTypes;
     }
 
+    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
+        this.allowFileUploadForTypes = allowFileUploadForTypes;
+    }
+
     public boolean isGeneralSupportEnabled() {
         return generalSupportEnabled;
     }
@@ -284,10 +290,6 @@ public class CustomerDto implements Context {
         return Set.of(PublicationInstanceTypes.values());
     }
 
-    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
-        this.allowFileUploadForTypes = allowFileUploadForTypes;
-    }
-
     public RightsRetentionStrategyDto getRightsRetentionStrategy() {
         return rightsRetentionStrategy;
     }
@@ -308,43 +310,43 @@ public class CustomerDto implements Context {
 
     public Builder copy() {
         return new Builder()
-                   .withArchiveName(getArchiveName())
-                   .withCname(getCname())
-                   .withContext(getContext())
-                   .withCreatedDate(getCreatedDate())
-                   .withCristinId(getCristinId())
-                   .withCustomerOf(getCustomerOf())
-                   .withDisplayName(getDisplayName())
-                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                   .withId(getId())
-                   .withIdentifier(getIdentifier())
-                   .withInstitutionDns(getInstitutionDns())
-                   .withModifiedDate(getModifiedDate())
-                   .withName(getName())
-                   .withPublicationWorkflow(getPublicationWorkflow())
-                   .withRorId(getRorId())
-                   .withShortName(getShortName())
-                   .withDoiAgent(getDoiAgent())
-                   .withNviInstitution(isNviInstitution())
-                   .withRboInstitution(isRboInstitution())
-                   .withInactiveFrom(getInactiveFrom())
-                   .withSector(getSector())
-                   .withVocabularies(getVocabularies())
-                   .withRightsRetentionStrategy(getRightsRetentionStrategy())
-                   .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
-                   .withGeneralSupportEnabled(isGeneralSupportEnabled())
-                   .withServiceCenter(getServiceCenter());
+                .withArchiveName(getArchiveName())
+                .withCname(getCname())
+                .withContext(getContext())
+                .withCreatedDate(getCreatedDate())
+                .withCristinId(getCristinId())
+                .withCustomerOf(getCustomerOf())
+                .withDisplayName(getDisplayName())
+                .withFeideOrganizationDomain(getFeideOrganizationDomain())
+                .withId(getId())
+                .withIdentifier(getIdentifier())
+                .withInstitutionDns(getInstitutionDns())
+                .withModifiedDate(getModifiedDate())
+                .withName(getName())
+                .withPublicationWorkflow(getPublicationWorkflow())
+                .withRorId(getRorId())
+                .withShortName(getShortName())
+                .withDoiAgent(getDoiAgent())
+                .withNviInstitution(isNviInstitution())
+                .withRboInstitution(isRboInstitution())
+                .withInactiveFrom(getInactiveFrom())
+                .withSector(getSector())
+                .withVocabularies(getVocabularies())
+                .withRightsRetentionStrategy(getRightsRetentionStrategy())
+                .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
+                .withGeneralSupportEnabled(isGeneralSupportEnabled())
+                .withServiceCenter(getServiceCenter());
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
-                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(), getDoiAgent(),
-                            getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom(),
-                            isGeneralSupportEnabled(), getServiceCenter());
+                getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                getRorId(), getPublicationWorkflow(), getDoiAgent(),
+                getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom(),
+                isGeneralSupportEnabled(), getServiceCenter());
     }
 
     @Override
@@ -358,28 +360,28 @@ public class CustomerDto implements Context {
         }
         CustomerDto that = (CustomerDto) o;
         return Objects.equals(getArchiveName(), that.getArchiveName())
-               && Objects.equals(getContext(), that.getContext())
-               && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getCustomerOf(), that.getCustomerOf())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getId(), that.getId())
-               && Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getRorId(), that.getRorId())
-               && Objects.equals(getServiceCenter(), that.getServiceCenter())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getDoiAgent(), that.getDoiAgent())
-               && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
-               && getPublicationWorkflow() == that.getPublicationWorkflow()
-               && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
-               && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled());
+                && Objects.equals(getContext(), that.getContext())
+                && Objects.equals(getCname(), that.getCname())
+                && Objects.equals(getCreatedDate(), that.getCreatedDate())
+                && Objects.equals(getCristinId(), that.getCristinId())
+                && Objects.equals(getCustomerOf(), that.getCustomerOf())
+                && Objects.equals(getDisplayName(), that.getDisplayName())
+                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+                && Objects.equals(getId(), that.getId())
+                && Objects.equals(getIdentifier(), that.getIdentifier())
+                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+                && Objects.equals(getModifiedDate(), that.getModifiedDate())
+                && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
+                && Objects.equals(getName(), that.getName())
+                && Objects.equals(getRorId(), that.getRorId())
+                && Objects.equals(getServiceCenter(), that.getServiceCenter())
+                && Objects.equals(getShortName(), that.getShortName())
+                && Objects.equals(getVocabularies(), that.getVocabularies())
+                && Objects.equals(getDoiAgent(), that.getDoiAgent())
+                && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
+                && getPublicationWorkflow() == that.getPublicationWorkflow()
+                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
+                && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled());
     }
 
     @Override
@@ -550,8 +552,8 @@ public class CustomerDto implements Context {
         private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
             if (nonNull(doiAgent)) {
                 return nonNull(customerDto.identifier)
-                           ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
-                           : new DoiAgentDto(doiAgent);
+                        ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
+                        : new DoiAgentDto(doiAgent);
             }
             return null;
         }
@@ -588,7 +590,7 @@ public class CustomerDto implements Context {
 
         public static DoiAgentDto fromJson(String json) throws BadRequestException {
             return attempt(() -> JsonConfig.readValue(json, DoiAgentDto.class)).orElseThrow(
-                fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
+                    fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
         }
 
         public URI getId() {
@@ -609,9 +611,9 @@ public class CustomerDto implements Context {
          */
         public DoiAgentDto addIdByIdentifier(UUID identifier) {
             this.id = UriWrapper
-                          .fromUri(toId(identifier))
-                          .addChild(DOI_AGENT)
-                          .getUri();
+                    .fromUri(toId(identifier))
+                    .addChild(DOI_AGENT)
+                    .getUri();
             return this;
         }
 
@@ -629,6 +631,10 @@ public class CustomerDto implements Context {
             return prefix;
         }
 
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
         @Override
         public String getUrl() {
             return url;
@@ -636,10 +642,6 @@ public class CustomerDto implements Context {
 
         public void setUrl(String url) {
             this.url = url;
-        }
-
-        public void setPrefix(String prefix) {
-            this.prefix = prefix;
         }
 
         public String getPassword() {
@@ -665,10 +667,10 @@ public class CustomerDto implements Context {
                 return false;
             }
             return Objects.equals(getId(), that.getId())
-                   && Objects.equals(getUrl(), that.getUrl())
-                   && Objects.equals(getPrefix(), that.getPrefix())
-                   && Objects.equals(getUsername(), that.getUsername())
-                   && Objects.equals(getPassword(), that.getPassword());
+                    && Objects.equals(getUrl(), that.getUrl())
+                    && Objects.equals(getPrefix(), that.getPrefix())
+                    && Objects.equals(getUsername(), that.getUsername())
+                    && Objects.equals(getPassword(), that.getPassword());
         }
 
         @Override
@@ -686,12 +688,12 @@ public class CustomerDto implements Context {
 
     public record ServiceCenter(URI uri, String name) {
 
-        public ServiceCenterDao toDao() {
-            return new ServiceCenterDao(uri, name);
-        }
-
         public static ServiceCenter emptyServiceCenter() {
             return new ServiceCenter(null, null);
+        }
+
+        public ServiceCenterDao toDao() {
+            return new ServiceCenterDao(uri, name);
         }
     }
 }

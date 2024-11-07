@@ -1,9 +1,6 @@
 package no.unit.nva.handlers;
 
-import static java.util.function.Predicate.not;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
-import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -12,6 +9,11 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+import java.util.Optional;
+
+import static java.util.function.Predicate.not;
 
 public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
@@ -39,7 +41,7 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
     @Override
     protected UserDto processInput(Void input, RequestInfo requestInfo, Context context)
-        throws BadRequestException, NotFoundException {
+            throws BadRequestException, NotFoundException {
         String username = extractValidUserNameOrThrowException(requestInfo);
         UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
         return databaseService.getUser(queryObject);
@@ -47,10 +49,10 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
     private String extractValidUserNameOrThrowException(RequestInfo requestInfo) {
         return Optional.of(requestInfo)
-            .map(RequestInfo::getPathParameters)
-            .map(map -> map.get(USERNAME_PATH_PARAMETER))
-            .map(this::decodeUrlPart)
-            .filter(not(String::isBlank))
-            .orElseThrow();
+                .map(RequestInfo::getPathParameters)
+                .map(map -> map.get(USERNAME_PATH_PARAMETER))
+                .map(this::decodeUrlPart)
+                .filter(not(String::isBlank))
+                .orElseThrow();
     }
 }

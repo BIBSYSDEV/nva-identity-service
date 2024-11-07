@@ -1,5 +1,10 @@
 package no.unit.nva.useraccessservice.model;
 
+import org.junit.jupiter.api.Test;
+
+import java.net.MalformedURLException;
+import java.util.List;
+
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -7,11 +12,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.StringContains.containsString;
-import java.net.MalformedURLException;
-import java.util.List;
-import no.unit.nva.RandomUserDataGenerator;
-import no.unit.nva.testutils.RandomDataGenerator;
-import org.junit.jupiter.api.Test;
 
 public class CreateExternalClientResponseTest {
 

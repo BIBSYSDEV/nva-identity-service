@@ -1,5 +1,20 @@
 package no.unit.nva.handlers;
 
+import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import no.unit.nva.FakeCognito;
+import no.unit.nva.handlers.models.ImpersonationRequest;
+import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.GatewayResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
@@ -10,26 +25,13 @@ import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import no.unit.nva.FakeCognito;
-import no.unit.nva.handlers.models.ImpersonationRequest;
-import no.unit.nva.stubs.FakeContext;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.GatewayResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
 class SetImpersonationHandlerTest {
 
     public static final String USERNAME = "username";
+    private final Context context = new FakeContext();
     private FakeCognito cognitoClient;
     private SetImpersonationHandler handler;
-    private final Context context = new FakeContext();
     private ByteArrayOutputStream outputStream;
 
     @BeforeEach
@@ -51,7 +53,7 @@ class SetImpersonationHandlerTest {
 
     @Test
     public void shouldCallCognitoAdminApiWithImpersonatedFnrWhenUserIsAppAdminAndIsNotImpersonatingSomeoneAlready()
-        throws IOException {
+            throws IOException {
         var impersonationFnr = randomString();
         var request = createDefaultRequestForImpersonation(impersonationFnr);
         handler.handleRequest(request, outputStream, context);
@@ -80,48 +82,48 @@ class SetImpersonationHandlerTest {
     private InputStream createDefaultRequestForImpersonation(String impersonatingFnr) throws JsonProcessingException {
         var customer = randomUri();
         return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
-                   .withBody(new ImpersonationRequest(impersonatingFnr))
-                   .withCurrentCustomer(customer)
-                   .withAccessRights(customer, ACT_AS)
-                   .withAuthorizerClaim(USERNAME, randomString())
-                   .withIssuer(randomString())
-                   .withUserName(randomString())
-                   .build();
+                .withBody(new ImpersonationRequest(impersonatingFnr))
+                .withCurrentCustomer(customer)
+                .withAccessRights(customer, ACT_AS)
+                .withAuthorizerClaim(USERNAME, randomString())
+                .withIssuer(randomString())
+                .withUserName(randomString())
+                .build();
     }
 
     private InputStream createNonAdministratorRequestForImpersonation(String impersonatingFnr)
             throws JsonProcessingException {
         var customer = randomUri();
         return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
-                   .withBody(new ImpersonationRequest(impersonatingFnr))
-                   .withCurrentCustomer(customer)
-                   .withAuthorizerClaim(USERNAME, randomString())
-                   .withIssuer(randomString())
-                   .withUserName(randomString())
-                   .build();
+                .withBody(new ImpersonationRequest(impersonatingFnr))
+                .withCurrentCustomer(customer)
+                .withAuthorizerClaim(USERNAME, randomString())
+                .withIssuer(randomString())
+                .withUserName(randomString())
+                .build();
     }
 
     private InputStream createAlreadyImpersonatingRequestForImpersonation(String impersonatingFnr)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         var customer = randomUri();
         return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
-                   .withBody(new ImpersonationRequest(impersonatingFnr))
-                   .withCurrentCustomer(customer)
-                   .withAccessRights(customer, ACT_AS)
-                   .withAuthorizerClaim(IMPERSONATION, randomString())
-                   .withAuthorizerClaim(USERNAME, randomString())
-                   .withIssuer(randomString())
-                   .withUserName(randomString())
-                   .build();
+                .withBody(new ImpersonationRequest(impersonatingFnr))
+                .withCurrentCustomer(customer)
+                .withAccessRights(customer, ACT_AS)
+                .withAuthorizerClaim(IMPERSONATION, randomString())
+                .withAuthorizerClaim(USERNAME, randomString())
+                .withIssuer(randomString())
+                .withUserName(randomString())
+                .build();
     }
 
     private String extractAdminUpdateRequestUserAttribute(String userAttribute) {
         return cognitoClient.getAdminUpdateUserRequest()
-                   .userAttributes().stream()
-                   .filter(attribute -> attribute.name().equals(userAttribute))
-                   .map(AttributeType::value)
-                   .findFirst()
-                   .orElseThrow();
+                .userAttributes().stream()
+                .filter(attribute -> attribute.name().equals(userAttribute))
+                .map(AttributeType::value)
+                .findFirst()
+                .orElseThrow();
     }
 
 }

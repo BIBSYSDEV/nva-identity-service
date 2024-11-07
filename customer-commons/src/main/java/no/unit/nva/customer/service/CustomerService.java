@@ -1,12 +1,13 @@
 package no.unit.nva.customer.service;
 
-import java.net.URI;
-import java.util.List;
-import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
 
 public interface CustomerService {
 
@@ -23,6 +24,7 @@ public interface CustomerService {
     CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws InputException, NotFoundException;
 
     CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException;
+
     List<CustomerDto> refreshCustomers();
 
 }

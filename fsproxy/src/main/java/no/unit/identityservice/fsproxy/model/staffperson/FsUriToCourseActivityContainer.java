@@ -20,13 +20,13 @@ public class FsUriToCourseActivityContainer implements JsonSerializable {
         this.courseUri = courseUri;
     }
 
+    public static FsUriToCourseActivityContainer fromJson(String responseBody) throws JsonProcessingException {
+        return JsonUtils.dtoObjectMapper.readValue(responseBody, FsUriToCourseActivityContainer.class);
+    }
+
     @JsonIgnore
     public FsUriToCourseActivity getCourseUri() {
         return courseUri;
-    }
-
-    public static FsUriToCourseActivityContainer fromJson(String responseBody) throws JsonProcessingException {
-        return JsonUtils.dtoObjectMapper.readValue(responseBody, FsUriToCourseActivityContainer.class);
     }
 
     @Override

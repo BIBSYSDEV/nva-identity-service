@@ -1,8 +1,9 @@
 package no.unit.nva.database.interfaces;
 
+import nva.commons.core.Environment;
+
 import java.util.Map;
 import java.util.Optional;
-import nva.commons.core.Environment;
 
 public interface WithEnvironment {
 

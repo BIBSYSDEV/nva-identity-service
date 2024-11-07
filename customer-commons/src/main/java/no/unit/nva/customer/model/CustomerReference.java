@@ -1,13 +1,13 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.nonNull;
+import nva.commons.core.JacocoGenerated;
 
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 
-import nva.commons.core.JacocoGenerated;
+import static java.util.Objects.nonNull;
 
 public class CustomerReference {
 
@@ -28,9 +28,9 @@ public class CustomerReference {
 
     private static String extractDoiPrefix(CustomerDto customerDto) {
         return Optional
-            .ofNullable(customerDto.getDoiAgent())
-            .map(CustomerDto.DoiAgentDto::getPrefix)
-            .orElse(null);
+                .ofNullable(customerDto.getDoiAgent())
+                .map(CustomerDto.DoiAgentDto::getPrefix)
+                .orElse(null);
     }
 
     public URI getId() {
@@ -71,9 +71,9 @@ public class CustomerReference {
     @Override
     public int hashCode() {
         return Objects.hash(getId(),
-            getDisplayName(),
-            getDoiPrefix(),
-            getCreatedDate());
+                getDisplayName(),
+                getDoiPrefix(),
+                getCreatedDate());
     }
 
     @JacocoGenerated
@@ -86,8 +86,8 @@ public class CustomerReference {
             return false;
         }
         return Objects.equals(getId(), that.getId())
-            && Objects.equals(getDisplayName(), that.getDisplayName())
-            && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
-            && Objects.equals(getCreatedDate(), that.getCreatedDate());
+                && Objects.equals(getDisplayName(), that.getDisplayName())
+                && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
+                && Objects.equals(getCreatedDate(), that.getCreatedDate());
     }
 }

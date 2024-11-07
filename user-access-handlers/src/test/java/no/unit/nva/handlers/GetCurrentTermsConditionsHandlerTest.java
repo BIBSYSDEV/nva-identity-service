@@ -22,12 +22,11 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 
-class GetCurrentTermsConditionsHandlerTest  extends HandlerTest {
+class GetCurrentTermsConditionsHandlerTest extends HandlerTest {
+    public static final ObjectMapper objectMapperWithEmpty = JsonUtils.dtoObjectMapper;
     private FakeContext context;
     private ByteArrayOutputStream outputStream;
     private GetCurrentTermsConditionsHandler handler;
-    public static final ObjectMapper objectMapperWithEmpty = JsonUtils.dtoObjectMapper;
-
 
     @BeforeEach
     public void setup() {
@@ -51,12 +50,12 @@ class GetCurrentTermsConditionsHandlerTest  extends HandlerTest {
 
     private InputStream getInputStream() throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(objectMapperWithEmpty)
-            .withRequestContext(getRequestContext())
-            .build();
+                .withRequestContext(getRequestContext())
+                .build();
     }
 
     private ObjectNode getRequestContext() {
         return objectMapperWithEmpty.convertValue(
-            Map.of("path", "/terms-and-conditions/current", "domainName", "SAMPLE_DOMAIN_NAME"), ObjectNode.class);
+                Map.of("path", "/terms-and-conditions/current", "domainName", "SAMPLE_DOMAIN_NAME"), ObjectNode.class);
     }
 }

@@ -1,10 +1,11 @@
 package no.unit.nva.useraccessservice.usercreation;
 
-import java.util.Objects;
-import java.util.Set;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import nva.commons.core.StringUtils;
+
+import java.util.Objects;
+import java.util.Set;
 
 public class UserCreationContext {
     private final Person person;

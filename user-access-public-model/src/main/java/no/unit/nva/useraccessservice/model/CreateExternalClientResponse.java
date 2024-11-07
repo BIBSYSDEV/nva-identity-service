@@ -1,10 +1,12 @@
 package no.unit.nva.useraccessservice.model;
 
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.unit.nva.identityservice.json.JsonConfig;
+
 import java.net.URI;
 import java.util.List;
-import no.unit.nva.identityservice.json.JsonConfig;
+
+import static nva.commons.core.attempt.Try.attempt;
 
 public class CreateExternalClientResponse {
 

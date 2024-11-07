@@ -1,13 +1,15 @@
 package no.unit.nva.customer;
 
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import com.google.common.net.MediaType;
-import java.util.List;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+import java.util.List;
+
+import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 @JacocoGenerated
 public final class Constants {
@@ -15,8 +17,8 @@ public final class Constants {
     public static final String PERSISTED_ENTITY = "PersistedEntity";
 
     public static final List<MediaType> DEFAULT_RESPONSE_MEDIA_TYPES = List.of(
-        MediaType.JSON_UTF_8,
-        MediaTypes.APPLICATION_JSON_LD
+            MediaType.JSON_UTF_8,
+            MediaTypes.APPLICATION_JSON_LD
     );
 
     private Constants() {

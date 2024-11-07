@@ -1,8 +1,9 @@
 package no.unit.nva.useraccessservice.usercreation.person;
 
+import nva.commons.core.JacocoGenerated;
+
 import java.net.URI;
 import java.util.List;
-import nva.commons.core.JacocoGenerated;
 
 public class Affiliation {
 
@@ -26,8 +27,8 @@ public class Affiliation {
     @Override
     public String toString() {
         return "Affiliation{"
-               + "institutionUri='" + institutionId + '\''
-               + ", unitUris=" + unitIds
-               + '}';
+                + "institutionUri='" + institutionId + '\''
+                + ", unitUris=" + unitIds
+                + '}';
     }
 }

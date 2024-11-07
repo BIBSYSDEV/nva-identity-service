@@ -1,19 +1,7 @@
 package no.unit.nva.handlers;
 
-import static java.net.HttpURLConnection.HTTP_OK;
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.handlers.SetImpersonationHandler.IMPERSONATION;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Optional;
 import no.unit.nva.FakeCognito;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -22,11 +10,25 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Optional;
+
+import static java.net.HttpURLConnection.HTTP_OK;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.handlers.SetImpersonationHandler.IMPERSONATION;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+
 class StopImpersonationHandlerTest {
     public static final String USERNAME = "username";
+    private final Context context = new FakeContext();
     private FakeCognito cognitoClient;
     private StopImpersonationHandler handler;
-    private final Context context = new FakeContext();
     private ByteArrayOutputStream outputStream;
 
     @BeforeEach
@@ -47,7 +49,7 @@ class StopImpersonationHandlerTest {
 
     @Test
     public void shouldCallCognitoAdminApiWithUsernameOfUser()
-        throws IOException {
+            throws IOException {
         var username = randomString();
         var request = createDefaultRequestForStopImpersonation(username);
         handler.handleRequest(request, outputStream, context);
@@ -57,7 +59,7 @@ class StopImpersonationHandlerTest {
 
     @Test
     public void shouldCallCogntioAdminApiWithEmptyStringImpersonation()
-        throws IOException {
+            throws IOException {
         var request = createDefaultRequestForStopImpersonation(randomString());
         handler.handleRequest(request, outputStream, context);
         var setImpersonationClaim = extractAdminUpdateRequestUserAttribute(IMPERSONATION).get();
@@ -67,17 +69,17 @@ class StopImpersonationHandlerTest {
     private InputStream createDefaultRequestForStopImpersonation(String username) throws JsonProcessingException {
         var customer = randomUri();
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                   .withCurrentCustomer(customer)
-                   .withAuthorizerClaim(USERNAME, username)
-                   .withIssuer(randomString())
-                   .build();
+                .withCurrentCustomer(customer)
+                .withAuthorizerClaim(USERNAME, username)
+                .withIssuer(randomString())
+                .build();
     }
 
     private Optional<AttributeType> extractAdminUpdateRequestUserAttribute(String userAttribute) {
         return cognitoClient.getAdminUpdateUserRequest()
-                   .userAttributes().stream()
-                   .filter(attribute -> attribute.name().equals(userAttribute))
-                   .findFirst();
+                .userAttributes().stream()
+                .filter(attribute -> attribute.name().equals(userAttribute))
+                .findFirst();
     }
 
     private String extractAdminUpdateRequestUsername() {

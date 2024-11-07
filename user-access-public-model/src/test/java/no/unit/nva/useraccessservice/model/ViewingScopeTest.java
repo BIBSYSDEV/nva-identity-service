@@ -1,5 +1,17 @@
 package no.unit.nva.useraccessservice.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import no.unit.nva.commons.json.JsonUtils;
+import no.unit.nva.identityservice.json.JsonConfig;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.io.IOException;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.model.ViewingScope.defaultViewingScope;
@@ -9,23 +21,13 @@ import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import no.unit.nva.commons.json.JsonUtils;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.io.IOException;
-import java.util.Set;
-import java.util.stream.Stream;
-import no.unit.nva.identityservice.json.JsonConfig;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 class ViewingScopeTest {
 
     public static Stream<ViewingScope> viewingScopeProvider() throws BadRequestException {
         return Stream.of(new ViewingScope(Set.of(randomCristinOrgId()), null),
-                         new ViewingScope(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId())));
+                new ViewingScope(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId())));
     }
 
     @Test
@@ -61,10 +63,10 @@ class ViewingScopeTest {
     @Test
     void shouldDeserializeNullViewingScopeToViewingScopeWithEmptyList() throws JsonProcessingException {
         var json = """
-            {
-              "type": "ViewingScope"
-            }
-            """;
+                {
+                  "type": "ViewingScope"
+                }
+                """;
         var viewingScope = JsonUtils.dtoObjectMapper.readValue(json, ViewingScope.class);
         assertThat(viewingScope.getExcludedUnits(), is(emptyIterable()));
         assertThat(viewingScope.getIncludedUnits(), is(emptyIterable()));

@@ -1,20 +1,7 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.core.IsNull.nullValue;
-import static org.hamcrest.core.StringContains.containsString;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Map;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
@@ -34,6 +21,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Map;
+
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.IsNull.nullValue;
+import static org.hamcrest.core.StringContains.containsString;
 
 class GetRoleHandlerTest extends LocalIdentityService implements WithEnvironment {
 
@@ -64,7 +66,7 @@ class GetRoleHandlerTest extends LocalIdentityService implements WithEnvironment
     @DisplayName("handleRequest returns Role object with type \"Role\"")
     @Test
     void handleRequestReturnsRoleObjectWithTypeRole()
-        throws ConflictException, InvalidEntryInternalException, InvalidInputException, IOException {
+            throws ConflictException, InvalidEntryInternalException, InvalidInputException, IOException {
 
         var roleName = randomRoleName();
         addSampleRoleToDatabase(roleName);
@@ -84,7 +86,7 @@ class GetRoleHandlerTest extends LocalIdentityService implements WithEnvironment
 
     @Test
     void shouldReturnRoleDtoWhenARoleWithTheInputRoleNameExists()
-        throws ApiGatewayException, IOException {
+            throws ApiGatewayException, IOException {
         var roleName = randomRoleName();
         addSampleRoleToDatabase(roleName);
         var request = queryWithRoleName(roleName);
@@ -99,27 +101,27 @@ class GetRoleHandlerTest extends LocalIdentityService implements WithEnvironment
         var requestInfo = queryWithRoleName(roleName);
         var response = sendRequest(requestInfo, Problem.class);
         var problem = response.getBodyObject(Problem.class);
-        assertThat(problem.getDetail(),containsString(roleName.getValue()));
+        assertThat(problem.getDetail(), containsString(roleName.getValue()));
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
     @Test
     void shouldReturnBadRequestWheRequestBodyIsInValid() throws InvalidEntryInternalException, IOException {
         var request = new HandlerRequestBuilder<String>(JsonUtils.dtoObjectMapper)
-            .withBody(randomString())
-            .build();
+                .withBody(randomString())
+                .build();
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
     }
 
     private InputStream queryWithRoleName(RoleName roleName) throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(JsonUtils.dtoObjectMapper)
-            .withPathParameters(Map.of(GetRoleHandler.ROLE_PATH_PARAMETER, roleName.getValue()))
-            .build();
+                .withPathParameters(Map.of(GetRoleHandler.ROLE_PATH_PARAMETER, roleName.getValue()))
+                .build();
     }
 
     private void addSampleRoleToDatabase(RoleName roleName)
-        throws InvalidEntryInternalException, ConflictException, InvalidInputException {
+            throws InvalidEntryInternalException, ConflictException, InvalidInputException {
         RoleDto existingRole = RoleDto.newBuilder().withRoleName(roleName).build();
         databaseService.addRole(existingRole);
     }

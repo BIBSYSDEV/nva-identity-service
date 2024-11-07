@@ -1,12 +1,6 @@
-
 package no.unit.nva.handlers;
 
-import static java.util.stream.Collectors.joining;
-import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.util.ArrayList;
 import no.unit.nva.CognitoService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.ClientDto;
@@ -20,23 +14,30 @@ import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientType;
 
-public class CreateExternalClientHandler
-    extends HandlerWithEventualConsistency<CreateExternalClientRequest, CreateExternalClientResponse> {
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.ArrayList;
 
-    private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
+import static java.util.stream.Collectors.joining;
+import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
+
+public class CreateExternalClientHandler
+        extends HandlerWithEventualConsistency<CreateExternalClientRequest, CreateExternalClientResponse> {
+
     public static final String MISSING_SCOPES = "Request does not contain 'scopes'";
     public static final String MISSING_CUSTOMER_URI = "Request does not contain 'customerUri'";
     public static final String MISSING_CRISTIN_ORG_URI = "Request does not contain 'cristinOrgUri'";
     public static final String MISSING_ACTING_USER = "Request does not contain 'actingUser'";
     public static final String MISSING_CLIENT_NAME = "Request does not contain 'clientName'";
+    private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
     private CognitoService cognitoService;
     private IdentityService databaseService;
 
     @JacocoGenerated
     public CreateExternalClientHandler() {
         this(
-            IdentityService.defaultIdentityService(),
-            CognitoService.defaultCognitoService()
+                IdentityService.defaultIdentityService(),
+                CognitoService.defaultCognitoService()
         );
     }
 
@@ -57,16 +58,16 @@ public class CreateExternalClientHandler
     @Override
     protected CreateExternalClientResponse processInput(CreateExternalClientRequest input, RequestInfo requestInfo,
                                                         Context context)
-        throws ApiGatewayException {
+            throws ApiGatewayException {
 
         var cognitoResponse = this.cognitoService.createUserPoolClient(input.getClientName(), input.getScopes());
         var clientDto =
-            ClientDto.newBuilder()
-                .withClientId(cognitoResponse.userPoolClient().clientId())
-                .withCustomer(input.getCustomerUri())
-                .withCristinOrgUri(input.getCristinOrgUri())
-                .withActingUser(input.getActingUser())
-                .build();
+                ClientDto.newBuilder()
+                        .withClientId(cognitoResponse.userPoolClient().clientId())
+                        .withCustomer(input.getCustomerUri())
+                        .withCristinOrgUri(input.getCristinOrgUri())
+                        .withActingUser(input.getActingUser())
+                        .build();
 
         databaseService.addExternalClient(clientDto);
 
@@ -92,20 +93,20 @@ public class CreateExternalClientHandler
         }
         if (!issues.isEmpty()) {
             throw new BadRequestException(
-                "Issues validating request: " + issues.stream().collect(joining(", "))
+                    "Issues validating request: " + issues.stream().collect(joining(", "))
             );
         }
     }
 
     private CreateExternalClientResponse formatResponse(
-        URI customer,
-        UserPoolClientType userPoolClientType) {
+            URI customer,
+            UserPoolClientType userPoolClientType) {
         return new CreateExternalClientResponse(
-            userPoolClientType.clientId(),
-            userPoolClientType.clientSecret(),
-            EXTERNAL_USER_POOL_URL,
-            customer,
-            userPoolClientType.allowedOAuthScopes()
+                userPoolClientType.clientId(),
+                userPoolClientType.clientSecret(),
+                EXTERNAL_USER_POOL_URL,
+                customer,
+                userPoolClientType.allowedOAuthScopes()
         );
     }
 
@@ -122,6 +123,6 @@ public class CreateExternalClientHandler
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
         return !(requestInfo.clientIsInternalBackend()
-                 || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
+                || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
     }
 }

@@ -1,17 +1,19 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.net.URI;
-import java.util.Objects;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
+
+import java.net.URI;
+import java.util.Objects;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class SecretManagerDoiAgentDao implements DoiAgent {
 
@@ -23,7 +25,7 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
     @JsonProperty("dataCiteMdsClientUsername")
     private String username;
     @JsonProperty("dataCiteMdsClientPassword")
-    private  String password;
+    private String password;
 
     @SuppressWarnings("unused")
     public SecretManagerDoiAgentDao() {
@@ -39,13 +41,13 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
 
     public static SecretManagerDoiAgentDao fromJson(String json) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(json, SecretManagerDoiAgentDao.class)).orElseThrow(
-            fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
+                fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
     public DoiAgentDto toDoiAgentDto() {
         return new DoiAgentDto(this)
-                   .addPassword(getPassword())
-                   .addId(customerIdToAgentId(customerId));
+                .addPassword(getPassword())
+                .addId(customerIdToAgentId(customerId));
     }
 
     public void merge(DoiAgentDto doiAgent) {
@@ -71,7 +73,7 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
 
     private URI agentIdToCustomerId(URI agentId) {
         return UriWrapper.fromUri(agentId)
-                   .getParent().orElseThrow().getUri();
+                .getParent().orElseThrow().getUri();
     }
 
     private URI customerIdToAgentId(URI customerId) {
@@ -136,10 +138,10 @@ public class SecretManagerDoiAgentDao implements DoiAgent {
         }
         SecretManagerDoiAgentDao that = (SecretManagerDoiAgentDao) o;
         return Objects.equals(getCustomerId(), that.getCustomerId())
-               && Objects.equals(getPrefix(), that.getPrefix())
-               && Objects.equals(getUrl(), that.getUrl())
-               && Objects.equals(getUsername(), that.getUsername())
-               && Objects.equals(getPassword(), that.getPassword());
+                && Objects.equals(getPrefix(), that.getPrefix())
+                && Objects.equals(getUrl(), that.getUrl())
+                && Objects.equals(getUsername(), that.getUsername())
+                && Objects.equals(getPassword(), that.getPassword());
     }
 
     @Override

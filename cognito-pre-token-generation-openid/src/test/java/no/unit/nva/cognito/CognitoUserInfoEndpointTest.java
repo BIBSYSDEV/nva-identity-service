@@ -5,7 +5,9 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +15,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
 import no.unit.nva.FakeCognito;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.identityservice.json.JsonConfig;
@@ -42,7 +45,7 @@ class CognitoUserInfoEndpointTest {
 
     @Test
     void shouldReturnCognitoUserInfoWhenRequestingWithAccessTokenHavingTheOnlyAvailableScopeDuringE2ETests()
-        throws IOException {
+            throws IOException {
         var demoUserInfo = demoUserAttributes();
         var accessToken = addDemoUserInfoToFakeCognito(demoUserInfo);
         var request = requestWithAccessToken(accessToken);
@@ -61,9 +64,9 @@ class CognitoUserInfoEndpointTest {
 
     private GetUserResponse createUserResponseFromDemoUserInfo(Map<String, String> demoUserInfo) {
         var demoContent = demoUserInfo.entrySet()
-            .stream()
-            .map(this::toAttributeType)
-            .collect(Collectors.toList());
+                .stream()
+                .map(this::toAttributeType)
+                .collect(Collectors.toList());
         return GetUserResponse.builder().userAttributes(demoContent).build();
     }
 
@@ -79,8 +82,8 @@ class CognitoUserInfoEndpointTest {
 
     private InputStream requestWithAccessToken(String accessToken) throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(JsonUtils.dtoObjectMapper)
-            .withHeaders(authHeader(accessToken))
-            .build();
+                .withHeaders(authHeader(accessToken))
+                .build();
     }
 
     private Map<String, String> authHeader(String accessToken) {

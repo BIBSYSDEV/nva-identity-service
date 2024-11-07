@@ -4,9 +4,11 @@ import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
+
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
+
 import no.unit.nva.useraccessservice.dao.RoleDb.Builder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.interfaces.Typed;
@@ -59,9 +61,9 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
     public static RoleDb fromRoleDto(RoleDto roleDto) {
 
         return RoleDb.newBuilder()
-            .withName(roleDto.getRoleName())
-            .withAccessRights(roleDto.getAccessRights())
-            .build();
+                .withName(roleDto.getRoleName())
+                .withAccessRights(roleDto.getAccessRights())
+                .build();
     }
 
     @JacocoGenerated
@@ -83,7 +85,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
     }
 
     @Override
-    public void setType(String ignored){
+    public void setType(String ignored) {
         //DO NOTHING
     }
 
@@ -126,8 +128,8 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
     @Override
     public Builder copy() {
         return new Builder()
-            .withName(this.getName())
-            .withAccessRights(this.getAccessRights());
+                .withName(this.getName())
+                .withAccessRights(this.getAccessRights());
     }
 
     @Override
@@ -147,7 +149,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         }
         RoleDb roleDbEntry = (RoleDb) o;
         return Objects.equals(getAccessRights(), roleDbEntry.getAccessRights())
-               && Objects.equals(getName(), roleDbEntry.getName());
+                && Objects.equals(getName(), roleDbEntry.getName());
     }
 
     public RoleDto toRoleDto() {

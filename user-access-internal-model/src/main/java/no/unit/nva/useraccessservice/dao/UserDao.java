@@ -369,8 +369,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getUsername(), getInstitution(), getRoles(), getGivenName(), getFamilyName(),
-                getViewingScope(),
-                getCristinId(), getFeideIdentifier(), getInstitutionCristinId(), getAffiliation());
+                getViewingScope(), getCristinId(), getFeideIdentifier(), getInstitutionCristinId(),
+                getAffiliation());
     }
 
     @Override
@@ -379,10 +379,9 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof UserDao)) {
+        if (!(o instanceof UserDao userDao)) {
             return false;
         }
-        UserDao userDao = (UserDao) o;
         return Objects.equals(getUsername(), userDao.getUsername())
                 && Objects.equals(getInstitution(), userDao.getInstitution())
                 && Objects.equals(getRoles(), userDao.getRoles())
@@ -392,7 +391,8 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
                 && Objects.equals(getCristinId(), userDao.getCristinId())
                 && Objects.equals(getFeideIdentifier(), userDao.getFeideIdentifier())
                 && Objects.equals(getInstitutionCristinId(), userDao.getInstitutionCristinId())
-                && Objects.equals(getAffiliation(), userDao.getAffiliation());
+                && Objects.equals(getAffiliation(), userDao.getAffiliation())
+                ;
     }
 
     @DynamoDbAttribute("institutionCristinId")

@@ -9,6 +9,7 @@ dependencies {
     implementation libs.nva.core
     implementation libs.nva.apigateway
     implementation libs.aws.sdk2.dynamodbenhanced
+    implementation libs.dynamoDbLocal
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.urlconnection
     implementation libs.aws.sdk2.cognitoidentityprovider

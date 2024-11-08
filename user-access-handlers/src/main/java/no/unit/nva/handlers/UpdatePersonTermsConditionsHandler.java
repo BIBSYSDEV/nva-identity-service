@@ -9,7 +9,8 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 
 import java.net.HttpURLConnection;
 
-public class UpdatePersonTermsConditionsHandler extends ApiGatewayHandler<TermsConditionsResponse, TermsConditionsResponse> {
+public class UpdatePersonTermsConditionsHandler extends
+        ApiGatewayHandler<TermsConditionsResponse, TermsConditionsResponse> {
 
 
     private final TermsAndConditionsService service;
@@ -20,19 +21,27 @@ public class UpdatePersonTermsConditionsHandler extends ApiGatewayHandler<TermsC
     }
 
     @Override
-    protected void validateRequest(TermsConditionsResponse termsConditionsResponse, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+    protected void validateRequest(
+            TermsConditionsResponse input, RequestInfo requestInfo, Context context)
+            throws ApiGatewayException {
         requestInfo.getPersonCristinId();
+        requestInfo.getCurrentCustomer();
     }
 
     @Override
-    protected TermsConditionsResponse processInput(TermsConditionsResponse input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+    protected TermsConditionsResponse processInput(
+            TermsConditionsResponse input, RequestInfo requestInfo, Context context)
+            throws ApiGatewayException {
         return service.updateTermsAndConditions(
                 requestInfo.getPersonCristinId(),
-                input.termsConditionsUri(), requestInfo.getCurrentCustomer());
+                input.termsConditionsUri(),
+                requestInfo.getCurrentCustomer()
+        );
     }
 
     @Override
-    protected Integer getSuccessStatusCode(TermsConditionsResponse termsConditionsResponse, TermsConditionsResponse o) {
+    protected Integer getSuccessStatusCode(
+            TermsConditionsResponse termsConditionsResponse, TermsConditionsResponse o) {
         return HttpURLConnection.HTTP_OK;
     }
 }

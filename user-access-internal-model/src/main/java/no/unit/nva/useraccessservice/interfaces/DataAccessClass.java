@@ -19,6 +19,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @return an URI id.
      */
+    @SuppressWarnings("PMD.ShortMethodName")
     URI id();
 
     /**
@@ -78,7 +79,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @param item the object to validate
      **/
-    static void validateBeforePersist(DataAccessClass<?> item) throws IllegalArgumentException {
+    static void validateBeforePersist(DataAccessClass<?> item) {
         validateBeforeFetch(item);
         if (isNull(item.created())) {
             throw new IllegalArgumentException("created not set");
@@ -99,7 +100,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @param item the object to validate
      **/
-    static void validateBeforeFetch(DataAccessClass<?> item) throws IllegalArgumentException {
+    static void validateBeforeFetch(DataAccessClass<?> item) {
         if (isNull(item.id())) {
             throw new IllegalArgumentException("id not set");
         }

@@ -15,6 +15,7 @@ import java.time.Instant;
 
 import static java.util.Objects.isNull;
 
+@SuppressWarnings("PMD.ShortMethodName")
 @DynamoDbImmutable(builder = TermsConditions.Builder.class)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
 public record TermsConditions(
@@ -60,13 +61,13 @@ public record TermsConditions(
 
     public static class Builder {
 
-        private URI id;
-        private String type;
+        private URI withId;
+        private String withType;
         private Instant createdInstant;
         private Instant modifiedInstant;
         private URI modifiedById;
         private URI termsUri;
-        private URI owner;
+        private URI withOwner;
 
         /**
          * Set the id of the TermsConditions.
@@ -75,7 +76,7 @@ public record TermsConditions(
          * @return a builder with the id set.
          */
         public Builder id(URI withId) {
-            this.id = withId;
+            this.withId = withId;
             return this;
         }
 
@@ -86,7 +87,7 @@ public record TermsConditions(
          * @return a builder with the type set.
          */
         public Builder type(String withType) {
-            this.type = withType;
+            this.withType = withType;
             return this;
         }
 
@@ -108,7 +109,7 @@ public record TermsConditions(
          * @return a builder with the owner set.
          */
         public Builder owner(URI currentOwner) {
-            this.owner = currentOwner;
+            this.withOwner = currentOwner;
             return this;
         }
 
@@ -151,18 +152,18 @@ public record TermsConditions(
          * @return a TermsConditions object.
          */
         public TermsConditions build() {
-            if (isNull(type)) {
+            if (isNull(withType)) {
                 type("TermsConditions");
             }
             if (isNull(createdInstant)) {
                 created(Instant.now());
                 modified(createdInstant);
             }
-            if(isNull(owner)) {
-                owner = modifiedById;
+            if(isNull(withOwner)) {
+                withOwner = modifiedById;
             }
 
-            return new TermsConditions(id, type, createdInstant, owner,modifiedInstant, modifiedById, termsUri);
+            return new TermsConditions(withId, withType, createdInstant, withOwner,modifiedInstant, modifiedById, termsUri);
         }
     }
 

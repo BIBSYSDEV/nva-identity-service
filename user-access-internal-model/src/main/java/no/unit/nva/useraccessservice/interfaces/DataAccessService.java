@@ -17,7 +17,7 @@ public interface DataAccessService<T extends DataAccessClass<T>> {
      * @param item the item to persist.
      * @throws IllegalArgumentException before persisting, if the item is incomplete.
      */
-    void persist(T item) throws IllegalArgumentException;
+    void persist(T item);
 
     /**
      * Fetches an item from the database.
@@ -28,7 +28,7 @@ public interface DataAccessService<T extends DataAccessClass<T>> {
      * @throws IllegalArgumentException if the item doesn't contain valid lookup keys.
      * @throws NotFoundException        if the item does not exist.
      */
-    T fetch(T item) throws IllegalArgumentException, NotFoundException;
+    T fetch(T item) throws NotFoundException;
 
 
     /**
@@ -38,5 +38,5 @@ public interface DataAccessService<T extends DataAccessClass<T>> {
      * @throws IllegalArgumentException if the item doesn't contain valid lookup keys.
      * @throws NotFoundException        if the item does not exist.
      */
-    void delete(T item) throws IllegalArgumentException, NotFoundException;
+    void delete(T item) throws NotFoundException;
 }

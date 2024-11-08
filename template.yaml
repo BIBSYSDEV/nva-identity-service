@@ -453,6 +453,27 @@ Resources:
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 
+  UpdateTermsConditionsHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: user-access-handlers
+      Handler: no.unit.nva.handlers.UpdateTermsConditionsHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
+          CUSTOMERS_TABLE_NAME: !Ref NvaPersonInfoTable
+#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaPersonInfoTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /terms-and-conditions/{cristinId}
+            Method: put
+            RestApiId: !Ref UsersAndRolesApi
+
   CustomerSelectionHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -694,6 +715,31 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+      Tags:
+        - Key: IncludedInBackup
+          Value: 'true'
+
+  NvaPersonInfoTable:
+    Type: AWS::DynamoDB::Table
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    Properties:
+      TableName: !Sub nva-id-type-persistent-objects-${AWS::StackName}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: type
+          KeyType: RANGE
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
       Tags:
         - Key: IncludedInBackup
           Value: 'true'
@@ -1040,8 +1086,6 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
-
-
 
   DefaultLambdaPermissions:
     Type: AWS::IAM::Policy

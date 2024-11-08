@@ -17,7 +17,6 @@ import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_C
 
 public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAccessService<T> {
     private final DynamoDbTable<T> table;
-    private final DynamoDbEnhancedClient enhancedClient;
 
     @JacocoGenerated
     public DynamoCrudService(String tableName, Class<T> tClass) {
@@ -25,7 +24,7 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
     }
 
     public DynamoCrudService(DynamoDbClient dynamoDbClient, String tableName, Class<T> tClass) {
-        enhancedClient = DynamoDbEnhancedClient.builder()
+        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(dynamoDbClient)
                 .build();
         this.table = enhancedClient.table(tableName, TableSchema.fromImmutableClass(tClass));
@@ -38,7 +37,7 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
      * @throws IllegalArgumentException if the item is invalid.
      */
     @Override
-    public void persist(T newItem) throws IllegalArgumentException {
+    public void persist(T newItem)  {
         T.validateBeforePersist(newItem);
         optionalFetchBy(newItem).ifPresentOrElse(
                 oldItem -> table.putItem(oldItem.merge(newItem)),
@@ -55,7 +54,7 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
      * @throws NotFoundException if the item does not exist.
      */
     @Override
-    public T fetch(T item) throws IllegalArgumentException, NotFoundException {
+    public T fetch(T item) throws NotFoundException {
         T.validateBeforeFetch(item);
         return optionalFetchBy(item)
                 .orElseThrow(() -> new NotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
@@ -69,7 +68,7 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
      * @throws NotFoundException if the item does not exist.
      */
     @Override
-    public void delete(T item) throws IllegalArgumentException, NotFoundException {
+    public void delete(T item) throws NotFoundException {
         fetch(item);
         table.deleteItem(item);
     }

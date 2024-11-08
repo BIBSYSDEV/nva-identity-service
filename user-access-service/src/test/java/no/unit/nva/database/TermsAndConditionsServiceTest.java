@@ -1,58 +1,61 @@
 package no.unit.nva.database;
 
-import no.unit.nva.useraccessservice.dao.TermsConditions;
+import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
+import static no.unit.nva.database.TermsAndConditionsService.PERSISTED_ENTITY;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TermsAndConditionsServiceTest {
 
-    public static final String TABLE_NAME = "nonExistentTableName";
-    private static DynamoCrudService<TermsConditions> termsConditionsService;
+    private static TermsAndConditionsService termsConditionsService;
+    private static DynamoDbClient client;
 
     @BeforeAll
     static void initialize() {
-        var client = DynamoDbTestClientProvider
+        client = DynamoDbTestClientProvider
                 .geClient();
         new DynamoDbTableCreator(client)
-                .createTable(TABLE_NAME);
+                .createTable(PERSISTED_ENTITY);
 
-        termsConditionsService = new DynamoCrudService<>(client, TABLE_NAME, TermsConditions.class);
-     
+        termsConditionsService = new TermsAndConditionsService(client);
+
     }
 
     @Test
     void shouldUpdateTermsConditions() throws NotFoundException {
         var userIdentifier = randomUri();
-        var termsConditionsDao = TermsConditions.builder()
-                .id(userIdentifier)
-                .modifiedBy(userIdentifier)
-                .termsConditionsUri(randomUri())
-                .build()
-                .upsert(termsConditionsService);
+        var expectedResponse = TermsConditionsResponse.builder()
+                .withTermsConditionsUri(randomUri())
+                .build();
 
-        var termsConditions = TermsConditions.builder()
-                .id(userIdentifier)
-                .build()
-                .fetch(termsConditionsService);
+        var response = termsConditionsService
+                .updateTermsAndConditions(
+                        userIdentifier,
+                        expectedResponse.termsConditionsUri(),
+                        userIdentifier
+                );
+
+        var fetchedResponse = termsConditionsService
+                .getTermsAndConditionsByPerson(userIdentifier);
 
 
-        assertThat(termsConditionsDao, is(equalTo(termsConditions)));
+        assertThat(expectedResponse, is(equalTo(response)));
+        assertThat(expectedResponse, is(equalTo(fetchedResponse)));
     }
 
     @Test
-    void shouldThrowExceptionWhenFetchingNonExistentTermsConditions() {
-        assertThrows(NotFoundException.class,
-                () -> TermsConditions.builder()
-                        .id(randomUri())
-                        .build()
-                        .fetch(termsConditionsService));
+    void shouldReturnNullWhenTermsConditionsNotFound() {
+        var userIdentifier = randomUri();
+        var termsAndConditionsByPerson = termsConditionsService.getTermsAndConditionsByPerson(userIdentifier);
+        assertNull(termsAndConditionsByPerson.termsConditionsUri());
     }
 
 }

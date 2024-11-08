@@ -81,18 +81,18 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      **/
     static void validateBeforePersist(DataAccessClass<?> item) {
         validateBeforeFetch(item);
-        if (isNull(item.created())) {
-            throw new IllegalArgumentException("created not set");
-        }
+        //        if (isNull(item.created())) {
+        //            throw new IllegalArgumentException("created not set");
+        //        }
         if (isNull(item.modified())) {
             throw new IllegalArgumentException("modified not set");
         }
         if (isNull(item.owner())) {
             throw new IllegalArgumentException("owner not set");
         }
-        if (isNull(item.modifiedBy())) {
-            throw new IllegalArgumentException("modifiedBy not set");
-        }
+        //        if (isNull(item.modifiedBy())) {
+        //            throw new IllegalArgumentException("modifiedBy not set");
+        //        }
     }
 
     /**
@@ -104,9 +104,9 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
         if (isNull(item.id())) {
             throw new IllegalArgumentException("id not set");
         }
-        if (isNull(item.type())) {
-            throw new IllegalArgumentException("type not set");
-        }
+        //        if (isNull(item.type())) {
+        //            throw new IllegalArgumentException("type not set");
+        //        }
     }
 
 }

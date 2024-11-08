@@ -426,7 +426,7 @@ public class UserSelectionUponLoginHandler
         claims.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, arguments.allowedCustomersString()));
         claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, arguments.person().getId().toString()));
         claims.add(createAttribute(IMPERSONATED_BY_CLAIM, isNull(arguments.impersonatedBy()) ? "" : arguments.impersonatedBy()));
-        claims.add(createAttribute(CURRENT_TERMS, arguments.currentTerms().toString()));
+        claims.add(createAttribute(CURRENT_TERMS, stringOrNull(arguments.currentTerms())));
         claims.add(createAttribute(CUSTOMER_ACCEPTED_TERMS, stringOrNull(arguments.acceptedTerms())));
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(arguments.currentCustomer(), arguments.currentUser(), claims);
         return claims;

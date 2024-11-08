@@ -37,11 +37,17 @@ public class DynamoCrudServiceTest {
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(termsConditionsService);
+        var persistedTwice = persistedTermsConditions
+                .merge(TermsConditions.builder()
+                        .modifiedBy(randomUri())
+                        .termsConditionsUri(randomUri())
+                        .build())
+                .upsert(termsConditionsService);
 
         var fetchedTermsConditions = persistedTermsConditions
                 .fetch(termsConditionsService);
 
-        assertThat(fetchedTermsConditions, is(equalTo(persistedTermsConditions)));
+        assertThat(fetchedTermsConditions, is(equalTo(persistedTwice)));
 
     }
 

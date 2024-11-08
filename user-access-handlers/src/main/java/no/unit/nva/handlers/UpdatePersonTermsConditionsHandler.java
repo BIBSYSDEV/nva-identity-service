@@ -26,7 +26,9 @@ public class UpdatePersonTermsConditionsHandler extends ApiGatewayHandler<TermsC
 
     @Override
     protected TermsConditionsResponse processInput(TermsConditionsResponse input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        return service.updateTermsAndConditions(requestInfo.getPersonCristinId(), input.termsConditionsUri());
+        return service.updateTermsAndConditions(
+                requestInfo.getPersonCristinId(),
+                input.termsConditionsUri(), requestInfo.getCurrentCustomer());
     }
 
     @Override

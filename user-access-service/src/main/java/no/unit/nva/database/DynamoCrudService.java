@@ -31,6 +31,12 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
         this.table = enhancedClient.table(tableName, TableSchema.fromImmutableClass(tClass));
     }
 
+    /**
+     * Persists an item in the database.
+     *
+     * @param newItem the item to persist.
+     * @throws IllegalArgumentException if the item is invalid.
+     */
     @Override
     public void persist(T newItem) throws IllegalArgumentException {
         T.validateBeforePersist(newItem);
@@ -40,15 +46,30 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
         );
     }
 
+    /**
+     * Fetches an item from the database.
+     *
+     * @param item the item to fetch.
+     * @return the fetched item.
+     * @throws IllegalArgumentException if the item doesn't contain valid lookup keys.
+     * @throws NotFoundException if the item does not exist.
+     */
     @Override
-    public T fetch(T item) throws NotFoundException {
+    public T fetch(T item) throws IllegalArgumentException, NotFoundException {
         T.validateBeforeFetch(item);
         return optionalFetchBy(item)
-                .orElseThrow(() -> new NotFoundException(DataAccessService.RESOURCE_NOT_FOUND_MESSAGE));
+                .orElseThrow(() -> new NotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
     }
 
+    /**
+     * Deletes an item from the database.
+     *
+     * @param item the item to delete.
+     * @throws IllegalArgumentException if the item doesn't contain valid lookup keys.
+     * @throws NotFoundException if the item does not exist.
+     */
     @Override
-    public void delete(T item) throws NotFoundException {
+    public void delete(T item) throws IllegalArgumentException, NotFoundException {
         fetch(item);
         table.deleteItem(item);
     }

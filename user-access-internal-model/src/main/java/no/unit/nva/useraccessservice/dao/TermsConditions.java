@@ -21,6 +21,7 @@ public record TermsConditions(
         @DynamoDbPartitionKey URI id,
         @DynamoDbSortKey String type,
         Instant created,
+        URI owner,
         Instant modified,
         URI modifiedBy,
         URI termsConditionsUri
@@ -46,6 +47,7 @@ public record TermsConditions(
                 .id(id())
                 .type(type())
                 .created(created())
+                .owner(owner())     //in a persist operation, the owner should not change
                 .modified(Instant.now())
                 .modifiedBy(item.modifiedBy())
                 .termsConditionsUri(item.termsConditionsUri())
@@ -62,39 +64,92 @@ public record TermsConditions(
         private String type;
         private Instant createdInstant;
         private Instant modifiedInstant;
-        private URI modifiedByUserId;
+        private URI modifiedById;
         private URI termsUri;
+        private URI owner;
 
+        /**
+         * Set the id of the TermsConditions.
+         *
+         * @param withId the id of the TermsConditions.
+         * @return a builder with the id set.
+         */
         public Builder id(URI withId) {
             this.id = withId;
             return this;
         }
 
+        /**
+         * Set the type of the TermsConditions.
+         *
+         * @param withType the type of the TermsConditions.
+         * @return a builder with the type set.
+         */
         public Builder type(String withType) {
             this.type = withType;
             return this;
         }
 
+        /**
+         * Set the creation time of the TermsConditions.
+         *
+         * @param created the creation time of the TermsConditions.
+         * @return a builder with the creation time set.
+         */
         public Builder created(Instant created) {
             this.createdInstant = created;
             return this;
         }
 
+        /**
+         * Set the owner of the TermsConditions.
+         *
+         * @param currentOwner the owner of the TermsConditions.
+         * @return a builder with the owner set.
+         */
+        public Builder owner(URI currentOwner) {
+            this.owner = currentOwner;
+            return this;
+        }
+
+        /**
+         * Set the modification time of the TermsConditions.
+         *
+         * @param modified the modification time of the TermsConditions.
+         * @return a builder with the modification time set.
+         */
         public Builder modified(Instant modified) {
             this.modifiedInstant = modified;
             return this;
         }
 
+        /**
+         * Set the user that modified the TermsConditions.
+         *
+         * @param modifiedBy the user that modified the TermsConditions.
+         * @return a builder with the user that modified the TermsConditions set.
+         */
         public Builder modifiedBy(URI modifiedBy) {
-            this.modifiedByUserId = modifiedBy;
+            this.modifiedById = modifiedBy;
             return this;
         }
 
+        /**
+         * Set the URI of the TermsConditions.
+         *
+         * @param termsConditionsUri the URI of the TermsConditions.
+         * @return a builder with the URI set.
+         */
         public Builder termsConditionsUri(URI termsConditionsUri) {
             this.termsUri = termsConditionsUri;
             return this;
         }
 
+        /**
+         * Build the TermsConditions.
+         *
+         * @return a TermsConditions object.
+         */
         public TermsConditions build() {
             if (isNull(type)) {
                 type("TermsConditions");
@@ -103,7 +158,11 @@ public record TermsConditions(
                 created(Instant.now());
                 modified(createdInstant);
             }
-            return new TermsConditions(id, type, createdInstant, modifiedInstant, modifiedByUserId, termsUri);
+            if(isNull(owner)) {
+                owner = modifiedById;
+            }
+
+            return new TermsConditions(id, type, createdInstant, owner,modifiedInstant, modifiedById, termsUri);
         }
     }
 

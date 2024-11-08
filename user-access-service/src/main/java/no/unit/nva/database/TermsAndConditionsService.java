@@ -48,9 +48,10 @@ public class TermsAndConditionsService {
                 .build();
     }
 
-    public TermsConditionsResponse updateTermsAndConditions(URI cristinId, URI termsConditions) throws NotFoundException {
+    public TermsConditionsResponse updateTermsAndConditions(URI cristinId, URI termsConditions, URI userId) throws NotFoundException {
         var upserted = TermsConditions.builder()
                 .id(cristinId)
+                .modifiedBy(userId)
                 .termsConditionsUri(termsConditions)
                 .build()
                 .upsert(crudService);

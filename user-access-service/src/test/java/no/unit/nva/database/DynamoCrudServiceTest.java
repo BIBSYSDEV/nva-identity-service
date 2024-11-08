@@ -33,6 +33,7 @@ public class DynamoCrudServiceTest {
     void shouldPersistPreferencesAndLicense() throws NotFoundException {
         var persistedTermsConditions = TermsConditions.builder()
                 .id(randomUri())
+                .modifiedBy(randomUri())
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(termsConditionsService);
@@ -50,6 +51,7 @@ public class DynamoCrudServiceTest {
         var userIdentifier = randomUri();
         var termsConditionsDao = TermsConditions.builder()
                 .id(userIdentifier)
+                .modifiedBy(randomUri())
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(termsConditionsService);
@@ -68,6 +70,7 @@ public class DynamoCrudServiceTest {
         var userIdentifier = randomUri();
         var termsConditions = TermsConditions.builder()
                 .id(userIdentifier)
+                .modifiedBy(randomUri())
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(termsConditionsService);

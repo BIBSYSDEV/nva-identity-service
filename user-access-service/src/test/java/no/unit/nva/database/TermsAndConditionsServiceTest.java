@@ -52,6 +52,38 @@ public class TermsAndConditionsServiceTest {
     }
 
     @Test
+    void shouldReturnCurrentTermsConditions() {
+        var currentTermsAndConditions = termsConditionsService.getCurrentTermsAndConditions();
+        assertThat(currentTermsAndConditions.termsConditionsUri(), is(equalTo(TermsAndConditionsService.TERMS_URL)));
+    }
+
+    @Test
+    void shouldReturnTermsConditionsByPerson() throws NotFoundException {
+        var userIdentifier = randomUri();
+        var expectedResponse = TermsConditionsResponse.builder()
+                .withTermsConditionsUri(randomUri())
+                .build();
+
+        termsConditionsService
+                .updateTermsAndConditions(
+                        userIdentifier,
+                        expectedResponse.termsConditionsUri(),
+                        userIdentifier
+                );
+
+        var fetchedResponse = termsConditionsService
+                .getTermsAndConditionsByPerson(userIdentifier);
+
+        assertThat(expectedResponse, is(equalTo(fetchedResponse)));
+    }
+
+    @Test
+    void shouldReturnAllTermsConditions() {
+        var allTermsAndConditions = termsConditionsService.getAllTermsAndConditions();
+        assertThat(allTermsAndConditions.size(), is(equalTo(1)));
+    }
+
+    @Test
     void shouldReturnNullWhenTermsConditionsNotFound() {
         var userIdentifier = randomUri();
         var termsAndConditionsByPerson = termsConditionsService.getTermsAndConditionsByPerson(userIdentifier);

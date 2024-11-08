@@ -3,6 +3,7 @@ package no.unit.nva.database;
 import no.unit.nva.useraccessservice.dao.TermsConditions;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.net.URI;
@@ -14,11 +15,11 @@ import static nva.commons.core.attempt.Try.attempt;
 public class TermsAndConditionsService {
 
     public static final String PERSISTED_ENTITY = "PersistedEntity";
-    private static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
+    public static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
 
     private final DynamoCrudService<TermsConditions> crudService;
 
-
+    @JacocoGenerated
     public TermsAndConditionsService() {
         this(DEFAULT_DYNAMO_CLIENT);
     }

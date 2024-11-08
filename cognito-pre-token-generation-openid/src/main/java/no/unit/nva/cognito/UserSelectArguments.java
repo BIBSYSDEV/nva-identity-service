@@ -28,7 +28,7 @@ public record UserSelectArguments(
     }
 
     public Builder copy() {
-        return new Builder()
+        return builder()
                 .withAuthenticationDetails(authenticationDetails)
                 .withPerson(person)
                 .withCurrentCustomer(currentCustomer)

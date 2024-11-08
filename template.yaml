@@ -462,7 +462,6 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaPersonInfoTable
-#          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaPersonInfoTable
@@ -470,7 +469,7 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /terms-and-conditions/{cristinId}
+            Path: /users/mine/accepted-terms
             Method: put
             RestApiId: !Ref UsersAndRolesApi
 

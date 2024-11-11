@@ -164,7 +164,32 @@ paths:
         responses: {}
         httpMethod: POST
         type: aws_proxy
-
+  /users/mine/accepted-terms:
+    put:
+      summary: Updates Terms and agreement for an existing User (person)
+      operationId: updateUserTermsConditions
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertTermsConditionsRequest'
+      responses:
+        '202':
+          description: Successful request for updating the user. User will be eventually updated
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Relative path to the user URI
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateUserHandler.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: aws_proxy
   /impersonation/stop:
     post:
       operationId: impersonationStop
@@ -414,6 +439,15 @@ components:
             $ref: '#/components/schemas/AccessRight'
         viewingScope:
           $ref: '#/components/schemas/ViewingScope'
+    UpsertTermsConditionsRequest:
+      type: object
+      required:
+        - termsConditionsUri
+      properties:
+        termsConditionsUri:
+          type: string
+          description: URI to the terms and conditions
+          format: uri
     CreateUserRequest:
       type: object
       required:

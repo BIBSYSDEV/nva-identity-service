@@ -76,7 +76,6 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      */
     T merge(T item);
 
-
     /**
      * Validates that every field needed to persist the object is present.
      *

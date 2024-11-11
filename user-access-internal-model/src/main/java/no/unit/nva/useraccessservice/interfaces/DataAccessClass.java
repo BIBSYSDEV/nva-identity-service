@@ -1,5 +1,7 @@
 package no.unit.nva.useraccessservice.interfaces;
 
+import nva.commons.core.JacocoGenerated;
+
 import java.net.URI;
 import java.time.Instant;
 
@@ -74,25 +76,29 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      */
     T merge(T item);
 
+
     /**
      * Validates that every field needed to persist the object is present.
      *
      * @param item the object to validate
      **/
+    @JacocoGenerated
     static void validateBeforePersist(DataAccessClass<?> item) {
         validateBeforeFetch(item);
-        //        if (isNull(item.created())) {
-        //            throw new IllegalArgumentException("created not set");
-        //        }
+        // in this implementation, created is always set
+        if (isNull(item.created())) {
+            throw new IllegalArgumentException("created not set");
+        }
         if (isNull(item.modified())) {
             throw new IllegalArgumentException("modified not set");
         }
         if (isNull(item.owner())) {
             throw new IllegalArgumentException("owner not set");
         }
-        //        if (isNull(item.modifiedBy())) {
-        //            throw new IllegalArgumentException("modifiedBy not set");
-        //        }
+        // in this implementation, modifiedBy is always set
+        if (isNull(item.modifiedBy())) {
+            throw new IllegalArgumentException("modifiedBy not set");
+        }
     }
 
     /**
@@ -100,13 +106,15 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @param item the object to validate
      **/
+    @JacocoGenerated
     static void validateBeforeFetch(DataAccessClass<?> item) {
         if (isNull(item.id())) {
             throw new IllegalArgumentException("id not set");
         }
-        //        if (isNull(item.type())) {
-        //            throw new IllegalArgumentException("type not set");
-        //        }
+        // in this implementation, type is always set
+        if (isNull(item.type())) {
+            throw new IllegalArgumentException("type not set");
+        }
     }
 
 }

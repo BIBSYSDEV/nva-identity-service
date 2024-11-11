@@ -78,7 +78,7 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
                 .partitionValue(item.id().toString())
                 .sortValue(item.type())
                 .build();
-        var result = table.getItem(r -> r.key(key));
+        var result = table.getItem(requestBuilder -> requestBuilder.key(key));
         return Optional.ofNullable(result);
     }
 }

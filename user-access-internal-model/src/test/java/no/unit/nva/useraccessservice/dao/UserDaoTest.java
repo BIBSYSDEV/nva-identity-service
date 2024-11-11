@@ -91,14 +91,14 @@ class UserDaoTest {
 
     @Test
     void extractRolesDoesNotThrowExceptionWhenRolesAreValid()
-            throws InvalidEntryInternalException, InvalidInputException {
+            throws InvalidEntryInternalException {
         UserDao userWithValidRole = UserDao.fromUserDto(createUserWithRolesAndInstitution());
         Executable action = userWithValidRole::toUserDto;
         assertDoesNotThrow(action);
     }
 
     @Test
-    void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() throws BadRequestException {
+    void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() {
 
         var includedCristinUnit = randomCristinOrgId();
         var excludedCristinUnit = randomCristinOrgId();
@@ -244,7 +244,7 @@ class UserDaoTest {
 
     @Test
     void shouldContainListOfCristinOrganizationIdsThatDefineCuratorsScope()
-            throws InvalidEntryInternalException, BadRequestException {
+            throws InvalidEntryInternalException {
         URI someCristinUnit = randomCristinOrgId();
         URI someOtherCristinUnit = randomCristinOrgId();
         Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);

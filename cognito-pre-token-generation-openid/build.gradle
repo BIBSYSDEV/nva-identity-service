@@ -17,6 +17,7 @@ dependencies {
     implementation libs.nva.core
     implementation libs.nva.secrets
     implementation libs.nva.auth
+    implementation libs.nva.json
     implementation libs.aws.lambda.events
     implementation libs.zalando.problem
 

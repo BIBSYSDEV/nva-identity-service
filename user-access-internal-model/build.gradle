@@ -2,6 +2,7 @@ dependencies {
 
     implementation libs.bundles.logging
     implementation libs.nva.core
+    implementation libs.nva.json
     implementation libs.nva.apigateway
     implementation libs.bundles.jackson
     implementation libs.aws.sdk2.dynamodb

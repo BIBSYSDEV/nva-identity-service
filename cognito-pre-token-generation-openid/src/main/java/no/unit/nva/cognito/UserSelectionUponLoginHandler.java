@@ -19,7 +19,7 @@ import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.core.attempt.Try.attempt;
 

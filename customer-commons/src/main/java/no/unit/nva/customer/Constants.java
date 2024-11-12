@@ -9,7 +9,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.List;
 
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 @JacocoGenerated
 public final class Constants {

@@ -1,4 +1,4 @@
-package no.unit.nva.useraccessservice.interfaces;
+package no.unit.nva.database.interfaces;
 
 import nva.commons.core.JacocoGenerated;
 

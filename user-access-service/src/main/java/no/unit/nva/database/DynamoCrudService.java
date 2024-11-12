@@ -1,8 +1,9 @@
 package no.unit.nva.database;
 
 
-import no.unit.nva.useraccessservice.interfaces.DataAccessClass;
-import no.unit.nva.useraccessservice.interfaces.DataAccessService;
+
+import no.unit.nva.database.interfaces.DataAccessClass;
+import no.unit.nva.database.interfaces.DataAccessService;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -13,7 +14,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.Optional;
 
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAccessService<T> {
     private final DynamoDbTable<T> table;

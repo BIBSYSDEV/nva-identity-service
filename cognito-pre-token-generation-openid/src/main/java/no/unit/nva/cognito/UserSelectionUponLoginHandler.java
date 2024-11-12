@@ -177,7 +177,7 @@ public class UserSelectionUponLoginHandler
                     impersonatedBy);
             injectAccessRightsToEventResponse(input, accessRights);
         } else {
-            injectAccessRightsToEventResponse(input, Collections.emptyList());
+            injectAccessRightsToEventResponse(input, Collections.emptySet());
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -225,7 +225,7 @@ public class UserSelectionUponLoginHandler
         return isNull(impersonating) ? null : authenticationDetails.getUsername();
     }
 
-    private List<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(Person person,
+    private Set<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(Person person,
                                                                           AuthenticationDetails authenticationDetails,
                                                                           String impersonatedBy) {
         var start = Instant.now();
@@ -251,9 +251,9 @@ public class UserSelectionUponLoginHandler
         return accessRights;
     }
 
-    private List<String> updateUserAttributesInCognito(Person person,
+    private Set<String> updateUserAttributesInCognito(Person person,
                                                        Set<CustomerDto> customers,
-                                                       List<UserDto> users,
+                                                       Set<UserDto> users,
                                                        AuthenticationDetails authenticationDetails,
                                                        String impersonatedBy) {
 
@@ -280,7 +280,7 @@ public class UserSelectionUponLoginHandler
         return accessRights;
     }
 
-    private List<UserDto> createUsers(Person person,
+    private Set<UserDto> createUsers(Person person,
                                       Set<CustomerDto> customers,
                                       AuthenticationDetails authenticationDetails) {
         var userCreationContext = new UserCreationContext(person,
@@ -369,7 +369,7 @@ public class UserSelectionUponLoginHandler
         return Optional.empty();
     }
 
-    private Set<RoleName> rolesForCustomer(List<UserDto> usersForPerson, CustomerDto customer) {
+    private Set<RoleName> rolesForCustomer(Set<UserDto> usersForPerson, CustomerDto customer) {
         if (isNull(customer)) {
             return Collections.emptySet();
         }
@@ -545,41 +545,41 @@ public class UserSelectionUponLoginHandler
     }
 
     private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
-                                                   List<String> accessRights) {
+                                                   Set<String> accessRights) {
         input.setResponse(Response.builder()
                 .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
                 .build());
     }
 
-    private List<UserAccessRightForCustomer> createAccessRightForCustomer(List<UserDto> personUsers,
+    private Set<UserAccessRightForCustomer> createAccessRightForCustomer(Set<UserDto> personUsers,
                                                                           Set<CustomerDto> customers,
                                                                           CustomerDto currentCustomer) {
         return personUsers.stream()
                 .map(user -> UserAccessRightForCustomer.fromUser(user, customers))
                 .flatMap(Collection::stream)
                 .filter(ac -> ac.getCustomer().equals(currentCustomer))
-                .toList();
+                .collect(Collectors.toSet());
     }
 
-    private List<String> createAccessRightsWithCustomerForCurrentCustomer(List<UserDto> personUsers,
+    private Set<String> createAccessRightsWithCustomerForCurrentCustomer(Set<UserDto> personUsers,
                                                                           Set<CustomerDto> customers,
                                                                           CustomerDto currentCustomer) {
         return createAccessRightForCustomer(personUsers, customers, currentCustomer)
                 .stream()
                 .map(UserAccessRightForCustomer::toString)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
-    private List<String> createAccessRightsForCurrentCustomer(List<UserDto> personUsers, Set<CustomerDto> customers,
+    private Set<String> createAccessRightsForCurrentCustomer(Set<UserDto> personUsers, Set<CustomerDto> customers,
                                                               CustomerDto currentCustomer) {
         return createAccessRightForCustomer(personUsers, customers, currentCustomer)
                 .stream()
                 .map(UserAccessRightForCustomer::getAccessRight)
                 .map(AccessRight::toPersistedString)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
-    private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride) {
+    private ClaimsOverrideDetails buildOverrideClaims(Set<String> groupsToOverride) {
         var groups = GroupConfiguration.builder()
                 .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
                 .build();

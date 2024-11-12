@@ -54,7 +54,6 @@ import static org.hamcrest.core.IsEqual.equalTo;
 @WireMockTest(httpsEnabled = true)
 class UserEntriesCreatorForPersonTest {
 
-    public static final int SINGLE_USER = 0;
     private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
     private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
     private UserEntriesCreatorForPerson userCreator;
@@ -125,7 +124,7 @@ class UserEntriesCreatorForPersonTest {
         var userCreationContext = new UserCreationContext(person, customers);
         var users = userCreator.createUsers(userCreationContext);
         assertThat(users.size(), is(equalTo(1)));
-        var actualUser = users.get(SINGLE_USER);
+        var actualUser = users.stream().findFirst().orElseThrow();
         assertThat(users, contains(actualUser));
         assertThat(actualUser.getCristinId(), is(equalTo(person.getId())));
     }
@@ -169,7 +168,7 @@ class UserEntriesCreatorForPersonTest {
                 .collect(Collectors.toList());
 
         var users = userCreator.createUsers(userCreationContext);
-        var actualCustomers = users.stream().map(UserDto::getInstitution).collect(Collectors.toList());
+        var actualCustomers = users.stream().map(UserDto::getInstitution).toList();
 
         assertThat(expectedCustomers, containsInAnyOrder(actualCustomers.toArray(URI[]::new)));
     }

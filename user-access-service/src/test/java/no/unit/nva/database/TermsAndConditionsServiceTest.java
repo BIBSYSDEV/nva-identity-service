@@ -16,11 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public class TermsAndConditionsServiceTest {
 
     private static TermsAndConditionsService termsConditionsService;
-    private static DynamoDbClient client;
 
     @BeforeAll
     static void initialize() {
-        client = DynamoDbTestClientProvider
+        DynamoDbClient client = DynamoDbTestClientProvider
                 .geClient();
         new DynamoDbTableCreator(client)
                 .createTable(PERSISTED_ENTITY);

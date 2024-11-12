@@ -16,6 +16,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -116,10 +117,10 @@ public class UserDto implements WithCopy<Builder>, Typed {
     public Set<AccessRight> getAccessRights() {
         return getRoles().stream()
                 .flatMap(role -> role.getAccessRights().stream())
-                .collect(Collectors.toUnmodifiableSet());
+                .collect(Collectors.toSet());
     }
 
-    public void setAccessRights(Set<AccessRight> accessRights) {
+    public void setAccessRights(List<AccessRight> accessRights) {
         //Do nothing
     }
 
@@ -177,17 +178,6 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.roles = roles;
     }
 
-
-    public ViewingScope getViewingScope() {
-        return Optional.ofNullable(viewingScope)
-                .or(this::defaultViewingScopeForUsersWithInstitution)
-                .orElse(null);
-    }
-
-    public void setViewingScope(ViewingScope viewingScope) {
-        this.viewingScope = viewingScope;
-    }
-
     public Stream<String> generateRoleClaims() {
         return roles.stream()
                 .map(RoleDto::getRoleName)
@@ -210,6 +200,16 @@ public class UserDto implements WithCopy<Builder>, Typed {
                 .withAffiliation(getAffiliation());
     }
 
+    public ViewingScope getViewingScope() {
+        return Optional.ofNullable(viewingScope)
+                .or(this::defaultViewingScopeForUsersWithInstitution)
+                .orElse(null);
+    }
+
+    public void setViewingScope(ViewingScope viewingScope) {
+        this.viewingScope = viewingScope;
+    }
+
     @Override
     @JacocoGenerated
     public int hashCode() {
@@ -224,9 +224,10 @@ public class UserDto implements WithCopy<Builder>, Typed {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof UserDto userDto)) {
+        if (!(o instanceof UserDto)) {
             return false;
         }
+        UserDto userDto = (UserDto) o;
         return Objects.equals(getUsername(), userDto.getUsername())
                 && Objects.equals(getInstitution(), userDto.getInstitution())
                 && Objects.equals(getGivenName(), userDto.getGivenName())
@@ -239,16 +240,14 @@ public class UserDto implements WithCopy<Builder>, Typed {
                 && Objects.equals(getAffiliation(), userDto.getAffiliation());
     }
 
-    @Override
-    public String toString() {
-        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
-    }
-
-
     private Optional<ViewingScope> defaultViewingScopeForUsersWithInstitution() {
         return Optional.ofNullable(getInstitutionCristinId()).map(ViewingScope::defaultViewingScope);
     }
 
+    @Override
+    public String toString() {
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
+    }
 
     public static final class Builder {
 

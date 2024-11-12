@@ -168,7 +168,7 @@ class UserEntriesCreatorForPersonTest {
                 .collect(Collectors.toList());
 
         var users = userCreator.createUsers(userCreationContext);
-        var actualCustomers = users.stream().map(UserDto::getInstitution).toList();
+        var actualCustomers = users.stream().map(UserDto::getInstitution).collect(Collectors.toList());
 
         assertThat(expectedCustomers, containsInAnyOrder(actualCustomers.toArray(URI[]::new)));
     }

@@ -127,6 +127,7 @@ paths:
             "application/json":
               schema:
                 $ref: '#/components/schemas/User'
+
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetUserHandler.Arn}/invocations
@@ -177,13 +178,30 @@ paths:
             schema:
               $ref: '#/components/schemas/UpsertTermsConditionsRequest'
       responses:
-        '202':
-          description: Successful request for updating the user. User will be eventually updated
-          headers:
-            Location:
+        '200':
+          description: OK
+          content:
+            application/json:
               schema:
-                type: string
-              description: Relative path to the user URI
+                $ref: '#/components/schemas/UpsertTermsConditionsRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                UnauthorizedExample:
+                  $ref: '#/components/examples/UnauthorizedProblemExample'
+        '502':
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateUserHandler.Arn}/invocations
@@ -237,12 +255,13 @@ paths:
             "application/json":
               schema:
                 $ref: '#/components/schemas/TermsConditions'
-        400:
+        '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetCurrentTermsConditionsHandler.Arn}/invocations
@@ -575,3 +594,32 @@ components:
         type:
           type: string
           description: A URI describing the error and mitigations, in generic cases, this is about:blank
+  examples:
+    BadRequestProblemExample:
+      value:
+        type: about:blank
+        status: 400
+        title: Bad Request
+        detail: 'Identifier is not a valid UUID: HelloWorld!'
+        instance: /path/to/resource
+    UnauthorizedProblemExample:
+      value:
+        type: about:blank
+        status: 401
+        title: Unauthorized
+        detail: 'User is not authorized to perform this action'
+        instance: /path/to/resource
+    NotFoundProblemExample:
+      value:
+        type: about:blank
+        status: 404
+        title: Not Found
+        detail: 'The requested resource was not found'
+        instance: /path/to/resource
+    BadGatewayProblemExample:
+      value:
+        type: about:blank
+        status: 502
+        title: Bad Gateway
+        detail: 'Persistence service is unavailable'
+        instance: /path/to/resource

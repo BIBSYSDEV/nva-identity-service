@@ -1,13 +1,13 @@
 dependencies {
 
-    implementation libs.bundles.logging
-    implementation libs.nva.core
-    implementation libs.nva.json
-    implementation libs.nva.apigateway
-    implementation libs.bundles.jackson
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.dynamodbenhanced
-
+    implementation libs.bundles.jackson
+    implementation libs.bundles.logging
+    implementation libs.nva.apigateway
+    implementation libs.nva.core
+    implementation libs.nva.json
+    implementation project(":dynamo-client")
 
     compileOnly project(":user-access-public-model")
     testImplementation project(":user-access-public-model")

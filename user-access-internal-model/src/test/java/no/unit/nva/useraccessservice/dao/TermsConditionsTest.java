@@ -2,7 +2,7 @@ package no.unit.nva.useraccessservice.dao;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.nva.commons.json.JsonUtils;
-import no.unit.nva.useraccessservice.interfaces.DataAccessService;
+import no.unit.nva.database.interfaces.DataAccessService;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;

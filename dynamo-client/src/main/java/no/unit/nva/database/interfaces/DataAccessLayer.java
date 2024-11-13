@@ -1,11 +1,11 @@
-package no.unit.nva.useraccessservice.interfaces;
+package no.unit.nva.database.interfaces;
 
 import nva.commons.apigateway.exceptions.NotFoundException;
 
 /**
  * Interface for data access layers.
  *
- * @param <T> the type of the {@link DataAccessClass<T> }  interface.
+ * @param <T> the type of the {@link DataAccessClass <T> }  interface.
  */
 public interface DataAccessLayer<T extends DataAccessClass<T>> {
 

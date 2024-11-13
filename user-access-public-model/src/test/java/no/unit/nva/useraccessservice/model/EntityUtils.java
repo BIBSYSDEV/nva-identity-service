@@ -19,7 +19,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public final class EntityUtils {
 
     public static final String SOME_USERNAME = "SomeUsername";
-    public static final String SOME_ROLENAME = "SomeRole";
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final Set<AccessRight> SAMPLE_ACCESS_RIGHTS =
             Collections.singleton(MANAGE_DOI);

@@ -1,4 +1,4 @@
-package no.unit.nva.useraccessservice.interfaces;
+package no.unit.nva.database.interfaces;
 
 import nva.commons.core.JacocoGenerated;
 
@@ -75,7 +75,6 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      * @return the merged object
      */
     T merge(T item);
-
 
     /**
      * Validates that every field needed to persist the object is present.

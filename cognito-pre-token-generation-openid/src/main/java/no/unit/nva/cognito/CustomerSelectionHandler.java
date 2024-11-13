@@ -28,7 +28,7 @@ import no.unit.nva.useraccessservice.model.CustomerSelection;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.useraccessservice.database.DatabaseConfig;
+import no.unit.nva.database.DatabaseConfig;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;

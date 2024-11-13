@@ -1,5 +1,6 @@
-package no.unit.nva.useraccessservice.interfaces;
+package no.unit.nva.useraccessservice;
 
+import no.unit.nva.database.interfaces.DataAccessClass;
 import no.unit.nva.useraccessservice.dao.TermsConditions;
 import org.junit.jupiter.api.Test;
 

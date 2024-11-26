@@ -34,6 +34,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.net.URI;
 import java.time.Instant;
@@ -94,12 +95,14 @@ public class UserSelectionUponLoginHandler
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
     private final PersonRegistry personRegistry;
+    private final TermsAndConditionsService termsService;
 
     @JacocoGenerated
     public UserSelectionUponLoginHandler() {
         this.cognitoClient = defaultCognitoClient();
         this.customerService = defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
         this.userCreator = new UserEntriesCreatorForPerson(defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
+        this.termsService = new TermsAndConditionsService(DEFAULT_DYNAMO_CLIENT);
         this.personRegistry = CristinPersonRegistry.defaultPersonRegistry();
     }
 
@@ -107,12 +110,14 @@ public class UserSelectionUponLoginHandler
             CognitoIdentityProviderClient cognitoClient,
             CustomerService customerService,
             IdentityService identityService,
-            PersonRegistry personRegistry) {
+            PersonRegistry personRegistry,
+            DynamoDbClient dynamoDbClient) {
 
         this.cognitoClient = cognitoClient;
         this.customerService = customerService;
         this.personRegistry = personRegistry;
         this.userCreator = new UserEntriesCreatorForPerson(identityService);
+        this.termsService = new TermsAndConditionsService(dynamoDbClient);
     }
 
     private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {
@@ -143,8 +148,7 @@ public class UserSelectionUponLoginHandler
 
     private static void logIfDebug(String s, Instant start) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(s,
-                    Instant.now().toEpochMilli() - start.toEpochMilli());
+            LOGGER.debug(s, Instant.now().toEpochMilli() - start.toEpochMilli());
         }
     }
 
@@ -236,7 +240,6 @@ public class UserSelectionUponLoginHandler
 
         var start = Instant.now();
         var customersForPerson = fetchCustomersWithActiveAffiliations(person);
-        var termsService = new TermsAndConditionsService();
         var userSelectArguments = new UserSelectArguments.Builder()
                 .withAuthenticationDetails(authenticationDetails)
                 .withPerson(person)
@@ -286,8 +289,8 @@ public class UserSelectionUponLoginHandler
     }
 
     private List<UserDto> createUsers(Person person,
-                                     Set<CustomerDto> customers,
-                                     AuthenticationDetails authenticationDetails) {
+                                      Set<CustomerDto> customers,
+                                      AuthenticationDetails authenticationDetails) {
         var userCreationContext = new UserCreationContext(
                 person,
                 customers,

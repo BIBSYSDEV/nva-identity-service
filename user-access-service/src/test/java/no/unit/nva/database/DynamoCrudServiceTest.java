@@ -21,8 +21,8 @@ public class DynamoCrudServiceTest {
 
     @BeforeAll
     static void initialize() {
-        var client = DynamoDbTestClientProvider
-                .geClient();
+        var client = DatabaseTestConfig
+                .getEmbeddedClient();
         new DynamoDbTableCreator(client)
                 .createTable(TABLE_NAME);
 

@@ -55,14 +55,14 @@ class GetCustomerByOrgDomainHandlerTest {
 
     @Test
     void getCustomerByOrgDomainReturnsCustomerWhenInputIsExistingCustomerOrgDomain()
-            throws NotFoundException, IOException {
+        throws NotFoundException, IOException {
         UUID identifier = UUID.randomUUID();
         CustomerDao customerDb = new CustomerDao.Builder()
-                .withIdentifier(identifier)
-                .withFeideOrganizationDomain(SAMPLE_ORG_DOMAIN)
-                .withCristinId(SAMPLE_CRISTIN_ID)
-                .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
-                .build();
+            .withIdentifier(identifier)
+            .withFeideOrganizationDomain(SAMPLE_ORG_DOMAIN)
+            .withCristinId(SAMPLE_CRISTIN_ID)
+            .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
+            .build();
         CustomerDto customerDto = customerDb.toCustomerDto();
         when(customerServiceMock.getCustomerByOrgDomain(SAMPLE_ORG_DOMAIN)).thenReturn(customerDto);
 
@@ -76,11 +76,11 @@ class GetCustomerByOrgDomainHandlerTest {
     }
 
     private InputStream createRequest(CustomerDto customerDto, Map<String, String> pathParameters)
-            throws JsonProcessingException {
+        throws JsonProcessingException {
         return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
-                .withBody(customerDto)
-                .withPathParameters(pathParameters)
-                .withHeaders(getRequestHeaders())
-                .build();
+            .withBody(customerDto)
+            .withPathParameters(pathParameters)
+            .withHeaders(getRequestHeaders())
+            .build();
     }
 }

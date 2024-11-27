@@ -21,7 +21,7 @@ public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope
 
     @Override
     protected void validateRequest(ViewingScope viewingScope, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
         //Do nothing
     }
 

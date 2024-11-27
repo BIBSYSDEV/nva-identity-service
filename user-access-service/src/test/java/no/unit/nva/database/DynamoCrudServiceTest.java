@@ -22,9 +22,9 @@ public class DynamoCrudServiceTest {
     @BeforeAll
     static void initialize() {
         var client = DynamoDbTestClientProvider
-                .geClient();
+            .geClient();
         new DynamoDbTableCreator(client)
-                .createTable(TABLE_NAME);
+            .createTable(TABLE_NAME);
 
         termsConditionsService = new DynamoCrudService<>(client, TABLE_NAME, TermsConditions.class);
     }
@@ -32,20 +32,20 @@ public class DynamoCrudServiceTest {
     @Test
     void shouldPersistPreferencesAndLicense() throws NotFoundException {
         var persistedTermsConditions = TermsConditions.builder()
-                .id(randomUri())
+            .id(randomUri())
+            .modifiedBy(randomUri())
+            .termsConditionsUri(randomUri())
+            .build()
+            .upsert(termsConditionsService);
+        var persistedTwice = persistedTermsConditions
+            .merge(TermsConditions.builder()
                 .modifiedBy(randomUri())
                 .termsConditionsUri(randomUri())
-                .build()
-                .upsert(termsConditionsService);
-        var persistedTwice = persistedTermsConditions
-                .merge(TermsConditions.builder()
-                        .modifiedBy(randomUri())
-                        .termsConditionsUri(randomUri())
-                        .build())
-                .upsert(termsConditionsService);
+                .build())
+            .upsert(termsConditionsService);
 
         var fetchedTermsConditions = persistedTermsConditions
-                .fetch(termsConditionsService);
+            .fetch(termsConditionsService);
 
         assertThat(fetchedTermsConditions, is(equalTo(persistedTwice)));
 
@@ -56,16 +56,16 @@ public class DynamoCrudServiceTest {
     void shouldUpdateTermsConditions() throws NotFoundException {
         var userIdentifier = randomUri();
         var termsConditionsDao = TermsConditions.builder()
-                .id(userIdentifier)
-                .modifiedBy(randomUri())
-                .termsConditionsUri(randomUri())
-                .build()
-                .upsert(termsConditionsService);
+            .id(userIdentifier)
+            .modifiedBy(randomUri())
+            .termsConditionsUri(randomUri())
+            .build()
+            .upsert(termsConditionsService);
 
         var termsConditions = TermsConditions.builder()
-                .id(userIdentifier)
-                .build()
-                .fetch(termsConditionsService);
+            .id(userIdentifier)
+            .build()
+            .fetch(termsConditionsService);
 
 
         assertThat(termsConditionsDao, is(equalTo(termsConditions)));
@@ -75,37 +75,37 @@ public class DynamoCrudServiceTest {
     void shouldDeleteTermsConditions() throws NotFoundException {
         var userIdentifier = randomUri();
         var termsConditions = TermsConditions.builder()
-                .id(userIdentifier)
-                .modifiedBy(randomUri())
-                .termsConditionsUri(randomUri())
-                .build()
-                .upsert(termsConditionsService);
+            .id(userIdentifier)
+            .modifiedBy(randomUri())
+            .termsConditionsUri(randomUri())
+            .build()
+            .upsert(termsConditionsService);
 
         termsConditionsService.delete(termsConditions);
 
         assertThrows(NotFoundException.class,
-                () -> TermsConditions.builder()
-                        .id(userIdentifier)
-                        .build()
-                        .fetch(termsConditionsService));
+            () -> TermsConditions.builder()
+                .id(userIdentifier)
+                .build()
+                .fetch(termsConditionsService));
     }
 
     @Test
     void shouldThrowExceptionWhenFetchingNonExistentTermsConditions() {
         assertThrows(NotFoundException.class,
-                () -> TermsConditions.builder()
-                        .id(randomUri())
-                        .build()
-                        .fetch(termsConditionsService));
+            () -> TermsConditions.builder()
+                .id(randomUri())
+                .build()
+                .fetch(termsConditionsService));
     }
 
 
     @Test
     void shouldThrowExceptionWhenDeletingNonExistentTermsConditions() {
         var dao = TermsConditions.builder()
-                .id(randomUri())
-                .build();
+            .id(randomUri())
+            .build();
         assertThrows(NotFoundException.class,
-                () -> termsConditionsService.delete(dao));
+            () -> termsConditionsService.delete(dao));
     }
 }

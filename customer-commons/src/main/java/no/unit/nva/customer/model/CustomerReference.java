@@ -28,9 +28,18 @@ public class CustomerReference {
 
     private static String extractDoiPrefix(CustomerDto customerDto) {
         return Optional
-                .ofNullable(customerDto.getDoiAgent())
-                .map(CustomerDto.DoiAgentDto::getPrefix)
-                .orElse(null);
+            .ofNullable(customerDto.getDoiAgent())
+            .map(CustomerDto.DoiAgentDto::getPrefix)
+            .orElse(null);
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(),
+            getDisplayName(),
+            getDoiPrefix(),
+            getCreatedDate());
     }
 
     public URI getId() {
@@ -69,15 +78,6 @@ public class CustomerReference {
 
     @JacocoGenerated
     @Override
-    public int hashCode() {
-        return Objects.hash(getId(),
-                getDisplayName(),
-                getDoiPrefix(),
-                getCreatedDate());
-    }
-
-    @JacocoGenerated
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -86,8 +86,8 @@ public class CustomerReference {
             return false;
         }
         return Objects.equals(getId(), that.getId())
-                && Objects.equals(getDisplayName(), that.getDisplayName())
-                && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
-                && Objects.equals(getCreatedDate(), that.getCreatedDate());
+            && Objects.equals(getDisplayName(), that.getDisplayName())
+            && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
+            && Objects.equals(getCreatedDate(), that.getCreatedDate());
     }
 }

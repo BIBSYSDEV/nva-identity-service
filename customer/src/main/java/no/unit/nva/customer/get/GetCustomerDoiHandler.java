@@ -50,17 +50,17 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
 
     @Override
     protected String processInput(Void input, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
 
 
         var identifier = getIdentifier(requestInfo);
 
         var doiSecretDao = attempt(() -> getSecretsManagerDoiAgent().get(identifier))
-                .orElseThrow(this::throwException);
+            .orElseThrow(this::throwException);
 
         var doiAgentDto = nonNull(doiSecretDao)
-                ? doiSecretDao.toDoiAgentDto()
-                : new DoiAgentDto().addIdByIdentifier(identifier);
+            ? doiSecretDao.toDoiAgentDto()
+            : new DoiAgentDto().addIdByIdentifier(identifier);
 
         return attempt(() -> mapperToJsonCompact.writeValueAsString(doiAgentDto)).orElseThrow();
     }

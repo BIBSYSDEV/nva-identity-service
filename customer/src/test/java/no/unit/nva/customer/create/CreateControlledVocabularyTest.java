@@ -31,6 +31,18 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
         super.init();
     }
 
+    @Override
+    protected ControlledVocabularyHandler<?, ?> createHandler() {
+        return new CreateControlledVocabularyHandler(customerService);
+    }
+
+    @Override
+    protected CustomerDto createExistingCustomer() {
+        return CustomerDataGenerator.createSampleCustomerDto().copy()
+            .withVocabularies(Collections.emptySet())
+            .build();
+    }
+
     @Test
     void handleRequestReturnsCreatedWhenCreatingVocabularyForExistingCustomer() throws IOException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
@@ -39,7 +51,7 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
 
     @Test
     void handleRequestReturnsCreatedVocabularyListWhenCreatingVocabularyForExistingCustomer()
-            throws IOException {
+        throws IOException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
 
         VocabularyList actualBody = VocabularyList.fromJson(result.getResponse().getBody());
@@ -48,16 +60,16 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
 
     @Test
     void handleRequestSavesVocabularySettingsToDatabaseWhenCreatingSettingsForExistingCustomer()
-            throws IOException, NotFoundException {
+        throws IOException, NotFoundException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
         var savedVocabularySettings =
-                customerService.getCustomer(existingIdentifier()).getVocabularies();
+            customerService.getCustomer(existingIdentifier()).getVocabularies();
         assertThat(savedVocabularySettings, is(equalTo(result.getExpectedBody().getVocabularies())));
     }
 
     @Test
     void handleRequestReturnsNotFoundWhenTryingToSaveSettingsForNonExistingCustomer()
-            throws IOException {
+        throws IOException {
         var result = sendRequestAcceptingJsonLd(UUID.randomUUID());
         assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
@@ -105,20 +117,9 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
     }
 
     @Test
-    void handleRequestReturnsCreatedVocabularyListWhenUserWithAccessRightManageOwnAffiliationsCreatesVocabulary() throws IOException {
+    void handleRequestReturnsCreatedVocabularyListWhenUserWithAccessRightManageOwnAffiliationsCreatesVocabulary()
+        throws IOException {
         var result = sendRequestWithAccessRight(existingIdentifier(), AccessRight.MANAGE_OWN_AFFILIATION);
         assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
-    }
-
-    @Override
-    protected ControlledVocabularyHandler<?, ?> createHandler() {
-        return new CreateControlledVocabularyHandler(customerService);
-    }
-
-    @Override
-    protected CustomerDto createExistingCustomer() {
-        return CustomerDataGenerator.createSampleCustomerDto().copy()
-                .withVocabularies(Collections.emptySet())
-                .build();
     }
 }

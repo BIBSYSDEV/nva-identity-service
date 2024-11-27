@@ -1,18 +1,7 @@
 package no.unit.nva.useraccess.events;
 
-import static no.unit.nva.useraccess.events.EventsConfig.EVENTS_CLIENT;
-import static no.unit.nva.useraccess.events.EventsConfig.EVENT_BUS;
-import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
-import static no.unit.nva.useraccess.events.EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Map;
-
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.ioutils.IoUtils;
@@ -21,6 +10,16 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
+
+import static no.unit.nva.useraccess.events.EventsConfig.EVENTS_CLIENT;
+import static no.unit.nva.useraccess.events.EventsConfig.EVENT_BUS;
+import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
+import static no.unit.nva.useraccess.events.EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE;
 
 public class StartBatchScan implements RequestStreamHandler {
 
@@ -53,8 +52,8 @@ public class StartBatchScan implements RequestStreamHandler {
 
     private ScanDatabaseRequestV2 createEventAsExpectedByEventListener(ScanDatabaseRequestV2 input) {
         return new ScanDatabaseRequestV2(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
-                input.getPageSize(),
-                START_FROM_BEGINNING);
+            input.getPageSize(),
+            START_FROM_BEGINNING);
     }
 
     private void emitEvent(Context context, ScanDatabaseRequestV2 requestWithTopic) {

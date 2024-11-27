@@ -50,12 +50,12 @@ class GetCurrentTermsConditionsHandlerTest extends HandlerTest {
 
     private InputStream getInputStream() throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(objectMapperWithEmpty)
-                .withRequestContext(getRequestContext())
-                .build();
+            .withRequestContext(getRequestContext())
+            .build();
     }
 
     private ObjectNode getRequestContext() {
         return objectMapperWithEmpty.convertValue(
-                Map.of("path", "/terms-and-conditions/current", "domainName", "SAMPLE_DOMAIN_NAME"), ObjectNode.class);
+            Map.of("path", "/terms-and-conditions/current", "domainName", "SAMPLE_DOMAIN_NAME"), ObjectNode.class);
     }
 }

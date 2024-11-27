@@ -16,7 +16,7 @@ public final class LinkedDataContextUtils {
     public static final String LINKED_DATA_ID = "id";
     public static final String LINKED_DATA_CONTEXT = "@context";
     public static final URI LINKED_DATA_CONTEXT_VALUE =
-            URI.create("https://bibsysdev.github.io/src/customer-context.json");
+        URI.create("https://bibsysdev.github.io/src/customer-context.json");
 
 
     @JacocoGenerated
@@ -25,11 +25,11 @@ public final class LinkedDataContextUtils {
 
     public static CustomerDto addContextAndId(CustomerDto customerDto) {
         return Optional.ofNullable(customerDto)
-                .map(CustomerDto::copy)
-                .map(copy -> copy.withContext(LINKED_DATA_CONTEXT_VALUE))
-                .map(copy -> copy.withId(toId(customerDto.getIdentifier())))
-                .map(Builder::build)
-                .orElse(null);
+            .map(CustomerDto::copy)
+            .map(copy -> copy.withContext(LINKED_DATA_CONTEXT_VALUE))
+            .map(copy -> copy.withId(toId(customerDto.getIdentifier())))
+            .map(Builder::build)
+            .orElse(null);
     }
 
     public static URI toId(UUID identifier) {

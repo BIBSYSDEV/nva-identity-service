@@ -29,72 +29,27 @@ public class HandlerTest extends LocalIdentityService {
     private static final String ENCODED_SPECIAL_CHARACTER = "%40";
 
     protected UserDto insertSampleUserToDatabase(String username, URI institution, RoleName roleName)
-            throws InvalidEntryInternalException, ConflictException {
+        throws InvalidEntryInternalException, ConflictException {
         UserDto sampleUser = createSampleUserAndInsertUserRoles(username, institution, roleName);
         databaseService.addUser(sampleUser);
         return sampleUser;
     }
 
-    protected UserDto insertSampleUserToDatabase(String username, URI institution)
-            throws InvalidEntryInternalException, ConflictException {
-        UserDto sampleUser = createSampleUserAndInsertUserRoles(username, institution);
-        databaseService.addUser(sampleUser);
-        return sampleUser;
-    }
-
-    protected UserDto insertSampleUserToDatabase()
-            throws InvalidEntryInternalException, ConflictException, InvalidInputException {
-        return insertSampleUserToDatabase(DEFAULT_USERNAME, DEFAULT_INSTITUTION);
-    }
-
-    protected UserDto createSampleUserAndInsertUserRoles(String username, URI institution)
-            throws InvalidEntryInternalException {
-        UserDto sampleUser = createSampleUser(username, institution);
-        sampleUser.getRoles().forEach((this::insertRole));
-        return sampleUser;
-    }
-
     protected UserDto createSampleUserAndInsertUserRoles(String username, URI institution, RoleName roleName)
-            throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException {
         UserDto sampleUser = createSampleUser(username, institution, roleName);
         sampleUser.getRoles().forEach((this::insertRole));
         return sampleUser;
     }
 
-    protected UserDto createSampleUserAndInsertUserRoles() throws InvalidEntryInternalException {
-        return createSampleUserAndInsertUserRoles(DEFAULT_USERNAME, DEFAULT_INSTITUTION);
-    }
-
-    protected UserDto createSampleUser(String username, URI institution) throws InvalidEntryInternalException {
-        RoleDto someRole = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.APPLICATION_ADMIN)).build();
-        return UserDto.newBuilder()
-                .withUsername(username)
-                .withRoles(Collections.singletonList(someRole))
-                .withInstitution(institution)
-                .build();
-    }
-
-    protected UserDto createSampleUser(String username, URI institution, RoleName roleName) throws InvalidEntryInternalException {
+    protected UserDto createSampleUser(String username, URI institution, RoleName roleName)
+        throws InvalidEntryInternalException {
         RoleDto someRole = RoleDto.newBuilder().withRoleName(roleName).build();
         return UserDto.newBuilder()
-                .withUsername(username)
-                .withRoles(Collections.singletonList(someRole))
-                .withInstitution(institution)
-                .build();
-    }
-
-    protected ClientDto insertClientToDatabase(ClientDto clientDto)
-            throws InvalidEntryInternalException {
-        databaseService.addExternalClient(clientDto);
-        return clientDto;
-    }
-
-
-    protected String encodeString(String inputContainingSpecialCharacter) {
-        assertThat(inputContainingSpecialCharacter, containsString(SPECIAL_CHARACTER));
-        String output = URLEncoder.encode(inputContainingSpecialCharacter, StandardCharsets.UTF_8);
-        assertThat(output, containsString(ENCODED_SPECIAL_CHARACTER));
-        return output;
+            .withUsername(username)
+            .withRoles(Collections.singletonList(someRole))
+            .withInstitution(institution)
+            .build();
     }
 
     private void insertRole(RoleDto role) {
@@ -106,5 +61,50 @@ public class HandlerTest extends LocalIdentityService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    protected UserDto insertSampleUserToDatabase()
+        throws InvalidEntryInternalException, ConflictException {
+        return insertSampleUserToDatabase(DEFAULT_USERNAME, DEFAULT_INSTITUTION);
+    }
+
+    protected UserDto insertSampleUserToDatabase(String username, URI institution)
+        throws InvalidEntryInternalException, ConflictException {
+        UserDto sampleUser = createSampleUserAndInsertUserRoles(username, institution);
+        databaseService.addUser(sampleUser);
+        return sampleUser;
+    }
+
+    protected UserDto createSampleUserAndInsertUserRoles(String username, URI institution)
+        throws InvalidEntryInternalException {
+        UserDto sampleUser = createSampleUser(username, institution);
+        sampleUser.getRoles().forEach((this::insertRole));
+        return sampleUser;
+    }
+
+    protected UserDto createSampleUser(String username, URI institution) throws InvalidEntryInternalException {
+        RoleDto someRole = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.APPLICATION_ADMIN)).build();
+        return UserDto.newBuilder()
+            .withUsername(username)
+            .withRoles(Collections.singletonList(someRole))
+            .withInstitution(institution)
+            .build();
+    }
+
+    protected UserDto createSampleUserAndInsertUserRoles() throws InvalidEntryInternalException {
+        return createSampleUserAndInsertUserRoles(DEFAULT_USERNAME, DEFAULT_INSTITUTION);
+    }
+
+    protected ClientDto insertClientToDatabase(ClientDto clientDto)
+        throws InvalidEntryInternalException {
+        databaseService.addExternalClient(clientDto);
+        return clientDto;
+    }
+
+    protected String encodeString(String inputContainingSpecialCharacter) {
+        assertThat(inputContainingSpecialCharacter, containsString(SPECIAL_CHARACTER));
+        String output = URLEncoder.encode(inputContainingSpecialCharacter, StandardCharsets.UTF_8);
+        assertThat(output, containsString(ENCODED_SPECIAL_CHARACTER));
+        return output;
     }
 }

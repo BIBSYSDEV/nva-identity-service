@@ -1,11 +1,5 @@
 package no.unit.nva.useraccess.events.service;
 
-import static nva.commons.core.attempt.Try.attempt;
-
-import java.net.URI;
-import java.util.Optional;
-import java.util.UUID;
-
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -14,6 +8,12 @@ import nva.commons.core.exceptions.ExceptionUtils;
 import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.util.Optional;
+import java.util.UUID;
+
+import static nva.commons.core.attempt.Try.attempt;
 
 public class UserMigrationServiceImpl implements UserMigrationService {
 
@@ -33,10 +33,10 @@ public class UserMigrationServiceImpl implements UserMigrationService {
 
     private void resetViewingScope(UserDto user) {
         getCustomerIdentifier(user)
-                .map(this::getOrganizationId)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .ifPresent(orgId -> resetViewingScope(user, orgId));
+            .map(this::getOrganizationId)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .ifPresent(orgId -> resetViewingScope(user, orgId));
     }
 
     private void resetViewingScope(UserDto user, URI organizationId) {
@@ -45,10 +45,10 @@ public class UserMigrationServiceImpl implements UserMigrationService {
 
     private Optional<UUID> getCustomerIdentifier(UserDto user) {
         return attempt(user::getInstitution)
-                .map(UriWrapper::fromUri)
-                .map(UriWrapper::getLastPathElement)
-                .map(UUID::fromString)
-                .toOptional(f -> logInvalidInstitutionUriAndReturnEmpty(f.getException(), user));
+            .map(UriWrapper::fromUri)
+            .map(UriWrapper::getLastPathElement)
+            .map(UUID::fromString)
+            .toOptional(f -> logInvalidInstitutionUriAndReturnEmpty(f.getException(), user));
     }
 
     private void logInvalidInstitutionUriAndReturnEmpty(Exception exception, UserDto user) {
@@ -58,7 +58,7 @@ public class UserMigrationServiceImpl implements UserMigrationService {
 
     private Optional<URI> getOrganizationId(UUID customerIdentifier) {
         return attempt(() -> customerService.getCustomer(customerIdentifier))
-                .map(CustomerDto::getCristinId)
-                .toOptional();
+            .map(CustomerDto::getCristinId)
+            .toOptional();
     }
 }

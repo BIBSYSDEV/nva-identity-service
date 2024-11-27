@@ -32,6 +32,12 @@ public class FsPerson implements JsonSerializable {
         this.personalNumber = personalNumber;
     }
 
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getFsIdNumber(), getStaffPerson(), getBirthDate(), getPersonalNumber());
+    }
+
     public String getBirthDate() {
         return birthDate;
     }
@@ -48,12 +54,6 @@ public class FsPerson implements JsonSerializable {
         return fagperson;
     }
 
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getFsIdNumber(), getStaffPerson(), getBirthDate(), getPersonalNumber());
-    }
-
     @JacocoGenerated
     @Override
     public boolean equals(Object o) {
@@ -65,7 +65,7 @@ public class FsPerson implements JsonSerializable {
         }
         FsPerson fsPerson = (FsPerson) o;
         return fsIdNumber.equals(fsPerson.fsIdNumber) && fagperson.equals(fsPerson.fagperson) && birthDate.equals(
-                fsPerson.birthDate) && personalNumber.equals(fsPerson.personalNumber);
+            fsPerson.birthDate) && personalNumber.equals(fsPerson.personalNumber);
     }
 
     @Override

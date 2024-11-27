@@ -77,6 +77,28 @@ public class UpdateCustomerHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    private InputStream createInput(CustomerDto customer, Map<String, String> pathParameters)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
+            .withHeaders(getRequestHeaders())
+            .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+            .withPathParameters(pathParameters)
+            .build();
+    }
+
+    private CustomerDto createCustomer(UUID uuid) {
+        return CustomerDto.builder()
+            .withIdentifier(uuid)
+            .withName("New Customer")
+            .withCustomerOf(randomElement(ApplicationDomain.values()))
+            .build();
+    }
+
     @Test
     void shouldReturnForbiddenWhenNoAccess() throws InputException, NotFoundException, IOException {
         CustomerDto customer = createCustomer(UUID.randomUUID());
@@ -87,6 +109,14 @@ public class UpdateCustomerHandlerTest {
         var response = sendRequest(request, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    private InputStream createInputWithoutAccessRights(CustomerDto customer, Map<String, String> pathParameters)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
+            .withHeaders(getRequestHeaders())
+            .withPathParameters(pathParameters)
+            .build();
     }
 
     @Test
@@ -124,7 +154,7 @@ public class UpdateCustomerHandlerTest {
 
     @Test
     void requestToHandlerReturnsCustomerServiceCenterUpdated()
-            throws InputException, NotFoundException, IOException {
+        throws InputException, NotFoundException, IOException {
         UUID identifier = UUID.randomUUID();
         CustomerDto customer = createCustomer(identifier);
         when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
@@ -152,7 +182,7 @@ public class UpdateCustomerHandlerTest {
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
         assertThat(response.getBody(),
-                containsString(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID + malformedIdentifier));
+            containsString(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID + malformedIdentifier));
     }
 
     @Test
@@ -160,9 +190,9 @@ public class UpdateCustomerHandlerTest {
 
         var pathParameters = Map.of(IDENTIFIER, UUID.randomUUID().toString());
         var request = new HandlerRequestBuilder<String>(dtoObjectMapper).withBody(randomString())
-                .withHeaders(getRequestHeaders())
-                .withPathParameters(pathParameters)
-                .build();
+            .withHeaders(getRequestHeaders())
+            .withPathParameters(pathParameters)
+            .build();
 
         var response = sendRequest(request, Problem.class);
 
@@ -178,35 +208,5 @@ public class UpdateCustomerHandlerTest {
     //TODO
     @Test
     void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() {
-    }
-
-    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
-        handler.handleRequest(request, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private InputStream createInput(CustomerDto customer, Map<String, String> pathParameters)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
-                .withHeaders(getRequestHeaders())
-                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                .withPathParameters(pathParameters)
-                .build();
-    }
-
-    private InputStream createInputWithoutAccessRights(CustomerDto customer, Map<String, String> pathParameters)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
-                .withHeaders(getRequestHeaders())
-                .withPathParameters(pathParameters)
-                .build();
-    }
-
-    private CustomerDto createCustomer(UUID uuid) {
-        return CustomerDto.builder()
-                .withIdentifier(uuid)
-                .withName("New Customer")
-                .withCustomerOf(randomElement(ApplicationDomain.values()))
-                .build();
     }
 }

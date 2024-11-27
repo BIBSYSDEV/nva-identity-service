@@ -55,39 +55,13 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     }
 
     protected ExpectedBodyActualResponseTuple sendRequest(UUID uuid, MediaType acceptedContentType)
-            throws IOException {
+        throws IOException {
         VocabularyList expectedBody = createRandomVocabularyList();
         var request = createRequest(uuid, expectedBody, acceptedContentType);
         output = new ByteArrayOutputStream();
         handler.handleRequest(request, output, CONTEXT);
         var response = GatewayResponse.fromOutputStream(output, VocabularyList.class);
         return new ExpectedBodyActualResponseTuple(expectedBody, response);
-    }
-
-    protected ExpectedBodyActualResponseTuple sendRequestWithAccessRight(UUID uuid, AccessRight accessRight)
-            throws IOException {
-        VocabularyList expectedBody = createRandomVocabularyList();
-        var request = createRequest(uuid, expectedBody, accessRight);
-        output = new ByteArrayOutputStream();
-        handler.handleRequest(request, output, CONTEXT);
-        var response = GatewayResponse.fromOutputStream(output, VocabularyList.class);
-        return new ExpectedBodyActualResponseTuple(expectedBody, response);
-    }
-
-    protected <T> GatewayResponse<T> sendRequest(ControlledVocabularyHandler<?, ?> getHandler,
-                                                 InputStream getRequest,
-                                                 Class<T> responseType)
-            throws IOException {
-        getHandler.handleRequest(getRequest, output, CONTEXT);
-        return GatewayResponse.fromOutputStream(output, responseType);
-    }
-
-    protected String responseContentType(GatewayResponse<?> response) {
-        return response.getHeaders().get(HttpHeaders.CONTENT_TYPE);
-    }
-
-    protected UUID existingIdentifier() {
-        return existingCustomer.getIdentifier();
     }
 
     protected VocabularyList createRandomVocabularyList() {
@@ -97,35 +71,40 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     protected <T> InputStream createRequest(UUID customerIdentifier,
                                             T expectedBody,
                                             MediaType acceptedMediaType)
-            throws JsonProcessingException {
+        throws JsonProcessingException {
         return new HandlerRequestBuilder<T>(dtoObjectMapper)
-                .withPathParameters(identifierToPathParameter(customerIdentifier))
-                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                .withBody(expectedBody)
-                .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()))
-                .build();
-    }
-
-    protected <T> InputStream createRequest(UUID customerIdentifier, T expectedBody, AccessRight accessRight)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<T>(dtoObjectMapper)
-                .withPathParameters(identifierToPathParameter(customerIdentifier))
-                .withAccessRights(randomUri(), accessRight)
-                .withBody(expectedBody)
-                .build();
+            .withPathParameters(identifierToPathParameter(customerIdentifier))
+            .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+            .withBody(expectedBody)
+            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptedMediaType.toString()))
+            .build();
     }
 
     protected Map<String, String> identifierToPathParameter(UUID identifier) {
         return Map.of(IDENTIFIER_PATH_PARAMETER, identifier.toString());
     }
 
-    protected InputStream createGetRequest(UUID identifier, MediaType acceptHeader)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                .withPathParameters(Map.of("identifier", identifier.toString()))
-                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
-                .build();
+    protected ExpectedBodyActualResponseTuple sendRequestWithAccessRight(UUID uuid, AccessRight accessRight)
+        throws IOException {
+        VocabularyList expectedBody = createRandomVocabularyList();
+        var request = createRequest(uuid, expectedBody, accessRight);
+        output = new ByteArrayOutputStream();
+        handler.handleRequest(request, output, CONTEXT);
+        var response = GatewayResponse.fromOutputStream(output, VocabularyList.class);
+        return new ExpectedBodyActualResponseTuple(expectedBody, response);
+    }
+
+    protected <T> InputStream createRequest(UUID customerIdentifier, T expectedBody, AccessRight accessRight)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<T>(dtoObjectMapper)
+            .withPathParameters(identifierToPathParameter(customerIdentifier))
+            .withAccessRights(randomUri(), accessRight)
+            .withBody(expectedBody)
+            .build();
+    }
+
+    protected String responseContentType(GatewayResponse<?> response) {
+        return response.getHeaders().get(HttpHeaders.CONTENT_TYPE);
     }
 
     protected void assertThatExistingUserHasEmptyVocabularySettings() throws IOException {
@@ -136,13 +115,34 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
         assertThat(getResponseObject.getVocabularies(), is(empty()));
     }
 
+    protected <T> GatewayResponse<T> sendRequest(ControlledVocabularyHandler<?, ?> getHandler,
+                                                 InputStream getRequest,
+                                                 Class<T> responseType)
+        throws IOException {
+        getHandler.handleRequest(getRequest, output, CONTEXT);
+        return GatewayResponse.fromOutputStream(output, responseType);
+    }
+
+    protected UUID existingIdentifier() {
+        return existingCustomer.getIdentifier();
+    }
+
+    protected InputStream createGetRequest(UUID identifier, MediaType acceptHeader)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withPathParameters(Map.of("identifier", identifier.toString()))
+            .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
+            .build();
+    }
+
     public static class ExpectedBodyActualResponseTuple {
 
         private final VocabularyList expectedBody;
         private final GatewayResponse<VocabularyList> response;
 
         public ExpectedBodyActualResponseTuple(
-                VocabularyList expectedBody, GatewayResponse<VocabularyList> response) {
+            VocabularyList expectedBody, GatewayResponse<VocabularyList> response) {
 
             this.expectedBody = expectedBody;
             this.response = response;

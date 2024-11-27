@@ -1,5 +1,15 @@
 package no.unit.nva.useraccessservice.dao;
 
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.attempt.Try;
+import org.javers.core.Javers;
+import org.javers.core.JaversBuilder;
+import org.javers.core.diff.Diff;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.net.URI;
+
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -12,16 +22,6 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.net.URI;
-
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.core.attempt.Try;
-import org.javers.core.Javers;
-import org.javers.core.JaversBuilder;
-import org.javers.core.diff.Diff;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 class ClientDaoTest {
 
@@ -86,13 +86,24 @@ class ClientDaoTest {
         assertThat(copy, is(not(sameInstance(originalClient))));
     }
 
+    private ClientDao randomClientDb() {
+        ClientDao randomClient = ClientDao.newBuilder()
+            .withClientId(randomString())
+            .withCustomer(randomCristinOrgId())
+            .withCristinOrgUri(randomCristinOrgId())
+            .withActingUser(randomString())
+            .build();
+        assertThat(randomClient, doesNotHaveEmptyValues());
+        return randomClient;
+    }
+
     @Test
     void shouldConvertToDtoAndBackWithoutInformationLoss() {
         ClientDao originalClient = randomClientDb();
         ClientDao converted = Try.of(originalClient)
-                .map(ClientDao::toClientDto)
-                .map(ClientDao::fromClientDto)
-                .orElseThrow();
+            .map(ClientDao::toClientDto)
+            .map(ClientDao::fromClientDto)
+            .orElseThrow();
 
         assertThat(originalClient, is(equalTo(converted)));
         Diff diff = JAVERS.compare(originalClient, converted);
@@ -107,17 +118,6 @@ class ClientDaoTest {
         var copy = source.copy().build();
         assertThat(copy, doesNotHaveEmptyValues());
         assertThat(copy, is(equalTo(source)));
-    }
-
-    private ClientDao randomClientDb() {
-        ClientDao randomClient = ClientDao.newBuilder()
-                .withClientId(randomString())
-                .withCustomer(randomCristinOrgId())
-                .withCristinOrgUri(randomCristinOrgId())
-                .withActingUser(randomString())
-                .build();
-        assertThat(randomClient, doesNotHaveEmptyValues());
-        return randomClient;
     }
 
 }

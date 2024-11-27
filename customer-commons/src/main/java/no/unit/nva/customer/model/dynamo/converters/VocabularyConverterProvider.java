@@ -27,7 +27,7 @@ public class VocabularyConverterProvider implements AttributeConverterProvider {
 
     private <T> boolean isVocabularySet(EnhancedType<T> enhancedType) {
         return Set.class.equals(enhancedType.rawClass())
-                && enhancedType.rawClassParameters().size() == 1
-                && EnhancedType.of(VocabularyDao.class).equals(enhancedType.rawClassParameters().get(0));
+            && enhancedType.rawClassParameters().size() == 1
+            && EnhancedType.of(VocabularyDao.class).equals(enhancedType.rawClassParameters().get(0));
     }
 }

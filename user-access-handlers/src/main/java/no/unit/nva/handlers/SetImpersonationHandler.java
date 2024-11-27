@@ -48,35 +48,35 @@ public class SetImpersonationHandler extends HandlerWithEventualConsistency<Impe
     @JacocoGenerated
     private static CognitoIdentityProviderClient defaultCognitoClient() {
         return CognitoIdentityProviderClient.builder()
-                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                .httpClient(UrlConnectionHttpClient.create())
-                .region(AWS_REGION)
-                .build();
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.create())
+            .region(AWS_REGION)
+            .build();
     }
 
     @Override
     protected void validateRequest(ImpersonationRequest impersonationRequest, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
         authorize(requestInfo);
     }
 
     @Override
     protected Void processInput(ImpersonationRequest input, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
 
 
         var nin = input.getNin();
         var username = requestInfo.getRequestContextParameterOpt(USERNAME_POINTER).orElseThrow();
         var attributes = List.of(
-                AttributeType.builder().name(IMPERSONATION).value(nin).build()
+            AttributeType.builder().name(IMPERSONATION).value(nin).build()
         );
 
         LOGGER.info(String.format("User %s set impersonation as %s", requestInfo.getUserName(), nin));
         var request = AdminUpdateUserAttributesRequest.builder()
-                .userPoolId(USER_POOL_ID)
-                .username(username)
-                .userAttributes(attributes)
-                .build();
+            .userPoolId(USER_POOL_ID)
+            .username(username)
+            .userAttributes(attributes)
+            .build();
 
         this.cognitoClient.adminUpdateUserAttributes(request);
         return null;

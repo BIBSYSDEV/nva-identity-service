@@ -126,27 +126,27 @@ public class IdentityServiceImpl implements IdentityService {
         return dynamoDbClient.scan(dynamoScanRequest);
     }
 
-    private boolean databaseEntryIsUser(Map<String, AttributeValue> databaseEntry) {
-        return Optional.ofNullable(databaseEntry)
-                .map(item -> item.get(Typed.TYPE_FIELD))
-                .map(fields -> UserDao.TYPE_VALUE.equals(fields.s()))
-                .orElse(false);
+    private ScanRequest createScanDynamoRequest(ScanDatabaseRequestV2 input) {
+        return ScanRequest.builder()
+            .tableName(Constants.USERS_AND_ROLES_TABLE)
+            .limit(input.getPageSize())
+            .exclusiveStartKey(input.toDynamoScanMarker())
+            .build();
     }
 
     private List<UserDto> parseUsersFromScanResult(ScanResponse result) {
         return result.items()
-                .stream()
-                .filter(this::databaseEntryIsUser)
-                .map(UserDao.TABLE_SCHEMA::mapToItem)
-                .map(UserDao::toUserDto)
-                .collect(Collectors.toList());
+            .stream()
+            .filter(this::databaseEntryIsUser)
+            .map(UserDao.TABLE_SCHEMA::mapToItem)
+            .map(UserDao::toUserDto)
+            .collect(Collectors.toList());
     }
 
-    private ScanRequest createScanDynamoRequest(ScanDatabaseRequestV2 input) {
-        return ScanRequest.builder()
-                .tableName(Constants.USERS_AND_ROLES_TABLE)
-                .limit(input.getPageSize())
-                .exclusiveStartKey(input.toDynamoScanMarker())
-                .build();
+    private boolean databaseEntryIsUser(Map<String, AttributeValue> databaseEntry) {
+        return Optional.ofNullable(databaseEntry)
+            .map(item -> item.get(Typed.TYPE_FIELD))
+            .map(fields -> UserDao.TYPE_VALUE.equals(fields.s()))
+            .orElse(false);
     }
 }

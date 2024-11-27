@@ -63,10 +63,10 @@ class CustomerDaoTest {
     @Test
     void testingJacocoCoverageAssignNullWorking() {
         var fullAvTull =
-                CustomerDao.builder()
-                        .withCreatedDate((String) null)
-                        .withModifiedDate((String) null)
-                        .build();
+            CustomerDao.builder()
+                .withCreatedDate((String) null)
+                .withModifiedDate((String) null)
+                .build();
         assertNotNull(fullAvTull);
     }
 
@@ -75,8 +75,8 @@ class CustomerDaoTest {
         var expectedDao = CustomerDataGenerator.createSampleInactiveCustomerDao();
         var customerDto = expectedDao.toCustomerDto();
         customerDto
-                .getDoiAgent()
-                .addPassword(randomString());
+            .getDoiAgent()
+            .addPassword(randomString());
         var actualDao = CustomerDao.fromCustomerDto(customerDto);
         var actualDoiAgent = actualDao.getDoiAgent();
 
@@ -94,6 +94,47 @@ class CustomerDaoTest {
         assertThat(actual, is(equalTo(expected)));
     }
 
+    private CustomerDao createSampleCustomerDao() {
+        var identifier = UUID.randomUUID();
+        return CustomerDao
+            .builder()
+            .withName(randomString())
+            .withCristinId(randomUri())
+            .withCustomerOf(randomApplicationDomain().getUri())
+            .withFeideOrganizationDomain(randomString())
+            .withModifiedDate(randomInstant())
+            .withIdentifier(identifier)
+            .withCname(randomString())
+            .withArchiveName(randomString())
+            .withShortName(randomString())
+            .withInstitutionDns(randomString())
+            .withDisplayName(randomString())
+            .withCreatedDate(randomInstant())
+            .withRorId(randomUri())
+            .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
+            .withVocabularySettings(randomVocabularySettings())
+            .withPublicationWorkflow(randomPublicationWorkflow())
+            .withDoiAgent(randomDoiAgent(randomString()))
+            .withNviInstitution(randomBoolean())
+            .withRboInstitution(randomBoolean())
+            .withInactiveFrom(randomInstant())
+            .withSector(randomSector())
+            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+            .withGeneralSupportEnabled(true)
+            .build();
+    }
+
+    private ApplicationDomain randomApplicationDomain() {
+        return ApplicationDomain.NVA;
+    }
+
+    private Set<VocabularyDao> randomVocabularySettings() {
+        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
+            randomElement(VocabularyStatus.values()));
+        return Set.of(vocabulary);
+    }
+
     @Test
     void daoCanBeDeserializedWhenJsonDoesNotIncludeType() throws IOException {
         CustomerDao someDao = createSampleCustomerDao();
@@ -102,6 +143,11 @@ class CustomerDaoTest {
         var jsonStringWithoutType = JsonConfig.writeValueAsString(jsonMap);
         CustomerDao deserialized = JsonConfig.readValue(jsonStringWithoutType, CustomerDao.class);
         assertThat(deserialized, is(equalTo(someDao)));
+    }
+
+    private Map<String, Object> customerToJsonMap(CustomerDao someDao) throws IOException {
+        var jsonString = JsonConfig.writeValueAsString(someDao);
+        return JsonConfig.mapFrom(jsonString);
     }
 
     @Test
@@ -117,43 +163,43 @@ class CustomerDaoTest {
     @Test
     void shouldMigrateOldStyleDao() throws IOException {
         var template = """
-                {
-                  "identifier" : "4fa3622d-877c-4759-b63f-d7d37cf26b5d",
-                  "createdDate" : "1985-06-22T21:25:11.558Z",
-                  "modifiedDate" : "2020-05-18T00:49:35.971Z",
-                  "name" : "5jA24q1K8xRjnX",
-                  "displayName" : "HpP3PceJ3eI",
-                  "shortName" : "AzObKaEO77a",
-                  "archiveName" : "ToPiKGbSOE0KvFTm2k7",
-                  "cname" : "gQcgg9mhSH3e27c9mi",
-                  "institutionDns" : "QoeKDoyM3UcRhcUF",
-                  "feideOrganizationDomain" : "jie3k8uRwHcVhx",
-                  "cristinId" : "https://www.example.com/0q7bcwf4zf1k6",
-                  "customerOf" : "nva.unit.no",
-                  "vocabularies" : [ {
-                    "type" : "Vocabulary",
-                    "name" : "cZkpIKoQze3EVv0Xm",
-                    "id" : "https://www.example.com/kdK0gJxdysnDOZ2aU",
-                    "status" : "Allowed"
-                  } ],
-                  "rorId" : "https://www.example.com/NS9SygkPsLcQU",
-                  "publicationWorkflow" : "RegistratorRequiresApprovalForMetadataAndFiles",
-                  "doiAgent" : {
-                    "prefix" : "10.000",
-                    "url" : "mds.X6wSynOURzWwNn2.datacite.org",
-                    "username" : "user-name-X6wSynOURzWwNn2"
-                  },
-                  "nviInstitution" : true,
-                  "rboInstitution" : false,
-                  "inactive" : false,
-                  "sector" : "INSTITUTE",
-                  "rightRetentionStrategy" : {
-                    "retentionStrategy" : "%s",
-                    "id" : "%s"
-                  },
-                  "type" : "Customer"
-                }
-                """;
+            {
+              "identifier" : "4fa3622d-877c-4759-b63f-d7d37cf26b5d",
+              "createdDate" : "1985-06-22T21:25:11.558Z",
+              "modifiedDate" : "2020-05-18T00:49:35.971Z",
+              "name" : "5jA24q1K8xRjnX",
+              "displayName" : "HpP3PceJ3eI",
+              "shortName" : "AzObKaEO77a",
+              "archiveName" : "ToPiKGbSOE0KvFTm2k7",
+              "cname" : "gQcgg9mhSH3e27c9mi",
+              "institutionDns" : "QoeKDoyM3UcRhcUF",
+              "feideOrganizationDomain" : "jie3k8uRwHcVhx",
+              "cristinId" : "https://www.example.com/0q7bcwf4zf1k6",
+              "customerOf" : "nva.unit.no",
+              "vocabularies" : [ {
+                "type" : "Vocabulary",
+                "name" : "cZkpIKoQze3EVv0Xm",
+                "id" : "https://www.example.com/kdK0gJxdysnDOZ2aU",
+                "status" : "Allowed"
+              } ],
+              "rorId" : "https://www.example.com/NS9SygkPsLcQU",
+              "publicationWorkflow" : "RegistratorRequiresApprovalForMetadataAndFiles",
+              "doiAgent" : {
+                "prefix" : "10.000",
+                "url" : "mds.X6wSynOURzWwNn2.datacite.org",
+                "username" : "user-name-X6wSynOURzWwNn2"
+              },
+              "nviInstitution" : true,
+              "rboInstitution" : false,
+              "inactive" : false,
+              "sector" : "INSTITUTE",
+              "rightRetentionStrategy" : {
+                "retentionStrategy" : "%s",
+                "id" : "%s"
+              },
+              "type" : "Customer"
+            }
+            """;
         var rightsRetentionStrategy = "RightsRetentionStrategy";
         var uri = "https://www.example.com/ZxZeIEHmgcmlAEG5";
         var json = String.format(template, rightsRetentionStrategy, uri);
@@ -163,55 +209,9 @@ class CustomerDaoTest {
         assertThat(rrs.getType().toString(), is(equalTo(rightsRetentionStrategy)));
     }
 
-    private Map<String, Object> customerToJsonMap(CustomerDao someDao) throws IOException {
-        var jsonString = JsonConfig.writeValueAsString(someDao);
-        return JsonConfig.mapFrom(jsonString);
-    }
-
-    private CustomerDao createSampleCustomerDao() {
-        var identifier = UUID.randomUUID();
-        return CustomerDao
-                .builder()
-                .withName(randomString())
-                .withCristinId(randomUri())
-                .withCustomerOf(randomApplicationDomain().getUri())
-                .withFeideOrganizationDomain(randomString())
-                .withModifiedDate(randomInstant())
-                .withIdentifier(identifier)
-                .withCname(randomString())
-                .withArchiveName(randomString())
-                .withShortName(randomString())
-                .withInstitutionDns(randomString())
-                .withDisplayName(randomString())
-                .withCreatedDate(randomInstant())
-                .withRorId(randomUri())
-                .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
-                .withVocabularySettings(randomVocabularySettings())
-                .withPublicationWorkflow(randomPublicationWorkflow())
-                .withDoiAgent(randomDoiAgent(randomString()))
-                .withNviInstitution(randomBoolean())
-                .withRboInstitution(randomBoolean())
-                .withInactiveFrom(randomInstant())
-                .withSector(randomSector())
-                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                .withGeneralSupportEnabled(true)
-                .build();
-    }
-
-    private ApplicationDomain randomApplicationDomain() {
-        return ApplicationDomain.NVA;
-    }
-
     private Set<VocabularyDto> randomVocabularyDtoSettings() {
         return randomVocabularySettings().stream()
-                .map(VocabularyDao::toVocabularySettingsDto)
-                .collect(Collectors.toSet());
-    }
-
-    private Set<VocabularyDao> randomVocabularySettings() {
-        VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
-                randomElement(VocabularyStatus.values()));
-        return Set.of(vocabulary);
+            .map(VocabularyDao::toVocabularySettingsDto)
+            .collect(Collectors.toSet());
     }
 }

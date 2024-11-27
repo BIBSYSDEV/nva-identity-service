@@ -73,6 +73,28 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(actualCustomerList, equalTo(customerList));
     }
 
+    private <T> GatewayResponse<T> sendRequest(InputStream input, Class<T> responseType) throws java.io.IOException {
+        handler.handleRequest(input, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    private InputStream sampleRequestWithAccess() throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
+            .withAccessRights(randomUri(), AccessRight.MANAGE_CUSTOMERS)
+            .withHeaders(getRequestHeaders())
+            .build();
+    }
+
+    private CustomerDto insertRandomCustomer() throws ApiGatewayException {
+        var customer = CustomerDto.builder()
+            .withDisplayName(randomString())
+            .withCristinId(randomUri())
+            .withCustomerOf(randomElement(ApplicationDomain.values()))
+            .build();
+        customerService.createCustomer(customer);
+        return customerService.getCustomerByCristinId(customer.getCristinId());
+    }
+
     @Test
     void requestToHandlerReturnsForbiddenWhenNotAppAdmin() throws IOException {
         var input = sampleRequestWithoutAccess();
@@ -80,9 +102,15 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
     }
 
+    private InputStream sampleRequestWithoutAccess() throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
+            .withHeaders(getRequestHeaders())
+            .build();
+    }
+
     @Test
     void shouldReturnAListOfCustomersContainingCustomerIdCustomerDisplayNameAndCreatedDate()
-            throws IOException, ApiGatewayException {
+        throws IOException, ApiGatewayException {
         var existingCustomer = insertRandomCustomer();
         var input = sampleRequestWithAccess();
         var response = sendRequest(input, CustomerList.class);
@@ -100,7 +128,7 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldReturnAListOfCustomersContainingCustomerDoiPrefix()
-            throws ConflictException, NotFoundException, IOException {
+        throws ConflictException, NotFoundException, IOException {
         var doiPrefix = randomString();
         insertRandomCustomerWithDoiPrefix(doiPrefix);
         var input = sampleRequestWithAccess();
@@ -112,13 +140,13 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     private CustomerDto insertRandomCustomerWithDoiPrefix(String doiPrefix)
-            throws ConflictException, NotFoundException {
+        throws ConflictException, NotFoundException {
         var customer = CustomerDto.builder()
-                .withDisplayName(randomString())
-                .withCristinId(randomUri())
-                .withCustomerOf(randomElement(ApplicationDomain.values()))
-                .withDoiAgent(createDoiAgent(doiPrefix))
-                .build();
+            .withDisplayName(randomString())
+            .withCristinId(randomUri())
+            .withCustomerOf(randomElement(ApplicationDomain.values()))
+            .withDoiAgent(createDoiAgent(doiPrefix))
+            .build();
         customerService.createCustomer(customer);
         return customerService.getCustomerByCristinId(customer.getCristinId());
     }
@@ -129,33 +157,5 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         doiAgent.setId(randomUri());
         doiAgent.setUsername(randomString());
         return doiAgent;
-    }
-
-    private <T> GatewayResponse<T> sendRequest(InputStream input, Class<T> responseType) throws java.io.IOException {
-        handler.handleRequest(input, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private InputStream sampleRequestWithAccess() throws JsonProcessingException {
-        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
-                .withAccessRights(randomUri(), AccessRight.MANAGE_CUSTOMERS)
-                .withHeaders(getRequestHeaders())
-                .build();
-    }
-
-    private InputStream sampleRequestWithoutAccess() throws JsonProcessingException {
-        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper)
-                .withHeaders(getRequestHeaders())
-                .build();
-    }
-
-    private CustomerDto insertRandomCustomer() throws ApiGatewayException {
-        var customer = CustomerDto.builder()
-                .withDisplayName(randomString())
-                .withCristinId(randomUri())
-                .withCustomerOf(randomElement(ApplicationDomain.values()))
-                .build();
-        customerService.createCustomer(customer);
-        return customerService.getCustomerByCristinId(customer.getCristinId());
     }
 }

@@ -25,15 +25,10 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
 
     public static final String INSTITUTION_ID_QUERY_PARAMETER = "institution";
     public static final String MISSING_QUERY_PARAMETER_ERROR = "Institution Id query parameter is not a URI. "
-            + "Probably error in the Lambda function definition.";
+        + "Probably error in the Lambda function definition.";
     public static final String QUERY_PARAM_ROLE = "role";
     public static final String QUERY_PARAM_NAME = "name";
     private final IdentityService databaseService;
-
-    public ListByInstitutionHandler(IdentityService databaseService) {
-        super(Void.class);
-        this.databaseService = databaseService;
-    }
 
     @SuppressWarnings("unused")
     @JacocoGenerated
@@ -41,9 +36,9 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
         this(new IdentityServiceImpl());
     }
 
-    @Override
-    protected Integer getSuccessStatusCode(Void body, UserList output) {
-        return HttpURLConnection.HTTP_OK;
+    public ListByInstitutionHandler(IdentityService databaseService) {
+        super(Void.class);
+        this.databaseService = databaseService;
     }
 
     @Override
@@ -57,28 +52,34 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
         var roles = new HashSet<>(input.getMultiValueQueryParameter(QUERY_PARAM_ROLE));
         var userName = input.getQueryParameterOpt(QUERY_PARAM_NAME);
         var users =
-                databaseService
-                        .listUsers(institutionId).stream()
-                        .filter(user -> likeUserOrEmpty(user, userName))
-                        .filter(user -> roles.isEmpty() || hasOneRole(user, roles))
-                        .collect(Collectors.toList());
+            databaseService
+                .listUsers(institutionId).stream()
+                .filter(user -> likeUserOrEmpty(user, userName))
+                .filter(user -> roles.isEmpty() || hasOneRole(user, roles))
+                .collect(Collectors.toList());
         return UserList.fromList(users);
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(Void body, UserList output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     private URI extractInstitutionIdFromRequest(RequestInfo requestInfo) throws BadRequestException {
         return requestInfo.getQueryParameterOpt(INSTITUTION_ID_QUERY_PARAMETER)
-                .map(URI::create)
-                .orElseThrow(() -> new BadRequestException(MISSING_QUERY_PARAMETER_ERROR));
+            .map(URI::create)
+            .orElseThrow(() -> new BadRequestException(MISSING_QUERY_PARAMETER_ERROR));
     }
 
     private boolean likeUserOrEmpty(UserDto userDto, Optional<String> userName) {
         return userName
-                .map(s -> userDto.getUsername().contains(s))
-                .orElse(true);
+            .map(s -> userDto.getUsername().contains(s))
+            .orElse(true);
     }
 
     private boolean hasOneRole(UserDto userDto, Set<String> checkedRoles) {
-        var userRoles = userDto.getRoles().stream().map(RoleDto::getRoleName).map(RoleName::getValue).collect(Collectors.toSet());
+        var userRoles =
+            userDto.getRoles().stream().map(RoleDto::getRoleName).map(RoleName::getValue).collect(Collectors.toSet());
         return !Collections.disjoint(userRoles, checkedRoles);
     }
 }

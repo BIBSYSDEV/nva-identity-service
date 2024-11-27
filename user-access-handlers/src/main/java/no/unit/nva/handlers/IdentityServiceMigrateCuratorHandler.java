@@ -42,11 +42,11 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
 
     @Override
     protected Void processInput(Void input, RequestInfo requestInfo, Context context)
-            throws InvalidInputException, NotFoundException {
+        throws InvalidInputException, NotFoundException {
         identityService.updateRole(DefaultRoleSource.PUBLISHING_CURATOR_ROLE);
         identityService.listAllUsers().stream()
-                .filter(this::hasPublishingCuratorRole)
-                .forEach(this::updatePublishingCuratorAccessRights);
+            .filter(this::hasPublishingCuratorRole)
+            .forEach(this::updatePublishingCuratorAccessRights);
         return null;
     }
 

@@ -49,40 +49,40 @@ public class LocalCustomerServiceDatabase {
 
     private void createCustomerTable(DynamoDbClient ddb) {
         List<AttributeDefinition> attributeDefinitions = asList(
-                AttributeDefinition.builder().attributeName(IDENTIFIER).attributeType(ScalarAttributeType.S).build(),
-                AttributeDefinition.builder().attributeName(ORG_DOMAIN).attributeType(ScalarAttributeType.S).build(),
-                AttributeDefinition.builder().attributeName(CRISTIN_ID).attributeType(ScalarAttributeType.S).build()
+            AttributeDefinition.builder().attributeName(IDENTIFIER).attributeType(ScalarAttributeType.S).build(),
+            AttributeDefinition.builder().attributeName(ORG_DOMAIN).attributeType(ScalarAttributeType.S).build(),
+            AttributeDefinition.builder().attributeName(CRISTIN_ID).attributeType(ScalarAttributeType.S).build()
         );
 
         List<KeySchemaElement> keySchema = singletonList(
-                KeySchemaElement.builder().attributeName(IDENTIFIER).keyType(KeyType.HASH).build()
+            KeySchemaElement.builder().attributeName(IDENTIFIER).keyType(KeyType.HASH).build()
         );
 
         List<KeySchemaElement> byOrgDomain = singletonList(
-                KeySchemaElement.builder().attributeName(ORG_DOMAIN).keyType(KeyType.HASH).build()
+            KeySchemaElement.builder().attributeName(ORG_DOMAIN).keyType(KeyType.HASH).build()
         );
 
         List<KeySchemaElement> byCristinIdKeyScheme = singletonList(
-                KeySchemaElement.builder().attributeName(CRISTIN_ID).keyType(KeyType.HASH).build()
+            KeySchemaElement.builder().attributeName(CRISTIN_ID).keyType(KeyType.HASH).build()
         );
 
         Projection allProjection = Projection.builder()
-                .projectionType(ProjectionType.ALL)
-                .build();
+            .projectionType(ProjectionType.ALL)
+            .build();
 
         List<GlobalSecondaryIndex> globalSecondaryIndexes = asList(
-                createGsi(byOrgDomain, allProjection, BY_ORG_DOMAIN_INDEX_NAME),
-                createGsi(byCristinIdKeyScheme, allProjection, BY_CRISTIN_ID_INDEX_NAME)
+            createGsi(byOrgDomain, allProjection, BY_ORG_DOMAIN_INDEX_NAME),
+            createGsi(byCristinIdKeyScheme, allProjection, BY_CRISTIN_ID_INDEX_NAME)
         );
 
         CreateTableRequest createTableRequest =
-                CreateTableRequest.builder()
-                        .tableName(NVA_CUSTOMERS_TABLE_NAME)
-                        .attributeDefinitions(attributeDefinitions)
-                        .keySchema(keySchema)
-                        .globalSecondaryIndexes(globalSecondaryIndexes)
-                        .provisionedThroughput(provisionedThroughput())
-                        .build();
+            CreateTableRequest.builder()
+                .tableName(NVA_CUSTOMERS_TABLE_NAME)
+                .attributeDefinitions(attributeDefinitions)
+                .keySchema(keySchema)
+                .globalSecondaryIndexes(globalSecondaryIndexes)
+                .provisionedThroughput(provisionedThroughput())
+                .build();
 
         ddb.createTable(createTableRequest);
     }
@@ -90,17 +90,17 @@ public class LocalCustomerServiceDatabase {
     private GlobalSecondaryIndex createGsi(List<KeySchemaElement> byCristinIdKeyScheme, Projection allProjection,
                                            String cristinId) {
         return GlobalSecondaryIndex.builder()
-                .indexName(cristinId)
-                .keySchema(byCristinIdKeyScheme)
-                .projection(allProjection)
-                .provisionedThroughput(provisionedThroughput())
-                .build();
+            .indexName(cristinId)
+            .keySchema(byCristinIdKeyScheme)
+            .projection(allProjection)
+            .provisionedThroughput(provisionedThroughput())
+            .build();
     }
 
     private ProvisionedThroughput provisionedThroughput() {
         return ProvisionedThroughput.builder()
-                .readCapacityUnits(NOT_IMPORTANT)
-                .writeCapacityUnits(NOT_IMPORTANT)
-                .build();
+            .readCapacityUnits(NOT_IMPORTANT)
+            .writeCapacityUnits(NOT_IMPORTANT)
+            .build();
     }
 }

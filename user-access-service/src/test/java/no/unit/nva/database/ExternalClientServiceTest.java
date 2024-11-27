@@ -31,15 +31,15 @@ class ExternalClientServiceTest extends LocalIdentityService {
     @Test
     void shouldInsertClientToDb() throws InvalidEntryInternalException, NotFoundException, URISyntaxException {
         var clientDto = ClientDto.newBuilder()
-                .withClientId(CLIENT_ID)
-                .withCustomer(new URI("https://example.org/customer"))
-                .withCristinOrgUri(new URI("https://example.org/cristin"))
-                .withActingUser("actingUser")
-                .build();
+            .withClientId(CLIENT_ID)
+            .withCustomer(new URI("https://example.org/customer"))
+            .withCristinOrgUri(new URI("https://example.org/cristin"))
+            .withActingUser("actingUser")
+            .build();
 
         service.createNewExternalClient(clientDto);
         ClientDto clientQuery =
-                ClientDto.newBuilder().withClientId(CLIENT_ID).build();
+            ClientDto.newBuilder().withClientId(CLIENT_ID).build();
 
         ClientDto savedClient = service.getClient(clientQuery);
 
@@ -51,7 +51,7 @@ class ExternalClientServiceTest extends LocalIdentityService {
     @Test
     void throwsNotFoundExceptionWhenClientDoesNotExist() throws InvalidEntryInternalException {
         ClientDto clientQuery =
-                ClientDto.newBuilder().withClientId(randomString()).build();
+            ClientDto.newBuilder().withClientId(randomString()).build();
 
         Executable action = () -> service.getClient(clientQuery);
 

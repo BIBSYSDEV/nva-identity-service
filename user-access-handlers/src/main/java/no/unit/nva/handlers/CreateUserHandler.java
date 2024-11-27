@@ -64,9 +64,9 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     @JacocoGenerated
     public CreateUserHandler(IdentityService identityService, CustomerService customerService) {
         this(defaultUserCreator(identityService),
-                identityService,
-                customerService,
-                CristinPersonRegistry.defaultPersonRegistry());
+            identityService,
+            customerService,
+            CristinPersonRegistry.defaultPersonRegistry());
     }
 
     public CreateUserHandler(UserEntriesCreatorForPerson userCreator,
@@ -85,26 +85,15 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
         return new UserEntriesCreatorForPerson(identityService);
     }
 
-    public static ApiGatewayException castToCorrectRuntimeException(Failure<?> failure) {
-        var exception = failure.getException();
-        if (exception instanceof ConflictException) {
-            return (ConflictException) exception;
-        } else {
-            final Throwable cause = failure.getException();
-            LOGGER.error("Failed to create or update user!", cause);
-            return new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
-        }
-    }
-
     @Override
     protected void validateRequest(CreateUserRequest createUserRequest, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
         authorize(createUserRequest, requestInfo);
     }
 
     @Override
     protected UserDto processInput(CreateUserRequest input, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
 
 
         var existingUser = fetchExistingUser(input);
@@ -119,47 +108,34 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private UserDto persistNewUser(CreateUserRequest input) throws ApiGatewayException {
         return attempt(() -> createNewUser(input))
-                .map(userDto -> addRolesAndViewingScope(userDto, input))
-                .map(identityService::updateUser)
-                .orElseThrow(CreateUserHandler::castToCorrectRuntimeException);
+            .map(userDto -> addRolesAndViewingScope(userDto, input))
+            .map(identityService::updateUser)
+            .orElseThrow(CreateUserHandler::castToCorrectRuntimeException);
     }
 
-    private Optional<UserDto> fetchExistingUser(CreateUserRequest input) throws ConflictException {
-        return fetchCristinPersonFromIdentifierOrNin(input)
-                .map(person -> fetchUserAtCustomer(person, input.customerId()))
-                .orElseThrow(() -> new ConflictException(personIsNotRegisteredError(input.nationalIdentityNumber())));
-    }
-
-    private Optional<Person> fetchCristinPersonFromIdentifierOrNin(CreateUserRequest input) {
-        return nonNull(input.cristinIdentifier()) ?
-                personRegistry.fetchPersonByIdentifier(input.cristinIdentifier()) :
-                personRegistry.fetchPersonByNin(
-                        NationalIdentityNumber.fromString(
-                                input.nationalIdentityNumber()));
-    }
-
-    private Optional<UserDto> fetchUserAtCustomer(Person person, URI customerId) {
-        var users = identityService.getUsersByCristinId(person.getId());
-        return users.stream().filter(userDto -> userDto.getInstitution().equals(customerId)).findFirst();
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(CreateUserRequest input, UserDto output) {
-        return statusCode;
+    public static ApiGatewayException castToCorrectRuntimeException(Failure<?> failure) {
+        var exception = failure.getException();
+        if (exception instanceof ConflictException) {
+            return (ConflictException) exception;
+        } else {
+            final Throwable cause = failure.getException();
+            LOGGER.error("Failed to create or update user!", cause);
+            return new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
+        }
     }
 
     private UserDto createNewUser(CreateUserRequest input) throws ConflictException {
         var person = fetchCristinPersonFromIdentifierOrNin(input).orElseThrow();
 
         var customersWithActiveAffiliations = fetchCustomersWithActiveAffiliations(
-                person.getAffiliations());
+            person.getAffiliations());
 
         explainWhyUserCannotBeCreated(person, customersWithActiveAffiliations);
 
         var customers = Collections.singleton(
-                customersWithActiveAffiliations.stream()
-                        .filter(customerByIdOrCristinId(input))
-                        .collect(SingletonCollector.collect())
+            customersWithActiveAffiliations.stream()
+                .filter(customerByIdOrCristinId(input))
+                .collect(SingletonCollector.collect())
         );
         var context = new UserCreationContext(person, customers);
         var users = userCreator.createUsers(context);
@@ -173,10 +149,10 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {
         return affiliations.stream()
-                .map(Affiliation::getInstitutionId)
-                .map(attempt(customerService::getCustomerByCristinId))
-                .flatMap(Try::stream)
-                .collect(Collectors.toSet());
+            .map(Affiliation::getInstitutionId)
+            .map(attempt(customerService::getCustomerByCristinId))
+            .flatMap(Try::stream)
+            .collect(Collectors.toSet());
     }
 
     private void explainWhyUserCannotBeCreated(Person person,
@@ -190,13 +166,9 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
         }
     }
 
-    private String personIsNotRegisteredError(String nin) {
-        return String.format("Person %s is not registered in the Person Registry", nin);
-    }
-
     private String noCustomersForActiveAffiliations(String personId) {
         return String.format("Person %s has no active affiliations with an Institution that is an NVA customer",
-                personId);
+            personId);
     }
 
     private String noActiveAffiliationsMessage(String personId) {
@@ -209,17 +181,45 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private UserDto addRolesAndViewingScope(UserDto newUser, CreateUserRequest input) {
         return getEventuallyConsistent(() -> identityService.getUser(newUser))
-                .map(UserDto::copy)
-                .map(user -> user.withRoles(createUnionOfRoleSets(input, newUser)))
-                .map(user -> user.withViewingScope(input.viewingScope()))
-                .map(UserDto.Builder::build)
-                .orElseThrow();
+            .map(UserDto::copy)
+            .map(user -> user.withRoles(createUnionOfRoleSets(input, newUser)))
+            .map(user -> user.withViewingScope(input.viewingScope()))
+            .map(UserDto.Builder::build)
+            .orElseThrow();
     }
 
     private Set<RoleDto> createUnionOfRoleSets(CreateUserRequest input, UserDto newUser) {
         return Stream.of(input.roles(), newUser.getRoles())
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+    }
+
+    private Optional<UserDto> fetchExistingUser(CreateUserRequest input) throws ConflictException {
+        return fetchCristinPersonFromIdentifierOrNin(input)
+            .map(person -> fetchUserAtCustomer(person, input.customerId()))
+            .orElseThrow(() -> new ConflictException(personIsNotRegisteredError(input.nationalIdentityNumber())));
+    }
+
+    private Optional<Person> fetchCristinPersonFromIdentifierOrNin(CreateUserRequest input) {
+        return nonNull(input.cristinIdentifier()) ?
+            personRegistry.fetchPersonByIdentifier(input.cristinIdentifier()) :
+            personRegistry.fetchPersonByNin(
+                NationalIdentityNumber.fromString(
+                    input.nationalIdentityNumber()));
+    }
+
+    private Optional<UserDto> fetchUserAtCustomer(Person person, URI customerId) {
+        var users = identityService.getUsersByCristinId(person.getId());
+        return users.stream().filter(userDto -> userDto.getInstitution().equals(customerId)).findFirst();
+    }
+
+    private String personIsNotRegisteredError(String nin) {
+        return String.format("Person %s is not registered in the Person Registry", nin);
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(CreateUserRequest input, UserDto output) {
+        return statusCode;
     }
 
     private void authorize(CreateUserRequest input, RequestInfo requestInfo) throws ForbiddenException {
@@ -236,6 +236,6 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private boolean userIsInternalBackendOrHasManageOwnAffiliationAccess(RequestInfo requestInfo) {
         return requestInfo.clientIsInternalBackend()
-                || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
+            || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 }

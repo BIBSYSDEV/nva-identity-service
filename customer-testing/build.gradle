@@ -4,4 +4,6 @@ dependencies {
     implementation libs.nva.core
     implementation libs.aws.sdk2.dynamodb
     implementation libs.bundles.testing
+    implementation libs.nva.json
+
 }

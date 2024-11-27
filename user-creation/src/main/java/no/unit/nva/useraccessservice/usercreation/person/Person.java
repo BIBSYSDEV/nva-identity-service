@@ -54,20 +54,20 @@ public class Person {
 
     private Stream<URI> findInstitutionUnitIds(URI institutionId) {
         return this.affiliations.stream()
-                .filter(affiliation -> affiliation.getInstitutionId().equals(institutionId))
-                .map(Affiliation::getUnitIds)
-                .collect(SingletonCollector.collect()).stream();
+            .filter(affiliation -> affiliation.getInstitutionId().equals(institutionId))
+            .map(Affiliation::getUnitIds)
+            .collect(SingletonCollector.collect()).stream();
     }
 
     @JacocoGenerated
     @Override
     public String toString() {
         return "Person{"
-                + "id=" + id
-                + ", identifier='" + identifier + '\''
-                + ", firstname='" + firstname + '\''
-                + ", surname='" + surname + '\''
-                + ", affiliations=" + affiliations
-                + '}';
+            + "id=" + id
+            + ", identifier='" + identifier + '\''
+            + ", firstname='" + firstname + '\''
+            + ", surname='" + surname + '\''
+            + ", affiliations=" + affiliations
+            + '}';
     }
 }

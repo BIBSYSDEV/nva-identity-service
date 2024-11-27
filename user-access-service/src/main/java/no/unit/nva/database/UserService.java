@@ -55,15 +55,6 @@ public class UserService extends DatabaseSubService {
         this.cristinCredentialsIndex = this.table.index(SEARCH_USERS_BY_CRISTIN_IDENTIFIERS);
     }
 
-    private static ScanEnhancedRequest buildScanRequestForAllUsers() {
-        var expression = Expression.builder().expression("#type = :type")
-                .putExpressionValue(":type",
-                        AttributeValue.builder().s(TYPE_VALUE).build())
-                .putExpressionName("#type", TYPE_FIELD)
-                .build();
-        return ScanEnhancedRequest.builder().filterExpression(expression).build();
-    }
-
     /**
      * Fetches a user from the database that has the username specified in the input.
      *
@@ -73,7 +64,27 @@ public class UserService extends DatabaseSubService {
      */
     public UserDto getUser(UserDto queryObject) throws NotFoundException {
         return getUserAsOptional(queryObject)
-                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
+            .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
+    }
+
+    private Optional<UserDto> getUserAsOptional(UserDto queryObject) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(GET_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
+        }
+
+        UserDto searchResult = attemptToFetchObject(queryObject);
+        return Optional.ofNullable(searchResult);
+    }
+
+    private UserDto attemptToFetchObject(UserDto queryObject) {
+        UserDao userDao = attempt(() -> UserDao.fromUserDto(queryObject))
+            .map(this::fetchItem)
+            .orElseThrow(DatabaseSubService::handleError);
+        return nonNull(userDao) ? userDao.toUserDto() : null;
+    }
+
+    private UserDao fetchItem(UserDao userDao) {
+        return table.getItem(userDao);
     }
 
     /**
@@ -83,13 +94,22 @@ public class UserService extends DatabaseSubService {
     public List<UserDto> listAllUsers() {
 
         return this.table
-                .scan(buildScanRequestForAllUsers())
-                .stream()
-                .map(Page::items)
-                .flatMap(Collection::stream)
-                .filter(dao -> dao.getType().equals(TYPE_VALUE))
-                .map(UserDao::toUserDto)
-                .toList();
+            .scan(buildScanRequestForAllUsers())
+            .stream()
+            .map(Page::items)
+            .flatMap(Collection::stream)
+            .filter(dao -> dao.getType().equals(TYPE_VALUE))
+            .map(UserDao::toUserDto)
+            .toList();
+    }
+
+    private static ScanEnhancedRequest buildScanRequestForAllUsers() {
+        var expression = Expression.builder().expression("#type = :type")
+            .putExpressionValue(":type",
+                AttributeValue.builder().s(TYPE_VALUE).build())
+            .putExpressionName("#type", TYPE_FIELD)
+            .build();
+        return ScanEnhancedRequest.builder().filterExpression(expression).build();
     }
 
     /**
@@ -104,11 +124,19 @@ public class UserService extends DatabaseSubService {
         var result = institutionsIndex.query(listUsersQuery);
 
         var users = result.stream()
-                .map(Page::items)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+            .map(Page::items)
+            .flatMap(Collection::stream)
+            .toList();
         return users.stream().map(UserDao::toUserDto)
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
+    }
+
+    private QueryEnhancedRequest createListUsersByInstitutionQuery(URI institution) {
+        return QueryEnhancedRequest.builder()
+            .queryConditional(
+                QueryConditional.keyEqualTo(Key.builder().partitionValue(institution.toString()).build()))
+            .consistentRead(false)
+            .build();
     }
 
     /**
@@ -129,6 +157,34 @@ public class UserService extends DatabaseSubService {
         return databaseEntryWithSyncedRoles.toUserDto();
     }
 
+    private UserDao syncRoleDetails(UserDao updateObject) {
+        return userWithSyncedRoles(updateObject);
+    }
+
+    private UserDao userWithSyncedRoles(UserDao currentUser) {
+        List<RoleDb> roles = currentRoles(currentUser);
+        return currentUser.copy().withRoles(roles).build();
+    }
+
+    // TODO: use batch query for minimizing the cost.
+    private List<RoleDb> currentRoles(UserDao currentUser) {
+        return currentUser.getRolesNonNull()
+            .stream()
+            .map(roleService::fetchRoleDb)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    }
+
+    private void checkUserDoesNotAlreadyExist(UserDto user) throws ConflictException {
+        if (userAlreadyExists(user)) {
+            throw new ConflictException(USER_ALREADY_EXISTS_ERROR_MESSAGE + user.getUsername());
+        }
+    }
+
+    private boolean userAlreadyExists(UserDto user) {
+        return this.getUserAsOptional(user).isPresent();
+    }
+
     /**
      * Update an existing user.
      *
@@ -144,83 +200,9 @@ public class UserService extends DatabaseSubService {
         }
     }
 
-    public List<UserDto> getUsersByByCristinId(URI cristinPersonId) {
-        var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId, EMPTY_CRISTIN_ORG_ID);
-        var result = cristinCredentialsIndex.query(request);
-        return result.stream()
-                .map(Page::items)
-                .flatMap(Collection::stream)
-                .map(UserDao::toUserDto).collect(Collectors.toList());
-    }
-
-    public UserDto getUsersByByCristinIdAndCristinOrgId(URI cristinPersonId, URI cristinOrgId) {
-        var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId, cristinOrgId);
-        var result = cristinCredentialsIndex.query(request);
-
-        return result.stream()
-                .map(Page::items)
-                .flatMap(Collection::stream)
-                .map(UserDao::toUserDto)
-                .collect(SingletonCollector.collect());
-    }
-
-    private QueryEnhancedRequest createQueryForSearchingInCristinCredentialsIndex(URI cristinPersonId,
-                                                                                  URI cristinOrgId) {
-        var key = Optional.ofNullable(cristinOrgId)
-                .map(
-                        orgId -> Key.builder().partitionValue(cristinPersonId.toString()).sortValue(orgId.toString()))
-                .orElseGet(() -> Key.builder().partitionValue(cristinPersonId.toString()))
-                .build();
-        return QueryEnhancedRequest.builder()
-                .queryConditional(QueryConditional.keyEqualTo(key))
-                .build();
-    }
-
-    private UserDao syncRoleDetails(UserDao updateObject) {
-        return userWithSyncedRoles(updateObject);
-    }
-
-    private Optional<UserDto> getUserAsOptional(UserDto queryObject) {
-        if (logger.isDebugEnabled()) {
-            logger.debug(GET_USER_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
-        }
-
-        UserDto searchResult = attemptToFetchObject(queryObject);
-        return Optional.ofNullable(searchResult);
-    }
-
-    private QueryEnhancedRequest createListUsersByInstitutionQuery(URI institution) {
-        return QueryEnhancedRequest.builder()
-                .queryConditional(
-                        QueryConditional.keyEqualTo(Key.builder().partitionValue(institution.toString()).build()))
-                .consistentRead(false)
-                .build();
-    }
-
-    private void checkUserDoesNotAlreadyExist(UserDto user) throws ConflictException {
-        if (userAlreadyExists(user)) {
-            throw new ConflictException(USER_ALREADY_EXISTS_ERROR_MESSAGE + user.getUsername());
-        }
-    }
-
     private UserDto getExistingUserOrSendNotFoundError(UserDto queryObject) throws NotFoundException {
         return getUserAsOptional(queryObject)
-                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
-    }
-
-    private boolean userAlreadyExists(UserDto user) {
-        return this.getUserAsOptional(user).isPresent();
-    }
-
-    private UserDto attemptToFetchObject(UserDto queryObject) {
-        UserDao userDao = attempt(() -> UserDao.fromUserDto(queryObject))
-                .map(this::fetchItem)
-                .orElseThrow(DatabaseSubService::handleError);
-        return nonNull(userDao) ? userDao.toUserDto() : null;
-    }
-
-    private UserDao fetchItem(UserDao userDao) {
-        return table.getItem(userDao);
+            .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MESSAGE + queryObject.getUsername()));
     }
 
     private boolean userHasChanged(UserDto existingUser, UserDao desiredUpdateWithSyncedRoles) {
@@ -231,17 +213,35 @@ public class UserService extends DatabaseSubService {
         table.putItem(userUpdateWithSyncedRoles);
     }
 
-    private UserDao userWithSyncedRoles(UserDao currentUser) {
-        List<RoleDb> roles = currentRoles(currentUser);
-        return currentUser.copy().withRoles(roles).build();
+    public List<UserDto> getUsersByByCristinId(URI cristinPersonId) {
+        var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId, EMPTY_CRISTIN_ORG_ID);
+        var result = cristinCredentialsIndex.query(request);
+        return result.stream()
+            .map(Page::items)
+            .flatMap(Collection::stream)
+            .map(UserDao::toUserDto).collect(Collectors.toList());
     }
 
-    // TODO: use batch query for minimizing the cost.
-    private List<RoleDb> currentRoles(UserDao currentUser) {
-        return currentUser.getRolesNonNull()
-                .stream()
-                .map(roleService::fetchRoleDb)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+    private QueryEnhancedRequest createQueryForSearchingInCristinCredentialsIndex(URI cristinPersonId,
+                                                                                  URI cristinOrgId) {
+        var key = Optional.ofNullable(cristinOrgId)
+            .map(
+                orgId -> Key.builder().partitionValue(cristinPersonId.toString()).sortValue(orgId.toString()))
+            .orElseGet(() -> Key.builder().partitionValue(cristinPersonId.toString()))
+            .build();
+        return QueryEnhancedRequest.builder()
+            .queryConditional(QueryConditional.keyEqualTo(key))
+            .build();
+    }
+
+    public UserDto getUsersByByCristinIdAndCristinOrgId(URI cristinPersonId, URI cristinOrgId) {
+        var request = createQueryForSearchingInCristinCredentialsIndex(cristinPersonId, cristinOrgId);
+        var result = cristinCredentialsIndex.query(request);
+
+        return result.stream()
+            .map(Page::items)
+            .flatMap(Collection::stream)
+            .map(UserDao::toUserDto)
+            .collect(SingletonCollector.collect());
     }
 }

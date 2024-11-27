@@ -32,9 +32,9 @@ public enum RoleName {
 
     public static RoleName fromValue(String value) {
         return Arrays.stream(RoleName.values())
-                .filter(entry -> entry.getValue().equals(value))
-                .findFirst()
-                .orElseThrow();
+            .filter(entry -> entry.getValue().equals(value))
+            .findFirst()
+            .orElseThrow();
     }
 
     @JsonValue

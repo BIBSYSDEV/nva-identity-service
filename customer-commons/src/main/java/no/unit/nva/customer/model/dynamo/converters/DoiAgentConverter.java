@@ -17,16 +17,6 @@ public class DoiAgentConverter implements AttributeConverter<DoiAgentDao> {
     }
 
     @Override
-    public EnhancedType<DoiAgentDao> type() {
-        return EnhancedType.of(DoiAgentDao.class);
-    }
-
-    @Override
-    public AttributeValueType attributeValueType() {
-        return AttributeValueType.M;
-    }
-
-    @Override
     public AttributeValue transformFrom(DoiAgentDao input) {
         var map = TABLE_SCHEMA.itemToMap(input, true);
         return AttributeValue.builder().m(map).build();
@@ -35,5 +25,15 @@ public class DoiAgentConverter implements AttributeConverter<DoiAgentDao> {
     @Override
     public DoiAgentDao transformTo(AttributeValue input) {
         return TABLE_SCHEMA.mapToItem(input.m());
+    }
+
+    @Override
+    public EnhancedType<DoiAgentDao> type() {
+        return EnhancedType.of(DoiAgentDao.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.M;
     }
 }

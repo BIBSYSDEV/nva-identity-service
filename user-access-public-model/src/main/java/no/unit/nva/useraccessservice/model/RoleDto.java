@@ -43,7 +43,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
 
     public static RoleDto fromJson(String json) throws BadRequestException, InvalidInputException {
         RoleDto roleDto = attempt(() -> JsonConfig.readValue(json, RoleDto.class))
-                .orElseThrow(fail -> new BadRequestException("Could not parse role: " + json));
+            .orElseThrow(fail -> new BadRequestException("Could not parse role: " + json));
         if (roleDto.isInvalid()) {
             throw roleDto.exceptionWhenInvalid();
         }
@@ -55,15 +55,10 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     @Override
-    public String toString() {
-        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
-    }
-
-    @Override
     public Builder copy() {
         return new Builder()
-                .withAccessRights(this.getAccessRights())
-                .withRoleName(this.getRoleName());
+            .withAccessRights(this.getAccessRights())
+            .withRoleName(this.getRoleName());
     }
 
     public RoleName getRoleName() {
@@ -110,7 +105,12 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         }
         RoleDto roleDto = (RoleDto) o;
         return Objects.equals(getRoleName(), roleDto.getRoleName())
-                && Objects.equals(getAccessRights(), roleDto.getAccessRights());
+            && Objects.equals(getAccessRights(), roleDto.getAccessRights());
+    }
+
+    @Override
+    public String toString() {
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     @Override

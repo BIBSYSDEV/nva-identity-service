@@ -12,16 +12,16 @@ public class UserCreationContext {
     private final Set<CustomerDto> customers;
     private final String feideIdentifier;
 
+    public UserCreationContext(Person person, Set<CustomerDto> customers) {
+        this(person, customers, null);
+    }
+
     public UserCreationContext(Person person, Set<CustomerDto> customers, String feideIdentifier) {
         assertValidState(person, customers, feideIdentifier);
 
         this.person = person;
         this.customers = customers;
         this.feideIdentifier = feideIdentifier;
-    }
-
-    public UserCreationContext(Person person, Set<CustomerDto> customers) {
-        this(person, customers, null);
     }
 
     private void assertValidState(Person person, Set<CustomerDto> customers, String authenticatedFeideIdentifier) {

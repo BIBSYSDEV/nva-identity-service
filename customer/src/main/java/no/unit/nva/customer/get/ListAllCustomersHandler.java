@@ -41,24 +41,6 @@ public class ListAllCustomersHandler extends ApiGatewayHandler<Void, CustomerLis
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerList output) {
-        return HttpURLConnection.HTTP_OK;
-    }
-
-    @Override
-    protected CustomerList processInput(Void input, RequestInfo requestInfo, Context context)
-            throws ForbiddenException {
-
-        List<CustomerDto> customers = customerService.getCustomers();
-        return new CustomerList(customers);
-    }
-
-    private boolean userIsAuthorized(RequestInfo requestInfo) {
-        return requestInfo.clientIsInternalBackend()
-                || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
-    }
-
-    @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
@@ -68,5 +50,23 @@ public class ListAllCustomersHandler extends ApiGatewayHandler<Void, CustomerLis
         if (!userIsAuthorized(requestInfo)) {
             throw new ForbiddenException();
         }
+    }
+
+    @Override
+    protected CustomerList processInput(Void input, RequestInfo requestInfo, Context context)
+        throws ForbiddenException {
+
+        List<CustomerDto> customers = customerService.getCustomers();
+        return new CustomerList(customers);
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(Void input, CustomerList output) {
+        return HttpURLConnection.HTTP_OK;
+    }
+
+    private boolean userIsAuthorized(RequestInfo requestInfo) {
+        return requestInfo.clientIsInternalBackend()
+            || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 }

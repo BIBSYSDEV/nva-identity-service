@@ -1,13 +1,5 @@
 package no.unit.nva.useraccessservice.dao;
 
-import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
-import static nva.commons.core.attempt.Try.attempt;
-
-import java.net.URI;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -15,6 +7,14 @@ import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
+
+import java.net.URI;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+
+import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
+import static nva.commons.core.attempt.Try.attempt;
 
 /**
  * This is a Curator's default viewing scope expressed as a set of included and excluded Cristin Units. The Curator's
@@ -41,6 +41,10 @@ public class ViewingScopeDb implements Typed {
     public ViewingScopeDb(Set<URI> includedUnits, Set<URI> excludedUnits) {
         this.includedUnits = nonEmptyOrDefault(includedUnits);
         this.excludedUnits = nonEmptyOrDefault(excludedUnits);
+    }
+
+    private Set<URI> nonEmptyOrDefault(Set<URI> units) {
+        return nonEmpty(units) ? units : null;
     }
 
     public static ViewingScopeDb fromViewingScope(ViewingScope dto) {
@@ -104,10 +108,6 @@ public class ViewingScopeDb implements Typed {
             return false;
         }
         return Objects.equals(getIncludedUnits(), that.getIncludedUnits())
-                && Objects.equals(getExcludedUnits(), that.getExcludedUnits());
-    }
-
-    private Set<URI> nonEmptyOrDefault(Set<URI> units) {
-        return nonEmpty(units) ? units : null;
+            && Objects.equals(getExcludedUnits(), that.getExcludedUnits());
     }
 }

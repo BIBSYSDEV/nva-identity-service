@@ -9,9 +9,9 @@ import java.net.URI;
 
 @SuppressWarnings("PMD.ExcessivePublicCount")
 @JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = As.PROPERTY,
-        property = "type")
+    use = JsonTypeInfo.Id.NAME,
+    include = As.PROPERTY,
+    property = "type")
 @JsonTypeName("Vocabulary")
 public interface Vocabulary {
 

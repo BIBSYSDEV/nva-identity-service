@@ -13,7 +13,6 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,9 +23,9 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.any;
 
 
 class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
@@ -45,15 +44,15 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
         mockedService = mock(TermsAndConditionsService.class);
         handler = new UpdatePersonTermsConditionsHandler(mockedService);
         response = TermsConditionsResponse.builder()
-                .withTermsConditionsUri(randomUri())
-                .build();
+            .withTermsConditionsUri(randomUri())
+            .build();
     }
 
     @Test
     public void shouldReturnTheClientWhenItExists() throws IOException, NotFoundException {
 
 
-        when(mockedService.updateTermsAndConditions(any(),any(),any())).thenReturn(response);
+        when(mockedService.updateTermsAndConditions(any(), any(), any())).thenReturn(response);
 
 
         var gatewayResponse = sendRequest(getInputStream(), TermsConditionsResponse.class);
@@ -69,15 +68,15 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
 
     private InputStream getInputStream() throws JsonProcessingException {
         return new HandlerRequestBuilder<TermsConditionsResponse>(objectMapperWithEmpty)
-                .withRequestContext(getRequestContext())
-                .withPersonCristinId(randomUri())
-                .withCurrentCustomer(randomUri())
-                .withBody(response)
-                .build();
+            .withRequestContext(getRequestContext())
+            .withPersonCristinId(randomUri())
+            .withCurrentCustomer(randomUri())
+            .withBody(response)
+            .build();
     }
 
     private ObjectNode getRequestContext() {
         return objectMapperWithEmpty.convertValue(
-                Map.of("path", "/terms-and-conditions/", "domainName", "SAMPLE_DOMAIN_NAME"), ObjectNode.class);
+            Map.of("path", "/terms-and-conditions/", "domainName", "SAMPLE_DOMAIN_NAME"), ObjectNode.class);
     }
 }

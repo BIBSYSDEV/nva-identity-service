@@ -48,7 +48,7 @@ class GetUserHandlerTest extends HandlerTest {
     @DisplayName("handleRequest returns User object with type \"User\"")
     @Test
     void handleRequestReturnsUserObjectWithTypeRole()
-            throws InvalidEntryInternalException, InvalidInputException, IOException, ConflictException {
+        throws InvalidEntryInternalException, InvalidInputException, IOException, ConflictException {
         insertSampleUserToDatabase();
 
         var request = createRequest(DEFAULT_USERNAME);
@@ -65,6 +65,12 @@ class GetUserHandlerTest extends HandlerTest {
         return GatewayResponse.fromOutputStream(outputStream, responseBodyType);
     }
 
+    private InputStream createRequest(String username) throws JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withPathParameters(Map.of(GetUserHandler.USERNAME_PATH_PARAMETER, username))
+            .build();
+    }
+
     @Test
     void getSuccessStatusCodeReturnsOK() {
         Integer actual = getUserHandler.getSuccessStatusCode(null, null);
@@ -73,7 +79,7 @@ class GetUserHandlerTest extends HandlerTest {
 
     @Test
     void shouldReturnUserDtoWhenPathParameterContainsTheUsernameOfExistingUser()
-            throws ApiGatewayException, IOException {
+        throws ApiGatewayException, IOException {
         var request = createRequest(DEFAULT_USERNAME);
         UserDto expected = insertSampleUserToDatabase();
         var response = sendRequest(request, UserDto.class);
@@ -84,7 +90,7 @@ class GetUserHandlerTest extends HandlerTest {
 
     @Test
     void shouldReturnUserDtoWhenPathParameterContainsTheUsernameOfExistingUserEnc()
-            throws ApiGatewayException, IOException {
+        throws ApiGatewayException, IOException {
 
         String encodedUserName = encodeString(DEFAULT_USERNAME);
         var request = createRequest(encodedUserName);
@@ -107,11 +113,5 @@ class GetUserHandlerTest extends HandlerTest {
         var request = new HandlerRequestBuilder<String>(dtoObjectMapper).withBody(randomString()).build();
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
-    }
-
-    private InputStream createRequest(String username) throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                .withPathParameters(Map.of(GetUserHandler.USERNAME_PATH_PARAMETER, username))
-                .build();
     }
 }

@@ -478,8 +478,10 @@ public class UserSelectionUponLoginHandler
         return ClaimsOverrideDetails.builder()
                    .withGroupOverrideDetails(groups)
                    .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
-                   .withClaimsToAddOrOverride(userAttributes.stream()
-                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value)))
+                    .withClaimsToAddOrOverride(userAttributes.stream()
+                        .peek(attribute -> LOGGER.debug("Adding attribute: {} = {}", attribute.name(),
+                                                        attribute.value()))//remove after testing
+                        .collect(Collectors.toMap(AttributeType::name, AttributeType::value)))
                    .build();
     }
 }

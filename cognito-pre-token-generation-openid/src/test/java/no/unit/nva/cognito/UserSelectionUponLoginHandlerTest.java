@@ -19,7 +19,7 @@ import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.LoginEventType.FEIDE;
 import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
-import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
+import static no.unit.nva.cognito.UserAccessRightForCustomer.NO_CUSTOMER_FOUND_FOR_USER_INSTITUTION;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
@@ -491,6 +491,28 @@ class UserSelectionUponLoginHandlerTest {
         var accessRights = extractAccessRights(response);
         assertThat(accessRights, is(empty()));
     }
+/*
+    @Test
+    void shouldUpdateUserAttributeInBothReturnValueAndCognito() {
+        var person = scenarios.personWithExactlyOneActiveEmploymentInNonCustomer();
+        var nin = person.nin();
+
+        var attributes = new ConcurrentHashMap<String, String>();
+        attributes.put(NIN_FOR_FEIDE_USERS, nin);
+        attributes.put("RANDOM_THING", "RANDOM_THING");
+        var request = Request.builder().withUserAttributes(attributes).build();
+        var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
+        loginEvent.setRequest(request);
+
+        var response = handler.handleRequest(loginEvent, context);
+
+
+        var actualUserAttributes = cognitoClient.getAdminUpdateUserRequest().userAttributes().stream()
+                              .filter(attribute -> attribute.name().equals("RANDOM_THING"))
+                              .toList();
+        assertThat(actualUserAttributes, hasSize(0));
+        assertThat(response.getRequest().getUserAttributes().get("RANDOM_THING"), is(nullValue()));
+    }*/
 
     // The following scenario happens when a customer was deleted and instead of being restored by backup data,
     // it wes re-created. As a result, existing users will reference the correct Cristin Org entry, but the incorrect
@@ -507,7 +529,7 @@ class UserSelectionUponLoginHandlerTest {
         identityService.updateUser(existingUser);
         var event = newLoginEvent(person, loginEventType);
         var exception = assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
-        assertThat(exception.getMessage(), containsString(COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR));
+        assertThat(exception.getMessage(), containsString(NO_CUSTOMER_FOUND_FOR_USER_INSTITUTION));
     }
 
     @ParameterizedTest(name = "should include all customers with active employments in the Cognito field "

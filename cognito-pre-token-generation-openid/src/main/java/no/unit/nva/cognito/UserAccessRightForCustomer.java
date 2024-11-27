@@ -11,10 +11,10 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.SingletonCollector;
 
 public class UserAccessRightForCustomer {
 
+    public static final String NO_CUSTOMER_FOUND_FOR_USER_INSTITUTION = "No customer found for user institution: ";
     private final AccessRight accessRight;
     private final CustomerDto customer;
 
@@ -24,13 +24,13 @@ public class UserAccessRightForCustomer {
         this.customer = customerDto;
     }
 
-    public static List<UserAccessRightForCustomer> fromUser(UserDto user, Set<CustomerDto> customers) {
-        var customer = customers.stream()
-                .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
-                .collect(SingletonCollector.collect());
-        return createAccessRightsForExistingCustomer(user, customer);
-    }
-
+public static List<UserAccessRightForCustomer> fromUser(UserDto user, Set<CustomerDto> customers) {
+    var customer = customers.stream()
+            .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException(NO_CUSTOMER_FOUND_FOR_USER_INSTITUTION + user.getInstitution()));
+    return createAccessRightsForExistingCustomer(user, customer);
+}
     private static List<UserAccessRightForCustomer> createAccessRightsForExistingCustomer(UserDto user,
                                                                                           CustomerDto customer) {
         return user.getAccessRights()

@@ -1,20 +1,18 @@
 package no.unit.nva.customer.model;
 
-import nva.commons.core.JacocoGenerated;
-
+import static java.util.Objects.nonNull;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
-
-import static java.util.Objects.nonNull;
+import nva.commons.core.JacocoGenerated;
 
 public class CustomerReference {
 
     private URI id;
     private String displayName;
     private Instant createdDate;
-
+    private boolean active;
     private String doiPrefix;
 
     public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
@@ -23,14 +21,16 @@ public class CustomerReference {
         customerReference.setId(customerDto.getId());
         customerReference.setCreatedDate(customerDto.getCreatedDate());
         customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
+        customerReference.setActive(customerReference.isActive());
         return customerReference;
     }
 
-    private static String extractDoiPrefix(CustomerDto customerDto) {
-        return Optional
-                .ofNullable(customerDto.getDoiAgent())
-                .map(CustomerDto.DoiAgentDto::getPrefix)
-                .orElse(null);
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public URI getId() {
@@ -70,10 +70,7 @@ public class CustomerReference {
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getId(),
-                getDisplayName(),
-                getDoiPrefix(),
-                getCreatedDate());
+        return Objects.hash(getId(), getDisplayName(), getDoiPrefix(), getCreatedDate());
     }
 
     @JacocoGenerated
@@ -85,9 +82,12 @@ public class CustomerReference {
         if (!(o instanceof CustomerReference that)) {
             return false;
         }
-        return Objects.equals(getId(), that.getId())
-                && Objects.equals(getDisplayName(), that.getDisplayName())
-                && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
-                && Objects.equals(getCreatedDate(), that.getCreatedDate());
+        return Objects.equals(getId(), that.getId()) && Objects.equals(getDisplayName(), that.getDisplayName()) &&
+               Objects.equals(getDoiPrefix(), that.getDoiPrefix()) &&
+               Objects.equals(getCreatedDate(), that.getCreatedDate());
+    }
+
+    private static String extractDoiPrefix(CustomerDto customerDto) {
+        return Optional.ofNullable(customerDto.getDoiAgent()).map(CustomerDto.DoiAgentDto::getPrefix).orElse(null);
     }
 }

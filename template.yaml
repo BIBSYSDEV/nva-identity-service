@@ -1302,6 +1302,7 @@ Resources:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"
+      UserPoolTier: "ESSENTIALS"
       LambdaConfig:
         PreTokenGeneration: !Sub '${PreTokenGenerationHandler.Arn}'
       Schema:

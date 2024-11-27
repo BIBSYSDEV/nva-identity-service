@@ -21,7 +21,7 @@ public class CustomerReference {
         customerReference.setId(customerDto.getId());
         customerReference.setCreatedDate(customerDto.getCreatedDate());
         customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
-        customerReference.setActive(customerReference.isActive());
+        customerReference.setActive(customerDto.isActive());
         return customerReference;
     }
 

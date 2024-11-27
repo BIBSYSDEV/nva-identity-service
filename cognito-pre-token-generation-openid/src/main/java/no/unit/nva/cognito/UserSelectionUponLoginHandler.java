@@ -444,6 +444,8 @@ public class UserSelectionUponLoginHandler
         input.setResponse(Response.builder()
                               .withClaimsOverrideDetails(buildOverrideClaims(accessRights, userAttributes))
                               .build());
+        LOGGER.info("Input version: {}", input.getVersion());
+        input.setVersion("V2_0");
     }
 
     private List<UserAccessRightForCustomer> createAccessRightForCustomer(List<UserDto> personUsers,

@@ -2,7 +2,7 @@
 nvaCommons = { strictly = '1.40.20' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
-awsSdk2 = { strictly = '2.27.24' }
+awsSdk2 = { strictly = '2.29.22' }
 jackson = { strictly = "2.17.2" }
 xraySdk = { strictly = '2.9.1' }
 dynamoDbLocal = { strictly = '2.0.0' }

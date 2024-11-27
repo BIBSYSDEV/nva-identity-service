@@ -5,7 +5,6 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
-import nva.commons.core.JacocoGenerated;
 
 public class CustomerReference {
 
@@ -23,6 +22,22 @@ public class CustomerReference {
         customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
         customerReference.setActive(customerReference.isActive());
         return customerReference;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof CustomerReference that)) {
+            return false;
+        }
+        return isActive() == that.isActive() && Objects.equals(getId(), that.getId()) &&
+               Objects.equals(getDisplayName(), that.getDisplayName()) &&
+               Objects.equals(getCreatedDate(), that.getCreatedDate()) &&
+               Objects.equals(getDoiPrefix(), that.getDoiPrefix());
     }
 
     public boolean isActive() {
@@ -65,26 +80,6 @@ public class CustomerReference {
     @SuppressWarnings({"PMD.NullAssignment"})
     public void setCreatedDate(String createdDate) {
         this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getDisplayName(), getDoiPrefix(), getCreatedDate());
-    }
-
-    @JacocoGenerated
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof CustomerReference that)) {
-            return false;
-        }
-        return Objects.equals(getId(), that.getId()) && Objects.equals(getDisplayName(), that.getDisplayName()) &&
-               Objects.equals(getDoiPrefix(), that.getDoiPrefix()) &&
-               Objects.equals(getCreatedDate(), that.getCreatedDate());
     }
 
     private static String extractDoiPrefix(CustomerDto customerDto) {

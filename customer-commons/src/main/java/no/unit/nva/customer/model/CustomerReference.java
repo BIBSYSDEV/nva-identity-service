@@ -5,6 +5,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import nva.commons.core.JacocoGenerated;
 
 public class CustomerReference {
 
@@ -24,11 +25,13 @@ public class CustomerReference {
         return customerReference;
     }
 
+    @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix());
     }
 
+    @JacocoGenerated
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof CustomerReference that)) {

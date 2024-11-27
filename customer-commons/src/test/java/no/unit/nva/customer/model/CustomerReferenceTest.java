@@ -23,7 +23,7 @@ class CustomerReferenceTest {
 
     private static CustomerReference constructExpectedCustomerReference(CustomerDto customerDto) {
         var customerReference = new CustomerReference();
-        customerReference.setActive(false);
+        customerReference.setActive(true);
         customerReference.setCreatedDate(customerDto.getCreatedDate());
         customerReference.setDoiPrefix(null);
         customerReference.setId(customerDto.getId());

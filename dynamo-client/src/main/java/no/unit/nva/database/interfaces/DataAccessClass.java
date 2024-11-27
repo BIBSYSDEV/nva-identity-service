@@ -46,8 +46,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      * but the creator is the user that created the object,
      * not necessarily the current owner.
      * <p>To find the creator, you will have to look up the history of the object.</p>
-     * <p>
-     * Its intended use, is to control access to the object.
+     * <p>Its intended use, is to control access to the object.
      *
      * @return an UUID identifier.
      */

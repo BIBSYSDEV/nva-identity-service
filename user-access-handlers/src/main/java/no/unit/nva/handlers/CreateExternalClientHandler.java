@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.joining;
 import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
 
 public class CreateExternalClientHandler
-        extends HandlerWithEventualConsistency<CreateExternalClientRequest, CreateExternalClientResponse> {
+    extends HandlerWithEventualConsistency<CreateExternalClientRequest, CreateExternalClientResponse> {
 
     public static final String MISSING_SCOPES = "Request does not contain 'scopes'";
     public static final String MISSING_CUSTOMER_URI = "Request does not contain 'customerUri'";
@@ -36,8 +36,8 @@ public class CreateExternalClientHandler
     @JacocoGenerated
     public CreateExternalClientHandler() {
         this(
-                IdentityService.defaultIdentityService(),
-                CognitoService.defaultCognitoService()
+            IdentityService.defaultIdentityService(),
+            CognitoService.defaultCognitoService()
         );
     }
 
@@ -58,20 +58,37 @@ public class CreateExternalClientHandler
     @Override
     protected CreateExternalClientResponse processInput(CreateExternalClientRequest input, RequestInfo requestInfo,
                                                         Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
 
         var cognitoResponse = this.cognitoService.createUserPoolClient(input.getClientName(), input.getScopes());
         var clientDto =
-                ClientDto.newBuilder()
-                        .withClientId(cognitoResponse.userPoolClient().clientId())
-                        .withCustomer(input.getCustomerUri())
-                        .withCristinOrgUri(input.getCristinOrgUri())
-                        .withActingUser(input.getActingUser())
-                        .build();
+            ClientDto.newBuilder()
+                .withClientId(cognitoResponse.userPoolClient().clientId())
+                .withCustomer(input.getCustomerUri())
+                .withCristinOrgUri(input.getCristinOrgUri())
+                .withActingUser(input.getActingUser())
+                .build();
 
         databaseService.addExternalClient(clientDto);
 
         return formatResponse(input.getCustomerUri(), cognitoResponse.userPoolClient());
+    }
+
+    private CreateExternalClientResponse formatResponse(
+        URI customer,
+        UserPoolClientType userPoolClientType) {
+        return new CreateExternalClientResponse(
+            userPoolClientType.clientId(),
+            userPoolClientType.clientSecret(),
+            EXTERNAL_USER_POOL_URL,
+            customer,
+            userPoolClientType.allowedOAuthScopes()
+        );
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(CreateExternalClientRequest input, CreateExternalClientResponse output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     private void validateRequest(CreateExternalClientRequest input) throws BadRequestException {
@@ -93,26 +110,9 @@ public class CreateExternalClientHandler
         }
         if (!issues.isEmpty()) {
             throw new BadRequestException(
-                    "Issues validating request: " + issues.stream().collect(joining(", "))
+                "Issues validating request: " + String.join(", ", issues)
             );
         }
-    }
-
-    private CreateExternalClientResponse formatResponse(
-            URI customer,
-            UserPoolClientType userPoolClientType) {
-        return new CreateExternalClientResponse(
-                userPoolClientType.clientId(),
-                userPoolClientType.clientSecret(),
-                EXTERNAL_USER_POOL_URL,
-                customer,
-                userPoolClientType.allowedOAuthScopes()
-        );
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(CreateExternalClientRequest input, CreateExternalClientResponse output) {
-        return HttpURLConnection.HTTP_OK;
     }
 
     private void authorize(RequestInfo requestInfo) throws ForbiddenException {
@@ -123,6 +123,6 @@ public class CreateExternalClientHandler
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
         return !(requestInfo.clientIsInternalBackend()
-                || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
+            || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
     }
 }

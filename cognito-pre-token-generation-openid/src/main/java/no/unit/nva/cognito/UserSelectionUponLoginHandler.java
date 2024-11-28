@@ -36,7 +36,6 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -478,12 +477,12 @@ public class UserSelectionUponLoginHandler
 
     private ClaimsAndScopeOverrideDetails buildOverrideClaims(List<String> groupsToOverride,
                                                               List<AttributeType> userAttributes) {
-        /*var groups = GroupOverrideDetails.builder()
+        var groups = GroupOverrideDetails.builder()
                          .withGroupsToOverride(groupsToOverride.stream().collect(Collectors.toMap(group -> group, group -> group)))
-                         .build();*/
+                         .build();
 
         return ClaimsAndScopeOverrideDetails.builder()
-                   //.withGroupOverrideDetails(groups)
+                   .withGroupOverrideDetails(groups)
                    .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes))
                    .withIdTokenGeneration(buildIdTokenGeneration())
                    .build();
@@ -493,14 +492,16 @@ public class UserSelectionUponLoginHandler
         return IdTokenGeneration.builder().withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC).build();
     }
 
+    @SuppressWarnings("PMD.UnusedFormalParameter")
     private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
         return AccessTokenGeneration.builder()
                    .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
-                   .withClaimsToAddOrOverride(userAttributes.stream()
+                   /*.withClaimsToAddOrOverride(userAttributes.stream()
                           .filter(a -> !Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
                                             .toList()
                                             .contains(a.name()))
-                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value)))
+                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value)))*/
+                   .withClaimsToAddOrOverride(Map.of("testing", "testing"))
                    .build();
     }
 }

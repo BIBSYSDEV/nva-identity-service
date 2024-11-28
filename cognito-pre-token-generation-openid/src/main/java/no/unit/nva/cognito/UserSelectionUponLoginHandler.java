@@ -27,14 +27,16 @@ import static nva.commons.core.attempt.Try.attempt;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.ClaimsOverrideDetails;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.GroupConfiguration;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Response;
-
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.AccessTokenGeneration;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.ClaimsAndScopeOverrideDetails;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.GroupOverrideDetails;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +75,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 
 @SuppressWarnings({"PMD.GodClass"})
 public class UserSelectionUponLoginHandler
-    implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
+    implements RequestHandler<CognitoUserPoolPreTokenGenerationEventV2, CognitoUserPoolPreTokenGenerationEventV2> {
 
     public static final Environment ENVIRONMENT = new Environment();
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
@@ -139,7 +141,7 @@ public class UserSelectionUponLoginHandler
     }
 
     @Override
-    public CognitoUserPoolPreTokenGenerationEvent handleRequest(CognitoUserPoolPreTokenGenerationEvent input,
+    public CognitoUserPoolPreTokenGenerationEventV2 handleRequest(CognitoUserPoolPreTokenGenerationEventV2 input,
                                                                 Context context) {
         try {
             return processInput(input);
@@ -149,7 +151,7 @@ public class UserSelectionUponLoginHandler
         }
     }
 
-    private CognitoUserPoolPreTokenGenerationEvent processInput(CognitoUserPoolPreTokenGenerationEvent input) {
+    private CognitoUserPoolPreTokenGenerationEventV2 processInput(CognitoUserPoolPreTokenGenerationEventV2 input) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Entering request handler...");
         }
@@ -177,19 +179,21 @@ public class UserSelectionUponLoginHandler
             var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
             var customersForPerson = fetchCustomersWithActiveAffiliations(requestedPerson.get());
             var usersForPerson = createUsers(requestedPerson.get(), customersForPerson, authenticationDetails);
-            var currentCustomer = returnCurrentCustomerIfUnambiguous(authenticationDetails.getFeideDomain(), customersForPerson);
+            var currentCustomer = returnCurrentCustomerIfUnambiguous(authenticationDetails.getFeideDomain(),
+                                                                     customersForPerson);
 
-            var allowedCustomersString = createAllowedCustomersString(customersForPerson, authenticationDetails.getFeideDomain());
+            var allowedCustomersString = createAllowedCustomersString(customersForPerson,
+                                                                      authenticationDetails.getFeideDomain());
 
             if (currentCustomer.isPresent()) {
                 accessRights = createAccessRightForCustomer(usersForPerson, customersForPerson, currentCustomer.get());
                 userAttributes = createAttributesWithCustomer(requestedPerson.get(), accessRights, usersForPerson,
                                                               currentCustomer.get(),
-                                                   allowedCustomersString, impersonatedBy);
+                                                              allowedCustomersString, impersonatedBy);
             } else {
                 userAttributes = createAttributesWithoutCustomer(requestedPerson.get(), accessRights,
                                                                  allowedCustomersString,
-                                                   impersonatedBy);
+                                                                 impersonatedBy);
             }
 
             updateCognitoUserAttributes(authenticationDetails, userAttributes);
@@ -206,29 +210,29 @@ public class UserSelectionUponLoginHandler
     }
 
     private List<AttributeType> createAttributesWithoutCustomer(Person requestedPerson,
-                                                  List<UserAccessRightForCustomer> accessRights,
-                                                  String allowedCustomersString, String impersonatedBy) {
+                                                                List<UserAccessRightForCustomer> accessRights,
+                                                                String allowedCustomersString, String impersonatedBy) {
         List<AttributeType> userAttributes = createUserAttributes(requestedPerson,
-                                              createAccessRightsWithoutCustomer(accessRights),
-                                              emptySet(),
-                                              allowedCustomersString,
-                                              impersonatedBy);
+                                                                  createAccessRightsWithoutCustomer(accessRights),
+                                                                  emptySet(),
+                                                                  allowedCustomersString,
+                                                                  impersonatedBy);
         userAttributes.addAll(createEmptyCustomerSelection());
         return userAttributes;
     }
 
     private List<AttributeType> createAttributesWithCustomer(Person requestedPerson,
-                                                  List<UserAccessRightForCustomer> accessRights,
-                                                  List<UserDto> usersForPerson, CustomerDto currentCustomer,
-                                                  String allowedCustomersString, String impersonatedBy) {
+                                                             List<UserAccessRightForCustomer> accessRights,
+                                                             List<UserDto> usersForPerson, CustomerDto currentCustomer,
+                                                             String allowedCustomersString, String impersonatedBy) {
         List<AttributeType> userAttributes = createUserAttributes(requestedPerson,
-                                              createAccessRightsWithoutCustomer(accessRights),
-                                              rolesForCustomer(usersForPerson, currentCustomer),
-                                              allowedCustomersString,
-                                              impersonatedBy);
+                                                                  createAccessRightsWithoutCustomer(accessRights),
+                                                                  rolesForCustomer(usersForPerson, currentCustomer),
+                                                                  allowedCustomersString,
+                                                                  impersonatedBy);
         userAttributes.addAll(
             customerSelectionClaims(currentCustomer, getCurrentUser(usersForPerson,
-                                                                          currentCustomer.getId())));
+                                                                    currentCustomer.getId())));
         return userAttributes;
     }
 
@@ -279,7 +283,7 @@ public class UserSelectionUponLoginHandler
         return userCreator.createUsers(userCreationContext);
     }
 
-    private AuthenticationDetails extractAuthenticationDetails(CognitoUserPoolPreTokenGenerationEvent input) {
+    private AuthenticationDetails extractAuthenticationDetails(CognitoUserPoolPreTokenGenerationEventV2 input) {
         try {
             var nin = extractNin(input.getRequest().getUserAttributes());
             var feideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
@@ -439,10 +443,10 @@ public class UserSelectionUponLoginHandler
         return AttributeType.builder().name(name).value(value).build();
     }
 
-    private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEvent input,
+    private void injectAccessRightsToEventResponse(CognitoUserPoolPreTokenGenerationEventV2 input,
                                                    List<String> accessRights, List<AttributeType> userAttributes) {
         input.setResponse(Response.builder()
-                              .withClaimsOverrideDetails(buildOverrideClaims(accessRights, userAttributes))
+                              .withClaimsAndScopeOverrideDetails(buildOverrideClaims(accessRights, userAttributes))
                               .build());
         LOGGER.info("Input version: {}", input.getVersion());
     }
@@ -472,17 +476,31 @@ public class UserSelectionUponLoginHandler
                    .collect(Collectors.toList());
     }
 
-    private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride, List<AttributeType> userAttributes) {
-        var groups = GroupConfiguration.builder()
-                         .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
+    private ClaimsAndScopeOverrideDetails buildOverrideClaims(List<String> groupsToOverride,
+                                                              List<AttributeType> userAttributes) {
+        var groups = GroupOverrideDetails.builder()
+                         .withGroupsToOverride(groupsToOverride.stream().collect(Collectors.toMap(group -> group, group -> group)))
                          .build();
-        return ClaimsOverrideDetails.builder()
+
+        return ClaimsAndScopeOverrideDetails.builder()
                    .withGroupOverrideDetails(groups)
+                   .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes))
+                   .withIdTokenGeneration(buildIdTokenGeneration())
+                   .build();
+    }
+
+    private IdTokenGeneration buildIdTokenGeneration() {
+        return IdTokenGeneration.builder().withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC).build();
+    }
+
+    private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
+        return AccessTokenGeneration.builder()
                    .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
-                    .withClaimsToAddOrOverride(userAttributes.stream()
-                        .peek(attribute -> LOGGER.info("Adding attribute: {} = {}", attribute.name(),
-                                                        attribute.value()))//remove after testing
-                        .collect(Collectors.toMap(AttributeType::name, AttributeType::value)))
+                   .withClaimsToAddOrOverride(userAttributes.stream()
+                          .filter(a -> !Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
+                                            .toList()
+                                            .contains(a.name()))
+                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value)))
                    .build();
     }
 }

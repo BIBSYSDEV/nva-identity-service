@@ -416,10 +416,10 @@ class UserSelectionUponLoginHandlerTest {
         assignExistingRoleToUser(existingUserInitiallyWithoutRoles, role);
         var event = newLoginEvent(personLoggingIn, eventType);
         var response = handler.handleRequest(event, context);
-        /*assertThatResponseContainsAssignedAccessRights(existingUserInitiallyWithoutRoles, assignedAccessRights,
+        assertThatResponseContainsAssignedAccessRights(existingUserInitiallyWithoutRoles, assignedAccessRights,
                                                        response);
 
-        assertThatAccessRightsArePersistedInCognitoEntry(assignedAccessRights);*/
+        assertThatAccessRightsArePersistedInCognitoEntry(assignedAccessRights);
     }
 
     @ParameterizedTest(name = "should add customer id as custom:customerId claim when user logs in and has only one "
@@ -874,10 +874,10 @@ class UserSelectionUponLoginHandlerTest {
 
         var response = handler.handleRequest(event, context);
 
-        /*assertIdTokenContainsGroupAccessRightClaims(user, response, approveDoiAccessRight, approvePublishAccessRight);
+        assertIdTokenContainsGroupAccessRightClaims(user, response, approveDoiAccessRight, approvePublishAccessRight);
 
         assertUserAccessRightsAreUpdated(user, approveDoiAccessRight,
-                                         approvePublishAccessRight);*/
+                                         approvePublishAccessRight);
     }
 
     @Test

@@ -210,6 +210,11 @@ public class UserSelectionUponLoginHandler
                          Instant.now().toEpochMilli() - start.toEpochMilli());
         }
 
+        attempt(() -> {
+            LOGGER.info(JsonConfig.writeValueAsString(input));
+            return null;
+        });
+
         return input;
     }
 
@@ -483,7 +488,8 @@ public class UserSelectionUponLoginHandler
     private ClaimsAndScopeOverrideDetails buildOverrideClaims(List<String> groupsToOverride,
                                                               List<AttributeType> userAttributes) {
         var groups = GroupOverrideDetails.builder()
-                         .withGroupsToOverride(groupsToOverride.stream().collect(Collectors.toMap(group -> group, group -> group)))
+                         .withGroupsToOverride(groupsToOverride.stream().collect(Collectors.toMap(group -> null,
+                                                                                                  group -> group)))
                          .build();
 
         return ClaimsAndScopeOverrideDetails.builder()

@@ -32,6 +32,7 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.ClaimsAndScopeOverrideDetails;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
+import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -494,7 +495,7 @@ public class UserSelectionUponLoginHandler
 
         return ClaimsAndScopeOverrideDetails.builder()
                    //.withGroupOverrideDetails(groups)
-                   .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes))
+                   .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes, groupsToOverride))
                    .withIdTokenGeneration(buildIdTokenGeneration())
                    .build();
     }
@@ -505,13 +506,20 @@ public class UserSelectionUponLoginHandler
     }
 
     @SuppressWarnings("PMD.UnusedFormalParameter")
-    private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
+    private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes,
+                                                             List<String> groupsToOverride) {
+        var claims = userAttributes.stream()
+                         .filter(a -> !Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
+                                           .toList()
+                                           .contains(a.name()))
+                         .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
+        try {
+            claims.put("cognito:groups", JsonConfig.writeValueAsString(groupsToOverride));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return AccessTokenGeneration.builder()
-                   .withClaimsToAddOrOverride(userAttributes.stream()
-                          .filter(a -> !Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
-                                            .toList()
-                                            .contains(a.name()))
-                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value)))
+                   .withClaimsToAddOrOverride(claims)
                    .build();
     }
 }

@@ -478,12 +478,12 @@ public class UserSelectionUponLoginHandler
 
     private ClaimsAndScopeOverrideDetails buildOverrideClaims(List<String> groupsToOverride,
                                                               List<AttributeType> userAttributes) {
-        var groups = GroupOverrideDetails.builder()
+        /*var groups = GroupOverrideDetails.builder()
                          .withGroupsToOverride(groupsToOverride.stream().collect(Collectors.toMap(group -> group, group -> group)))
-                         .build();
+                         .build();*/
 
         return ClaimsAndScopeOverrideDetails.builder()
-                   .withGroupOverrideDetails(groups)
+                   //.withGroupOverrideDetails(groups)
                    .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes))
                    .withIdTokenGeneration(buildIdTokenGeneration())
                    .build();

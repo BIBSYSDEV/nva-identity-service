@@ -1302,8 +1302,11 @@ Resources:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
       MfaConfiguration: "OFF"
+      UserPoolTier: "ESSENTIALS"
       LambdaConfig:
-        PreTokenGeneration: !Sub '${PreTokenGenerationHandler.Arn}'
+        PreTokenGenerationConfig:
+          LambdaArn: !Sub '${PreTokenGenerationHandler.Arn}'
+          LambdaVersion: "V2_0"
       Schema:
         - Name: nin
           AttributeDataType: String

@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -154,6 +155,10 @@ public class UserSelectionUponLoginHandler
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Entering request handler...");
         }
+        attempt(() -> {
+            LOGGER.info(JsonConfig.writeValueAsString(input));
+            return null;
+        });
 
         final var start = Instant.now();
 

@@ -476,14 +476,18 @@ public class UserSelectionUponLoginHandler
                    .collect(Collectors.toList());
     }
 
+    @SuppressWarnings("PMD.UnusedFormalParameter")
     private ClaimsAndScopeOverrideDetails buildOverrideClaims(List<String> groupsToOverride,
                                                               List<AttributeType> userAttributes) {
-        /*var groups = GroupOverrideDetails.builder()
-                         .withGroupsToOverride(groupsToOverride.stream().collect(Collectors.toMap(group -> group, group -> group)))
-                         .build();*/
+        var groups = GroupOverrideDetails.builder()
+                         .withGroupsToOverride(Map.of())
+                             /*groupsToOverride.stream().filter(a -> false)
+                                       .collect(Collectors.toMap(group -> group,
+                                                                group -> group)))*/
+                         .build();
 
         return ClaimsAndScopeOverrideDetails.builder()
-                   //.withGroupOverrideDetails(groups)
+                   .withGroupOverrideDetails(groups)
                    .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes))
                    .withIdTokenGeneration(buildIdTokenGeneration())
                    .build();

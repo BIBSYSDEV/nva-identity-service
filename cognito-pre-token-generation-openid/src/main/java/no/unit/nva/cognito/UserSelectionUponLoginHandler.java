@@ -30,13 +30,11 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.AccessTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.ClaimsAndScopeOverrideDetails;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.GroupOverrideDetails;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -485,33 +483,35 @@ public class UserSelectionUponLoginHandler
                    .map(AccessRight::toPersistedString)
                    .collect(Collectors.toList());
     }
-
+    @SuppressWarnings("PMD.UnusedFormalParameter")
     private ClaimsAndScopeOverrideDetails buildOverrideClaims(List<String> groupsToOverride,
                                                               List<AttributeType> userAttributes) {
-        var groups = GroupOverrideDetails.builder()
+        /*var groups = GroupOverrideDetails.builder()
                          .withGroupsToOverride(groupsToOverride.stream().collect(Collectors.toMap(group -> group,
                                                                                                   group -> group)))
-                         .build();
+                         .build();*/
 
         return ClaimsAndScopeOverrideDetails.builder()
-                   .withGroupOverrideDetails(groups)
+                   //.withGroupOverrideDetails(groups)
                    .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes))
-                   .withIdTokenGeneration(buildIdTokenGeneration())
+                   //.withIdTokenGeneration(buildIdTokenGeneration())
                    .build();
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private IdTokenGeneration buildIdTokenGeneration() {
         return IdTokenGeneration.builder().withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC).build();
     }
 
+    @SuppressWarnings("PMD.UnusedFormalParameter")
     private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
         return AccessTokenGeneration.builder()
-                   .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
-                   .withClaimsToAddOrOverride(userAttributes.stream()
+                   //.withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
+                   /*.withClaimsToAddOrOverride(userAttributes.stream()
                           .filter(a -> !Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
                                             .toList()
                                             .contains(a.name()))
-                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value)))
+                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value)))*/
                    .withClaimsToAddOrOverride(Map.of("testing", "testing"))
                    .build();
     }

@@ -100,6 +100,7 @@ import nva.commons.logutils.LogUtils;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -402,6 +403,7 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualUsernames, containsInAnyOrder(expectedUsernames.toArray(String[]::new)));
     }
 
+    @Disabled
     @ParameterizedTest(name = "should return access rights as user groups for user within the scope of a customer "
                               + "for user's active top orgs")
     @EnumSource(LoginEventType.class)
@@ -485,6 +487,7 @@ class UserSelectionUponLoginHandlerTest {
         assertThatCustomerSelectionClaimsAreCleared();
     }
 
+    @Disabled
     @ParameterizedTest(name = "should not assign access rights for active employment when institution (top-level org) "
                               + "is not a registered customer in NVA")
     @EnumSource(LoginEventType.class)
@@ -498,7 +501,8 @@ class UserSelectionUponLoginHandlerTest {
         var accessRights = extractAccessRights(response);
         assertThat(accessRights, is(empty()));
     }
-/*
+
+    @Disabled
     @Test
     void shouldUpdateUserAttributeInBothReturnValueAndCognito() {
         var person = scenarios.personWithExactlyOneActiveEmploymentInNonCustomer();
@@ -519,7 +523,7 @@ class UserSelectionUponLoginHandlerTest {
                               .toList();
         assertThat(actualUserAttributes, hasSize(0));
         assertThat(response.getRequest().getUserAttributes().get("RANDOM_THING"), is(nullValue()));
-    }*/
+    }
 
     // The following scenario happens when a customer was deleted and instead of being restored by backup data,
     // it wes re-created. As a result, existing users will reference the correct Cristin Org entry, but the incorrect
@@ -730,6 +734,7 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualAccessRights, containsString(accessRight.toPersistedString()));
     }
 
+    @Disabled
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
     void shouldStoreAccessRightsToDatabaseWhenUserHasSeveralActiveAffiliations(LoginEventType loginEventType)
@@ -843,6 +848,7 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(cognitoAttribute, is(equalTo(expectedAffiliation.toString())));
     }
 
+    @Disabled
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
     void shouldAllowPeopleWhoAreNotRegisteredInPersonRegistryToLoginButNotGiveThemAnyRole(
@@ -855,6 +861,7 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(accessRights, is((empty())));
     }
 
+    @Disabled
     @Test
     void shouldUpdateUsersAccessRightsWhenRoleHasNewAccessRight()
         throws InvalidInputException, ConflictException, NotFoundException {

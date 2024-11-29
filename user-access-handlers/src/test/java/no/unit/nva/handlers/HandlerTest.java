@@ -8,6 +8,8 @@ import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -27,6 +29,7 @@ public class HandlerTest extends LocalIdentityService {
     public static final String TYPE_ATTRIBUTE = "type";
     private static final String SPECIAL_CHARACTER = "@";
     private static final String ENCODED_SPECIAL_CHARACTER = "%40";
+    private static final Logger logger = LoggerFactory.getLogger(HandlerTest.class);
 
     protected UserDto insertSampleUserToDatabase(String username, URI institution, RoleName roleName)
         throws InvalidEntryInternalException, ConflictException {
@@ -59,12 +62,12 @@ public class HandlerTest extends LocalIdentityService {
                 databaseService.addRole(role);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error inserting role", e);
         }
     }
 
     protected UserDto insertSampleUserToDatabase()
-        throws InvalidEntryInternalException, ConflictException {
+        throws InvalidEntryInternalException, ConflictException, InvalidInputException {
         return insertSampleUserToDatabase(DEFAULT_USERNAME, DEFAULT_INSTITUTION);
     }
 

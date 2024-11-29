@@ -9,6 +9,7 @@ import no.unit.nva.FakeCognito;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
+import no.unit.nva.database.DatabaseTestConfig;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
@@ -107,6 +108,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+
 @WireMockTest(httpsEnabled = true)
 class UserSelectionUponLoginHandlerTest {
 
@@ -149,13 +151,14 @@ class UserSelectionUponLoginHandlerTest {
         cognitoClient = new FakeCognito(randomString());
 
         var httpClient = WiremockHttpClient.create();
-        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService,
-            CristinPersonRegistry.customPersonRegistry(
-                httpClient,
-                wiremockUri,
-                ServiceConstants.API_DOMAIN,
-                defaultRequestHeaders,
-                new SecretsReader(secretsManagerClient)));
+        var personRegistry = CristinPersonRegistry.customPersonRegistry(
+            httpClient,
+            wiremockUri,
+            ServiceConstants.API_DOMAIN,
+            defaultRequestHeaders,
+            new SecretsReader(secretsManagerClient));
+        handler = new UserSelectionUponLoginHandler(
+            cognitoClient, customerService, identityService, personRegistry, DatabaseTestConfig.getEmbeddedClient());
     }
 
     private DynamoDBCustomerService initializeCustomerService() {
@@ -267,7 +270,8 @@ class UserSelectionUponLoginHandlerTest {
             ServiceConstants.API_DOMAIN,
             defaultRequestHeaders,
             new SecretsReader(secretsManagerClient));
-        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService, personRegistry);
+        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService, personRegistry,
+            DatabaseTestConfig.getEmbeddedClient());
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
         assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
         assertThat(testAppender.getMessages(), containsString("Cristin is unavailable"));

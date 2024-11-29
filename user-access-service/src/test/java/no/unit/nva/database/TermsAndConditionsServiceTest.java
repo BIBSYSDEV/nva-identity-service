@@ -4,9 +4,8 @@ import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-import static no.unit.nva.database.TermsAndConditionsService.PERSISTED_ENTITY;
+import static no.unit.nva.database.TermsAndConditionsService.TABLE_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -19,10 +18,10 @@ public class TermsAndConditionsServiceTest {
 
     @BeforeAll
     static void initialize() {
-        DynamoDbClient client = DynamoDbTestClientProvider
-            .geClient();
+        var client = DatabaseTestConfig
+                .getEmbeddedClient();
         new DynamoDbTableCreator(client)
-            .createTable(PERSISTED_ENTITY);
+                .createTable(TABLE_NAME);
 
         termsConditionsService = new TermsAndConditionsService(client);
 
@@ -32,18 +31,18 @@ public class TermsAndConditionsServiceTest {
     void shouldUpdateTermsConditions() throws NotFoundException {
         var userIdentifier = randomUri();
         var expectedResponse = TermsConditionsResponse.builder()
-            .withTermsConditionsUri(randomUri())
-            .build();
+                .withTermsConditionsUri(randomUri())
+                .build();
 
         var response = termsConditionsService
-            .updateTermsAndConditions(
-                userIdentifier,
-                expectedResponse.termsConditionsUri(),
-                userIdentifier
-            );
+                .updateTermsAndConditions(
+                        userIdentifier,
+                        expectedResponse.termsConditionsUri(),
+                        userIdentifier
+                );
 
         var fetchedResponse = termsConditionsService
-            .getTermsAndConditionsByPerson(userIdentifier);
+                .getTermsAndConditionsByPerson(userIdentifier);
 
 
         assertThat(expectedResponse, is(equalTo(response)));
@@ -60,18 +59,18 @@ public class TermsAndConditionsServiceTest {
     void shouldReturnTermsConditionsByPerson() throws NotFoundException {
         var userIdentifier = randomUri();
         var expectedResponse = TermsConditionsResponse.builder()
-            .withTermsConditionsUri(randomUri())
-            .build();
+                .withTermsConditionsUri(randomUri())
+                .build();
 
         termsConditionsService
-            .updateTermsAndConditions(
-                userIdentifier,
-                expectedResponse.termsConditionsUri(),
-                userIdentifier
-            );
+                .updateTermsAndConditions(
+                        userIdentifier,
+                        expectedResponse.termsConditionsUri(),
+                        userIdentifier
+                );
 
         var fetchedResponse = termsConditionsService
-            .getTermsAndConditionsByPerson(userIdentifier);
+                .getTermsAndConditionsByPerson(userIdentifier);
 
         assertThat(expectedResponse, is(equalTo(fetchedResponse)));
     }

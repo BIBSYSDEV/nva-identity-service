@@ -14,7 +14,7 @@ import static nva.commons.core.attempt.Try.attempt;
 
 public class TermsAndConditionsService {
 
-    public static final String PERSISTED_ENTITY = "PersistedEntity";
+    public static final String TABLE_NAME = "PersistedEntity";
     public static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
 
     private final DynamoCrudService<TermsConditions> crudService;
@@ -25,7 +25,7 @@ public class TermsAndConditionsService {
     }
 
     public TermsAndConditionsService(DynamoDbClient client) {
-        crudService = new DynamoCrudService<>(client, PERSISTED_ENTITY, TermsConditions.class);
+        crudService = new DynamoCrudService<>(client, TABLE_NAME, TermsConditions.class);
     }
 
     public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) {

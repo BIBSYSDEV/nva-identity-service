@@ -40,24 +40,6 @@ public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest
     }
 
     @Override
-    protected Integer getSuccessStatusCode(CreateCustomerRequest input, CustomerDto output) {
-        return HttpURLConnection.HTTP_CREATED;
-    }
-
-    @Override
-    protected CustomerDto processInput(CreateCustomerRequest input, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
-
-
-        return customerService.createCustomer(input.toCustomerDto());
-    }
-
-    private boolean userIsAuthorized(RequestInfo requestInfo) {
-        return requestInfo.clientIsInternalBackend()
-                || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
-    }
-
-    @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
@@ -69,5 +51,23 @@ public class CreateCustomerHandler extends CustomerHandler<CreateCustomerRequest
             throw new ForbiddenException();
         }
 
+    }
+
+    @Override
+    protected CustomerDto processInput(CreateCustomerRequest input, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+
+
+        return customerService.createCustomer(input.toCustomerDto());
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(CreateCustomerRequest input, CustomerDto output) {
+        return HttpURLConnection.HTTP_CREATED;
+    }
+
+    private boolean userIsAuthorized(RequestInfo requestInfo) {
+        return requestInfo.clientIsInternalBackend()
+            || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 }

@@ -1,21 +1,6 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.cognito.CognitoCommunicationHandler.AUTHORIZATION_HEADER;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
 import no.unit.nva.FakeCognito;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.identityservice.json.JsonConfig;
@@ -27,6 +12,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResponse;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import static no.unit.nva.cognito.CognitoCommunicationHandler.AUTHORIZATION_HEADER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 class CognitoUserInfoEndpointTest {
 
@@ -45,7 +44,7 @@ class CognitoUserInfoEndpointTest {
 
     @Test
     void shouldReturnCognitoUserInfoWhenRequestingWithAccessTokenHavingTheOnlyAvailableScopeDuringE2ETests()
-            throws IOException {
+        throws IOException {
         var demoUserInfo = demoUserAttributes();
         var accessToken = addDemoUserInfoToFakeCognito(demoUserInfo);
         var request = requestWithAccessToken(accessToken);
@@ -64,10 +63,14 @@ class CognitoUserInfoEndpointTest {
 
     private GetUserResponse createUserResponseFromDemoUserInfo(Map<String, String> demoUserInfo) {
         var demoContent = demoUserInfo.entrySet()
-                .stream()
-                .map(this::toAttributeType)
-                .collect(Collectors.toList());
+            .stream()
+            .map(this::toAttributeType)
+            .collect(Collectors.toList());
         return GetUserResponse.builder().userAttributes(demoContent).build();
+    }
+
+    private AttributeType toAttributeType(Entry<String, String> entry) {
+        return AttributeType.builder().name(entry.getKey()).value(entry.getValue()).build();
     }
 
     private Map<String, String> demoUserAttributes() throws IOException {
@@ -76,14 +79,10 @@ class CognitoUserInfoEndpointTest {
         return JsonConfig.readValue(demoContent, mapType);
     }
 
-    private AttributeType toAttributeType(Entry<String, String> entry) {
-        return AttributeType.builder().name(entry.getKey()).value(entry.getValue()).build();
-    }
-
     private InputStream requestWithAccessToken(String accessToken) throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(JsonUtils.dtoObjectMapper)
-                .withHeaders(authHeader(accessToken))
-                .build();
+            .withHeaders(authHeader(accessToken))
+            .build();
     }
 
     private Map<String, String> authHeader(String accessToken) {

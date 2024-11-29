@@ -30,7 +30,7 @@ public class CreateControlledVocabularyHandler extends WriteControlledVocabulary
 
     @Override
     protected CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer)
-            throws ConflictException, BadRequestException {
+        throws ConflictException, BadRequestException {
         if (customer.getVocabularies().isEmpty()) {
             return customer.copy().withVocabularies(input.getVocabularies()).build();
         }
@@ -39,7 +39,7 @@ public class CreateControlledVocabularyHandler extends WriteControlledVocabulary
 
     @Override
     protected void validateRequest(VocabularyList vocabularyList, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
         //Do nothing
     }
 

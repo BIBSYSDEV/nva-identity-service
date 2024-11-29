@@ -47,34 +47,34 @@ class GetExternalClientHandlerTest extends HandlerTest {
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_NOT_FOUND)));
     }
 
-    @Test
-    public void shouldReturnTheClientWhenItExists() throws IOException, ConflictException {
-        var client =
-                ClientDto.newBuilder()
-                        .withClientId("someClientId")
-                        .withCristinOrgUri(RandomDataGenerator.randomUri())
-                        .withCustomer(RandomDataGenerator.randomUri())
-                        .withActingUser("someone@123")
-                        .build();
-
-        insertClientToDatabase(client);
-        var gatewayResponse = sendRequest(createBackendRequest("someClientId"), Problem.class);
-
-        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_OK)));
-    }
-
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, context);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
 
     private InputStream createBackendRequest(String clientId)
-            throws JsonProcessingException {
+        throws JsonProcessingException {
         var pathParams = Map.of(CLIENT_ID_PATH_PARAMETER_NAME, clientId);
 
         return new HandlerRequestBuilder<CreateExternalClientRequest>(dtoObjectMapper)
-                .withScope(RequestInfoConstants.BACKEND_SCOPE_AS_DEFINED_IN_IDENTITY_SERVICE)
-                .withPathParameters(pathParams)
+            .withScope(RequestInfoConstants.BACKEND_SCOPE_AS_DEFINED_IN_IDENTITY_SERVICE)
+            .withPathParameters(pathParams)
+            .build();
+    }
+
+    @Test
+    public void shouldReturnTheClientWhenItExists() throws IOException {
+        var client =
+            ClientDto.newBuilder()
+                .withClientId("someClientId")
+                .withCristinOrgUri(RandomDataGenerator.randomUri())
+                .withCustomer(RandomDataGenerator.randomUri())
+                .withActingUser("someone@123")
                 .build();
+
+        insertClientToDatabase(client);
+        var gatewayResponse = sendRequest(createBackendRequest("someClientId"), Problem.class);
+
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_OK)));
     }
 }

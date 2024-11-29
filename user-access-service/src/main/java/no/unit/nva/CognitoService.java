@@ -39,56 +39,49 @@ public class CognitoService {
     @JacocoGenerated
     public static CognitoService defaultCognitoService() {
         var client = CognitoIdentityProviderClient.builder()
-                .httpClient(UrlConnectionHttpClient.builder().build())
-                .region(Region.of(AWS_REGION))
-                .build();
+            .httpClient(UrlConnectionHttpClient.builder().build())
+            .region(Region.of(AWS_REGION))
+            .build();
         return new CognitoService(client);
     }
 
     public CreateUserPoolClientResponse createUserPoolClient(String appClientName, List<String> scopes)
-            throws BadRequestException {
+        throws BadRequestException {
         return attempt(() -> client.createUserPoolClient(buildCreateCognitoClientRequest(appClientName, scopes)))
-                .orElseThrow(fail -> handleUserPoolCreationFailure(fail.getException(), scopes));
+            .orElseThrow(fail -> handleUserPoolCreationFailure(fail.getException(), scopes));
 
 
-    }
-
-    private TokenValidityUnitsType getDefaultTokenValidityUnits() {
-        return TokenValidityUnitsType.builder()
-                .refreshToken(DAYS)
-                .accessToken(MINUTES)
-                .idToken(MINUTES)
-                .build();
     }
 
     private CreateUserPoolClientRequest buildCreateCognitoClientRequest(String appClientName,
                                                                         Collection<String> scopes) {
         return CreateUserPoolClientRequest.builder()
-                .userPoolId(EXTERNAL_USER_POOL_ID)
-                .clientName(appClientName)
-                .generateSecret(true)
-                .allowedOAuthScopes(scopes)
-                .allowedOAuthFlowsWithStrings("client_credentials")
-                .allowedOAuthFlowsUserPoolClient(true)
-                .explicitAuthFlows(
-                        List.of(
-                                ALLOW_ADMIN_USER_PASSWORD_AUTH,
-                                ALLOW_CUSTOM_AUTH,
-                                ALLOW_REFRESH_TOKEN_AUTH,
-                                ALLOW_USER_SRP_AUTH)
-                )
-                .tokenValidityUnits(getDefaultTokenValidityUnits())
-                .refreshTokenValidity(30)
-                .accessTokenValidity(15)
-                .idTokenValidity(15)
-                .build();
+            .userPoolId(EXTERNAL_USER_POOL_ID)
+            .clientName(appClientName)
+            .generateSecret(true)
+            .allowedOAuthScopes(scopes)
+            .allowedOAuthFlowsWithStrings("client_credentials")
+            .allowedOAuthFlowsUserPoolClient(true)
+            .explicitAuthFlows(
+                List.of(
+                    ALLOW_ADMIN_USER_PASSWORD_AUTH,
+                    ALLOW_CUSTOM_AUTH,
+                    ALLOW_REFRESH_TOKEN_AUTH,
+                    ALLOW_USER_SRP_AUTH)
+            )
+            .tokenValidityUnits(getDefaultTokenValidityUnits())
+            .refreshTokenValidity(30)
+            .accessTokenValidity(15)
+            .idTokenValidity(15)
+            .build();
     }
 
-    private DescribeResourceServerRequest buildDescribeResourceServerRequest() {
-        return DescribeResourceServerRequest.builder()
-                .userPoolId(EXTERNAL_USER_POOL_ID)
-                .identifier(EXTERNAL_SCOPE_IDENTIFIER)
-                .build();
+    private TokenValidityUnitsType getDefaultTokenValidityUnits() {
+        return TokenValidityUnitsType.builder()
+            .refreshToken(DAYS)
+            .accessToken(MINUTES)
+            .idToken(MINUTES)
+            .build();
     }
 
     private BadRequestException handleUserPoolCreationFailure(Exception exception, Collection<String> scopes) {
@@ -96,16 +89,23 @@ public class CognitoService {
             var describeResourceServerRequest = buildDescribeResourceServerRequest();
 
             var validScopes =
-                    client.describeResourceServer(describeResourceServerRequest)
-                            .resourceServer()
-                            .scopes()
-                            .stream()
-                            .map(scopeType -> EXTERNAL_SCOPE_IDENTIFIER + "/" + scopeType.scopeName())
-                            .collect(Collectors.toSet());
+                client.describeResourceServer(describeResourceServerRequest)
+                    .resourceServer()
+                    .scopes()
+                    .stream()
+                    .map(scopeType -> EXTERNAL_SCOPE_IDENTIFIER + "/" + scopeType.scopeName())
+                    .collect(Collectors.toSet());
 
             return new BadRequestException("Unknown scopes: " + getUnknownScopes(validScopes, scopes));
         }
         throw new RuntimeException(exception.getMessage());
+    }
+
+    private DescribeResourceServerRequest buildDescribeResourceServerRequest() {
+        return DescribeResourceServerRequest.builder()
+            .userPoolId(EXTERNAL_USER_POOL_ID)
+            .identifier(EXTERNAL_SCOPE_IDENTIFIER)
+            .build();
     }
 
     private Collection<String> getUnknownScopes(Collection<String> knownScopes, Collection<String> usedScopes) {

@@ -12,7 +12,7 @@ public final class RequestUtils {
 
     public static Optional<String> getPathParameter(RequestInfo requestInfo, String pathParameter) {
         return Optional.ofNullable(requestInfo)
-                .map(RequestInfo::getPathParameters)
-                .map(m -> m.get(pathParameter));
+            .map(RequestInfo::getPathParameters)
+            .map(m -> m.get(pathParameter));
     }
 }

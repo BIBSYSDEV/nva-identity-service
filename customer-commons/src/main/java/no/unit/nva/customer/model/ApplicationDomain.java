@@ -22,21 +22,21 @@ public enum ApplicationDomain {
     public static ApplicationDomain fromUri(URI candidate) {
         var uri = mapValuesFromPreviousDatamodel(candidate);
         return Arrays.stream(ApplicationDomain.values())
-                .filter(applicationDomain -> applicationDomain.getUri().equals(uri))
-                .collect(SingletonCollector.collect());
+            .filter(applicationDomain -> applicationDomain.getUri().equals(uri))
+            .collect(SingletonCollector.collect());
     }
 
     private static URI mapValuesFromPreviousDatamodel(URI uri) {
         return isNull(uri) || uri.toString().isEmpty() ? NVA.getUri() : uri;
     }
 
+    public URI getUri() {
+        return this.uri;
+    }
+
     @JsonValue
     @Override
     public String toString() {
         return uri.toString();
-    }
-
-    public URI getUri() {
-        return this.uri;
     }
 }

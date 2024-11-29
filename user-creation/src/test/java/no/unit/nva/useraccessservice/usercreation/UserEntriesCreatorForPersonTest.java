@@ -76,26 +76,28 @@ class UserEntriesCreatorForPersonTest {
         var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
 
         var defaultRequestHeaders = new HttpHeaders()
-                .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+            .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         MockPersonRegistry mockPersonRegistry = new MockPersonRegistry(cristinUsername,
-                cristinPassword,
-                wiremockUri,
-                defaultRequestHeaders);
+            cristinPassword,
+            wiremockUri,
+            defaultRequestHeaders);
 
         personRegistry = customPersonRegistry(httpClient,
-                wiremockUri,
-                ServiceConstants.API_DOMAIN,
-                defaultRequestHeaders,
-                new SecretsReader(secretsManagerClient));
+            wiremockUri,
+            ServiceConstants.API_DOMAIN,
+            defaultRequestHeaders,
+            new SecretsReader(secretsManagerClient));
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
 
         userCreator = new UserEntriesCreatorForPerson(identityService);
     }
 
-    @AfterEach
-    public void finish() {
-        customerServiceDatabase.deleteDatabase();
-        identityServiceDatabase.closeDB();
+    private void setupCustomerAndIdentityService() {
+        customerServiceDatabase = new LocalCustomerServiceDatabase();
+        customerServiceDatabase.setupDatabase();
+        identityServiceDatabase = new LocalIdentityService();
+        identityService = identityServiceDatabase.createDatabaseServiceUsingLocalStorage();
+        customerService = new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
     }
 
     // @todo: this is now externalized. create tests for UserCreationContext
@@ -109,12 +111,18 @@ class UserEntriesCreatorForPersonTest {
     //        assertThrows(IllegalStateException.class, () -> userCreator.createUsers(personInformation, customers));
     //    }
 
+    @AfterEach
+    public void finish() {
+        customerServiceDatabase.deleteDatabase();
+        identityServiceDatabase.closeDB();
+    }
+
     @Test
     @DisplayName("should create User for Institution when the Person exists in the Person-Registry,"
-            + "and they have an Affiliation with the Institution "
-            + "and the Affiliation is active"
-            + "and the the Institution is an NVA Customer"
-            + "and the Person has no other Affiliations active or inactive"
+        + "and they have an Affiliation with the Institution "
+        + "and the Affiliation is active"
+        + "and the the Institution is an NVA Customer"
+        + "and the Person has no other Affiliations active or inactive"
     )
     void shouldCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleActiveAffiliation() {
         var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
@@ -129,12 +137,20 @@ class UserEntriesCreatorForPersonTest {
         assertThat(actualUser.getCristinId(), is(equalTo(person.getId())));
     }
 
+    private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {
+        return affiliations.stream()
+            .map(Affiliation::getInstitutionId)
+            .map(attempt(customerService::getCustomerByCristinId))
+            .flatMap(Try::stream)
+            .collect(Collectors.toSet());
+    }
+
     @Test
     @DisplayName("should not create User for Institution when the Person exists in the Person-Registry,"
-            + "and they have an Affiliation with the Institution "
-            + "and the Affiliation is inactive"
-            + "and the the Institution is an NVA Customer"
-            + "and the Person has no other Affiliations active or inactive"
+        + "and they have an Affiliation with the Institution "
+        + "and the Affiliation is inactive"
+        + "and the the Institution is an NVA Customer"
+        + "and the Person has no other Affiliations active or inactive"
     )
     void shouldNotCreateUserForInstWhenPersonExistsAndInstIsNvaCustomerAndPersonHasSingleInactiveAffiliation() {
         var personNin = scenarios.personWithExactlyOneInactiveEmployment().nin();
@@ -148,10 +164,10 @@ class UserEntriesCreatorForPersonTest {
 
     @Test
     @DisplayName(" Given that a Person exists in the Person-Registry,"
-            + "And they have some active Affiliations in some Organizations"
-            + "And the  have some inactive Affiliations is some other Organizations"
-            + "And the parent Institutions are all NVA customers"
-            + "Then it should create a User for each Institution where the Person has an active affiliation with"
+        + "And they have some active Affiliations in some Organizations"
+        + "And the  have some inactive Affiliations is some other Organizations"
+        + "And the parent Institutions are all NVA customers"
+        + "Then it should create a User for each Institution where the Person has an active affiliation with"
     )
     void shouldCreateUsersOnlyForActiveAffiliations() {
         var personNin = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
@@ -160,12 +176,12 @@ class UserEntriesCreatorForPersonTest {
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
         var userCreationContext = new UserCreationContext(person, customers);
         var expectedCustomers = person.getAffiliations()
-                .stream()
-                .map(Affiliation::getInstitutionId)
-                .map(attempt(institution -> customerService.getCustomerByCristinId(institution)))
-                .map(Try::orElseThrow)
-                .map(CustomerDto::getId)
-                .collect(Collectors.toList());
+            .stream()
+            .map(Affiliation::getInstitutionId)
+            .map(attempt(institution -> customerService.getCustomerByCristinId(institution)))
+            .map(Try::orElseThrow)
+            .map(CustomerDto::getId)
+            .collect(Collectors.toList());
 
         var users = userCreator.createUsers(userCreationContext);
         var actualCustomers = users.stream().map(UserDto::getInstitution).toList();
@@ -175,10 +191,10 @@ class UserEntriesCreatorForPersonTest {
 
     @Test
     @DisplayName(" Given that a Person exists in the Person-Registry,"
-            + "And they have an active affiliation with an Organization"
-            + "And the Organization's parent Institution is an NVA customer"
-            + "And there is already a User for the Person for the Institution"
-            + "Then the username of the existing User is maintained by all means"
+        + "And they have an active affiliation with an Organization"
+        + "And the Organization's parent Institution is an NVA customer"
+        + "And there is already a User for the Person for the Institution"
+        + "Then the username of the existing User is maintained by all means"
     )
     void shouldNotOverwriteUsernameOfExistingUsers() {
         var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
@@ -187,11 +203,11 @@ class UserEntriesCreatorForPersonTest {
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
         var userCreationContext = new UserCreationContext(person, customers);
         var existingUser = scenarios.createUsersForAllActiveAffiliations(personNin, identityService)
-                .stream()
-                .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         var actualUser = userCreator.createUsers(userCreationContext)
-                .stream()
-                .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         assertThat(actualUser.getUsername(), is(equalTo(existingUser.getUsername())));
     }
 
@@ -205,8 +221,8 @@ class UserEntriesCreatorForPersonTest {
         var userCreationContext = new UserCreationContext(person, customers, feideIdentifier);
 
         var actualUser = userCreator.createUsers(userCreationContext)
-                .stream()
-                .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         assertThat(actualUser.getFeideIdentifier(), is(equalTo(feideIdentifier)));
     }
 
@@ -230,8 +246,8 @@ class UserEntriesCreatorForPersonTest {
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
         var userCreationContext = new UserCreationContext(person, customers);
         var actualUser = userCreator.createUsers(userCreationContext)
-                .stream()
-                .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         var defaultRoles = actualUser.getRoles();
         assertThat(defaultRoles, contains(ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION));
     }
@@ -242,21 +258,40 @@ class UserEntriesCreatorForPersonTest {
         var nin = NationalIdentityNumber.fromString(personNin);
         var feideIdentifier = randomString();
         var existingUser = scenarios.createLegacyUsersForAllActiveAffiliations(personNin,
-                        feideIdentifier,
-                        identityService)
-                .stream()
-                .collect(SingletonCollector.collect());
+                feideIdentifier,
+                identityService)
+            .stream()
+            .collect(SingletonCollector.collect());
         var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
         var customers = fetchCustomersWithActiveAffiliations(person.getAffiliations());
         var userCreationContext = new UserCreationContext(person, customers, feideIdentifier);
         var actualUser = userCreator.createUsers(userCreationContext)
-                .stream()
-                .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         var expectedUser = constructExpectedUpdatedUserForLegacyFeideUser(personNin,
-                feideIdentifier,
-                existingUser);
+            feideIdentifier,
+            existingUser);
 
         assertThat(actualUser, samePropertyValuesAs(expectedUser));
+    }
+
+    private UserDto constructExpectedUpdatedUserForLegacyFeideUser(String person,
+                                                                   String feideIdentifier,
+                                                                   UserDto existingUser) {
+
+        var expectedInstitutionCristinId =
+            scenarios.getCristinUriForInstitutionAffiliations(person, true)
+                .stream()
+                .collect(SingletonCollector.collect());
+        var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(person)
+            .stream()
+            .collect(SingletonCollector.collect());
+        return existingUser.copy()
+            .withCristinId(scenarios.getCristinIdForPerson(person))
+            .withInstitutionCristinId(expectedInstitutionCristinId)
+            .withFeideIdentifier(feideIdentifier)
+            .withAffiliation(expectedAffiliation)
+            .build();
     }
 
     @Test
@@ -272,47 +307,12 @@ class UserEntriesCreatorForPersonTest {
         var userCreationContext = new UserCreationContext(person, Collections.singleton(selectedCustomer));
 
         var actualUser = userCreator.createUsers(userCreationContext)
-                .stream()
-                .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         assertThat(actualUser.getInstitution(), is(equalTo(selectedCustomer.getId())));
-    }
-
-    private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {
-        return affiliations.stream()
-                .map(Affiliation::getInstitutionId)
-                .map(attempt(customerService::getCustomerByCristinId))
-                .flatMap(Try::stream)
-                .collect(Collectors.toSet());
     }
 
     private void assertThatWeHaveMoreThanOneCustomer(Set<CustomerDto> allCustomers) {
         assertThat(allCustomers, iterableWithSize(greaterThan(1)));
-    }
-
-    private UserDto constructExpectedUpdatedUserForLegacyFeideUser(String person,
-                                                                   String feideIdentifier,
-                                                                   UserDto existingUser) {
-
-        var expectedInstitutionCristinId =
-                scenarios.getCristinUriForInstitutionAffiliations(person, true)
-                        .stream()
-                        .collect(SingletonCollector.collect());
-        var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(person)
-                .stream()
-                .collect(SingletonCollector.collect());
-        return existingUser.copy()
-                .withCristinId(scenarios.getCristinIdForPerson(person))
-                .withInstitutionCristinId(expectedInstitutionCristinId)
-                .withFeideIdentifier(feideIdentifier)
-                .withAffiliation(expectedAffiliation)
-                .build();
-    }
-
-    private void setupCustomerAndIdentityService() {
-        customerServiceDatabase = new LocalCustomerServiceDatabase();
-        customerServiceDatabase.setupDatabase();
-        identityServiceDatabase = new LocalIdentityService();
-        identityService = identityServiceDatabase.createDatabaseServiceUsingLocalStorage();
-        customerService = new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
     }
 }

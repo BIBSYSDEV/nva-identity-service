@@ -9,11 +9,11 @@ import java.util.Set;
 
 @JsonSerialize
 public record CreateUserRequest(
-        String nationalIdentityNumber,
-        String cristinIdentifier,
-        URI customerId,
-        Set<RoleDto> roles,
-        ViewingScope viewingScope
+    String nationalIdentityNumber,
+    String cristinIdentifier,
+    URI customerId,
+    Set<RoleDto> roles,
+    ViewingScope viewingScope
 ) {
 
 

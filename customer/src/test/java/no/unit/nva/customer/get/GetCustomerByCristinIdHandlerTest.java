@@ -55,15 +55,15 @@ class GetCustomerByCristinIdHandlerTest {
 
     @Test
     void handleRequestReturnsExistingCustomerOnValidCristinId()
-            throws IOException, BadRequestException, NotFoundException {
+        throws IOException, BadRequestException, NotFoundException {
         prepareMocksWithExistingCustomer();
 
         var encodedCristinOrgUrl = URLEncoder.encode(SAMPLE_CRISTIN_ID.toString(), StandardCharsets.UTF_8);
         var pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, encodedCristinOrgUrl);
         var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                .withHeaders(getRequestHeaders())
-                .withPathParameters(pathParameters)
-                .build();
+            .withHeaders(getRequestHeaders())
+            .withPathParameters(pathParameters)
+            .build();
 
         var response = sendRequest(input, CustomerDto.class);
 
@@ -73,27 +73,9 @@ class GetCustomerByCristinIdHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
-    @Test
-    void handleRequestReturnsNotFoundOnInvalidCristinId() throws IOException, NotFoundException {
-        prepareMocksWithMissingCustomer();
-
-        var pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, SAMPLE_CRISTIN_ID.toString());
-        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                .withHeaders(getRequestHeaders())
-                .withPathParameters(pathParameters)
-                .build();
-
-        var response = sendRequest(input, Problem.class);
-        assertEquals(HttpURLConnection.HTTP_NOT_FOUND, response.getStatusCode());
-    }
-
     private <T> GatewayResponse<T> sendRequest(InputStream input, Class<T> responseType) throws IOException {
         handler.handleRequest(input, outputStream, context);
         return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private void prepareMocksWithMissingCustomer() throws NotFoundException {
-        when(customerService.getCustomerByCristinId(SAMPLE_CRISTIN_ID)).thenThrow(NotFoundException.class);
     }
 
     private void prepareMocksWithExistingCustomer() throws NotFoundException {
@@ -102,10 +84,28 @@ class GetCustomerByCristinIdHandlerTest {
 
     private CustomerDto createCustomer() {
         var customer = new CustomerDao.Builder()
-                .withIdentifier(UUID.randomUUID())
-                .withCristinId(SAMPLE_CRISTIN_ID)
-                .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
-                .build();
+            .withIdentifier(UUID.randomUUID())
+            .withCristinId(SAMPLE_CRISTIN_ID)
+            .withCustomerOf(randomElement(ApplicationDomain.values()).getUri())
+            .build();
         return customer.toCustomerDto();
+    }
+
+    @Test
+    void handleRequestReturnsNotFoundOnInvalidCristinId() throws IOException, NotFoundException {
+        prepareMocksWithMissingCustomer();
+
+        var pathParameters = Map.of(GetCustomerByCristinIdHandler.CRISTIN_ID, SAMPLE_CRISTIN_ID.toString());
+        var input = new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withHeaders(getRequestHeaders())
+            .withPathParameters(pathParameters)
+            .build();
+
+        var response = sendRequest(input, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_NOT_FOUND, response.getStatusCode());
+    }
+
+    private void prepareMocksWithMissingCustomer() throws NotFoundException {
+        when(customerService.getCustomerByCristinId(SAMPLE_CRISTIN_ID)).thenThrow(NotFoundException.class);
     }
 }

@@ -83,52 +83,52 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         var mock = Mockito.mock(CognitoIdentityProviderClient.class);
 
         var resourceServerResponse = DescribeResourceServerResponse.builder().resourceServer(
-                ResourceServerType.builder().scopes(
-                        ResourceServerScopeType.builder().scopeName("publication-read").build(),
-                        ResourceServerScopeType.builder().scopeName("publication-upsert").build()
-                ).build()
+            ResourceServerType.builder().scopes(
+                ResourceServerScopeType.builder().scopeName("publication-read").build(),
+                ResourceServerScopeType.builder().scopeName("publication-upsert").build()
+            ).build()
         ).build();
         when(mock.describeResourceServer(any(DescribeResourceServerRequest.class))).thenReturn(
-                resourceServerResponse
+            resourceServerResponse
         );
 
         when(mock.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
-                .thenAnswer((Answer) invocation -> {
-                    Object[] args = invocation.getArguments();
-                    CreateUserPoolClientRequest request = (CreateUserPoolClientRequest) args[0];
+            .thenAnswer((Answer) invocation -> {
+                Object[] args = invocation.getArguments();
+                CreateUserPoolClientRequest request = (CreateUserPoolClientRequest) args[0];
 
-                    if (request.allowedOAuthScopes().stream().anyMatch(it -> it.equals(INVALID_SCOPE))) {
-                        throw ScopeDoesNotExistException.builder().build();
-                    }
+                if (request.allowedOAuthScopes().stream().anyMatch(it -> it.equals(INVALID_SCOPE))) {
+                    throw ScopeDoesNotExistException.builder().build();
+                }
 
-                    var userPoolClient = UserPoolClientType
-                            .builder()
-                            .clientId(CLIENT_ID)
-                            .clientSecret(CLIENT_SECRET)
-                            .allowedOAuthScopes(request.allowedOAuthScopes())
-                            .build();
+                var userPoolClient = UserPoolClientType
+                    .builder()
+                    .clientId(CLIENT_ID)
+                    .clientSecret(CLIENT_SECRET)
+                    .allowedOAuthScopes(request.allowedOAuthScopes())
+                    .build();
 
-                    var response = CreateUserPoolClientResponse
-                            .builder()
-                            .userPoolClient(
-                                    userPoolClient
-                            )
-                            .build();
-                    return response;
-                });
+                var response = CreateUserPoolClientResponse
+                    .builder()
+                    .userPoolClient(
+                        userPoolClient
+                    )
+                    .build();
+                return response;
+            });
 
         return mock;
     }
 
     @Test
-    public void shouldReturnCredentialsWhenClientDoesNotAlreadyExist() throws IOException, URISyntaxException {
+    public void shouldReturnCredentialsWhenClientDoesNotAlreadyExist() throws IOException {
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCustomerUri(SAMPLE_URI)
-                .withCristinOrgUri(SAMPLE_URI)
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(List.of())
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCustomerUri(SAMPLE_URI)
+            .withCristinOrgUri(SAMPLE_URI)
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(List.of())
+            .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
 
         var cognitoCredentials = gatewayResponse.getBodyObject(CreateExternalClientResponse.class);
@@ -138,23 +138,36 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         assertThat(cognitoCredentials.getClientUrl(), is(equalTo(EXTERNAL_USER_POOL_URL)));
     }
 
+    private InputStream createBackendRequest(CreateExternalClientRequest requestBody)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CreateExternalClientRequest>(dtoObjectMapper)
+            .withScope(RequestInfoConstants.BACKEND_SCOPE_AS_DEFINED_IN_IDENTITY_SERVICE)
+            .withBody(requestBody)
+            .build();
+    }
+
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
     @Test
-    public void clientShouldBeStoredToDatabase() throws IOException, URISyntaxException, NotFoundException {
+    public void clientShouldBeStoredToDatabase() throws IOException, NotFoundException {
         var customer = RandomDataGenerator.randomUri();
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCustomerUri(customer)
-                .withCristinOrgUri(SAMPLE_URI)
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(List.of())
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCustomerUri(customer)
+            .withCristinOrgUri(SAMPLE_URI)
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(List.of())
+            .build();
         sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
 
         var expected = ClientDto
-                .newBuilder()
-                .withClientId(CLIENT_ID)
-                .withCustomer(customer)
-                .build();
+            .newBuilder()
+            .withClientId(CLIENT_ID)
+            .withCustomer(customer)
+            .build();
 
         var found = databaseService.getClient(expected);
 
@@ -166,12 +179,12 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     public void shouldReturnSameCustomerThatWasRequested() throws IOException, URISyntaxException {
         var customer = randomCristinOrgId();
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCustomerUri(customer)
-                .withCristinOrgUri(new URI("https://example.org/123"))
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(List.of())
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCustomerUri(customer)
+            .withCristinOrgUri(new URI("https://example.org/123"))
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(List.of())
+            .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
 
         var response = gatewayResponse.getBodyObject(CreateExternalClientResponse.class);
@@ -180,19 +193,19 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void shouldReturnSameScopeThatWasRequested() throws IOException, URISyntaxException {
+    public void shouldReturnSameScopeThatWasRequested() throws IOException {
         var scopes = List.of(
-                "https://api.nva.unit.no/scopes/third-party/publication-read",
-                "https://api.nva.unit.no/scopes/third-party/publication-upsert"
+            "https://api.nva.unit.no/scopes/third-party/publication-read",
+            "https://api.nva.unit.no/scopes/third-party/publication-upsert"
         );
 
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCustomerUri(SAMPLE_URI)
-                .withCristinOrgUri(SAMPLE_URI)
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(scopes)
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCustomerUri(SAMPLE_URI)
+            .withCristinOrgUri(SAMPLE_URI)
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(scopes)
+            .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
 
         var response = gatewayResponse.getBodyObject(CreateExternalClientResponse.class);
@@ -201,20 +214,20 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void shouldInformCallerOfInvalidRequestedScopes() throws IOException, URISyntaxException {
+    public void shouldInformCallerOfInvalidRequestedScopes() throws IOException {
         var validScope = EXTERNAL_SCOPE_IDENTIFIER + "/publication-read";
         var scopes = List.of(
-                validScope,
-                INVALID_SCOPE
+            validScope,
+            INVALID_SCOPE
         );
 
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCustomerUri(SAMPLE_URI)
-                .withCristinOrgUri(SAMPLE_URI)
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(scopes)
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCustomerUri(SAMPLE_URI)
+            .withCristinOrgUri(SAMPLE_URI)
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(scopes)
+            .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
 
         var response = gatewayResponse.getBodyObject(Problem.class);
@@ -227,11 +240,11 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     @Test
     public void shouldReturnBadRequestWhenScopeIsMissingInRequest() throws IOException, URISyntaxException {
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCustomerUri(new URI("https://example.org/123"))
-                .withCristinOrgUri(new URI("https://example.org/123"))
-                .withActingUser(SAMPLE_ACTING_USER)
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCustomerUri(new URI("https://example.org/123"))
+            .withCristinOrgUri(new URI("https://example.org/123"))
+            .withActingUser(SAMPLE_ACTING_USER)
+            .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
 
         var response = gatewayResponse.getBodyObject(Problem.class);
@@ -243,11 +256,11 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     @Test
     public void shouldReturnBadRequestWhenCustomerIsMissingInRequest() throws IOException, URISyntaxException {
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCristinOrgUri(new URI("https://example.org/123"))
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(List.of())
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCristinOrgUri(new URI("https://example.org/123"))
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(List.of())
+            .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
 
         var response = gatewayResponse.getBodyObject(Problem.class);
@@ -257,13 +270,13 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void shouldReturnBadRequestWhenCristinIsMissingInRequest() throws IOException, URISyntaxException {
+    public void shouldReturnBadRequestWhenCristinIsMissingInRequest() throws IOException {
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCustomerUri(SAMPLE_URI)
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(List.of())
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCustomerUri(SAMPLE_URI)
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(List.of())
+            .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
 
         var response = gatewayResponse.getBodyObject(Problem.class);
@@ -273,13 +286,13 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void shouldReturnBadRequestWhenActingUserIsMissingInRequest() throws IOException, URISyntaxException {
+    public void shouldReturnBadRequestWhenActingUserIsMissingInRequest() throws IOException {
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCristinOrgUri(SAMPLE_URI)
-                .withCustomerUri(SAMPLE_URI)
-                .withScopes(List.of())
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCristinOrgUri(SAMPLE_URI)
+            .withCustomerUri(SAMPLE_URI)
+            .withScopes(List.of())
+            .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
 
         var response = gatewayResponse.getBodyObject(Problem.class);
@@ -289,13 +302,13 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void shouldReturnBadRequestWhenClientNameIsMissingInRequest() throws IOException, URISyntaxException {
+    public void shouldReturnBadRequestWhenClientNameIsMissingInRequest() throws IOException {
         var request = CreateExternalClientRequest.newBuilder()
-                .withCustomerUri(SAMPLE_URI)
-                .withCristinOrgUri(SAMPLE_URI)
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(List.of())
-                .build();
+            .withCustomerUri(SAMPLE_URI)
+            .withCristinOrgUri(SAMPLE_URI)
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(List.of())
+            .build();
         var gatewayResponse = sendRequest(createBackendRequest(request), Problem.class);
 
         var response = gatewayResponse.getBodyObject(Problem.class);
@@ -321,28 +334,28 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
     }
 
     @Test
-    public void shouldNotExposeExceptionCausedByCognitoClient() throws IOException, URISyntaxException {
+    public void shouldNotExposeExceptionCausedByCognitoClient() throws IOException {
         var exceptionMsg = "some exception";
         when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
-                .thenThrow(SdkClientException.create(exceptionMsg));
+            .thenThrow(SdkClientException.create(exceptionMsg));
 
         var request = CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCustomerUri(SAMPLE_URI)
-                .withCristinOrgUri(SAMPLE_URI)
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(List.of())
-                .build();
+            .withClientName(CLIENT_NAME)
+            .withCustomerUri(SAMPLE_URI)
+            .withCristinOrgUri(SAMPLE_URI)
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(List.of())
+            .build();
 
         var gatewayResponse = sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
         assertThat(gatewayResponse.getBody(), not(containsString(exceptionMsg)));
     }
 
     @Test
-    public void shouldLogErrorsCausedByCognitoClient() throws IOException, URISyntaxException {
+    public void shouldLogErrorsCausedByCognitoClient() throws IOException {
         var exceptionMsg = "some exception";
         when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
-                .thenThrow(SdkClientException.create(exceptionMsg));
+            .thenThrow(SdkClientException.create(exceptionMsg));
 
         var request = createRequestForScopes(List.of());
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
@@ -350,26 +363,13 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
         assertThat(testAppender.getMessages(), Matchers.containsString(exceptionMsg));
     }
 
-    private CreateExternalClientRequest createRequestForScopes(List<String> scopes) throws URISyntaxException {
+    private CreateExternalClientRequest createRequestForScopes(List<String> scopes) {
         return CreateExternalClientRequest.newBuilder()
-                .withClientName(CLIENT_NAME)
-                .withCustomerUri(SAMPLE_URI)
-                .withCristinOrgUri(SAMPLE_URI)
-                .withActingUser(SAMPLE_ACTING_USER)
-                .withScopes(scopes)
-                .build();
-    }
-
-    private InputStream createBackendRequest(CreateExternalClientRequest requestBody)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<CreateExternalClientRequest>(dtoObjectMapper)
-                .withScope(RequestInfoConstants.BACKEND_SCOPE_AS_DEFINED_IN_IDENTITY_SERVICE)
-                .withBody(requestBody)
-                .build();
-    }
-
-    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
-        handler.handleRequest(request, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
+            .withClientName(CLIENT_NAME)
+            .withCustomerUri(SAMPLE_URI)
+            .withCristinOrgUri(SAMPLE_URI)
+            .withActingUser(SAMPLE_ACTING_USER)
+            .withScopes(scopes)
+            .build();
     }
 }

@@ -16,24 +16,24 @@ public class UserCreationContextTest {
     private static final String feideIdentifier = randomString();
     private static final Set<CustomerDto> customers = Collections.emptySet();
     private static final Person person = new Person(randomUri(), randomString(), randomString(), randomString(),
-            Collections.emptyList());
+        Collections.emptyList());
     private static final String EMPTY_STRING = "";
 
     @Test
     void shouldThrowExceptionWhenCreatingInstanceWithNullPerson() {
         assertThrows(IllegalArgumentException.class,
-                () -> new UserCreationContext(null, customers, feideIdentifier));
+            () -> new UserCreationContext(null, customers, feideIdentifier));
     }
 
     @Test
     void shouldThrowExceptionWhenCreatingInstanceWithNullCustomers() {
         assertThrows(IllegalArgumentException.class,
-                () -> new UserCreationContext(person, null, feideIdentifier));
+            () -> new UserCreationContext(person, null, feideIdentifier));
     }
 
     @Test
     void shouldThrowExceptionWhenCreatingInstanceWithEmptyFeideIdentifier() {
         assertThrows(IllegalArgumentException.class,
-                () -> new UserCreationContext(person, customers, EMPTY_STRING));
+            () -> new UserCreationContext(person, customers, EMPTY_STRING));
     }
 }

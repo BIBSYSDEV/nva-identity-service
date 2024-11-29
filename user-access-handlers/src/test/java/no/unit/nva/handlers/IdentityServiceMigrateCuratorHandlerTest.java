@@ -49,24 +49,24 @@ class IdentityServiceMigrateCuratorHandlerTest {
         this.context = new FakeContext();
     }
 
-    @AfterEach
-    public void close() {
-        this.identityServiceLocalDb.closeDB();
-    }
-
     private void initializeIdentityService() {
         this.identityServiceLocalDb = new LocalIdentityService();
         this.identityServiceLocalDb.initializeTestDatabase();
         this.identityService = new IdentityServiceImpl(this.identityServiceLocalDb.getDynamoDbClient());
     }
 
+    @AfterEach
+    public void close() {
+        this.identityServiceLocalDb.closeDB();
+    }
+
     @Test
     void shouldAddManageResourceFilesRoleToPublishingCurator()
-            throws NotFoundException, ConflictException, IOException, InvalidInputException {
+        throws NotFoundException, ConflictException, IOException, InvalidInputException {
         var roleToUpdate = RoleDto.newBuilder().withRoleName(RoleName.PUBLISHING_CURATOR)
-                .withAccessRights(Collections.emptySet()).build();
+            .withAccessRights(Collections.emptySet()).build();
         var roleToKeep = RoleDto.newBuilder().withRoleName(RoleName.SUPPORT_CURATOR)
-                .withAccessRights(Collections.emptySet()).build();
+            .withAccessRights(Collections.emptySet()).build();
         identityService.addRole(roleToUpdate);
         identityService.addRole(roleToKeep);
         var user = createUserWithRoles(Set.of(roleToUpdate, roleToKeep));
@@ -80,11 +80,27 @@ class IdentityServiceMigrateCuratorHandlerTest {
         assertThat(fetchedUser.getRoles(), hasItem(roleToKeep));
     }
 
+    private InputStream createRequest() throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(JsonUtils.dtoObjectMapper).build();
+    }
+
+    private UserDto createUserWithRoles(Set<RoleDto> roles) {
+        return UserDto.newBuilder()
+            .withRoles(roles)
+            .withInstitution(randomUri())
+            .withUsername(randomString())
+            .withCristinId(randomUri())
+            .withFeideIdentifier(randomString())
+            .withInstitutionCristinId(randomCristinOrgId())
+            .withAffiliation(randomCristinOrgId())
+            .build();
+    }
+
     @Test
     void shouldNotAddManageResourceFilesRoleToNonPublishingCurator()
-            throws NotFoundException, ConflictException, IOException, InvalidInputException {
+        throws NotFoundException, ConflictException, IOException, InvalidInputException {
         var roleToKeep = RoleDto.newBuilder().withRoleName(RoleName.SUPPORT_CURATOR)
-                .withAccessRights(Collections.emptySet()).build();
+            .withAccessRights(Collections.emptySet()).build();
         identityService.addRole(roleToKeep);
         var user = createUserWithRoles(Set.of(roleToKeep));
         identityService.addUser(user);
@@ -95,22 +111,6 @@ class IdentityServiceMigrateCuratorHandlerTest {
 
         assertThat(fetchedUser.getRoles(), not(hasItem(DefaultRoleSource.PUBLISHING_CURATOR_ROLE)));
         assertThat(fetchedUser.getRoles(), hasItem(roleToKeep));
-    }
-
-    private InputStream createRequest() throws com.fasterxml.jackson.core.JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(JsonUtils.dtoObjectMapper).build();
-    }
-
-    private UserDto createUserWithRoles(Set<RoleDto> roles) {
-        return UserDto.newBuilder()
-                .withRoles(roles)
-                .withInstitution(randomUri())
-                .withUsername(randomString())
-                .withCristinId(randomUri())
-                .withFeideIdentifier(randomString())
-                .withInstitutionCristinId(randomCristinOrgId())
-                .withAffiliation(randomCristinOrgId())
-                .build();
     }
 
 

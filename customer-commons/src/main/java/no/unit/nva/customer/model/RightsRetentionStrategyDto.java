@@ -13,14 +13,14 @@ public class RightsRetentionStrategyDto implements RightsRetentionStrategy, Json
     private final RightsRetentionStrategyType type;
     private final URI id;
 
+    public RightsRetentionStrategyDto(RightsRetentionStrategy retention) {
+        this(retention.getType(), retention.getId());
+    }
+
     @ConstructorProperties({"type", "id"})
     public RightsRetentionStrategyDto(RightsRetentionStrategyType type, URI id) {
         this.type = type;
         this.id = id;
-    }
-
-    public RightsRetentionStrategyDto(RightsRetentionStrategy retention) {
-        this(retention.getType(), retention.getId());
     }
 
     @Override
@@ -35,6 +35,12 @@ public class RightsRetentionStrategyDto implements RightsRetentionStrategy, Json
 
     @Override
     @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(type, id);
+    }
+
+    @Override
+    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -44,12 +50,6 @@ public class RightsRetentionStrategyDto implements RightsRetentionStrategy, Json
         }
         RightsRetentionStrategyDto that = (RightsRetentionStrategyDto) o;
         return type == that.type && Objects.equals(id, that.id);
-    }
-
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(type, id);
     }
 
     @Override

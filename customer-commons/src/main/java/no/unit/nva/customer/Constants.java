@@ -9,7 +9,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.List;
 
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 @JacocoGenerated
 public final class Constants {
@@ -17,8 +17,8 @@ public final class Constants {
     public static final String PERSISTED_ENTITY = "PersistedEntity";
 
     public static final List<MediaType> DEFAULT_RESPONSE_MEDIA_TYPES = List.of(
-            MediaType.JSON_UTF_8,
-            MediaTypes.APPLICATION_JSON_LD
+        MediaType.JSON_UTF_8,
+        MediaTypes.APPLICATION_JSON_LD
     );
 
     private Constants() {

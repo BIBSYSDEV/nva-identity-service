@@ -63,17 +63,25 @@ class CristinPersonRegistryTest {
         var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
         var httpClient = WiremockHttpClient.create();
         var defaultRequestHeaders = new HttpHeaders()
-                .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+            .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         personRegistry = CristinPersonRegistry.customPersonRegistry(httpClient,
-                wiremockUri,
-                apiDomain,
-                defaultRequestHeaders,
-                new SecretsReader(secretsManagerClient));
+            wiremockUri,
+            apiDomain,
+            defaultRequestHeaders,
+            new SecretsReader(secretsManagerClient));
         MockPersonRegistry mockPersonRegistry = new MockPersonRegistry(cristinUsername,
-                cristinPassword,
-                wiremockUri,
-                defaultRequestHeaders);
+            cristinPassword,
+            wiremockUri,
+            defaultRequestHeaders);
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
+    }
+
+    private void setupCustomerAndIdentityService() {
+        customerServiceDatabase = new LocalCustomerServiceDatabase();
+        customerServiceDatabase.setupDatabase();
+        identityServiceDatabase = new LocalIdentityService();
+        identityService = identityServiceDatabase.createDatabaseServiceUsingLocalStorage();
+        customerService = new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
     }
 
     @AfterEach
@@ -87,15 +95,15 @@ class CristinPersonRegistryTest {
         var appender = LogUtils.getTestingAppenderForRootLogger();
         var httpClient = WiremockHttpClient.create();
         var uriWhereCristinIsUnavailable
-                = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
+            = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
 
         var defaultRequestHeaders = new HttpHeaders()
-                .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+            .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         personRegistry = CristinPersonRegistry.customPersonRegistry(httpClient,
-                uriWhereCristinIsUnavailable,
-                ServiceConstants.API_DOMAIN,
-                defaultRequestHeaders,
-                new SecretsReader(secretsManagerClient));
+            uriWhereCristinIsUnavailable,
+            ServiceConstants.API_DOMAIN,
+            defaultRequestHeaders,
+            new SecretsReader(secretsManagerClient));
         var nin = NationalIdentityNumber.fromString(randomNin());
         var exception = assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
         assertThat(exception.getMessage(), not(containsString(nin.toString())));
@@ -153,13 +161,5 @@ class CristinPersonRegistryTest {
         var person = personRegistry.fetchPersonByNin(nin);
         assertThat(person.isPresent(), is(equalTo(true)));
         assertThat(person.get().getAffiliations(), emptyIterable());
-    }
-
-    private void setupCustomerAndIdentityService() {
-        customerServiceDatabase = new LocalCustomerServiceDatabase();
-        customerServiceDatabase.setupDatabase();
-        identityServiceDatabase = new LocalIdentityService();
-        identityService = identityServiceDatabase.createDatabaseServiceUsingLocalStorage();
-        customerService = new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
     }
 }

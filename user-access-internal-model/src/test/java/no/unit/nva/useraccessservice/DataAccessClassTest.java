@@ -1,17 +1,29 @@
-package no.unit.nva.useraccessservice.interfaces;
+package no.unit.nva.useraccessservice;
 
+import no.unit.nva.database.interfaces.DataAccessClass;
 import no.unit.nva.useraccessservice.dao.TermsConditions;
 import org.junit.jupiter.api.Test;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DataAccessClassTest {
 
     @Test
     void validateBeforePersistSuccessful() {
         DataAccessClass.validateBeforePersist(randomTermsConditions().build());
+    }
+
+    private static TermsConditions.Builder randomTermsConditions() {
+        var lostInstant = randomInstant();
+        return TermsConditions.builder()
+            .id(randomUri())
+            .type("TermsConditions")
+            .created(lostInstant)
+            .modified(lostInstant)
+            .modifiedBy(randomUri())
+            .termsConditionsUri(randomUri());
     }
 
     @Test
@@ -35,17 +47,6 @@ class DataAccessClassTest {
     void validateBeforePersistFailsWhenOwnerIsNull() {
         var termsConditions = randomTermsConditions().owner(null).modifiedBy(null).build();
         assertThrows(IllegalArgumentException.class, () -> DataAccessClass.validateBeforePersist(termsConditions));
-    }
-
-    private static TermsConditions.Builder randomTermsConditions() {
-        var lostInstant = randomInstant();
-        return TermsConditions.builder()
-                .id(randomUri())
-                .type("TermsConditions")
-                .created(lostInstant)
-                .modified(lostInstant)
-                .modifiedBy(randomUri())
-                .termsConditionsUri(randomUri());
     }
 
 }

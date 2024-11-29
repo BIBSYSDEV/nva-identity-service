@@ -50,8 +50,8 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
         super.setupDatabase();
         customerService = new DynamoDBCustomerService(dynamoClient);
         existingCustomer = attempt(CustomerDataGenerator::createSampleCustomerDto)
-                .map(customerInput -> customerService.createCustomer(customerInput))
-                .orElseThrow();
+            .map(customerInput -> customerService.createCustomer(customerInput))
+            .orElseThrow();
         handler = new GetControlledVocabularyHandler(customerService);
         outputStream = new ByteArrayOutputStream();
     }
@@ -62,10 +62,37 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
+    private <T> GatewayResponse<T> sendRequest(UUID identifier, Class<T> responseType) throws IOException {
+        var request = createRequestWithMediaType(identifier, MediaTypes.APPLICATION_JSON_LD);
+        return sendRequest(request, responseType);
+    }
+
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, CONTEXT);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    private InputStream createRequestWithMediaType(UUID identifier, MediaType acceptHeader)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withPathParameters(Map.of("identifier", identifier.toString()))
+            .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+            .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
+            .build();
+    }
+
+    private UUID getExistingCustomerIdentifier() {
+        return existingCustomer.getIdentifier();
+    }
+
     @Test
     void handleRequestReturnsNotFoundWhenARequestWithANonExistingIdentifierIsSubmitted() throws IOException {
         var response = sendRequest(randomCustomerIdentifier(), Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
+    }
+
+    private UUID randomCustomerIdentifier() {
+        return UUID.randomUUID();
     }
 
     @Test
@@ -79,7 +106,7 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void handleRequestReturnsListWithIdEqualToTheGetPathOfTheResource() throws IOException {
         var request =
-                createRequestWithMediaType(existingCustomer.getIdentifier(), MediaTypes.APPLICATION_JSON_LD);
+            createRequestWithMediaType(existingCustomer.getIdentifier(), MediaTypes.APPLICATION_JSON_LD);
         var response = sendRequest(request, VocabularyList.class);
 
         var body = JsonConfig.mapFrom(response.getBody());
@@ -90,7 +117,7 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void handleRequestReturnsControlledVocabulariesOfSpecifiedCustomerWhenCustomerIdIsValid()
-            throws IOException {
+        throws IOException {
         var response = sendRequest(getExistingCustomerIdentifier(), VocabularyList.class);
         VocabularyList body = VocabularyList.fromJson(response.getBody());
         var actualVocabularySettings = body.getVocabularies();
@@ -111,36 +138,9 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(content, is(equalTo(MediaType.JSON_UTF_8.toString())));
     }
 
-    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
-        handler.handleRequest(request, outputStream, CONTEXT);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private <T> GatewayResponse<T> sendRequest(UUID identifier, Class<T> responseType) throws IOException {
-        var request = createRequestWithMediaType(identifier, MediaTypes.APPLICATION_JSON_LD);
-        return sendRequest(request, responseType);
-    }
-
-    private UUID getExistingCustomerIdentifier() {
-        return existingCustomer.getIdentifier();
-    }
-
     private <T> GatewayResponse<T> sendRequestAcceptingJson(UUID identifier, Class<T> responseType)
-            throws IOException {
+        throws IOException {
         var request = createRequestWithMediaType(identifier, MediaType.JSON_UTF_8);
         return sendRequest(request, responseType);
-    }
-
-    private InputStream createRequestWithMediaType(UUID identifier, MediaType acceptHeader)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                .withPathParameters(Map.of("identifier", identifier.toString()))
-                .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                .withHeaders(Map.of(HttpHeaders.ACCEPT, acceptHeader.toString()))
-                .build();
-    }
-
-    private UUID randomCustomerIdentifier() {
-        return UUID.randomUUID();
     }
 }

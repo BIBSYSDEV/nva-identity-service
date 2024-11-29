@@ -24,8 +24,8 @@ public final class EventsConfig {
     @JacocoGenerated
     private static EventBridgeClient defaultEventBridgeClient() {
         return EventBridgeClient.builder()
-                .region(Region.of(AWS_REGION))
-                .credentialsProvider(DefaultCredentialsProvider.create())
-                .httpClient(UrlConnectionHttpClient.create()).build();
+            .region(Region.of(AWS_REGION))
+            .credentialsProvider(DefaultCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.create()).build();
     }
 }

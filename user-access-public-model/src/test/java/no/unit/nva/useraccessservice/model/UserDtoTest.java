@@ -94,7 +94,7 @@ class UserDtoTest extends DtoTest {
     @DisplayName("UserDto can be created when it contains the right type value")
     @Test
     void userDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
-            throws InvalidEntryInternalException, IOException {
+        throws InvalidEntryInternalException, IOException {
         UserDto sampleUser = createUserWithRolesAndInstitutionAndViewingScope();
         var json = toMap(sampleUser);
         assertThatSerializedItemContainsType(json, USER_TYPE_LITERAL);
@@ -108,7 +108,7 @@ class UserDtoTest extends DtoTest {
 
     @Test
     void userDtoShouldContainEmptyViewingScopeWhenViewingScopeIsNotProvided()
-            throws InvalidEntryInternalException, IOException {
+        throws InvalidEntryInternalException, IOException {
         UserDto sampleUser = UserDto.newBuilder().build();
         var json = toMap(sampleUser);
 
@@ -128,6 +128,16 @@ class UserDtoTest extends DtoTest {
         assertThat(actualAccessRights, is(equalTo(expectedAccessRights)));
     }
 
+    private List<RoleDto> duplicateRoles(UserDto user) {
+        List<RoleDto> duplicateRoles = user.getRoles().stream()
+            .map(attempt(r -> r.copy().withRoleName(r.getRoleName()).build()))
+            .flatMap(Try::stream)
+            .toList();
+        ArrayList<RoleDto> newRoles = new ArrayList<>(user.getRoles());
+        newRoles.addAll(duplicateRoles);
+        return newRoles;
+    }
+
     @Test
     void getAccessRightsReturnsAllAccessRightsContainedInTheUsersRoles() {
 
@@ -140,6 +150,15 @@ class UserDtoTest extends DtoTest {
 
         var expectedAccessRights = Set.of(FIRST_ACCESS_RIGHT, SECOND_ACCESS_RIGHT);
         assertThat(user.getAccessRights(), containsInAnyOrder(expectedAccessRights.toArray(AccessRight[]::new)));
+    }
+
+    private RoleDto sampleRole(AccessRight accessRight, RoleName someRolename)
+        throws InvalidEntryInternalException {
+        var accessRights = Collections.singleton(accessRight);
+        return RoleDto.newBuilder()
+            .withRoleName(someRolename)
+            .withAccessRights(accessRights)
+            .build();
     }
 
     @Test
@@ -161,7 +180,7 @@ class UserDtoTest extends DtoTest {
     @Test
     void builderReturnsUserDtoWhenIRolesIsEmpty() {
         UserDto user = UserDto.newBuilder().withUsername(SOME_USERNAME)
-                .withInstitution(SOME_INSTITUTION).build();
+            .withInstitution(SOME_INSTITUTION).build();
         assertThat(user.getUsername(), is(equalTo(SOME_USERNAME)));
         assertThat(user.getRoles(), is(empty()));
         assertThat(user.getInstitution(), is(equalTo(SOME_INSTITUTION)));
@@ -189,8 +208,8 @@ class UserDtoTest extends DtoTest {
         URI cristinUnitIncludedInDefaultCuratorsView = randomCristinOrgId();
         ViewingScope viewingScope = ViewingScope.create(Set.of(cristinUnitIncludedInDefaultCuratorsView), null);
         UserDto userDto = UserDto.newBuilder().withUsername(randomString())
-                .withViewingScope(viewingScope)
-                .build();
+            .withViewingScope(viewingScope)
+            .build();
         ViewingScope actualViewingScope = userDto.getViewingScope();
         assertThat(actualViewingScope.getIncludedUnits(), contains(cristinUnitIncludedInDefaultCuratorsView));
     }
@@ -200,10 +219,10 @@ class UserDtoTest extends DtoTest {
         URI cristinUnitIncludedInDefaultCuratorsView = randomCristinOrgId();
         URI cristinUnitExcludedFromDefaultCuratorsView = randomCristinOrgId();
         ViewingScope viewingScope = ViewingScope.create(Set.of(cristinUnitIncludedInDefaultCuratorsView),
-                Set.of(cristinUnitExcludedFromDefaultCuratorsView));
+            Set.of(cristinUnitExcludedFromDefaultCuratorsView));
         UserDto userDto = UserDto.newBuilder().withUsername(randomString())
-                .withViewingScope(viewingScope)
-                .build();
+            .withViewingScope(viewingScope)
+            .build();
         ViewingScope actualViewingScope = userDto.getViewingScope();
         assertThat(actualViewingScope.getIncludedUnits(), contains(cristinUnitIncludedInDefaultCuratorsView));
         assertThat(actualViewingScope.getExcludedUnits(), contains(cristinUnitExcludedFromDefaultCuratorsView));
@@ -212,13 +231,13 @@ class UserDtoTest extends DtoTest {
     @Test
     void shouldSerializeAsJson() throws BadRequestException {
         var sample = UserDto.newBuilder()
-                .withUsername(randomString())
-                .withFamilyName(randomString())
-                .withGivenName(randomString())
-                .withInstitution(randomUri())
-                .withRoles(sampleRoles)
-                .withViewingScope(randomViewingScope())
-                .build();
+            .withUsername(randomString())
+            .withFamilyName(randomString())
+            .withGivenName(randomString())
+            .withInstitution(randomUri())
+            .withRoles(sampleRoles)
+            .withViewingScope(randomViewingScope())
+            .build();
         var json = sample.toString();
         var deserialized = UserDto.fromJson(json);
         assertThat(deserialized, is(equalTo(sample)));
@@ -236,11 +255,24 @@ class UserDtoTest extends DtoTest {
         var user = createUserWithRolesAndInstitutionAndViewingScope();
         var roleClaims = user.generateRoleClaims().collect(Collectors.toSet());
         var expectedRolenames = user.getRoles().stream()
-                .map(RoleDto::getRoleName)
-                .map(RoleName::getValue)
-                .collect(Collectors.toSet());
+            .map(RoleDto::getRoleName)
+            .map(RoleName::getValue)
+            .collect(Collectors.toSet());
         assertThatAllClaimContainTheInstitutionId(user, roleClaims);
         assertThatThereIsARoleClaimForEachRole(user, expectedRolenames);
+    }
+
+    private void assertThatThereIsARoleClaimForEachRole(UserDto user, Set<String> expectedRolenames) {
+        var actualRolenamesInClaims = user.generateRoleClaims()
+            .map(claim -> claim.split(AT)[ROLE_PART])
+            .collect(Collectors.toSet());
+        assertThat(actualRolenamesInClaims, is(equalTo(expectedRolenames)));
+    }
+
+    private void assertThatAllClaimContainTheInstitutionId(UserDto user, Set<String> roleClaims) {
+        for (var roleClaim : roleClaims) {
+            assertThat(roleClaim, containsString(user.getInstitution().toString()));
+        }
     }
 
     @Test
@@ -251,56 +283,24 @@ class UserDtoTest extends DtoTest {
         assertThat(viewingScope, is(equalTo(expectedViewingScope)));
     }
 
+    private UserDto createUserWithRoleAndInstitutionWithoutViewingScope() {
+        var user = createUserWithRoleWithoutInstitution(sampleRoles.iterator().next().getRoleName())
+            .copy()
+            .withInstitutionCristinId(randomCristinOrgId())
+            .withInstitution(randomUri())
+            .withAffiliation(randomCristinOrgId())
+            .withViewingScope(null)
+            .withFeideIdentifier(randomString())
+            .withCristinId(randomUri())
+            .build();
+        assertThat(user, doesNotHaveEmptyValuesIgnoringFields(Set.of("viewingScope")));
+        return user;
+    }
+
     @Test
     void shouldReturnViewingScopeWithEmptySetsWhenScopeIsNotExplicitlyDefinedAndUserIsNotConnectedToSomeTopLevelOrg() {
         var user = createUserWithRoleWithoutInstitution(sampleRoles.iterator().next().getRoleName());
         var viewingScope = user.getViewingScope();
         assertThat(viewingScope, is(notNullValue()));
-    }
-
-    private UserDto createUserWithRoleAndInstitutionWithoutViewingScope() {
-        var user = createUserWithRoleWithoutInstitution(sampleRoles.iterator().next().getRoleName())
-                .copy()
-                .withInstitutionCristinId(randomCristinOrgId())
-                .withInstitution(randomUri())
-                .withAffiliation(randomCristinOrgId())
-                .withViewingScope(null)
-                .withFeideIdentifier(randomString())
-                .withCristinId(randomUri())
-                .build();
-        assertThat(user, doesNotHaveEmptyValuesIgnoringFields(Set.of("viewingScope")));
-        return user;
-    }
-
-    private void assertThatThereIsARoleClaimForEachRole(UserDto user, Set<String> expectedRolenames) {
-        var actualRolenamesInClaims = user.generateRoleClaims()
-                .map(claim -> claim.split(AT)[ROLE_PART])
-                .collect(Collectors.toSet());
-        assertThat(actualRolenamesInClaims, is(equalTo(expectedRolenames)));
-    }
-
-    private void assertThatAllClaimContainTheInstitutionId(UserDto user, Set<String> roleClaims) {
-        for (var roleClaim : roleClaims) {
-            assertThat(roleClaim, containsString(user.getInstitution().toString()));
-        }
-    }
-
-    private RoleDto sampleRole(AccessRight accessRight, RoleName someRolename)
-            throws InvalidEntryInternalException {
-        var accessRights = Collections.singleton(accessRight);
-        return RoleDto.newBuilder()
-                .withRoleName(someRolename)
-                .withAccessRights(accessRights)
-                .build();
-    }
-
-    private List<RoleDto> duplicateRoles(UserDto user) {
-        List<RoleDto> duplicateRoles = user.getRoles().stream()
-                .map(attempt(r -> r.copy().withRoleName(r.getRoleName()).build()))
-                .flatMap(Try::stream)
-                .collect(Collectors.toList());
-        ArrayList<RoleDto> newRoles = new ArrayList<>(user.getRoles());
-        newRoles.addAll(duplicateRoles);
-        return newRoles;
     }
 }

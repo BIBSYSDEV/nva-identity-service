@@ -22,15 +22,6 @@ class ClientDtoTest extends DtoTest {
 
     protected static final String CLIENT_TYPE_LITERAL = "Client";
 
-    private static ClientDto createRandomClient() {
-        return ClientDto.newBuilder()
-                .withClientId(randomString())
-                .withCustomer(randomCristinOrgId())
-                .withCristinOrgUri(randomCristinOrgId())
-                .withActingUser(randomString())
-                .build();
-    }
-
     @DisplayName("ClientDto object contains type with value \"Client\"")
     @Test
     void clientDtoSerializedObjectContainsTypeWithValueClient() throws IOException {
@@ -41,10 +32,19 @@ class ClientDtoTest extends DtoTest {
         assertThat(actualType, is(equalTo(CLIENT_TYPE_LITERAL)));
     }
 
+    private static ClientDto createRandomClient() {
+        return ClientDto.newBuilder()
+            .withClientId(randomString())
+            .withCustomer(randomCristinOrgId())
+            .withCristinOrgUri(randomCristinOrgId())
+            .withActingUser(randomString())
+            .build();
+    }
+
     @DisplayName("ClientDto can be created when it contains the right type value")
     @Test
     void clientDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
-            throws InvalidEntryInternalException, IOException {
+        throws InvalidEntryInternalException, IOException {
         ClientDto sampleClient = createRandomClient();
         var json = toMap(sampleClient);
         assertThatSerializedItemContainsType(json, CLIENT_TYPE_LITERAL);

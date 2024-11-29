@@ -1,6 +1,8 @@
 dependencies {
 
     implementation libs.nva.core
+    implementation libs.nva.apigateway
+    implementation libs.aws.sdk2.core
     implementation libs.aws.sdk2.dynamodbenhanced
     implementation libs.aws.sdk2.dynamodb
     implementation libs.aws.sdk2.urlconnection
@@ -8,8 +10,8 @@ dependencies {
     implementation libs.aws.core
     implementation libs.aws.auth
     implementation libs.aws.regions
-    implementation libs.aws.sdk2.core
 
+    implementation libs.dynamoDbLocal
 }
 
 test{

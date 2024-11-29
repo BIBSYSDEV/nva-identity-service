@@ -55,11 +55,11 @@ class IdentityServiceInitHandlerTest {
 
     public static final String BACKEND_CLIENT_ID = "some-client-id";
     private static final List<AccessRight> ACCESS_RIGHTS = List.of(MANAGE_DOI,
-            MANAGE_PUBLISHING_REQUESTS);
+        MANAGE_PUBLISHING_REQUESTS);
     private static final RoleSource ROLE_SOURCE = () -> List.of(RoleDto.newBuilder()
-            .withRoleName(RoleName.DOI_CURATOR)
-            .withAccessRights(ACCESS_RIGHTS)
-            .build());
+        .withRoleName(RoleName.DOI_CURATOR)
+        .withAccessRights(ACCESS_RIGHTS)
+        .build());
     private IdentityService identityService;
     private ByteArrayOutputStream output;
     private Context context;
@@ -75,6 +75,18 @@ class IdentityServiceInitHandlerTest {
 
         this.output = new ByteArrayOutputStream();
         this.context = new FakeContext();
+    }
+
+    private void initializeIdentityService() {
+        this.identityServiceLocalDb = new LocalIdentityService();
+        this.identityServiceLocalDb.initializeTestDatabase();
+        this.identityService = spy(new IdentityServiceImpl(this.identityServiceLocalDb.getDynamoDbClient()));
+    }
+
+    private void setupCustomerService() {
+        this.customerServiceLocalDb = new LocalCustomerServiceDatabase();
+        this.customerServiceLocalDb.setupDatabase();
+        this.customerService = new DynamoDBCustomerService(customerServiceLocalDb.getDynamoClient());
     }
 
     @AfterEach
@@ -99,22 +111,26 @@ class IdentityServiceInitHandlerTest {
         assertThat(accessRights, hasSize(expectedAccessRightsCount));
     }
 
+    private Set<AccessRight> extractAllAccessRights(RoleList allRoles) {
+        return allRoles.getRoles().stream()
+            .map(RoleDto::getAccessRights)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+    }
+
+    private InputStream createRequest() throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(JsonUtils.dtoObjectMapper).build();
+    }
+
     @Test
     void shouldLogWarningWhenRoleCreationFails() throws IOException {
         var logger = LogUtils.getTestingAppenderForRootLogger();
         var role = invalidRole();
         RoleSource roleSourceContainingIllegalRoleName = () -> List.of(role);
         var handler = new IdentityServiceInitHandler(identityService, customerService,
-                roleSourceContainingIllegalRoleName);
+            roleSourceContainingIllegalRoleName);
         handler.handleRequest(createRequest(), output, context);
         assertThat(logger.getMessages(), containsString(MISSING_ROLE_NAME_ERROR));
-    }
-
-    private Set<AccessRight> extractAllAccessRights(RoleList allRoles) {
-        return allRoles.getRoles().stream()
-                .map(RoleDto::getAccessRights)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
     }
 
     private RoleDto invalidRole() {
@@ -126,11 +142,11 @@ class IdentityServiceInitHandlerTest {
 
     @Test
     void shouldUpdateRoleIfAlreadyExists()
-            throws InvalidInputException, ConflictException, IOException, NotFoundException {
+        throws InvalidInputException, ConflictException, IOException, NotFoundException {
         var role = RoleDto.newBuilder()
-                .withRoleName(RoleName.DOI_CURATOR)
-                .withAccessRights(List.of(MANAGE_DOI))
-                .build();
+            .withRoleName(RoleName.DOI_CURATOR)
+            .withAccessRights(List.of(MANAGE_DOI))
+            .build();
         identityService.addRole(role);
 
         var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
@@ -164,21 +180,5 @@ class IdentityServiceInitHandlerTest {
         handler.handleRequest(createRequest(), output, context);
         handler.handleRequest(createRequest(), output, context);
         verify(identityService, atMostOnce()).addExternalClient(any());
-    }
-
-    private void initializeIdentityService() {
-        this.identityServiceLocalDb = new LocalIdentityService();
-        this.identityServiceLocalDb.initializeTestDatabase();
-        this.identityService = spy(new IdentityServiceImpl(this.identityServiceLocalDb.getDynamoDbClient()));
-    }
-
-    private void setupCustomerService() {
-        this.customerServiceLocalDb = new LocalCustomerServiceDatabase();
-        this.customerServiceLocalDb.setupDatabase();
-        this.customerService = new DynamoDBCustomerService(customerServiceLocalDb.getDynamoClient());
-    }
-
-    private InputStream createRequest() throws com.fasterxml.jackson.core.JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(JsonUtils.dtoObjectMapper).build();
     }
 }

@@ -20,14 +20,14 @@ import static org.hamcrest.Matchers.is;
 
 class HandlerWithEventualConsistencyTest {
 
-    public static final HandlerWithEventualConsistency handler = getHandlerWithEventualConsistency();
+    public static final HandlerWithEventualConsistency<String, String> handler = getHandlerWithEventualConsistency();
 
     private static HandlerWithEventualConsistency<String, String> getHandlerWithEventualConsistency() {
         return new HandlerWithEventualConsistency<>(String.class) {
 
             @Override
             protected void validateRequest(String s, RequestInfo requestInfo, Context context)
-                    throws ApiGatewayException {
+                throws ApiGatewayException {
                 //Do nothing
             }
 

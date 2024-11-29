@@ -80,27 +80,27 @@ public class CreateCustomerRequest {
 
     public CustomerDto toCustomerDto() {
         return CustomerDto.builder()
-                .withName(getName())
-                .withDisplayName(getDisplayName())
-                .withShortName(getShortName())
-                .withArchiveName(getArchiveName())
-                .withCname(getCname())
-                .withInstitutionDns(getInstitutionDns())
-                .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                .withCristinId(getCristinId())
-                .withVocabularies(vocabularies)
-                .withPublicationWorkflow(getPublicationWorkflow())
-                .withCustomerOf(getCustomerOf())
-                .withDoiAgent(getDoiAgent())
-                .withNviInstitution(isNviInstitution())
-                .withRboInstitution(isRboInstitution())
-                .withInactiveFrom(getInactiveFrom())
-                .withSector(getSector())
-                .withRorId(getRorId())
-                .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
-                .withServiceCenter(getServiceCenter())
-                .withGeneralSupportEnabled(isGeneralSupportEnabled())
-                .build();
+            .withName(getName())
+            .withDisplayName(getDisplayName())
+            .withShortName(getShortName())
+            .withArchiveName(getArchiveName())
+            .withCname(getCname())
+            .withInstitutionDns(getInstitutionDns())
+            .withFeideOrganizationDomain(getFeideOrganizationDomain())
+            .withCristinId(getCristinId())
+            .withVocabularies(vocabularies)
+            .withPublicationWorkflow(getPublicationWorkflow())
+            .withCustomerOf(getCustomerOf())
+            .withDoiAgent(getDoiAgent())
+            .withNviInstitution(isNviInstitution())
+            .withRboInstitution(isRboInstitution())
+            .withInactiveFrom(getInactiveFrom())
+            .withSector(getSector())
+            .withRorId(getRorId())
+            .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
+            .withServiceCenter(getServiceCenter())
+            .withGeneralSupportEnabled(isGeneralSupportEnabled())
+            .build();
     }
 
     public String getName() {
@@ -167,17 +167,9 @@ public class CreateCustomerRequest {
         this.cristinId = cristinId;
     }
 
-    public List<VocabularyDto> getVocabularies() {
-        return vocabularies;
-    }
-
-    public void setVocabularies(List<VocabularyDto> vocabularies) {
-        this.vocabularies = vocabularies;
-    }
-
     public PublicationWorkflow getPublicationWorkflow() {
         return nonNull(publicationWorkflow) ? publicationWorkflow
-                : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
+            : PublicationWorkflow.REGISTRATOR_PUBLISHES_METADATA_AND_FILES;
     }
 
     public void setPublicationWorkflow(PublicationWorkflow publicationWorkflow) {
@@ -268,9 +260,17 @@ public class CreateCustomerRequest {
     @Override
     public int hashCode() {
         return Objects.hash(getName(), getDisplayName(), getShortName(), getArchiveName(), getCname(),
-                getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
-                getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getInactiveFrom(),
-                getRorId(), getServiceCenter(), getAllowFileUploadForTypes());
+            getInstitutionDns(), getFeideOrganizationDomain(), getCristinId(), getVocabularies(),
+            getDoiAgent(), getSector(), isNviInstitution(), isRboInstitution(), getInactiveFrom(),
+            getRorId(), getServiceCenter(), getAllowFileUploadForTypes());
+    }
+
+    public List<VocabularyDto> getVocabularies() {
+        return vocabularies;
+    }
+
+    public void setVocabularies(List<VocabularyDto> vocabularies) {
+        this.vocabularies = vocabularies;
     }
 
     @JacocoGenerated
@@ -279,28 +279,27 @@ public class CreateCustomerRequest {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CreateCustomerRequest)) {
+        if (!(o instanceof CreateCustomerRequest that)) {
             return false;
         }
-        CreateCustomerRequest that = (CreateCustomerRequest) o;
         return Objects.equals(getName(), that.getName())
-                && Objects.equals(getDisplayName(), that.getDisplayName())
-                && Objects.equals(getShortName(), that.getShortName())
-                && Objects.equals(getArchiveName(), that.getArchiveName())
-                && Objects.equals(getCname(), that.getCname())
-                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-                && Objects.equals(getCristinId(), that.getCristinId())
-                && Objects.equals(getDoiAgent(), that.getDoiAgent())
-                && Objects.equals(getSector(), that.getSector())
-                && Objects.equals(getRorId(), that.getRorId())
-                && Objects.equals(getServiceCenter(), that.getServiceCenter())
-                && Objects.equals(isNviInstitution(), that.isNviInstitution())
-                && Objects.equals(isRboInstitution(), that.isRboInstitution())
-                && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
-                && Objects.equals(getVocabularies(), that.getVocabularies())
-                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
-                && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled());
+            && Objects.equals(getDisplayName(), that.getDisplayName())
+            && Objects.equals(getShortName(), that.getShortName())
+            && Objects.equals(getArchiveName(), that.getArchiveName())
+            && Objects.equals(getCname(), that.getCname())
+            && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+            && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+            && Objects.equals(getCristinId(), that.getCristinId())
+            && Objects.equals(getDoiAgent(), that.getDoiAgent())
+            && Objects.equals(getSector(), that.getSector())
+            && Objects.equals(getRorId(), that.getRorId())
+            && Objects.equals(getServiceCenter(), that.getServiceCenter())
+            && Objects.equals(isNviInstitution(), that.isNviInstitution())
+            && Objects.equals(isRboInstitution(), that.isRboInstitution())
+            && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
+            && Objects.equals(getVocabularies(), that.getVocabularies())
+            && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
+            && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled());
     }
 
     @Override

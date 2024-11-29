@@ -1,19 +1,6 @@
 package no.unit.nva.useraccess.events;
 
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
-import static nva.commons.core.attempt.Try.attempt;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-
 import com.amazonaws.services.lambda.runtime.Context;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-
 import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.identityservice.json.JsonConfig;
@@ -25,6 +12,18 @@ import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
+import static nva.commons.core.attempt.Try.attempt;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 class StartBatchScanTest {
 
@@ -47,39 +46,39 @@ class StartBatchScanTest {
 
     @Test
     void shouldSendEventContainingTheEventTypeForBatchScanningAndNullStartingPointWhenInputIsAnEmptyObject()
-            throws IOException {
+        throws IOException {
         batchScanner.handleRequest(emptyInput(), outputStream, CONTEXT);
         var emittedEventBody = extractEventBody();
         var expectedEmittedEventBody = new ScanDatabaseRequestV2(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
-                ScanDatabaseRequest.DEFAULT_PAGE_SIZE,
-                null);
+            ScanDatabaseRequest.DEFAULT_PAGE_SIZE,
+            null);
         assertThat(emittedEventBody, is(equalTo(expectedEmittedEventBody)));
+    }
+
+    private ScanDatabaseRequestV2 extractEventBody() {
+        return eventClient.getRequestEntries().stream()
+            .map(PutEventsRequestEntry::detail)
+            .map(attempt(ScanDatabaseRequestV2::fromJson))
+            .map(Try::orElseThrow)
+            .collect(SingletonCollector.collect());
+    }
+
+    private InputStream emptyInput() throws IOException {
+        return IoUtils.stringToStream(JsonConfig.writeValueAsString(Collections.emptyMap()));
     }
 
     @Test
     void shouldSendEventToEventBusDefinedInTheEnvironment()
-            throws IOException {
+        throws IOException {
         batchScanner.handleRequest(emptyInput(), outputStream, CONTEXT);
         var actualEventBus = extractEventBus();
         var expectedEventBus = EventsConfig.EVENT_BUS;
         assertThat(actualEventBus, is(equalTo(expectedEventBus)));
     }
 
-    private ScanDatabaseRequestV2 extractEventBody() {
-        return eventClient.getRequestEntries().stream()
-                .map(PutEventsRequestEntry::detail)
-                .map(attempt(ScanDatabaseRequestV2::fromJson))
-                .map(Try::orElseThrow)
-                .collect(SingletonCollector.collect());
-    }
-
     private String extractEventBus() {
         return eventClient.getRequestEntries().stream()
-                .map(PutEventsRequestEntry::eventBusName)
-                .collect(SingletonCollector.collect());
-    }
-
-    private InputStream emptyInput() throws IOException {
-        return IoUtils.stringToStream(JsonConfig.writeValueAsString(Collections.emptyMap()));
+            .map(PutEventsRequestEntry::eventBusName)
+            .collect(SingletonCollector.collect());
     }
 }

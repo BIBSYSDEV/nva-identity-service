@@ -6,6 +6,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 public record UserSelectArguments(
@@ -17,14 +18,14 @@ public record UserSelectArguments(
         URI currentTerms,
         URI acceptedTerms,
         String allowedCustomersString,
-        Set<UserDto> users,
+        List<UserDto> users,
         Set<CustomerDto> customers,
-        Set<String> accessRights,
+        List<String> accessRights,
         Set<RoleName> roles
 ) {
 
     public static Builder builder() {
-        return new UserSelectArguments.Builder();
+        return new Builder();
     }
 
     public Builder copy() {
@@ -52,9 +53,9 @@ public record UserSelectArguments(
         private URI currentTerms;
         private URI acceptedTerms;
         private String allowedCustomersString;
-        private Set<UserDto> users;
+        private List<UserDto> users;
         private Set<CustomerDto> customers;
-        private Set<String> accessRights;
+        private List<String> accessRights;
         private Set<RoleName> roles;
 
         public Builder withAuthenticationDetails(AuthenticationDetails authenticationDetails) {
@@ -97,7 +98,7 @@ public record UserSelectArguments(
             return this;
         }
 
-        public Builder withAccessRights(Set<String> accessRights) {
+        public Builder withAccessRights(List<String> accessRights) {
             this.accessRights = accessRights;
             return this;
         }
@@ -107,7 +108,7 @@ public record UserSelectArguments(
             return this;
         }
 
-        public Builder withUsers(Set<UserDto> users) {
+        public Builder withUsers(List<UserDto> users) {
             this.users = users;
             return this;
         }

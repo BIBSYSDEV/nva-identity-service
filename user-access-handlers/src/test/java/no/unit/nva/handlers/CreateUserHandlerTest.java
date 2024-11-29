@@ -102,11 +102,11 @@ class CreateUserHandlerTest extends HandlerTest {
         var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
 
         var defaultRequestHeaders = new HttpHeaders()
-                .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+            .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         var mockPersonRegistry = new MockPersonRegistry(cristinUsername,
-                cristinPassword,
-                wiremockUri,
-                defaultRequestHeaders);
+            cristinPassword,
+            wiremockUri,
+            defaultRequestHeaders);
 
         this.scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
 
@@ -114,373 +114,15 @@ class CreateUserHandlerTest extends HandlerTest {
 
         var httpClient = WiremockHttpClient.create();
         personRegistry = CristinPersonRegistry.customPersonRegistry(
-                httpClient,
-                wiremockUri,
-                ServiceConstants.API_DOMAIN,
-                defaultRequestHeaders,
-                new SecretsReader(secretsManagerClient));
+            httpClient,
+            wiremockUri,
+            ServiceConstants.API_DOMAIN,
+            defaultRequestHeaders,
+            new SecretsReader(secretsManagerClient));
 
         handler = new CreateUserHandler(userCreator, identityService, customerService, personRegistry);
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-    }
-
-    @AfterEach
-    public void close() {
-        identityServiceDb.closeDB();
-        customerServiceDatabase.deleteDatabase();
-    }
-
-    @Test
-    void shouldCreateUserWithRequestedRolesAndViewingScopeWhenCreatedWithNin()
-            throws IOException {
-
-        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
-
-        var someCustomer = fetchSomeCustomerForThePerson(person);
-        var providedViewingScope = ViewingScope.defaultViewingScope(randomCristinOrganization());
-        var requestBody = sampleRequestForExistingPersonCustomerAndRolesWithoutCristinId(person, someCustomer.getId(),
-                providedViewingScope);
-        var request = createRequest(requestBody, someCustomer, MANAGE_OWN_AFFILIATION);
-        var response = sendRequest(request, UserDto.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
-
-        var actualUser = identityService.listUsers(requestBody.customerId())
-                .stream().collect(SingletonCollector.collect());
-
-        var expectedRoles = createExpectedRoleSet(requestBody);
-        var persistedViewingScope = actualUser.getViewingScope();
-
-        assertThat(persistedViewingScope, is(equalTo(providedViewingScope)));
-        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.customerId())));
-        assertThat(actualUser.getRoles(), is(equalTo(expectedRoles)));
-    }
-
-    @Test
-    void shouldCreateUserWithRequestedRolesAndViewingScopeWhenCreatedWithCristinId()
-            throws IOException {
-
-        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
-
-        var someCustomer = fetchSomeCustomerForThePerson(person);
-        var providedViewingScope = ViewingScope.defaultViewingScope(randomCristinOrganization());
-        var requestBody = sampleRequestForExistingPersonCustomerAndRolesWithoutNin(person, someCustomer.getId(),
-                providedViewingScope);
-        var request = createRequest(requestBody, someCustomer, MANAGE_OWN_AFFILIATION);
-        var response = sendRequest(request, UserDto.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
-
-        var actualUser = identityService.listUsers(requestBody.customerId())
-                .stream().collect(SingletonCollector.collect());
-
-        var expectedRoles = createExpectedRoleSet(requestBody);
-        var persistedViewingScope = actualUser.getViewingScope();
-
-        assertThat(persistedViewingScope, is(equalTo(providedViewingScope)));
-        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.customerId())));
-        assertThat(actualUser.getRoles(), is(equalTo(expectedRoles)));
-    }
-
-    @Test
-    void shouldCreateUserWithRequestedRolesWhenInputContainsNationalIdNumberInstitutionIdAndSetOfRoles()
-            throws IOException {
-
-        var person = scenarios.personWithExactlyOneActiveEmployment();
-        var customer = fetchSomeCustomerForThePerson(person);
-
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getCristinId(),
-                ViewingScope.defaultViewingScope(
-                        randomCristinOrganization()));
-
-        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-        var response = sendRequest(request, UserDto.class);
-
-        var actualUser = identityService.listUsers(customer.getId())
-                .stream().collect(SingletonCollector.collect());
-
-        var expectedRoles = createExpectedRoleSet(requestBody);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
-        assertThat(actualUser.getInstitution(), is(equalTo(customer.getId())));
-        assertThat(actualUser.getRoles(), is(equalTo(expectedRoles)));
-    }
-
-    @Test
-    void shouldReturnOkAndReturnExistingUserWithStatusCode200WhenTryingToCreateExistingUser() throws IOException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
-        var customer = fetchSomeCustomerForThePerson(person);
-        var organizationId = randomCristinOrganization();
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(
-                        organizationId));
-
-        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-        sendRequest(request, UserDto.class);
-        var actualUser = identityService.listUsers(customer.getId())
-                .stream().collect(SingletonCollector.collect());
-        outputStream = new ByteArrayOutputStream();
-        request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-        var response = sendRequest(request, UserDto.class);
-        System.out.println(response.getBody());
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
-    }
-
-    @Test
-    void shouldDenyAccessToUsersThatAreDoNotHaveTheRightToCreateUsers() throws IOException {
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(randomPerson(), randomUri(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-        var request = createRequestWithoutAccessRights(requestBody);
-        var response = sendRequest(request, Problem.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
-    }
-
-    @Test
-    void shouldDenyAccessWhenInstitutionAdminTriesToCreateAnAppAdmin() throws IOException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
-        var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = new CreateUserRequest(person.nin(), person.cristinIdentifier(), customer.getId(), appAdminRole(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-
-        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-        var response = sendRequest(request, Problem.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
-    }
-
-    @Test
-    void shouldAllowAccessWhenAppAdminTriesToCreateAnAppAdmin() throws IOException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
-        var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = new CreateUserRequest(person.nin(), person.cristinIdentifier(), customer.getId(), appAdminRole(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-
-        var request = createRequest(requestBody, customer, MANAGE_CUSTOMERS);
-        var response = sendRequest(request, Problem.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
-    }
-
-    @Test
-    void shouldDenyAccessToUsersThatDoNotHaveTheRightToAddAnyUserAndTheyAreTryingToAddUsersForAnotherInstitution()
-            throws IOException {
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(randomPerson(), randomUri(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-        var customer = CustomerDto.builder().withId(requestBody.customerId()).build();
-        var request = createRequest(requestBody, customer);
-
-        var response = sendRequest(request, Problem.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
-    }
-
-    @Test
-    void shouldAllowAccessToCustomerManagers() throws IOException {
-        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
-        var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(
-                        randomCristinOrganization()));
-        var request = createRequest(requestBody, customer, MANAGE_CUSTOMERS);
-
-        var response = sendRequest(request, UserDto.class);
-
-        var actualUser = response.getBodyObject(UserDto.class);
-        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.customerId())));
-    }
-
-    @Test
-    void shouldAllowAccessToBackendServices()
-            throws IOException {
-        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
-        var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(
-                        randomCristinOrganization()));
-        var request = createBackendRequest(requestBody);
-
-        var response = sendRequest(request, UserDto.class);
-
-        var actualUser = response.getBodyObject(UserDto.class);
-        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.customerId())));
-    }
-
-    @Test
-    void shouldNotOverwriteRolesOfExistingUsers() throws IOException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
-        var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-
-        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-        var response = sendRequest(request, UserDto.class);
-        final var firstRoles = response.getBodyObject(UserDto.class).getRoles();
-
-        outputStream = new ByteArrayOutputStream();
-        //sending a create user request for the same user but with different roles
-        requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-        request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-        response = sendRequest(request, UserDto.class);
-        var allRoles = response.getBodyObject(UserDto.class).getRoles();
-
-        assertThat(allRoles, hasItems(firstRoles.toArray(RoleDto[]::new)));
-    }
-
-    @Test
-    void shouldReturnExistingUserAndNotOverwriteItWhenAttemptingToCreateAlreadyExistingUser() throws IOException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
-        var customer = fetchSomeCustomerForThePerson(person);
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-
-        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-        var response = sendRequest(request, UserDto.class);
-        final var firstRoles = response.getBodyObject(UserDto.class).getRoles();
-
-        outputStream = new ByteArrayOutputStream();
-        //sending a create user request for the same user but with different includedUnits
-        requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-        request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-        response = sendRequest(request, UserDto.class);
-        var allRoles = response.getBodyObject(UserDto.class).getRoles();
-
-        assertThat(allRoles, hasItems(firstRoles.toArray(RoleDto[]::new)));
-    }
-
-    @Test
-    void shouldReturnConflictErrorWhenPersonHasNoActiveAffiliations() throws IOException {
-        var person = scenarios.personWithExactlyOneInactiveEmployment();
-        var customer = randomCustomer();
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(customer.getCristinId()));
-        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-
-        var response = sendRequest(request, Problem.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
-
-        var message = response.getBodyObject(Problem.class).getDetail();
-        assertThat(message, matchesPattern(".*Person (.*) has no active affiliations with an institution.*"));
-    }
-
-    @Test
-    void shouldReturnConflictErrorWhenPersonHasActiveAffiliationsButNotWithAnExistingCustomer() throws IOException {
-        var person = scenarios.personWithExactlyOneActiveEmploymentInNonCustomer();
-        var customer = randomCustomer();
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-
-        var response = sendRequest(request, Problem.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
-
-        var message = response.getBodyObject(Problem.class).getDetail();
-        assertThat(message,
-                matchesPattern(".*Person (.*) has no active affiliations with an Institution that"
-                        + " is an NVA customer.*"));
-    }
-
-    @Test
-    void shouldReturnConflictErrorWhenPersonIsNotRegisteredInPersonRegistry() throws IOException {
-        var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
-        var customer = randomCustomer();
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-
-        var response = sendRequest(request, Problem.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
-
-        var message = response.getBodyObject(Problem.class).getDetail();
-        assertThat(message,
-                matchesPattern(".*Person (.*) is not registered in the Person Registry.*"));
-    }
-
-    @Test
-    void shouldReturnBadGatewayWhenSomethingUnexpectedError() throws IOException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
-        var customer = randomCustomer();
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
-                ViewingScope.defaultViewingScope(randomCristinOrganization()));
-
-        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
-        var mockedIdentityService = mock(IdentityService.class);
-        handler = new CreateUserHandler(userCreator, mockedIdentityService, customerService, personRegistry);
-        handler.handleRequest(request, outputStream, context);
-        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
-
-        var message = response.getBodyObject(Problem.class).getDetail();
-        assertThat(message,
-                is(equalTo("Something went wrong, contact application administrator!")));
-    }
-
-    private CustomerDto randomCustomer() {
-        return CustomerDto.builder()
-                .withId(randomUri())
-                .withCristinId(randomCristinOrganization())
-                .build();
-    }
-
-    private URI randomCristinOrganization() {
-        return UriWrapper.fromHost(API_DOMAIN)
-                .addChild("cristin")
-                .addChild("organization")
-                .addChild(randomString())
-                .getUri();
-    }
-
-    private Set<RoleDto> createExpectedRoleSet(CreateUserRequest requestBody) {
-        return Stream.of(requestBody.roles(),
-                        Set.of(UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
-    }
-
-    private InputStream createBackendRequest(CreateUserRequest requestBody)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
-                .withScope(RequestInfoConstants.BACKEND_SCOPE_AS_DEFINED_IN_IDENTITY_SERVICE)
-                .withBody(requestBody)
-                .build();
-    }
-
-    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRoles(MockedPersonData person,
-                                                                             URI customerId, ViewingScope viewingScope) {
-        return new CreateUserRequest(person.nin(), person.cristinIdentifier(), customerId, randomRoles(), viewingScope);
-    }
-
-    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRolesWithoutNin(MockedPersonData person,
-                                                                                       URI customerId, ViewingScope viewingScope) {
-        return new CreateUserRequest(null, person.cristinIdentifier(), customerId, randomRoles(), viewingScope);
-    }
-
-    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRolesWithoutCristinId(MockedPersonData person,
-                                                                                             URI customerId, ViewingScope viewingScope) {
-        return new CreateUserRequest(person.nin(), null, customerId, randomRoles(), viewingScope);
-    }
-
-    private CustomerDto fetchSomeCustomerForThePerson(MockedPersonData person) {
-        var cristinIds = scenarios.getCristinUriForInstitutionAffiliations(person.nin(), true);
-
-        LOGGER.info("Cristin ids: {}", cristinIds);
-
-        var customer = cristinIds.stream()
-                .map(attempt(institution -> customerService.getCustomerByCristinId(institution)))
-                .map(Try::orElseThrow)
-                .findFirst()
-                .orElseThrow();
-
-        LOGGER.info("Using customer {} with cristin id {}", customer.getId(), customer.getCristinId());
-        return customer;
-    }
-
-    private MockedPersonData randomPerson() {
-        return new MockedPersonData(randomString(), randomString());
     }
 
     private DynamoDBCustomerService initializeCustomerService() {
@@ -495,38 +137,61 @@ class CreateUserHandlerTest extends HandlerTest {
         return IdentityService.defaultIdentityService(client);
     }
 
-    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
-        handler.handleRequest(request, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    @AfterEach
+    public void close() {
+        identityServiceDb.closeDB();
+        customerServiceDatabase.deleteDatabase();
     }
 
-    private InputStream createRequestWithoutAccessRights(CreateUserRequest requestBody) throws JsonProcessingException {
-        var customerId = randomUri();
-        return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
-                .withCurrentCustomer(customerId)
-                .withBody(requestBody)
-                .build();
+    @Test
+    void shouldCreateUserWithRequestedRolesAndViewingScopeWhenCreatedWithNin()
+        throws IOException {
+
+        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+
+        var someCustomer = fetchSomeCustomerForThePerson(person);
+        var providedViewingScope = ViewingScope.defaultViewingScope(randomCristinOrganization());
+        var requestBody = sampleRequestForExistingPersonCustomerAndRolesWithoutCristinId(person, someCustomer.getId(),
+            providedViewingScope);
+        var request = createRequest(requestBody, someCustomer, MANAGE_OWN_AFFILIATION);
+        var response = sendRequest(request, UserDto.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
+
+        var actualUser = identityService.listUsers(requestBody.customerId())
+            .stream().collect(SingletonCollector.collect());
+
+        var expectedRoles = createExpectedRoleSet(requestBody);
+        var persistedViewingScope = actualUser.getViewingScope();
+
+        assertThat(persistedViewingScope, is(equalTo(providedViewingScope)));
+        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.customerId())));
+        assertThat(actualUser.getRoles(), is(equalTo(expectedRoles)));
     }
 
-    private InputStream createRequest(CreateUserRequest requestBody,
-                                      CustomerDto customer,
-                                      AccessRight... accessRights)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
-                .withCurrentCustomer(customer.getId())
-                .withAccessRights(customer.getId(), accessRights)
-                .withBody(requestBody)
-                .build();
+    private URI randomCristinOrganization() {
+        return UriWrapper.fromHost(API_DOMAIN)
+            .addChild("cristin")
+            .addChild("organization")
+            .addChild(randomString())
+            .getUri();
+    }
+
+    private Set<RoleDto> createExpectedRoleSet(CreateUserRequest requestBody) {
+        return Stream.of(requestBody.roles(),
+                Set.of(UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+    }
+
+    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRolesWithoutCristinId(MockedPersonData person,
+                                                                                             URI customerId,
+                                                                                             ViewingScope viewingScope) {
+        return new CreateUserRequest(person.nin(), null, customerId, randomRoles(), viewingScope);
     }
 
     private Set<RoleDto> randomRoles() {
         var role = RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.APPLICATION_ADMIN)).build();
-        addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
-        return Set.of(role);
-    }
-
-    private Set<RoleDto> appAdminRole() {
-        var role = RoleDto.newBuilder().withRoleName(RoleName.APPLICATION_ADMIN).build();
         addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
         return Set.of(role);
     }
@@ -540,5 +205,345 @@ class CreateUserHandlerTest extends HandlerTest {
         } catch (ConflictException | InvalidInputException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private CustomerDto fetchSomeCustomerForThePerson(MockedPersonData person) {
+        var cristinIds = scenarios.getCristinUriForInstitutionAffiliations(person.nin(), true);
+
+        LOGGER.info("Cristin ids: {}", cristinIds);
+
+        var customer = cristinIds.stream()
+            .map(attempt(institution -> customerService.getCustomerByCristinId(institution)))
+            .map(Try::orElseThrow)
+            .findFirst()
+            .orElseThrow();
+
+        LOGGER.info("Using customer {} with cristin id {}", customer.getId(), customer.getCristinId());
+        return customer;
+    }
+
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    private InputStream createRequest(CreateUserRequest requestBody,
+                                      CustomerDto customer,
+                                      AccessRight... accessRights)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
+            .withCurrentCustomer(customer.getId())
+            .withAccessRights(customer.getId(), accessRights)
+            .withBody(requestBody)
+            .build();
+    }
+
+    @Test
+    void shouldCreateUserWithRequestedRolesAndViewingScopeWhenCreatedWithCristinId()
+        throws IOException {
+
+        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+
+        var someCustomer = fetchSomeCustomerForThePerson(person);
+        var providedViewingScope = ViewingScope.defaultViewingScope(randomCristinOrganization());
+        var requestBody = sampleRequestForExistingPersonCustomerAndRolesWithoutNin(person, someCustomer.getId(),
+            providedViewingScope);
+        var request = createRequest(requestBody, someCustomer, MANAGE_OWN_AFFILIATION);
+        var response = sendRequest(request, UserDto.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
+
+        var actualUser = identityService.listUsers(requestBody.customerId())
+            .stream().collect(SingletonCollector.collect());
+
+        var expectedRoles = createExpectedRoleSet(requestBody);
+        var persistedViewingScope = actualUser.getViewingScope();
+
+        assertThat(persistedViewingScope, is(equalTo(providedViewingScope)));
+        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.customerId())));
+        assertThat(actualUser.getRoles(), is(equalTo(expectedRoles)));
+    }
+
+    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRolesWithoutNin(MockedPersonData person,
+                                                                                       URI customerId,
+                                                                                       ViewingScope viewingScope) {
+        return new CreateUserRequest(null, person.cristinIdentifier(), customerId, randomRoles(), viewingScope);
+    }
+
+    @Test
+    void shouldCreateUserWithRequestedRolesWhenInputContainsNationalIdNumberInstitutionIdAndSetOfRoles()
+        throws IOException {
+
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = fetchSomeCustomerForThePerson(person);
+
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getCristinId(),
+            ViewingScope.defaultViewingScope(
+                randomCristinOrganization()));
+
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        var response = sendRequest(request, UserDto.class);
+
+        var actualUser = identityService.listUsers(customer.getId())
+            .stream().collect(SingletonCollector.collect());
+
+        var expectedRoles = createExpectedRoleSet(requestBody);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
+        assertThat(actualUser.getInstitution(), is(equalTo(customer.getId())));
+        assertThat(actualUser.getRoles(), is(equalTo(expectedRoles)));
+    }
+
+    private CreateUserRequest sampleRequestForExistingPersonCustomerAndRoles(MockedPersonData person,
+                                                                             URI customerId,
+                                                                             ViewingScope viewingScope) {
+        return new CreateUserRequest(person.nin(), person.cristinIdentifier(), customerId, randomRoles(), viewingScope);
+    }
+
+    @Test
+    void shouldReturnOkAndReturnExistingUserWithStatusCode200WhenTryingToCreateExistingUser() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = fetchSomeCustomerForThePerson(person);
+        var organizationId = randomCristinOrganization();
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(
+                organizationId));
+
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        sendRequest(request, UserDto.class);
+        var actualUser = identityService.listUsers(customer.getId())
+            .stream().collect(SingletonCollector.collect());
+        outputStream = new ByteArrayOutputStream();
+        request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        var response = sendRequest(request, UserDto.class);
+        System.out.println(response.getBody());
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    }
+
+    @Test
+    void shouldDenyAccessToUsersThatAreDoNotHaveTheRightToCreateUsers() throws IOException {
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(randomPerson(), randomUri(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+        var request = createRequestWithoutAccessRights(requestBody);
+        var response = sendRequest(request, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    private MockedPersonData randomPerson() {
+        return new MockedPersonData(randomString(), randomString());
+    }
+
+    private InputStream createRequestWithoutAccessRights(CreateUserRequest requestBody) throws JsonProcessingException {
+        var customerId = randomUri();
+        return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
+            .withCurrentCustomer(customerId)
+            .withBody(requestBody)
+            .build();
+    }
+
+    @Test
+    void shouldDenyAccessWhenInstitutionAdminTriesToCreateAnAppAdmin() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = fetchSomeCustomerForThePerson(person);
+        var requestBody =
+            new CreateUserRequest(person.nin(), person.cristinIdentifier(), customer.getId(), appAdminRole(),
+                ViewingScope.defaultViewingScope(randomCristinOrganization()));
+
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        var response = sendRequest(request, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    private Set<RoleDto> appAdminRole() {
+        var role = RoleDto.newBuilder().withRoleName(RoleName.APPLICATION_ADMIN).build();
+        addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
+        return Set.of(role);
+    }
+
+    @Test
+    void shouldAllowAccessWhenAppAdminTriesToCreateAnAppAdmin() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = fetchSomeCustomerForThePerson(person);
+        var requestBody =
+            new CreateUserRequest(person.nin(), person.cristinIdentifier(), customer.getId(), appAdminRole(),
+                ViewingScope.defaultViewingScope(randomCristinOrganization()));
+
+        var request = createRequest(requestBody, customer, MANAGE_CUSTOMERS);
+        var response = sendRequest(request, Problem.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
+    }
+
+    @Test
+    void shouldDenyAccessToUsersThatDoNotHaveTheRightToAddAnyUserAndTheyAreTryingToAddUsersForAnotherInstitution()
+        throws IOException {
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(randomPerson(), randomUri(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+        var customer = CustomerDto.builder().withId(requestBody.customerId()).build();
+        var request = createRequest(requestBody, customer);
+
+        var response = sendRequest(request, Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    @Test
+    void shouldAllowAccessToCustomerManagers() throws IOException {
+        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+        var customer = fetchSomeCustomerForThePerson(person);
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(
+                randomCristinOrganization()));
+        var request = createRequest(requestBody, customer, MANAGE_CUSTOMERS);
+
+        var response = sendRequest(request, UserDto.class);
+
+        var actualUser = response.getBodyObject(UserDto.class);
+        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.customerId())));
+    }
+
+    @Test
+    void shouldAllowAccessToBackendServices()
+        throws IOException {
+        var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions();
+        var customer = fetchSomeCustomerForThePerson(person);
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(
+                randomCristinOrganization()));
+        var request = createBackendRequest(requestBody);
+
+        var response = sendRequest(request, UserDto.class);
+
+        var actualUser = response.getBodyObject(UserDto.class);
+        assertThat(actualUser.getInstitution(), is(equalTo(requestBody.customerId())));
+    }
+
+    private InputStream createBackendRequest(CreateUserRequest requestBody)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CreateUserRequest>(dtoObjectMapper)
+            .withScope(RequestInfoConstants.BACKEND_SCOPE_AS_DEFINED_IN_IDENTITY_SERVICE)
+            .withBody(requestBody)
+            .build();
+    }
+
+    @Test
+    void shouldNotOverwriteRolesOfExistingUsers() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = fetchSomeCustomerForThePerson(person);
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        var response = sendRequest(request, UserDto.class);
+        final var firstRoles = response.getBodyObject(UserDto.class).getRoles();
+
+        outputStream = new ByteArrayOutputStream();
+        //sending a create user request for the same user but with different roles
+        requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+        request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        response = sendRequest(request, UserDto.class);
+        var allRoles = response.getBodyObject(UserDto.class).getRoles();
+
+        assertThat(allRoles, hasItems(firstRoles.toArray(RoleDto[]::new)));
+    }
+
+    @Test
+    void shouldReturnExistingUserAndNotOverwriteItWhenAttemptingToCreateAlreadyExistingUser() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = fetchSomeCustomerForThePerson(person);
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        var response = sendRequest(request, UserDto.class);
+        final var firstRoles = response.getBodyObject(UserDto.class).getRoles();
+
+        outputStream = new ByteArrayOutputStream();
+        //sending a create user request for the same user but with different includedUnits
+        requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+        request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        response = sendRequest(request, UserDto.class);
+        var allRoles = response.getBodyObject(UserDto.class).getRoles();
+
+        assertThat(allRoles, hasItems(firstRoles.toArray(RoleDto[]::new)));
+    }
+
+    @Test
+    void shouldReturnConflictErrorWhenPersonHasNoActiveAffiliations() throws IOException {
+        var person = scenarios.personWithExactlyOneInactiveEmployment();
+        var customer = randomCustomer();
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(customer.getCristinId()));
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+
+        var response = sendRequest(request, Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+
+        var message = response.getBodyObject(Problem.class).getDetail();
+        assertThat(message, matchesPattern(".*Person (.*) has no active affiliations with an institution.*"));
+    }
+
+    private CustomerDto randomCustomer() {
+        return CustomerDto.builder()
+            .withId(randomUri())
+            .withCristinId(randomCristinOrganization())
+            .build();
+    }
+
+    @Test
+    void shouldReturnConflictErrorWhenPersonHasActiveAffiliationsButNotWithAnExistingCustomer() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmploymentInNonCustomer();
+        var customer = randomCustomer();
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+
+        var response = sendRequest(request, Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+
+        var message = response.getBodyObject(Problem.class).getDetail();
+        assertThat(message,
+            matchesPattern(".*Person (.*) has no active affiliations with an Institution that"
+                + " is an NVA customer.*"));
+    }
+
+    @Test
+    void shouldReturnConflictErrorWhenPersonIsNotRegisteredInPersonRegistry() throws IOException {
+        var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
+        var customer = randomCustomer();
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+
+        var response = sendRequest(request, Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
+
+        var message = response.getBodyObject(Problem.class).getDetail();
+        assertThat(message,
+            matchesPattern(".*Person (.*) is not registered in the Person Registry.*"));
+    }
+
+    @Test
+    void shouldReturnBadGatewayWhenSomethingUnexpectedError() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = randomCustomer();
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        var mockedIdentityService = mock(IdentityService.class);
+        handler = new CreateUserHandler(userCreator, mockedIdentityService, customerService, personRegistry);
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
+
+        var message = response.getBodyObject(Problem.class).getDetail();
+        assertThat(message,
+            is(equalTo("Something went wrong, contact application administrator!")));
     }
 }

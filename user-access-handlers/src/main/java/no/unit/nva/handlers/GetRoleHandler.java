@@ -42,7 +42,7 @@ public class GetRoleHandler extends ApiGatewayHandler<Void, RoleDto> {
 
     @Override
     public RoleDto processInput(Void input, RequestInfo requestInfo, Context context)
-            throws NotFoundException {
+        throws NotFoundException {
         var roleName = roleNameThatIsNotNullOrBlank(requestInfo);
 
         RoleDto searchObject = RoleDto.newBuilder().withRoleName(roleName).build();
@@ -56,9 +56,9 @@ public class GetRoleHandler extends ApiGatewayHandler<Void, RoleDto> {
 
     private RoleName roleNameThatIsNotNullOrBlank(RequestInfo requestInfo) {
         return Optional.ofNullable(requestInfo.getPathParameters())
-                .map(pathParams -> pathParams.get(ROLE_PATH_PARAMETER))
-                .filter(not(String::isBlank))
-                .map(RoleName::fromValue)
-                .orElseThrow();
+            .map(pathParams -> pathParams.get(ROLE_PATH_PARAMETER))
+            .filter(not(String::isBlank))
+            .map(RoleName::fromValue)
+            .orElseThrow();
     }
 }

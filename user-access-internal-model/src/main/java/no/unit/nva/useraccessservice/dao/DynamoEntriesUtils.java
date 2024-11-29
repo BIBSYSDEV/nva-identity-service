@@ -1,8 +1,8 @@
 package no.unit.nva.useraccessservice.dao;
 
-import static java.util.Objects.nonNull;
-
 import java.util.Collection;
+
+import static java.util.Objects.nonNull;
 
 public final class DynamoEntriesUtils {
 

@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 
-@SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount"})
 public class UserDto implements WithCopy<Builder>, Typed {
 
     public static final String TYPE = "User";
@@ -75,7 +74,59 @@ public class UserDto implements WithCopy<Builder>, Typed {
 
     public static UserDto fromJson(String input) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(input, UserDto.class))
-                .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
+            .orElseThrow(fail -> new BadRequestException("Could not read User:" + input, fail.getException()));
+    }
+
+    @JsonProperty("accessRights")
+    public Set<AccessRight> getAccessRights() {
+        return getRoles().stream()
+            .flatMap(role -> role.getAccessRights().stream())
+            .collect(Collectors.toSet());
+    }
+
+    public void setAccessRights(List<AccessRight> accessRights) {
+        //Do nothing
+    }
+
+    public Set<RoleDto> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<RoleDto> roles) {
+        this.roles = roles;
+    }
+
+    @Override
+    @JsonProperty(Typed.TYPE_FIELD)
+    public String getType() {
+        return UserDto.TYPE;
+    }
+
+    @Override
+    public void setType(String type) throws BadRequestException {
+        Typed.super.setType(type);
+    }
+
+    public Stream<String> generateRoleClaims() {
+        return roles.stream()
+            .map(RoleDto::getRoleName)
+            .map(RoleName::getValue)
+            .map(rolename -> rolename + AT + institution.toString());
+    }
+
+    @Override
+    public UserDto.Builder copy() {
+        return new Builder()
+            .withUsername(getUsername())
+            .withGivenName(getGivenName())
+            .withFamilyName(getFamilyName())
+            .withInstitution(getInstitution())
+            .withRoles(new HashSet<>(getRoles()))
+            .withViewingScope(getViewingScope())
+            .withCristinId(getCristinId())
+            .withInstitutionCristinId(getInstitutionCristinId())
+            .withFeideIdentifier(getFeideIdentifier())
+            .withAffiliation(getAffiliation());
     }
 
     public URI getAffiliation() {
@@ -94,14 +145,6 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.feideIdentifier = feideIdentifier;
     }
 
-    public URI getInstitutionCristinId() {
-        return institutionCristinId;
-    }
-
-    public void setInstitutionCristinId(URI institutionCristinId) {
-        this.institutionCristinId = institutionCristinId;
-    }
-
     @JacocoGenerated
     @SuppressWarnings("PMD.NullAssignment")
     public URI getCristinId() {
@@ -112,17 +155,6 @@ public class UserDto implements WithCopy<Builder>, Typed {
     @SuppressWarnings("PMD.NullAssignment")
     public void setCristinId(URI cristinId) {
         this.cristinId = cristinId;
-    }
-
-    @JsonProperty("accessRights")
-    public Set<AccessRight> getAccessRights() {
-        return getRoles().stream()
-                .flatMap(role -> role.getAccessRights().stream())
-                .collect(Collectors.toSet());
-    }
-
-    public void setAccessRights(List<AccessRight> accessRights) {
-        //Do nothing
     }
 
     public String getUsername() {
@@ -160,64 +192,34 @@ public class UserDto implements WithCopy<Builder>, Typed {
         this.institution = institution;
     }
 
-    @Override
-    @JsonProperty(Typed.TYPE_FIELD)
-    public String getType() {
-        return UserDto.TYPE;
-    }
-
-    @Override
-    public void setType(String type) throws BadRequestException {
-        Typed.super.setType(type);
-    }
-
-    public Set<RoleDto> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<RoleDto> roles) {
-        this.roles = roles;
-    }
-
-
     public ViewingScope getViewingScope() {
         return Optional.ofNullable(viewingScope)
-                .or(this::defaultViewingScopeForUsersWithInstitution)
-                .orElse(null);
+            .or(this::defaultViewingScopeForUsersWithInstitution)
+            .orElse(null);
     }
 
     public void setViewingScope(ViewingScope viewingScope) {
         this.viewingScope = viewingScope;
     }
 
-    public Stream<String> generateRoleClaims() {
-        return roles.stream()
-                .map(RoleDto::getRoleName)
-                .map(RoleName::getValue)
-                .map(rolename -> rolename + AT + institution.toString());
+    private Optional<ViewingScope> defaultViewingScopeForUsersWithInstitution() {
+        return Optional.ofNullable(getInstitutionCristinId()).map(ViewingScope::defaultViewingScope);
     }
 
-    @Override
-    public UserDto.Builder copy() {
-        return new Builder()
-                .withUsername(getUsername())
-                .withGivenName(getGivenName())
-                .withFamilyName(getFamilyName())
-                .withInstitution(getInstitution())
-                .withRoles(new HashSet<>(getRoles()))
-                .withViewingScope(getViewingScope())
-                .withCristinId(getCristinId())
-                .withInstitutionCristinId(getInstitutionCristinId())
-                .withFeideIdentifier(getFeideIdentifier())
-                .withAffiliation(getAffiliation());
+    public URI getInstitutionCristinId() {
+        return institutionCristinId;
+    }
+
+    public void setInstitutionCristinId(URI institutionCristinId) {
+        this.institutionCristinId = institutionCristinId;
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getUsername(), getInstitution(), getGivenName(), getFamilyName(), getViewingScope(),
-                getRoles(),
-                getCristinId(), getFeideIdentifier(), getInstitutionCristinId(), getAffiliation());
+            getRoles(),
+            getCristinId(), getFeideIdentifier(), getInstitutionCristinId(), getAffiliation());
     }
 
     @Override
@@ -226,31 +228,26 @@ public class UserDto implements WithCopy<Builder>, Typed {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof UserDto userDto)) {
+        if (!(o instanceof UserDto)) {
             return false;
         }
+        UserDto userDto = (UserDto) o;
         return Objects.equals(getUsername(), userDto.getUsername())
-                && Objects.equals(getInstitution(), userDto.getInstitution())
-                && Objects.equals(getGivenName(), userDto.getGivenName())
-                && Objects.equals(getFamilyName(), userDto.getFamilyName())
-                && Objects.equals(getViewingScope(), userDto.getViewingScope())
-                && Objects.equals(getRoles(), userDto.getRoles())
-                && Objects.equals(getCristinId(), userDto.getCristinId())
-                && Objects.equals(getFeideIdentifier(), userDto.getFeideIdentifier())
-                && Objects.equals(getInstitutionCristinId(), userDto.getInstitutionCristinId())
-                && Objects.equals(getAffiliation(), userDto.getAffiliation());
+            && Objects.equals(getInstitution(), userDto.getInstitution())
+            && Objects.equals(getGivenName(), userDto.getGivenName())
+            && Objects.equals(getFamilyName(), userDto.getFamilyName())
+            && Objects.equals(getViewingScope(), userDto.getViewingScope())
+            && Objects.equals(getRoles(), userDto.getRoles())
+            && Objects.equals(getCristinId(), userDto.getCristinId())
+            && Objects.equals(getFeideIdentifier(), userDto.getFeideIdentifier())
+            && Objects.equals(getInstitutionCristinId(), userDto.getInstitutionCristinId())
+            && Objects.equals(getAffiliation(), userDto.getAffiliation());
     }
 
     @Override
     public String toString() {
         return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
-
-
-    private Optional<ViewingScope> defaultViewingScopeForUsersWithInstitution() {
-        return Optional.ofNullable(getInstitutionCristinId()).map(ViewingScope::defaultViewingScope);
-    }
-
 
     public static final class Builder {
 

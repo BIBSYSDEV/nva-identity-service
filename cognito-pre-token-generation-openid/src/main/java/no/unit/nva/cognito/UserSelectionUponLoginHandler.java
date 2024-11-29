@@ -34,6 +34,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.net.URI;
 import java.time.Instant;
@@ -67,14 +68,14 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.core.attempt.Try.attempt;
 
 @SuppressWarnings({"PMD.GodClass"})
 public class UserSelectionUponLoginHandler
-        implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
+    implements RequestHandler<CognitoUserPoolPreTokenGenerationEvent, CognitoUserPoolPreTokenGenerationEvent> {
 
     public static final Environment ENVIRONMENT = new Environment();
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
@@ -86,42 +87,55 @@ public class UserSelectionUponLoginHandler
     public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
     private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
     private static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE
-            = "Customer is inactive {} when logging in as {} with the following affiliations: {}";
+        = "Customer is inactive {} when logging in as {} with the following affiliations: {}";
     private static final String FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION
-            = "Failed to retrieve customer for active affiliation %s when logging in as %s with the following "
-            + "affiliations: %s";
+        = "Failed to retrieve customer for active affiliation %s when logging in as %s with the following "
+        + "affiliations: %s";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
     private final PersonRegistry personRegistry;
+    private final TermsAndConditionsService termsService;
 
     @JacocoGenerated
     public UserSelectionUponLoginHandler() {
         this.cognitoClient = defaultCognitoClient();
         this.customerService = defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
         this.userCreator = new UserEntriesCreatorForPerson(defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
+        this.termsService = new TermsAndConditionsService(DEFAULT_DYNAMO_CLIENT);
         this.personRegistry = CristinPersonRegistry.defaultPersonRegistry();
     }
 
+    @JacocoGenerated
+    private static CognitoIdentityProviderClient defaultCognitoClient() {
+        return CognitoIdentityProviderClient.builder()
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.create())
+            .region(AWS_REGION)
+            .build();
+    }
+
     public UserSelectionUponLoginHandler(
-            CognitoIdentityProviderClient cognitoClient,
-            CustomerService customerService,
-            IdentityService identityService,
-            PersonRegistry personRegistry) {
+        CognitoIdentityProviderClient cognitoClient,
+        CustomerService customerService,
+        IdentityService identityService,
+        PersonRegistry personRegistry,
+        DynamoDbClient dynamoDbClient) {
 
         this.cognitoClient = cognitoClient;
         this.customerService = customerService;
         this.personRegistry = personRegistry;
         this.userCreator = new UserEntriesCreatorForPerson(identityService);
+        this.termsService = new TermsAndConditionsService(dynamoDbClient);
     }
 
     private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {
         return
-                Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
-                        .map(NationalIdentityNumber::fromString)
-                        .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS))
-                                .map(NationalIdentityNumber::fromString))
-                        .orElseThrow();
+            Optional.ofNullable(userAttributes.get(NIN_FOR_FEIDE_USERS))
+                .map(NationalIdentityNumber::fromString)
+                .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS))
+                    .map(NationalIdentityNumber::fromString))
+                .orElseThrow();
     }
 
     private static String extractOrgFeideDomain(Map<String, String> userAttributes) {
@@ -132,25 +146,19 @@ public class UserSelectionUponLoginHandler
         return userAttributes.get(FEIDE_ID);
     }
 
-    @JacocoGenerated
-    private static CognitoIdentityProviderClient defaultCognitoClient() {
-        return CognitoIdentityProviderClient.builder()
-                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                .httpClient(UrlConnectionHttpClient.create())
-                .region(AWS_REGION)
-                .build();
-    }
-
     private static void logIfDebug(String s, Instant start) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(s,
-                    Instant.now().toEpochMilli() - start.toEpochMilli());
+            LOGGER.debug(s, Instant.now().toEpochMilli() - start.toEpochMilli());
         }
+    }
+
+    private static String stringOrNull(Object argument) {
+        return nonNull(argument) ? argument.toString() : null;
     }
 
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(
-            CognitoUserPoolPreTokenGenerationEvent input, Context context) {
+        CognitoUserPoolPreTokenGenerationEvent input, Context context) {
         try {
             return processInput(input);
         } catch (Exception e) {
@@ -180,11 +188,11 @@ public class UserSelectionUponLoginHandler
         if (requestedPerson.isPresent()) {
             var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
             var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(requestedPerson.get(),
-                    authenticationDetails,
-                    impersonatedBy);
+                authenticationDetails,
+                impersonatedBy);
             injectAccessRightsToEventResponse(input, accessRights);
         } else {
-            injectAccessRightsToEventResponse(input, Collections.emptySet());
+            injectAccessRightsToEventResponse(input, Collections.emptyList());
         }
 
         logIfDebug("Leaving request handler having spent {} ms.", start);
@@ -193,7 +201,7 @@ public class UserSelectionUponLoginHandler
     }
 
     private NationalIdentityNumber getCurrentNin(
-            String impersonating, AuthenticationDetails authenticationDetails) {
+        String impersonating, AuthenticationDetails authenticationDetails) {
 
         if (isNull(impersonating)) {
             return authenticationDetails.getNin();
@@ -201,19 +209,19 @@ public class UserSelectionUponLoginHandler
         var impersonator = personRegistry.fetchPersonByNin(authenticationDetails.getNin()).get();
 
         LOGGER.info("User {} {} impersonating: {}",
-                impersonator.getIdentifier(),
-                authenticationDetails.getUsername(),
-                impersonating);
+            impersonator.getIdentifier(),
+            authenticationDetails.getUsername(),
+            impersonating);
 
         var customerForImpersonators = fetchCustomersWithActiveAffiliations(impersonator);
         var usersForImpersonator = createUsers(impersonator, customerForImpersonators, authenticationDetails);
         var impersonatorsAccessRights = usersForImpersonator
-                .stream()
-                .map(user -> UserAccessRightForCustomer.fromUser(user,
-                        customerForImpersonators))
-                .flatMap(Collection::stream)
-                .map(UserAccessRightForCustomer::getAccessRight)
-                .collect(Collectors.toSet());
+            .stream()
+            .map(user -> UserAccessRightForCustomer.fromUser(user,
+                customerForImpersonators))
+            .flatMap(Collection::stream)
+            .map(UserAccessRightForCustomer::getAccessRight)
+            .collect(Collectors.toSet());
 
         var isAllowedToImpersonate = impersonatorsAccessRights.contains(ACT_AS);
 
@@ -229,27 +237,26 @@ public class UserSelectionUponLoginHandler
         return isNull(impersonating) ? null : authenticationDetails.getUsername();
     }
 
-    private Set<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(
-            Person person,
-            AuthenticationDetails authenticationDetails,
-            String impersonatedBy) {
+    private List<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(
+        Person person,
+        AuthenticationDetails authenticationDetails,
+        String impersonatedBy) {
 
         var start = Instant.now();
         var customersForPerson = fetchCustomersWithActiveAffiliations(person);
-        var termsService = new TermsAndConditionsService();
         var userSelectArguments = new UserSelectArguments.Builder()
-                .withAuthenticationDetails(authenticationDetails)
-                .withPerson(person)
-                .withCustomers(customersForPerson)
-                .withImpersonatedBy(impersonatedBy)
-                .withUsers(createUsers(person, customersForPerson, authenticationDetails))
-                .withCurrentTerms(termsService
-                        .getCurrentTermsAndConditions()
-                        .termsConditionsUri())
-                .withAcceptedTerms(termsService
-                        .getTermsAndConditionsByPerson(person.getId())
-                        .termsConditionsUri())
-                .build();
+            .withAuthenticationDetails(authenticationDetails)
+            .withPerson(person)
+            .withCustomers(customersForPerson)
+            .withImpersonatedBy(impersonatedBy)
+            .withUsers(createUsers(person, customersForPerson, authenticationDetails))
+            .withCurrentTerms(termsService
+                .getCurrentTermsAndConditions()
+                .termsConditionsUri())
+            .withAcceptedTerms(termsService
+                .getTermsAndConditionsByPerson(person.getId())
+                .termsConditionsUri())
+            .build();
 
         logIfDebug("Created users for customer with active affiliations in {} ms.", start);
 
@@ -261,37 +268,39 @@ public class UserSelectionUponLoginHandler
         return accessRights;
     }
 
-    private Set<String> updateUserAttributesInCognito(UserSelectArguments arguments) {
+    private List<String> updateUserAttributesInCognito(UserSelectArguments arguments) {
         var currentCustomer
-                = returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer(
-                arguments.authenticationDetails().getFeideDomain(), arguments.customers());
+            = returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer(
+            arguments.authenticationDetails().getFeideDomain(), arguments.customers());
         var currentUser = nonNull(currentCustomer)
-                ? getCurrentUser(currentCustomer, arguments.users())
-                : null;
+            ? getCurrentUser(currentCustomer, arguments.users())
+            : null;
         var rolesPerCustomerForPerson = rolesForCustomer(arguments.users(), currentCustomer);
 
-        var accessRights = createAccessRightsWithCustomerForCurrentCustomer(arguments.users(), arguments.customers(), currentCustomer);
-        var accessRightsWithoutCustomer = createAccessRightsForCurrentCustomer(arguments.users(), arguments.customers(), currentCustomer);
+        var accessRights =
+            createAccessRightsWithCustomerForCurrentCustomer(arguments.users(), arguments.customers(), currentCustomer);
+        var accessRightsWithoutCustomer =
+            createAccessRightsForCurrentCustomer(arguments.users(), arguments.customers(), currentCustomer);
 
         updateCognitoUserAttributes(
-                arguments.copy()
-                        .withCurrentCustomer(currentCustomer)
-                        .withCurrentUser(currentUser)
-                        .withRoles(rolesPerCustomerForPerson)
-                        .withAccessRights(accessRightsWithoutCustomer)
-                        .build()
+            arguments.copy()
+                .withCurrentCustomer(currentCustomer)
+                .withCurrentUser(currentUser)
+                .withRoles(rolesPerCustomerForPerson)
+                .withAccessRights(accessRightsWithoutCustomer)
+                .build()
         );
 
         return accessRights;
     }
 
-    private Set<UserDto> createUsers(Person person,
-                                     Set<CustomerDto> customers,
-                                     AuthenticationDetails authenticationDetails) {
+    private List<UserDto> createUsers(Person person,
+                                      Set<CustomerDto> customers,
+                                      AuthenticationDetails authenticationDetails) {
         var userCreationContext = new UserCreationContext(
-                person,
-                customers,
-                authenticationDetails.getFeideIdentifier()
+            person,
+            customers,
+            authenticationDetails.getFeideIdentifier()
         );
 
         return userCreator.createUsers(userCreationContext);
@@ -309,7 +318,7 @@ public class UserSelectionUponLoginHandler
         } catch (Exception e) {
             LOGGER.error("Could not extract required data from request", e);
             LOGGER.error("User name: {}, userPoolId: {}, input request: {}", input.getUserName(), input.getUserPoolId(),
-                    input.getRequest());
+                input.getRequest());
             throw e;
         }
     }
@@ -317,7 +326,7 @@ public class UserSelectionUponLoginHandler
     private UserDto getCurrentUser(CustomerDto currentCustomer, Collection<UserDto> users) {
         var currentCustomerId = currentCustomer.getId();
         return attempt(() -> filterOutUser(users, currentCustomerId))
-                .orElseThrow(fail -> handleUserNotFoundError(currentCustomerId));
+            .orElseThrow(fail -> handleUserNotFoundError(currentCustomerId));
     }
 
     private IllegalStateException handleUserNotFoundError(URI currentCustomerId) {
@@ -326,32 +335,32 @@ public class UserSelectionUponLoginHandler
 
     private UserDto filterOutUser(Collection<UserDto> users, URI currentCustomerId) {
         return users.stream()
-                .filter(user -> user.getInstitution().equals(currentCustomerId))
-                .collect(SingletonCollector.collect());
+            .filter(user -> user.getInstitution().equals(currentCustomerId))
+            .collect(SingletonCollector.collect());
     }
 
     private CustomerDto returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer(
-            String feideDomain,
-            Set<CustomerDto> customers) {
+        String feideDomain,
+        Set<CustomerDto> customers) {
 
         return customers.stream()
-                .filter(customer -> selectFeideOrgIfApplicable(customer, feideDomain))
-                .collect(SingletonCollector.tryCollect())
-                .orElse(fail -> null);
+            .filter(customer -> selectFeideOrgIfApplicable(customer, feideDomain))
+            .collect(SingletonCollector.tryCollect())
+            .orElse(fail -> null);
     }
 
     private boolean selectFeideOrgIfApplicable(CustomerDto customer, String feideDomain) {
         return feideDomain == null
-                || feideDomain.equals(customer.getFeideOrganizationDomain());
+            || feideDomain.equals(customer.getFeideOrganizationDomain());
     }
 
     private Set<CustomerDto> fetchCustomersWithActiveAffiliations(final Person person) {
         return person.getAffiliations().stream()
-                .map(Affiliation::getInstitutionId)
-                .map(institutionId -> getCustomerByCristinIdOrLogError(institutionId, person))
-                .flatMap(Optional::stream)
-                .filter(customer -> logInactiveInstitutions(customer, person))
-                .collect(Collectors.toSet());
+            .map(Affiliation::getInstitutionId)
+            .map(institutionId -> getCustomerByCristinIdOrLogError(institutionId, person))
+            .flatMap(Optional::stream)
+            .filter(customer -> logInactiveInstitutions(customer, person))
+            .collect(Collectors.toSet());
     }
 
     private boolean logInactiveInstitutions(CustomerDto customerDto, Person person) {
@@ -363,56 +372,56 @@ public class UserSelectionUponLoginHandler
 
     private Optional<CustomerDto> getCustomerByCristinIdOrLogError(URI organizationId, Person person) {
         return attempt(() -> customerService.getCustomerByCristinId(organizationId))
-                .map(Optional::of)
-                .orElse(fail -> logFailure(fail, organizationId, person));
+            .map(Optional::of)
+            .orElse(fail -> logFailure(fail, organizationId, person));
     }
 
     private Optional<CustomerDto> logFailure(Failure<Optional<CustomerDto>> fail, URI organizationId, Person person) {
         var message = String.format(FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION,
-                organizationId,
-                person.getId(),
-                person.getAffiliations());
+            organizationId,
+            person.getId(),
+            person.getAffiliations());
         LOGGER.info(message, fail.getException());
         return Optional.empty();
     }
 
-    private Set<RoleName> rolesForCustomer(Set<UserDto> usersForPerson, CustomerDto customer) {
+    private Set<RoleName> rolesForCustomer(List<UserDto> usersForPerson, CustomerDto customer) {
         if (isNull(customer)) {
             return Collections.emptySet();
         }
         return usersForPerson.stream()
-                .filter(user -> user.getInstitution().equals(customer.getId()))
-                .map(UserDto::getRoles)
-                .flatMap(Collection::stream)
-                .map(RoleDto::getRoleName)
-                .collect(Collectors.toSet());
+            .filter(user -> user.getInstitution().equals(customer.getId()))
+            .map(UserDto::getRoles)
+            .flatMap(Collection::stream)
+            .map(RoleDto::getRoleName)
+            .collect(Collectors.toUnmodifiableSet());
     }
 
     private void updateCognitoUserAttributes(UserSelectArguments arguments) {
         final var updateUserAttributesRequest =
-                createUpdateUserAttributesRequest(arguments);
+            createUpdateUserAttributesRequest(arguments);
         cognitoClient.adminUpdateUserAttributes(updateUserAttributesRequest);
     }
 
     private AdminUpdateUserAttributesRequest createUpdateUserAttributesRequest(UserSelectArguments arguments) {
 
         return AdminUpdateUserAttributesRequest.builder()
-                .userPoolId(arguments.authenticationDetails().getUserPoolId())
-                .username(arguments.authenticationDetails().getUsername())
-                .userAttributes(updatedPersonAttributes(arguments))
-                .build();
+            .userPoolId(arguments.authenticationDetails().getUserPoolId())
+            .username(arguments.authenticationDetails().getUsername())
+            .userAttributes(updatedPersonAttributes(arguments))
+            .build();
     }
 
     private Collection<AttributeType> updatedPersonAttributes(UserSelectArguments arguments) {
         var allowedCustomersString = createAllowedCustomersString(
-                arguments.customers(),
-                arguments.authenticationDetails().getFeideDomain()
+            arguments.customers(),
+            arguments.authenticationDetails().getFeideDomain()
         );
 
         return addClaimsForPeopleRegisteredInPersonRegistry(arguments
-                .copy()
-                .withAllowedCustomersString(allowedCustomersString)
-                .build()
+            .copy()
+            .withAllowedCustomersString(allowedCustomersString)
+            .build()
         );
     }
 
@@ -422,24 +431,23 @@ public class UserSelectionUponLoginHandler
         claims.add(createAttribute(FIRST_NAME_CLAIM, arguments.person().getFirstname()));
         claims.add(createAttribute(LAST_NAME_CLAIM, arguments.person().getSurname()));
         claims.add(createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER, arguments.accessRights())));
-        claims.add(createAttribute(ROLES_CLAIM, String.join(ELEMENTS_DELIMITER, arguments.roles().stream().map(RoleName::getValue).toList())));
+        claims.add(createAttribute(ROLES_CLAIM,
+            String.join(ELEMENTS_DELIMITER, arguments.roles().stream().map(RoleName::getValue).toList())));
         claims.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, arguments.allowedCustomersString()));
         claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, arguments.person().getId().toString()));
-        claims.add(createAttribute(IMPERSONATED_BY_CLAIM, isNull(arguments.impersonatedBy()) ? "" : arguments.impersonatedBy()));
+        claims.add(createAttribute(IMPERSONATED_BY_CLAIM,
+            isNull(arguments.impersonatedBy()) ? "" : arguments.impersonatedBy()));
         claims.add(createAttribute(CURRENT_TERMS, stringOrNull(arguments.currentTerms())));
         claims.add(createAttribute(CUSTOMER_ACCEPTED_TERMS, stringOrNull(arguments.acceptedTerms())));
-        addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(arguments.currentCustomer(), arguments.currentUser(), claims);
+        addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(arguments.currentCustomer(),
+            arguments.currentUser(), claims);
         return claims;
     }
 
-    private static String stringOrNull(Object argument) {
-        return nonNull(argument) ? argument.toString() : null;
-    }
-
     private void addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(
-            CustomerDto currentCustomer,
-            UserDto currentUser,
-            List<AttributeType> claims) {
+        CustomerDto currentCustomer,
+        UserDto currentUser,
+        List<AttributeType> claims) {
 
         if (currentCustomer != null) {
             generateCustomerSelectionClaimsFromAuthentication(currentCustomer, currentUser, claims);
@@ -453,32 +461,32 @@ public class UserSelectionUponLoginHandler
     }
 
     private void generateCustomerSelectionClaimsFromAuthentication(
-            CustomerDto currentCustomer,
-            UserDto currentUser,
-            List<AttributeType> claims) {
+        CustomerDto currentCustomer,
+        UserDto currentUser,
+        List<AttributeType> claims) {
 
         claims.addAll(customerSelectionClaims(currentCustomer, currentUser));
     }
 
     private List<AttributeType> overwriteCustomerSelectionClaimsWithNullString() {
         return generateCustomerSelectionClaims(EMPTY_CLAIM,
-                EMPTY_CLAIM,
-                EMPTY_CLAIM,
-                EMPTY_CLAIM);
+            EMPTY_CLAIM,
+            EMPTY_CLAIM,
+            EMPTY_CLAIM);
     }
 
     private List<AttributeType> customerSelectionClaims(CustomerDto currentCustomer, UserDto currentUser) {
         return generateCustomerSelectionClaims(currentCustomer.getId().toString(),
-                currentCustomer.getCristinId().toString(),
-                currentUser.getUsername(),
-                currentUser.getAffiliation().toString());
+            currentCustomer.getCristinId().toString(),
+            currentUser.getUsername(),
+            currentUser.getAffiliation().toString());
     }
 
     private List<AttributeType> generateCustomerSelectionClaims(
-            String customerId,
-            String topOrgCristinId,
-            String username,
-            String personAffiliation) {
+        String customerId,
+        String topOrgCristinId,
+        String username,
+        String personAffiliation) {
 
         var currentCustomerClaim = createAttribute(CURRENT_CUSTOMER_CLAIM, customerId);
         var currentTopLevelOrgClaim = createAttribute(TOP_ORG_CRISTIN_ID, topOrgCristinId);
@@ -490,20 +498,20 @@ public class UserSelectionUponLoginHandler
 
     private String createAllowedCustomersString(Collection<CustomerDto> allowedCustomers, String feideDomain) {
         var result = allowedCustomers
-                .stream()
-                .filter(isNotFeideRequestOrIsFeideRequestForCustomer(feideDomain))
-                .map(CustomerDto::getId)
-                .map(URI::toString)
-                .collect(Collectors.joining(ELEMENTS_DELIMITER));
+            .stream()
+            .filter(isNotFeideRequestOrIsFeideRequestForCustomer(feideDomain))
+            .map(CustomerDto::getId)
+            .map(URI::toString)
+            .collect(Collectors.joining(ELEMENTS_DELIMITER));
         return StringUtils.isNotBlank(result)
-                ? result
-                : EMPTY_CLAIM;
+            ? result
+            : EMPTY_CLAIM;
     }
 
     private Predicate<CustomerDto> isNotFeideRequestOrIsFeideRequestForCustomer(String feideDomain) {
         return customer -> isNull(feideDomain)
-                || nonNull(customer.getFeideOrganizationDomain())
-                && customer.getFeideOrganizationDomain().equals(feideDomain);
+            || nonNull(customer.getFeideOrganizationDomain())
+            && customer.getFeideOrganizationDomain().equals(feideDomain);
     }
 
     private AttributeType createAttribute(String name, String value) {
@@ -511,51 +519,51 @@ public class UserSelectionUponLoginHandler
     }
 
     private void injectAccessRightsToEventResponse(
-            CognitoUserPoolPreTokenGenerationEvent input, Set<String> accessRights) {
+        CognitoUserPoolPreTokenGenerationEvent input, List<String> accessRights) {
         input.setResponse(Response.builder()
-                .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
-                .build());
+            .withClaimsOverrideDetails(buildOverrideClaims(accessRights))
+            .build());
     }
 
-    private Set<UserAccessRightForCustomer> createAccessRightForCustomer(
-            Set<UserDto> personUsers,
-            Set<CustomerDto> customers,
-            CustomerDto currentCustomer) {
+    private List<UserAccessRightForCustomer> createAccessRightForCustomer(
+        List<UserDto> personUsers,
+        Set<CustomerDto> customers,
+        CustomerDto currentCustomer) {
         return personUsers.stream()
-                .map(user -> UserAccessRightForCustomer.fromUser(user, customers))
-                .flatMap(Collection::stream)
-                .filter(ac -> ac.getCustomer().equals(currentCustomer))
-                .collect(Collectors.toUnmodifiableSet());
+            .map(user -> UserAccessRightForCustomer.fromUser(user, customers))
+            .flatMap(Collection::stream)
+            .filter(ac -> ac.getCustomer().equals(currentCustomer))
+            .toList();
     }
 
-    private Set<String> createAccessRightsWithCustomerForCurrentCustomer(
-            Set<UserDto> personUsers,
-            Set<CustomerDto> customers,
-            CustomerDto currentCustomer) {
+    private List<String> createAccessRightsWithCustomerForCurrentCustomer(
+        List<UserDto> personUsers,
+        Set<CustomerDto> customers,
+        CustomerDto currentCustomer) {
         return createAccessRightForCustomer(personUsers, customers, currentCustomer)
-                .stream()
-                .map(UserAccessRightForCustomer::toString)
-                .collect(Collectors.toUnmodifiableSet());
+            .stream()
+            .map(UserAccessRightForCustomer::toString)
+            .toList();
     }
 
-    private Set<String> createAccessRightsForCurrentCustomer(
-            Set<UserDto> personUsers,
-            Set<CustomerDto> customers,
-            CustomerDto currentCustomer) {
+    private List<String> createAccessRightsForCurrentCustomer(
+        List<UserDto> personUsers,
+        Set<CustomerDto> customers,
+        CustomerDto currentCustomer) {
         return createAccessRightForCustomer(personUsers, customers, currentCustomer)
-                .stream()
-                .map(UserAccessRightForCustomer::getAccessRight)
-                .map(AccessRight::toPersistedString)
-                .collect(Collectors.toUnmodifiableSet());
+            .stream()
+            .map(UserAccessRightForCustomer::getAccessRight)
+            .map(AccessRight::toPersistedString)
+            .toList();
     }
 
-    private ClaimsOverrideDetails buildOverrideClaims(Set<String> groupsToOverride) {
+    private ClaimsOverrideDetails buildOverrideClaims(List<String> groupsToOverride) {
         var groups = GroupConfiguration.builder()
-                .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
-                .build();
+            .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
+            .build();
         return ClaimsOverrideDetails.builder()
-                .withGroupOverrideDetails(groups)
-                .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
-                .build();
+            .withGroupOverrideDetails(groups)
+            .withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
+            .build();
     }
 }

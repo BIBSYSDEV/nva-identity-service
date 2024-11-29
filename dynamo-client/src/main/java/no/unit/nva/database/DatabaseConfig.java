@@ -1,4 +1,4 @@
-package no.unit.useraccessservice.database;
+package no.unit.nva.database;
 
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -21,10 +21,9 @@ public final class DatabaseConfig {
     @JacocoGenerated
     private static DynamoDbClient defaultDynamoDbClient() {
         return DynamoDbClient.builder()
-                .httpClient(UrlConnectionHttpClient.create())
-                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                .region(Region.of(AWS_REGION))
-                .build();
+            .httpClient(UrlConnectionHttpClient.create())
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .region(Region.of(AWS_REGION))
+            .build();
     }
-
 }

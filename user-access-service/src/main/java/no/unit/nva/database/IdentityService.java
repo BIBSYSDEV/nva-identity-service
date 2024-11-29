@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import java.net.URI;
 import java.util.List;
 
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 public interface IdentityService {
 
@@ -58,7 +58,7 @@ public interface IdentityService {
     class Constants {
 
         public static final String USERS_AND_ROLES_TABLE =
-                new Environment().readEnv("USERS_AND_ROLES_TABLE");
+            new Environment().readEnv("USERS_AND_ROLES_TABLE");
 
         private Constants() {
 

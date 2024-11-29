@@ -36,6 +36,16 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
         super.init();
     }
 
+    @Override
+    protected ControlledVocabularyHandler<?, ?> createHandler() {
+        return new UpdateControlledVocabularyHandler(customerService);
+    }
+
+    @Override
+    protected CustomerDto createExistingCustomer() {
+        return CustomerDataGenerator.createSampleCustomerDto();
+    }
+
     @Test
     public void handleRequestReturnsAcceptedWhenUpdatingVocabularyForExistingCustomer() throws IOException {
         var response = sendRequestAcceptingJsonLd(existingIdentifier()).getResponse();
@@ -44,7 +54,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Test
     public void handleRequestReturnsUpdatedVocabularyListWhenUpdatingVocabularyForExistingCustomer()
-            throws IOException {
+        throws IOException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
         var actualBody = VocabularyList.fromJson(result.getResponse().getBody());
         assertThat(actualBody, is(equalTo(result.getExpectedBody())));
@@ -52,7 +62,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Test
     public void handleRequestSavesVocabularySettingsToDatabaseWhenUpdatingSettingsForExistingCustomer()
-            throws IOException, NotFoundException {
+        throws IOException, NotFoundException {
         var result = sendRequestAcceptingJsonLd(existingIdentifier());
         var savedVocabularySettings = customerService.getCustomer(existingIdentifier()).getVocabularies();
 
@@ -61,14 +71,14 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Test
     public void handleRequestReturnsNotFoundWhenTryingToSaveSettingsForNonExistingCustomer()
-            throws IOException {
+        throws IOException {
         var response = sendRequestAcceptingJsonLd(UUID.randomUUID()).getResponse();
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
     @Test
     public void handleRequestReturnsBadRequestWhenInputBodyIsNotValid()
-            throws IOException {
+        throws IOException {
         CustomerDto invalidBody = CustomerDataGenerator.createSampleCustomerDto();
         var request = createRequest(existingIdentifier(), invalidBody, MediaTypes.APPLICATION_JSON_LD);
         var response = sendRequest(handler, request, Problem.class);
@@ -99,39 +109,29 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Test
     public void handleRequestReturnsBadRequestWhenCustomerAlreadyHasVocabularySettingsAndWeAttemptToEraseThem()
-            throws IOException, ApiGatewayException {
+        throws IOException, ApiGatewayException {
         var customerWithoutVocabularySettings =
-                customerService.createCustomer(createCustomerWithoutVocabularySettings());
+            customerService.createCustomer(createCustomerWithoutVocabularySettings());
         var response =
-                sendRequestAcceptingJsonLd(customerWithoutVocabularySettings.getIdentifier()).getResponse();
+            sendRequestAcceptingJsonLd(customerWithoutVocabularySettings.getIdentifier()).getResponse();
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
         String responseBody = response.getBody();
         assertThat(responseBody, containsString(VOCABULARY_SETTINGS_NOT_DEFINED_ERROR));
     }
 
+    private CustomerDto createCustomerWithoutVocabularySettings() {
+        return CustomerDataGenerator
+            .createSampleCustomerDto().copy()
+            .withVocabularies(Collections.emptySet())
+            .build();
+    }
+
     @Test
     public void handleRequestReturnsUpdatedVocabularyListWhenUserWithAccessRightManageOwnAffiliationsUpdatesVocabulary()
-            throws IOException {
+        throws IOException {
         var result = sendRequestWithAccessRight(existingIdentifier(), AccessRight.MANAGE_OWN_AFFILIATION);
         var actualBody = VocabularyList.fromJson(result.getResponse().getBody());
         assertThat(actualBody, is(equalTo(result.getExpectedBody())));
-    }
-
-    private CustomerDto createCustomerWithoutVocabularySettings() {
-        return CustomerDataGenerator
-                .createSampleCustomerDto().copy()
-                .withVocabularies(Collections.emptySet())
-                .build();
-    }
-
-    @Override
-    protected ControlledVocabularyHandler<?, ?> createHandler() {
-        return new UpdateControlledVocabularyHandler(customerService);
-    }
-
-    @Override
-    protected CustomerDto createExistingCustomer() {
-        return CustomerDataGenerator.createSampleCustomerDto();
     }
 }

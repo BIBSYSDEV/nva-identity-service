@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import java.util.Optional;
 
 import static java.util.Objects.nonNull;
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 public class ExternalClientService extends DatabaseSubService {
 
@@ -47,7 +47,7 @@ public class ExternalClientService extends DatabaseSubService {
      */
     public ClientDto getClient(ClientDto queryObject) throws NotFoundException {
         return getRoleAsOptional(queryObject)
-                .orElseThrow(() -> new NotFoundException(CLIENT_NOT_FOUND_MESSAGE + queryObject.getClientId()));
+            .orElseThrow(() -> new NotFoundException(CLIENT_NOT_FOUND_MESSAGE + queryObject.getClientId()));
     }
 
     private Optional<ClientDto> getRoleAsOptional(ClientDto queryObject) {
@@ -56,9 +56,9 @@ public class ExternalClientService extends DatabaseSubService {
 
     private ClientDto attemptFetchClient(ClientDto queryObject) {
         ClientDao clientDao = Try.of(queryObject)
-                .map(ClientDao::fromClientDto)
-                .map(this::fetchClientDao)
-                .orElseThrow(DatabaseSubService::handleError);
+            .map(ClientDao::fromClientDto)
+            .map(this::fetchClientDao)
+            .orElseThrow(DatabaseSubService::handleError);
         return nonNull(clientDao) ? clientDao.toClientDto() : null;
     }
 

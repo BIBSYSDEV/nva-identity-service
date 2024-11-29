@@ -42,18 +42,6 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
-        return HttpURLConnection.HTTP_OK;
-    }
-
-    @Override
-    protected CustomerDto processInput(Void input, RequestInfo request, Context context)
-            throws NotFoundException, InputException {
-        var cristinUriIdentifier = URI.create(URLDecoder.decode(getCristinId(request), StandardCharsets.UTF_8));
-        return customerService.getCustomerByCristinId(cristinUriIdentifier);
-    }
-
-    @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
@@ -61,6 +49,18 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
     @Override
     protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         //Do nothing
+    }
+
+    @Override
+    protected CustomerDto processInput(Void input, RequestInfo request, Context context)
+        throws NotFoundException, InputException {
+        var cristinUriIdentifier = URI.create(URLDecoder.decode(getCristinId(request), StandardCharsets.UTF_8));
+        return customerService.getCustomerByCristinId(cristinUriIdentifier);
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     private String getCristinId(RequestInfo request) throws InputException {

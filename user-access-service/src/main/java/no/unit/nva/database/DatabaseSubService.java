@@ -41,9 +41,9 @@ public class DatabaseSubService {
 
     protected static String convertToStringOrWriteErrorMessage(Object queryObject) {
         return Optional.ofNullable(queryObject)
-                .map(attempt(JsonConfig::writeValueAsString))
-                .map(Try::orElseThrow)
-                .orElse(EMPTY_INPUT_ERROR_MESSAGE);
+            .map(attempt(JsonConfig::writeValueAsString))
+            .map(Try::orElseThrow)
+            .orElse(EMPTY_INPUT_ERROR_MESSAGE);
     }
 
     // PMD complains about the log error format but this call seems legit according to SLF4J

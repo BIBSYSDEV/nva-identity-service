@@ -1377,6 +1377,14 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: currentTerms
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: acceptedTerms
+          AttributeDataType: String
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value

@@ -1,8 +1,5 @@
 package no.unit.nva.cognito;
 
-import java.util.Arrays;
-import java.util.List;
-
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.core.Environment;
@@ -11,6 +8,9 @@ import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsPro
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class CognitoCommunicationHandler<I, O> extends ApiGatewayHandler<I, O> {
 
@@ -26,10 +26,10 @@ public abstract class CognitoCommunicationHandler<I, O> extends ApiGatewayHandle
     @JacocoGenerated
     protected static CognitoIdentityProviderClient defaultCognitoClient() {
         return CognitoIdentityProviderClient.builder()
-                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                .httpClient(UrlConnectionHttpClient.create())
-                .region(Region.of(AWS_REGION))
-                .build();
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.create())
+            .region(Region.of(AWS_REGION))
+            .build();
     }
 
     protected String extractAccessToken(RequestInfo event) {

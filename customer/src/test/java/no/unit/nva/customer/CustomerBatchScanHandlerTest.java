@@ -56,12 +56,12 @@ public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void shouldUpdateCustomers() {
         var existingCustomers = IntStream.of(1, randomInteger(10))
-                .boxed()
-                .map(i -> newCustomerDto())
-                .map(attempt(c -> service.createCustomer(c)))
-                .map(Try::orElseThrow)
-                .map(CustomerDao::fromCustomerDto)
-                .collect(Collectors.toList());
+            .boxed()
+            .map(i -> newCustomerDto())
+            .map(attempt(c -> service.createCustomer(c)))
+            .map(Try::orElseThrow)
+            .map(CustomerDao::fromCustomerDto)
+            .toList();
 
         final var logAppender = LogUtils.getTestingAppender(CustomerBatchScanHandler.class);
         handler.handleRequest(input, context);
@@ -74,32 +74,32 @@ public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
     private CustomerDto newCustomerDto() {
         var oneMinuteInThePast = Instant.now().minusSeconds(60L);
         var customer = CustomerDto.builder()
-                .withName(randomString())
-                .withShortName(randomString())
-                .withCreatedDate(oneMinuteInThePast)
-                .withModifiedDate(oneMinuteInThePast)
-                .withDisplayName(randomString())
-                .withArchiveName(randomString())
-                .withCname(randomString())
-                .withInstitutionDns(randomString())
-                .withFeideOrganizationDomain(randomString())
-                .withCristinId(randomCristinOrgId())
-                .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
-                .withVocabularies(randomVocabularySet())
-                .withRorId(randomUri())
-                .withServiceCenter(new ServiceCenter(randomUri(), randomString()))
-                .withPublicationWorkflow(randomPublicationWorkflow())
-                .withDoiAgent(randomDoiAgent(randomString()))
-                .withSector(randomSector())
-                .withNviInstitution(randomBoolean())
-                .withRboInstitution(randomBoolean())
-                .withInactiveFrom(randomInstant())
-                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                .withGeneralSupportEnabled(true)
-                .build();
+            .withName(randomString())
+            .withShortName(randomString())
+            .withCreatedDate(oneMinuteInThePast)
+            .withModifiedDate(oneMinuteInThePast)
+            .withDisplayName(randomString())
+            .withArchiveName(randomString())
+            .withCname(randomString())
+            .withInstitutionDns(randomString())
+            .withFeideOrganizationDomain(randomString())
+            .withCristinId(randomCristinOrgId())
+            .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
+            .withVocabularies(randomVocabularySet())
+            .withRorId(randomUri())
+            .withServiceCenter(new ServiceCenter(randomUri(), randomString()))
+            .withPublicationWorkflow(randomPublicationWorkflow())
+            .withDoiAgent(randomDoiAgent(randomString()))
+            .withSector(randomSector())
+            .withNviInstitution(randomBoolean())
+            .withRboInstitution(randomBoolean())
+            .withInactiveFrom(randomInstant())
+            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+            .withGeneralSupportEnabled(true)
+            .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
-                "doiAgent.password", "doiAgent.id")));
+            "doiAgent.password", "doiAgent.id")));
         return customer;
     }
 

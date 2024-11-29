@@ -22,7 +22,7 @@ public abstract class CustomerHandler<I> extends ApiGatewayHandler<I, CustomerDt
     protected UUID getIdentifier(RequestInfo requestInfo) throws InputException {
         String identifier = RequestUtils.getPathParameter(requestInfo, IDENTIFIER).orElse(null);
         return attempt(() -> UUID.fromString(identifier))
-                .orElseThrow(fail -> handleIdentifierParsingError(identifier, fail));
+            .orElseThrow(fail -> handleIdentifierParsingError(identifier, fail));
     }
 
     private InputException handleIdentifierParsingError(String identifier, Failure<UUID> fail) {

@@ -40,10 +40,10 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
     @JacocoGenerated
     private static CognitoIdentityProviderClient defaultCognitoClient() {
         return CognitoIdentityProviderClient.builder()
-                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                .httpClient(UrlConnectionHttpClient.create())
-                .region(AWS_REGION)
-                .build();
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.create())
+            .region(AWS_REGION)
+            .build();
     }
 
     @Override
@@ -53,18 +53,18 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
 
     @Override
     protected Void processInput(Void input, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
 
         var username = requestInfo.getRequestContextParameterOpt(USERNAME_POINTER).orElseThrow();
         var attributes = List.of(
-                AttributeType.builder().name(IMPERSONATION).value("").build()
+            AttributeType.builder().name(IMPERSONATION).value("").build()
         );
 
         var request = AdminUpdateUserAttributesRequest.builder()
-                .userPoolId(USER_POOL_ID)
-                .username(username)
-                .userAttributes(attributes)
-                .build();
+            .userPoolId(USER_POOL_ID)
+            .username(username)
+            .userAttributes(attributes)
+            .build();
         this.cognitoClient.adminUpdateUserAttributes(request);
         return null;
     }

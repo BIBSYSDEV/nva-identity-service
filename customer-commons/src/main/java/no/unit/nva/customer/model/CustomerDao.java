@@ -38,7 +38,7 @@ import static nva.commons.core.attempt.Try.attempt;
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
-public class CustomerDao implements Typed {
+public class CustomerDao implements Typed, JsonSerializable {
 
     public static final String IDENTIFIER = "identifier";
     public static final String ORG_DOMAIN = "feideOrganizationDomain";

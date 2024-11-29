@@ -50,15 +50,35 @@ class SetImpersonationHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HTTP_OK)));
     }
 
+    private InputStream createDefaultRequestForImpersonation(String impersonatingFnr) throws JsonProcessingException {
+        var customer = randomUri();
+        return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
+            .withBody(new ImpersonationRequest(impersonatingFnr))
+            .withCurrentCustomer(customer)
+            .withAccessRights(customer, ACT_AS)
+            .withAuthorizerClaim(USERNAME, randomString())
+            .withIssuer(randomString())
+            .withUserName(randomString())
+            .build();
+    }
 
     @Test
     public void shouldCallCognitoAdminApiWithImpersonatedFnrWhenUserIsAppAdminAndIsNotImpersonatingSomeoneAlready()
-            throws IOException {
+        throws IOException {
         var impersonationFnr = randomString();
         var request = createDefaultRequestForImpersonation(impersonationFnr);
         handler.handleRequest(request, outputStream, context);
         var setImpersonationClaim = extractAdminUpdateRequestUserAttribute(IMPERSONATION);
         assertThat(setImpersonationClaim, is(equalTo(impersonationFnr)));
+    }
+
+    private String extractAdminUpdateRequestUserAttribute(String userAttribute) {
+        return cognitoClient.getAdminUpdateUserRequest()
+            .userAttributes().stream()
+            .filter(attribute -> attribute.name().equals(userAttribute))
+            .map(AttributeType::value)
+            .findFirst()
+            .orElseThrow();
     }
 
     @Test
@@ -70,6 +90,18 @@ class SetImpersonationHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HTTP_FORBIDDEN)));
     }
 
+    private InputStream createNonAdministratorRequestForImpersonation(String impersonatingFnr)
+        throws JsonProcessingException {
+        var customer = randomUri();
+        return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
+            .withBody(new ImpersonationRequest(impersonatingFnr))
+            .withCurrentCustomer(customer)
+            .withAuthorizerClaim(USERNAME, randomString())
+            .withIssuer(randomString())
+            .withUserName(randomString())
+            .build();
+    }
+
     @Test
     public void shouldReturnForbiddenIfUserAlreadyImpersonating() throws IOException {
         var inputStream = createAlreadyImpersonatingRequestForImpersonation(randomString());
@@ -79,51 +111,18 @@ class SetImpersonationHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HTTP_FORBIDDEN)));
     }
 
-    private InputStream createDefaultRequestForImpersonation(String impersonatingFnr) throws JsonProcessingException {
-        var customer = randomUri();
-        return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
-                .withBody(new ImpersonationRequest(impersonatingFnr))
-                .withCurrentCustomer(customer)
-                .withAccessRights(customer, ACT_AS)
-                .withAuthorizerClaim(USERNAME, randomString())
-                .withIssuer(randomString())
-                .withUserName(randomString())
-                .build();
-    }
-
-    private InputStream createNonAdministratorRequestForImpersonation(String impersonatingFnr)
-            throws JsonProcessingException {
-        var customer = randomUri();
-        return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
-                .withBody(new ImpersonationRequest(impersonatingFnr))
-                .withCurrentCustomer(customer)
-                .withAuthorizerClaim(USERNAME, randomString())
-                .withIssuer(randomString())
-                .withUserName(randomString())
-                .build();
-    }
-
     private InputStream createAlreadyImpersonatingRequestForImpersonation(String impersonatingFnr)
-            throws JsonProcessingException {
+        throws JsonProcessingException {
         var customer = randomUri();
         return new HandlerRequestBuilder<ImpersonationRequest>(dtoObjectMapper)
-                .withBody(new ImpersonationRequest(impersonatingFnr))
-                .withCurrentCustomer(customer)
-                .withAccessRights(customer, ACT_AS)
-                .withAuthorizerClaim(IMPERSONATION, randomString())
-                .withAuthorizerClaim(USERNAME, randomString())
-                .withIssuer(randomString())
-                .withUserName(randomString())
-                .build();
-    }
-
-    private String extractAdminUpdateRequestUserAttribute(String userAttribute) {
-        return cognitoClient.getAdminUpdateUserRequest()
-                .userAttributes().stream()
-                .filter(attribute -> attribute.name().equals(userAttribute))
-                .map(AttributeType::value)
-                .findFirst()
-                .orElseThrow();
+            .withBody(new ImpersonationRequest(impersonatingFnr))
+            .withCurrentCustomer(customer)
+            .withAccessRights(customer, ACT_AS)
+            .withAuthorizerClaim(IMPERSONATION, randomString())
+            .withAuthorizerClaim(USERNAME, randomString())
+            .withIssuer(randomString())
+            .withUserName(randomString())
+            .build();
     }
 
 }

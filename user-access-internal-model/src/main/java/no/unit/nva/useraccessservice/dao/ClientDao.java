@@ -1,15 +1,5 @@
 package no.unit.nva.useraccessservice.dao;
 
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
-
-import java.net.URI;
-import java.util.Objects;
-import java.util.Optional;
-
 import no.unit.nva.useraccessservice.dao.ClientDao.Builder;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
 import no.unit.nva.useraccessservice.model.ClientDto;
@@ -23,6 +13,16 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
+
+import java.net.URI;
+import java.util.Objects;
+import java.util.Optional;
+
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
 
 @SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount"})
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
@@ -44,18 +44,34 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         super();
     }
 
+    public static ClientDao fromClientDto(ClientDto clientDto) {
+        ClientDao.Builder clientDb = ClientDao.newBuilder()
+            .withClientId(clientDto.getClientId())
+            .withCustomer(clientDto.getCustomer())
+            .withCristinOrgUri(clientDto.getCristinOrgUri())
+            .withActingUser(clientDto.getActingUser());
+
+        return clientDb.build();
+    }
+
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    public static ClientDao fromClientDto(ClientDto clientDto) {
-        ClientDao.Builder clientDb = ClientDao.newBuilder()
-                .withClientId(clientDto.getClientId())
-                .withCustomer(clientDto.getCustomer())
-                .withCristinOrgUri(clientDto.getCristinOrgUri())
-                .withActingUser(clientDto.getActingUser());
+    /**
+     * Creates a {@link ClientDto} from a {@link ClientDao}.
+     *
+     * @return a data transfer object {@link ClientDto}
+     */
+    public ClientDto toClientDto() {
 
-        return clientDb.build();
+        ClientDto.Builder clientDto = ClientDto.newBuilder()
+            .withClientId(this.getClientTd())
+            .withCustomer(this.getCustomer())
+            .withCristinOrgUri(this.getCristinOrgUri())
+            .withActingUser(this.getActingUser());
+
+        return clientDto.build();
     }
 
     @JacocoGenerated
@@ -122,22 +138,6 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         this.actingUser = actingUser;
     }
 
-    /**
-     * Creates a {@link ClientDto} from a {@link ClientDao}.
-     *
-     * @return a data transfer object {@link ClientDto}
-     */
-    public ClientDto toClientDto() {
-
-        ClientDto.Builder clientDto = ClientDto.newBuilder()
-                .withClientId(this.getClientTd())
-                .withCustomer(this.getCustomer())
-                .withCristinOrgUri(this.getCristinOrgUri())
-                .withActingUser(this.getActingUser());
-
-        return clientDto.build();
-    }
-
     @JacocoGenerated
     @Override
     @DynamoDbPartitionKey
@@ -163,6 +163,15 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @JacocoGenerated
     public void setPrimaryKeyRangeKey(String primaryRangeKey) {
         //DO NOTHING
+    }
+
+    /*For now the primary range key does not need to be different from the primary hash key*/
+    private String formatPrimaryRangeKey() {
+        return primaryHashKeyIsTypeAndUsername();
+    }
+
+    private String primaryHashKeyIsTypeAndUsername() {
+        return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE_VALUE, clientTd);
     }
 
     @JacocoGenerated
@@ -205,10 +214,10 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     @Override
     public ClientDao.Builder copy() {
         return newBuilder()
-                .withClientId(this.getClientTd())
-                .withCustomer(this.getCustomer())
-                .withCristinOrgUri(this.getCristinOrgUri())
-                .withActingUser(this.getActingUser());
+            .withClientId(this.getClientTd())
+            .withCustomer(this.getCustomer())
+            .withCristinOrgUri(this.getCristinOrgUri())
+            .withActingUser(this.getActingUser());
     }
 
     @Override
@@ -223,23 +232,13 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ClientDao)) {
+        if (!(o instanceof ClientDao clientDao)) {
             return false;
         }
-        ClientDao clientDao = (ClientDao) o;
         return Objects.equals(getClientTd(), clientDao.getClientTd())
-                && Objects.equals(getCustomer(), clientDao.getCustomer())
-                && Objects.equals(getCristinOrgUri(), clientDao.getCristinOrgUri())
-                && Objects.equals(getActingUser(), clientDao.getActingUser());
-    }
-
-    /*For now the primary range key does not need to be different from the primary hash key*/
-    private String formatPrimaryRangeKey() {
-        return primaryHashKeyIsTypeAndUsername();
-    }
-
-    private String primaryHashKeyIsTypeAndUsername() {
-        return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE_VALUE, clientTd);
+            && Objects.equals(getCustomer(), clientDao.getCustomer())
+            && Objects.equals(getCristinOrgUri(), clientDao.getCristinOrgUri())
+            && Objects.equals(getActingUser(), clientDao.getActingUser());
     }
 
     public static final class Builder {

@@ -43,12 +43,18 @@ public class DefaultRoleSourceTest {
         assertThat(creatorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_RESOURCES));
     }
 
+    private RoleDto getRoleByName(RoleName roleName) {
+        return roleSource.roles().stream()
+            .filter(role -> role.getRoleName().equals(roleName))
+            .collect(SingletonCollector.collect());
+    }
+
     @Test
     void doiCuratorsShouldHaveCorrectAccessRights() {
         var curatorRole = getRoleByName(RoleName.DOI_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI,
-                MANAGE_RESOURCES_STANDARD));
+            MANAGE_RESOURCES_STANDARD));
     }
 
     @Test
@@ -56,7 +62,7 @@ public class DefaultRoleSourceTest {
         var curatorRole = getRoleByName(RoleName.SUPPORT_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(SUPPORT,
-                MANAGE_RESOURCES_STANDARD));
+            MANAGE_RESOURCES_STANDARD));
     }
 
     @Test
@@ -64,7 +70,7 @@ public class DefaultRoleSourceTest {
         var curatorRole = getRoleByName(RoleName.PUBLISHING_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_PUBLISHING_REQUESTS,
-                MANAGE_RESOURCES_STANDARD, MANAGE_RESOURCE_FILES));
+            MANAGE_RESOURCES_STANDARD, MANAGE_RESOURCE_FILES));
     }
 
     @Test
@@ -72,7 +78,7 @@ public class DefaultRoleSourceTest {
         var curatorRole = getRoleByName(RoleName.NVI_CURATOR);
 
         assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_NVI_CANDIDATES,
-                MANAGE_RESOURCES_STANDARD));
+            MANAGE_RESOURCES_STANDARD));
     }
 
     @Test
@@ -94,7 +100,7 @@ public class DefaultRoleSourceTest {
         var thesisEmbargoCuratorRole = getRoleByName(RoleName.EMBARGO_THESIS_CURATOR);
 
         assertThat(thesisEmbargoCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_RESOURCES_STANDARD,
-                MANAGE_DEGREE_EMBARGO));
+            MANAGE_DEGREE_EMBARGO));
     }
 
     @Test
@@ -109,10 +115,10 @@ public class DefaultRoleSourceTest {
         var appAdminRole = getRoleByName(RoleName.APPLICATION_ADMIN);
 
         assertThat(appAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_CUSTOMERS,
-                MANAGE_EXTERNAL_CLIENTS,
-                ACT_AS,
-                MANAGE_NVI,
-                MANAGE_IMPORT));
+            MANAGE_EXTERNAL_CLIENTS,
+            ACT_AS,
+            MANAGE_NVI,
+            MANAGE_IMPORT));
     }
 
     @Test
@@ -120,29 +126,23 @@ public class DefaultRoleSourceTest {
         var editorRole = getRoleByName(RoleName.EDITOR);
 
         assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION,
-                MANAGE_RESOURCES_ALL));
+            MANAGE_RESOURCES_ALL));
     }
 
     @Test
     void shouldReturnExpectedNumberOfRoles() {
         var expectedNumberOfRoles = List.of(RoleName.CREATOR,
-                RoleName.NVI_CURATOR,
-                RoleName.DOI_CURATOR,
-                RoleName.SUPPORT_CURATOR,
-                RoleName.PUBLISHING_CURATOR,
-                RoleName.THESIS_CURATOR,
-                RoleName.EMBARGO_THESIS_CURATOR,
-                RoleName.INTERNAL_IMPORTER,
-                RoleName.INSTITUTION_ADMIN,
-                RoleName.APPLICATION_ADMIN,
-                RoleName.EDITOR).size();
+            RoleName.NVI_CURATOR,
+            RoleName.DOI_CURATOR,
+            RoleName.SUPPORT_CURATOR,
+            RoleName.PUBLISHING_CURATOR,
+            RoleName.THESIS_CURATOR,
+            RoleName.EMBARGO_THESIS_CURATOR,
+            RoleName.INTERNAL_IMPORTER,
+            RoleName.INSTITUTION_ADMIN,
+            RoleName.APPLICATION_ADMIN,
+            RoleName.EDITOR).size();
 
         assertThat(roleSource.roles(), hasSize(expectedNumberOfRoles));
-    }
-
-    private RoleDto getRoleByName(RoleName roleName) {
-        return roleSource.roles().stream()
-                .filter(role -> role.getRoleName().equals(roleName))
-                .collect(SingletonCollector.collect());
     }
 }

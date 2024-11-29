@@ -14,7 +14,7 @@ import java.net.HttpURLConnection;
 import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
 
 public class GetExternalClientHandler
-        extends HandlerWithEventualConsistency<Void, GetExternalClientResponse> {
+    extends HandlerWithEventualConsistency<Void, GetExternalClientResponse> {
 
     public static final String CLIENT_ID_PATH_PARAMETER_NAME = "clientId";
     private IdentityService databaseService;
@@ -22,7 +22,7 @@ public class GetExternalClientHandler
     @JacocoGenerated
     public GetExternalClientHandler() {
         this(
-                IdentityService.defaultIdentityService()
+            IdentityService.defaultIdentityService()
         );
     }
 
@@ -39,7 +39,7 @@ public class GetExternalClientHandler
     @Override
     protected GetExternalClientResponse processInput(Void input, RequestInfo requestInfo,
                                                      Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
 
 
         var resourceIdentifier = requestInfo.getPathParameter(CLIENT_ID_PATH_PARAMETER_NAME);
@@ -52,10 +52,10 @@ public class GetExternalClientHandler
 
     private GetExternalClientResponse formatResponse(ClientDto clientDto) {
         return new GetExternalClientResponse(
-                clientDto.getClientId(),
-                clientDto.getCustomer(),
-                clientDto.getCristinOrgUri(),
-                clientDto.getActingUser()
+            clientDto.getClientId(),
+            clientDto.getCustomer(),
+            clientDto.getCristinOrgUri(),
+            clientDto.getActingUser()
         );
     }
 
@@ -72,6 +72,6 @@ public class GetExternalClientHandler
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
         return !(requestInfo.clientIsInternalBackend()
-                || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
+            || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
     }
 }

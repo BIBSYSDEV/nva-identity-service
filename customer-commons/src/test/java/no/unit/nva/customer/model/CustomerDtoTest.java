@@ -36,13 +36,56 @@ class CustomerDtoTest {
     @Test
     void shouldUpdateCustomerWithCustomersDoiSecret() {
         var doiAgent = randomActiveCustomer().getDoiAgent()
-                .addPassword(randomString());
+            .addPassword(randomString());
 
         var doiSecret = new SecretManagerDoiAgentDao(randomActiveCustomer().getDoiAgent());
 
         doiSecret.merge(doiAgent);
 
         assertEquals(doiSecret.getPassword(), doiAgent.getPassword());
+    }
+
+    private CustomerDto randomActiveCustomer() {
+        var customer = randomInactiveCustomer();
+        customer.setInactiveFrom(null);
+        return customer;
+    }
+
+    private CustomerDto randomInactiveCustomer() {
+        return CustomerDto.builder()
+            .withCname(randomString())
+            .withIdentifier(UUID.randomUUID())
+            .withId(randomUri())
+            .withDisplayName(randomString())
+            .withInstitutionDns(randomString())
+            .withContext(randomUri())
+            .withShortName(randomString())
+            .withArchiveName(randomString())
+            .withName(randomString())
+            .withFeideOrganizationDomain(randomString())
+            .withCristinId(randomUri())
+            .withCustomerOf(randomApplicationDomain())
+            .withCreatedDate(randomInstant())
+            .withModifiedDate(randomInstant())
+            .withVocabularies(randomVocabularies())
+            .withRorId(randomUri())
+            .withPublicationWorkflow(randomPublicationWorkflow())
+            .withDoiAgent(randomDoiAgent(randomString()))
+            .withSector(randomSector())
+            .withNviInstitution(randomBoolean())
+            .withRboInstitution(randomBoolean())
+            .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
+            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+            .build();
+    }
+
+    private Collection<VocabularyDto> randomVocabularies() {
+        return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
+    }
+
+    private ApplicationDomain randomApplicationDomain() {
+        return randomElement(List.of(ApplicationDomain.values()));
     }
 
     @Test
@@ -111,48 +154,5 @@ class CustomerDtoTest {
     void shouldReturnIsActiveWhenInactiveFromIsNotSet() {
         var randomActiveCustomer = randomActiveCustomer();
         assertThat(randomActiveCustomer.isActive(), is(true));
-    }
-
-    private CustomerDto randomInactiveCustomer() {
-        return CustomerDto.builder()
-                .withCname(randomString())
-                .withIdentifier(UUID.randomUUID())
-                .withId(randomUri())
-                .withDisplayName(randomString())
-                .withInstitutionDns(randomString())
-                .withContext(randomUri())
-                .withShortName(randomString())
-                .withArchiveName(randomString())
-                .withName(randomString())
-                .withFeideOrganizationDomain(randomString())
-                .withCristinId(randomUri())
-                .withCustomerOf(randomApplicationDomain())
-                .withCreatedDate(randomInstant())
-                .withModifiedDate(randomInstant())
-                .withVocabularies(randomVocabularies())
-                .withRorId(randomUri())
-                .withPublicationWorkflow(randomPublicationWorkflow())
-                .withDoiAgent(randomDoiAgent(randomString()))
-                .withSector(randomSector())
-                .withNviInstitution(randomBoolean())
-                .withRboInstitution(randomBoolean())
-                .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
-                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                .build();
-    }
-
-    private CustomerDto randomActiveCustomer() {
-        var customer = randomInactiveCustomer();
-        customer.setInactiveFrom(null);
-        return customer;
-    }
-
-    private Collection<VocabularyDto> randomVocabularies() {
-        return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
-    }
-
-    private ApplicationDomain randomApplicationDomain() {
-        return randomElement(List.of(ApplicationDomain.values()));
     }
 }

@@ -48,23 +48,36 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
     }
 
     @Override
-    protected Integer getSuccessStatusCode(CustomerDto input, CustomerDto output) {
-        return HttpURLConnection.HTTP_OK;
+    protected List<MediaType> listSupportedMediaTypes() {
+        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
+    }
+
+    @Override
+    protected void validateRequest(CustomerDto customerDto, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+        if (!isAuthorized(requestInfo)) {
+            throw new ForbiddenException();
+        }
     }
 
     @Override
     protected CustomerDto processInput(CustomerDto input, RequestInfo requestInfo, Context context)
-            throws InputException, NotFoundException, ForbiddenException {
+        throws InputException, NotFoundException, ForbiddenException {
 
         UUID identifier = getIdentifier(requestInfo);
         return customerService.updateCustomer(identifier, input);
     }
 
+    @Override
+    protected Integer getSuccessStatusCode(CustomerDto input, CustomerDto output) {
+        return HttpURLConnection.HTTP_OK;
+    }
+
     private boolean isAuthorized(RequestInfo requestInfo) {
         return canManageOwnAffiliations(requestInfo)
-                || canManageAllCustomers(requestInfo)
-                || requestInfo.clientIsInternalBackend()
-                || isCognitoAdmin(requestInfo);
+            || canManageAllCustomers(requestInfo)
+            || requestInfo.clientIsInternalBackend()
+            || isCognitoAdmin(requestInfo);
     }
 
     private boolean canManageAllCustomers(RequestInfo requestInfo) {
@@ -77,19 +90,6 @@ public class UpdateCustomerHandler extends CustomerHandler<CustomerDto> {
 
     private boolean isCognitoAdmin(RequestInfo requestInfo) {
         return requestInfo.getRequestContextParameterOpt(SCOPES_CLAIM).map(
-                value -> value.contains(AWS_COGNITO_SIGNIN_USER_ADMIN)).orElse(false);
-    }
-
-    @Override
-    protected List<MediaType> listSupportedMediaTypes() {
-        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
-    }
-
-    @Override
-    protected void validateRequest(CustomerDto customerDto, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
-        if (!isAuthorized(requestInfo)) {
-            throw new ForbiddenException();
-        }
+            value -> value.contains(AWS_COGNITO_SIGNIN_USER_ADMIN)).orElse(false);
     }
 }

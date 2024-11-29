@@ -27,13 +27,13 @@ public class CreateExternalClientRequestTest {
         var scopes = List.of(randomString());
 
         var request =
-                CreateExternalClientRequest.newBuilder()
-                        .withClientName(clientName)
-                        .withCustomerUri(customerUri)
-                        .withCristinOrgUri(cristinOrgUri)
-                        .withActingUser(actingUser)
-                        .withScopes(scopes)
-                        .build();
+            CreateExternalClientRequest.newBuilder()
+                .withClientName(clientName)
+                .withCustomerUri(customerUri)
+                .withCristinOrgUri(cristinOrgUri)
+                .withActingUser(actingUser)
+                .withScopes(scopes)
+                .build();
 
         assertThat(request.toString(), containsString(clientName));
         assertThat(request.toString(), containsString(customerUri.toString()));

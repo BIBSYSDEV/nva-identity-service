@@ -16,21 +16,28 @@ import static java.util.Objects.isNull;
 public interface DataAccessClass<T extends DataAccessClass<T>> {
 
     /**
-     * This is intended to be @DynamoDbPartitionKey if used with DynamoDb.
-     * <p>It's immutable.</p>
+     * Validates that every field needed to persist the object is present.
      *
-     * @return an URI id.
-     */
-    @SuppressWarnings("PMD.ShortMethodName")
-    URI id();
-
-    /**
-     * This is intended to be @DynamoDbSortKey if used with DynamoDb.
-     * <p>It's immutable.</p>
-     *
-     * @return the type of the object
-     */
-    String type();
+     * @param item the object to validate
+     **/
+    @JacocoGenerated
+    static void validateBeforePersist(DataAccessClass<?> item) {
+        validateBeforeFetch(item);
+        // in this implementation, created is always set
+        if (isNull(item.created())) {
+            throw new IllegalArgumentException("created not set");
+        }
+        if (isNull(item.modified())) {
+            throw new IllegalArgumentException("modified not set");
+        }
+        if (isNull(item.owner())) {
+            throw new IllegalArgumentException("owner not set");
+        }
+        // in this implementation, modifiedBy is always set
+        if (isNull(item.modifiedBy())) {
+            throw new IllegalArgumentException("modifiedBy not set");
+        }
+    }
 
     /**
      * Returns the time the object was created.
@@ -66,39 +73,6 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      */
     URI modifiedBy();
 
-
-    /**
-     * Merge the current object with the new object.
-     *
-     * @param item the new object to merge with
-     * @return the merged object
-     */
-    T merge(T item);
-
-    /**
-     * Validates that every field needed to persist the object is present.
-     *
-     * @param item the object to validate
-     **/
-    @JacocoGenerated
-    static void validateBeforePersist(DataAccessClass<?> item) {
-        validateBeforeFetch(item);
-        // in this implementation, created is always set
-        if (isNull(item.created())) {
-            throw new IllegalArgumentException("created not set");
-        }
-        if (isNull(item.modified())) {
-            throw new IllegalArgumentException("modified not set");
-        }
-        if (isNull(item.owner())) {
-            throw new IllegalArgumentException("owner not set");
-        }
-        // in this implementation, modifiedBy is always set
-        if (isNull(item.modifiedBy())) {
-            throw new IllegalArgumentException("modifiedBy not set");
-        }
-    }
-
     /**
      * Validates that every field needed to fetch the object is present.
      *
@@ -114,5 +88,30 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
             throw new IllegalArgumentException("type not set");
         }
     }
+
+    /**
+     * This is intended to be @DynamoDbPartitionKey if used with DynamoDb.
+     * <p>It's immutable.</p>
+     *
+     * @return an URI id.
+     */
+    @SuppressWarnings("PMD.ShortMethodName")
+    URI id();
+
+    /**
+     * This is intended to be @DynamoDbSortKey if used with DynamoDb.
+     * <p>It's immutable.</p>
+     *
+     * @return the type of the object
+     */
+    String type();
+
+    /**
+     * Merge the current object with the new object.
+     *
+     * @param item the new object to merge with
+     * @return the merged object
+     */
+    T merge(T item);
 
 }

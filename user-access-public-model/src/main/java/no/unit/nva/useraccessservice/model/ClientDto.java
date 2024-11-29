@@ -48,7 +48,27 @@ public class ClientDto implements WithCopy<Builder>, Typed {
 
     public static ClientDto fromJson(String input) throws BadRequestException {
         return attempt(() -> JsonConfig.readValue(input, ClientDto.class))
-                .orElseThrow(fail -> new BadRequestException("Could not read Client:" + input, fail.getException()));
+            .orElseThrow(fail -> new BadRequestException("Could not read Client:" + input, fail.getException()));
+    }
+
+    @Override
+    @JsonProperty(Typed.TYPE_FIELD)
+    public String getType() {
+        return ClientDto.TYPE;
+    }
+
+    @Override
+    public void setType(String type) throws BadRequestException {
+        Typed.super.setType(type);
+    }
+
+    @Override
+    public ClientDto.Builder copy() {
+        return new Builder()
+            .withClientId(getClientId())
+            .withCustomer(getCustomer())
+            .withCristinOrgUri(getCristinOrgUri())
+            .withActingUser(getActingUser());
     }
 
     public String getClientId() {
@@ -84,26 +104,6 @@ public class ClientDto implements WithCopy<Builder>, Typed {
     }
 
     @Override
-    @JsonProperty(Typed.TYPE_FIELD)
-    public String getType() {
-        return ClientDto.TYPE;
-    }
-
-    @Override
-    public void setType(String type) throws BadRequestException {
-        Typed.super.setType(type);
-    }
-
-    @Override
-    public ClientDto.Builder copy() {
-        return new Builder()
-                .withClientId(getClientId())
-                .withCustomer(getCustomer())
-                .withCristinOrgUri(getCristinOrgUri())
-                .withActingUser(getActingUser());
-    }
-
-    @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getClientId(), getCustomer());
@@ -121,9 +121,9 @@ public class ClientDto implements WithCopy<Builder>, Typed {
         }
         ClientDto clientDto = (ClientDto) o;
         return Objects.equals(getClientId(), clientDto.getClientId())
-                && Objects.equals(getCustomer(), clientDto.getCustomer())
-                && Objects.equals(getCristinOrgUri(), clientDto.getCristinOrgUri())
-                && Objects.equals(getActingUser(), clientDto.getActingUser());
+            && Objects.equals(getCustomer(), clientDto.getCustomer())
+            && Objects.equals(getCristinOrgUri(), clientDto.getCristinOrgUri())
+            && Objects.equals(getActingUser(), clientDto.getActingUser());
     }
 
     @Override

@@ -51,14 +51,6 @@ public class VocabularyList implements Context, Typed {
         return attempt(() -> JsonConfig.readValue(json, VocabularyList.class)).orElseThrow();
     }
 
-    public List<VocabularyDto> getVocabularies() {
-        return JacksonJrDoesNotSupportSets.toList(vocabularies);
-    }
-
-    public void setVocabularies(List<VocabularyDto> vocabularies) {
-        this.vocabularies = JacksonJrDoesNotSupportSets.toSet(vocabularies);
-    }
-
     @JacocoGenerated
     @JsonProperty(LINKED_DATA_ID)
     public URI getId() {
@@ -86,6 +78,14 @@ public class VocabularyList implements Context, Typed {
     @Override
     public int hashCode() {
         return Objects.hash(getVocabularies());
+    }
+
+    public List<VocabularyDto> getVocabularies() {
+        return JacksonJrDoesNotSupportSets.toList(vocabularies);
+    }
+
+    public void setVocabularies(List<VocabularyDto> vocabularies) {
+        this.vocabularies = JacksonJrDoesNotSupportSets.toSet(vocabularies);
     }
 
     @JacocoGenerated

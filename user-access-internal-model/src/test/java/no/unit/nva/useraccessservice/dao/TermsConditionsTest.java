@@ -30,6 +30,16 @@ class TermsConditionsTest {
 
     }
 
+    private static TermsConditions.Builder randomTermsConditions() {
+        var lostInstant = randomInstant();
+        return TermsConditions.builder()
+            .id(randomUri())
+            .type("TermsConditions")
+            .created(lostInstant)
+            .modified(lostInstant)
+            .modifiedBy(randomUri())
+            .termsConditionsUri(randomUri());
+    }
 
     @Test
     void shouldMakeRoundTripWithoutLossOfInformation() throws JsonProcessingException {
@@ -37,6 +47,12 @@ class TermsConditionsTest {
         var objectAsString = JsonUtils.dtoObjectMapper.writeValueAsString(randomLicenseInfo);
         var regeneratedObject = JsonUtils.dtoObjectMapper.readValue(objectAsString, TermsConditionsResponse.class);
         assertThat(randomLicenseInfo, is(equalTo(regeneratedObject)));
+    }
+
+    private TermsConditionsResponse randomTermsConditionsResponse() {
+        return new TermsConditionsResponse.Builder()
+            .withTermsConditionsUri(randomUri())
+            .build();
     }
 
     @Test
@@ -49,11 +65,11 @@ class TermsConditionsTest {
 
     @Test
     void shouldMakeRoundTripWithoutLossOfInformationWhenLicenseInfoIsCreatedFromDaoAndBack()
-            throws JsonProcessingException {
+        throws JsonProcessingException {
         var randomLicenseInfoDao = randomTermsConditions().build();
-        var licenseInfo =  new TermsConditionsResponse.Builder()
-                .withTermsConditionsUri(randomLicenseInfoDao.termsConditionsUri())
-                .build();
+        var licenseInfo = new TermsConditionsResponse.Builder()
+            .withTermsConditionsUri(randomLicenseInfoDao.termsConditionsUri())
+            .build();
         var objectAsString = JsonUtils.dtoObjectMapper.writeValueAsString(licenseInfo);
         var regeneratedObject = JsonUtils.dtoObjectMapper.readValue(objectAsString, TermsConditionsResponse.class);
         assertThat(licenseInfo, is(equalTo(regeneratedObject)));
@@ -77,7 +93,7 @@ class TermsConditionsTest {
     void shouldFetchTermsConditions() throws NotFoundException {
         var firstTerms = randomTermsConditions().build();
         when(mockedService.fetch(any()))
-                .thenReturn(firstTerms);
+            .thenReturn(firstTerms);
         var fetchedTermsConditions = firstTerms.fetch(mockedService);
 
         assertThat(fetchedTermsConditions, is(equalTo(firstTerms)));
@@ -87,44 +103,26 @@ class TermsConditionsTest {
     void shouldPersistTermsConditions() throws NotFoundException {
         var firstTerms = randomTermsConditions().build();
         when(mockedService.fetch(any()))
-                .thenReturn(firstTerms);
-        var fetchedTermsConditions =firstTerms.upsert(mockedService);
+            .thenReturn(firstTerms);
+        var fetchedTermsConditions = firstTerms.upsert(mockedService);
 
         assertThat(fetchedTermsConditions, is(equalTo(firstTerms)));
 
     }
 
-
     @Test
     void shouldReturnEmptyOptionalWhenFetchingTermsConditionsThrowsNotFoundException() throws NotFoundException {
         when(mockedService.fetch(any()))
-                .thenThrow(new NotFoundException(""));
+            .thenThrow(new NotFoundException(""));
         var fetchedTermsConditions = Optional.ofNullable(new TermsConditions.Builder().build())
-                .flatMap(termsConditions -> {
-                    try {
-                        return Optional.of(termsConditions.fetch(mockedService));
-                    } catch (NotFoundException e) {
-                        return Optional.empty();
-                    }
-                });
+            .flatMap(termsConditions -> {
+                try {
+                    return Optional.of(termsConditions.fetch(mockedService));
+                } catch (NotFoundException e) {
+                    return Optional.empty();
+                }
+            });
 
         assertThat(fetchedTermsConditions, is(equalTo(Optional.empty())));
-    }
-
-    private TermsConditionsResponse randomTermsConditionsResponse() {
-        return new TermsConditionsResponse.Builder()
-                .withTermsConditionsUri(randomUri())
-                .build();
-    }
-
-    private static TermsConditions.Builder randomTermsConditions() {
-        var lostInstant = randomInstant();
-        return TermsConditions.builder()
-                .id(randomUri())
-                .type("TermsConditions")
-                .created(lostInstant)
-                .modified(lostInstant)
-                .modifiedBy(randomUri())
-                .termsConditionsUri(randomUri());
     }
 }

@@ -18,7 +18,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.ArrayList;
 
-import static java.util.stream.Collectors.joining;
 import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
 
 public class CreateExternalClientHandler
@@ -30,8 +29,8 @@ public class CreateExternalClientHandler
     public static final String MISSING_ACTING_USER = "Request does not contain 'actingUser'";
     public static final String MISSING_CLIENT_NAME = "Request does not contain 'clientName'";
     private static final String EXTERNAL_USER_POOL_URL = new Environment().readEnv("EXTERNAL_USER_POOL_URL");
-    private CognitoService cognitoService;
-    private IdentityService databaseService;
+    private final CognitoService cognitoService;
+    private final IdentityService databaseService;
 
     @JacocoGenerated
     public CreateExternalClientHandler() {

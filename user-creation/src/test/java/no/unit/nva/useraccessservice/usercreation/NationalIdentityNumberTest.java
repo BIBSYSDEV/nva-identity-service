@@ -13,9 +13,9 @@ public class NationalIdentityNumberTest {
         var nin = NationalIdentityNumber.fromString("0123456789");
 
         assertThat("Should mask the entire national identity number in toString() if it is shorter than "
-                        + " 11 characters (probably test data).",
-                nin.toString(),
-                containsString("nin='XXXX'"));
+                + " 11 characters (probably test data).",
+            nin.toString(),
+            containsString("nin='XXXX'"));
     }
 
     @Test
@@ -23,8 +23,8 @@ public class NationalIdentityNumberTest {
         var nin = NationalIdentityNumber.fromString("01234567891");
 
         assertThat("Should mask all but the first two and last two characters in toString() if"
-                        + " it is longer than or equal to 11 characters.",
-                nin.toString(),
-                containsString("nin='01XXXX91'"));
+                + " it is longer than or equal to 11 characters.",
+            nin.toString(),
+            containsString("nin='01XXXX91'"));
     }
 }

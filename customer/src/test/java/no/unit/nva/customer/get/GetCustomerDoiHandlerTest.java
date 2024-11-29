@@ -63,7 +63,7 @@ class GetCustomerDoiHandlerTest {
         var secretDaoArray = "[" + new SecretManagerDoiAgentDao(secretDto) + "]";
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
-                .thenReturn(existingCustomer);
+            .thenReturn(existingCustomer);
 
         when(secretsReaderMock.fetchSecret(any(), any())
         ).thenReturn(secretDaoArray);
@@ -76,11 +76,35 @@ class GetCustomerDoiHandlerTest {
         assertTrue(response.getBody().contains("password"));
     }
 
+    private <T> GatewayResponse<T> sendRequest(UUID identifier, Class<T> responseType) throws IOException {
+        var request = createRequestWithMediaType(identifier);
+        return sendRequest(request, responseType);
+    }
+
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, CONTEXT);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    private InputStream createRequestWithMediaType(UUID identifier)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withPathParameters(Map.of("identifier", identifier.toString()))
+            .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
+            .withCurrentCustomer(existingCustomer.getId())
+            .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
+            .build();
+    }
+
+    private UUID getExistingCustomerIdentifier() {
+        return existingCustomer.getIdentifier();
+    }
+
     @Test
     void handleRequestReturnsDefaultDoiWhenNoSecretsExists() throws IOException, NotFoundException {
 
         when(customerServiceMock.getCustomer(any(UUID.class)))
-                .thenReturn(existingCustomer);
+            .thenReturn(existingCustomer);
 
         when(secretsReaderMock.fetchSecret(any(), any())
         ).thenReturn(null);
@@ -91,7 +115,6 @@ class GetCustomerDoiHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(doiAgentResponse.getId(), is(equalTo(existingCustomer.getDoiAgent().getId())));
     }
-
 
     @Test
     void handleRequestWhenJsonSecretsAreCorrupt() throws IOException {
@@ -105,63 +128,37 @@ class GetCustomerDoiHandlerTest {
 
     }
 
-
     @Test
     void handleInvalidUserAccess1() throws NotFoundException, IOException {
         when(customerServiceMock.getCustomer(any(UUID.class)))
-                .thenThrow(NotFoundException.class);
+            .thenThrow(NotFoundException.class);
 
         var response = sendFailedRequest(randomCustomerIdentifier(), Problem.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
-    }
-
-
-    @Test
-    void handleInvalidUserAccess2() throws NotFoundException, IOException {
-        when(customerServiceMock.getCustomer(any(UUID.class)))
-                .thenThrow(NotFoundException.class);
-
-        var response = sendFailedRequest(randomCustomerIdentifier(), Problem.class);
-
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
-    }
-
-    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
-        handler.handleRequest(request, outputStream, CONTEXT);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private <T> GatewayResponse<T> sendRequest(UUID identifier, Class<T> responseType) throws IOException {
-        var request = createRequestWithMediaType(identifier);
-        return sendRequest(request, responseType);
     }
 
     private <T> GatewayResponse<T> sendFailedRequest(UUID identifier, Class<T> responseType) throws IOException {
         var request = new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                .withPathParameters(Map.of("identifier", identifier.toString()))
-                .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
-                .withCurrentCustomer(existingCustomer.getId())
-                .withAccessRights(existingCustomer.getId(), MANAGE_NVI)
-                .build();
+            .withPathParameters(Map.of("identifier", identifier.toString()))
+            .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
+            .withCurrentCustomer(existingCustomer.getId())
+            .withAccessRights(existingCustomer.getId(), MANAGE_NVI)
+            .build();
         return sendRequest(request, responseType);
-    }
-
-    private UUID getExistingCustomerIdentifier() {
-        return existingCustomer.getIdentifier();
-    }
-
-    private InputStream createRequestWithMediaType(UUID identifier)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                .withPathParameters(Map.of("identifier", identifier.toString()))
-                .withHeaders(Map.of(HttpHeaders.ACCEPT, MediaTypes.APPLICATION_JSON_LD.toString()))
-                .withCurrentCustomer(existingCustomer.getId())
-                .withAccessRights(existingCustomer.getId(), MANAGE_CUSTOMERS)
-                .build();
     }
 
     private UUID randomCustomerIdentifier() {
         return UUID.randomUUID();
+    }
+
+    @Test
+    void handleInvalidUserAccess2() throws NotFoundException, IOException {
+        when(customerServiceMock.getCustomer(any(UUID.class)))
+            .thenThrow(NotFoundException.class);
+
+        var response = sendFailedRequest(randomCustomerIdentifier(), Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
     }
 }

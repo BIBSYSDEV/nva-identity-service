@@ -28,6 +28,15 @@ class VocabularySettingsListTest {
         assertThat(json.get(LINKED_DATA_CONTEXT).toString(), is(equalTo(LINKED_DATA_CONTEXT_VALUE.toString())));
     }
 
+    private VocabularyList randomVocabularyList() {
+        return VocabularyList.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
+    }
+
+    private Map<String, Object> toJsonMap(VocabularyList list) throws IOException {
+        String jsonString = JsonConfig.writeValueAsString(list);
+        return JsonConfig.mapFrom(jsonString);
+    }
+
     @Test
     void serializationReturnsObjectWithIdEqualToTheGetPathForRetrievingTheVocabularyList() throws IOException {
         CustomerDto customer = CustomerDataGenerator.createSampleCustomerDto();
@@ -37,14 +46,5 @@ class VocabularySettingsListTest {
 
         assertThat(customer.getId(), is(not(nullValue())));
         assertThat(json.get(LINKED_DATA_ID).toString(), is(equalTo(expectedListId.toString())));
-    }
-
-    private VocabularyList randomVocabularyList() {
-        return VocabularyList.fromCustomerDto(CustomerDataGenerator.createSampleCustomerDto());
-    }
-
-    private Map<String, Object> toJsonMap(VocabularyList list) throws IOException {
-        String jsonString = JsonConfig.writeValueAsString(list);
-        return JsonConfig.mapFrom(jsonString);
     }
 }

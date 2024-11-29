@@ -62,14 +62,6 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private Context context;
     private ByteArrayOutputStream outputStream;
 
-    private static RoleDto getAppAdminRole() {
-        return RoleDto.newBuilder().withRoleName(RoleName.APPLICATION_ADMIN).build();
-    }
-
-    private static RoleDto getRandomRole() {
-        return RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.APPLICATION_ADMIN)).build();
-    }
-
     @BeforeEach
     public void init() {
         databaseService = new IdentityServiceImpl(initializeTestDatabase());
@@ -78,10 +70,10 @@ public class UpdateUserHandlerTest extends HandlerTest {
     }
 
     @DisplayName("handleRequest() returns 202 (Accepted)  when path contains "
-            + "an existing user id, and the body contains a valid UserDto and path id is the same as the body id ")
+        + "an existing user id, and the body contains a valid UserDto and path id is the same as the body id ")
     @Test
     public void processInputReturnsAcceptedWhenPathAndBodyContainTheSameUserIdAndTheIdExistsAndBodyIsValid()
-            throws ApiGatewayException, IOException {
+        throws ApiGatewayException, IOException {
 
         UserDto userUpdate = createUserUpdateOnExistingUser();
 
@@ -90,11 +82,60 @@ public class UpdateUserHandlerTest extends HandlerTest {
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_ACCEPTED)));
     }
 
+    private UserDto createUserUpdateOnExistingUser()
+        throws ConflictException, InvalidEntryInternalException, NotFoundException {
+        UserDto existingUser = storeUserInDatabase(sampleUser());
+        return createUserUpdate(existingUser);
+    }
+
+    private UserDto storeUserInDatabase(UserDto userDto)
+        throws ConflictException, InvalidEntryInternalException, NotFoundException {
+        databaseService.addUser(userDto);
+        return databaseService.getUser(userDto);
+    }
+
+    private UserDto sampleUser() throws InvalidEntryInternalException {
+        var someRole = RoleDto.newBuilder().withRoleName(RoleName.CREATOR).build();
+        return UserDto.newBuilder()
+            .withUsername(SAMPLE_USERNAME)
+            .withInstitution(SAMPLE_INSTITUTION)
+            .withRoles(Collections.singletonList(someRole))
+            .withViewingScope(randomViewingScope())
+            .build();
+    }
+
+    private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {
+        var anotherRoleName = userDto.getRoles().isEmpty()
+            ? randomRoleNameButNot(RoleName.APPLICATION_ADMIN)
+            : randomRoleNameButNot(userDto.getRoles().iterator().next().getRoleName());
+        var someOtherRole =
+            RoleDto.newBuilder().withRoleName(anotherRoleName).build();
+        return userDto.copy()
+            .withRoles(Collections.singletonList(someOtherRole))
+            .withViewingScope(randomViewingScope())
+            .build();
+    }
+
+    private <I, O> GatewayResponse<O> sendUpdateRequest(String userId, I userUpdate,
+                                                        Class<O> responseType)
+        throws IOException {
+        var updateUserHandler = new UpdateUserHandler(databaseService);
+        var customerId = randomUri();
+        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
+            .withBody(userUpdate)
+            .withCurrentCustomer(customerId)
+            .withAccessRights(customerId, MANAGE_CUSTOMERS)
+            .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
+            .build();
+        updateUserHandler.handleRequest(input, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
     @DisplayName("handleRequest() returns BadRequest  when path contains an Id that is different from the Id"
-            + "of the input Object")
+        + "of the input Object")
     @Test
     public void processInputReturnsBadRequestWhenPathContainsIdDifferentFromIdOfInputObject()
-            throws ApiGatewayException, IOException {
+        throws ApiGatewayException, IOException {
 
         UserDto userUpdate = userUpdateOnExistingUser();
         UserDto anotherExistingUser = anotherUserInDatabase();
@@ -105,23 +146,36 @@ public class UpdateUserHandlerTest extends HandlerTest {
         assertThat(gatewayResponse.getBody(), containsString(INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR));
     }
 
+    private UserDto anotherUserInDatabase()
+        throws InvalidEntryInternalException, ConflictException, NotFoundException {
+        UserDto anotherExistingUser = sampleUser().copy().withUsername(SOME_OTHER_USERNAME).build();
+        storeUserInDatabase(anotherExistingUser);
+        return anotherExistingUser;
+    }
+
+    private UserDto userUpdateOnExistingUser()
+        throws ConflictException, InvalidEntryInternalException, NotFoundException {
+        UserDto existingUser = storeUserInDatabase(sampleUser());
+        return createUserUpdate(existingUser);
+    }
+
     @DisplayName("handleRequest() returns NotFound when trying to update non existing user")
     @Test
     public void processInputReturnsNotFoundWhenHandlerWhenTryingToUpdateNonExistingUser()
-            throws IOException {
+        throws IOException {
 
         UserDto nonExistingUser = sampleUser();
         var gatewayResponse =
-                sendUpdateRequest(nonExistingUser.getUsername(), nonExistingUser, Problem.class);
+            sendUpdateRequest(nonExistingUser.getUsername(), nonExistingUser, Problem.class);
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_NOT_FOUND)));
         assertThat(gatewayResponse.getBody(), containsString(USER_NOT_FOUND_MESSAGE));
     }
 
     @DisplayName("handleRequest() returns Location header with the URI to updated user when path contains "
-            + "an existing user id, and the body contains a valid UserDto and path id is the same as the body id ")
+        + "an existing user id, and the body contains a valid UserDto and path id is the same as the body id ")
     @Test
     void handleRequestReturnsUpdatedUserWhenPathAndBodyContainTheSameUserIdAndTheIdExistsAndBodyIsValid()
-            throws ApiGatewayException, IOException {
+        throws ApiGatewayException, IOException {
 
         UserDto userUpdate = createUserUpdateOnExistingUser();
         var gatewayResponse = sendUpdateRequest(userUpdate.getUsername(), userUpdate, UserDto.class);
@@ -135,7 +189,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @DisplayName("handleRequest() can process URL encoded usernames")
     @Test
     void handleRequestCanProcessUrlEncodedUsernames()
-            throws ApiGatewayException, IOException {
+        throws ApiGatewayException, IOException {
 
         UserDto userUpdate = createUserUpdateOnExistingUser();
 
@@ -152,7 +206,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @DisplayName("handleRequest() returns BadRequest when input object is invalid")
     @Test
     void processInputReturnsBadRequestWhenInputObjectIsInvalid()
-            throws ApiGatewayException, IOException {
+        throws ApiGatewayException, IOException {
 
         var existingUser = storeUserInDatabase(sampleUser());
         var userUpdate = createUserWithoutUsername();
@@ -165,7 +219,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     @DisplayName("handleRequest() returns InternalServerError when handler is called without path parameter")
     @Test
     void processInputReturnsInternalServerErrorWhenHandlerIsCalledWithoutPathParameter()
-            throws ApiGatewayException, IOException {
+        throws ApiGatewayException, IOException {
 
         var userUpdate = createUserUpdateOnExistingUser();
 
@@ -173,13 +227,27 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_INTERNAL_SERVER_ERROR)));
         assertThat(gatewayResponse.getBody(),
-                containsString(MESSAGE_FOR_RUNTIME_EXCEPTIONS_HIDING_IMPLEMENTATION_DETAILS_TO_API_CLIENTS));
+            containsString(MESSAGE_FOR_RUNTIME_EXCEPTIONS_HIDING_IMPLEMENTATION_DETAILS_TO_API_CLIENTS));
+    }
+
+    private GatewayResponse<Problem> sendUpdateRequestWithoutPathParameters(UserDto userUpdate)
+        throws IOException {
+        var customerId = randomUri();
+        var updateUserHandler = new UpdateUserHandler(databaseService);
+        var input = new HandlerRequestBuilder<UserDto>(dtoObjectMapper)
+            .withCurrentCustomer(customerId)
+            .withAccessRights(customerId, MANAGE_OWN_AFFILIATION)
+            .withBody(userUpdate)
+            .build();
+
+        updateUserHandler.handleRequest(input, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, Problem.class);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"##some?malformed?uri"})
     void shouldReturnBadRequestWhenInputViewingScopeContainsMalformedUris(String illegalUri)
-            throws IOException {
+        throws IOException {
         var userDto = sampleUser();
         var userJson = injectInvalidUriToViewingScope(illegalUri, userDto);
         var response = sendUpdateRequest(userDto.getUsername(), userJson, Problem.class);
@@ -188,60 +256,8 @@ public class UpdateUserHandlerTest extends HandlerTest {
         assertThat(response.getBody(), containsString(illegalUri));
     }
 
-    @Test
-    void shouldDenyAccessForUserWhenItDoesNotHaveAccessRights() throws IOException, ConflictException,
-            NotFoundException {
-        var userUpdate = createUserUpdateForElevatingRole();
-        var gatewayResponse = sendUpdateRequestWithoutAccessRights(userUpdate.getUsername(), userUpdate, UserDto.class);
-        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
-    }
-
-    @Test
-    void shouldDenyAccessWhenInstitutionAdminTriesToCreateAnAppAdmin()
-            throws IOException, ConflictException, NotFoundException {
-        var userUpdate = createUserUpdateForElevatingRole();
-        var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
-        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
-    }
-
-    @Test
-    void shouldDenyAccessWhenInstitutionAdminTriesToRemoveAppAdmin()
-            throws ConflictException, NotFoundException, IOException, InvalidInputException {
-        databaseService.addRole(getAppAdminRole());
-        var existingUser = storeUserInDatabase(sampleUserWithRoles(List.of(getAppAdminRole())));
-        var userUpdate = createUserUpdateRemoveAllRoles(existingUser);
-
-        var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
-        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
-    }
-
-    @Test
-    void shouldAllowAccessWhenAppAdminTriesToCreateAnAppAdmin() throws IOException, ConflictException,
-            NotFoundException {
-        var userUpdate = createUserUpdateForElevatingRole();
-        var gatewayResponse = sendUpdateRequest(userUpdate.getUsername(), userUpdate, UserDto.class);
-        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_ACCEPTED)));
-    }
-
-    @Test
-    void shouldAllowAccessWhenInstitutionAdminTriesToEditAnAppAdminsOtherRoles()
-            throws InvalidInputException, ConflictException, NotFoundException, IOException {
-
-        var adminRole = getAppAdminRole();
-        var otherRole = getRandomRole();
-
-        databaseService.addRole(adminRole);
-        databaseService.addRole(otherRole);
-
-        var existingUser = storeUserInDatabase(sampleUserWithRoles(List.of(adminRole, otherRole)));
-        var userUpdate = createUserUpdateWithRoles(existingUser, List.of(adminRole));
-
-        var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
-        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_ACCEPTED)));
-    }
-
     private Map<String, Object> injectInvalidUriToViewingScope(String illegalUri, UserDto userDto)
-            throws IOException {
+        throws IOException {
         var userMap = JsonConfig.mapFrom(userDto.toString());
         HashMap<Object, Object> viewingScope = creteViewingScopeNodeWithIllegalUri(illegalUri);
         userMap.put(VIEWING_SCOPE_FIELD, viewingScope);
@@ -258,145 +274,129 @@ public class UpdateUserHandlerTest extends HandlerTest {
         return viewingScope;
     }
 
-    private UserDto anotherUserInDatabase()
-            throws InvalidEntryInternalException, ConflictException, NotFoundException {
-        UserDto anotherExistingUser = sampleUser().copy().withUsername(SOME_OTHER_USERNAME).build();
-        storeUserInDatabase(anotherExistingUser);
-        return anotherExistingUser;
-    }
-
-    private UserDto userUpdateOnExistingUser()
-            throws ConflictException, InvalidEntryInternalException, NotFoundException {
-        UserDto existingUser = storeUserInDatabase(sampleUser());
-        return createUserUpdate(existingUser);
-    }
-
-    private UserDto createUserUpdateOnExistingUser()
-            throws ConflictException, InvalidEntryInternalException, NotFoundException {
-        UserDto existingUser = storeUserInDatabase(sampleUser());
-        return createUserUpdate(existingUser);
+    @Test
+    void shouldDenyAccessForUserWhenItDoesNotHaveAccessRights() throws IOException, ConflictException,
+        NotFoundException {
+        var userUpdate = createUserUpdateForElevatingRole();
+        var gatewayResponse = sendUpdateRequestWithoutAccessRights(userUpdate.getUsername(), userUpdate, UserDto.class);
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
     }
 
     private UserDto createUserUpdateForElevatingRole()
-            throws ConflictException, InvalidEntryInternalException, NotFoundException {
+        throws ConflictException, InvalidEntryInternalException, NotFoundException {
         UserDto existingUser = storeUserInDatabase(sampleUser());
         return createUserUpdateAppAdmin(existingUser);
-    }
-
-    private UserDto storeUserInDatabase(UserDto userDto)
-            throws ConflictException, InvalidEntryInternalException, NotFoundException {
-        databaseService.addUser(userDto);
-        return databaseService.getUser(userDto);
-    }
-
-    private <I, O> GatewayResponse<O> sendUpdateRequest(String userId, I userUpdate,
-                                                        Class<O> responseType)
-            throws IOException {
-        var updateUserHandler = new UpdateUserHandler(databaseService);
-        var customerId = randomUri();
-        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
-                .withBody(userUpdate)
-                .withCurrentCustomer(customerId)
-                .withAccessRights(customerId, MANAGE_CUSTOMERS)
-                .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
-                .build();
-        updateUserHandler.handleRequest(input, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private <I, O> GatewayResponse<O> sendUpdateRequestForInstitutionAdmin(String userId, I userUpdate,
-                                                                           Class<O> responseType)
-            throws IOException {
-        var updateUserHandler = new UpdateUserHandler(databaseService);
-        var customerId = randomUri();
-        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
-                .withBody(userUpdate)
-                .withCurrentCustomer(customerId)
-                .withAccessRights(customerId, MANAGE_OWN_AFFILIATION)
-                .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
-                .build();
-        updateUserHandler.handleRequest(input, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private <I, O> GatewayResponse<O> sendUpdateRequestWithoutAccessRights(String userId, I userUpdate,
-                                                                           Class<O> responseType)
-            throws IOException {
-        var updateUserHandler = new UpdateUserHandler(databaseService);
-        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
-                .withBody(userUpdate)
-                .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
-                .build();
-        updateUserHandler.handleRequest(input, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private GatewayResponse<Problem> sendUpdateRequestWithoutPathParameters(UserDto userUpdate)
-            throws IOException {
-        var customerId = randomUri();
-        var updateUserHandler = new UpdateUserHandler(databaseService);
-        var input = new HandlerRequestBuilder<UserDto>(dtoObjectMapper)
-                .withCurrentCustomer(customerId)
-                .withAccessRights(customerId, MANAGE_OWN_AFFILIATION)
-                .withBody(userUpdate)
-                .build();
-
-        updateUserHandler.handleRequest(input, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, Problem.class);
-    }
-
-    private UserDto sampleUser() throws InvalidEntryInternalException {
-        var someRole = RoleDto.newBuilder().withRoleName(RoleName.CREATOR).build();
-        return UserDto.newBuilder()
-                .withUsername(SAMPLE_USERNAME)
-                .withInstitution(SAMPLE_INSTITUTION)
-                .withRoles(Collections.singletonList(someRole))
-                .withViewingScope(randomViewingScope())
-                .build();
-    }
-
-    private UserDto sampleUserWithRoles(List<RoleDto> roleDtos) throws InvalidEntryInternalException {
-        return UserDto.newBuilder()
-                .withUsername(SAMPLE_USERNAME)
-                .withInstitution(SAMPLE_INSTITUTION)
-                .withRoles(roleDtos)
-                .withViewingScope(randomViewingScope())
-                .build();
-    }
-
-    private UserDto createUserUpdate(UserDto userDto) throws InvalidEntryInternalException {
-        var anotherRoleName = userDto.getRoles().isEmpty()
-                ? randomRoleNameButNot(RoleName.APPLICATION_ADMIN)
-                : randomRoleNameButNot(userDto.getRoles().iterator().next().getRoleName());
-        var someOtherRole =
-                RoleDto.newBuilder().withRoleName(anotherRoleName).build();
-        return userDto.copy()
-                .withRoles(Collections.singletonList(someOtherRole))
-                .withViewingScope(randomViewingScope())
-                .build();
     }
 
     private UserDto createUserUpdateAppAdmin(UserDto userDto) throws InvalidEntryInternalException {
         var appAdminRole = getAppAdminRole();
         return userDto.copy()
-                .withRoles(Collections.singletonList(appAdminRole))
-                .withViewingScope(randomViewingScope())
-                .build();
+            .withRoles(Collections.singletonList(appAdminRole))
+            .withViewingScope(randomViewingScope())
+            .build();
     }
 
-    private UserDto createUserUpdateWithRoles(UserDto userDto, List<RoleDto> roles) {
-        return userDto.copy()
-                .withRoles(roles)
-                .withViewingScope(randomViewingScope())
-                .build();
+    private static RoleDto getAppAdminRole() {
+        return RoleDto.newBuilder().withRoleName(RoleName.APPLICATION_ADMIN).build();
+    }
 
+    private <I, O> GatewayResponse<O> sendUpdateRequestWithoutAccessRights(String userId, I userUpdate,
+                                                                           Class<O> responseType)
+        throws IOException {
+        var updateUserHandler = new UpdateUserHandler(databaseService);
+        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
+            .withBody(userUpdate)
+            .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
+            .build();
+        updateUserHandler.handleRequest(input, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    @Test
+    void shouldDenyAccessWhenInstitutionAdminTriesToCreateAnAppAdmin()
+        throws IOException, ConflictException, NotFoundException {
+        var userUpdate = createUserUpdateForElevatingRole();
+        var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
+    }
+
+    private <I, O> GatewayResponse<O> sendUpdateRequestForInstitutionAdmin(String userId, I userUpdate,
+                                                                           Class<O> responseType)
+        throws IOException {
+        var updateUserHandler = new UpdateUserHandler(databaseService);
+        var customerId = randomUri();
+        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
+            .withBody(userUpdate)
+            .withCurrentCustomer(customerId)
+            .withAccessRights(customerId, MANAGE_OWN_AFFILIATION)
+            .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
+            .build();
+        updateUserHandler.handleRequest(input, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    @Test
+    void shouldDenyAccessWhenInstitutionAdminTriesToRemoveAppAdmin()
+        throws ConflictException, NotFoundException, IOException, InvalidInputException {
+        databaseService.addRole(getAppAdminRole());
+        var existingUser = storeUserInDatabase(sampleUserWithRoles(List.of(getAppAdminRole())));
+        var userUpdate = createUserUpdateRemoveAllRoles(existingUser);
+
+        var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
+    }
+
+    private UserDto sampleUserWithRoles(List<RoleDto> roleDtos) throws InvalidEntryInternalException {
+        return UserDto.newBuilder()
+            .withUsername(SAMPLE_USERNAME)
+            .withInstitution(SAMPLE_INSTITUTION)
+            .withRoles(roleDtos)
+            .withViewingScope(randomViewingScope())
+            .build();
     }
 
     private UserDto createUserUpdateRemoveAllRoles(UserDto userDto) {
         return userDto.copy()
-                .withRoles(Collections.emptyList())
-                .withViewingScope(randomViewingScope())
-                .build();
+            .withRoles(Collections.emptyList())
+            .withViewingScope(randomViewingScope())
+            .build();
+    }
+
+    @Test
+    void shouldAllowAccessWhenAppAdminTriesToCreateAnAppAdmin() throws IOException, ConflictException,
+        NotFoundException {
+        var userUpdate = createUserUpdateForElevatingRole();
+        var gatewayResponse = sendUpdateRequest(userUpdate.getUsername(), userUpdate, UserDto.class);
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_ACCEPTED)));
+    }
+
+    @Test
+    void shouldAllowAccessWhenInstitutionAdminTriesToEditAnAppAdminsOtherRoles()
+        throws InvalidInputException, ConflictException, NotFoundException, IOException {
+
+        var adminRole = getAppAdminRole();
+        var otherRole = getRandomRole();
+
+        databaseService.addRole(adminRole);
+        databaseService.addRole(otherRole);
+
+        var existingUser = storeUserInDatabase(sampleUserWithRoles(List.of(adminRole, otherRole)));
+        var userUpdate = createUserUpdateWithRoles(existingUser, List.of(adminRole));
+
+        var gatewayResponse = sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, UserDto.class);
+        assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_ACCEPTED)));
+    }
+
+    private static RoleDto getRandomRole() {
+        return RoleDto.newBuilder().withRoleName(randomRoleNameButNot(RoleName.APPLICATION_ADMIN)).build();
+    }
+
+    private UserDto createUserUpdateWithRoles(UserDto userDto, List<RoleDto> roles) {
+        return userDto.copy()
+            .withRoles(roles)
+            .withViewingScope(randomViewingScope())
+            .build();
+
     }
 
 }

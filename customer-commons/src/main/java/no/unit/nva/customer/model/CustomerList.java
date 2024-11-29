@@ -34,8 +34,24 @@ public class CustomerList {
         this.customers = extractCustomers(customers);
     }
 
+    private List<CustomerReference> extractCustomers(List<CustomerDto> customers) {
+        return Optional.ofNullable(customers)
+            .stream()
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .filter(Objects::nonNull)
+            .map(CustomerReference::fromCustomerDto)
+            .collect(Collectors.toList());
+    }
+
     public static CustomerList fromString(String json) {
         return attempt(() -> JsonConfig.readValue(json, CustomerList.class)).orElseThrow();
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getId(), getCustomers(), getContext());
     }
 
     @JsonProperty(LINKED_DATA_CONTEXT)
@@ -58,12 +74,6 @@ public class CustomerList {
 
     @Override
     @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getId(), getCustomers(), getContext());
-    }
-
-    @Override
-    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -73,22 +83,12 @@ public class CustomerList {
         }
         CustomerList that = (CustomerList) o;
         return Objects.equals(getId(), that.getId())
-                && Objects.equals(customers, that.customers)
-                && Objects.equals(getContext(), that.getContext());
+            && Objects.equals(customers, that.customers)
+            && Objects.equals(getContext(), that.getContext());
     }
 
     @Override
     public String toString() {
         return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
-    }
-
-    private List<CustomerReference> extractCustomers(List<CustomerDto> customers) {
-        return Optional.ofNullable(customers)
-                .stream()
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(Objects::nonNull)
-                .map(CustomerReference::fromCustomerDto)
-                .collect(Collectors.toList());
     }
 }

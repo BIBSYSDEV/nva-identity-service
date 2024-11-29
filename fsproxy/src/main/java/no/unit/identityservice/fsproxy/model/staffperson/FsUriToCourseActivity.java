@@ -19,6 +19,12 @@ public class FsUriToCourseActivity {
 
     @JacocoGenerated
     @Override
+    public int hashCode() {
+        return Objects.hash(uriToCourse);
+    }
+
+    @JacocoGenerated
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -28,12 +34,6 @@ public class FsUriToCourseActivity {
         }
         FsUriToCourseActivity that = (FsUriToCourseActivity) o;
         return Objects.equals(uriToCourse, that.uriToCourse);
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(uriToCourse);
     }
 
     public URI getUri() {

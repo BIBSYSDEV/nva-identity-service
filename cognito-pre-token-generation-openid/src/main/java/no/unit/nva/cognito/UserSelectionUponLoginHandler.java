@@ -152,10 +152,6 @@ public class UserSelectionUponLoginHandler
         }
     }
 
-    private static String stringOrNull(Object argument) {
-        return nonNull(argument) ? argument.toString() : null;
-    }
-
     @Override
     public CognitoUserPoolPreTokenGenerationEvent handleRequest(
         CognitoUserPoolPreTokenGenerationEvent input, Context context) {
@@ -437,8 +433,9 @@ public class UserSelectionUponLoginHandler
         claims.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, arguments.person().getId().toString()));
         claims.add(createAttribute(IMPERSONATED_BY_CLAIM,
             isNull(arguments.impersonatedBy()) ? "" : arguments.impersonatedBy()));
-        claims.add(createAttribute(CURRENT_TERMS, stringOrNull(arguments.currentTerms())));
-        claims.add(createAttribute(CUSTOMER_ACCEPTED_TERMS, stringOrNull(arguments.acceptedTerms())));
+        claims.add(createAttribute(CURRENT_TERMS, arguments.currentTerms().toString()));
+        claims.add(createAttribute(CUSTOMER_ACCEPTED_TERMS, nonNull(arguments.acceptedTerms()) ?
+                                                                arguments.acceptedTerms().toString() : ""));
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(arguments.currentCustomer(),
             arguments.currentUser(), claims);
         return claims;

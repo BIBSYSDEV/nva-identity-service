@@ -32,11 +32,6 @@ public class RoleService extends DatabaseSubService {
         this.table = this.client.table(Constants.USERS_AND_ROLES_TABLE, RoleDb.TABLE_SCHEMA);
     }
 
-    private static NotFoundException handleRoleNotFound(RoleDto queryObject) {
-        logger.debug(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName());
-        return new NotFoundException(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName().getValue());
-    }
-
     /**
      * Add role to the database.
      *
@@ -49,36 +44,6 @@ public class RoleService extends DatabaseSubService {
         table.putItem(RoleDb.fromRoleDto(roleDto));
     }
 
-    /**
-     * Fetches a role from the database.
-     *
-     * @param queryObject the query object containing the rolename.
-     * @return the Role that corresponds to the given rolename.
-     */
-    public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
-        return getRoleAsOptional(queryObject)
-                .orElseThrow(() -> handleRoleNotFound(queryObject));
-    }
-
-    public void updateRole(RoleDto roleToUpdate) throws NotFoundException, InvalidInputException {
-        validate(roleToUpdate);
-
-        var originalRole = getRoleAsOptional(roleToUpdate)
-                .orElseThrow(() -> handleRoleNotFound(roleToUpdate));
-
-        var updatedRole = originalRole.copy().withAccessRights(roleToUpdate.getAccessRights()).build();
-        table.putItem(RoleDb.fromRoleDto(updatedRole));
-    }
-
-    protected RoleDb fetchRoleDb(RoleDb queryObject) {
-        return table.getItem(queryObject);
-    }
-
-    private Optional<RoleDto> getRoleAsOptional(RoleDto queryObject) {
-        logger.debug(GET_ROLE_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
-        return Optional.ofNullable(attemptFetchRole(queryObject));
-    }
-
     private void checkRoleDoesNotExist(RoleDto roleDto) throws ConflictException {
         if (roleAlreadyExists(roleDto)) {
             throw new ConflictException(ROLE_ALREADY_EXISTS_ERROR_MESSAGE + roleDto.getRoleName());
@@ -89,11 +54,46 @@ public class RoleService extends DatabaseSubService {
         return getRoleAsOptional(roleDto).isPresent();
     }
 
+    private Optional<RoleDto> getRoleAsOptional(RoleDto queryObject) {
+        logger.debug(GET_ROLE_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
+        return Optional.ofNullable(attemptFetchRole(queryObject));
+    }
+
     private RoleDto attemptFetchRole(RoleDto queryObject) {
         RoleDb roledb = Try.of(queryObject)
-                .map(RoleDb::fromRoleDto)
-                .map(this::fetchRoleDb)
-                .orElseThrow(DatabaseSubService::handleError);
+            .map(RoleDb::fromRoleDto)
+            .map(this::fetchRoleDb)
+            .orElseThrow(DatabaseSubService::handleError);
         return nonNull(roledb) ? roledb.toRoleDto() : null;
+    }
+
+    protected RoleDb fetchRoleDb(RoleDb queryObject) {
+        return table.getItem(queryObject);
+    }
+
+    /**
+     * Fetches a role from the database.
+     *
+     * @param queryObject the query object containing the rolename.
+     * @return the Role that corresponds to the given rolename.
+     */
+    public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
+        return getRoleAsOptional(queryObject)
+            .orElseThrow(() -> handleRoleNotFound(queryObject));
+    }
+
+    private static NotFoundException handleRoleNotFound(RoleDto queryObject) {
+        logger.debug(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName());
+        return new NotFoundException(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName().getValue());
+    }
+
+    public void updateRole(RoleDto roleToUpdate) throws NotFoundException, InvalidInputException {
+        validate(roleToUpdate);
+
+        var originalRole = getRoleAsOptional(roleToUpdate)
+            .orElseThrow(() -> handleRoleNotFound(roleToUpdate));
+
+        var updatedRole = originalRole.copy().withAccessRights(roleToUpdate.getAccessRights()).build();
+        table.putItem(RoleDb.fromRoleDto(updatedRole));
     }
 }

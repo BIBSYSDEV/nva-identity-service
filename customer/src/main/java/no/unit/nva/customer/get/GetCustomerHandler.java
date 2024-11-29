@@ -41,17 +41,6 @@ public class GetCustomerHandler extends CustomerHandler<Void> {
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
-        return HttpURLConnection.HTTP_OK;
-    }
-
-    @Override
-    protected CustomerDto processInput(Void input, RequestInfo requestInfo, Context context)
-            throws InputException, NotFoundException, ForbiddenException {
-        return customerService.getCustomer(getIdentifier(requestInfo));
-    }
-
-    @Override
     protected List<MediaType> listSupportedMediaTypes() {
         return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
     }
@@ -59,5 +48,16 @@ public class GetCustomerHandler extends CustomerHandler<Void> {
     @Override
     protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         //Do nothing
+    }
+
+    @Override
+    protected CustomerDto processInput(Void input, RequestInfo requestInfo, Context context)
+        throws InputException, NotFoundException, ForbiddenException {
+        return customerService.getCustomer(getIdentifier(requestInfo));
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(Void input, CustomerDto output) {
+        return HttpURLConnection.HTTP_OK;
     }
 }

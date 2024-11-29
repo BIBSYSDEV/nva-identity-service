@@ -24,8 +24,8 @@ public class TestHeaders {
      */
     public static Map<String, String> getRequestHeaders() {
         return Map.of(
-                CONTENT_TYPE, JSON_UTF_8.toString(),
-                ACCEPT, JSON_UTF_8.toString());
+            CONTENT_TYPE, JSON_UTF_8.toString(),
+            ACCEPT, JSON_UTF_8.toString());
     }
 
     /**
@@ -35,11 +35,11 @@ public class TestHeaders {
      */
     public static Map<String, String> getResponseHeaders() {
         return Map.of(
-                CONTENT_TYPE, JSON_UTF_8.toString(),
-                ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD,
-                STRICT_TRANSPORT_SECURITY, "max-age=63072000; includeSubDomains; preload",
-                X_CONTENT_TYPE_OPTIONS, "nosniff",
-                VARY, "Origin, Accept"
+            CONTENT_TYPE, JSON_UTF_8.toString(),
+            ACCESS_CONTROL_ALLOW_ORIGIN, WILDCARD,
+            STRICT_TRANSPORT_SECURITY, "max-age=63072000; includeSubDomains; preload",
+            X_CONTENT_TYPE_OPTIONS, "nosniff",
+            VARY, "Origin, Accept"
         );
     }
 }

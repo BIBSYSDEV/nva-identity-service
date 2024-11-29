@@ -27,8 +27,8 @@ public class Affiliation {
     @Override
     public String toString() {
         return "Affiliation{"
-                + "institutionUri='" + institutionId + '\''
-                + ", unitUris=" + unitIds
-                + '}';
+            + "institutionUri='" + institutionId + '\''
+            + ", unitUris=" + unitIds
+            + '}';
     }
 }

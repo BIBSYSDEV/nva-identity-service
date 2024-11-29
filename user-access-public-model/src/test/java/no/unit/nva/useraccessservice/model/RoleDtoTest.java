@@ -58,9 +58,9 @@ class RoleDtoTest extends DtoTest {
     @Test
     void builderAllowsSettingAccessRights() throws InvalidEntryInternalException {
         RoleDto sampleRole = RoleDto.newBuilder()
-                .withRoleName(randomRoleName())
-                .withAccessRights(SAMPLE_ACCESS_RIGHTS)
-                .build();
+            .withRoleName(randomRoleName())
+            .withAccessRights(SAMPLE_ACCESS_RIGHTS)
+            .build();
 
         assertThat(sampleRole.getAccessRights(), containsInAnyOrder(SAMPLE_ACCESS_RIGHTS.toArray(AccessRight[]::new)));
     }
@@ -73,12 +73,12 @@ class RoleDtoTest extends DtoTest {
 
     @Test
     void copyReturnsABuilderWithAllFieldsOfOriginalObjectPreserved()
-            throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException {
         RoleDto original = RoleDto
-                .newBuilder()
-                .withRoleName(randomRoleName())
-                .withAccessRights(SAMPLE_ACCESS_RIGHTS)
-                .build();
+            .newBuilder()
+            .withRoleName(randomRoleName())
+            .withAccessRights(SAMPLE_ACCESS_RIGHTS)
+            .build();
         RoleDto copy = original.copy().build();
         assertThat(original, doesNotHaveEmptyValues());
         assertThat(copy, is(not(sameInstance(original))));
@@ -88,7 +88,7 @@ class RoleDtoTest extends DtoTest {
     @ParameterizedTest(name = "isValid() returns false when username is null")
     @NullSource
     void isValidReturnsFalseWhenUsernameIsNullOrBlank(String NullRoleName)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         RoleDto roleDto = new RoleDto();
         Method setter = RoleDto.class.getDeclaredMethod("setRoleName", RoleName.class);
         setter.setAccessible(true);
@@ -123,7 +123,7 @@ class RoleDtoTest extends DtoTest {
     @DisplayName("RoleDto can be created when it contains the right type value")
     @Test
     void roleDtoCanBeDeserializedWhenItContainsTheRightTypeValue()
-            throws InvalidEntryInternalException, IOException, InvalidInputException, BadRequestException {
+        throws InvalidEntryInternalException, IOException, InvalidInputException, BadRequestException {
         var someRole = createRole(randomRoleName());
         var jsonMap = JsonConfig.mapFrom(someRole.toString());
         assertThatSerializedItemContainsType(jsonMap, ROLE_TYPE_LITERAL);
@@ -152,9 +152,9 @@ class RoleDtoTest extends DtoTest {
         }
         var randomAccessRights = Set.of(firstAccessRight, secondAccessRight);
         var sample = RoleDto.newBuilder()
-                .withRoleName(randomRoleName())
-                .withAccessRights(randomAccessRights)
-                .build();
+            .withRoleName(randomRoleName())
+            .withAccessRights(randomAccessRights)
+            .build();
 
         var json = sample.toString();
         var deserialized = RoleDto.fromJson(json);

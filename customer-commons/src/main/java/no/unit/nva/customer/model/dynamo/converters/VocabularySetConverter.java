@@ -22,23 +22,23 @@ public class VocabularySetConverter implements AttributeConverter<Set<Vocabulary
     @Override
     public AttributeValue transformFrom(Set<VocabularyDao> input) {
         var attributeValues = Optional.ofNullable(input)
-                .stream()
-                .flatMap(Collection::stream)
-                .map(collectionElement -> VocabularyDao.SCHEMA.itemToMap(collectionElement, IGNORE_NULLS))
-                .map(attributeMap -> AttributeValue.builder().m(attributeMap).build())
-                .collect(Collectors.toList());
+            .stream()
+            .flatMap(Collection::stream)
+            .map(collectionElement -> VocabularyDao.SCHEMA.itemToMap(collectionElement, IGNORE_NULLS))
+            .map(attributeMap -> AttributeValue.builder().m(attributeMap).build())
+            .collect(Collectors.toList());
         return nonEmpty(attributeValues) ? nonEmptyList(attributeValues) : null;
     }
 
     @Override
     public Set<VocabularyDao> transformTo(AttributeValue input) {
         return Optional.ofNullable(input)
-                .stream()
-                .map(AttributeValue::l)
-                .flatMap(Collection::stream)
-                .map(AttributeValue::m)
-                .map(VocabularyDao.SCHEMA::mapToItem)
-                .collect(Collectors.toSet());
+            .stream()
+            .map(AttributeValue::l)
+            .flatMap(Collection::stream)
+            .map(AttributeValue::m)
+            .map(VocabularyDao.SCHEMA::mapToItem)
+            .collect(Collectors.toSet());
     }
 
     @JacocoGenerated

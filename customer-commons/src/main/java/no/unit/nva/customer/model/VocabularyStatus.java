@@ -19,7 +19,7 @@ public enum VocabularyStatus {
     @JsonProperty("Disabled") DISABLED("Disabled");
 
     public static final AttributeConverter<VocabularyStatus> VOCABULARY_STATUS_CONVERTER =
-            new VocabularyStatusConverter();
+        new VocabularyStatusConverter();
     public static final String ERROR_MESSAGE_TEMPLATE = "%s not a valid VocabularyStatus, expected one of: %s";
     public static final String DELIMITER = ", ";
 
@@ -32,15 +32,15 @@ public enum VocabularyStatus {
     @JsonCreator
     public static VocabularyStatus lookUp(String value) {
         return stream(values())
-                .filter(nameType -> nameType.getValue().equalsIgnoreCase(value))
-                .collect(SingletonCollector.tryCollect())
-                .orElseThrow(failure -> throwException(failure, value));
+            .filter(nameType -> nameType.getValue().equalsIgnoreCase(value))
+            .collect(SingletonCollector.tryCollect())
+            .orElseThrow(failure -> throwException(failure, value));
     }
 
     private static RuntimeException throwException(Failure<VocabularyStatus> failure, String value) {
         return new IllegalArgumentException(
-                format(ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
-                        .map(VocabularyStatus::toString).collect(joining(DELIMITER))));
+            format(ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
+                .map(VocabularyStatus::toString).collect(joining(DELIMITER))));
     }
 
     @JsonValue

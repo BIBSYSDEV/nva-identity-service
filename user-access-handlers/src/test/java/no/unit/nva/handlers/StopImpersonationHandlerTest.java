@@ -47,9 +47,18 @@ class StopImpersonationHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HTTP_OK)));
     }
 
+    private InputStream createDefaultRequestForStopImpersonation(String username) throws JsonProcessingException {
+        var customer = randomUri();
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withCurrentCustomer(customer)
+            .withAuthorizerClaim(USERNAME, username)
+            .withIssuer(randomString())
+            .build();
+    }
+
     @Test
     public void shouldCallCognitoAdminApiWithUsernameOfUser()
-            throws IOException {
+        throws IOException {
         var username = randomString();
         var request = createDefaultRequestForStopImpersonation(username);
         handler.handleRequest(request, outputStream, context);
@@ -57,32 +66,23 @@ class StopImpersonationHandlerTest {
         assertThat(setUsername, is(equalTo(username)));
     }
 
+    private String extractAdminUpdateRequestUsername() {
+        return cognitoClient.getAdminUpdateUserRequest().username();
+    }
+
     @Test
     public void shouldCallCogntioAdminApiWithEmptyStringImpersonation()
-            throws IOException {
+        throws IOException {
         var request = createDefaultRequestForStopImpersonation(randomString());
         handler.handleRequest(request, outputStream, context);
         var setImpersonationClaim = extractAdminUpdateRequestUserAttribute(IMPERSONATION).get();
         assertThat(setImpersonationClaim.value(), is(equalTo("")));
     }
 
-    private InputStream createDefaultRequestForStopImpersonation(String username) throws JsonProcessingException {
-        var customer = randomUri();
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                .withCurrentCustomer(customer)
-                .withAuthorizerClaim(USERNAME, username)
-                .withIssuer(randomString())
-                .build();
-    }
-
     private Optional<AttributeType> extractAdminUpdateRequestUserAttribute(String userAttribute) {
         return cognitoClient.getAdminUpdateUserRequest()
-                .userAttributes().stream()
-                .filter(attribute -> attribute.name().equals(userAttribute))
-                .findFirst();
-    }
-
-    private String extractAdminUpdateRequestUsername() {
-        return cognitoClient.getAdminUpdateUserRequest().username();
+            .userAttributes().stream()
+            .filter(attribute -> attribute.name().equals(userAttribute))
+            .findFirst();
     }
 }

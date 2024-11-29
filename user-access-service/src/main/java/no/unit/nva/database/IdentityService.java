@@ -58,7 +58,7 @@ public interface IdentityService {
     class Constants {
 
         public static final String USERS_AND_ROLES_TABLE =
-                new Environment().readEnv("USERS_AND_ROLES_TABLE");
+            new Environment().readEnv("USERS_AND_ROLES_TABLE");
 
         private Constants() {
 

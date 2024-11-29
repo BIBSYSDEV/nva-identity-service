@@ -1,8 +1,6 @@
 package no.unit.nva.useraccessservice.dao;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-
 import no.unit.nva.database.interfaces.DataAccessClass;
 import no.unit.nva.database.interfaces.DataAccessLayer;
 import no.unit.nva.database.interfaces.DataAccessService;
@@ -21,13 +19,13 @@ import static java.util.Objects.isNull;
 @DynamoDbImmutable(builder = TermsConditions.Builder.class)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
 public record TermsConditions(
-        @DynamoDbPartitionKey URI id,
-        @DynamoDbSortKey String type,
-        Instant created,
-        URI owner,
-        Instant modified,
-        URI modifiedBy,
-        URI termsConditionsUri
+    @DynamoDbPartitionKey URI id,
+    @DynamoDbSortKey String type,
+    Instant created,
+    URI owner,
+    Instant modified,
+    URI modifiedBy,
+    URI termsConditionsUri
 ) implements DataAccessLayer<TermsConditions>, DataAccessClass<TermsConditions> {
 
     @DynamoDbIgnore
@@ -47,14 +45,14 @@ public record TermsConditions(
     @Override
     public TermsConditions merge(TermsConditions item) {
         return TermsConditions.builder()
-                .id(id())
-                .type(type())
-                .created(created())
-                .owner(owner())     //in a persist operation, the owner should not change
-                .modified(Instant.now())
-                .modifiedBy(item.modifiedBy())
-                .termsConditionsUri(item.termsConditionsUri())
-                .build();
+            .id(id())
+            .type(type())
+            .created(created())
+            .owner(owner())     //in a persist operation, the owner should not change
+            .modified(Instant.now())
+            .modifiedBy(item.modifiedBy())
+            .termsConditionsUri(item.termsConditionsUri())
+            .build();
     }
 
     public static TermsConditions.Builder builder() {
@@ -83,28 +81,6 @@ public record TermsConditions(
         }
 
         /**
-         * Set the type of the TermsConditions.
-         *
-         * @param withType the type of the TermsConditions.
-         * @return a builder with the type set.
-         */
-        public Builder type(String withType) {
-            this.withType = withType;
-            return this;
-        }
-
-        /**
-         * Set the creation time of the TermsConditions.
-         *
-         * @param created the creation time of the TermsConditions.
-         * @return a builder with the creation time set.
-         */
-        public Builder created(Instant created) {
-            this.createdInstant = created;
-            return this;
-        }
-
-        /**
          * Set the owner of the TermsConditions.
          *
          * @param currentOwner the owner of the TermsConditions.
@@ -112,17 +88,6 @@ public record TermsConditions(
          */
         public Builder owner(URI currentOwner) {
             this.withOwner = currentOwner;
-            return this;
-        }
-
-        /**
-         * Set the modification time of the TermsConditions.
-         *
-         * @param modified the modification time of the TermsConditions.
-         * @return a builder with the modification time set.
-         */
-        public Builder modified(Instant modified) {
-            this.modifiedInstant = modified;
             return this;
         }
 
@@ -161,11 +126,45 @@ public record TermsConditions(
                 created(Instant.now());
                 modified(createdInstant);
             }
-            if(isNull(withOwner)) {
+            if (isNull(withOwner)) {
                 withOwner = modifiedById;
             }
 
-            return new TermsConditions(withId, withType, createdInstant, withOwner,modifiedInstant, modifiedById, termsUri);
+            return new TermsConditions(withId, withType, createdInstant, withOwner, modifiedInstant, modifiedById,
+                termsUri);
+        }
+
+        /**
+         * Set the type of the TermsConditions.
+         *
+         * @param withType the type of the TermsConditions.
+         * @return a builder with the type set.
+         */
+        public Builder type(String withType) {
+            this.withType = withType;
+            return this;
+        }
+
+        /**
+         * Set the creation time of the TermsConditions.
+         *
+         * @param created the creation time of the TermsConditions.
+         * @return a builder with the creation time set.
+         */
+        public Builder created(Instant created) {
+            this.createdInstant = created;
+            return this;
+        }
+
+        /**
+         * Set the modification time of the TermsConditions.
+         *
+         * @param modified the modification time of the TermsConditions.
+         * @return a builder with the modification time set.
+         */
+        public Builder modified(Instant modified) {
+            this.modifiedInstant = modified;
+            return this;
         }
     }
 

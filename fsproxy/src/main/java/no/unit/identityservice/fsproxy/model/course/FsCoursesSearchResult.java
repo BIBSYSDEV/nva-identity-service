@@ -16,7 +16,7 @@ public class FsCoursesSearchResult implements JsonSerializable {
 
     @JsonCreator
     public FsCoursesSearchResult(
-            @JsonProperty("items") List<FsCourseItemContainingCourseContainer> fsCourseItemContainingCourseData) {
+        @JsonProperty("items") List<FsCourseItemContainingCourseContainer> fsCourseItemContainingCourseData) {
         this.fsCourseItemContainingCourseData = fsCourseItemContainingCourseData;
     }
 

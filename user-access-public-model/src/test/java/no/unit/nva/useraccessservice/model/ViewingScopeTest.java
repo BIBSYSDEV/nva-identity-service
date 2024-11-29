@@ -27,7 +27,7 @@ class ViewingScopeTest {
 
     public static Stream<ViewingScope> viewingScopeProvider() throws BadRequestException {
         return Stream.of(new ViewingScope(Set.of(randomCristinOrgId()), null),
-                new ViewingScope(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId())));
+            new ViewingScope(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId())));
     }
 
     @Test
@@ -36,6 +36,10 @@ class ViewingScopeTest {
         var jsonString = viewingScope.toString();
         var jsonMap = JsonConfig.mapFrom(jsonString);
         assertThat(jsonMap, hasEntry("type", "ViewingScope"));
+    }
+
+    private ViewingScope randomViewingScope() throws BadRequestException {
+        return ViewingScope.create(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId()));
     }
 
     @Test
@@ -63,16 +67,12 @@ class ViewingScopeTest {
     @Test
     void shouldDeserializeNullViewingScopeToViewingScopeWithEmptyList() throws JsonProcessingException {
         var json = """
-                {
-                  "type": "ViewingScope"
-                }
-                """;
+            {
+              "type": "ViewingScope"
+            }
+            """;
         var viewingScope = JsonUtils.dtoObjectMapper.readValue(json, ViewingScope.class);
         assertThat(viewingScope.getExcludedUnits(), is(emptyIterable()));
         assertThat(viewingScope.getIncludedUnits(), is(emptyIterable()));
-    }
-
-    private ViewingScope randomViewingScope() throws BadRequestException {
-        return ViewingScope.create(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId()));
     }
 }

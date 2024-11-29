@@ -42,7 +42,7 @@ public class IdentityServiceImplTest extends LocalIdentityService {
 
     @Test
     public void shouldThrowExceptionWhenClientThrowsException()
-            throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException {
 
         IdentityService serviceThrowingException = mockServiceThrowsExceptionWhenLoadingRole();
         RoleDto sampleRole = EntityUtils.createRole(EntityUtils.randomRoleName());
@@ -52,13 +52,27 @@ public class IdentityServiceImplTest extends LocalIdentityService {
         assertThat(exception.getMessage(), containsString(EXPECTED_EXCEPTION_MESSAGE));
     }
 
+    private IdentityService mockServiceThrowsExceptionWhenLoadingRole() {
+        DynamoDbClient failingClient = mockMapperThrowingException();
+        return new IdentityServiceImpl(failingClient);
+    }
+
+    private DynamoDbClient mockMapperThrowingException() {
+        DynamoDbClient failingClient = mock(DynamoDbClient.class);
+        when(failingClient.getItem(any(GetItemRequest.class)))
+            .thenAnswer(ignored -> {
+                throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);
+            });
+        return failingClient;
+    }
+
     @Test
     public void getRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
         TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
         RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.randomRoleName());
         attempt(() -> databaseService.getRole(nonExistingRole));
         assertThat(testAppender.getMessages(),
-                StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
+            StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
     }
 
     @Test
@@ -81,7 +95,7 @@ public class IdentityServiceImplTest extends LocalIdentityService {
         RoleDto role = EntityUtils.createRole(EntityUtils.randomRoleName());
         assertThrows(NotFoundException.class, () -> databaseService.updateRole(role));
         assertThat(testAppender.getMessages(),
-                StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
+            StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
     }
 
     @Test
@@ -92,19 +106,5 @@ public class IdentityServiceImplTest extends LocalIdentityService {
 
         var users = databaseService.listAllUsers();
         assertThat(users, hasSize(2));
-    }
-
-    private IdentityService mockServiceThrowsExceptionWhenLoadingRole() {
-        DynamoDbClient failingClient = mockMapperThrowingException();
-        return new IdentityServiceImpl(failingClient);
-    }
-
-    private DynamoDbClient mockMapperThrowingException() {
-        DynamoDbClient failingClient = mock(DynamoDbClient.class);
-        when(failingClient.getItem(any(GetItemRequest.class)))
-                .thenAnswer(ignored -> {
-                    throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);
-                });
-        return failingClient;
     }
 }

@@ -6,7 +6,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 public class DynamoDbTestClientProvider {
 
     public static DynamoDbClient geClient() {
-        return  DynamoDBEmbedded.create().dynamoDbClient();
+        return DynamoDBEmbedded.create().dynamoDbClient();
     }
 
 }

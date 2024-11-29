@@ -49,7 +49,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     @Test
     void shouldUpdateAccessRightsWhenInputIsValidRequest()
-            throws NotFoundException, ConflictException, IOException {
+        throws NotFoundException, ConflictException, IOException {
         UserDto sampleUser = addSampleUserToDb();
         var expectedViewingScope = randomViewingScope();
         var input = createUpdateViewingScopeRequest(sampleUser, expectedViewingScope);
@@ -60,13 +60,33 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
         assertThat(actualViewingScope, is(equalTo(expectedViewingScope)));
     }
 
+    private UserDto addSampleUserToDb() throws ConflictException {
+        var sampleUser = createSampleUserAndInsertUserRoles();
+        databaseService.addUser(sampleUser);
+        return sampleUser;
+    }
+
+    private InputStream createUpdateViewingScopeRequest(UserDto sampleUser,
+                                                        ViewingScope expectedViewingScope)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<ViewingScope>(dtoObjectMapper)
+            .withBody(expectedViewingScope)
+            .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, sampleUser.getUsername()))
+            .build();
+    }
+
     @Test
     void shouldReturnAcceptedWhenInputIsValidAndUpdateHasBeenSubmittedToEventuallyConsistentDb()
-            throws ConflictException, IOException {
+        throws ConflictException, IOException {
         var sampleUser = addSampleUserToDb();
         var request = createUpdateViewingScopeRequest(sampleUser, randomViewingScope());
         var response = sendRequest(request, Void.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_ACCEPTED)));
+    }
+
+    private <I> GatewayResponse<I> sendRequest(InputStream request, Class<I> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, CONTEXT);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
 
     @Test
@@ -79,16 +99,28 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
     @Test
     void shouldReturnBadRequestWhenBodyIsNotValidViewingScope()
-            throws ConflictException, IOException {
+        throws ConflictException, IOException {
         var sampleUser = addSampleUserToDb();
         var request = createInvalidUpdateViewingScopeRequest(sampleUser);
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
+    private InputStream createInvalidUpdateViewingScopeRequest(UserDto objectThatIsNotViewingScope)
+        throws JsonProcessingException {
+        var jsonMap = attempt(() -> JsonConfig.writeValueAsString(objectThatIsNotViewingScope))
+            .map(JsonConfig::mapFrom)
+            .orElseThrow();
+        jsonMap.remove("type");
+        return new HandlerRequestBuilder<Map<String,?>>(dtoObjectMapper)
+            .withBody(jsonMap)
+            .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, objectThatIsNotViewingScope.getUsername()))
+            .build();
+    }
+
     @Test
     void shouldContainContentTypeHeaderWithValueJson()
-            throws ConflictException, IOException {
+        throws ConflictException, IOException {
         var sampleUser = addSampleUserToDb();
         var request = createUpdateViewingScopeRequest(sampleUser, randomViewingScope());
         var response = sendRequest(request, Problem.class);
@@ -100,41 +132,9 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
     @Test
     void shouldReturnBadRequestWheRequestBodyIsInValid() throws InvalidEntryInternalException, IOException {
         var request = new HandlerRequestBuilder<String>(dtoObjectMapper)
-                .withBody(randomString())
-                .build();
+            .withBody(randomString())
+            .build();
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
-    }
-
-    private <I> GatewayResponse<I> sendRequest(InputStream request, Class<I> responseType) throws IOException {
-        handler.handleRequest(request, outputStream, CONTEXT);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private UserDto addSampleUserToDb() throws ConflictException {
-        var sampleUser = createSampleUserAndInsertUserRoles();
-        databaseService.addUser(sampleUser);
-        return sampleUser;
-    }
-
-    private InputStream createUpdateViewingScopeRequest(UserDto sampleUser,
-                                                        ViewingScope expectedViewingScope)
-            throws JsonProcessingException {
-        return new HandlerRequestBuilder<ViewingScope>(dtoObjectMapper)
-                .withBody(expectedViewingScope)
-                .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, sampleUser.getUsername()))
-                .build();
-    }
-
-    private InputStream createInvalidUpdateViewingScopeRequest(UserDto objectThatIsNotViewingScope)
-            throws JsonProcessingException {
-        var jsonMap = attempt(() -> JsonConfig.writeValueAsString(objectThatIsNotViewingScope))
-                .map(JsonConfig::mapFrom)
-                .orElseThrow();
-        jsonMap.remove("type");
-        return new HandlerRequestBuilder<Map>(dtoObjectMapper)
-                .withBody(jsonMap)
-                .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, objectThatIsNotViewingScope.getUsername()))
-                .build();
     }
 }

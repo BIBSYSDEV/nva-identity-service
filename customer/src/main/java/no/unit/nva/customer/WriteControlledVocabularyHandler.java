@@ -14,20 +14,17 @@ import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 
 public abstract class WriteControlledVocabularyHandler
-        extends ControlledVocabularyHandler<VocabularyList, VocabularyList> {
+    extends ControlledVocabularyHandler<VocabularyList, VocabularyList> {
 
     protected WriteControlledVocabularyHandler(CustomerService customerService) {
         super(customerService, VocabularyList.class);
     }
 
-    protected abstract CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer)
-            throws ApiGatewayException;
-
     @Override
     protected final VocabularyList processInput(VocabularyList input,
                                                 RequestInfo requestInfo,
                                                 Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
         if (!userIsAuthorized(requestInfo)) {
             throw new ForbiddenException();
         }
@@ -38,9 +35,12 @@ public abstract class WriteControlledVocabularyHandler
         return VocabularyList.fromCustomerDto(updatedCustomer);
     }
 
+    protected abstract CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer)
+        throws ApiGatewayException;
+
     private boolean userIsAuthorized(RequestInfo requestInfo) {
         return requestInfo.clientIsInternalBackend()
-                || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS)
-                || requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
+            || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS)
+            || requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
     }
 }

@@ -3,7 +3,6 @@ package no.unit.nva.useraccessservice.model;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import no.unit.nva.commons.json.JsonSerializable;
 
-
 import java.net.URI;
 
 @JsonSerialize

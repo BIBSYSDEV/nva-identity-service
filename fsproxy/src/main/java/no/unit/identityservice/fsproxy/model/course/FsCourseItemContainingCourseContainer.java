@@ -20,8 +20,8 @@ public class FsCourseItemContainingCourseContainer {
 
     public static List<FsCourseItemContainingCourseContainer> fromCourseList(List<FsCourse> fsCourses) {
         return fsCourses.stream()
-                .map(FsCourseItemContainingCourseContainer::create)
-                .collect(Collectors.toList());
+            .map(FsCourseItemContainingCourseContainer::create)
+            .collect(Collectors.toList());
     }
 
     private static FsCourseItemContainingCourseContainer create(FsCourse course) {

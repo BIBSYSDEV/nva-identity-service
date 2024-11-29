@@ -28,40 +28,41 @@ public class TermsAndConditionsService {
         crudService = new DynamoCrudService<>(client, PERSISTED_ENTITY, TermsConditions.class);
     }
 
-    public TermsConditionsResponse getCurrentTermsAndConditions() {
-        return TermsConditionsResponse.builder()
-                .withTermsConditionsUri(TERMS_URL)
-                .build();
-    }
-
     public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) {
         var fetchedUri =
-                attempt(
-                        () -> TermsConditions.builder()
-                                .id(cristinId)
-                                .build()
-                                .fetch(crudService)
-                                .termsConditionsUri()
-                );
+            attempt(
+                () -> TermsConditions.builder()
+                    .id(cristinId)
+                    .build()
+                    .fetch(crudService)
+                    .termsConditionsUri()
+            );
 
         return TermsConditionsResponse.builder()
-                .withTermsConditionsUri(fetchedUri.or(() -> null).get())
-                .build();
+            .withTermsConditionsUri(fetchedUri.or(() -> null).get())
+            .build();
     }
 
-    public TermsConditionsResponse updateTermsAndConditions(URI cristinId, URI termsConditions, URI userId) throws NotFoundException {
+    public TermsConditionsResponse updateTermsAndConditions(URI cristinId, URI termsConditions, URI userId)
+        throws NotFoundException {
         var upserted = TermsConditions.builder()
-                .id(cristinId)
-                .modifiedBy(userId)
-                .termsConditionsUri(termsConditions)
-                .build()
-                .upsert(crudService);
+            .id(cristinId)
+            .modifiedBy(userId)
+            .termsConditionsUri(termsConditions)
+            .build()
+            .upsert(crudService);
         return TermsConditionsResponse.builder()
-                .withTermsConditionsUri(upserted.termsConditionsUri())
-                .build();
+            .withTermsConditionsUri(upserted.termsConditionsUri())
+            .build();
     }
 
     public List<TermsConditionsResponse> getAllTermsAndConditions() {
         return List.of(getCurrentTermsAndConditions());
+    }
+
+    public TermsConditionsResponse getCurrentTermsAndConditions() {
+        return TermsConditionsResponse.builder()
+            .withTermsConditionsUri(TERMS_URL)
+            .build();
     }
 }

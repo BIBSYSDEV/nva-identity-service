@@ -30,15 +30,15 @@ public enum PublicationWorkflow {
     @JsonCreator
     public static PublicationWorkflow lookUp(String value) {
         return stream(values())
-                .filter(nameType -> nameType.getValue().equalsIgnoreCase(value))
-                .collect(SingletonCollector.tryCollect())
-                .orElseThrow(failure -> throwException(failure, value));
+            .filter(nameType -> nameType.getValue().equalsIgnoreCase(value))
+            .collect(SingletonCollector.tryCollect())
+            .orElseThrow(failure -> throwException(failure, value));
     }
 
     private static RuntimeException throwException(Failure<PublicationWorkflow> failure, String value) {
         return new IllegalArgumentException(
-                format(ERROR_MESSAGE_TEMPLATE, value, stream(PublicationWorkflow.values())
-                        .map(PublicationWorkflow::toString).collect(joining(DELIMITER))));
+            format(ERROR_MESSAGE_TEMPLATE, value, stream(PublicationWorkflow.values())
+                .map(PublicationWorkflow::toString).collect(joining(DELIMITER))));
     }
 
     @JsonValue

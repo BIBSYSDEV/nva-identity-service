@@ -41,28 +41,28 @@ class CognitoServiceTest {
         cognitoService = new CognitoService(cognitoClient);
 
         var createUserPoolClientResponse = CreateUserPoolClientResponse.builder().userPoolClient(
-                UserPoolClientType.builder().clientId(CLIENT_ID).clientSecret(CLIENT_SECRET).build()
+            UserPoolClientType.builder().clientId(CLIENT_ID).clientSecret(CLIENT_SECRET).build()
         ).build();
 
         when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
-                .thenReturn(createUserPoolClientResponse);
+            .thenReturn(createUserPoolClientResponse);
 
         var describeRequestServerResponse = DescribeResourceServerResponse
+            .builder()
+            .resourceServer(ResourceServerType
                 .builder()
-                .resourceServer(ResourceServerType
+                .identifier(EXTERNAL_SCOPE_IDENTIFIER)
+                .scopes(List.of(
+                    ResourceServerScopeType
                         .builder()
-                        .identifier(EXTERNAL_SCOPE_IDENTIFIER)
-                        .scopes(List.of(
-                                ResourceServerScopeType
-                                        .builder()
-                                        .scopeName("publication-read")
-                                        .build()
-                        ))
-                        .build())
-                .build();
+                        .scopeName("publication-read")
+                        .build()
+                ))
+                .build())
+            .build();
 
         when(cognitoClient.describeResourceServer(any(DescribeResourceServerRequest.class)))
-                .thenReturn(describeRequestServerResponse);
+            .thenReturn(describeRequestServerResponse);
     }
 
     @Test
@@ -80,10 +80,10 @@ class CognitoServiceTest {
 
     @Test
     void shouldThrowBadReqeuestExceptionWhenCreatingCognitoClientWithUnknownScopes()
-            throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException {
 
         when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
-                .thenThrow(ScopeDoesNotExistException.class);
+            .thenThrow(ScopeDoesNotExistException.class);
 
         Executable action = () -> cognitoService.createUserPoolClient(CLIENT_NAME, List.of());
 
@@ -92,10 +92,10 @@ class CognitoServiceTest {
 
     @Test
     void shouldThrowRuntimeExceptionWhenCreatingCognitoClientWithUnhandledException()
-            throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException {
 
         when(cognitoClient.createUserPoolClient(any(CreateUserPoolClientRequest.class)))
-                .thenThrow(InternalErrorException.class);
+            .thenThrow(InternalErrorException.class);
 
         Executable action = () -> cognitoService.createUserPoolClient(CLIENT_NAME, List.of());
 

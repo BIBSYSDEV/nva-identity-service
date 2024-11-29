@@ -54,7 +54,11 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
     protected UUID getIdentifier(RequestInfo requestInfo) throws InputException {
         String identifier = RequestUtils.getPathParameter(requestInfo, IDENTIFIER).orElse(null);
         return attempt(() -> UUID.fromString(identifier))
-                .orElseThrow(fail -> handleIdentifierParsingError(identifier, fail));
+            .orElseThrow(fail -> handleIdentifierParsingError(identifier, fail));
+    }
+
+    private InputException handleIdentifierParsingError(String identifier, Failure<UUID> fail) {
+        return new InputException(IDENTIFIER_IS_NOT_A_VALID_UUID + identifier, fail.getException());
     }
 
     protected Map<UUID, SecretManagerDoiAgentDao> getSecretsManagerDoiAgent() throws JsonProcessingException {
@@ -66,15 +70,21 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
         }
 
         return Arrays.stream(dtoObjectMapper.readValue(secretAsStringJsonArray, SecretManagerDoiAgentDao[].class))
-                .collect(Collectors.toConcurrentMap(
-                        this::extractKey,
-                        doiAgent -> doiAgent,
-                        SecretManagerDoiAgentDao::merge));
+            .collect(Collectors.toConcurrentMap(
+                this::extractKey,
+                doiAgent -> doiAgent,
+                SecretManagerDoiAgentDao::merge));
     }
 
+    private UUID extractKey(SecretManagerDoiAgentDao doiAgent) {
+        return toUuid(doiAgent.getCustomerId());
+    }
 
-    private InputException handleIdentifierParsingError(String identifier, Failure<UUID> fail) {
-        return new InputException(IDENTIFIER_IS_NOT_A_VALID_UUID + identifier, fail.getException());
+    private UUID toUuid(URI customerId) {
+        return
+            UUID.fromString(
+                UriWrapper.fromUri(customerId).getLastPathElement()
+            );
     }
 
     protected void authorizeDoiAgentRead(RequestInfo requestInfo) throws ForbiddenException {
@@ -87,31 +97,20 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
         return !requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 
-    private UUID toUuid(URI customerId) {
-        return
-                UUID.fromString(
-                        UriWrapper.fromUri(customerId).getLastPathElement()
-                );
-    }
-
-    private UUID extractKey(SecretManagerDoiAgentDao doiAgent) {
-        return toUuid(doiAgent.getCustomerId());
-    }
-
     private ObjectMapper createJsonParser() {
         var jsonFactory =
-                new JsonFactory()
-                        .configure(Feature.ALLOW_SINGLE_QUOTES, true);
+            new JsonFactory()
+                .configure(Feature.ALLOW_SINGLE_QUOTES, true);
         return
-                new ObjectMapper(jsonFactory)
-                        .registerModule(new ProblemModule())
-                        .registerModule(new JavaTimeModule())
-                        .registerModule(new Jdk8Module())
-                        .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
-                        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                        .disable(SerializationFeature.INDENT_OUTPUT)
-                        .setSerializationInclusion(Include.ALWAYS);
+            new ObjectMapper(jsonFactory)
+                .registerModule(new ProblemModule())
+                .registerModule(new JavaTimeModule())
+                .registerModule(new Jdk8Module())
+                .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(SerializationFeature.INDENT_OUTPUT)
+                .setSerializationInclusion(Include.ALWAYS);
     }
 
 }

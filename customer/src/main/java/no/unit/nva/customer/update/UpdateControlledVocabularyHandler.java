@@ -12,7 +12,7 @@ import java.net.HttpURLConnection;
 public class UpdateControlledVocabularyHandler extends CreateControlledVocabularyHandler {
 
     public static final String VOCABULARY_SETTINGS_NOT_DEFINED_ERROR = "Customer had not defined Vocabulary settings."
-            + " Use POST if you want to define new";
+        + " Use POST if you want to define new";
 
     @JacocoGenerated
     public UpdateControlledVocabularyHandler() {
@@ -25,7 +25,7 @@ public class UpdateControlledVocabularyHandler extends CreateControlledVocabular
 
     @Override
     protected CustomerDto updateVocabularySettings(VocabularyList input, CustomerDto customer)
-            throws BadRequestException {
+        throws BadRequestException {
         if (!customer.getVocabularies().isEmpty()) {
             return customer.copy().withVocabularies(input.getVocabularies()).build();
         }

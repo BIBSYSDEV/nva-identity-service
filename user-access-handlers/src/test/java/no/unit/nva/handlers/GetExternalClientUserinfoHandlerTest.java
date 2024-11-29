@@ -39,16 +39,16 @@ public class GetExternalClientUserinfoHandlerTest extends HandlerTest {
     @Test
     public void shouldReturnTheClientWithOnlyExternalToken() throws IOException {
         var client =
-                ClientDto.newBuilder()
-                        .withClientId("someClientId")
-                        .withCristinOrgUri(RandomDataGenerator.randomUri())
-                        .withCustomer(RandomDataGenerator.randomUri())
-                        .withActingUser("someone@123")
-                        .build();
+            ClientDto.newBuilder()
+                .withClientId("someClientId")
+                .withCristinOrgUri(RandomDataGenerator.randomUri())
+                .withCustomer(RandomDataGenerator.randomUri())
+                .withActingUser("someone@123")
+                .build();
 
         insertClientToDatabase(client);
         var gatewayResponse = sendRequest(createRequestWithClientInToken("someClientId"),
-                GetExternalClientResponse.class);
+            GetExternalClientResponse.class);
 
         assertThat(gatewayResponse.getStatusCode(), is(equalTo(HTTP_OK)));
         assertThat(gatewayResponse.getBody(), containsString("customerUri"));
@@ -60,10 +60,10 @@ public class GetExternalClientUserinfoHandlerTest extends HandlerTest {
     }
 
     private InputStream createRequestWithClientInToken(String clientId)
-            throws JsonProcessingException {
+        throws JsonProcessingException {
 
         return new HandlerRequestBuilder<CreateExternalClientRequest>(dtoObjectMapper)
-                .withClientId(clientId)
-                .build();
+            .withClientId(clientId)
+            .build();
     }
 }

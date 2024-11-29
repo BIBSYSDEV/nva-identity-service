@@ -23,7 +23,7 @@ public final class EntityUtils {
     public static final URI SOME_INSTITUTION = randomCristinOrgId();
     public static final String EMPTY_STRING = "";
     public static final Set<AccessRight> SAMPLE_ACCESS_RIGHTS =
-            Collections.singleton(MANAGE_DOI);
+        Collections.singleton(MANAGE_DOI);
     private static final String SOME_GIVEN_NAME = "givenName";
     private static final String SOME_FAMILY_NAME = "familyName";
 
@@ -33,7 +33,7 @@ public final class EntityUtils {
      * @return a {@link UserDto}
      */
     public static Map<String, Object> createUserWithoutUsername()
-            throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException {
         UserDto userDto = createUserWithRolesAndInstitution();
         var jsonMap = attempt(userDto::toString).map(JsonConfig::mapFrom).orElseThrow();
         jsonMap.put(UserDto.USERNAME_FIELD, EMPTY_STRING);
@@ -47,10 +47,10 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
     public static UserDto createUserWithRolesAndInstitution()
-            throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException {
         return createUserWithRoleWithoutInstitution().copy()
-                .withInstitution(SOME_INSTITUTION)
-                .build();
+            .withInstitution(SOME_INSTITUTION)
+            .build();
     }
 
     /**
@@ -60,14 +60,14 @@ public final class EntityUtils {
      * @throws InvalidEntryInternalException When the user is invalid. The user is supposed to be a valid user.
      */
     public static UserDto createUserWithRoleWithoutInstitution()
-            throws InvalidEntryInternalException {
+        throws InvalidEntryInternalException {
         RoleDto sampleRole = createRole(RoleName.CREATOR);
         return UserDto.newBuilder()
-                .withUsername(SOME_USERNAME)
-                .withGivenName(SOME_GIVEN_NAME)
-                .withFamilyName(SOME_FAMILY_NAME)
-                .withRoles(Collections.singletonList(sampleRole))
-                .build();
+            .withUsername(SOME_USERNAME)
+            .withGivenName(SOME_GIVEN_NAME)
+            .withFamilyName(SOME_FAMILY_NAME)
+            .withRoles(Collections.singletonList(sampleRole))
+            .build();
     }
 
     /**
@@ -79,9 +79,9 @@ public final class EntityUtils {
      */
     public static RoleDto createRole(RoleName roleName) throws InvalidEntryInternalException {
         return
-                RoleDto.newBuilder()
-                        .withRoleName(roleName)
-                        .withAccessRights(SAMPLE_ACCESS_RIGHTS)
-                        .build();
+            RoleDto.newBuilder()
+                .withRoleName(roleName)
+                .withAccessRights(SAMPLE_ACCESS_RIGHTS)
+                .build();
     }
 }

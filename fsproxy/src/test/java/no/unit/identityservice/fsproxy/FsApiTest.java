@@ -59,7 +59,7 @@ public class FsApiTest {
         var coursesIfStudent = fsMock.getStudentCourses(somePerson);
         var coursesIfStaff = fsMock.getCoursesToStaffPerson();
         var expectedCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream())
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
         var actualCourses = fsApi.fetchCoursesForPerson(somePerson);
 
         assertThat(actualCourses, is(equalTo(expectedCourses)));
@@ -67,12 +67,12 @@ public class FsApiTest {
 
     @Test
     void shouldReturnAllCoursesToPersonWhenPersonIsBothStudentAndStaffPerson()
-            throws IOException, InterruptedException {
+        throws IOException, InterruptedException {
         var somePerson = fsMock.createPersonWhichIsStudentAndStaffPerson();
         var coursesIfStudent = fsMock.getStudentCourses(somePerson);
         var coursesIfStaff = fsMock.getCoursesToStaffPerson();
         var expectedCourses = Stream.concat(coursesIfStaff.stream(), coursesIfStudent.stream())
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
         var actualCourses = fsApi.fetchCoursesForPerson(somePerson);
 
         assertThat(actualCourses, is(equalTo(expectedCourses)));

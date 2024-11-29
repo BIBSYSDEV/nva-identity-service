@@ -10,7 +10,7 @@ public abstract class HandlerAccessingUser<I, O> extends ApiGatewayHandler<I, O>
     public static final String USERNAME_PATH_PARAMETER = "username";
 
     public static final String EMPTY_USERNAME_PATH_PARAMETER_ERROR =
-            "Path parameter \"" + USERNAME_PATH_PARAMETER + "\" cannot be empty";
+        "Path parameter \"" + USERNAME_PATH_PARAMETER + "\" cannot be empty";
 
     protected HandlerAccessingUser(Class<I> iclass) {
         super(iclass);

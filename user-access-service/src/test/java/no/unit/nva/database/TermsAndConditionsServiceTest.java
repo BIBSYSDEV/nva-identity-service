@@ -20,9 +20,9 @@ public class TermsAndConditionsServiceTest {
     @BeforeAll
     static void initialize() {
         DynamoDbClient client = DynamoDbTestClientProvider
-                .geClient();
+            .geClient();
         new DynamoDbTableCreator(client)
-                .createTable(PERSISTED_ENTITY);
+            .createTable(PERSISTED_ENTITY);
 
         termsConditionsService = new TermsAndConditionsService(client);
 
@@ -32,18 +32,18 @@ public class TermsAndConditionsServiceTest {
     void shouldUpdateTermsConditions() throws NotFoundException {
         var userIdentifier = randomUri();
         var expectedResponse = TermsConditionsResponse.builder()
-                .withTermsConditionsUri(randomUri())
-                .build();
+            .withTermsConditionsUri(randomUri())
+            .build();
 
         var response = termsConditionsService
-                .updateTermsAndConditions(
-                        userIdentifier,
-                        expectedResponse.termsConditionsUri(),
-                        userIdentifier
-                );
+            .updateTermsAndConditions(
+                userIdentifier,
+                expectedResponse.termsConditionsUri(),
+                userIdentifier
+            );
 
         var fetchedResponse = termsConditionsService
-                .getTermsAndConditionsByPerson(userIdentifier);
+            .getTermsAndConditionsByPerson(userIdentifier);
 
 
         assertThat(expectedResponse, is(equalTo(response)));
@@ -60,18 +60,18 @@ public class TermsAndConditionsServiceTest {
     void shouldReturnTermsConditionsByPerson() throws NotFoundException {
         var userIdentifier = randomUri();
         var expectedResponse = TermsConditionsResponse.builder()
-                .withTermsConditionsUri(randomUri())
-                .build();
+            .withTermsConditionsUri(randomUri())
+            .build();
 
         termsConditionsService
-                .updateTermsAndConditions(
-                        userIdentifier,
-                        expectedResponse.termsConditionsUri(),
-                        userIdentifier
-                );
+            .updateTermsAndConditions(
+                userIdentifier,
+                expectedResponse.termsConditionsUri(),
+                userIdentifier
+            );
 
         var fetchedResponse = termsConditionsService
-                .getTermsAndConditionsByPerson(userIdentifier);
+            .getTermsAndConditionsByPerson(userIdentifier);
 
         assertThat(expectedResponse, is(equalTo(fetchedResponse)));
     }

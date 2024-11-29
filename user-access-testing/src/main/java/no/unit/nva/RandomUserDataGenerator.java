@@ -21,16 +21,16 @@ public final class RandomUserDataGenerator {
         // NO-OP
     }
 
-    public static URI randomCristinOrgId() {
-        return new UriWrapper("https", API_DOMAIN)
-                .addChild(CRISTIN_PATH)
-                .addChild(randomString())
-                .getUri();
-    }
-
     public static ViewingScope randomViewingScope() {
         return attempt(() -> ViewingScope.create(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId())))
-                .orElseThrow();
+            .orElseThrow();
+    }
+
+    public static URI randomCristinOrgId() {
+        return new UriWrapper("https", API_DOMAIN)
+            .addChild(CRISTIN_PATH)
+            .addChild(randomString())
+            .getUri();
     }
 
     public static RoleName randomRoleName() {

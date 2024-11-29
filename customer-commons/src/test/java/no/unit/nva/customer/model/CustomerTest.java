@@ -39,6 +39,41 @@ class CustomerTest {
         assertNotNull(mappedCustomerDB);
     }
 
+    private CustomerDao createCustomerDb() {
+        Instant now = Instant.now();
+
+        Set<VocabularyDao> vocabularySettings = new HashSet<>();
+        vocabularySettings.add(vocabularySetting());
+
+        return new CustomerDao.Builder()
+            .withIdentifier(UUID.randomUUID())
+            .withName("Name")
+            .withShortName("SN")
+            .withCreatedDate(now)
+            .withModifiedDate(now)
+            .withDisplayName("Display Name")
+            .withArchiveName("Archive Name")
+            .withCname("CNAME")
+            .withInstitutionDns("institution.dns")
+            .withFeideOrganizationDomain("123456789")
+            .withCristinId(randomCristinOrgId())
+            .withCustomerOf(randomApplicationDomainUri())
+            .withVocabularySettings(vocabularySettings)
+            .withRorId(randomUri())
+            .withPublicationWorkflow(randomPublicationWorkflow())
+            .withDoiAgent(CustomerDataGenerator.randomDoiAgent(randomString()))
+            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+            .build();
+    }
+
+    private VocabularyDao vocabularySetting() {
+        return new VocabularyDao(
+            "Vocabulary A",
+            URI.create("http://uri.to.vocabulary.a"),
+            VocabularyStatus.lookUp("Default")
+        );
+    }
+
     @Test
     void customerMapperCanMapCustomerDbToCustomerDto() {
         CustomerDao customerDb = createCustomerDb();
@@ -51,12 +86,12 @@ class CustomerTest {
     void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
         String value = "Unknown";
         IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
-                () -> VocabularyStatus.lookUp(value));
+            () -> VocabularyStatus.lookUp(value));
 
         String expectedMessage = format(ERROR_MESSAGE_TEMPLATE, value,
-                stream(VocabularyStatus.values())
-                        .map(VocabularyStatus::toString)
-                        .collect(joining(VocabularyStatus.DELIMITER)));
+            stream(VocabularyStatus.values())
+                .map(VocabularyStatus::toString)
+                .collect(joining(VocabularyStatus.DELIMITER)));
 
         assertEquals(expectedMessage, actual.getMessage());
     }
@@ -67,40 +102,5 @@ class CustomerTest {
         customerDb.getVocabularies().add(vocabularySetting());
 
         assertThat(customerDb.getVocabularies().size(), Matchers.is(Matchers.equalTo(1)));
-    }
-
-    private CustomerDao createCustomerDb() {
-        Instant now = Instant.now();
-
-        Set<VocabularyDao> vocabularySettings = new HashSet<>();
-        vocabularySettings.add(vocabularySetting());
-
-        return new CustomerDao.Builder()
-                .withIdentifier(UUID.randomUUID())
-                .withName("Name")
-                .withShortName("SN")
-                .withCreatedDate(now)
-                .withModifiedDate(now)
-                .withDisplayName("Display Name")
-                .withArchiveName("Archive Name")
-                .withCname("CNAME")
-                .withInstitutionDns("institution.dns")
-                .withFeideOrganizationDomain("123456789")
-                .withCristinId(randomCristinOrgId())
-                .withCustomerOf(randomApplicationDomainUri())
-                .withVocabularySettings(vocabularySettings)
-                .withRorId(randomUri())
-                .withPublicationWorkflow(randomPublicationWorkflow())
-                .withDoiAgent(CustomerDataGenerator.randomDoiAgent(randomString()))
-                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                .build();
-    }
-
-    private VocabularyDao vocabularySetting() {
-        return new VocabularyDao(
-                "Vocabulary A",
-                URI.create("http://uri.to.vocabulary.a"),
-                VocabularyStatus.lookUp("Default")
-        );
     }
 }

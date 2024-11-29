@@ -25,9 +25,6 @@ public class VocabularyDao implements Vocabulary {
 
     private VocabularyStatus status;
 
-    public VocabularyDao() {
-    }
-
     public VocabularyDao(String name, URI id, VocabularyStatus status) {
         this();
         this.name = name;
@@ -35,10 +32,19 @@ public class VocabularyDao implements Vocabulary {
         this.status = status;
     }
 
+    public VocabularyDao() {
+    }
+
     public static VocabularyDao fromVocabularySettingsDto(VocabularyDto vocabularySettingDto) {
         return new VocabularyDao(vocabularySettingDto.getName(),
-                vocabularySettingDto.getId(),
-                vocabularySettingDto.getStatus());
+            vocabularySettingDto.getId(),
+            vocabularySettingDto.getStatus());
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getName(), getId(), getStatus());
     }
 
     @Override
@@ -74,23 +80,16 @@ public class VocabularyDao implements Vocabulary {
 
     @Override
     @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getName(), getId(), getStatus());
-    }
-
-    @Override
-    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof VocabularyDao)) {
+        if (!(o instanceof VocabularyDao that)) {
             return false;
         }
-        VocabularyDao that = (VocabularyDao) o;
         return Objects.equals(getName(), that.getName())
-                && Objects.equals(getId(), that.getId())
-                && getStatus() == that.getStatus();
+            && Objects.equals(getId(), that.getId())
+            && getStatus() == that.getStatus();
     }
 
     public VocabularyDto toVocabularySettingsDto() {

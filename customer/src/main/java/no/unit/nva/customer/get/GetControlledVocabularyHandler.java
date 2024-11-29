@@ -28,21 +28,21 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, VocabularyList output) {
-        return HttpURLConnection.HTTP_OK;
-    }
-
-    @Override
     protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         //Do nothing
     }
 
     @Override
     protected VocabularyList processInput(Void input, RequestInfo requestInfo, Context context)
-            throws NotFoundException, ForbiddenException {
+        throws NotFoundException, ForbiddenException {
 
         UUID identifier = extractIdentifier(requestInfo);
         CustomerDto customerDto = customerService.getCustomer(identifier);
         return VocabularyList.fromCustomerDto(customerDto);
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(Void input, VocabularyList output) {
+        return HttpURLConnection.HTTP_OK;
     }
 }

@@ -24,9 +24,9 @@ public final class EntityUtils {
         var accessRightSet = Arrays.stream(accessRights).collect(Collectors.toSet());
 
         return RoleDto.newBuilder()
-                .withRoleName(roleName)
-                .withAccessRights(accessRightSet)
-                .build();
+            .withRoleName(roleName)
+            .withAccessRights(accessRightSet)
+            .build();
     }
 
     public static UserDto createUser() {

@@ -77,27 +77,15 @@ public final class CristinPersonRegistry implements PersonRegistry {
     @JacocoGenerated
     public static PersonRegistry defaultPersonRegistry() {
         var defaultRequestHeaders = new HttpHeaders()
-                .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+            .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         return personRegistry(HttpClient.newBuilder()
-                        .version(Version.HTTP_1_1)
-                        .followRedirects(Redirect.NORMAL)
-                        .build(),
-                ServiceConstants.CRISTIN_BASE_URI,
-                ServiceConstants.API_DOMAIN,
-                defaultRequestHeaders,
-                new SecretsReader());
-    }
-
-    public static PersonRegistry customPersonRegistry(HttpClient httpClient,
-                                                      URI cristinBaseUri,
-                                                      String apiDomain,
-                                                      HttpHeaders defaultRequestHeaders,
-                                                      SecretsReader secretsReader) {
-        return personRegistry(httpClient,
-                cristinBaseUri,
-                apiDomain,
-                defaultRequestHeaders,
-                secretsReader);
+                .version(Version.HTTP_1_1)
+                .followRedirects(Redirect.NORMAL)
+                .build(),
+            ServiceConstants.CRISTIN_BASE_URI,
+            ServiceConstants.API_DOMAIN,
+            defaultRequestHeaders,
+            new SecretsReader());
     }
 
     private static PersonRegistry personRegistry(HttpClient httpClient,
@@ -106,19 +94,31 @@ public final class CristinPersonRegistry implements PersonRegistry {
                                                  HttpHeaders defaultRequestHeaders,
                                                  SecretsReader secretsReader) {
         return new CristinPersonRegistry(httpClient,
-                cristinBaseUri,
-                apiDomain,
-                defaultRequestHeaders,
-                secretsReaderCristinCredentialsSupplier(secretsReader));
+            cristinBaseUri,
+            apiDomain,
+            defaultRequestHeaders,
+            secretsReaderCristinCredentialsSupplier(secretsReader));
     }
 
     private static Supplier<CristinCredentials> secretsReaderCristinCredentialsSupplier(SecretsReader secretsReader) {
         return () -> secretsReader.fetchClassSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CristinCredentials.class);
     }
 
+    public static PersonRegistry customPersonRegistry(HttpClient httpClient,
+                                                      URI cristinBaseUri,
+                                                      String apiDomain,
+                                                      HttpHeaders defaultRequestHeaders,
+                                                      SecretsReader secretsReader) {
+        return personRegistry(httpClient,
+            cristinBaseUri,
+            apiDomain,
+            defaultRequestHeaders,
+            secretsReader);
+    }
+
     private static <T> T fromJson(String responseAsString, Class<T> type) {
         return attempt(() -> JsonUtils.dtoObjectMapper.readValue(responseAsString, type))
-                .orElseThrow(CristinPersonRegistry::logAndThrowException);
+            .orElseThrow(CristinPersonRegistry::logAndThrowException);
     }
 
     @SuppressWarnings("PMD.InvalidLogMessageFormat")
@@ -141,12 +141,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Read cristin credentials from secrets manager in {} ms.",
-                    Instant.now().toEpochMilli() - start.toEpochMilli());
+                Instant.now().toEpochMilli() - start.toEpochMilli());
         }
 
         return fetchPersonByNinFromCristin(nin, cristinCredentials)
-                .map(person -> fetchPersonFromCristin(person, cristinCredentials))
-                .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+            .map(person -> fetchPersonFromCristin(person, cristinCredentials))
+            .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
     }
 
     @Override
@@ -156,11 +156,11 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Read cristin credentials from secrets manager in {} ms.",
-                    Instant.now().toEpochMilli() - start.toEpochMilli());
+                Instant.now().toEpochMilli() - start.toEpochMilli());
         }
 
         return fetchPersonByIdentifierFromCristin(cristinIdentifier, cristinCredentials)
-                .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+            .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
     }
 
     private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem,
@@ -176,11 +176,11 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     private HttpRequest createRequest(URI uri, CristinCredentials cristinCredentials) {
         var requestBuilder = HttpRequest.newBuilder(uri)
-                .GET()
-                .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
+            .GET()
+            .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
 
         defaultRequestHeaders.stream()
-                .forEach(entry -> requestBuilder.header(entry.getKey(), entry.getValue()));
+            .forEach(entry -> requestBuilder.header(entry.getKey(), entry.getValue()));
 
         return requestBuilder.build();
     }
@@ -188,31 +188,31 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private Person asPerson(CristinPerson cristinPerson, CristinCredentials cristinCredentials) {
 
         var personAffiliations
-                = cristinPerson.getAffiliations().stream()
-                .filter(CristinAffiliation::isActive)
-                .map(activeAffiliation -> collectAffiliation(activeAffiliation, cristinCredentials))
-                .collect(Collectors.groupingBy(GenericPair::getLeft, mapping(GenericPair::getRight, toList())))
-                .entrySet().stream()
-                .map(a -> new Affiliation(a.getKey(), a.getValue()))
-                .collect(toList());
+            = cristinPerson.getAffiliations().stream()
+            .filter(CristinAffiliation::isActive)
+            .map(activeAffiliation -> collectAffiliation(activeAffiliation, cristinCredentials))
+            .collect(Collectors.groupingBy(GenericPair::getLeft, mapping(GenericPair::getRight, toList())))
+            .entrySet().stream()
+            .map(a -> new Affiliation(a.getKey(), a.getValue()))
+            .collect(toList());
 
         return new Person(generateCristinIdForPerson(cristinPerson.getId()),
-                cristinPerson.getId(),
-                cristinPerson.getFirstname(),
-                cristinPerson.getSurname(),
-                personAffiliations);
+            cristinPerson.getId(),
+            cristinPerson.getFirstname(),
+            cristinPerson.getSurname(),
+            personAffiliations);
     }
 
     private URI generateCristinIdForOrganization(String identifier) {
         return new UriWrapper(HTTPS_SCHEME, apiDomain)
-                .addChild(CRISTIN_PATH, ORGANIZATION_PATH, identifier)
-                .getUri();
+            .addChild(CRISTIN_PATH, ORGANIZATION_PATH, identifier)
+            .getUri();
     }
 
     private URI generateCristinIdForPerson(String identifier) {
         return new UriWrapper(HTTPS_SCHEME, apiDomain)
-                .addChild(CRISTIN_PATH, PERSON_PATH, identifier)
-                .getUri();
+            .addChild(CRISTIN_PATH, PERSON_PATH, identifier)
+            .getUri();
     }
 
     private GenericPair<URI> collectAffiliation(CristinAffiliation cristinAffiliation,
@@ -222,7 +222,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
         var cristinInstitution = fetchInstitutionFromCristin(institutionUri, cristinCredentials);
         var institutionId = cristinInstitution.getCorrespondingUnit().getId();
         return new GenericPair<>(generateCristinIdForOrganization(institutionId),
-                generateCristinIdForOrganization(cristinAffiliation.getUnit().getId()));
+            generateCristinIdForOrganization(cristinAffiliation.getUnit().getId()));
     }
 
     private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(NationalIdentityNumber nin,
@@ -242,16 +242,16 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     private URI createPersonByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {
         return UriWrapper.fromUri(cristinBaseUri)
-                .addChild("persons")
-                .addQueryParameter("national_id", nin.getNin())
-                .getUri();
+            .addChild("persons")
+            .addQueryParameter("national_id", nin.getNin())
+            .getUri();
     }
 
     private URI createPersonByIdentifierQueryUri(String identifier) {
         return UriWrapper.fromUri(cristinBaseUri)
-                .addChild("persons")
-                .addChild(identifier)
-                .getUri();
+            .addChild("persons")
+            .addChild(identifier)
+            .getUri();
     }
 
     private <T> T executeRequest(HttpRequest request, Class<T> type) {
@@ -266,8 +266,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
         } finally {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Called {} and got response in {} ms.",
-                        maskSensitiveData(request.uri()),
-                        Instant.now().toEpochMilli() - start.toEpochMilli());
+                    maskSensitiveData(request.uri()),
+                    Instant.now().toEpochMilli() - start.toEpochMilli());
             }
         }
 
@@ -286,15 +286,15 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     private String generateErrorMessageForResponse(HttpRequest request, HttpResponse<String> response) {
         return String.format(ERROR_MESSAGE_FORMAT,
-                request.method(),
-                maskSensitiveData(request.uri()),
-                response.statusCode(),
-                response.body());
+            request.method(),
+            maskSensitiveData(request.uri()),
+            response.statusCode(),
+            response.body());
     }
 
     private String generateBasicAuthorization(CristinCredentials cristinCredentials) {
         var toBeEncoded =
-                (cristinCredentials.getUsername() + ":" + new String(cristinCredentials.getPassword())).getBytes();
+            (cristinCredentials.getUsername() + ":" + new String(cristinCredentials.getPassword())).getBytes();
         return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);
     }
 

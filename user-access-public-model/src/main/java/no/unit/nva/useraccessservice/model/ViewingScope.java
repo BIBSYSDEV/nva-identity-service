@@ -52,29 +52,15 @@ public class ViewingScope {
         validate(this.excludedUnits);
     }
 
-    private ViewingScope() {
-
-        this.includedUnits = Set.of();
-        this.excludedUnits = Set.of();
+    private static Set<URI> toSet(Collection<URI> collection) {
+        return nonNull(collection) ? new HashSet<>(collection) : Collections.emptySet();
     }
 
-    public static ViewingScope defaultViewingScope(URI organizationId) {
-        attempt(() -> validate(organizationId)).orElseThrow();
-        return attempt(() -> ViewingScope.create(Set.of(organizationId), Collections.emptySet())).orElseThrow();
-    }
-
-    public static ViewingScope emptyViewingScope() {
-        return new ViewingScope();
-    }
-
-    public static ViewingScope create(Collection<URI> includedUnits, Collection<URI> excludedUnits)
-            throws BadRequestException {
-        return new ViewingScope(toSet(includedUnits), toSet(excludedUnits));
-    }
-
-    public static ViewingScope fromJson(String input) throws BadRequestException {
-        return attempt(() -> JsonConfig.readValue(input, ViewingScope.class)).orElseThrow(
-                fail -> new BadRequestException("Could not read viewing scope:" + input));
+    @JacocoGenerated
+    private void validate(Collection<URI> uris) throws BadRequestException {
+        for (URI uri : uris) {
+            validate(uri);
+        }
     }
 
     public static Void validate(URI uri) throws BadRequestException {
@@ -87,16 +73,43 @@ public class ViewingScope {
         return null;
     }
 
-    private static Set<URI> toSet(Collection<URI> collection) {
-        return nonNull(collection) ? new HashSet<>(collection) : Collections.emptySet();
-    }
-
     private static boolean pathIsNotExpectedPath(URI uri) {
         return !uri.getPath().startsWith(ServiceConstants.CRISTIN_PATH);
     }
 
     private static boolean hostIsNotExpectedHost(URI uri) {
         return !ServiceConstants.API_DOMAIN.equals(uri.getHost());
+    }
+
+    private ViewingScope() {
+
+        this.includedUnits = Set.of();
+        this.excludedUnits = Set.of();
+    }
+
+    public static ViewingScope defaultViewingScope(URI organizationId) {
+        attempt(() -> validate(organizationId)).orElseThrow();
+        return attempt(() -> ViewingScope.create(Set.of(organizationId), Collections.emptySet())).orElseThrow();
+    }
+
+    public static ViewingScope create(Collection<URI> includedUnits, Collection<URI> excludedUnits)
+        throws BadRequestException {
+        return new ViewingScope(toSet(includedUnits), toSet(excludedUnits));
+    }
+
+    public static ViewingScope emptyViewingScope() {
+        return new ViewingScope();
+    }
+
+    public static ViewingScope fromJson(String input) throws BadRequestException {
+        return attempt(() -> JsonConfig.readValue(input, ViewingScope.class)).orElseThrow(
+            fail -> new BadRequestException("Could not read viewing scope:" + input));
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getIncludedUnits(), getExcludedUnits());
     }
 
     @JacocoGenerated
@@ -111,12 +124,6 @@ public class ViewingScope {
 
     @JacocoGenerated
     @Override
-    public int hashCode() {
-        return Objects.hash(getIncludedUnits(), getExcludedUnits());
-    }
-
-    @JacocoGenerated
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -125,18 +132,11 @@ public class ViewingScope {
             return false;
         }
         return Objects.equals(getIncludedUnits(), that.getIncludedUnits()) && Objects.equals(getExcludedUnits(),
-                that.getExcludedUnits());
+            that.getExcludedUnits());
     }
 
     @Override
     public String toString() {
         return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
-    }
-
-    @JacocoGenerated
-    private void validate(Collection<URI> uris) throws BadRequestException {
-        for (URI uri : uris) {
-            validate(uri);
-        }
     }
 }

@@ -1,7 +1,7 @@
 package no.unit.nva.cognito;
 
-import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
+import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
 
 public final class CognitoClaims {
 
@@ -24,7 +24,7 @@ public final class CognitoClaims {
 
 
     public static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {NIN_FOR_NON_FEIDE_USERS,
-            NIN_FOR_FEIDE_USERS, IMPERSONATING_CLAIM};
+        NIN_FOR_FEIDE_USERS, IMPERSONATING_CLAIM};
     public static final String AT = "@";
     public static final String ELEMENTS_DELIMITER = ",";
 

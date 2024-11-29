@@ -11,14 +11,14 @@ import nva.commons.core.JacocoGenerated;
 import java.net.HttpURLConnection;
 
 public class GetExternalClientUserinfoHandler
-        extends HandlerWithEventualConsistency<Void, GetExternalClientResponse> {
+    extends HandlerWithEventualConsistency<Void, GetExternalClientResponse> {
 
     private IdentityService databaseService;
 
     @JacocoGenerated
     public GetExternalClientUserinfoHandler() {
         this(
-                IdentityService.defaultIdentityService()
+            IdentityService.defaultIdentityService()
         );
     }
 
@@ -35,7 +35,7 @@ public class GetExternalClientUserinfoHandler
     @Override
     protected GetExternalClientResponse processInput(Void input, RequestInfo requestInfo,
                                                      Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
 
         var query = ClientDto.newBuilder().withClientId(requestInfo.getClientId().orElseThrow()).build();
         var result = databaseService.getClient(query);
@@ -45,10 +45,10 @@ public class GetExternalClientUserinfoHandler
 
     private GetExternalClientResponse formatResponse(ClientDto clientDto) {
         return new GetExternalClientResponse(
-                clientDto.getClientId(),
-                clientDto.getCustomer(),
-                clientDto.getCristinOrgUri(),
-                clientDto.getActingUser()
+            clientDto.getClientId(),
+            clientDto.getCustomer(),
+            clientDto.getCristinOrgUri(),
+            clientDto.getActingUser()
         );
     }
 

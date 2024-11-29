@@ -17,7 +17,7 @@ public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandle
     public static final String IDENTIFIER_PATH_PARAMETER = "identifier";
 
     public static final List<MediaType> SUPPORTED_MEDIA_TYPES =
-            List.of(MediaType.JSON_UTF_8, MediaTypes.APPLICATION_JSON_LD);
+        List.of(MediaType.JSON_UTF_8, MediaTypes.APPLICATION_JSON_LD);
     protected final CustomerService customerService;
 
     public ControlledVocabularyHandler(CustomerService customerService, Class<I> inputClass) {
@@ -27,9 +27,9 @@ public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandle
 
     protected static UUID extractIdentifier(RequestInfo requestInfo) {
         return attempt(() -> RequestUtils.getPathParameter(requestInfo, IDENTIFIER_PATH_PARAMETER))
-                .map(Optional::orElseThrow)
-                .map(UUID::fromString)
-                .orElseThrow();
+            .map(Optional::orElseThrow)
+            .map(UUID::fromString)
+            .orElseThrow();
     }
 
     @Override

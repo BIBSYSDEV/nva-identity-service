@@ -87,6 +87,40 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(expectedPersistedInformation, is(equalTo(requestBody)));
     }
 
+    private <I, O> GatewayResponse<O> executeRequest(I request, Class<O> responseType) throws IOException {
+        return executeRequestWithAuthorization(request, randomUri(), responseType);
+    }
+
+    private <I, O> GatewayResponse<O> executeRequestWithAuthorization(I request,
+                                                                      URI authorizedCustomer,
+                                                                      Class<O> responseType)
+        throws IOException {
+        outputSteam = new ByteArrayOutputStream();
+        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
+            .withBody(request)
+            .withAccessRights(authorizedCustomer, MANAGE_CUSTOMERS)
+            .withCurrentCustomer(authorizedCustomer)
+            .withHeaders(getRequestHeaders())
+            .build();
+        handler.handleRequest(input, outputSteam, context);
+        return GatewayResponse.fromOutputStream(outputSteam, responseType);
+    }
+
+    private CustomerDto validCustomerDto() {
+        return CustomerDto
+            .builder()
+            .withName("New Customer")
+            .withCristinId(randomUri())
+            .withVocabularies(Collections.emptySet())
+            .withCustomerOf(randomElement(ApplicationDomain.values()))
+            .withDoiAgent(randomDoiAgent(randomString()))
+            .withRorId(randomUri())
+            .withServiceCenter(new ServiceCenter(randomUri(), randomString()))
+            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+            .withAllowFileUploadForTypes(Collections.emptySet())
+            .build();
+    }
+
     @Test
     void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() throws BadRequestException, IOException {
         var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
@@ -124,10 +158,10 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     void shouldReturnInactiveFromWhenValueIsSet() throws BadRequestException, IOException {
         var inactiveFrom = Instant.now();
         var customerDto =
-                CustomerDto.builder()
-                        .withName("New Customer")
-                        .withInactiveFrom(inactiveFrom)
-                        .build();
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withInactiveFrom(inactiveFrom)
+                .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
@@ -138,12 +172,12 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void shouldReturnPublicationWorkflowWhenValueIsSet() throws BadRequestException, IOException {
         var customerDto =
-                CustomerDto.builder()
-                        .withName("New Customer")
-                        .withVocabularies(Collections.emptySet())
-                        .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
-                        .withCustomerOf(randomElement(ApplicationDomain.values()))
-                        .build();
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withVocabularies(Collections.emptySet())
+                .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
+                .withCustomerOf(randomElement(ApplicationDomain.values()))
+                .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
@@ -153,13 +187,13 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void shouldReturnPublicationWorkflowErrorWhenValueIsWrong() throws IOException {
         var customerDto =
-                CustomerDto.builder()
-                        .withName("New Customer")
-                        .withVocabularies(Collections.emptySet())
-                        .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
-                        .build();
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withVocabularies(Collections.emptySet())
+                .withPublicationWorkflow(REGISTRATOR_PUBLISHES_METADATA_ONLY)
+                .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto).toString()
-                .replace(REGISTRATOR_PUBLISHES_METADATA_ONLY.getValue(), "hello");
+            .replace(REGISTRATOR_PUBLISHES_METADATA_ONLY.getValue(), "hello");
         var response = executeRequest(requestBody, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
     }
@@ -167,10 +201,10 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void shouldReturnServiceCenterUriWhenValueIsSet() throws BadRequestException, IOException {
         var customerDto =
-                CustomerDto.builder()
-                        .withName("New Customer")
-                        .withServiceCenter(new ServiceCenter(testServiceCenterUri, randomString()))
-                        .build();
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withServiceCenter(new ServiceCenter(testServiceCenterUri, randomString()))
+                .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
@@ -181,10 +215,10 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void shouldReturnGeneralSupportEnabledWhenValueIsSet() throws BadRequestException, IOException {
         var customerDto =
-                CustomerDto.builder()
-                        .withName("New Customer")
-                        .withGeneralSupportEnabled(true)
-                        .build();
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withGeneralSupportEnabled(true)
+                .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
@@ -202,8 +236,8 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     void shouldReturnBadRequestWhenInputIsNotAValidCustomerRequest() throws IOException {
         var body = Map.of("type", randomString());
         var input = new HandlerRequestBuilder<String>(dtoObjectMapper)
-                .withBody(attempt(() -> JsonConfig.writeValueAsString(body)).orElseThrow())
-                .withHeaders(getRequestHeaders());
+            .withBody(attempt(() -> JsonConfig.writeValueAsString(body)).orElseThrow())
+            .withHeaders(getRequestHeaders());
         var response = executeRequest(input, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
     }
@@ -216,6 +250,11 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
     }
 
+    private GatewayResponse<CustomerDto> insertCustomerWithSameInstitutionId(CreateCustomerRequest requestBody)
+        throws IOException {
+        return executeRequest(requestBody, CustomerDto.class);
+    }
+
     @Test
     void shouldReturnForbiddenWhenNotAuthorized() throws IOException {
         var requestBody = CreateCustomerRequest.fromCustomerDto(validCustomerDto());
@@ -223,14 +262,27 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
     }
 
+    private <I, O> GatewayResponse<O> executeRequestWithoutAuthorization(I request,
+                                                                         URI authorizedCustomer,
+                                                                         Class<O> responseType)
+        throws IOException {
+        outputSteam = new ByteArrayOutputStream();
+        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
+            .withBody(request)
+            .withHeaders(getRequestHeaders())
+            .build();
+        handler.handleRequest(input, outputSteam, context);
+        return GatewayResponse.fromOutputStream(outputSteam, responseType);
+    }
+
     @Test
     void shouldReturnPublicationInstanceTypesWhenValueIsSet() throws BadRequestException, IOException {
         var randomAllowFileUploadFor = randomAllowFileUploadForTypes();
         var customerDto =
-                CustomerDto.builder()
-                        .withName("New Customer")
-                        .withAllowFileUploadForTypes(randomAllowFileUploadFor)
-                        .build();
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withAllowFileUploadForTypes(randomAllowFileUploadFor)
+                .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
@@ -244,85 +296,33 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     @ParameterizedTest
     @NullAndEmptySource
     void shouldReturnAllPublicationInstanceTypesWhenAllowFileUploadForTypesIsNullOrEmpty(
-            Set<PublicationInstanceTypes> allowFileUploadForTypes) throws BadRequestException,
-            IOException {
+        Set<PublicationInstanceTypes> allowFileUploadForTypes) throws BadRequestException,
+        IOException {
         var customerDto =
-                CustomerDto.builder()
-                        .withName("New Customer")
-                        .withAllowFileUploadForTypes(allowFileUploadForTypes)
-                        .build();
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withAllowFileUploadForTypes(allowFileUploadForTypes)
+                .build();
         var requestBody = CreateCustomerRequest.fromCustomerDto(customerDto);
         var response = executeRequest(requestBody, CustomerDto.class);
         var actualResponseBody = CustomerDto.fromJson(response.getBody());
 
         assertThat(actualResponseBody.getAllowFileUploadForTypes(),
-                IsIterableContainingInAnyOrder.containsInAnyOrder(PublicationInstanceTypes.values()));
+            IsIterableContainingInAnyOrder.containsInAnyOrder(PublicationInstanceTypes.values()));
     }
 
     @Test
     void dtoSerializesToJsonAndBack() throws BadRequestException {
         var customerDto =
-                CustomerDto.builder()
-                        .withName("New Customer")
-                        .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                        .build();
+            CustomerDto.builder()
+                .withName("New Customer")
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                .build();
 
         var json = customerDto.toString();
         var deserialized = CustomerDto.fromJson(json);
         assertThat(deserialized, is(equalTo(customerDto)));
         assertEquals(deserialized.hashCode(), customerDto.hashCode());
         assertNotEquals(null, deserialized);
-    }
-
-    private GatewayResponse<CustomerDto> insertCustomerWithSameInstitutionId(CreateCustomerRequest requestBody)
-            throws IOException {
-        return executeRequest(requestBody, CustomerDto.class);
-    }
-
-    private <I, O> GatewayResponse<O> executeRequest(I request, Class<O> responseType) throws IOException {
-        return executeRequestWithAuthorization(request, randomUri(), responseType);
-    }
-
-    private <I, O> GatewayResponse<O> executeRequestWithAuthorization(I request,
-                                                                      URI authorizedCustomer,
-                                                                      Class<O> responseType)
-            throws IOException {
-        outputSteam = new ByteArrayOutputStream();
-        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
-                .withBody(request)
-                .withAccessRights(authorizedCustomer, MANAGE_CUSTOMERS)
-                .withCurrentCustomer(authorizedCustomer)
-                .withHeaders(getRequestHeaders())
-                .build();
-        handler.handleRequest(input, outputSteam, context);
-        return GatewayResponse.fromOutputStream(outputSteam, responseType);
-    }
-
-    private <I, O> GatewayResponse<O> executeRequestWithoutAuthorization(I request,
-                                                                         URI authorizedCustomer,
-                                                                         Class<O> responseType)
-            throws IOException {
-        outputSteam = new ByteArrayOutputStream();
-        var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
-                .withBody(request)
-                .withHeaders(getRequestHeaders())
-                .build();
-        handler.handleRequest(input, outputSteam, context);
-        return GatewayResponse.fromOutputStream(outputSteam, responseType);
-    }
-
-    private CustomerDto validCustomerDto() {
-        return CustomerDto
-                .builder()
-                .withName("New Customer")
-                .withCristinId(randomUri())
-                .withVocabularies(Collections.emptySet())
-                .withCustomerOf(randomElement(ApplicationDomain.values()))
-                .withDoiAgent(randomDoiAgent(randomString()))
-                .withRorId(randomUri())
-                .withServiceCenter(new ServiceCenter(randomUri(), randomString()))
-                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                .withAllowFileUploadForTypes(Collections.emptySet())
-                .build();
     }
 }

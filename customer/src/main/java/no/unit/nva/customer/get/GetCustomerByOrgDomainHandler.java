@@ -37,13 +37,18 @@ public class GetCustomerByOrgDomainHandler extends ApiGatewayHandler<Void, Custo
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerIdentifiers output) {
-        return HttpURLConnection.HTTP_OK;
+    protected List<MediaType> listSupportedMediaTypes() {
+        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
+    }
+
+    @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
     }
 
     @Override
     protected CustomerIdentifiers processInput(Void input, RequestInfo requestInfo, Context context)
-            throws NotFoundException {
+        throws NotFoundException {
         long start = System.currentTimeMillis();
         String orgDomain = getOrgIdentifier(requestInfo);
         CustomerDto customerDto = customerService.getCustomerByOrgDomain(orgDomain);
@@ -55,13 +60,8 @@ public class GetCustomerByOrgDomainHandler extends ApiGatewayHandler<Void, Custo
     }
 
     @Override
-    protected List<MediaType> listSupportedMediaTypes() {
-        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
-    }
-
-    @Override
-    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        //Do nothing
+    protected Integer getSuccessStatusCode(Void input, CustomerIdentifiers output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     private String getOrgIdentifier(RequestInfo request) {

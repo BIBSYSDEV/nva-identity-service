@@ -10,8 +10,6 @@ dependencies {
     implementation libs.aws.core
     implementation libs.aws.auth
     implementation libs.aws.regions
-
-    implementation libs.dynamoDbLocal
 }
 
 test{

@@ -4,8 +4,8 @@ nvaCommons = { strictly = '1.40.20' }
 #awsSdk = { require = "1.11.1000" }
 awsSdk2 = { strictly = '2.27.24' }
 jackson = { strictly = "2.17.2" }
-xraySdk = { strictly = '2.9.1' }
-dynamoDbLocal = { strictly = '2.0.0' }
+#xraySdk = { strictly = '2.9.1' }
+dynamoDbLocal = { strictly = '2.5.3' }
 zalandoProblem = { strictly = '0.27.1' }
 awsLambdaCore = { strictly = '1.2.3' }
 jupiter = { strictly = "5.11.0" }
@@ -15,9 +15,7 @@ hamcrest = { strictly = '3.0' }
 javersCore = { strictly = '7.6.1' }
 datafaker = { strictly = '2.3.1' }
 mockitoCore = { strictly = '4.5.1' }
-apiGuardian = { strictly = '1.1.2' }
 guava = { require = '32.1.2-jre' }
-hamcrestJackson = { strictly = '1.3.2' }
 log4j = { strictly = '2.24.0' }
 awsLambdaEvents = { strictly = '3.13.0' }
 wiremock = { strictly = "3.9.1" }
@@ -80,12 +78,9 @@ hamcrest = { group = 'org.hamcrest', name = 'hamcrest', version.ref = 'hamcrest'
 datafaker = { group = 'net.datafaker', name = 'datafaker', version.ref = 'datafaker' }
 dynamoDbLocal = { group = 'com.amazonaws', name = 'DynamoDBLocal', version.ref = 'dynamoDbLocal' }
 nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nvaCommons' }
-hamcrest-jackson = { group = 'com.spotify', name = 'hamcrest-jackson', version.ref = 'hamcrestJackson' }
 
-wiremock = { group = "org.wiremock", name = "wiremock", version.ref = "wiremock" }
 wiremock-jetty-12 = { group = 'org.wiremock', name = 'wiremock-jetty12', version.ref = 'wiremock' }
 
-apiguardian-api = { group = 'org.apiguardian', name = 'apiguardian-api', version.ref = 'apiGuardian' }
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
 [bundles]

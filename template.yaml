@@ -1528,6 +1528,8 @@ Resources:
         - custom:personAffiliation
         - custom:impersonating
         - custom:impersonatedBy
+        - custom:currentTerms
+        - custom:acceptedTerms
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 9
@@ -1554,6 +1556,8 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
+        - custom:currentTerms
+        - custom:acceptedTerms
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
@@ -1604,6 +1608,8 @@ Resources:
         - custom:allowedCustomers
         - custom:roles
         - custom:personAffiliation
+        - custom:currentTerms
+        - custom:acceptedTerms
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -1627,6 +1633,8 @@ Resources:
         - custom:allowedCustomers
         - custom:roles
         - custom:personAffiliation
+        - custom:currentTerms
+        - custom:acceptedTerms
 
   TestingApplicationClient:
     DependsOn: ResourceServerScopes
@@ -1675,6 +1683,8 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
+        - custom:currentTerms
+        - custom:acceptedTerms
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -1701,6 +1711,8 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
+        - custom:currentTerms
+        - custom:acceptedTerms
   ## External API
   ExternalUserPoolName:
     Type: AWS::SSM::Parameter

@@ -457,7 +457,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.UpdateTermsConditionsHandler::handleRequest
+      Handler: no.unit.nva.handlers.UpdatePersonTermsConditionsHandler::handleRequest
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins

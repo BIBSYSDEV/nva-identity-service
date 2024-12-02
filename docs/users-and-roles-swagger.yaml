@@ -204,7 +204,7 @@ paths:
                   $ref: '#/components/examples/BadGatewayProblemExample'
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateUserHandler.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdatePersonTermsConditionsHandler.Arn}/invocations
         responses: { }
         httpMethod: POST
         type: aws_proxy
@@ -247,7 +247,7 @@ paths:
   /terms-and-conditions/current:
     get:
       summary: Access current terms & conditions
-      operationId: GetCurrentTermsConditionsHandler
+      operationId: getCurrentTermsConditionsHandler
       responses:
         '200':
           description: Returns the externalClient

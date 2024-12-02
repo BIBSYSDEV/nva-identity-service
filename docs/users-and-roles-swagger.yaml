@@ -168,7 +168,7 @@ paths:
   /users/mine/accepted-terms:
     put:
       summary: Updates Terms and agreement for an existing User (person)
-      operationId: updateUserTermsConditions
+      operationId: updatePersonTermsConditionsHandler
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       requestBody:

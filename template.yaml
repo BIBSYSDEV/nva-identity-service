@@ -453,7 +453,7 @@ Resources:
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 
-  UpdateTermsConditionsHandler:
+  UpdatePersonTermsConditionsHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: user-access-handlers

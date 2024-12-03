@@ -3,6 +3,7 @@ package no.unit.nva.database;
 import no.unit.nva.useraccessservice.dao.TermsConditions;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -14,8 +15,10 @@ import static nva.commons.core.attempt.Try.attempt;
 
 public class TermsAndConditionsService {
 
-    public static final String TABLE_NAME = "PersistedEntity";
-    public static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
+
+    private static final String TABLE_NAME = new Environment()
+            .readEnv("NVA_ID_TYPE_TABLE_NAME");
+    static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
 
     private final DynamoCrudService<TermsConditions> crudService;
 
@@ -30,30 +33,30 @@ public class TermsAndConditionsService {
 
     public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) {
         var fetchedUri =
-            attempt(
-                () -> TermsConditions.builder()
-                    .id(cristinId)
-                    .build()
-                    .fetch(crudService)
-                    .termsConditionsUri()
-            );
+                attempt(
+                        () -> TermsConditions.builder()
+                                .id(cristinId)
+                                .build()
+                                .fetch(crudService)
+                                .termsConditionsUri()
+                );
 
         return TermsConditionsResponse.builder()
-            .withTermsConditionsUri(fetchedUri.or(() -> null).get())
-            .build();
+                .withTermsConditionsUri(fetchedUri.or(() -> null).get())
+                .build();
     }
 
     public TermsConditionsResponse updateTermsAndConditions(URI cristinId, URI termsConditions, URI userId)
-        throws NotFoundException {
+            throws NotFoundException {
         var upserted = TermsConditions.builder()
-            .id(cristinId)
-            .modifiedBy(userId)
-            .termsConditionsUri(termsConditions)
-            .build()
-            .upsert(crudService);
+                .id(cristinId)
+                .modifiedBy(userId)
+                .termsConditionsUri(termsConditions)
+                .build()
+                .upsert(crudService);
         return TermsConditionsResponse.builder()
-            .withTermsConditionsUri(upserted.termsConditionsUri())
-            .build();
+                .withTermsConditionsUri(upserted.termsConditionsUri())
+                .build();
     }
 
     public List<TermsConditionsResponse> getAllTermsAndConditions() {
@@ -62,7 +65,7 @@ public class TermsAndConditionsService {
 
     public TermsConditionsResponse getCurrentTermsAndConditions() {
         return TermsConditionsResponse.builder()
-            .withTermsConditionsUri(TERMS_URL)
-            .build();
+                .withTermsConditionsUri(TERMS_URL)
+                .build();
     }
 }

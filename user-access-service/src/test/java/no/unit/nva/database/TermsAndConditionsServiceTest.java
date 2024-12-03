@@ -2,10 +2,10 @@ package no.unit.nva.database;
 
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static no.unit.nva.database.TermsAndConditionsService.TABLE_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -20,6 +20,9 @@ public class TermsAndConditionsServiceTest {
     static void initialize() {
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
+        var TABLE_NAME = new Environment()
+                .readEnv("NVA_ID_TYPE_TABLE_NAME");
+
         new DynamoDbTableCreator(client)
                 .createTable(TABLE_NAME);
 

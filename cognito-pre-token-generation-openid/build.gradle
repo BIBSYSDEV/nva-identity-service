@@ -37,7 +37,7 @@ dependencies {
 }
 
 test {
-
+    environment "NVA_ID_TYPE_TABLE_NAME", "PersistedObjectsTable"
     environment "COGNITO_HOST", "example.com"
     environment "AWS_REGION", "eu-west-1"
     environment "API_DOMAIN", "localhost"

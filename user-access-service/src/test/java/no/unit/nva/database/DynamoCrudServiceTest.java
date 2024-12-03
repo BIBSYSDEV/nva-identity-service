@@ -3,6 +3,7 @@ package no.unit.nva.database;
 
 import no.unit.nva.useraccessservice.dao.TermsConditions;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -15,18 +16,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DynamoCrudServiceTest {
 
-    public static final String TABLE_NAME = "nonExistentTableName";
-    private static DynamoCrudService<TermsConditions> termsConditionsService;
+    private static DynamoCrudService<TermsConditions> dynamoCrudService;
 
 
     @BeforeAll
     static void initialize() {
+
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
+        var tableName = new Environment()
+                .readEnv("NVA_ID_TYPE_TABLE_NAME");
         new DynamoDbTableCreator(client)
-                .createTable(TABLE_NAME);
+                .createTable(tableName);
 
-        termsConditionsService = new DynamoCrudService<>(client, TABLE_NAME, TermsConditions.class);
+        dynamoCrudService = new DynamoCrudService<>(client, tableName, TermsConditions.class);
     }
 
     @Test
@@ -36,16 +39,16 @@ public class DynamoCrudServiceTest {
                 .modifiedBy(randomUri())
                 .termsConditionsUri(randomUri())
                 .build()
-                .upsert(termsConditionsService);
+                .upsert(dynamoCrudService);
         var persistedTwice = persistedTermsConditions
                 .merge(TermsConditions.builder()
                         .modifiedBy(randomUri())
                         .termsConditionsUri(randomUri())
                         .build())
-                .upsert(termsConditionsService);
+                .upsert(dynamoCrudService);
 
         var fetchedTermsConditions = persistedTermsConditions
-                .fetch(termsConditionsService);
+                .fetch(dynamoCrudService);
 
         assertThat(fetchedTermsConditions, is(equalTo(persistedTwice)));
 
@@ -60,12 +63,12 @@ public class DynamoCrudServiceTest {
                 .modifiedBy(randomUri())
                 .termsConditionsUri(randomUri())
                 .build()
-                .upsert(termsConditionsService);
+                .upsert(dynamoCrudService);
 
         var termsConditions = TermsConditions.builder()
                 .id(userIdentifier)
                 .build()
-                .fetch(termsConditionsService);
+                .fetch(dynamoCrudService);
 
 
         assertThat(termsConditionsDao, is(equalTo(termsConditions)));
@@ -79,15 +82,15 @@ public class DynamoCrudServiceTest {
                 .modifiedBy(randomUri())
                 .termsConditionsUri(randomUri())
                 .build()
-                .upsert(termsConditionsService);
+                .upsert(dynamoCrudService);
 
-        termsConditionsService.delete(termsConditions);
+        dynamoCrudService.delete(termsConditions);
 
         assertThrows(NotFoundException.class,
                 () -> TermsConditions.builder()
                         .id(userIdentifier)
                         .build()
-                        .fetch(termsConditionsService));
+                        .fetch(dynamoCrudService));
     }
 
     @Test
@@ -96,7 +99,7 @@ public class DynamoCrudServiceTest {
                 () -> TermsConditions.builder()
                         .id(randomUri())
                         .build()
-                        .fetch(termsConditionsService));
+                        .fetch(dynamoCrudService));
     }
 
 
@@ -106,6 +109,6 @@ public class DynamoCrudServiceTest {
                 .id(randomUri())
                 .build();
         assertThrows(NotFoundException.class,
-                () -> termsConditionsService.delete(dao));
+                () -> dynamoCrudService.delete(dao));
     }
 }

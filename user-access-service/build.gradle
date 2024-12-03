@@ -26,6 +26,7 @@ dependencies {
 }
 
 test{
+    environment "NVA_ID_TYPE_TABLE_NAME", "PersistedObjectsTable"
     environment "API_DOMAIN", "localhost"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "CRISTIN_API_URL", "https://cristin.no"

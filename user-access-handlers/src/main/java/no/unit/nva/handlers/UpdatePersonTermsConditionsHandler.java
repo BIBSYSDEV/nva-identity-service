@@ -11,7 +11,7 @@ import nva.commons.core.JacocoGenerated;
 import java.net.HttpURLConnection;
 
 public class UpdatePersonTermsConditionsHandler extends
-    ApiGatewayHandler<TermsConditionsResponse, TermsConditionsResponse> {
+        ApiGatewayHandler<TermsConditionsResponse, TermsConditionsResponse> {
 
     private final TermsAndConditionsService service;
 
@@ -28,24 +28,24 @@ public class UpdatePersonTermsConditionsHandler extends
 
     @Override
     protected void validateRequest(
-        TermsConditionsResponse input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+            TermsConditionsResponse input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         requestInfo.getPersonCristinId();
-        requestInfo.getCurrentCustomer();
+        requestInfo.getUserName();
     }
 
     @Override
     protected TermsConditionsResponse processInput(
-        TermsConditionsResponse input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+            TermsConditionsResponse input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         return service.updateTermsAndConditions(
-            requestInfo.getPersonCristinId(),
-            input.termsConditionsUri(),
-            requestInfo.getCurrentCustomer()
+                requestInfo.getPersonCristinId(),
+                requestInfo.getUserName(),
+                input.termsConditionsUri()
         );
     }
 
     @Override
     protected Integer getSuccessStatusCode(
-        TermsConditionsResponse termsConditionsResponse, TermsConditionsResponse o) {
+            TermsConditionsResponse termsConditionsResponse, TermsConditionsResponse o) {
         return HttpURLConnection.HTTP_OK;
     }
 }

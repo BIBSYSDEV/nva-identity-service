@@ -240,9 +240,9 @@ Resources:
                 Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
               - Effect: Allow
                 Action:
-                 - cognito-idp:ListUserPools
-                 - cognito-idp:GetUser
-                 - cognito-idp:DescribeUserPoolDomain
+                  - cognito-idp:ListUserPools
+                  - cognito-idp:GetUser
+                  - cognito-idp:DescribeUserPoolDomain
                 Resource: "*"
         - PolicyName: DatabasePermissions
           PolicyDocument:
@@ -262,10 +262,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                   - secretsmanager:GetResourcePolicy
-                   - secretsmanager:GetSecretValue
-                   - secretsmanager:DescribeSecret
-                   - secretsmanager:ListSecretVersionIds
+                  - secretsmanager:GetResourcePolicy
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:ListSecretVersionIds
                 Resource:
                   - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials*'
                   - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:CristinClientBasicAuth*'
@@ -338,7 +338,7 @@ Resources:
 
   UsersAndRolesAccessLogGroup:
     Type: AWS::Logs::LogGroup
-    Properties: 
+    Properties:
       RetentionInDays: 180
   
   UsersAndRolesApi:
@@ -458,13 +458,14 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UpdatePersonTermsConditionsHandler::handleRequest
+      Role: !GetAtt NvaIdTypeObjectsRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
-          CUSTOMERS_TABLE_NAME: !Ref NvaPersonInfoTable
+          NVA_ID_TYPE_TABLE_NAME: !Ref NvaIdTypeObjectsTable
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref NvaPersonInfoTable
+            TableName: !Ref NvaIdTypeObjectsTable
       Events:
         ApiEvent:
           Type: Api
@@ -549,7 +550,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
 
-  MigrateCuratorsIdenitityServiceHandler:
+  MigrateCuratorsIdentityServiceHandler:
     Type: AWS::Serverless::Function
     Description: 'Migrated users that has Curator role to instead have support, doi, nvi, and file-curator'
     Properties:
@@ -718,7 +719,7 @@ Resources:
         - Key: IncludedInBackup
           Value: 'true'
 
-  NvaPersonInfoTable:
+  NvaIdTypeObjectsTable:
     Type: AWS::DynamoDB::Table
     UpdateReplacePolicy: Retain
     DeletionPolicy: Delete
@@ -1086,6 +1087,33 @@ Resources:
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
 
+  NvaIdTypeObjectsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com  # Hvis du vil at en Lambda-funksjon skal ha tilgang
+            Action:
+              - sts:AssumeRole
+        Policies:
+          - PolicyName: NvaIdTypeObjectsPermissions
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                    - dynamodb:Scan
+                    - dynamodb:Query
+                  Resource: !GetAtt NvaIdTypeObjectsTable.Arn
+
+
   DefaultLambdaPermissions:
     Type: AWS::IAM::Policy
     Properties:
@@ -1283,7 +1311,7 @@ Resources:
                   - apigateway:POST
                 Resource: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${NvaCustomerApi}/deployments'
 
-### New Cognito ########################################################################################################
+  ### New Cognito ########################################################################################################
 
   UserPoolName:
     Type: AWS::SSM::Parameter
@@ -1459,10 +1487,10 @@ Resources:
     Properties:
       UserPoolId: !Ref UserPool
       AllowedOAuthFlows:
-          - client_credentials
+        - client_credentials
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
-         - https://api.nva.unit.no/scopes/backend
+        - https://api.nva.unit.no/scopes/backend
       ClientName: BackendApplicationClient
       CallbackURLs:
         - https://api.nva.unit.no/scopes # not necessary maybe.

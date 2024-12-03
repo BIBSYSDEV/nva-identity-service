@@ -15,15 +15,15 @@ import java.util.Optional;
 
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
-public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAccessService<T> {
+public class SingleTableCrudService<T extends DataAccessClass<T>> implements DataAccessService<T> {
     private final DynamoDbTable<T> table;
 
     @JacocoGenerated
-    public DynamoCrudService(String tableName, Class<T> tClass) {
+    public SingleTableCrudService(String tableName, Class<T> tClass) {
         this(DEFAULT_DYNAMO_CLIENT, tableName, tClass);
     }
 
-    public DynamoCrudService(DynamoDbClient dynamoDbClient, String tableName, Class<T> tClass) {
+    public SingleTableCrudService(DynamoDbClient dynamoDbClient, String tableName, Class<T> tClass) {
         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
             .dynamoDbClient(dynamoDbClient)
             .build();
@@ -75,7 +75,7 @@ public class DynamoCrudService<T extends DataAccessClass<T>> implements DataAcce
 
     private Optional<T> optionalFetchBy(T item) {
         var key = Key.builder()
-            .partitionValue(item.id().toString())
+            .partitionValue(item.id())
             .sortValue(item.type())
             .build();
         var result = table.getItem(requestBuilder -> requestBuilder.key(key));

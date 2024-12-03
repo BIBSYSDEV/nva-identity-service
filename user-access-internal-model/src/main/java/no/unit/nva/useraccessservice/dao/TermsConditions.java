@@ -19,13 +19,13 @@ import static java.util.Objects.isNull;
 @DynamoDbImmutable(builder = TermsConditions.Builder.class)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
 public record TermsConditions(
-    @DynamoDbPartitionKey URI id,
-    @DynamoDbSortKey String type,
-    Instant created,
-    URI owner,
-    Instant modified,
-    URI modifiedBy,
-    URI termsConditionsUri
+  @DynamoDbPartitionKey String id,
+  @DynamoDbSortKey String type,
+  Instant created,
+  String createdBy,
+  Instant modified,
+  String modifiedBy,
+  URI termsConditionsUri
 ) implements DataAccessLayer<TermsConditions>, DataAccessClass<TermsConditions> {
 
     @DynamoDbIgnore
@@ -41,6 +41,7 @@ public record TermsConditions(
         return service.fetch(this);
     }
 
+
     @DynamoDbIgnore
     @Override
     public TermsConditions merge(TermsConditions item) {
@@ -48,7 +49,7 @@ public record TermsConditions(
             .id(id())
             .type(type())
             .created(created())
-            .owner(owner())     //in a persist operation, the owner should not change
+            .createdBy(createdBy())     //in a persist operation, the owner should not change
             .modified(Instant.now())
             .modifiedBy(item.modifiedBy())
             .termsConditionsUri(item.termsConditionsUri())
@@ -61,13 +62,13 @@ public record TermsConditions(
 
     public static class Builder {
 
-        private URI withId;
+        private String withId;
         private String withType;
         private Instant createdInstant;
         private Instant modifiedInstant;
-        private URI modifiedById;
+        private String modifiedById;
         private URI termsUri;
-        private URI withOwner;
+        private String withOwner;
 
         /**
          * Set the id of the TermsConditions.
@@ -75,7 +76,7 @@ public record TermsConditions(
          * @param withId the id of the TermsConditions.
          * @return a builder with the id set.
          */
-        public Builder id(URI withId) {
+        public Builder id(String withId) {
             this.withId = withId;
             return this;
         }
@@ -86,7 +87,7 @@ public record TermsConditions(
          * @param currentOwner the owner of the TermsConditions.
          * @return a builder with the owner set.
          */
-        public Builder owner(URI currentOwner) {
+        public Builder createdBy(String currentOwner) {
             this.withOwner = currentOwner;
             return this;
         }
@@ -97,7 +98,7 @@ public record TermsConditions(
          * @param modifiedBy the user that modified the TermsConditions.
          * @return a builder with the user that modified the TermsConditions set.
          */
-        public Builder modifiedBy(URI modifiedBy) {
+        public Builder modifiedBy(String modifiedBy) {
             this.modifiedById = modifiedBy;
             return this;
         }

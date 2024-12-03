@@ -68,9 +68,10 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
 
     private InputStream getInputStream() throws JsonProcessingException {
         return new HandlerRequestBuilder<TermsConditionsResponse>(objectMapperWithEmpty)
+            .withHeaders(Map.of("Accept", "application/json"))
             .withRequestContext(getRequestContext())
             .withPersonCristinId(randomUri())
-            .withCurrentCustomer(randomUri())
+            .withUserName(randomUri().toString())
             .withBody(response)
             .build();
     }

@@ -5,7 +5,6 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static no.unit.nva.database.TermsAndConditionsService.TABLE_NAME;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -20,10 +19,12 @@ public class TermsAndConditionsServiceTest {
     static void initialize() {
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
-        new DynamoDbTableCreator(client)
+        var TABLE_NAME = "PersistedObjectsTable";
+
+        new SingleTableTemplateCreator(client)
                 .createTable(TABLE_NAME);
 
-        termsConditionsService = new TermsAndConditionsService(client);
+        termsConditionsService = new TermsAndConditionsService(client, TABLE_NAME);
 
     }
 
@@ -37,8 +38,8 @@ public class TermsAndConditionsServiceTest {
         var response = termsConditionsService
                 .updateTermsAndConditions(
                         userIdentifier,
-                        expectedResponse.termsConditionsUri(),
-                        userIdentifier
+                        userIdentifier.toString(),
+                        expectedResponse.termsConditionsUri()
                 );
 
         var fetchedResponse = termsConditionsService
@@ -65,8 +66,8 @@ public class TermsAndConditionsServiceTest {
         termsConditionsService
                 .updateTermsAndConditions(
                         userIdentifier,
-                        expectedResponse.termsConditionsUri(),
-                        userIdentifier
+                        userIdentifier.toString(),
+                        expectedResponse.termsConditionsUri()
                 );
 
         var fetchedResponse = termsConditionsService

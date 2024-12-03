@@ -34,7 +34,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.net.URI;
 import java.time.Instant;
@@ -102,7 +101,7 @@ public class UserSelectionUponLoginHandler
         this.cognitoClient = defaultCognitoClient();
         this.customerService = defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
         this.userCreator = new UserEntriesCreatorForPerson(defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
-        this.termsService = new TermsAndConditionsService(DEFAULT_DYNAMO_CLIENT);
+        this.termsService = new TermsAndConditionsService();
         this.personRegistry = CristinPersonRegistry.defaultPersonRegistry();
     }
 
@@ -120,13 +119,13 @@ public class UserSelectionUponLoginHandler
         CustomerService customerService,
         IdentityService identityService,
         PersonRegistry personRegistry,
-        DynamoDbClient dynamoDbClient) {
+        TermsAndConditionsService termsService) {
 
         this.cognitoClient = cognitoClient;
         this.customerService = customerService;
         this.personRegistry = personRegistry;
         this.userCreator = new UserEntriesCreatorForPerson(identityService);
-        this.termsService = new TermsAndConditionsService(dynamoDbClient);
+        this.termsService = termsService;
     }
 
     private static NationalIdentityNumber extractNin(Map<String, String> userAttributes) {

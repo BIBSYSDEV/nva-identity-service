@@ -3,6 +3,7 @@ package no.unit.nva.database;
 import no.unit.nva.useraccessservice.dao.TermsConditions;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -14,46 +15,49 @@ import static nva.commons.core.attempt.Try.attempt;
 
 public class TermsAndConditionsService {
 
-    public static final String TABLE_NAME = "PersistedEntity";
-    public static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
 
-    private final DynamoCrudService<TermsConditions> crudService;
+    private static final String TABLE_NAME = new Environment()
+            .readEnvOpt("NVA_ID_TYPE_TABLE_NAME")
+            .orElse("TEST-PersistedObjects");
+    static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
+
+    private final SingleTableCrudService<TermsConditions> crudService;
 
     @JacocoGenerated
     public TermsAndConditionsService() {
-        this(DEFAULT_DYNAMO_CLIENT);
+        this(DEFAULT_DYNAMO_CLIENT, TABLE_NAME);
     }
 
-    public TermsAndConditionsService(DynamoDbClient client) {
-        crudService = new DynamoCrudService<>(client, TABLE_NAME, TermsConditions.class);
+    public TermsAndConditionsService(DynamoDbClient client, String tableName) {
+        crudService = new SingleTableCrudService<>(client, tableName, TermsConditions.class);
     }
 
     public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) {
         var fetchedUri =
-            attempt(
-                () -> TermsConditions.builder()
-                    .id(cristinId)
-                    .build()
-                    .fetch(crudService)
-                    .termsConditionsUri()
-            );
+                attempt(
+                        () -> TermsConditions.builder()
+                                .id(cristinId.toString())
+                                .build()
+                                .fetch(crudService)
+                                .termsConditionsUri()
+                );
 
         return TermsConditionsResponse.builder()
-            .withTermsConditionsUri(fetchedUri.or(() -> null).get())
-            .build();
+                .withTermsConditionsUri(fetchedUri.or(() -> null).get())
+                .build();
     }
 
-    public TermsConditionsResponse updateTermsAndConditions(URI cristinId, URI termsConditions, URI userId)
-        throws NotFoundException {
+    public TermsConditionsResponse updateTermsAndConditions(URI personCristinId, String userId, URI termsConditions)
+            throws NotFoundException {
         var upserted = TermsConditions.builder()
-            .id(cristinId)
-            .modifiedBy(userId)
-            .termsConditionsUri(termsConditions)
-            .build()
-            .upsert(crudService);
+                .id(personCristinId.toString())
+                .modifiedBy(userId)
+                .termsConditionsUri(termsConditions)
+                .build()
+                .upsert(crudService);
         return TermsConditionsResponse.builder()
-            .withTermsConditionsUri(upserted.termsConditionsUri())
-            .build();
+                .withTermsConditionsUri(upserted.termsConditionsUri())
+                .build();
     }
 
     public List<TermsConditionsResponse> getAllTermsAndConditions() {
@@ -62,7 +66,7 @@ public class TermsAndConditionsService {
 
     public TermsConditionsResponse getCurrentTermsAndConditions() {
         return TermsConditionsResponse.builder()
-            .withTermsConditionsUri(TERMS_URL)
-            .build();
+                .withTermsConditionsUri(TERMS_URL)
+                .build();
     }
 }

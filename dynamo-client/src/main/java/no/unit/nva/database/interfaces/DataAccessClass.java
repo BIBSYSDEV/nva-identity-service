@@ -2,7 +2,6 @@ package no.unit.nva.database.interfaces;
 
 import nva.commons.core.JacocoGenerated;
 
-import java.net.URI;
 import java.time.Instant;
 
 import static java.util.Objects.isNull;
@@ -30,7 +29,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
         if (isNull(item.modified())) {
             throw new IllegalArgumentException("modified not set");
         }
-        if (isNull(item.owner())) {
+        if (isNull(item.createdBy())) {
             throw new IllegalArgumentException("owner not set");
         }
         // in this implementation, modifiedBy is always set
@@ -57,7 +56,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @return an UUID identifier.
      */
-    URI owner();
+    String createdBy();
 
     /**
      * Returns the time the object was last modified.
@@ -71,7 +70,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @return an UUID identifier.
      */
-    URI modifiedBy();
+    String modifiedBy();
 
     /**
      * Validates that every field needed to fetch the object is present.
@@ -96,7 +95,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      * @return an URI id.
      */
     @SuppressWarnings("PMD.ShortMethodName")
-    URI id();
+    String id();
 
     /**
      * This is intended to be @DynamoDbSortKey if used with DynamoDb.

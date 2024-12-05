@@ -461,10 +461,10 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
-          NVA_ID_TYPE_TABLE_NAME: !Ref NvaIdTypeObjectsTable
+          NVA_ID_TYPE_TABLE_NAME: !Ref TermsAndConditionsTable
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref NvaIdTypeObjectsTable
+            TableName: !Ref TermsAndConditionsTable
       Events:
         ApiEvent:
           Type: Api
@@ -718,12 +718,12 @@ Resources:
         - Key: IncludedInBackup
           Value: 'true'
 
-  NvaIdTypeObjectsTable:
+  TermsAndConditionsTable:
     Type: AWS::DynamoDB::Table
     UpdateReplacePolicy: Retain
     DeletionPolicy: Delete
     Properties:
-      TableName: !Sub nva-id-type-persistent-objects-${AWS::StackName}
+      TableName: !Sub terms-and-conditions-${AWS::StackName}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id

@@ -458,7 +458,6 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UpdatePersonTermsConditionsHandler::handleRequest
-      Role: !GetAtt NvaIdTypeObjectsRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
@@ -1086,33 +1085,6 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
-
-  NvaIdTypeObjectsRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com  # Hvis du vil at en Lambda-funksjon skal ha tilgang
-            Action:
-              - sts:AssumeRole
-        Policies:
-          - PolicyName: NvaIdTypeObjectsPermissions
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - dynamodb:GetItem
-                    - dynamodb:PutItem
-                    - dynamodb:UpdateItem
-                    - dynamodb:Scan
-                    - dynamodb:Query
-                  Resource: !GetAtt NvaIdTypeObjectsTable.Arn
-
 
   DefaultLambdaPermissions:
     Type: AWS::IAM::Policy

@@ -5,6 +5,7 @@ import no.unit.nva.useraccessservice.dao.TermsConditions;
 import org.junit.jupiter.api.Test;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -22,7 +23,7 @@ class DataAccessClassTest {
             .type("TermsConditions")
             .created(lostInstant)
             .modified(lostInstant)
-            .modifiedBy(randomUri())
+            .modifiedBy(randomString())
             .termsConditionsUri(randomUri());
     }
 

@@ -6,6 +6,7 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -34,13 +35,13 @@ public class SingleTableCrudServiceTest {
     void shouldPersistPreferencesAndLicense() throws NotFoundException {
         var persistedTermsConditions = TermsConditions.builder()
                 .id(randomUri())
-                .modifiedBy(randomUri())
+                .modifiedBy(randomString())
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(singleTableCrudService);
         var persistedTwice = persistedTermsConditions
                 .merge(TermsConditions.builder()
-                        .modifiedBy(randomUri())
+                        .modifiedBy(randomString())
                         .termsConditionsUri(randomUri())
                         .build())
                 .upsert(singleTableCrudService);
@@ -58,7 +59,7 @@ public class SingleTableCrudServiceTest {
         var userIdentifier = randomUri();
         var termsConditionsDao = TermsConditions.builder()
                 .id(userIdentifier)
-                .modifiedBy(randomUri())
+                .modifiedBy(randomString())
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(singleTableCrudService);
@@ -77,7 +78,7 @@ public class SingleTableCrudServiceTest {
         var userIdentifier = randomUri();
         var termsConditions = TermsConditions.builder()
                 .id(userIdentifier)
-                .modifiedBy(randomUri())
+                .modifiedBy(randomString())
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(singleTableCrudService);

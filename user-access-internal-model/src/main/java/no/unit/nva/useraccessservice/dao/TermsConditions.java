@@ -22,9 +22,9 @@ public record TermsConditions(
     @DynamoDbPartitionKey URI id,
     @DynamoDbSortKey String type,
     Instant created,
-    URI owner,
+    String owner,
     Instant modified,
-    URI modifiedBy,
+    String modifiedBy,
     URI termsConditionsUri
 ) implements DataAccessLayer<TermsConditions>, DataAccessClass<TermsConditions> {
 
@@ -65,9 +65,9 @@ public record TermsConditions(
         private String withType;
         private Instant createdInstant;
         private Instant modifiedInstant;
-        private URI modifiedById;
+        private String modifiedById;
         private URI termsUri;
-        private URI withOwner;
+        private String withOwner;
 
         /**
          * Set the id of the TermsConditions.
@@ -86,7 +86,7 @@ public record TermsConditions(
          * @param currentOwner the owner of the TermsConditions.
          * @return a builder with the owner set.
          */
-        public Builder owner(URI currentOwner) {
+        public Builder owner(String currentOwner) {
             this.withOwner = currentOwner;
             return this;
         }
@@ -97,7 +97,7 @@ public record TermsConditions(
          * @param modifiedBy the user that modified the TermsConditions.
          * @return a builder with the user that modified the TermsConditions set.
          */
-        public Builder modifiedBy(URI modifiedBy) {
+        public Builder modifiedBy(String modifiedBy) {
             this.modifiedById = modifiedBy;
             return this;
         }

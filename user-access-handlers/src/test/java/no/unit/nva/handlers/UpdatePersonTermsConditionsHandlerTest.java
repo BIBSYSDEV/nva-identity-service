@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 import static java.net.HttpURLConnection.HTTP_OK;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -71,6 +72,7 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
             .withRequestContext(getRequestContext())
             .withPersonCristinId(randomUri())
             .withCurrentCustomer(randomUri())
+            .withUserName(randomString())
             .withBody(response)
             .build();
     }

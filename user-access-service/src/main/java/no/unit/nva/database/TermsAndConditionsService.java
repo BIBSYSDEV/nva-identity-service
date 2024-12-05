@@ -17,18 +17,19 @@ public class TermsAndConditionsService {
 
 
     private static final String TABLE_NAME = new Environment()
-            .readEnv("NVA_ID_TYPE_TABLE_NAME");
+            .readEnvOpt("NVA_ID_TYPE_TABLE_NAME")
+            .orElse("TEST-PersistedObjects");
     static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
 
-    private final DynamoCrudService<TermsConditions> crudService;
+    private final SingleTableCrudService<TermsConditions> crudService;
 
     @JacocoGenerated
     public TermsAndConditionsService() {
-        this(DEFAULT_DYNAMO_CLIENT);
+        this(DEFAULT_DYNAMO_CLIENT, TABLE_NAME);
     }
 
-    public TermsAndConditionsService(DynamoDbClient client) {
-        crudService = new DynamoCrudService<>(client, TABLE_NAME, TermsConditions.class);
+    public TermsAndConditionsService(DynamoDbClient client, String tableName) {
+        crudService = new SingleTableCrudService<>(client, tableName, TermsConditions.class);
     }
 
     public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) {

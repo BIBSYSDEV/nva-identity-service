@@ -2,7 +2,6 @@ package no.unit.nva.database;
 
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -20,13 +19,12 @@ public class TermsAndConditionsServiceTest {
     static void initialize() {
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
-        var TABLE_NAME = new Environment()
-                .readEnv("NVA_ID_TYPE_TABLE_NAME");
+        var TABLE_NAME = "PersistedObjectsTable";
 
-        new DynamoDbTableCreator(client)
+        new SingleTableTemplateCreator(client)
                 .createTable(TABLE_NAME);
 
-        termsConditionsService = new TermsAndConditionsService(client);
+        termsConditionsService = new TermsAndConditionsService(client, TABLE_NAME);
 
     }
 

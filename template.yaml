@@ -240,9 +240,9 @@ Resources:
                 Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
               - Effect: Allow
                 Action:
-                 - cognito-idp:ListUserPools
-                 - cognito-idp:GetUser
-                 - cognito-idp:DescribeUserPoolDomain
+                  - cognito-idp:ListUserPools
+                  - cognito-idp:GetUser
+                  - cognito-idp:DescribeUserPoolDomain
                 Resource: "*"
         - PolicyName: DatabasePermissions
           PolicyDocument:
@@ -262,10 +262,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                   - secretsmanager:GetResourcePolicy
-                   - secretsmanager:GetSecretValue
-                   - secretsmanager:DescribeSecret
-                   - secretsmanager:ListSecretVersionIds
+                  - secretsmanager:GetResourcePolicy
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:ListSecretVersionIds
                 Resource:
                   - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials*'
                   - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:CristinClientBasicAuth*'
@@ -338,7 +338,7 @@ Resources:
 
   UsersAndRolesAccessLogGroup:
     Type: AWS::Logs::LogGroup
-    Properties: 
+    Properties:
       RetentionInDays: 180
   
   UsersAndRolesApi:
@@ -550,7 +550,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
 
-  MigrateCuratorsIdenitityServiceHandler:
+  MigrateCuratorsIdentityServiceHandler:
     Type: AWS::Serverless::Function
     Description: 'Migrated users that has Curator role to instead have support, doi, nvi, and file-curator'
     Properties:
@@ -1311,7 +1311,7 @@ Resources:
                   - apigateway:POST
                 Resource: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${NvaCustomerApi}/deployments'
 
-### New Cognito ########################################################################################################
+  ### New Cognito ########################################################################################################
 
   UserPoolName:
     Type: AWS::SSM::Parameter
@@ -1487,10 +1487,10 @@ Resources:
     Properties:
       UserPoolId: !Ref UserPool
       AllowedOAuthFlows:
-          - client_credentials
+        - client_credentials
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthScopes:
-         - https://api.nva.unit.no/scopes/backend
+        - https://api.nva.unit.no/scopes/backend
       ClientName: BackendApplicationClient
       CallbackURLs:
         - https://api.nva.unit.no/scopes # not necessary maybe.

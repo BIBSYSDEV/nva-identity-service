@@ -34,7 +34,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.net.URI;
 import java.time.Instant;

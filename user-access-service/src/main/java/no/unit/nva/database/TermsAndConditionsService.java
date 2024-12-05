@@ -11,7 +11,6 @@ import java.net.URI;
 import java.util.List;
 
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
-import static nva.commons.core.attempt.Try.attempt;
 
 public class TermsAndConditionsService {
 
@@ -32,18 +31,15 @@ public class TermsAndConditionsService {
         crudService = new SingleTableCrudService<>(client, tableName, TermsConditions.class);
     }
 
-    public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) {
-        var fetchedUri =
-                attempt(
-                        () -> TermsConditions.builder()
-                                .id(cristinId)
-                                .build()
-                                .fetch(crudService)
-                                .termsConditionsUri()
-                );
+    public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) throws NotFoundException {
+        var fetchedUri = TermsConditions.builder()
+                            .id(cristinId)
+                            .build()
+                            .fetch(crudService)
+                            .termsConditionsUri();
 
         return TermsConditionsResponse.builder()
-                .withTermsConditionsUri(fetchedUri.or(() -> null).get())
+                .withTermsConditionsUri(fetchedUri)
                 .build();
     }
 

@@ -21,6 +21,7 @@ import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
@@ -182,9 +183,14 @@ public class UserSelectionUponLoginHandler
 
         if (requestedPerson.isPresent()) {
             var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
-            var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(requestedPerson.get(),
-                                                                                authenticationDetails,
-                                                                                impersonatedBy);
+            List<String> accessRights = null;
+            try {
+                accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(requestedPerson.get(),
+                                                                                    authenticationDetails,
+                                                                                    impersonatedBy);
+            } catch (NotFoundException e) {
+                    throw new RuntimeException(e);
+            }
             injectAccessRightsToEventResponse(input, accessRights);
         } else {
             injectAccessRightsToEventResponse(input, Collections.emptyList());
@@ -235,7 +241,7 @@ public class UserSelectionUponLoginHandler
     private List<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(
         Person person,
         AuthenticationDetails authenticationDetails,
-        String impersonatedBy) {
+        String impersonatedBy) throws NotFoundException {
 
         LOGGER.info("call with person: {} and terms is {}", person.getId(), termsService
                                                                                          .getTermsAndConditionsByPerson(

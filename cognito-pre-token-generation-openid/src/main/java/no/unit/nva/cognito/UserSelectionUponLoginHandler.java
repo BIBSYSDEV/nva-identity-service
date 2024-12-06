@@ -12,6 +12,7 @@ import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.TermsAndConditionsService;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
+import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
@@ -21,7 +22,6 @@ import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import nva.commons.apigateway.AccessRight;
-import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
@@ -183,14 +183,9 @@ public class UserSelectionUponLoginHandler
 
         if (requestedPerson.isPresent()) {
             var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
-            List<String> accessRights = null;
-            try {
-                accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(requestedPerson.get(),
+            List<String> accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(requestedPerson.get(),
                                                                                     authenticationDetails,
                                                                                     impersonatedBy);
-            } catch (NotFoundException e) {
-                    throw new RuntimeException(e);
-            }
             injectAccessRightsToEventResponse(input, accessRights);
         } else {
             injectAccessRightsToEventResponse(input, Collections.emptyList());
@@ -241,13 +236,7 @@ public class UserSelectionUponLoginHandler
     private List<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(
         Person person,
         AuthenticationDetails authenticationDetails,
-        String impersonatedBy) throws NotFoundException {
-
-        LOGGER.info("call with person: {} and terms is {}", person.getId(), termsService
-                                                                                         .getTermsAndConditionsByPerson(
-                                                                                             person.getId())
-                                                                                         .termsConditionsUri());
-
+        String impersonatedBy) {
         var start = Instant.now();
         var customersForPerson = fetchCustomersWithActiveAffiliations(person);
         var userSelectArguments = new UserSelectArguments.Builder()
@@ -259,9 +248,7 @@ public class UserSelectionUponLoginHandler
                                       .withCurrentTerms(termsService
                                                             .getCurrentTermsAndConditions()
                                                             .termsConditionsUri())
-                                      .withAcceptedTerms(termsService
-                                                             .getTermsAndConditionsByPerson(person.getId())
-                                                             .termsConditionsUri())
+                                      .withAcceptedTerms(getAcceptedTerms(person))
                                       .build();
 
         logIfDebug("Created users for customer with active affiliations in {} ms.", start);
@@ -272,6 +259,14 @@ public class UserSelectionUponLoginHandler
         logIfDebug("Updated user attributes in Cognito in {} ms.", start);
 
         return accessRights;
+    }
+
+    private URI getAcceptedTerms(Person person) {
+        return Optional.ofNullable(termsService
+                                       .getTermsAndConditionsByPerson(
+                                           person.getId()))
+                   .map(
+                       TermsConditionsResponse::termsConditionsUri).orElse(null);
     }
 
     private List<String> updateUserAttributesInCognito(UserSelectArguments arguments) {

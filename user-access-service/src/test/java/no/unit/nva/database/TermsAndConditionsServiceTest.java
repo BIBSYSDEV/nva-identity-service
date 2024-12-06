@@ -90,7 +90,7 @@ public class TermsAndConditionsServiceTest {
     void shouldReturnNullWhenTermsConditionsNotFound() {
         var userIdentifier = randomUri();
         var termsAndConditionsByPerson = termsConditionsService.getTermsAndConditionsByPerson(userIdentifier);
-        assertNull(termsAndConditionsByPerson.termsConditionsUri());
+        assertNull(termsAndConditionsByPerson);
     }
 
 }

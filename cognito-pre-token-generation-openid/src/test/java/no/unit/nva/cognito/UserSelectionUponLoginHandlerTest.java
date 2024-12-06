@@ -13,6 +13,7 @@ import no.unit.nva.database.DatabaseTestConfig;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.LocalIdentityService;
 import no.unit.nva.database.TermsAndConditionsService;
+import no.unit.nva.database.SingleTableTemplateCreator;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeSecretsManagerClient;
@@ -57,6 +58,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
@@ -116,6 +118,8 @@ class UserSelectionUponLoginHandlerTest {
     public static final int SINGLE_EXPECTED_USER = 1;
     public static final boolean ACTIVE = true;
     public static final boolean INACTIVE = false;
+    public static final String PERSISTED_OBJECTS_TABLE = "PersistedObjectsTable";
+    public static final URI TERMS_URI = URI.create("https://nva.sikt.no/terms/2024-10-01");
 
     private final Context context = new FakeContext();
     private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
@@ -152,7 +156,12 @@ class UserSelectionUponLoginHandlerTest {
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
         cognitoClient = new FakeCognito(randomString());
 
-        termsAndConditionsService = new TermsAndConditionsService(DatabaseTestConfig.getEmbeddedClient(), "PersistedObjectsTable");
+        DynamoDbClient embeddedClient = DatabaseTestConfig.getEmbeddedClient();
+        new SingleTableTemplateCreator(embeddedClient)
+            .createTable(PERSISTED_OBJECTS_TABLE);
+
+        termsAndConditionsService = new TermsAndConditionsService(embeddedClient,
+                                                                  PERSISTED_OBJECTS_TABLE);
 
         var httpClient = WiremockHttpClient.create();
         var personRegistry = CristinPersonRegistry.customPersonRegistry(
@@ -549,13 +558,17 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest(name = "should add firstName and lastName in claims when logging in")
     @EnumSource(value = LoginEventType.class)
-    void shouldStoreGivenNameAndFamilyNameInUserTableWhenLoggingIn(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
-        var event = newLoginEvent(person, loginEventType);
+    void shouldStoreGivenNameAndFamilyNameInUserTableWhenLoggingIn(LoginEventType loginEventType)
+        throws NotFoundException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var user = scenarios.createUsersForAllActiveAffiliations(person.nin(), identityService).stream()
+                               .collect(SingletonCollector.collect());
+        var event = newLoginEvent(person.nin(), loginEventType);
+        termsAndConditionsService.updateTermsAndConditions(user.getCristinId(),TERMS_URI, user.getUsername());
         handler.handleRequest(event, context);
 
-        var expectedFirstName = scenarios.getPersonFromRegistry(person).getFirstname();
-        var expectedLastName = scenarios.getPersonFromRegistry(person).getSurname();
+        var expectedFirstName = scenarios.getPersonFromRegistry(person.nin()).getFirstname();
+        var expectedLastName = scenarios.getPersonFromRegistry(person.nin()).getSurname();
 
         var firstName = extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM);
         var lastName = extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM);
@@ -972,7 +985,6 @@ class UserSelectionUponLoginHandlerTest {
         var employment = scenarios.getCristinUriForUnitAffiliations(person)
                 .stream()
                 .collect(SingletonCollector.collect());
-
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var user = scanAllUsers().stream().collect(SingletonCollector.collect());
@@ -1008,11 +1020,16 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
-    void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
-        var event = newLoginEvent(person, loginEventType);
+    void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType)
+        throws NotFoundException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var user = scenarios.createUsersForAllActiveAffiliations(person.nin(), identityService).stream()
+                       .collect(SingletonCollector.collect());
+        var event = newLoginEvent(person.nin(), loginEventType);
+        termsAndConditionsService.updateTermsAndConditions(user.getCristinId(),TERMS_URI, user.getUsername());
+
         handler.handleRequest(event, context);
-        var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(person)
+        var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(person.nin())
                 .stream()
                 .collect(SingletonCollector.collect());
         var cognitoAttribute = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);

@@ -1,5 +1,6 @@
 package no.unit.nva.database;
 
+import java.util.Optional;
 import no.unit.nva.useraccessservice.dao.TermsConditions;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -31,16 +32,23 @@ public class TermsAndConditionsService {
         crudService = new SingleTableCrudService<>(client, tableName, TermsConditions.class);
     }
 
-    public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) throws NotFoundException {
-        var fetchedUri = TermsConditions.builder()
-                            .id(cristinId)
-                            .build()
-                            .fetch(crudService)
-                            .termsConditionsUri();
-
-        return TermsConditionsResponse.builder()
-                .withTermsConditionsUri(fetchedUri)
-                .build();
+    public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) {
+        return Optional.of(cristinId)
+                   .map(id -> {
+                       try {
+                           return TermsConditions.builder()
+                                      .id(id)
+                                      .build()
+                                      .fetch(crudService)
+                                      .termsConditionsUri();
+                       } catch (NotFoundException e) {
+                           return null;
+                       }
+                   })
+                   .map(fetchedUri -> TermsConditionsResponse.builder()
+                                          .withTermsConditionsUri(fetchedUri)
+                                          .build())
+                   .orElse(null);
     }
 
     public TermsConditionsResponse updateTermsAndConditions(URI cristinId, URI termsConditions, String userId)

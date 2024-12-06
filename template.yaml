@@ -605,6 +605,7 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetExternalClientHandler::handleRequest
+      Policies:
         - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
         - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
         - !GetAtt CristinAndBackendSecretPermissionsPolicy.PolicyArn

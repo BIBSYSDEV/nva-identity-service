@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomInstant;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -37,7 +38,7 @@ class TermsConditionsTest {
             .type("TermsConditions")
             .created(lostInstant)
             .modified(lostInstant)
-            .modifiedBy(randomUri())
+            .modifiedBy(randomString())
             .termsConditionsUri(randomUri());
     }
 

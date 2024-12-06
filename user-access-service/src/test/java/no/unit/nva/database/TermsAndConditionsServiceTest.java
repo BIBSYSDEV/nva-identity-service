@@ -5,7 +5,7 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static no.unit.nva.database.TermsAndConditionsService.TABLE_NAME;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -20,29 +20,32 @@ public class TermsAndConditionsServiceTest {
     static void initialize() {
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
-        new DynamoDbTableCreator(client)
+        var TABLE_NAME = "TermsTable";
+
+        new SingleTableTemplateCreator(client)
                 .createTable(TABLE_NAME);
 
-        termsConditionsService = new TermsAndConditionsService(client);
+        termsConditionsService = new TermsAndConditionsService(client, TABLE_NAME);
 
     }
 
     @Test
     void shouldUpdateTermsConditions() throws NotFoundException {
-        var userIdentifier = randomUri();
+        var cristinPersonId = randomUri();
+        var userId = randomString();
         var expectedResponse = TermsConditionsResponse.builder()
                 .withTermsConditionsUri(randomUri())
                 .build();
 
         var response = termsConditionsService
                 .updateTermsAndConditions(
-                        userIdentifier,
+                        cristinPersonId,
                         expectedResponse.termsConditionsUri(),
-                        userIdentifier
+                        userId
                 );
 
         var fetchedResponse = termsConditionsService
-                .getTermsAndConditionsByPerson(userIdentifier);
+                .getTermsAndConditionsByPerson(cristinPersonId);
 
 
         assertThat(expectedResponse, is(equalTo(response)));
@@ -57,20 +60,22 @@ public class TermsAndConditionsServiceTest {
 
     @Test
     void shouldReturnTermsConditionsByPerson() throws NotFoundException {
-        var userIdentifier = randomUri();
+        var cristinPersonId = randomUri();
+        var userId = randomString();
+
         var expectedResponse = TermsConditionsResponse.builder()
                 .withTermsConditionsUri(randomUri())
                 .build();
 
         termsConditionsService
                 .updateTermsAndConditions(
-                        userIdentifier,
+                    cristinPersonId,
                         expectedResponse.termsConditionsUri(),
-                        userIdentifier
+                        userId
                 );
 
         var fetchedResponse = termsConditionsService
-                .getTermsAndConditionsByPerson(userIdentifier);
+                .getTermsAndConditionsByPerson(cristinPersonId);
 
         assertThat(expectedResponse, is(equalTo(fetchedResponse)));
     }
@@ -83,9 +88,9 @@ public class TermsAndConditionsServiceTest {
 
     @Test
     void shouldReturnNullWhenTermsConditionsNotFound() {
-        var userIdentifier = randomUri();
-        var termsAndConditionsByPerson = termsConditionsService.getTermsAndConditionsByPerson(userIdentifier);
-        assertNull(termsAndConditionsByPerson.termsConditionsUri());
+        var cristinPersonId = randomUri();
+        var termsAndConditionsByPerson = termsConditionsService.getTermsAndConditionsByPerson(cristinPersonId);
+        assertNull(termsAndConditionsByPerson);
     }
 
 }

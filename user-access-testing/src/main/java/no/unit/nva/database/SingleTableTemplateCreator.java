@@ -8,14 +8,14 @@ import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
-public class DynamoDbTableCreator {
+public class SingleTableTemplateCreator {
 
     public static final String PRIMARY_KEY = "id";
     public static final String SECONDARY_KEY = "type";
     private final DynamoDbClient dynamoDbClient;
 
 
-    public DynamoDbTableCreator(DynamoDbClient dynamoDbClient) {
+    public SingleTableTemplateCreator(DynamoDbClient dynamoDbClient) {
         this.dynamoDbClient = dynamoDbClient;
     }
 
@@ -51,6 +51,5 @@ public class DynamoDbTableCreator {
             .build();
 
         dynamoDbClient.createTable(request);
-        System.out.println("Table " + tableName + " created successfully!");
     }
 }

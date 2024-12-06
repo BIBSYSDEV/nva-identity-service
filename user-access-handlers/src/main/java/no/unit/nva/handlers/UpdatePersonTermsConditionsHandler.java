@@ -39,7 +39,7 @@ public class UpdatePersonTermsConditionsHandler extends
         return service.updateTermsAndConditions(
             requestInfo.getPersonCristinId(),
             input.termsConditionsUri(),
-            requestInfo.getCurrentCustomer()
+            requestInfo.getUserName()
         );
     }
 

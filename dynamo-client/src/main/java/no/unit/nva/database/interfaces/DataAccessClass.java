@@ -57,7 +57,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @return an UUID identifier.
      */
-    URI owner();
+    String owner();
 
     /**
      * Returns the time the object was last modified.
@@ -71,7 +71,7 @@ public interface DataAccessClass<T extends DataAccessClass<T>> {
      *
      * @return an UUID identifier.
      */
-    URI modifiedBy();
+    String modifiedBy();
 
     /**
      * Validates that every field needed to fetch the object is present.

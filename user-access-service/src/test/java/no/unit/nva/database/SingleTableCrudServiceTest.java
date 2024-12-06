@@ -6,6 +6,7 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -13,39 +14,40 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
-public class DynamoCrudServiceTest {
+public class SingleTableCrudServiceTest {
 
-    public static final String TABLE_NAME = "nonExistentTableName";
-    private static DynamoCrudService<TermsConditions> termsConditionsService;
+    private static SingleTableCrudService<TermsConditions> singleTableCrudService;
 
 
     @BeforeAll
     static void initialize() {
+
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
-        new DynamoDbTableCreator(client)
-                .createTable(TABLE_NAME);
+        var tableName = "TermsTable";
+        new SingleTableTemplateCreator(client)
+                .createTable(tableName);
 
-        termsConditionsService = new DynamoCrudService<>(client, TABLE_NAME, TermsConditions.class);
+        singleTableCrudService = new SingleTableCrudService<>(client, tableName, TermsConditions.class);
     }
 
     @Test
     void shouldPersistPreferencesAndLicense() throws NotFoundException {
         var persistedTermsConditions = TermsConditions.builder()
                 .id(randomUri())
-                .modifiedBy(randomUri())
+                .modifiedBy(randomString())
                 .termsConditionsUri(randomUri())
                 .build()
-                .upsert(termsConditionsService);
+                .upsert(singleTableCrudService);
         var persistedTwice = persistedTermsConditions
                 .merge(TermsConditions.builder()
-                        .modifiedBy(randomUri())
+                        .modifiedBy(randomString())
                         .termsConditionsUri(randomUri())
                         .build())
-                .upsert(termsConditionsService);
+                .upsert(singleTableCrudService);
 
         var fetchedTermsConditions = persistedTermsConditions
-                .fetch(termsConditionsService);
+                .fetch(singleTableCrudService);
 
         assertThat(fetchedTermsConditions, is(equalTo(persistedTwice)));
 
@@ -57,15 +59,15 @@ public class DynamoCrudServiceTest {
         var userIdentifier = randomUri();
         var termsConditionsDao = TermsConditions.builder()
                 .id(userIdentifier)
-                .modifiedBy(randomUri())
+                .modifiedBy(randomString())
                 .termsConditionsUri(randomUri())
                 .build()
-                .upsert(termsConditionsService);
+                .upsert(singleTableCrudService);
 
         var termsConditions = TermsConditions.builder()
                 .id(userIdentifier)
                 .build()
-                .fetch(termsConditionsService);
+                .fetch(singleTableCrudService);
 
 
         assertThat(termsConditionsDao, is(equalTo(termsConditions)));
@@ -76,18 +78,18 @@ public class DynamoCrudServiceTest {
         var userIdentifier = randomUri();
         var termsConditions = TermsConditions.builder()
                 .id(userIdentifier)
-                .modifiedBy(randomUri())
+                .modifiedBy(randomString())
                 .termsConditionsUri(randomUri())
                 .build()
-                .upsert(termsConditionsService);
+                .upsert(singleTableCrudService);
 
-        termsConditionsService.delete(termsConditions);
+        singleTableCrudService.delete(termsConditions);
 
         assertThrows(NotFoundException.class,
                 () -> TermsConditions.builder()
                         .id(userIdentifier)
                         .build()
-                        .fetch(termsConditionsService));
+                        .fetch(singleTableCrudService));
     }
 
     @Test
@@ -96,7 +98,7 @@ public class DynamoCrudServiceTest {
                 () -> TermsConditions.builder()
                         .id(randomUri())
                         .build()
-                        .fetch(termsConditionsService));
+                        .fetch(singleTableCrudService));
     }
 
 
@@ -106,6 +108,6 @@ public class DynamoCrudServiceTest {
                 .id(randomUri())
                 .build();
         assertThrows(NotFoundException.class,
-                () -> termsConditionsService.delete(dao));
+                () -> singleTableCrudService.delete(dao));
     }
 }

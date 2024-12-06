@@ -20,7 +20,7 @@ public class TermsAndConditionsServiceTest {
     static void initialize() {
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
-        var TABLE_NAME = "PersistedObjectsTable";
+        var TABLE_NAME = "TermsTable";
 
         new SingleTableTemplateCreator(client)
                 .createTable(TABLE_NAME);
@@ -31,7 +31,7 @@ public class TermsAndConditionsServiceTest {
 
     @Test
     void shouldUpdateTermsConditions() throws NotFoundException {
-        var cristinUserId = randomUri();
+        var cristinPersonId = randomUri();
         var userId = randomString();
         var expectedResponse = TermsConditionsResponse.builder()
                 .withTermsConditionsUri(randomUri())
@@ -39,13 +39,13 @@ public class TermsAndConditionsServiceTest {
 
         var response = termsConditionsService
                 .updateTermsAndConditions(
-                        cristinUserId,
+                        cristinPersonId,
                         expectedResponse.termsConditionsUri(),
                         userId
                 );
 
         var fetchedResponse = termsConditionsService
-                .getTermsAndConditionsByPerson(cristinUserId);
+                .getTermsAndConditionsByPerson(cristinPersonId);
 
 
         assertThat(expectedResponse, is(equalTo(response)));
@@ -60,7 +60,7 @@ public class TermsAndConditionsServiceTest {
 
     @Test
     void shouldReturnTermsConditionsByPerson() throws NotFoundException {
-        var cristinUserId = randomUri();
+        var cristinPersonId = randomUri();
         var userId = randomString();
 
         var expectedResponse = TermsConditionsResponse.builder()
@@ -69,13 +69,13 @@ public class TermsAndConditionsServiceTest {
 
         termsConditionsService
                 .updateTermsAndConditions(
-                        cristinUserId,
+                    cristinPersonId,
                         expectedResponse.termsConditionsUri(),
                         userId
                 );
 
         var fetchedResponse = termsConditionsService
-                .getTermsAndConditionsByPerson(cristinUserId);
+                .getTermsAndConditionsByPerson(cristinPersonId);
 
         assertThat(expectedResponse, is(equalTo(fetchedResponse)));
     }
@@ -88,8 +88,8 @@ public class TermsAndConditionsServiceTest {
 
     @Test
     void shouldReturnNullWhenTermsConditionsNotFound() {
-        var userIdentifier = randomUri();
-        var termsAndConditionsByPerson = termsConditionsService.getTermsAndConditionsByPerson(userIdentifier);
+        var cristinPersonId = randomUri();
+        var termsAndConditionsByPerson = termsConditionsService.getTermsAndConditionsByPerson(cristinPersonId);
         assertNull(termsAndConditionsByPerson);
     }
 

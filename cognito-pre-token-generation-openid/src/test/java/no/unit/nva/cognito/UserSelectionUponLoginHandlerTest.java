@@ -118,7 +118,7 @@ class UserSelectionUponLoginHandlerTest {
     public static final int SINGLE_EXPECTED_USER = 1;
     public static final boolean ACTIVE = true;
     public static final boolean INACTIVE = false;
-    public static final String PERSISTED_OBJECTS_TABLE = "PersistedObjectsTable";
+    public static final String TERMS_TABLE = "TermsTable";
     public static final URI TERMS_URI = URI.create("https://nva.sikt.no/terms/2024-10-01");
 
     private final Context context = new FakeContext();
@@ -158,10 +158,10 @@ class UserSelectionUponLoginHandlerTest {
 
         DynamoDbClient embeddedClient = DatabaseTestConfig.getEmbeddedClient();
         new SingleTableTemplateCreator(embeddedClient)
-            .createTable(PERSISTED_OBJECTS_TABLE);
+            .createTable(TERMS_TABLE);
 
         termsAndConditionsService = new TermsAndConditionsService(embeddedClient,
-                                                                  PERSISTED_OBJECTS_TABLE);
+                                                                  TERMS_TABLE);
 
         var httpClient = WiremockHttpClient.create();
         var personRegistry = CristinPersonRegistry.customPersonRegistry(

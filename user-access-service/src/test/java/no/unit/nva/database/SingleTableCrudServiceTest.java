@@ -24,7 +24,7 @@ public class SingleTableCrudServiceTest {
 
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
-        var tableName = "PersistedObjectsTable";
+        var tableName = "TermsTable";
         new SingleTableTemplateCreator(client)
                 .createTable(tableName);
 

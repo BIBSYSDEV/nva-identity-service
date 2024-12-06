@@ -17,7 +17,7 @@ public class TermsAndConditionsService {
 
 
     private static final String TABLE_NAME = new Environment()
-            .readEnvOpt("NVA_ID_TYPE_TABLE_NAME")
+            .readEnvOpt("TERMS_TABLE_NAME")
             .orElse("TEST-PersistedObjects");
     static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
 
@@ -32,8 +32,8 @@ public class TermsAndConditionsService {
         crudService = new SingleTableCrudService<>(client, tableName, TermsConditions.class);
     }
 
-    public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinId) {
-        return Optional.of(cristinId)
+    public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinPersonId) {
+        return Optional.of(cristinPersonId)
                    .map(id -> {
                        try {
                            return TermsConditions.builder()

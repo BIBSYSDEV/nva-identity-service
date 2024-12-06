@@ -393,7 +393,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
-          NVA_ID_TYPE_TABLE_NAME: !Ref TermsAndConditionsTable
+          TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TermsAndConditionsTable
@@ -1736,7 +1736,7 @@ Resources:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           CRISTIN_API_URL: !Ref CristinApiUrl
-          NVA_ID_TYPE_TABLE_NAME: !Ref TermsAndConditionsTable
+          TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
       Timeout: 20
 
   PreTokenGenerationHandlerScalableTarget:

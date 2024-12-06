@@ -413,7 +413,7 @@ Resources:
       Policies:
         - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
         - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
-        - !GetAtt arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
@@ -435,7 +435,7 @@ Resources:
       Policies:
         - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
         - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
-        - !GetAtt arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
@@ -512,7 +512,7 @@ Resources:
       Policies:
         - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
         - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
-        - !GetAtt arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
@@ -533,7 +533,7 @@ Resources:
       Policies:
         - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
         - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
-        - !GetAtt arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins

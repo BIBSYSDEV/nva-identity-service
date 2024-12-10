@@ -1,5 +1,6 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CognitoClaims.AT;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
@@ -11,7 +12,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static no.unit.nva.cognito.CognitoClaims.AT;
 
 public class UserAccessRightForCustomer {
 
@@ -36,7 +36,7 @@ public class UserAccessRightForCustomer {
         return user.getAccessRights()
             .stream()
             .map(accessRight -> new UserAccessRightForCustomer(customer, accessRight))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     public CustomerDto getCustomer() {

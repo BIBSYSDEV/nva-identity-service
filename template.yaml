@@ -394,9 +394,11 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
+          USER_POOL_ID: !GetAtt UserPool.UserPoolId
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TermsAndConditionsTable
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
       Events:
         ApiEvent:
           Type: Api

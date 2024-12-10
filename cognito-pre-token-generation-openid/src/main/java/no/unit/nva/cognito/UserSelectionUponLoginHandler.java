@@ -472,11 +472,10 @@ public class UserSelectionUponLoginHandler
     }
 
     private List<AttributeType> overwriteCustomerSelectionClaimsWithNullString() {
-        List<AttributeType> attributeTypes = generateCustomerSelectionClaims(EMPTY_CLAIM,
+        return generateCustomerSelectionClaims(EMPTY_CLAIM,
                                                                              EMPTY_CLAIM,
                                                                              EMPTY_CLAIM,
                                                                              EMPTY_CLAIM);
-        return attributeTypes;
     }
 
     private List<AttributeType> customerSelectionClaims(CustomerDto currentCustomer, UserDto currentUser) {

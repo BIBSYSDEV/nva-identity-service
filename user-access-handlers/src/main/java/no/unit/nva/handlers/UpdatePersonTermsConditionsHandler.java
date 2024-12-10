@@ -26,9 +26,10 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResp
 public class UpdatePersonTermsConditionsHandler extends
     ApiGatewayHandler<TermsConditionsResponse, TermsConditionsResponse> {
 
+    public static final String AWS_REGION_ENV = "AWS_REGION";
+    public static final String USER_POOL_ID_ENV = "USER_POOL_ID";
     private final TermsAndConditionsService service;
     private final CognitoIdentityProviderClient cognito;
-    private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
     public static final String SINGLE_SPACE = " ";
     private final String userPoolId;
 
@@ -43,7 +44,7 @@ public class UpdatePersonTermsConditionsHandler extends
         super(TermsConditionsResponse.class);
         this.service = service;
         this.cognito = cognito;
-        this.userPoolId = environment.readEnv("USER_POOL_ID");
+        this.userPoolId = environment.readEnv(USER_POOL_ID_ENV);
     }
 
 
@@ -58,14 +59,12 @@ public class UpdatePersonTermsConditionsHandler extends
     protected TermsConditionsResponse processInput(
         TermsConditionsResponse input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         var accessToken = extractAccessToken(requestInfo);
-        List<AttributeType> userAttributes = fetchUserInfo(accessToken).userAttributes();
+        var userAttributes = fetchUserInfo(accessToken).userAttributes();
 
-        // Create a new list with updated attributes
         userAttributes = updateOrAddUserAttribute(userAttributes, CognitoClaims.CUSTOMER_ACCEPTED_TERMS,
                                                    input.termsConditionsUri().toString());
         userAttributes = updateOrAddUserAttribute(userAttributes, CognitoClaims.CURRENT_TERMS,
                                                   service.getCurrentTermsAndConditions().toString());
-
 
         cognito.adminUpdateUserAttributes(
             AdminUpdateUserAttributesRequest.builder()
@@ -84,7 +83,7 @@ public class UpdatePersonTermsConditionsHandler extends
 
     private List<AttributeType> updateOrAddUserAttribute(List<AttributeType> userAttributes, String attributeName, String attributeValue) {
         // Filter out the existing attribute with the same name (if it exists)
-        List<AttributeType> updatedAttributes = new ArrayList<>(userAttributes.stream()
+        var updatedAttributes = new ArrayList<>(userAttributes.stream()
                                                                     .filter(attribute -> !attribute.name()
                                                                                               .equals(attributeName))
                                                                     .toList());
@@ -110,7 +109,7 @@ public class UpdatePersonTermsConditionsHandler extends
         return CognitoIdentityProviderClient.builder()
                    .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                    .httpClient(UrlConnectionHttpClient.create())
-                   .region(Region.of(AWS_REGION))
+                   .region(Region.of(new Environment().readEnv(AWS_REGION_ENV)))
                    .build();
     }
 

@@ -183,9 +183,22 @@ public class UserSelectionUponLoginHandler
 
         if (requestedPerson.isPresent()) {
             var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
-            List<String> accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(requestedPerson.get(),
-                                                                                    authenticationDetails,
-                                                                                    impersonatedBy);
+            var person = requestedPerson.get();
+
+            var customersForPerson = fetchCustomersWithActiveAffiliations(person);
+            var userSelectArguments = new UserSelectArguments.Builder()
+                                          .withAuthenticationDetails(authenticationDetails)
+                                          .withPerson(person)
+                                          .withCustomers(customersForPerson)
+                                          .withImpersonatedBy(impersonatedBy)
+                                          .withUsers(createUsers(person, customersForPerson, authenticationDetails))
+                                          .withCurrentTerms(termsService
+                                                                .getCurrentTermsAndConditions()
+                                                                .termsConditionsUri())
+                                          .withAcceptedTerms(getAcceptedTerms(person))
+                                          .build();
+
+            var accessRights = createUsersAndUpdateCognitoBasedOnPersonRegistry(userSelectArguments);
             injectAccessRightsToEventResponse(input, accessRights);
         } else {
             injectAccessRightsToEventResponse(input, Collections.emptyList());
@@ -214,7 +227,8 @@ public class UserSelectionUponLoginHandler
         var impersonatorsAccessRights = usersForImpersonator
                                             .stream()
                                             .map(user -> UserAccessRightForCustomer.fromUser(user,
-                                                                                             customerForImpersonators))
+                                                                                             customerForImpersonators
+                                                , true))
                                             .flatMap(Collection::stream)
                                             .map(UserAccessRightForCustomer::getAccessRight)
                                             .collect(Collectors.toSet());
@@ -233,23 +247,9 @@ public class UserSelectionUponLoginHandler
         return isNull(impersonating) ? null : authenticationDetails.getUsername();
     }
 
-    private List<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(
-        Person person,
-        AuthenticationDetails authenticationDetails,
-        String impersonatedBy) {
+    private List<String> createUsersAndUpdateCognitoBasedOnPersonRegistry(UserSelectArguments userSelectArguments) {
+
         var start = Instant.now();
-        var customersForPerson = fetchCustomersWithActiveAffiliations(person);
-        var userSelectArguments = new UserSelectArguments.Builder()
-                                      .withAuthenticationDetails(authenticationDetails)
-                                      .withPerson(person)
-                                      .withCustomers(customersForPerson)
-                                      .withImpersonatedBy(impersonatedBy)
-                                      .withUsers(createUsers(person, customersForPerson, authenticationDetails))
-                                      .withCurrentTerms(termsService
-                                                            .getCurrentTermsAndConditions()
-                                                            .termsConditionsUri())
-                                      .withAcceptedTerms(getAcceptedTerms(person))
-                                      .build();
 
         logIfDebug("Created users for customer with active affiliations in {} ms.", start);
 
@@ -278,10 +278,14 @@ public class UserSelectionUponLoginHandler
                               : null;
         var rolesPerCustomerForPerson = rolesForCustomer(arguments.users(), currentCustomer);
 
+        var userAcceptedTerms = arguments.currentTerms().equals(arguments.acceptedTerms());
+
         var accessRights =
-            createAccessRightsWithCustomerForCurrentCustomer(arguments.users(), arguments.customers(), currentCustomer);
+            createAccessRightsWithCustomerForCurrentCustomer(arguments.users(), arguments.customers(),
+                                                             currentCustomer, userAcceptedTerms);
         var accessRightsWithoutCustomer =
-            createAccessRightsForCurrentCustomer(arguments.users(), arguments.customers(), currentCustomer);
+            createAccessRightsForCurrentCustomer(arguments.users(), arguments.customers(), currentCustomer,
+                                                 userAcceptedTerms);
 
         updateCognitoUserAttributes(
             arguments.copy()
@@ -473,9 +477,9 @@ public class UserSelectionUponLoginHandler
 
     private List<AttributeType> overwriteCustomerSelectionClaimsWithNullString() {
         return generateCustomerSelectionClaims(EMPTY_CLAIM,
-                                                                             EMPTY_CLAIM,
-                                                                             EMPTY_CLAIM,
-                                                                             EMPTY_CLAIM);
+                                               EMPTY_CLAIM,
+                                               EMPTY_CLAIM,
+                                               EMPTY_CLAIM);
     }
 
     private List<AttributeType> customerSelectionClaims(CustomerDto currentCustomer, UserDto currentUser) {
@@ -531,9 +535,10 @@ public class UserSelectionUponLoginHandler
     private List<UserAccessRightForCustomer> createAccessRightForCustomer(
         List<UserDto> personUsers,
         Set<CustomerDto> customers,
-        CustomerDto currentCustomer) {
+        CustomerDto currentCustomer,
+        Boolean hasAcceptedTerms) {
         return personUsers.stream()
-                   .map(user -> UserAccessRightForCustomer.fromUser(user, customers))
+                   .map(user -> UserAccessRightForCustomer.fromUser(user, customers, hasAcceptedTerms))
                    .flatMap(Collection::stream)
                    .filter(ac -> ac.getCustomer().equals(currentCustomer))
                    .toList();
@@ -542,8 +547,9 @@ public class UserSelectionUponLoginHandler
     private List<String> createAccessRightsWithCustomerForCurrentCustomer(
         List<UserDto> personUsers,
         Set<CustomerDto> customers,
-        CustomerDto currentCustomer) {
-        return createAccessRightForCustomer(personUsers, customers, currentCustomer)
+        CustomerDto currentCustomer,
+        Boolean hasAcceptedTerms) {
+        return createAccessRightForCustomer(personUsers, customers, currentCustomer, hasAcceptedTerms)
                    .stream()
                    .map(UserAccessRightForCustomer::toString)
                    .toList();
@@ -552,8 +558,9 @@ public class UserSelectionUponLoginHandler
     private List<String> createAccessRightsForCurrentCustomer(
         List<UserDto> personUsers,
         Set<CustomerDto> customers,
-        CustomerDto currentCustomer) {
-        return createAccessRightForCustomer(personUsers, customers, currentCustomer)
+        CustomerDto currentCustomer,
+        Boolean hasAcceptedTerms) {
+        return createAccessRightForCustomer(personUsers, customers, currentCustomer, hasAcceptedTerms)
                    .stream()
                    .map(UserAccessRightForCustomer::getAccessRight)
                    .map(AccessRight::toPersistedString)

@@ -1,6 +1,7 @@
 package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.AT;
+
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
@@ -10,6 +11,8 @@ import nva.commons.core.SingletonCollector;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
+import static java.lang.Boolean.FALSE;
 
 public class UserAccessRightForCustomer {
 
@@ -22,7 +25,12 @@ public class UserAccessRightForCustomer {
         this.customer = customerDto;
     }
 
-    public static List<UserAccessRightForCustomer> fromUser(UserDto user, Set<CustomerDto> customers) {
+    public static List<UserAccessRightForCustomer> fromUser(UserDto user, Set<CustomerDto> customers,
+                                                            Boolean hasAcceptedTerms) {
+        if (FALSE.equals(hasAcceptedTerms)) {
+            return List.of();
+        }
+
         var customer = customers.stream()
             .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
             .collect(SingletonCollector.collect());

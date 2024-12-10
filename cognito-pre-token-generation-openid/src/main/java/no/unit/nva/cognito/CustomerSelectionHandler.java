@@ -1,18 +1,21 @@
 package no.unit.nva.cognito;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import java.util.Optional;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.database.DatabaseConfig;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.TermsAndConditionsService;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
+import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
+import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -38,6 +41,7 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static nva.commons.core.attempt.Try.attempt;
 
 public class CustomerSelectionHandler extends CognitoCommunicationHandler<CustomerSelection, Void> {
@@ -45,22 +49,26 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
     private final CognitoIdentityProviderClient cognito;
     private final CustomerService customerService;
     private final IdentityService identityService;
+    private final TermsAndConditionsService termsService;
 
     @JacocoGenerated
     public CustomerSelectionHandler() {
         this(defaultCognitoClient(),
-            defaultCustomerService(DatabaseConfig.DEFAULT_DYNAMO_CLIENT),
-            IdentityService.defaultIdentityService(DatabaseConfig.DEFAULT_DYNAMO_CLIENT)
+             defaultCustomerService(DEFAULT_DYNAMO_CLIENT),
+             IdentityService.defaultIdentityService(DEFAULT_DYNAMO_CLIENT),
+             new TermsAndConditionsService()
         );
     }
 
     public CustomerSelectionHandler(CognitoIdentityProviderClient cognito,
                                     CustomerService customerService,
-                                    IdentityService identityService) {
+                                    IdentityService identityService,
+                                    TermsAndConditionsService termsAndConditionsService) {
         super(CustomerSelection.class);
         this.cognito = cognito;
         this.customerService = customerService;
         this.identityService = identityService;
+        this.termsService = termsAndConditionsService;
     }
 
     @Override
@@ -70,13 +78,21 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
     }
 
     @Override
-    protected Void processInput(CustomerSelection input, RequestInfo event, Context context) throws ForbiddenException {
+    protected Void processInput(CustomerSelection input, RequestInfo event, Context context)
+        throws ForbiddenException, UnauthorizedException {
 
         var accessToken = extractAccessToken(event);
         var userAttributes = fetchUserInfo(accessToken).userAttributes();
         validateInput(userAttributes, input.getCustomerId());
-        updateCognitoUserEntryAttributes(input, userAttributes, accessToken);
+        updateCognitoUserEntryAttributes(input, userAttributes, accessToken, hasAcceptedTerms(event));
         return null;
+    }
+
+    private Boolean hasAcceptedTerms(RequestInfo event) throws UnauthorizedException {
+        return Optional.ofNullable(termsService.getTermsAndConditionsByPerson(event.getPersonCristinId()))
+                   .map(TermsConditionsResponse::termsConditionsUri)
+                   .map(userTerms -> termsService.getCurrentTermsAndConditions().termsConditionsUri().equals(userTerms))
+                   .orElse(false);
     }
 
     @Override
@@ -90,10 +106,11 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
 
     private void updateCognitoUserEntryAttributes(CustomerSelection customerSelection,
                                                   List<AttributeType> userAttributes,
-                                                  String accessToken) {
+                                                  String accessToken,
+                                                  Boolean hasAcceptedTerms) {
         var user = fetchUser(customerSelection, userAttributes);
         var customer = attempt(() -> customerService.getCustomer(customerSelection.getCustomerId())).orElseThrow();
-        var activeAccessRights = getActiveAccessRights(user, customer);
+        var activeAccessRights = getActiveAccessRights(user, customer, hasAcceptedTerms);
         var selectedCustomerCustomClaim = createCustomerSelectionClaim(user);
         var rolesClaim = createRoleClaim(getActiveRoles(user));
         var accessRightsClaim = createAccessRightsClaim(activeAccessRights);
@@ -102,28 +119,28 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
         var userAffiliation = createUserAffiliationClaim(user);
 
         var request = UpdateUserAttributesRequest.builder()
-            .accessToken(accessToken)
-            .userAttributes(selectedCustomerCustomClaim, nvaUsernameClaim, selectedCustomerCristinId,
-                userAffiliation, accessRightsClaim, rolesClaim)
-            .build();
+                          .accessToken(accessToken)
+                          .userAttributes(selectedCustomerCustomClaim, nvaUsernameClaim, selectedCustomerCristinId,
+                                          userAffiliation, accessRightsClaim, rolesClaim)
+                          .build();
         cognito.updateUserAttributes(request);
     }
 
     private String getActiveRoles(UserDto user) {
         return user.getRoles().stream()
-            .map(RoleDto::getRoleName)
-            .map(RoleName::getValue)
-            .collect(Collectors.joining(ELEMENTS_DELIMITER));
+                   .map(RoleDto::getRoleName)
+                   .map(RoleName::getValue)
+                   .collect(Collectors.joining(ELEMENTS_DELIMITER));
     }
 
-    private String getActiveAccessRights(UserDto user, CustomerDto customer) {
-        return attempt(() -> UserAccessRightForCustomer.fromUser(user, Set.of(customer)))
-            .orElseThrow()
-            .stream()
-            .filter(ac -> ac.getCustomer().getId().equals(user.getInstitution()))
-            .map(UserAccessRightForCustomer::getAccessRight)
-            .map(AccessRight::toPersistedString)
-            .collect(Collectors.joining(ELEMENTS_DELIMITER));
+    private String getActiveAccessRights(UserDto user, CustomerDto customer, Boolean hasAcceptedTerms) {
+        return attempt(() -> UserAccessRightForCustomer.fromUser(user, Set.of(customer), hasAcceptedTerms))
+                   .orElseThrow()
+                   .stream()
+                   .filter(ac -> ac.getCustomer().getId().equals(user.getInstitution()))
+                   .map(UserAccessRightForCustomer::getAccessRight)
+                   .map(AccessRight::toPersistedString)
+                   .collect(Collectors.joining(ELEMENTS_DELIMITER));
     }
 
     private AttributeType createUserAffiliationClaim(UserDto user) {
@@ -136,8 +153,8 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
 
     private AttributeType createAttribute(String attributeName, String attributeValue) {
         return AttributeType.builder().name(attributeName)
-            .value(attributeValue)
-            .build();
+                   .value(attributeValue)
+                   .build();
     }
 
     private AttributeType createAccessRightsClaim(String claims) {
@@ -158,8 +175,8 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
 
     private AttributeType createAttribute(String attributeName, URI attributeValue) {
         return AttributeType.builder().name(attributeName)
-            .value(attributeValue.toString())
-            .build();
+                   .value(attributeValue.toString())
+                   .build();
     }
 
     private UserDto fetchUser(CustomerSelection customerSelection, List<AttributeType> userAttributes) {
@@ -171,15 +188,15 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
 
     private URI extractCristinPersonId(List<AttributeType> userAttributes) {
         return userAttributes.stream()
-            .filter(attribute -> PERSON_ID_CLAIM.equals(attribute.name()))
-            .map(AttributeType::value)
-            .map(URI::create)
-            .collect(SingletonCollector.collect());
+                   .filter(attribute -> PERSON_ID_CLAIM.equals(attribute.name()))
+                   .map(AttributeType::value)
+                   .map(URI::create)
+                   .collect(SingletonCollector.collect());
     }
 
     private URI fetchCustomerCristinId(CustomerSelection customerSelection) {
         return attempt(() -> customerService.getCustomer(customerSelection.getCustomerId()).getCristinId())
-            .orElseThrow();
+                   .orElseThrow();
     }
 
     private void validateInput(List<AttributeType> userAttributes, URI customerId) throws ForbiddenException {
@@ -196,9 +213,9 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
 
     private String extractAllowedCustomers(List<AttributeType> userAttributes) {
         return userAttributes.stream()
-            .filter(attribute -> ALLOWED_CUSTOMERS_CLAIM.equals(attribute.name()))
-            .collect(SingletonCollector.tryCollect())
-            .map(AttributeType::value)
-            .orElseThrow();
+                   .filter(attribute -> ALLOWED_CUSTOMERS_CLAIM.equals(attribute.name()))
+                   .collect(SingletonCollector.tryCollect())
+                   .map(AttributeType::value)
+                   .orElseThrow();
     }
 }

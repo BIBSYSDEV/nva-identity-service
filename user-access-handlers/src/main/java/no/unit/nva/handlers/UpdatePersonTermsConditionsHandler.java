@@ -63,7 +63,7 @@ public class UpdatePersonTermsConditionsHandler extends
                 .build(),
             AttributeType.builder()
                 .name(CognitoClaims.CURRENT_TERMS)
-                .value(service.getCurrentTermsAndConditions().toString())
+                .value(service.getCurrentTermsAndConditions().termsConditionsUri().toString())
                 .build()
         );
 

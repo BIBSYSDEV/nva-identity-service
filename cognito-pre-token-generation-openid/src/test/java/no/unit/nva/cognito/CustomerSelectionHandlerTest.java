@@ -10,6 +10,7 @@ import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
+import no.unit.nva.database.TermsAndConditionsService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.testutils.JwtTestToken;
@@ -17,6 +18,7 @@ import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
 import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
@@ -42,11 +44,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
 
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
+import static no.unit.nva.cognito.CognitoClaims.CUSTOMER_ACCEPTED_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
@@ -66,10 +71,14 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class CustomerSelectionHandlerTest {
 
     public static final String MULTI_VALUE_CLAIMS_DELIMITER = ",";
+    static final URI TERMS_URL = URI.create("https://nva.sikt.no/terms/2024-10-01");
     private final FakeContext context = new FakeContext();
     private FakeCognito cognito;
     private String personAccessToken;
@@ -82,6 +91,7 @@ class CustomerSelectionHandlerTest {
     private ByteArrayOutputStream outputStream;
     private AccessRight accessRight;
     private RoleDto role;
+    private TermsAndConditionsService termsService;
 
     @BeforeEach
     public void init() throws InvalidInputException, ConflictException {
@@ -94,41 +104,55 @@ class CustomerSelectionHandlerTest {
         personAccessToken = JwtTestToken.randomToken();
         var person = randomUri();
         setupCognitoAndPersonInformation(person);
+        termsService = mock(TermsAndConditionsService.class);
+        var terms = TermsConditionsResponse.builder()
+                                            .withTermsConditionsUri(TERMS_URL)
+                                            .build();
+        when(termsService.getCurrentTermsAndConditions()).thenReturn(terms);
+        when(termsService.getTermsAndConditionsByPerson(any())).thenReturn(terms);
 
         addUserEntriesInIdentityService(person, allowedCustomers, role);
 
-        this.handler = new CustomerSelectionHandler(cognito, customerService, identityService);
+        this.handler = new CustomerSelectionHandler(cognito, customerService, identityService, termsService);
     }
 
     private static RoleDb randomRoleWithAccessRight(AccessRight accessRight) {
         return RoleDb.newBuilder()
-            .withName(randomRoleName())
-            .withAccessRights(Set.of(accessRight))
-            .build();
+                   .withName(randomRoleName())
+                   .withAccessRights(Set.of(accessRight))
+                   .build();
     }
 
     private void setupCognitoAndPersonInformation(URI person) {
         cognito = new FakeCognito(randomString());
         var user = createUserEntryInCognito(allowedCustomers, person);
         cognito.addUser(personAccessToken, user);
+        var currentTerms = AttributeType.builder().name(CURRENT_TERMS).value(CURRENT_TERMS).build();
+        var acceptedTerms =
+            AttributeType.builder().name(CUSTOMER_ACCEPTED_TERMS).value(CUSTOMER_ACCEPTED_TERMS).build();
+
+        cognito.updateUserAttributes(UpdateUserAttributesRequest.builder()
+                                         .accessToken(personAccessToken)
+                                         .userAttributes(currentTerms, acceptedTerms)
+                                         .build());
     }
 
     private GetUserResponse createUserEntryInCognito(Set<URI> allowedCustomers, URI personId) {
         var allowedCustomersString = allowedCustomers.stream()
-            .map(URI::toString)
-            .collect(Collectors.joining(MULTI_VALUE_CLAIMS_DELIMITER));
+                                         .map(URI::toString)
+                                         .collect(Collectors.joining(MULTI_VALUE_CLAIMS_DELIMITER));
         var allowedCustomersClaim = createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString);
         var cristinPersonIdClaim = createAttribute(PERSON_ID_CLAIM, personId.toString());
         return GetUserResponse.builder()
-            .userAttributes(allowedCustomersClaim, cristinPersonIdClaim)
-            .build();
+                   .userAttributes(allowedCustomersClaim, cristinPersonIdClaim)
+                   .build();
     }
 
     private AttributeType createAttribute(String attributeName, String attributeValue) {
         return AttributeType.builder()
-            .name(attributeName)
-            .value(attributeValue)
-            .build();
+                   .name(attributeName)
+                   .value(attributeValue)
+                   .build();
     }
 
     private void setupIdentityService() {
@@ -146,19 +170,19 @@ class CustomerSelectionHandlerTest {
 
     private Set<URI> addCustomersToDatabase() {
         return IntStream.range(1, 10).boxed().map(ignored -> createRandomCustomer())
-            .map(attempt(customer -> customerService.createCustomer(customer)))
-            .map(attempt -> attempt.map(customer -> customerService.getCustomer(customer.getIdentifier())))
-            .map(Try::orElseThrow)
-            .map(CustomerDto::getId)
-            .collect(Collectors.toSet());
+                   .map(attempt(customer -> customerService.createCustomer(customer)))
+                   .map(attempt -> attempt.map(customer -> customerService.getCustomer(customer.getIdentifier())))
+                   .map(Try::orElseThrow)
+                   .map(CustomerDto::getId)
+                   .collect(Collectors.toSet());
     }
 
     private CustomerDto createRandomCustomer() {
         return CustomerDto.builder()
-            .withIdentifier(UUID.randomUUID())
-            .withCristinId(randomOrgUri())
-            .withCustomerOf(randomElement(ApplicationDomain.values()))
-            .build();
+                   .withIdentifier(UUID.randomUUID())
+                   .withCristinId(randomOrgUri())
+                   .withCustomerOf(randomElement(ApplicationDomain.values()))
+                   .build();
     }
 
     private URI randomOrgUri() {
@@ -181,14 +205,14 @@ class CustomerSelectionHandlerTest {
         var nvaUsername = constructUserName();
 
         return UserDto.newBuilder()
-            .withUsername(nvaUsername)
-            .withCristinId(personId)
-            .withInstitution(customer.getId())
-            .withCristinId(cristinPersonId)
-            .withInstitutionCristinId(customer.getCristinId())
-            .withRoles(Set.of(role))
-            .withAffiliation(randomUri())
-            .build();
+                   .withUsername(nvaUsername)
+                   .withCristinId(personId)
+                   .withInstitution(customer.getId())
+                   .withCristinId(cristinPersonId)
+                   .withInstitutionCristinId(customer.getCristinId())
+                   .withRoles(Set.of(role))
+                   .withAffiliation(randomUri())
+                   .build();
     }
 
     private String constructUserName() {
@@ -197,12 +221,12 @@ class CustomerSelectionHandlerTest {
 
     private String extractPersonIdFromCognitoData() {
         return cognito.getUser(creteGetUserRequest())
-            .userAttributes()
-            .stream()
-            .filter(attribute -> attribute.name().equals(PERSON_ID_CLAIM))
-            .map(AttributeType::value)
-            .collect(SingletonCollector.tryCollect())
-            .orElseThrow(fail -> new RuntimeException("Could not find " + PERSON_ID_CLAIM));
+                   .userAttributes()
+                   .stream()
+                   .filter(attribute -> attribute.name().equals(PERSON_ID_CLAIM))
+                   .map(AttributeType::value)
+                   .collect(SingletonCollector.tryCollect())
+                   .orElseThrow(fail -> new RuntimeException("Could not find " + PERSON_ID_CLAIM));
     }
 
     private GetUserRequest creteGetUserRequest() {
@@ -239,19 +263,22 @@ class CustomerSelectionHandlerTest {
     private String extractAttributeUpdate(String attributeName) {
         var request = cognito.getUpdateUserAttributesRequest();
         return request
-            .userAttributes()
-            .stream()
-            .filter(attribute -> attributeName.equals(attribute.name()))
-            .map(AttributeType::value)
-            .collect(SingletonCollector.collect());
+                   .userAttributes()
+                   .stream()
+                   .filter(attribute -> attributeName.equals(attribute.name()))
+                   .map(AttributeType::value)
+                   .collect(SingletonCollector.collect());
     }
 
     private InputStream createRequest(URI customerId) throws JsonProcessingException {
         var randomCustomer = CustomerSelection.fromCustomerId(customerId);
         return new HandlerRequestBuilder<CustomerSelection>(dtoObjectMapper)
-            .withHeaders(Map.of(AUTHORIZATION_HEADER, bearerToken()))
-            .withBody(randomCustomer)
-            .build();
+                   .withHeaders(Map.of(AUTHORIZATION_HEADER, bearerToken()))
+                   .withPersonCristinId(randomUri())
+                   .withCurrentCustomer(randomUri())
+                   .withUserName(randomString())
+                   .withBody(randomCustomer)
+                   .build();
     }
 
     private String bearerToken() {
@@ -304,6 +331,7 @@ class CustomerSelectionHandlerTest {
     @Test
     void shouldNotSendAnUpdateCustomerRequestToCognitoWhenInputDoesNotContainAccessToken()
         throws IOException {
+        cognito.updateUserAttributes((UpdateUserAttributesRequest)null);//clear mock value@
         var input = createRequest(randomUri());
         var response = sendRequest(input, Void.class);
         assertThatUpdateRequestHasNotBeenSent();

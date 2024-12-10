@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
 class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
 
     public static final ObjectMapper objectMapperWithEmpty = JsonUtils.dtoObjectMapper;
+    public static final String USERNAME_CLAIM = "username";
     private FakeContext context;
     private ByteArrayOutputStream outputStream;
     private UpdatePersonTermsConditionsHandler handler;
@@ -111,6 +112,7 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
                    .withCurrentCustomer(randomUri())
                    .withHeaders(getRequestHeaders())
                    .withUserName(randomString())
+                   .withAuthorizerClaim(USERNAME_CLAIM, randomString())
                    .withBody(response)
                    .build();
     }

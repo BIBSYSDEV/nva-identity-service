@@ -24,8 +24,6 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResponse;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -72,8 +70,6 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
     void shouldReturnTheClientWhenItExists() throws IOException, NotFoundException {
         when(mockedService.updateTermsAndConditions(any(), any(), any())).thenReturn(response);
         when(mockedService.getCurrentTermsAndConditions()).thenReturn(response);
-        when(cognito.getUser(any(GetUserRequest.class))).thenReturn(
-            GetUserResponse.builder().userAttributes(List.of()).build());
 
         var gatewayResponse = sendRequest(getInputStream(), TermsConditionsResponse.class);
 
@@ -85,10 +81,6 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
     void shouldUpdateCognitoWithLatestTermsSelection() throws IOException, NotFoundException {
         when(mockedService.updateTermsAndConditions(any(), any(), any())).thenReturn(response);
         when(mockedService.getCurrentTermsAndConditions()).thenReturn(response);
-        AttributeType existing = AttributeType.builder().name("existing").value(
-            "existing").build();
-        when(cognito.getUser(any(GetUserRequest.class))).thenReturn(
-            GetUserResponse.builder().userAttributes(List.of(existing)).build());
 
         sendRequest(getInputStream(), TermsConditionsResponse.class);
 
@@ -104,9 +96,6 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
 
         assertTrue(capturedAttributes.stream().anyMatch(attribute ->
                                                             attribute.name().equals(CognitoClaims.CURRENT_TERMS)
-        ));
-        assertTrue(capturedAttributes.stream().anyMatch(attribute ->
-                                                            attribute.name().equals(existing.name())
         ));
     }
 

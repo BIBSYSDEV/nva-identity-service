@@ -3,6 +3,8 @@
 # Edit at https://www.gitignore.io/?templates=java,linux,macos,gradle,windows,eclipse,intellij+all,visualstudiocode
 
 .aws-sam
+**/dynamodb-local-metadata.json
+
 
 ### Eclipse ###
 .entityDescription

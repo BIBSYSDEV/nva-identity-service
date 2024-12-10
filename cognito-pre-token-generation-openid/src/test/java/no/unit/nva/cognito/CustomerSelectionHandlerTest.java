@@ -199,10 +199,10 @@ class CustomerSelectionHandlerTest {
         return cognito.getUser(creteGetUserRequest())
             .userAttributes()
             .stream()
-            .filter(attribute -> attribute.name().equals(CognitoClaims.PERSON_ID_CLAIM))
+            .filter(attribute -> attribute.name().equals(PERSON_ID_CLAIM))
             .map(AttributeType::value)
             .collect(SingletonCollector.tryCollect())
-            .orElseThrow(fail -> new RuntimeException("Could not find " + CognitoClaims.PERSON_ID_CLAIM));
+            .orElseThrow(fail -> new RuntimeException("Could not find " + PERSON_ID_CLAIM));
     }
 
     private GetUserRequest creteGetUserRequest() {

@@ -1,8 +1,6 @@
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import no.unit.nva.cognito.CognitoClaims;
 import no.unit.nva.database.TermsAndConditionsService;
@@ -20,8 +18,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResponse;
 
 public class UpdatePersonTermsConditionsHandler extends
     ApiGatewayHandler<TermsConditionsResponse, TermsConditionsResponse> {
@@ -30,7 +26,6 @@ public class UpdatePersonTermsConditionsHandler extends
     public static final String USER_POOL_ID_ENV = "USER_POOL_ID";
     private final TermsAndConditionsService service;
     private final CognitoIdentityProviderClient cognito;
-    public static final String SINGLE_SPACE = " ";
     private final String userPoolId;
 
     @JacocoGenerated
@@ -58,13 +53,18 @@ public class UpdatePersonTermsConditionsHandler extends
     @Override
     protected TermsConditionsResponse processInput(
         TermsConditionsResponse input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        var accessToken = extractAccessToken(requestInfo);
-        var userAttributes = fetchUserInfo(accessToken).userAttributes();
 
-        userAttributes = updateOrAddUserAttribute(userAttributes, CognitoClaims.CUSTOMER_ACCEPTED_TERMS,
-                                                   input.termsConditionsUri().toString());
-        userAttributes = updateOrAddUserAttribute(userAttributes, CognitoClaims.CURRENT_TERMS,
-                                                  service.getCurrentTermsAndConditions().toString());
+        List<AttributeType> userAttributes = List.of(
+            AttributeType.builder()
+                .name(CognitoClaims.CUSTOMER_ACCEPTED_TERMS)
+                .value(input.termsConditionsUri().toString())
+                .build(),
+            AttributeType.builder()
+                .name(CognitoClaims.CURRENT_TERMS)
+                .value(service.getCurrentTermsAndConditions().toString())
+                .build()
+        );
+
 
         cognito.adminUpdateUserAttributes(
             AdminUpdateUserAttributesRequest.builder()
@@ -81,23 +81,6 @@ public class UpdatePersonTermsConditionsHandler extends
         );
     }
 
-    private List<AttributeType> updateOrAddUserAttribute(List<AttributeType> userAttributes, String attributeName, String attributeValue) {
-        // Filter out the existing attribute with the same name (if it exists)
-        var updatedAttributes = new ArrayList<>(userAttributes.stream()
-                                                                    .filter(attribute -> !attribute.name()
-                                                                                              .equals(attributeName))
-                                                                    .toList());
-
-        // Add the new attribute
-        updatedAttributes.add(AttributeType.builder().name(attributeName).value(attributeValue).build());
-
-        return updatedAttributes;
-    }
-
-    private GetUserResponse fetchUserInfo(String accessToken) {
-        return cognito.getUser(GetUserRequest.builder().accessToken(accessToken).build());
-    }
-
     @Override
     protected Integer getSuccessStatusCode(
         TermsConditionsResponse termsConditionsResponse, TermsConditionsResponse o) {
@@ -111,18 +94,5 @@ public class UpdatePersonTermsConditionsHandler extends
                    .httpClient(UrlConnectionHttpClient.create())
                    .region(Region.of(new Environment().readEnv(AWS_REGION_ENV)))
                    .build();
-    }
-
-    protected String extractAccessToken(RequestInfo event) {
-        var authorizationHeader = removeBearerTokenPrefix(event);
-        return everythingAfterBearerTokenPrefix(authorizationHeader);
-    }
-
-    private String everythingAfterBearerTokenPrefix(List<String> authorizationHeader) {
-        return String.join(EMPTY_STRING, authorizationHeader.subList(1, authorizationHeader.size()));
-    }
-
-    private List<String> removeBearerTokenPrefix(RequestInfo event) {
-        return Arrays.asList(event.getAuthHeader().split(SINGLE_SPACE));
     }
 }

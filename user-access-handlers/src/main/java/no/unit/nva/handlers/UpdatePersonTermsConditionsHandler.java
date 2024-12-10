@@ -1,6 +1,7 @@
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.core.JsonPointer;
 import java.util.List;
 import no.unit.nva.cognito.CognitoClaims;
 import no.unit.nva.database.TermsAndConditionsService;
@@ -27,6 +28,7 @@ public class UpdatePersonTermsConditionsHandler extends
     private final TermsAndConditionsService service;
     private final CognitoIdentityProviderClient cognito;
     private final String userPoolId;
+    private static final JsonPointer USERNAME_POINTER = JsonPointer.compile("/authorizer/claims/username");
 
     @JacocoGenerated
     public UpdatePersonTermsConditionsHandler() {
@@ -65,11 +67,12 @@ public class UpdatePersonTermsConditionsHandler extends
                 .build()
         );
 
+        var username = requestInfo.getRequestContextParameterOpt(USERNAME_POINTER).orElseThrow();
 
         cognito.adminUpdateUserAttributes(
             AdminUpdateUserAttributesRequest.builder()
                 .userPoolId(userPoolId)
-                .username(requestInfo.getUserName())
+                .username(username)
                 .userAttributes(userAttributes)
                 .build()
         );

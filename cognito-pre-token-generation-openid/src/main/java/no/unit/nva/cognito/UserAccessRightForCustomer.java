@@ -26,7 +26,7 @@ public class UserAccessRightForCustomer {
     }
 
     public static List<UserAccessRightForCustomer> fromUser(UserDto user, Set<CustomerDto> customers,
-                                                            Boolean hasAcceptedTerms) {
+                                                            boolean hasAcceptedTerms) {
         if (FALSE.equals(hasAcceptedTerms)) {
             return List.of();
         }

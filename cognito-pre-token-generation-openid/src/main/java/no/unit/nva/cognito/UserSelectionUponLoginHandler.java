@@ -554,7 +554,7 @@ public class UserSelectionUponLoginHandler
         List<UserDto> personUsers,
         Set<CustomerDto> customers,
         CustomerDto currentCustomer,
-        Boolean hasAcceptedTerms) {
+        boolean hasAcceptedTerms) {
         return personUsers.stream()
                    .map(user -> UserAccessRightForCustomer.fromUser(user, customers, hasAcceptedTerms))
                    .flatMap(Collection::stream)
@@ -566,7 +566,7 @@ public class UserSelectionUponLoginHandler
         List<UserDto> personUsers,
         Set<CustomerDto> customers,
         CustomerDto currentCustomer,
-        Boolean hasAcceptedTerms) {
+        boolean hasAcceptedTerms) {
         return createAccessRightForCustomer(personUsers, customers, currentCustomer, hasAcceptedTerms)
                    .stream()
                    .map(UserAccessRightForCustomer::toString)
@@ -577,7 +577,7 @@ public class UserSelectionUponLoginHandler
         List<UserDto> personUsers,
         Set<CustomerDto> customers,
         CustomerDto currentCustomer,
-        Boolean hasAcceptedTerms) {
+        boolean hasAcceptedTerms) {
         return createAccessRightForCustomer(personUsers, customers, currentCustomer, hasAcceptedTerms)
                    .stream()
                    .map(UserAccessRightForCustomer::getAccessRight)

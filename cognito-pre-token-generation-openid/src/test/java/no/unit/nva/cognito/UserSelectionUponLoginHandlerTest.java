@@ -665,9 +665,14 @@ class UserSelectionUponLoginHandlerTest {
                               + "custom:allowedCustomers")
     @EnumSource(value = LoginEventType.class, names = "NON_FEIDE", mode = Mode.INCLUDE)
     void shouldIncludeAllCustomersWithActiveEmploymentsInCognitoFieldAllowedCustomersWhenLoggingInWithNonFeide(
-        LoginEventType loginEventType) {
+        LoginEventType loginEventType) throws NotFoundException {
 
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+        var usersWithRoles = createUsersWithRolesForPerson(person);
+        var firstUser = usersWithRoles.stream().findFirst().get();
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
+
         var expectedCustomerIds = scenarios.fetchCustomersForPerson(person)
                                       .stream()
                                       .map(CustomerDto::getId)
@@ -707,6 +712,11 @@ class UserSelectionUponLoginHandlerTest {
         LoginEventType loginEventType) throws NotFoundException {
 
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+        var usersWithRoles = createUsersWithRolesForPerson(person);
+
+        var firstUser = usersWithRoles.stream().findFirst().get();
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var orgFeideDomain = extractFeideDomainFromInputEvent(event);
@@ -719,8 +729,15 @@ class UserSelectionUponLoginHandlerTest {
     @ParameterizedTest(name = "should not include customers with inactive employments in the Cognito field "
                               + "custom:allowedCustomers")
     @EnumSource(LoginEventType.class)
-    void shouldNotIncludeCustomersWithInactiveEmploymentsInCognitoField(LoginEventType loginEventType) {
+    void shouldNotIncludeCustomersWithInactiveEmploymentsInCognitoField(LoginEventType loginEventType)
+        throws NotFoundException {
         var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
+        var usersWithRoles = createUsersWithRolesForPerson(person);
+
+        var firstUser = usersWithRoles.stream().findFirst().get();
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
+
         var expectedCustomerIds = fetchCustomersWithActiveEmploymentsForPerson(person);
         assertThat(expectedCustomerIds, hasSize(1));
         var event = newLoginEvent(person, loginEventType);
@@ -742,6 +759,11 @@ class UserSelectionUponLoginHandlerTest {
     void shouldStoreAllUserRolesForActiveTopLevelAffiliationInCognitoUserAttributesForFeide() throws NotFoundException {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var usersWithRoles = createUsersWithRolesForPerson(person);
+
+        var firstUser = usersWithRoles.stream().findFirst().get();
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
+
 
         var event = newLoginEvent(person, FEIDE);
         handler.handleRequest(event, context);

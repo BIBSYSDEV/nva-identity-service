@@ -276,9 +276,11 @@ public class UserSelectionUponLoginHandler
         var currentUser = nonNull(currentCustomer)
                               ? getCurrentUser(currentCustomer, arguments.users())
                               : null;
-        var rolesPerCustomerForPerson = rolesForCustomer(arguments.users(), currentCustomer);
 
         var userAcceptedTerms = arguments.currentTerms().equals(arguments.acceptedTerms());
+
+        Set<RoleName> rolesPerCustomerForPerson =
+            userAcceptedTerms ? rolesForCustomer(arguments.users(), currentCustomer) : Set.of();
 
         var accessRights =
             createAccessRightsWithCustomerForCurrentCustomer(arguments.users(), arguments.customers(),
@@ -287,9 +289,15 @@ public class UserSelectionUponLoginHandler
             createAccessRightsForCurrentCustomer(arguments.users(), arguments.customers(), currentCustomer,
                                                  userAcceptedTerms);
 
+        var allowedCustomersString = userAcceptedTerms ? createAllowedCustomersString(
+            arguments.customers(),
+            arguments.authenticationDetails().getFeideDomain()
+        ) : EMPTY_CLAIM;
+
         updateCognitoUserAttributes(
             arguments.copy()
                 .withCurrentCustomer(currentCustomer)
+                .withAllowedCustomersString(allowedCustomersString)
                 .withCurrentUser(currentUser)
                 .withRoles(rolesPerCustomerForPerson)
                 .withAccessRights(accessRightsWithoutCustomer)
@@ -413,24 +421,11 @@ public class UserSelectionUponLoginHandler
         return AdminUpdateUserAttributesRequest.builder()
                    .userPoolId(arguments.authenticationDetails().getUserPoolId())
                    .username(arguments.authenticationDetails().getUsername())
-                   .userAttributes(updatedPersonAttributes(arguments))
+                   .userAttributes(createAttributes(arguments))
                    .build();
     }
 
-    private Collection<AttributeType> updatedPersonAttributes(UserSelectArguments arguments) {
-        var allowedCustomersString = createAllowedCustomersString(
-            arguments.customers(),
-            arguments.authenticationDetails().getFeideDomain()
-        );
-
-        return addClaimsForPeopleRegisteredInPersonRegistry(arguments
-                                                                .copy()
-                                                                .withAllowedCustomersString(allowedCustomersString)
-                                                                .build()
-        );
-    }
-
-    private List<AttributeType> addClaimsForPeopleRegisteredInPersonRegistry(UserSelectArguments arguments) {
+    private Collection<AttributeType> createAttributes(UserSelectArguments arguments) {
 
         var claims = new ArrayList<AttributeType>();
         claims.add(createAttribute(FIRST_NAME_CLAIM, arguments.person().getFirstname()));

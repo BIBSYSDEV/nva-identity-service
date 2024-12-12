@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Request;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.util.HashMap;
 import no.unit.nva.FakeCognito;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -125,6 +126,8 @@ class UserSelectionUponLoginHandlerTest {
     public static final boolean INACTIVE = false;
     public static final String TERMS_TABLE = "TermsTable";
     public static final URI TERMS_URI = URI.create("https://nva.sikt.no/terms/2024-10-01");
+    public static final String TRIGGER_SOURCE_AUTHENTICATION = "TokenGeneration_Authentication";
+    public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
 
     private final Context context = new FakeContext();
     private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
@@ -240,6 +243,7 @@ class UserSelectionUponLoginHandlerTest {
                           .withUserAttributes(Map.of("SOME", "VALUE")).build();
         }
         var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
+        loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
         loginEvent.setRequest(request);
         return loginEvent;
     }
@@ -248,6 +252,7 @@ class UserSelectionUponLoginHandlerTest {
         var feideDomain = fetchFeideDomainFromRandomCustomerWithActiveEmployment(nin);
         var request = Request.builder().withUserAttributes(setupUserAttributesForFeideLogin(nin, feideDomain)).build();
         var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
+        loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
         loginEvent.setRequest(request);
         return loginEvent;
     }
@@ -614,6 +619,42 @@ class UserSelectionUponLoginHandlerTest {
         handler.handleRequest(event, context);
 
         assertThatCustomerSelectionClaimsAreCleared();
+    }
+
+    @ParameterizedTest(name = "should not clear customer selection claims when refreshing token")
+    @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"}, mode = Mode.INCLUDE)
+    void shouldNotClearCustomerSelectionClaimsRefreshingToken(
+        LoginEventType loginEventType) {
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+        var event = newLoginEvent(person, loginEventType);
+        var userAttributes = new HashMap<>(event.getRequest().getUserAttributes());
+        var customer = fetchCustomersWithActiveEmploymentsForPerson(person).stream().findFirst();
+        userAttributes.put(CURRENT_CUSTOMER_CLAIM, customer.get().toString());
+        event.getRequest().setUserAttributes(userAttributes);
+        event.setTriggerSource(TRIGGER_SOURCE_REFRESH_TOKENS);
+        handler.handleRequest(event, context);
+
+        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        assertThat(customerId, is(not(equalTo(EMPTY_CLAIM))));
+    }
+
+    @ParameterizedTest(name = "should not return allowed customers when no affiliations")
+    @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"}, mode = Mode.INCLUDE)
+    void shouldNotReturnAllowedCustomersWhenNoAffiliations(
+        LoginEventType loginEventType) throws NotFoundException {
+        var person = scenarios.personWithoutAffiliations().nin();
+        var cristinPersonId = mockPersonRegistry.getCristinIdForPerson(person);
+        termsAndConditionsService.updateTermsAndConditions(cristinPersonId, TERMS_URI,
+                                                           randomString());
+        var event = newLoginEvent(person, loginEventType);
+        event.setTriggerSource(TRIGGER_SOURCE_REFRESH_TOKENS);
+        handler.handleRequest(event, context);
+
+        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        assertThat(customerId, is(equalTo(EMPTY_CLAIM)));
+
+        final var allowedCustomers = extractClaimFromCognitoUpdateRequest(ALLOWED_CUSTOMERS_CLAIM);
+        assertThat(allowedCustomers, is(equalTo(EMPTY_CLAIM)));
     }
 
     private void assertThatCustomerSelectionClaimsAreCleared() {
@@ -1222,6 +1263,7 @@ class UserSelectionUponLoginHandlerTest {
         var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
         loginEvent.setRequest(request);
         loginEvent.setUserName(adminUsername);
+        loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
         return loginEvent;
     }
 

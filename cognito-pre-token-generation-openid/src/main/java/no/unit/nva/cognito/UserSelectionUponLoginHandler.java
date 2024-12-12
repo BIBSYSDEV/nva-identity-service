@@ -91,6 +91,7 @@ public class UserSelectionUponLoginHandler
     private static final String FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION
         = "Failed to retrieve customer for active affiliation %s when logging in as %s with the following "
           + "affiliations: %s";
+    public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -186,9 +187,13 @@ public class UserSelectionUponLoginHandler
             var person = requestedPerson.get();
 
             var customersForPerson = fetchCustomersWithActiveAffiliations(person);
+            var currentCustomer = getCurrentCustomer(authenticationDetails, customersForPerson,
+                                                     input.getTriggerSource(), input.getRequest().getUserAttributes());
+
             var userSelectArguments = new UserSelectArguments.Builder()
                                           .withAuthenticationDetails(authenticationDetails)
                                           .withPerson(person)
+                                          .withCurrentCustomer(currentCustomer)
                                           .withCustomers(customersForPerson)
                                           .withImpersonatedBy(impersonatedBy)
                                           .withUsers(createUsers(person, customersForPerson, authenticationDetails))
@@ -207,6 +212,28 @@ public class UserSelectionUponLoginHandler
         logIfDebug("Leaving request handler having spent {} ms.", start);
 
         return input;
+    }
+
+    private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,
+                                           Set<CustomerDto> customersForPerson, String triggerSource,
+                                           Map<String, String> userAttributes) {
+        var currentCustomer = returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer(
+            authenticationDetails.getFeideDomain(), customersForPerson);
+
+        if (TRIGGER_SOURCE_REFRESH_TOKENS.equals(triggerSource)) {
+            // If the user is refreshing tokens, the current customer will be set to the previously selected customer
+            currentCustomer = customersForPerson.stream()
+                                  .filter(customer -> customer.getId()
+                                                          .equals(Optional.ofNullable(
+                                                                  userAttributes.getOrDefault(CURRENT_CUSTOMER_CLAIM,
+                                                                                              null))
+                                                                      .map(URI::create)
+                                                                      .orElse(null)))
+                                  .collect(SingletonCollector.tryCollect())
+                                  .orElse(fail -> null);
+        }
+
+        return currentCustomer;
     }
 
     private NationalIdentityNumber getCurrentNin(
@@ -270,23 +297,20 @@ public class UserSelectionUponLoginHandler
     }
 
     private List<String> updateUserAttributesInCognito(UserSelectArguments arguments) {
-        var currentCustomer
-            = returnCurrentCustomerIfDefinedByFeideLoginOrPersonIsAffiliatedToExactlyOneCustomer(
-            arguments.authenticationDetails().getFeideDomain(), arguments.customers());
-        var currentUser = nonNull(currentCustomer)
-                              ? getCurrentUser(currentCustomer, arguments.users())
+        var currentUser = nonNull(arguments.currentCustomer())
+                              ? getCurrentUser(arguments.currentCustomer(), arguments.users())
                               : null;
 
         var userAcceptedTerms = arguments.currentTerms().equals(arguments.acceptedTerms());
 
         Set<RoleName> rolesPerCustomerForPerson =
-            userAcceptedTerms ? rolesForCustomer(arguments.users(), currentCustomer) : Set.of();
+            userAcceptedTerms ? rolesForCustomer(arguments.users(), arguments.currentCustomer()) : Set.of();
 
         var accessRights =
             createAccessRightsWithCustomerForCurrentCustomer(arguments.users(), arguments.customers(),
-                                                             currentCustomer, userAcceptedTerms);
+                                                             arguments.currentCustomer(), userAcceptedTerms);
         var accessRightsWithoutCustomer =
-            createAccessRightsForCurrentCustomer(arguments.users(), arguments.customers(), currentCustomer,
+            createAccessRightsForCurrentCustomer(arguments.users(), arguments.customers(), arguments.currentCustomer(),
                                                  userAcceptedTerms);
 
         var allowedCustomersString = userAcceptedTerms ? createAllowedCustomersString(
@@ -296,7 +320,6 @@ public class UserSelectionUponLoginHandler
 
         updateCognitoUserAttributes(
             arguments.copy()
-                .withCurrentCustomer(currentCustomer)
                 .withAllowedCustomersString(allowedCustomersString)
                 .withCurrentUser(currentUser)
                 .withRoles(rolesPerCustomerForPerson)

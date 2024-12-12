@@ -35,6 +35,7 @@ import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
+import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
@@ -88,7 +89,7 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
         return null;
     }
 
-    private Boolean hasAcceptedTerms(RequestInfo event) throws UnauthorizedException {
+    private boolean hasAcceptedTerms(RequestInfo event) throws UnauthorizedException {
         return Optional.ofNullable(termsService.getTermsAndConditionsByPerson(event.getPersonCristinId()))
                    .map(TermsConditionsResponse::termsConditionsUri)
                    .map(userTerms -> termsService.getCurrentTermsAndConditions().termsConditionsUri().equals(userTerms))
@@ -107,12 +108,12 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
     private void updateCognitoUserEntryAttributes(CustomerSelection customerSelection,
                                                   List<AttributeType> userAttributes,
                                                   String accessToken,
-                                                  Boolean hasAcceptedTerms) {
+                                                  boolean hasAcceptedTerms) {
         var user = fetchUser(customerSelection, userAttributes);
         var customer = attempt(() -> customerService.getCustomer(customerSelection.getCustomerId())).orElseThrow();
         var activeAccessRights = getActiveAccessRights(user, customer, hasAcceptedTerms);
         var selectedCustomerCustomClaim = createCustomerSelectionClaim(user);
-        var rolesClaim = createRoleClaim(getActiveRoles(user));
+        var rolesClaim = createRoleClaim(getActiveRoles(user, hasAcceptedTerms));
         var accessRightsClaim = createAccessRightsClaim(activeAccessRights);
         var nvaUsernameClaim = createUsernameClaim(user);
         var selectedCustomerCristinId = crateCustomerCristinIdClaim(user);
@@ -126,11 +127,12 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
         cognito.updateUserAttributes(request);
     }
 
-    private String getActiveRoles(UserDto user) {
-        return user.getRoles().stream()
-                   .map(RoleDto::getRoleName)
-                   .map(RoleName::getValue)
-                   .collect(Collectors.joining(ELEMENTS_DELIMITER));
+    private String getActiveRoles(UserDto user, boolean hasAcceptedTerms) {
+        var roles = user.getRoles().stream()
+                        .map(RoleDto::getRoleName)
+                        .map(RoleName::getValue)
+                        .collect(Collectors.joining(ELEMENTS_DELIMITER));
+        return hasAcceptedTerms ? roles : EMPTY_CLAIM;
     }
 
     private String getActiveAccessRights(UserDto user, CustomerDto customer, Boolean hasAcceptedTerms) {

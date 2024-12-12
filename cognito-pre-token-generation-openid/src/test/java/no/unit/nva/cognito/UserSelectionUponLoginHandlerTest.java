@@ -31,6 +31,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
@@ -86,6 +87,7 @@ import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.USER_NOT_ALLOWED_TO_IMPERSONATE;
+import static no.unit.nva.database.TermsAndConditionsService.TERMS_TABLE_NAME_ENV;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -112,6 +114,8 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @WireMockTest(httpsEnabled = true)
 class UserSelectionUponLoginHandlerTest {
@@ -156,13 +160,15 @@ class UserSelectionUponLoginHandlerTest {
 
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
         cognitoClient = new FakeCognito(randomString());
+        var environment = mock(Environment.class);
+        when(environment.readEnv(TERMS_TABLE_NAME_ENV)).thenReturn(TERMS_TABLE);
 
         DynamoDbClient embeddedClient = DatabaseTestConfig.getEmbeddedClient();
         new SingleTableTemplateCreator(embeddedClient)
             .createTable(TERMS_TABLE);
 
         termsAndConditionsService = new TermsAndConditionsService(embeddedClient,
-                                                                  TERMS_TABLE);
+                                                                  environment);
 
         var httpClient = WiremockHttpClient.create();
         var personRegistry = CristinPersonRegistry.customPersonRegistry(

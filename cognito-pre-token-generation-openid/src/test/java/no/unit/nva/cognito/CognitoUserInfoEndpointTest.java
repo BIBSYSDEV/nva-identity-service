@@ -26,6 +26,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class CognitoUserInfoEndpointTest {
 
@@ -52,6 +53,19 @@ class CognitoUserInfoEndpointTest {
         var response = GatewayResponse.fromOutputStream(outputStream, Map.class);
         var responseAsMap = response.getBodyObject(Map.class);
         assertThat(responseAsMap, is(equalTo(demoUserInfo)));
+    }
+
+    @Test
+    void shouldLimitAccessWhenNoTermsAccepted()
+        throws IOException {
+        var demoUserInfo = demoUserAttributes();
+        demoUserInfo.remove(CognitoClaims.CUSTOMER_ACCEPTED_TERMS);
+        var accessToken = addDemoUserInfoToFakeCognito(demoUserInfo);
+        var request = requestWithAccessToken(accessToken);
+        handler.handleRequest(request, outputStream, CONTEXT);
+        var response = GatewayResponse.fromOutputStream(outputStream, Map.class);
+        var responseAsMap = response.getBodyObject(Map.class);
+        assertFalse(responseAsMap.containsKey(CognitoClaims.ACCESS_RIGHTS_CLAIM));
     }
 
     private String addDemoUserInfoToFakeCognito(Map<String, String> demoUserInfo) {

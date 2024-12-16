@@ -2,15 +2,19 @@ package no.unit.nva.database;
 
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static no.unit.nva.database.TermsAndConditionsService.TERMS_TABLE_NAME_ENV;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TermsAndConditionsServiceTest {
 
@@ -20,12 +24,15 @@ public class TermsAndConditionsServiceTest {
     static void initialize() {
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
-        var TABLE_NAME = "TermsTable";
+        var termsTable = "TermsTable";
 
         new SingleTableTemplateCreator(client)
-                .createTable(TABLE_NAME);
+                .createTable(termsTable);
 
-        termsConditionsService = new TermsAndConditionsService(client, TABLE_NAME);
+        var environment = mock(Environment.class);
+        when(environment.readEnv(TERMS_TABLE_NAME_ENV)).thenReturn(termsTable);
+
+        termsConditionsService = new TermsAndConditionsService(client, environment);
 
     }
 

@@ -1,5 +1,6 @@
 package no.unit.nva.cognito;
 
+import static java.util.Objects.isNull;
 import com.amazonaws.services.lambda.runtime.Context;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -36,10 +37,24 @@ public class CognitoUserInfoEndpoint extends CognitoCommunicationHandler<Void, M
     @Override
     protected Map<String, String> processInput(Void input, RequestInfo requestInfo, Context context) {
         var cognitoResponse = fetchUserInfo(extractAccessToken(requestInfo));
-        return cognitoResponse.userAttributes()
-            .stream()
-            .map(this::toMapEntry)
-            .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+        var attributes = cognitoResponse.userAttributes()
+                             .stream()
+                             .map(this::toMapEntry)
+                             .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+
+        removeAccessWhenNoAcceptedTerms(attributes);
+
+        return attributes;
+    }
+
+    private static void removeAccessWhenNoAcceptedTerms(Map<String, String> attributes) {
+        var acceptedTerms = attributes.get(CognitoClaims.CUSTOMER_ACCEPTED_TERMS);
+        var currentTerms = attributes.get(CognitoClaims.CURRENT_TERMS);
+        if (isNull(acceptedTerms) || !acceptedTerms.equals(currentTerms)) {
+            attributes.remove(CognitoClaims.ACCESS_RIGHTS_CLAIM);
+            attributes.remove(CognitoClaims.ROLES_CLAIM);
+            attributes.remove(CognitoClaims.ALLOWED_CUSTOMERS_CLAIM);
+        }
     }
 
     @Override

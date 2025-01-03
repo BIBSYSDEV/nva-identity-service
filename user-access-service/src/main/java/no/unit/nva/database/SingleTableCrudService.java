@@ -12,6 +12,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
@@ -80,6 +81,11 @@ public class SingleTableCrudService<T extends DataAccessClass<T>> implements Dat
             .build();
         var result = table.getItem(requestBuilder -> requestBuilder.key(key));
         return Optional.ofNullable(result);
+    }
+
+    public Stream<T> getAllItems() {
+        return table.scan().items()
+            .stream();
     }
 }
 

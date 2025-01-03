@@ -132,159 +132,86 @@ Resources:
         - ClientId: !Ref DLRApplicationClient
           ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
 
-  UpdateCognintoUserAttributesRole:
-    Type: AWS::IAM::Role
+  CommunicationWithCognitoPolicy:
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
+      ManagedPolicyName: CommunicationWithCognito
+      PolicyDocument:
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
-            Principal:
-              Service: [ lambda.amazonaws.com ]
-            Action: [ 'sts:AssumeRole' ]
-      Path: /
-      Policies:
-        - PolicyName: accessToCustomers
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - dynamodb:BatchGetItem
-                  - dynamodb:ConditionCheckItem
-                  - dynamodb:DescribeTable
-                  - dynamodb:GetItem
-                  - dynamodb:Scan
-                  - dynamodb:Query
-                  - dynamodb:UpdateItem
-                Resource:
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}'
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}/index/*'
-        - PolicyName: writeLog
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
-        - PolicyName: CommunicationWithCognito
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - cognito-idp:AdminAddUserToGroup
-                  - cognito-idp:AdminUpdateUserAttributes
-                  - cognito-idp:AdminGetUser
-                  - cognito-idp:AddCustomAttributes
-                  - cognito-idp:DescribeUserPoolClient
-                  - cognito-idp:DescribeUserPool
-                  - cognito-idp:AdminCreateUser
-                  - cognito-idp:ListUserPoolClients
-                  - cognito-idp:CreateGroup
-                  - cognito-idp:GetGroup
-                Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
-              - Effect: Allow
-                Action:
-                  - cognito-idp:ListUserPools
-                  - cognito-idp:GetUser
-                  - cognito-idp:DescribeUserPoolDomain
-                Resource: "*"
+            Action:
+              - cognito-idp:AdminAddUserToGroup
+              - cognito-idp:AdminUpdateUserAttributes
+              - cognito-idp:AdminGetUser
+              - cognito-idp:AddCustomAttributes
+              - cognito-idp:DescribeUserPoolClient
+              - cognito-idp:DescribeUserPool
+              - cognito-idp:AdminCreateUser
+              - cognito-idp:ListUserPoolClients
+              - cognito-idp:CreateGroup
+              - cognito-idp:GetGroup
+              - cognito-idp:DescribeResourceServer
+            Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+          - Effect: Allow
+            Action:
+              - cognito-idp:ListUserPools
+              - cognito-idp:GetUser
+              - cognito-idp:DescribeUserPoolDomain
+            Resource: "*"
 
-  CreateUsersRole:
-    Type: AWS::IAM::Role
+  UsersAndCustomersDatabasePolicy:
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
+      ManagedPolicyName: DatabasePermissions
+      PolicyDocument:
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
-            Principal:
-              Service: [ lambda.amazonaws.com ]
-            Action: [ 'sts:AssumeRole' ]
-      Path: /
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
-      Policies:
-        - PolicyName: writeLog
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
-        - PolicyName: CommunicationWithCognito
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - cognito-idp:AdminAddUserToGroup
-                  - cognito-idp:AdminUpdateUserAttributes
-                  - cognito-idp:AdminGetUser
-                  - cognito-idp:AddCustomAttributes
-                  - cognito-idp:DescribeUserPoolClient
-                  - cognito-idp:DescribeUserPool
-                  - cognito-idp:AdminCreateUser
-                  - cognito-idp:ListUserPoolClients
-                  - cognito-idp:CreateGroup
-                  - cognito-idp:GetGroup
-                  - cognito-idp:DescribeResourceServer
-                Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
-              - Effect: Allow
-                Action:
-                  - cognito-idp:ListUserPools
-                  - cognito-idp:GetUser
-                  - cognito-idp:DescribeUserPoolDomain
-                Resource: "*"
-        - PolicyName: DatabasePermissions
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - dynamodb:*
-                Resource:
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}'
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}/index/*'
-        - PolicyName: SecretPermissions
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetResourcePolicy
-                  - secretsmanager:GetSecretValue
-                  - secretsmanager:DescribeSecret
-                  - secretsmanager:ListSecretVersionIds
-                Resource:
-                  - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials*'
-                  - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:CristinClientBasicAuth*'
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetRandomPassword
-                  - secretsmanager:ListSecrets
-                Resource: '*'
-        - PolicyName: ExternalUserPoolClients
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - cognito-idp:ListResourceServers
-                  - cognito-idp:CreateUserPoolClient
-                  - cognito-idp:DescribeUserPoolClient
-                  - cognito-idp:ListUserPoolClients
-                Resource: !GetAtt ExternalUserPool.Arn
+            Action:
+              - dynamodb:*
+            Resource:
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}'
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}/index/*'
+
+  CristinAndBackendSecretPermissionsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: CristinAndBackendSecretPermissions
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetResourcePolicy
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+              - secretsmanager:ListSecretVersionIds
+            Resource:
+              - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials*'
+              - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:CristinClientBasicAuth*'
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetRandomPassword
+              - secretsmanager:ListSecrets
+            Resource: '*'
+
+  ExternalUserPoolClientsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: ExternalUserPoolClients
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:ListResourceServers
+              - cognito-idp:CreateUserPoolClient
+              - cognito-idp:DescribeUserPoolClient
+              - cognito-idp:ListUserPoolClients
+            Resource: !GetAtt ExternalUserPool.Arn
 
   ### User Access Service ##############################################################################################
 
@@ -380,7 +307,12 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.CreateUserHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
+      Policies:
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - !GetAtt CristinAndBackendSecretPermissionsPolicy.PolicyArn
+        - !GetAtt ExternalUserPoolClientsPolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
@@ -458,14 +390,15 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UpdatePersonTermsConditionsHandler::handleRequest
-      Role: !GetAtt NvaIdTypeObjectsRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
-          NVA_ID_TYPE_TABLE_NAME: !Ref NvaIdTypeObjectsTable
+          TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
+          USER_POOL_ID: !GetAtt UserPool.UserPoolId
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref NvaIdTypeObjectsTable
+            TableName: !Ref TermsAndConditionsTable
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
       Events:
         ApiEvent:
           Type: Api
@@ -479,12 +412,18 @@ Resources:
     Properties:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.CustomerSelectionHandler::handleRequest
-      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+      Policies:
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TermsAndConditionsTable
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
       Events:
         ApiEvent:
           Type: Api
@@ -498,7 +437,10 @@ Resources:
     Properties:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.CognitoUserInfoEndpoint::handleRequest
-      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+      Policies:
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
@@ -572,7 +514,10 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.SetImpersonationHandler::handleRequest
-      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+      Policies:
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
@@ -590,7 +535,10 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.StopImpersonationHandler::handleRequest
-      Role: !GetAtt UpdateCognintoUserAttributesRole.Arn
+      Policies:
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
@@ -608,8 +556,13 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.CreateExternalClientHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
       Description: Creates a new Cognito Client assosicated with the external user pool
+      Policies:
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - !GetAtt CristinAndBackendSecretPermissionsPolicy.PolicyArn
+        - !GetAtt ExternalUserPoolClientsPolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
@@ -630,7 +583,12 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetExternalClientUserinfoHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
+      Policies:
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - !GetAtt CristinAndBackendSecretPermissionsPolicy.PolicyArn
+        - !GetAtt ExternalUserPoolClientsPolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Description: Access stored external client info by its token
       Environment:
         Variables:
@@ -652,7 +610,12 @@ Resources:
     Properties:
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetExternalClientHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
+      Policies:
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - !GetAtt CristinAndBackendSecretPermissionsPolicy.PolicyArn
+        - !GetAtt ExternalUserPoolClientsPolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Description: Get a store external client and its details
       Environment:
         Variables:
@@ -719,12 +682,12 @@ Resources:
         - Key: IncludedInBackup
           Value: 'true'
 
-  NvaIdTypeObjectsTable:
+  TermsAndConditionsTable:
     Type: AWS::DynamoDB::Table
     UpdateReplacePolicy: Retain
     DeletionPolicy: Delete
     Properties:
-      TableName: !Sub nva-id-type-persistent-objects-${AWS::StackName}
+      TableName: !Sub terms-and-conditions-${AWS::StackName}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
@@ -1086,33 +1049,6 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
-
-  NvaIdTypeObjectsRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com  # Hvis du vil at en Lambda-funksjon skal ha tilgang
-            Action:
-              - sts:AssumeRole
-        Policies:
-          - PolicyName: NvaIdTypeObjectsPermissions
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - dynamodb:GetItem
-                    - dynamodb:PutItem
-                    - dynamodb:UpdateItem
-                    - dynamodb:Scan
-                    - dynamodb:Query
-                  Resource: !GetAtt NvaIdTypeObjectsTable.Arn
-
 
   DefaultLambdaPermissions:
     Type: AWS::IAM::Policy
@@ -1779,7 +1715,14 @@ Resources:
     Properties:
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.UserSelectionUponLoginHandler::handleRequest
-      Role: !GetAtt CreateUsersRole.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TermsAndConditionsTable
+        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - !GetAtt CristinAndBackendSecretPermissionsPolicy.PolicyArn
+        - !GetAtt ExternalUserPoolClientsPolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
       Tracing: Active
       AutoPublishAlias: live
       DeploymentPreference:
@@ -1798,6 +1741,7 @@ Resources:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           CRISTIN_API_URL: !Ref CristinApiUrl
+          TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
       Timeout: 20
 
   PreTokenGenerationHandlerScalableTarget:

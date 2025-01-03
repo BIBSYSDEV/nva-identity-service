@@ -66,7 +66,8 @@ public enum PublicationInstanceTypes {
     MAP("Map"),
     LITERARY_ARTS("LiteraryArts"),
     EXHIBITION_PRODUCTION("ExhibitionProduction"),
-    ACADEMIC_COMMENTARY("AcademicCommentary");
+    ACADEMIC_COMMENTARY("AcademicCommentary"),
+    ARTISTIC_DEGREE_PHD("ArtisticDegreePhd");
 
     @JsonValue
     private final String displayValue;

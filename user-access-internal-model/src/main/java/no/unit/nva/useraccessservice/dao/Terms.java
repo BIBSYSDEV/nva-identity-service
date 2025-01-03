@@ -5,6 +5,7 @@ import no.unit.nva.database.interfaces.DataAccessClass;
 import no.unit.nva.database.interfaces.DataAccessLayer;
 import no.unit.nva.database.interfaces.DataAccessService;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import software.amazon.awssdk.annotations.NotNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -61,14 +62,16 @@ public record Terms(
 
     @Override
     @DynamoDbIgnore
-    public int compareTo(Terms other) {
+    public int compareTo(@NotNull Terms other) {
+        int result;
         if (isNull(this.validFrom) || isNull(other.validFrom)) {
-            return 0;
+            result = 0;
+        } else if (this.validFrom.compareTo(Instant.now()) > 0) {
+            result = -1;
+        } else {
+            result = this.validFrom.compareTo(other.validFrom);
         }
-        if (this.validFrom.compareTo(Instant.now()) > 0) {
-            return -1;
-        }
-        return this.validFrom.compareTo(other.validFrom);
+        return result;
     }
 
     public static Terms.Builder builder() {

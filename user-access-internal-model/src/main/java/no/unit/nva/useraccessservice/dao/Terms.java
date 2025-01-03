@@ -5,6 +5,7 @@ import no.unit.nva.database.interfaces.DataAccessClass;
 import no.unit.nva.database.interfaces.DataAccessLayer;
 import no.unit.nva.database.interfaces.DataAccessService;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import software.amazon.awssdk.annotations.NotNull;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -16,36 +17,38 @@ import java.time.Instant;
 import static java.util.Objects.isNull;
 
 @SuppressWarnings("PMD.ShortMethodName")
-@DynamoDbImmutable(builder = TermsConditions.Builder.class)
+@DynamoDbImmutable(builder = Terms.Builder.class)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
-public record TermsConditions(
+public record Terms(
   @DynamoDbPartitionKey String id,
   @DynamoDbSortKey String type,
   Instant created,
   String createdBy,
   Instant modified,
   String modifiedBy,
-  URI termsConditionsUri
-) implements DataAccessLayer<TermsConditions>, DataAccessClass<TermsConditions> {
+  URI termsConditionsUri,
+  Instant validFrom
+
+) implements DataAccessLayer<Terms>, DataAccessClass<Terms>, Comparable<Terms> {
 
     @DynamoDbIgnore
     @Override
-    public TermsConditions upsert(DataAccessService<TermsConditions> service) throws NotFoundException {
+    public Terms upsert(DataAccessService<Terms> service) throws NotFoundException {
         service.persist(this);
         return fetch(service);
     }
 
     @DynamoDbIgnore
     @Override
-    public TermsConditions fetch(DataAccessService<TermsConditions> service) throws NotFoundException {
+    public Terms fetch(DataAccessService<Terms> service) throws NotFoundException {
         return service.fetch(this);
     }
 
 
     @DynamoDbIgnore
     @Override
-    public TermsConditions merge(TermsConditions item) {
-        return TermsConditions.builder()
+    public Terms merge(Terms item) {
+        return Terms.builder()
             .id(id())
             .type(type())
             .created(created())
@@ -53,11 +56,26 @@ public record TermsConditions(
             .modified(Instant.now())
             .modifiedBy(item.modifiedBy())
             .termsConditionsUri(item.termsConditionsUri())
+            .validFrom(item.validFrom())
             .build();
     }
 
-    public static TermsConditions.Builder builder() {
-        return new TermsConditions.Builder();
+    @Override
+    @DynamoDbIgnore
+    public int compareTo(@NotNull Terms other) {
+        int result;
+        if (isNull(this.validFrom) || isNull(other.validFrom)) {
+            result = 0;
+        } else if (this.validFrom.compareTo(Instant.now()) > 0) {
+            result = -1;
+        } else {
+            result = this.validFrom.compareTo(other.validFrom);
+        }
+        return result;
+    }
+
+    public static Terms.Builder builder() {
+        return new Terms.Builder();
     }
 
     public static class Builder {
@@ -69,6 +87,7 @@ public record TermsConditions(
         private String modifiedById;
         private URI termsUri;
         private String withOwner;
+        private Instant validFrom;
 
         /**
          * Set the id of the TermsConditions.
@@ -119,7 +138,7 @@ public record TermsConditions(
          *
          * @return a TermsConditions object.
          */
-        public TermsConditions build() {
+        public Terms build() {
             if (isNull(withType)) {
                 type("TermsConditions");
             }
@@ -131,8 +150,8 @@ public record TermsConditions(
                 withOwner = modifiedById;
             }
 
-            return new TermsConditions(withId, withType, createdInstant, withOwner, modifiedInstant, modifiedById,
-                termsUri);
+            return new Terms(withId, withType, createdInstant, withOwner, modifiedInstant, modifiedById,
+                termsUri, validFrom);
         }
 
         /**
@@ -165,6 +184,11 @@ public record TermsConditions(
          */
         public Builder modified(Instant modified) {
             this.modifiedInstant = modified;
+            return this;
+        }
+
+        public Builder validFrom(Instant instant) {
+            this.validFrom = instant;
             return this;
         }
     }

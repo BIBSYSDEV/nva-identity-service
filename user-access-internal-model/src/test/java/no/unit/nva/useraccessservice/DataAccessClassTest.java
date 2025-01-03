@@ -19,7 +19,7 @@ class DataAccessClassTest {
     private static TermsConditions.Builder randomTermsConditions() {
         var lostInstant = randomInstant();
         return TermsConditions.builder()
-            .id(randomUri())
+            .id(randomUri().toString())
             .type("TermsConditions")
             .created(lostInstant)
             .modified(lostInstant)
@@ -45,8 +45,8 @@ class DataAccessClassTest {
     }
 
     @Test
-    void validateBeforePersistFailsWhenOwnerIsNull() {
-        var termsConditions = randomTermsConditions().owner(null).modifiedBy(null).build();
+    void validateBeforePersistFailsWhenCreatedByIsNull() {
+        var termsConditions = randomTermsConditions().createdBy(null).modifiedBy(null).build();
         assertThrows(IllegalArgumentException.class, () -> DataAccessClass.validateBeforePersist(termsConditions));
     }
 

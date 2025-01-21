@@ -14,6 +14,7 @@ public class CustomerReference {
     private Instant createdDate;
     private boolean active;
     private String doiPrefix;
+    private boolean nviInstitution;
 
     public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
         var customerReference = new CustomerReference();
@@ -22,6 +23,7 @@ public class CustomerReference {
         customerReference.setCreatedDate(customerDto.getCreatedDate());
         customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
         customerReference.setActive(customerDto.isActive());
+        customerReference.setNviInstitution(customerDto.isNviInstitution());
         return customerReference;
     }
 
@@ -83,6 +85,14 @@ public class CustomerReference {
     @SuppressWarnings({"PMD.NullAssignment"})
     public void setCreatedDate(String createdDate) {
         this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
+    }
+
+    public boolean isNviInstitution() {
+        return nviInstitution;
+    }
+
+    public void setNviInstitution(boolean nviInstitution) {
+        this.nviInstitution = nviInstitution;
     }
 
     private static String extractDoiPrefix(CustomerDto customerDto) {

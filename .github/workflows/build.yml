@@ -27,12 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate customer-swagger
-        uses: char0n/swagger-editor-validate@v1
+        uses: swaggerexpert/swagger-editor-validate@v1
         with:
           swagger-editor-url: http://localhost/
           definition-file: docs/customer-swagger.yaml
       - name: Validate users-and-roles-swagger
-        uses: char0n/swagger-editor-validate@v1
+        uses: swaggerexpert/swagger-editor-validate@v1
         with:
           swagger-editor-url: http://localhost/
           definition-file: docs/users-and-roles-swagger.yaml

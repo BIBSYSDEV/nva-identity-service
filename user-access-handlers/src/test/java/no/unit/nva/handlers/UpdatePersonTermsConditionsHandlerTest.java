@@ -63,8 +63,8 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
         when(environment.readEnv("AWS_REGION")).thenReturn("AWS_REGION");
         handler = new UpdatePersonTermsConditionsHandler(mockedService, cognito, environment);
         response = TermsConditionsResponse.builder()
-                       .withTermsConditionsUri(randomUri())
-                       .build();
+            .withTermsConditionsUri(randomUri())
+            .build();
     }
 
     @Test

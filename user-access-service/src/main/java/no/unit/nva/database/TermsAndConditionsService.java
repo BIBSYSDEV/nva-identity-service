@@ -35,7 +35,7 @@ public class TermsAndConditionsService {
                    .map(id -> {
                        try {
                            return TermsConditions.builder()
-                                      .id(id)
+                                      .id(id.toString())
                                       .build()
                                       .fetch(crudService)
                                       .termsConditionsUri();
@@ -49,10 +49,10 @@ public class TermsAndConditionsService {
                    .orElse(null);
     }
 
-    public TermsConditionsResponse updateTermsAndConditions(URI cristinId, URI termsConditions, String userId)
+    public TermsConditionsResponse updateTermsAndConditions(URI cristinPersonId, URI termsConditions, String userId)
         throws NotFoundException {
         var upserted = TermsConditions.builder()
-                           .id(cristinId)
+                           .id(cristinPersonId.toString())
                            .modifiedBy(userId)
                            .termsConditionsUri(termsConditions)
                            .build()

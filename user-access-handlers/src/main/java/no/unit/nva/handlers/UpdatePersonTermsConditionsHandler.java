@@ -49,7 +49,7 @@ public class UpdatePersonTermsConditionsHandler extends
     protected void validateRequest(
         TermsConditionsResponse input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         requestInfo.getPersonCristinId();
-        requestInfo.getCurrentCustomer();
+        requestInfo.getUserName();
     }
 
     @Override

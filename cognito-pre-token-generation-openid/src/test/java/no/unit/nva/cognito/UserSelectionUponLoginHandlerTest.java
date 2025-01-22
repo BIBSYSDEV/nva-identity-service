@@ -60,7 +60,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static java.util.Objects.nonNull;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
@@ -68,8 +67,6 @@ import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
-import static no.unit.nva.cognito.CognitoClaims.CUSTOMER_ACCEPTED_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
@@ -154,19 +151,19 @@ class UserSelectionUponLoginHandlerTest {
         URI wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
 
         var defaultRequestHeaders = new HttpHeaders()
-                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+            .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
 
         mockPersonRegistry = new MockPersonRegistry(cristinUsername,
-                                                    cristinPassword,
-                                                    wiremockUri,
-                                                    defaultRequestHeaders);
+            cristinPassword,
+            wiremockUri,
+            defaultRequestHeaders);
 
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
         cognitoClient = new FakeCognito(randomString());
         var environment = mock(Environment.class);
         when(environment.readEnv(TERMS_TABLE_NAME_ENV)).thenReturn(TERMS_TABLE);
 
-        DynamoDbClient embeddedClient = DatabaseTestConfig.getEmbeddedClient();
+        var embeddedClient = DatabaseTestConfig.getEmbeddedClient();
         new SingleTableTemplateCreator(embeddedClient)
             .createTable(TERMS_TABLE);
 
@@ -180,9 +177,12 @@ class UserSelectionUponLoginHandlerTest {
             ServiceConstants.API_DOMAIN,
             defaultRequestHeaders,
             new SecretsReader(secretsManagerClient));
-
         handler = new UserSelectionUponLoginHandler(
-            cognitoClient, customerService, identityService, personRegistry, termsAndConditionsService);
+            cognitoClient,
+            customerService,
+            identityService,
+            personRegistry,
+            termsAndConditionsService);
     }
 
     private DynamoDBCustomerService initializeCustomerService() {
@@ -216,8 +216,8 @@ class UserSelectionUponLoginHandlerTest {
         var actualUser = allUsers.get(0);
         assertThat(allUsers, hasSize(SINGLE_EXPECTED_USER));
         var expectedAffiliation = mockPersonRegistry.getInstitutionUnitCristinUris(personLoggingIn)
-                                      .stream()
-                                      .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         assertThat(actualUser.getInstitutionCristinId(), is(equalTo(expectedAffiliation)));
     }
 
@@ -235,12 +235,10 @@ class UserSelectionUponLoginHandlerTest {
         Request request;
         if (nonNull(nin)) {
             request = Request.builder()
-                          .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin,
-                                                     CUSTOMER_ACCEPTED_TERMS, TERMS_URI.toString(),
-                                                     CURRENT_TERMS, TERMS_URI.toString())).build();
+                .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin)).build();
         } else {
             request = Request.builder()
-                          .withUserAttributes(Map.of("SOME", "VALUE")).build();
+                .withUserAttributes(Map.of("SOME", "VALUE")).build();
         }
         var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
         loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
@@ -269,11 +267,11 @@ class UserSelectionUponLoginHandlerTest {
 
     private String fetchFeideDomainFromRandomCustomerWithActiveEmployment(String nin) {
         return scenarios.fetchCustomersForPerson(nin)
-                   .stream()
-                   .filter(customer -> Objects.nonNull(customer.getFeideOrganizationDomain()))
-                   .findAny()
-                   .map(CustomerDto::getFeideOrganizationDomain)
-                   .orElse(null);
+            .stream()
+            .filter(customer -> Objects.nonNull(customer.getFeideOrganizationDomain()))
+            .findAny()
+            .map(CustomerDto::getFeideOrganizationDomain)
+            .orElse(null);
     }
 
     @ParameterizedTest(name = "Login event type: {0}")
@@ -290,16 +288,20 @@ class UserSelectionUponLoginHandlerTest {
             = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
 
         var defaultRequestHeaders = new HttpHeaders()
-                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+            .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
 
         var personRegistry = CristinPersonRegistry.customPersonRegistry(
-            httpClient,
-            uriWhereCristinIsUnavailable,
-            ServiceConstants.API_DOMAIN,
-            defaultRequestHeaders,
-            new SecretsReader(secretsManagerClient));
-        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService, personRegistry,
-                                                    termsAndConditionsService);
+                httpClient,
+                uriWhereCristinIsUnavailable,
+                ServiceConstants.API_DOMAIN,
+                defaultRequestHeaders,
+                new SecretsReader(secretsManagerClient));
+        handler = new UserSelectionUponLoginHandler(
+                cognitoClient,
+                customerService,
+                identityService,
+                personRegistry,
+                termsAndConditionsService);
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
         assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
         assertThat(testAppender.getMessages(), containsString("Cristin is unavailable"));
@@ -378,8 +380,8 @@ class UserSelectionUponLoginHandlerTest {
             = scenarios.getCristinUriForInstitutionAffiliations(personLoggingIn, INACTIVE);
         var allUsers = scanAllUsers();
         var topLevelOrgsForCreatedUsers = allUsers.stream()
-                                              .map(UserDto::getInstitutionCristinId)
-                                              .collect(Collectors.toSet());
+            .map(UserDto::getInstitutionCristinId)
+            .collect(Collectors.toSet());
         assertThat(topLevelOrgsForCreatedUsers, containsInAnyOrder(activeEmployments.toArray(URI[]::new)));
         assertThat(inactiveEmployments, everyItem(not(in(topLevelOrgsForCreatedUsers))));
     }
@@ -391,7 +393,7 @@ class UserSelectionUponLoginHandlerTest {
         LoginEventType loginEventType) {
 
         var personLoggingIn = scenarios
-                                  .personWithOneActiveAndOneInactiveEmploymentInSameInstitution().nin();
+            .personWithOneActiveAndOneInactiveEmploymentInSameInstitution().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
         var activeEmployments
@@ -400,12 +402,12 @@ class UserSelectionUponLoginHandlerTest {
             = scenarios.getCristinUriForInstitutionAffiliations(personLoggingIn, INACTIVE);
         var allUsers = scanAllUsers();
         var topLevelOrgsForCreatedUsers = allUsers.stream()
-                                              .map(UserDto::getInstitutionCristinId)
-                                              .collect(Collectors.toSet());
+            .map(UserDto::getInstitutionCristinId)
+            .collect(Collectors.toSet());
         assertThat(allUsers, hasSize(SINGLE_EXPECTED_USER));
         assertThatEmployeeWithInactiveAndActiveEmploymentInSameTopLevelOrgGetsAUser(topLevelOrgsForCreatedUsers,
-                                                                                    activeEmployments,
-                                                                                    inactiveEmployments);
+            activeEmployments,
+            inactiveEmployments);
     }
 
     private static void assertThatEmployeeWithInactiveAndActiveEmploymentInSameTopLevelOrgGetsAUser(
@@ -446,7 +448,7 @@ class UserSelectionUponLoginHandlerTest {
         var event = newLoginEvent(personLoggingIn, eventType);
         var response = handler.handleRequest(event, context);
         assertThatResponseContainsAssignedAccessRights(existingUserInitiallyWithoutRoles, assignedAccessRights,
-                                                       response);
+            response);
 
         assertThatAccessRightsArePersistedInCognitoEntry(assignedAccessRights);
     }
@@ -488,11 +490,11 @@ class UserSelectionUponLoginHandlerTest {
     private static List<String> constructExpectedAccessRightsForGroup(UserDto existingUserInitiallyWithoutRoles,
                                                                       Set<AccessRight> assignedAccessRights) {
         return assignedAccessRights.stream()
-                   .map(accessRight -> accessRight.toPersistedString()
-                                       + AT
-                                       + existingUserInitiallyWithoutRoles.getInstitution()
-                                             .toString())
-                   .collect(Collectors.toList());
+            .map(accessRight -> accessRight.toPersistedString()
+                + AT
+                + existingUserInitiallyWithoutRoles.getInstitution()
+                .toString())
+            .collect(Collectors.toList());
     }
 
     private void assertThatAccessRightsArePersistedInCognitoEntry(Set<AccessRight> assignedAccessRights) {
@@ -505,16 +507,16 @@ class UserSelectionUponLoginHandlerTest {
 
     private static List<String> constructExpectedAccessRights(Set<AccessRight> assignedAccessRights) {
         return assignedAccessRights.stream()
-                   .map(AccessRight::toPersistedString)
-                   .collect(Collectors.toList());
+            .map(AccessRight::toPersistedString)
+            .collect(Collectors.toList());
     }
 
     private String extractAccessRightFromCognitoEntry() {
         return fetchCognitoEntryUpdateRequestSentByHandler().userAttributes()
-                   .stream()
-                   .filter(userAttribute -> ACCESS_RIGHTS_CLAIM.equals(userAttribute.name()))
-                   .map(AttributeType::value)
-                   .collect(SingletonCollector.collect());
+            .stream()
+            .filter(userAttribute -> ACCESS_RIGHTS_CLAIM.equals(userAttribute.name()))
+            .map(AttributeType::value)
+            .collect(SingletonCollector.collect());
     }
 
     private AdminUpdateUserAttributesRequest fetchCognitoEntryUpdateRequestSentByHandler() {
@@ -529,9 +531,9 @@ class UserSelectionUponLoginHandlerTest {
     private RoleDto persistRoleToDatabase(Collection<AccessRight> accessRights)
         throws InvalidInputException, ConflictException, NotFoundException {
         var roleDto = RoleDto.newBuilder()
-                          .withRoleName(randomRoleNameButNot(RoleName.CREATOR))
-                          .withAccessRights(accessRights)
-                          .build();
+            .withRoleName(randomRoleNameButNot(RoleName.CREATOR))
+            .withAccessRights(accessRights)
+            .build();
         persistRoleIfNotExist(roleDto);
         return identityService.getRole(roleDto);
     }
@@ -549,9 +551,9 @@ class UserSelectionUponLoginHandlerTest {
         LoginEventType loginEventType) {
         var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var expectedCustomerId = scenarios.fetchCustomersForPerson(person)
-                                     .stream()
-                                     .collect(SingletonCollector.collect())
-                                     .getId();
+            .stream()
+            .collect(SingletonCollector.collect())
+            .getId();
 
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
@@ -562,10 +564,10 @@ class UserSelectionUponLoginHandlerTest {
 
     private String extractClaimFromCognitoUpdateRequest(String claimName) {
         return cognitoClient.getAdminUpdateUserRequest()
-                   .userAttributes().stream()
-                   .filter(a -> a.name().equals(claimName))
-                   .map(AttributeType::value)
-                   .collect(SingletonCollector.collect());
+            .userAttributes().stream()
+            .filter(a -> a.name().equals(claimName))
+            .map(AttributeType::value)
+            .collect(SingletonCollector.collect());
     }
 
     @ParameterizedTest(name = "should add Feide specified customer id as current customer id when user logs in "
@@ -700,7 +702,7 @@ class UserSelectionUponLoginHandlerTest {
         var person = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var existingUser = scenarios.createUsersForAllActiveAffiliations(person, identityService).stream()
-                               .collect(SingletonCollector.collect());
+            .collect(SingletonCollector.collect());
         existingUser.setInstitution(randomUri());
         identityService.updateUser(existingUser);
         var event = newLoginEvent(person, loginEventType);
@@ -721,24 +723,24 @@ class UserSelectionUponLoginHandlerTest {
                                                            firstUser.getUsername());
 
         var expectedCustomerIds = scenarios.fetchCustomersForPerson(person)
-                                      .stream()
-                                      .map(CustomerDto::getId)
-                                      .toList();
+            .stream()
+            .map(CustomerDto::getId)
+            .toList();
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
-        var actualAllowedCustomerIds = extractAllowedCustomersFromCongitoUpdateRequest();
+        var actualAllowedCustomerIds = extractAllowedCustomersFromCognitoUpdateRequest();
 
         assertThat(actualAllowedCustomerIds, containsInAnyOrder(expectedCustomerIds.toArray(URI[]::new)));
     }
 
-    private List<URI> extractAllowedCustomersFromCongitoUpdateRequest() {
+    private List<URI> extractAllowedCustomersFromCognitoUpdateRequest() {
         return cognitoClient.getAdminUpdateUserRequest()
-                   .userAttributes().stream()
-                   .filter(attribute -> attribute.name().equals(ALLOWED_CUSTOMERS_CLAIM))
-                   .map(AttributeType::value)
-                   .map(this::extractAllowedCustomersRespectingEmptyStringNull)
-                   .flatMap(Arrays::stream)
-                   .collect(Collectors.toList());
+            .userAttributes().stream()
+            .filter(attribute -> attribute.name().equals(ALLOWED_CUSTOMERS_CLAIM))
+            .map(AttributeType::value)
+            .map(this::extractAllowedCustomersRespectingEmptyStringNull)
+            .flatMap(Arrays::stream)
+            .collect(Collectors.toList());
     }
 
     private URI[] extractAllowedCustomersRespectingEmptyStringNull(String value) {
@@ -746,9 +748,9 @@ class UserSelectionUponLoginHandlerTest {
             return new URI[]{};
         } else {
             return Arrays.stream(value.split(","))
-                       .map(URI::create)
-                       .toList()
-                       .toArray(URI[]::new);
+                .map(URI::create)
+                .toList()
+                .toArray(URI[]::new);
         }
     }
 
@@ -768,7 +770,7 @@ class UserSelectionUponLoginHandlerTest {
         handler.handleRequest(event, context);
         var orgFeideDomain = extractFeideDomainFromInputEvent(event);
         var currentCustomer = customerService.getCustomerByOrgDomain(orgFeideDomain);
-        var actualAllowedCustomerIds = extractAllowedCustomersFromCongitoUpdateRequest();
+        var actualAllowedCustomerIds = extractAllowedCustomersFromCognitoUpdateRequest();
 
         assertThat(actualAllowedCustomerIds, containsInAnyOrder(currentCustomer.getId()));
     }
@@ -789,17 +791,17 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(expectedCustomerIds, hasSize(1));
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
-        var actualAllowedCustomerIds = extractAllowedCustomersFromCongitoUpdateRequest();
+        var actualAllowedCustomerIds = extractAllowedCustomersFromCognitoUpdateRequest();
         assertThat(actualAllowedCustomerIds, containsInAnyOrder(expectedCustomerIds.toArray(URI[]::new)));
     }
 
     private List<URI> fetchCustomersWithActiveEmploymentsForPerson(String nin) {
         return scenarios.getCristinUriForInstitutionAffiliations(nin, ACTIVE)
-                   .stream()
-                   .map(attempt(cristinId -> customerService.getCustomerByCristinId(cristinId)))
-                   .map(Try::orElseThrow)
-                   .map(CustomerDto::getId)
-                   .collect(Collectors.toList());
+            .stream()
+            .map(attempt(cristinId -> customerService.getCustomerByCristinId(cristinId)))
+            .map(Try::orElseThrow)
+            .map(CustomerDto::getId)
+            .collect(Collectors.toList());
     }
 
     @Test
@@ -819,28 +821,28 @@ class UserSelectionUponLoginHandlerTest {
         var currentCustomer = customerService.getCustomerByOrgDomain(orgFeideDomain);
 
         var expectedRoles = usersWithRoles.stream()
-                                .filter(u -> u.getInstitution().equals(currentCustomer.getId()))
-                                .map(UserDto::getRoles)
-                                .flatMap(Collection::stream)
-                                .map(RoleDto::getRoleName)
-                                .map(RoleName::getValue)
-                                .collect(Collectors.toSet());
+            .filter(u -> u.getInstitution().equals(currentCustomer.getId()))
+            .map(UserDto::getRoles)
+            .flatMap(Collection::stream)
+            .map(RoleDto::getRoleName)
+            .map(RoleName::getValue)
+            .collect(Collectors.toSet());
 
         var actualRoles = cognitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-                              .filter(attribute -> attribute.name().equals(ROLES_CLAIM))
-                              .map(AttributeType::value)
-                              .map(str -> str.split(","))
-                              .flatMap(Arrays::stream)
-                              .collect(Collectors.toList());
+            .filter(attribute -> attribute.name().equals(ROLES_CLAIM))
+            .map(AttributeType::value)
+            .map(str -> str.split(","))
+            .flatMap(Arrays::stream)
+            .collect(Collectors.toList());
         assertThat(actualRoles, containsInAnyOrder(expectedRoles.toArray(String[]::new)));
     }
 
     private List<UserDto> createUsersWithRolesForPerson(String nin) {
         return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
-                   .stream()
-                   .map(attempt(user -> addRoleToUser(user, persistRandomRole())))
-                   .map(Try::orElseThrow)
-                   .collect(Collectors.toList());
+            .stream()
+            .map(attempt(user -> addRoleToUser(user, persistRandomRole())))
+            .map(Try::orElseThrow)
+            .collect(Collectors.toList());
     }
 
     private UserDto addRoleToUser(UserDto user, RoleDto persistRandomRole) throws NotFoundException {
@@ -851,9 +853,9 @@ class UserSelectionUponLoginHandlerTest {
 
     private RoleDto persistRandomRole() throws InvalidInputException, ConflictException {
         var newRole = RoleDto.newBuilder()
-                          .withRoleName(randomRoleName())
-                          .withAccessRights(randomAccessRights())
-                          .build();
+            .withRoleName(randomRoleName())
+            .withAccessRights(randomAccessRights())
+            .build();
         persistRoleIfNotExist(newRole.copy().withRoleName(newRole.getRoleName()).build());
         return attempt(() -> identityService.getRole(newRole)).orElseThrow();
     }
@@ -866,10 +868,10 @@ class UserSelectionUponLoginHandlerTest {
         var event = newLoginEvent(person, NON_FEIDE);
         handler.handleRequest(event, context);
         var actualRoles = cognitoClient.getAdminUpdateUserRequest().userAttributes().stream()
-                              .filter(attribute -> attribute.name().equals(ROLES_CLAIM))
-                              .findFirst()
-                              .map(AttributeType::value)
-                              .get();
+            .filter(attribute -> attribute.name().equals(ROLES_CLAIM))
+            .findFirst()
+            .map(AttributeType::value)
+            .get();
         assertThat(actualRoles, is(emptyString()));
     }
 
@@ -892,7 +894,7 @@ class UserSelectionUponLoginHandlerTest {
         var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var personTopLevelOrgAffiliation
             = scenarios.getCristinUriForInstitutionAffiliations(person).stream()
-                  .collect(SingletonCollector.tryCollect()).orElseThrow();
+            .collect(SingletonCollector.tryCollect()).orElseThrow();
 
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
@@ -940,9 +942,9 @@ class UserSelectionUponLoginHandlerTest {
         var accessRights = new HashSet<>(role.getAccessRights());
         accessRights.add(accessRight);
         var updatedRole = RoleDto.newBuilder()
-                              .withRoleName(role.getRoleName())
-                              .withAccessRights(accessRights)
-                              .build();
+            .withRoleName(role.getRoleName())
+            .withAccessRights(accessRights)
+            .build();
         updateRole(updatedRole);
     }
 
@@ -952,10 +954,10 @@ class UserSelectionUponLoginHandlerTest {
 
     private List<UserDto> createUsersWithRolesForPerson(String nin, RoleDto role) {
         return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
-                   .stream()
-                   .map(attempt(user -> addRoleToUser(user, role)))
-                   .map(Try::orElseThrow)
-                   .collect(Collectors.toList());
+            .stream()
+            .map(attempt(user -> addRoleToUser(user, role)))
+            .map(Try::orElseThrow)
+            .collect(Collectors.toList());
     }
 
     @Test
@@ -986,8 +988,8 @@ class UserSelectionUponLoginHandlerTest {
         var person = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var user = scenarios.createUsersForAllActiveAffiliations(person, identityService)
-                       .stream()
-                       .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         var accessRight = randomElement(AccessRight.values());
         var role = persistRoleToDatabase(List.of(accessRight));
         assignExistingRoleToUser(user, role);
@@ -1005,9 +1007,9 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldStoreAccessRightsToDatabaseWhenUserHasSeveralActiveAffiliations(LoginEventType loginEventType)
         throws InvalidInputException, NotFoundException, ConflictException {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var role = persistRandomRole();
-        var users = createUsersWithRolesForPerson(person.nin(), role);
+        var users = createUsersWithRolesForPerson(person, role);
         var accessRight = randomElement(AccessRight.values());
         addAccessRightToExistingRole(role, accessRight);
         var firstUser = users.stream().findFirst().get();
@@ -1015,7 +1017,7 @@ class UserSelectionUponLoginHandlerTest {
         termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
                                                            firstUser.getUsername());
 
-        var event = newLoginEvent(person.nin(), loginEventType);
+        var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
 
         users.forEach(user -> {
@@ -1080,8 +1082,8 @@ class UserSelectionUponLoginHandlerTest {
     void shouldAddUserAffiliationToNewUserEntryWhenUserEntryDoesNotPreexist(LoginEventType loginEventType) {
         var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var employment = scenarios.getCristinUriForUnitAffiliations(person)
-                             .stream()
-                             .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var user = scanAllUsers().stream().collect(SingletonCollector.collect());
@@ -1095,7 +1097,7 @@ class UserSelectionUponLoginHandlerTest {
         throws NotFoundException {
         var person = scenarios.personWithExactlyOneActiveEmployment().nin();
         var existingUser = scenarios.createUsersForAllActiveAffiliations(person, identityService)
-                               .stream().collect(SingletonCollector.collect());
+            .stream().collect(SingletonCollector.collect());
         removeEmployment(existingUser);
         var userBeforeLogIn = identityService.getUser(existingUser);
         assertThat(userBeforeLogIn.getAffiliation(), is(nullValue()));
@@ -1104,8 +1106,8 @@ class UserSelectionUponLoginHandlerTest {
         handler.handleRequest(event, context);
         var userAfterLogin = identityService.getUser(existingUser);
         var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(person)
-                                      .stream()
-                                      .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
 
         assertThat(userAfterLogin.getAffiliation(), is(equalTo(expectedAffiliation)));
     }
@@ -1119,16 +1121,16 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType)
         throws NotFoundException {
-        var person = scenarios.personWithExactlyOneActiveEmployment();
-        var user = scenarios.createUsersForAllActiveAffiliations(person.nin(), identityService).stream()
+        var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
+        var user = scenarios.createUsersForAllActiveAffiliations(personNin, identityService).stream()
                        .collect(SingletonCollector.collect());
-        var event = newLoginEvent(person.nin(), loginEventType);
+        var event = newLoginEvent(personNin, loginEventType);
         termsAndConditionsService.updateTermsAndConditions(user.getCristinId(), TERMS_URI, user.getUsername());
 
         handler.handleRequest(event, context);
-        var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(person.nin())
-                                      .stream()
-                                      .collect(SingletonCollector.collect());
+        var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(personNin)
+            .stream()
+            .collect(SingletonCollector.collect());
         var cognitoAttribute = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
         assertThat(cognitoAttribute, is(equalTo(expectedAffiliation.toString())));
     }
@@ -1153,8 +1155,8 @@ class UserSelectionUponLoginHandlerTest {
         var approvePublishAccessRight = AccessRight.MANAGE_PUBLISHING_REQUESTS;
 
         var user = scenarios.createUsersForAllActiveAffiliations(person, identityService)
-                       .stream()
-                       .collect(SingletonCollector.collect());
+            .stream()
+            .collect(SingletonCollector.collect());
         var role = persistRoleToDatabase(List.of(approveDoiAccessRight));
         assignExistingRoleToUser(user, role);
 
@@ -1170,7 +1172,7 @@ class UserSelectionUponLoginHandlerTest {
         assertIdTokenContainsGroupAccessRightClaims(user, response, approveDoiAccessRight, approvePublishAccessRight);
 
         assertUserAccessRightsAreUpdated(user, approveDoiAccessRight,
-                                         approvePublishAccessRight);
+            approvePublishAccessRight);
     }
 
     private void assertUserAccessRightsAreUpdated(UserDto user, AccessRight... accessRights) throws NotFoundException {
@@ -1194,9 +1196,9 @@ class UserSelectionUponLoginHandlerTest {
         var event = newLoginEvent(person, LoginEventType.FEIDE);
 
         var selectedCustomer = scenarios.fetchCustomersForPerson(person)
-                                   .stream()
-                                   .filter(customer -> Objects.nonNull(customer.getFeideOrganizationDomain()))
-                                   .collect(SingletonCollector.collect());
+            .stream()
+            .filter(customer -> Objects.nonNull(customer.getFeideOrganizationDomain()))
+            .collect(SingletonCollector.collect());
 
         handler.handleRequest(event, context);
 
@@ -1232,9 +1234,9 @@ class UserSelectionUponLoginHandlerTest {
         var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var newRole = RoleDto.newBuilder()
-                          .withRoleName(RoleName.APPLICATION_ADMIN)
-                          .withAccessRights(List.of(AccessRight.ACT_AS))
-                          .build();
+            .withRoleName(RoleName.APPLICATION_ADMIN)
+            .withAccessRights(List.of(AccessRight.ACT_AS))
+            .build();
         persistRoleIfNotExist(newRole);
         createUserWithRolesForPerson(adminNin, newRole);
 
@@ -1269,10 +1271,10 @@ class UserSelectionUponLoginHandlerTest {
 
     private List<UserDto> createUserWithRolesForPerson(String nin, RoleDto role) {
         return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
-                   .stream()
-                   .map(attempt(user -> addRoleToUser(user, role)))
-                   .map(Try::orElseThrow)
-                   .collect(Collectors.toList());
+            .stream()
+            .map(attempt(user -> addRoleToUser(user, role)))
+            .map(Try::orElseThrow)
+            .collect(Collectors.toList());
     }
 
     @Test
@@ -1294,9 +1296,9 @@ class UserSelectionUponLoginHandlerTest {
         var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment().nin();
 
         var newRole = RoleDto.newBuilder()
-                          .withRoleName(RoleName.APPLICATION_ADMIN)
-                          .withAccessRights(List.of(AccessRight.ACT_AS))
-                          .build();
+            .withRoleName(RoleName.APPLICATION_ADMIN)
+            .withAccessRights(List.of(AccessRight.ACT_AS))
+            .build();
         persistRoleIfNotExist(newRole);
         createUserWithRolesForPerson(adminNin, newRole);
 

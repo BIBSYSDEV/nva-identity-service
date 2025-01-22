@@ -24,7 +24,7 @@ public class SingleTableCrudServiceTest {
 
         var client = DatabaseTestConfig
                 .getEmbeddedClient();
-        var tableName = "TermsTable";
+        var tableName = "PersistedObjectsTable";
         new SingleTableTemplateCreator(client)
                 .createTable(tableName);
 
@@ -33,12 +33,14 @@ public class SingleTableCrudServiceTest {
 
     @Test
     void shouldPersistPreferencesAndLicense() throws NotFoundException {
+
         var persistedTermsConditions = TermsConditions.builder()
-                .id(randomUri())
+                .id(randomUri().toString())
                 .modifiedBy(randomString())
                 .termsConditionsUri(randomUri())
                 .build()
                 .upsert(singleTableCrudService);
+
         var persistedTwice = persistedTermsConditions
                 .merge(TermsConditions.builder()
                         .modifiedBy(randomString())
@@ -50,13 +52,12 @@ public class SingleTableCrudServiceTest {
                 .fetch(singleTableCrudService);
 
         assertThat(fetchedTermsConditions, is(equalTo(persistedTwice)));
-
     }
 
 
     @Test
     void shouldUpdateTermsConditions() throws NotFoundException {
-        var userIdentifier = randomUri();
+        var userIdentifier = randomUri().toString();
         var termsConditionsDao = TermsConditions.builder()
                 .id(userIdentifier)
                 .modifiedBy(randomString())
@@ -75,7 +76,7 @@ public class SingleTableCrudServiceTest {
 
     @Test
     void shouldDeleteTermsConditions() throws NotFoundException {
-        var userIdentifier = randomUri();
+        var userIdentifier = randomUri().toString();
         var termsConditions = TermsConditions.builder()
                 .id(userIdentifier)
                 .modifiedBy(randomString())
@@ -96,7 +97,7 @@ public class SingleTableCrudServiceTest {
     void shouldThrowExceptionWhenFetchingNonExistentTermsConditions() {
         assertThrows(NotFoundException.class,
                 () -> TermsConditions.builder()
-                        .id(randomUri())
+                        .id(randomUri().toString())
                         .build()
                         .fetch(singleTableCrudService));
     }
@@ -105,7 +106,7 @@ public class SingleTableCrudServiceTest {
     @Test
     void shouldThrowExceptionWhenDeletingNonExistentTermsConditions() {
         var dao = TermsConditions.builder()
-                .id(randomUri())
+                .id(randomUri().toString())
                 .build();
         assertThrows(NotFoundException.class,
                 () -> singleTableCrudService.delete(dao));

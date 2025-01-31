@@ -18,7 +18,7 @@ mockitoCore = { strictly = '4.5.1' }
 guava = { require = '32.1.2-jre' }
 log4j = { strictly = '2.24.0' }
 awsLambdaEvents = { strictly = '3.13.0' }
-wiremock = { strictly = "3.10.0" }
+wiremock = { strictly = "3.9.1" }
 
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }

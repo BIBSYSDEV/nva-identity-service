@@ -10,18 +10,20 @@ import java.util.List;
 import java.util.Set;
 
 public record UserSelectArguments(
-        AuthenticationDetails authenticationDetails,
-        Person person,
-        CustomerDto currentCustomer,
-        UserDto currentUser,
-        String impersonatedBy,
-        URI currentTerms,
-        URI acceptedTerms,
-        String allowedCustomersString,
-        List<UserDto> users,
-        Set<CustomerDto> customers,
-        List<String> accessRights,
-        Set<RoleName> roles
+    AuthenticationDetails authenticationDetails,
+    Person person,
+    CustomerDto currentCustomer,
+    UserDto currentUser,
+    String impersonatedBy,
+    URI currentTerms,
+    URI acceptedTerms,
+    String allowedCustomersString,
+    List<UserDto> users,
+    Set<CustomerDto> customers,
+    List<String> accessRights,
+    Set<RoleName> roles,
+    Set<URI> viewingScopeIncluded,
+    Set<URI> viewingScopeExcluded
 ) {
 
     public static Builder builder() {
@@ -30,21 +32,24 @@ public record UserSelectArguments(
 
     public Builder copy() {
         return builder()
-                .withAuthenticationDetails(authenticationDetails)
-                .withPerson(person)
-                .withCurrentCustomer(currentCustomer)
-                .withCurrentUser(currentUser)
-                .withImpersonatedBy(impersonatedBy)
-                .withCurrentTerms(currentTerms)
-                .withAcceptedTerms(acceptedTerms)
-                .withAllowedCustomersString(allowedCustomersString)
-                .withCustomers(customers)
-                .withAccessRights(accessRights)
-                .withRoles(roles)
-                .withUsers(users);
+                   .withAuthenticationDetails(authenticationDetails)
+                   .withPerson(person)
+                   .withCurrentCustomer(currentCustomer)
+                   .withCurrentUser(currentUser)
+                   .withImpersonatedBy(impersonatedBy)
+                   .withCurrentTerms(currentTerms)
+                   .withAcceptedTerms(acceptedTerms)
+                   .withAllowedCustomersString(allowedCustomersString)
+                   .withCustomers(customers)
+                   .withAccessRights(accessRights)
+                   .withRoles(roles)
+                   .withUsers(users)
+                   .withViewingScopeIncluded(viewingScopeIncluded)
+                   .withViewingScopeExcluded(viewingScopeExcluded);
     }
 
     public static class Builder {
+
         private AuthenticationDetails authenticationDetails;
         private Person person;
         private CustomerDto currentCustomer;
@@ -57,6 +62,8 @@ public record UserSelectArguments(
         private Set<CustomerDto> customers;
         private List<String> accessRights;
         private Set<RoleName> roles;
+        private Set<URI> viewingScopeIncluded;
+        private Set<URI> viewingScopeExcluded;
 
         public Builder withAuthenticationDetails(AuthenticationDetails authenticationDetails) {
             this.authenticationDetails = authenticationDetails;
@@ -118,9 +125,21 @@ public record UserSelectArguments(
             return this;
         }
 
+        public Builder withViewingScopeIncluded(Set<URI> viewingScopeIncluded) {
+            this.viewingScopeIncluded = viewingScopeIncluded;
+            return this;
+        }
+
+        public Builder withViewingScopeExcluded(Set<URI> viewingScopeExcluded) {
+            this.viewingScopeExcluded = viewingScopeExcluded;
+            return this;
+        }
+
         public UserSelectArguments build() {
             return new UserSelectArguments(authenticationDetails, person, currentCustomer, currentUser, impersonatedBy,
-                    currentTerms, acceptedTerms, allowedCustomersString, users, customers, accessRights, roles);
+                                           currentTerms, acceptedTerms, allowedCustomersString, users, customers,
+                                           accessRights, roles,
+                                           viewingScopeIncluded, viewingScopeExcluded);
         }
     }
 }

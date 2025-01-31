@@ -27,6 +27,7 @@ import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
+import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
@@ -69,6 +70,8 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
+import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_EXCLUDED_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_INCLUDED_CLAIM;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
@@ -318,12 +321,25 @@ public class UserSelectionUponLoginHandler
             arguments.authenticationDetails().getFeideDomain()
         ) : EMPTY_CLAIM;
 
+        final Set<URI> viewingScopeExcluded;
+        final Set<URI> viewingScopeIncluded;
+
+        if (currentUser != null && currentUser.getViewingScope() != null) {
+            var viewingScope = currentUser.getViewingScope();
+            viewingScopeExcluded = viewingScope.getExcludedUnits();
+            viewingScopeIncluded = viewingScope.getIncludedUnits();
+        } else {
+            viewingScopeExcluded = Collections.emptySet();
+            viewingScopeIncluded = Collections.emptySet();
+        }
         updateCognitoUserAttributes(
             arguments.copy()
                 .withAllowedCustomersString(allowedCustomersString)
                 .withCurrentUser(currentUser)
                 .withRoles(rolesPerCustomerForPerson)
                 .withAccessRights(accessRightsWithoutCustomer)
+                .withViewingScopeIncluded(viewingScopeIncluded)
+                .withViewingScopeExcluded(viewingScopeExcluded)
                 .build()
         );
 
@@ -466,7 +482,25 @@ public class UserSelectionUponLoginHandler
                                                                 arguments.acceptedTerms().toString() : ""));
         addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(arguments.currentCustomer(),
                                                                                  arguments.currentUser(), claims);
+        claims.add(createAttribute(VIEWING_SCOPE_INCLUDED_CLAIM,
+                                   uriSetToCommaSeparatedString(arguments.viewingScopeIncluded())));
+        claims.add(createAttribute(VIEWING_SCOPE_EXCLUDED_CLAIM,
+                                   uriSetToCommaSeparatedString(arguments.viewingScopeExcluded())));
         return claims;
+    }
+
+    private String uriSetToCommaSeparatedString(Set<URI> uris) {
+        final String commaSeparatedString;
+
+        if (uris.isEmpty()) {
+            commaSeparatedString = EMPTY_CLAIM;
+        } else {
+            commaSeparatedString = uris.stream()
+                                       .map(UriWrapper::fromUri)
+                                       .map(UriWrapper::getLastPathElement)
+                                       .collect(Collectors.joining(","));
+        }
+        return commaSeparatedString;
     }
 
     private void addCustomerSelectionClaimsWhenUserHasOnePossibleLoginOrLoggedInWithFeide(

@@ -1502,6 +1502,8 @@ Resources:
         - custom:impersonatedBy
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 9
@@ -1530,6 +1532,8 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
@@ -1582,6 +1586,8 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -1607,6 +1613,8 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
 
   TestingApplicationClient:
     DependsOn: ResourceServerScopes
@@ -1657,6 +1665,8 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -1685,6 +1695,9 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
+
   ## External API
   ExternalUserPoolName:
     Type: AWS::SSM::Parameter

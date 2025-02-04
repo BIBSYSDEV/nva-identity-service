@@ -1349,6 +1349,14 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: viewingScopeIncluded
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: viewingScopeExcluded
+          AttributeDataType: String
+          Mutable: true
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value

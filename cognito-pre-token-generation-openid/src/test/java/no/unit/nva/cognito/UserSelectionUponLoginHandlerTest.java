@@ -1,67 +1,5 @@
 package no.unit.nva.cognito;
 
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Request;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import java.util.HashMap;
-import no.unit.nva.FakeCognito;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
-import no.unit.nva.database.DatabaseTestConfig;
-import no.unit.nva.database.IdentityService;
-import no.unit.nva.database.LocalIdentityService;
-import no.unit.nva.database.TermsAndConditionsService;
-import no.unit.nva.database.SingleTableTemplateCreator;
-import no.unit.nva.events.models.ScanDatabaseRequestV2;
-import no.unit.nva.stubs.FakeContext;
-import no.unit.nva.stubs.FakeSecretsManagerClient;
-import no.unit.nva.stubs.WiremockHttpClient;
-import no.unit.nva.useraccessservice.constants.ServiceConstants;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.model.RoleName;
-import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
-import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
-import nva.commons.apigateway.AccessRight;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.Environment;
-import nva.commons.core.SingletonCollector;
-import nva.commons.core.attempt.Try;
-import nva.commons.core.paths.UriWrapper;
-import nva.commons.logutils.LogUtils;
-import nva.commons.secrets.SecretsReader;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.EnumSource.Mode;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-
 import static java.util.Objects.nonNull;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
@@ -83,6 +21,8 @@ import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
+import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_EXCLUDED_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_INCLUDED_CLAIM;
 import static no.unit.nva.cognito.LoginEventType.FEIDE;
 import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
@@ -117,6 +57,67 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Request;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import no.unit.nva.FakeCognito;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
+import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
+import no.unit.nva.database.DatabaseTestConfig;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.LocalIdentityService;
+import no.unit.nva.database.SingleTableTemplateCreator;
+import no.unit.nva.database.TermsAndConditionsService;
+import no.unit.nva.events.models.ScanDatabaseRequestV2;
+import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.stubs.FakeSecretsManagerClient;
+import no.unit.nva.stubs.WiremockHttpClient;
+import no.unit.nva.useraccessservice.constants.ServiceConstants;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
+import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
+import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
+import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
+import nva.commons.core.SingletonCollector;
+import nva.commons.core.attempt.Try;
+import nva.commons.core.paths.UriWrapper;
+import nva.commons.logutils.LogUtils;
+import nva.commons.secrets.SecretsReader;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.EnumSource.Mode;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @WireMockTest(httpsEnabled = true)
 class UserSelectionUponLoginHandlerTest {
@@ -128,6 +129,7 @@ class UserSelectionUponLoginHandlerTest {
     public static final URI TERMS_URI = URI.create("https://nva.sikt.no/terms/2024-10-01");
     public static final String TRIGGER_SOURCE_AUTHENTICATION = "TokenGeneration_Authentication";
     public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
+    private static final String COMMA = ",";
 
     private final Context context = new FakeContext();
     private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
@@ -811,7 +813,6 @@ class UserSelectionUponLoginHandlerTest {
         termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
                                                            firstUser.getUsername());
 
-
         var event = newLoginEvent(person, FEIDE);
         handler.handleRequest(event, context);
 
@@ -1173,6 +1174,46 @@ class UserSelectionUponLoginHandlerTest {
                                          approvePublishAccessRight);
     }
 
+    @Test
+    void shouldUpdateViewingScopeClaimsUponLogin() throws NotFoundException {
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
+        var user = scenarios.createUsersForAllActiveAffiliations(person, identityService)
+                       .stream()
+                       .collect(SingletonCollector.collect());
+
+        termsAndConditionsService.updateTermsAndConditions(user.getCristinId(), TERMS_URI,
+                                                           user.getUsername());
+
+        var event = newLoginEvent(person, LoginEventType.FEIDE);
+
+        handler.handleRequest(event, context);
+
+        assertThatViewingScopeClaimsArePresent(new String[]{"1", "2"}, new String[]{"3", "4"});
+    }
+
+    private void assertThatViewingScopeClaimsArePresent(String[] expectedViewingScopeIncluded,
+                                                        String[] expectedViewingScopeExcluded) {
+        final var viewingScopeIncluded = extractClaimFromCognitoUpdateRequest(VIEWING_SCOPE_INCLUDED_CLAIM);
+        assertCommaSeparatedClaimContainsInAnyOrder(VIEWING_SCOPE_INCLUDED_CLAIM, viewingScopeIncluded,
+                                                    expectedViewingScopeIncluded);
+
+        final var viewingScopeExcluded = extractClaimFromCognitoUpdateRequest(VIEWING_SCOPE_EXCLUDED_CLAIM);
+        assertCommaSeparatedClaimContainsInAnyOrder(VIEWING_SCOPE_EXCLUDED_CLAIM, viewingScopeExcluded,
+                                                    expectedViewingScopeExcluded);
+    }
+
+    private void assertCommaSeparatedClaimContainsInAnyOrder(String claimName, String actual, String[] expected) {
+        Set<String> actualAsSet;
+        if (actual == null || EMPTY_CLAIM.equals(actual)) {
+            actualAsSet = Collections.emptySet();
+        } else {
+            actualAsSet = new HashSet<>(Arrays.asList(actual.split(COMMA)));
+        }
+        assertThat(claimName + " should contain comma separated values in any order",
+                   actualAsSet,
+                   containsInAnyOrder(expected));
+    }
+
     private void assertUserAccessRightsAreUpdated(UserDto user, AccessRight... accessRights) throws NotFoundException {
         var updatedUser = identityService.getUser(user);
         assertThat(updatedUser.getAccessRights(), containsInAnyOrder(accessRights));
@@ -1210,7 +1251,6 @@ class UserSelectionUponLoginHandlerTest {
     private void assertThatCustomerSelectionClaimsArePresent(URI expectedCustomerId,
                                                              URI expectedCristinId,
                                                              String expectedUsername) {
-
         final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
         assertThat(customerId, is(equalTo(expectedCustomerId.toString())));
 

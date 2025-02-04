@@ -1271,83 +1271,91 @@ Resources:
       Schema:
         - Name: nin
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: feideId
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: email
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: feidememberrole
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: feideIdNin
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: orgFeideDomain
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: firstName
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: lastName
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: accessRights
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: customerId
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: allowedCustomers
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: roles
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: nvaUsername
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: cristinId
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: topOrgCristinId
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: personAffiliation
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: impersonating
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: impersonatedBy
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: currentTerms
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
           Required: false
         - Name: acceptedTerms
           AttributeDataType: String
-          Mutable: true
+          Mutable: false
+          Required: false
+        - Name: viewingScopeIncluded
+          AttributeDataType: String
+          Mutable: false
+          Required: false
+        - Name: viewingScopeExcluded
+          AttributeDataType: String
+          Mutable: false
           Required: false
       UsernameConfiguration:
         CaseSensitive: true
@@ -1502,6 +1510,8 @@ Resources:
         - custom:impersonatedBy
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 9
@@ -1530,6 +1540,8 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
@@ -1582,6 +1594,8 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -1607,6 +1621,8 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
 
   TestingApplicationClient:
     DependsOn: ResourceServerScopes
@@ -1657,6 +1673,8 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -1685,6 +1703,9 @@ Resources:
         - custom:personAffiliation
         - custom:currentTerms
         - custom:acceptedTerms
+        - custom:viewingScopeIncluded
+        - custom:viewingScopeExcluded
+
   ## External API
   ExternalUserPoolName:
     Type: AWS::SSM::Parameter

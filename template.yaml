@@ -1271,91 +1271,91 @@ Resources:
       Schema:
         - Name: nin
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: feideId
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: email
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: feidememberrole
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: feideIdNin
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: orgFeideDomain
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: firstName
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: lastName
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: accessRights
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: customerId
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: allowedCustomers
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: roles
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: nvaUsername
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: cristinId
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: topOrgCristinId
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: personAffiliation
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: impersonating
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: impersonatedBy
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: currentTerms
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: acceptedTerms
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: viewingScopeIncluded
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
         - Name: viewingScopeExcluded
           AttributeDataType: String
-          Mutable: false
+          Mutable: true
           Required: false
       UsernameConfiguration:
         CaseSensitive: true

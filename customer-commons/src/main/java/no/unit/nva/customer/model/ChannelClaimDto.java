@@ -49,7 +49,12 @@ public class ChannelClaimDto {
     @JacocoGenerated
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ChannelClaimDto that = (ChannelClaimDto) o;
         return Objects.equals(getChannel(), that.getChannel())
                 && Objects.equals(getScope(), that.getScope())

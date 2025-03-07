@@ -1,18 +1,8 @@
 package no.unit.nva.customer.testing;
 
-import no.unit.nva.customer.model.ApplicationDomain;
-import no.unit.nva.customer.model.CustomerDao;
+import no.unit.nva.customer.model.*;
 import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
 import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.LinkedDataContextUtils;
-import no.unit.nva.customer.model.PublicationInstanceTypes;
-import no.unit.nva.customer.model.PublicationWorkflow;
-import no.unit.nva.customer.model.RightsRetentionStrategyType;
-import no.unit.nva.customer.model.Sector;
-import no.unit.nva.customer.model.VocabularyDao;
-import no.unit.nva.customer.model.VocabularyDto;
-import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import nva.commons.core.Environment;
@@ -44,54 +34,93 @@ public class CustomerDataGenerator {
         UUID identifier = UUID.randomUUID();
         URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
-            .withName(randomString())
-            .withCristinId(randomUri())
-            .withCustomerOf(randomApplicationDomain())
-            .withFeideOrganizationDomain(randomString())
-            .withModifiedDate(randomInstant())
-            .withIdentifier(identifier)
-            .withId(id)
-            .withCname(randomString())
-            .withContext(LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE)
-            .withArchiveName(randomString())
-            .withShortName(randomString())
-            .withInstitutionDns(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withVocabularies(randomVocabularyDtoSettings())
-            .withRorId(randomUri())
-            .withPublicationWorkflow(randomPublicationWorkflow())
-            .withDoiAgent(randomDoiAgent(randomString()))
-            .withSector(randomSector())
-            .withNviInstitution(randomBoolean())
-            .withRboInstitution(randomBoolean())
-            .withInactiveFrom(randomInstant())
-            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-            .build();
+                .withName(randomString())
+                .withCristinId(randomUri())
+                .withCustomerOf(randomApplicationDomain())
+                .withFeideOrganizationDomain(randomString())
+                .withModifiedDate(randomInstant())
+                .withIdentifier(identifier)
+                .withId(id)
+                .withCname(randomString())
+                .withContext(LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE)
+                .withArchiveName(randomString())
+                .withShortName(randomString())
+                .withInstitutionDns(randomString())
+                .withDisplayName(randomString())
+                .withCreatedDate(randomInstant())
+                .withVocabularies(randomVocabularyDtoSettings())
+                .withRorId(randomUri())
+                .withPublicationWorkflow(randomPublicationWorkflow())
+                .withDoiAgent(randomDoiAgent(randomString()))
+                .withSector(randomSector())
+                .withNviInstitution(randomBoolean())
+                .withRboInstitution(randomBoolean())
+                .withInactiveFrom(randomInstant())
+                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                .withChannelClaims(randomChannelClaimDtos())
+                .build();
 
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
         return customer;
     }
 
+    public static List<ChannelClaimDto> randomChannelClaimDtos() {
+        return List.of(randomChannelClaimDto(), randomChannelClaimDto(), randomChannelClaimDto());
+    }
+
+    public static ChannelClaimDto randomChannelClaimDto() {
+        return ChannelClaimDto.builder()
+                .withChannel(randomUri())
+                .withScope(randomScopes())
+                .withConstraints(randomConstraints())
+                .build();
+    }
+
+    public static List<ChannelClaimDao> randomChannelClaimDaos() {
+        return List.of(randomChannelClaimDao(), randomChannelClaimDao(), randomChannelClaimDao());
+    }
+
+    public static ChannelClaimDao randomChannelClaimDao() {
+        return ChannelClaimDao.builder()
+                .withChannel(randomUri())
+                .withScope(randomScopes())
+                .withConstraints(randomConstraints())
+                .build();
+    }
+
+    public static List<ChannelConstraint> randomConstraints() {
+        return List.of(
+                randomElement(ChannelConstraint.values()),
+                randomElement(ChannelConstraint.values()),
+                randomElement(ChannelConstraint.values()));
+    }
+
+    public static List<PublicationInstanceTypes> randomScopes() {
+        return List.of(
+                randomElement(PublicationInstanceTypes.values()),
+                randomElement(PublicationInstanceTypes.values()),
+                randomElement(PublicationInstanceTypes.values()));
+    }
+
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {
         VocabularyDao vocabulary = randomVocabularyDao();
         return Stream.of(vocabulary)
-            .map(VocabularyDao::toVocabularySettingsDto)
-            .collect(Collectors.toSet());
+                .map(VocabularyDao::toVocabularySettingsDto)
+                .collect(Collectors.toSet());
     }
 
     public static VocabularyDao randomVocabularyDao() {
         return new VocabularyDao(randomString(), randomUri(),
-            randomElement(VocabularyStatus.values()));
+                randomElement(VocabularyStatus.values()));
     }
 
     public static RightsRetentionStrategy randomRightsRetentionStrategy() {
         var elements = Arrays.stream(RightsRetentionStrategyType.values())
-            .filter(f -> f.ordinal() > 0)
-            .collect(Collectors.toList());
+                .filter(f -> f.ordinal() > 0)
+                .collect(Collectors.toList());
         return
-            new RightsRetentionStrategyDao(randomElement(elements), randomUri());
+                new RightsRetentionStrategyDao(randomElement(elements), randomUri());
     }
 
     public static DoiAgent randomDoiAgent(String randomString) {
@@ -124,7 +153,7 @@ public class CustomerDataGenerator {
 
     public static Set<PublicationInstanceTypes> randomAllowFileUploadForTypes() {
         return new HashSet<>(Arrays.asList(randomAllowFileUploadForTypesDto(), randomAllowFileUploadForTypesDto(),
-            randomAllowFileUploadForTypesDto()));
+                randomAllowFileUploadForTypesDto()));
     }
 
     public static PublicationInstanceTypes randomAllowFileUploadForTypesDto() {
@@ -144,30 +173,31 @@ public class CustomerDataGenerator {
     public static CustomerDao createSampleInactiveCustomerDao() {
         VocabularyDao vocabulary = randomVocabularyDao();
         CustomerDao customer = CustomerDao.builder()
-            .withIdentifier(randomIdentifier())
-            .withName(randomString())
-            .withModifiedDate(randomInstant())
-            .withShortName(randomString())
-            .withCristinId(randomUri())
-            .withCustomerOf(randomApplicationDomainUri())
-            .withVocabularySettings(Set.of(vocabulary))
-            .withInstitutionDns(randomString())
-            .withFeideOrganizationDomain(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withCname(randomString())
-            .withArchiveName(randomString())
-            .withRorId(randomUri())
-            .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
-            .withPublicationWorkflow(randomPublicationWorkflow())
-            .withDoiAgent(randomDoiAgent(randomString()))
-            .withNviInstitution(randomBoolean())
-            .withSector(randomSector())
-            .withInactiveFrom(randomInstant())
-            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-            .withGeneralSupportEnabled(true)
-            .build();
+                .withIdentifier(randomIdentifier())
+                .withName(randomString())
+                .withModifiedDate(randomInstant())
+                .withShortName(randomString())
+                .withCristinId(randomUri())
+                .withCustomerOf(randomApplicationDomainUri())
+                .withVocabularySettings(Set.of(vocabulary))
+                .withInstitutionDns(randomString())
+                .withFeideOrganizationDomain(randomString())
+                .withDisplayName(randomString())
+                .withCreatedDate(randomInstant())
+                .withCname(randomString())
+                .withArchiveName(randomString())
+                .withRorId(randomUri())
+                .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
+                .withPublicationWorkflow(randomPublicationWorkflow())
+                .withDoiAgent(randomDoiAgent(randomString()))
+                .withNviInstitution(randomBoolean())
+                .withSector(randomSector())
+                .withInactiveFrom(randomInstant())
+                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                .withGeneralSupportEnabled(true)
+                .withChannelClaims(randomChannelClaimDaos())
+                .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
         return customer;
     }
@@ -182,9 +212,9 @@ public class CustomerDataGenerator {
 
     public static URI randomCristinOrgId() {
         return new UriWrapper("https", API_DOMAIN)
-            .addChild(CRISTIN_PATH)
-            .addChild(randomString())
-            .getUri();
+                .addChild(CRISTIN_PATH)
+                .addChild(randomString())
+                .getUri();
     }
 
     public static List<VocabularyDto> randomVocabularies() {
@@ -193,7 +223,7 @@ public class CustomerDataGenerator {
 
     public static VocabularyDto randomVocabularyDto() {
         return new VocabularyDto(randomString(), randomUri(),
-            randomElement(VocabularyStatus.values()));
+                randomElement(VocabularyStatus.values()));
     }
 }
 

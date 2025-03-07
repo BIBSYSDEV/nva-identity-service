@@ -21,12 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomCristinOrgId;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.*;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -97,6 +92,7 @@ public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
             .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
             .withRightsRetentionStrategy(randomRightsRetentionStrategy())
             .withGeneralSupportEnabled(true)
+            .withChannelClaims(randomChannelClaimDtos())
             .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
             "doiAgent.password", "doiAgent.id")));

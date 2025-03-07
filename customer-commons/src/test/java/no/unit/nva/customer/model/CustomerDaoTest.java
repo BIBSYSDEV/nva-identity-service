@@ -14,11 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.*;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValuesIgnoringFields;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
@@ -63,10 +59,10 @@ class CustomerDaoTest {
     @Test
     void testingJacocoCoverageAssignNullWorking() {
         var fullAvTull =
-            CustomerDao.builder()
-                .withCreatedDate((String) null)
-                .withModifiedDate((String) null)
-                .build();
+                CustomerDao.builder()
+                        .withCreatedDate((String) null)
+                        .withModifiedDate((String) null)
+                        .build();
         assertNotNull(fullAvTull);
     }
 
@@ -75,8 +71,8 @@ class CustomerDaoTest {
         var expectedDao = CustomerDataGenerator.createSampleInactiveCustomerDao();
         var customerDto = expectedDao.toCustomerDto();
         customerDto
-            .getDoiAgent()
-            .addPassword(randomString());
+                .getDoiAgent()
+                .addPassword(randomString());
         var actualDao = CustomerDao.fromCustomerDto(customerDto);
         var actualDoiAgent = actualDao.getDoiAgent();
 
@@ -97,32 +93,33 @@ class CustomerDaoTest {
     private CustomerDao createSampleCustomerDao() {
         var identifier = UUID.randomUUID();
         return CustomerDao
-            .builder()
-            .withName(randomString())
-            .withCristinId(randomUri())
-            .withCustomerOf(randomApplicationDomain().getUri())
-            .withFeideOrganizationDomain(randomString())
-            .withModifiedDate(randomInstant())
-            .withIdentifier(identifier)
-            .withCname(randomString())
-            .withArchiveName(randomString())
-            .withShortName(randomString())
-            .withInstitutionDns(randomString())
-            .withDisplayName(randomString())
-            .withCreatedDate(randomInstant())
-            .withRorId(randomUri())
-            .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
-            .withVocabularySettings(randomVocabularySettings())
-            .withPublicationWorkflow(randomPublicationWorkflow())
-            .withDoiAgent(randomDoiAgent(randomString()))
-            .withNviInstitution(randomBoolean())
-            .withRboInstitution(randomBoolean())
-            .withInactiveFrom(randomInstant())
-            .withSector(randomSector())
-            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-            .withGeneralSupportEnabled(true)
-            .build();
+                .builder()
+                .withName(randomString())
+                .withCristinId(randomUri())
+                .withCustomerOf(randomApplicationDomain().getUri())
+                .withFeideOrganizationDomain(randomString())
+                .withModifiedDate(randomInstant())
+                .withIdentifier(identifier)
+                .withCname(randomString())
+                .withArchiveName(randomString())
+                .withShortName(randomString())
+                .withInstitutionDns(randomString())
+                .withDisplayName(randomString())
+                .withCreatedDate(randomInstant())
+                .withRorId(randomUri())
+                .withServiceCenter(new ServiceCenterDao(randomUri(), randomString()))
+                .withVocabularySettings(randomVocabularySettings())
+                .withPublicationWorkflow(randomPublicationWorkflow())
+                .withDoiAgent(randomDoiAgent(randomString()))
+                .withNviInstitution(randomBoolean())
+                .withRboInstitution(randomBoolean())
+                .withInactiveFrom(randomInstant())
+                .withSector(randomSector())
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                .withGeneralSupportEnabled(true)
+                .withChannelClaims(randomChannelClaimDaos())
+                .build();
     }
 
     private ApplicationDomain randomApplicationDomain() {
@@ -131,7 +128,7 @@ class CustomerDaoTest {
 
     private Set<VocabularyDao> randomVocabularySettings() {
         VocabularyDao vocabulary = new VocabularyDao(randomString(), randomUri(),
-            randomElement(VocabularyStatus.values()));
+                randomElement(VocabularyStatus.values()));
         return Set.of(vocabulary);
     }
 
@@ -163,43 +160,43 @@ class CustomerDaoTest {
     @Test
     void shouldMigrateOldStyleDao() throws IOException {
         var template = """
-            {
-              "identifier" : "4fa3622d-877c-4759-b63f-d7d37cf26b5d",
-              "createdDate" : "1985-06-22T21:25:11.558Z",
-              "modifiedDate" : "2020-05-18T00:49:35.971Z",
-              "name" : "5jA24q1K8xRjnX",
-              "displayName" : "HpP3PceJ3eI",
-              "shortName" : "AzObKaEO77a",
-              "archiveName" : "ToPiKGbSOE0KvFTm2k7",
-              "cname" : "gQcgg9mhSH3e27c9mi",
-              "institutionDns" : "QoeKDoyM3UcRhcUF",
-              "feideOrganizationDomain" : "jie3k8uRwHcVhx",
-              "cristinId" : "https://www.example.com/0q7bcwf4zf1k6",
-              "customerOf" : "nva.unit.no",
-              "vocabularies" : [ {
-                "type" : "Vocabulary",
-                "name" : "cZkpIKoQze3EVv0Xm",
-                "id" : "https://www.example.com/kdK0gJxdysnDOZ2aU",
-                "status" : "Allowed"
-              } ],
-              "rorId" : "https://www.example.com/NS9SygkPsLcQU",
-              "publicationWorkflow" : "RegistratorRequiresApprovalForMetadataAndFiles",
-              "doiAgent" : {
-                "prefix" : "10.000",
-                "url" : "mds.X6wSynOURzWwNn2.datacite.org",
-                "username" : "user-name-X6wSynOURzWwNn2"
-              },
-              "nviInstitution" : true,
-              "rboInstitution" : false,
-              "inactive" : false,
-              "sector" : "INSTITUTE",
-              "rightRetentionStrategy" : {
-                "retentionStrategy" : "%s",
-                "id" : "%s"
-              },
-              "type" : "Customer"
-            }
-            """;
+                {
+                  "identifier" : "4fa3622d-877c-4759-b63f-d7d37cf26b5d",
+                  "createdDate" : "1985-06-22T21:25:11.558Z",
+                  "modifiedDate" : "2020-05-18T00:49:35.971Z",
+                  "name" : "5jA24q1K8xRjnX",
+                  "displayName" : "HpP3PceJ3eI",
+                  "shortName" : "AzObKaEO77a",
+                  "archiveName" : "ToPiKGbSOE0KvFTm2k7",
+                  "cname" : "gQcgg9mhSH3e27c9mi",
+                  "institutionDns" : "QoeKDoyM3UcRhcUF",
+                  "feideOrganizationDomain" : "jie3k8uRwHcVhx",
+                  "cristinId" : "https://www.example.com/0q7bcwf4zf1k6",
+                  "customerOf" : "nva.unit.no",
+                  "vocabularies" : [ {
+                    "type" : "Vocabulary",
+                    "name" : "cZkpIKoQze3EVv0Xm",
+                    "id" : "https://www.example.com/kdK0gJxdysnDOZ2aU",
+                    "status" : "Allowed"
+                  } ],
+                  "rorId" : "https://www.example.com/NS9SygkPsLcQU",
+                  "publicationWorkflow" : "RegistratorRequiresApprovalForMetadataAndFiles",
+                  "doiAgent" : {
+                    "prefix" : "10.000",
+                    "url" : "mds.X6wSynOURzWwNn2.datacite.org",
+                    "username" : "user-name-X6wSynOURzWwNn2"
+                  },
+                  "nviInstitution" : true,
+                  "rboInstitution" : false,
+                  "inactive" : false,
+                  "sector" : "INSTITUTE",
+                  "rightRetentionStrategy" : {
+                    "retentionStrategy" : "%s",
+                    "id" : "%s"
+                  },
+                  "type" : "Customer"
+                }
+                """;
         var rightsRetentionStrategy = "RightsRetentionStrategy";
         var uri = "https://www.example.com/ZxZeIEHmgcmlAEG5";
         var json = String.format(template, rightsRetentionStrategy, uri);
@@ -211,7 +208,7 @@ class CustomerDaoTest {
 
     private Set<VocabularyDto> randomVocabularyDtoSettings() {
         return randomVocabularySettings().stream()
-            .map(VocabularyDao::toVocabularySettingsDto)
-            .collect(Collectors.toSet());
+                .map(VocabularyDao::toVocabularySettingsDto)
+                .collect(Collectors.toSet());
     }
 }

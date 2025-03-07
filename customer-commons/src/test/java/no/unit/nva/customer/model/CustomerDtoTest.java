@@ -11,11 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.*;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -36,7 +32,7 @@ class CustomerDtoTest {
     @Test
     void shouldUpdateCustomerWithCustomersDoiSecret() {
         var doiAgent = randomActiveCustomer().getDoiAgent()
-            .addPassword(randomString());
+                .addPassword(randomString());
 
         var doiSecret = new SecretManagerDoiAgentDao(randomActiveCustomer().getDoiAgent());
 
@@ -53,31 +49,32 @@ class CustomerDtoTest {
 
     private CustomerDto randomInactiveCustomer() {
         return CustomerDto.builder()
-            .withCname(randomString())
-            .withIdentifier(UUID.randomUUID())
-            .withId(randomUri())
-            .withDisplayName(randomString())
-            .withInstitutionDns(randomString())
-            .withContext(randomUri())
-            .withShortName(randomString())
-            .withArchiveName(randomString())
-            .withName(randomString())
-            .withFeideOrganizationDomain(randomString())
-            .withCristinId(randomUri())
-            .withCustomerOf(randomApplicationDomain())
-            .withCreatedDate(randomInstant())
-            .withModifiedDate(randomInstant())
-            .withVocabularies(randomVocabularies())
-            .withRorId(randomUri())
-            .withPublicationWorkflow(randomPublicationWorkflow())
-            .withDoiAgent(randomDoiAgent(randomString()))
-            .withSector(randomSector())
-            .withNviInstitution(randomBoolean())
-            .withRboInstitution(randomBoolean())
-            .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
-            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-            .build();
+                .withCname(randomString())
+                .withIdentifier(UUID.randomUUID())
+                .withId(randomUri())
+                .withDisplayName(randomString())
+                .withInstitutionDns(randomString())
+                .withContext(randomUri())
+                .withShortName(randomString())
+                .withArchiveName(randomString())
+                .withName(randomString())
+                .withFeideOrganizationDomain(randomString())
+                .withCristinId(randomUri())
+                .withCustomerOf(randomApplicationDomain())
+                .withCreatedDate(randomInstant())
+                .withModifiedDate(randomInstant())
+                .withVocabularies(randomVocabularies())
+                .withRorId(randomUri())
+                .withPublicationWorkflow(randomPublicationWorkflow())
+                .withDoiAgent(randomDoiAgent(randomString()))
+                .withSector(randomSector())
+                .withNviInstitution(randomBoolean())
+                .withRboInstitution(randomBoolean())
+                .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
+                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                .withChannelClaims(randomChannelClaimDtos())
+                .build();
     }
 
     private Collection<VocabularyDto> randomVocabularies() {

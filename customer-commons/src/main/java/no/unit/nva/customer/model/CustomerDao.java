@@ -77,7 +77,7 @@ public class CustomerDao implements Typed, JsonSerializable {
     @JsonAlias("rightRetentionStrategy")
     private RightsRetentionStrategyDao rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
-    private List<ChannelClaimDao> channelClaims; // List
+    private List<ChannelClaimDao> channelClaims;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;

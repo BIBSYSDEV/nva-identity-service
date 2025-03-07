@@ -11,7 +11,12 @@ import java.util.List;
 import java.util.UUID;
 
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.*;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDtos;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomDoiAgent;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomPublicationWorkflow;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomRightsRetentionStrategy;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomSector;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomBoolean;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;

@@ -1,8 +1,21 @@
 package no.unit.nva.customer.testing;
 
-import no.unit.nva.customer.model.*;
+import no.unit.nva.customer.model.ApplicationDomain;
+import no.unit.nva.customer.model.ChannelClaimDao;
+import no.unit.nva.customer.model.ChannelClaimDto;
+import no.unit.nva.customer.model.ChannelConstraint;
 import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
 import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
+import no.unit.nva.customer.model.CustomerDao;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.LinkedDataContextUtils;
+import no.unit.nva.customer.model.PublicationInstanceTypes;
+import no.unit.nva.customer.model.PublicationWorkflow;
+import no.unit.nva.customer.model.RightsRetentionStrategyType;
+import no.unit.nva.customer.model.Sector;
+import no.unit.nva.customer.model.VocabularyDao;
+import no.unit.nva.customer.model.VocabularyDto;
+import no.unit.nva.customer.model.VocabularyStatus;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import nva.commons.core.Environment;

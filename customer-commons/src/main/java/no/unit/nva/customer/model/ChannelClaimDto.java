@@ -3,8 +3,12 @@ package no.unit.nva.customer.model;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.nonNull;
 
 public class ChannelClaimDto {
@@ -14,8 +18,8 @@ public class ChannelClaimDto {
     private List<ChannelConstraint> constraints;
 
     public ChannelClaimDto() {
-        this.scope = Collections.emptyList();
-        this.constraints = Collections.emptyList();
+        this.scope = emptyList();
+        this.constraints = emptyList();
     }
 
     public static Builder builder() {

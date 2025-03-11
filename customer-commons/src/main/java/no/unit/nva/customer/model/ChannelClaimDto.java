@@ -3,16 +3,12 @@ package no.unit.nva.customer.model;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 import static java.util.Collections.emptyList;
-import static java.util.Objects.nonNull;
 
 public class ChannelClaimDto {
-
     private URI channel;
     private List<PublicationInstanceTypes> scope;
     private List<ChannelConstraint> constraints;
@@ -22,8 +18,10 @@ public class ChannelClaimDto {
         this.constraints = emptyList();
     }
 
-    public static Builder builder() {
-        return new ChannelClaimDto.Builder();
+    public ChannelClaimDto(URI channel, List<PublicationInstanceTypes> scope, List<ChannelConstraint> constraints) {
+        this.channel = channel;
+        this.scope = scope;
+        this.constraints = constraints;
     }
 
     public URI getChannel() {
@@ -69,36 +67,5 @@ public class ChannelClaimDto {
     @Override
     public int hashCode() {
         return Objects.hash(getChannel(), getScope(), getConstraints());
-    }
-
-    public static final class Builder {
-        private final ChannelClaimDto channelClaimDto;
-
-        private Builder() {
-            channelClaimDto = new ChannelClaimDto();
-        }
-
-        public Builder withChannel(URI channel) {
-            channelClaimDto.setChannel(channel);
-            return this;
-        }
-
-        public Builder withScope(Collection<PublicationInstanceTypes> scope) {
-            if (nonNull(scope)) {
-                channelClaimDto.setScope(new ArrayList<>(scope));
-            }
-            return this;
-        }
-
-        public Builder withConstraints(Collection<ChannelConstraint> constraints) {
-            if (nonNull(constraints)) {
-                channelClaimDto.setConstraints(new ArrayList<>(constraints));
-            }
-            return this;
-        }
-
-        public ChannelClaimDto build() {
-            return channelClaimDto;
-        }
     }
 }

@@ -83,11 +83,7 @@ public class CustomerDataGenerator {
     }
 
     public static ChannelClaimDto randomChannelClaimDto() {
-        return ChannelClaimDto.builder()
-                .withChannel(randomUri())
-                .withScope(randomScopes())
-                .withConstraints(randomConstraints())
-                .build();
+        return new ChannelClaimDto(randomUri(), randomScopes(), randomConstraints());
     }
 
     public static List<ChannelClaimDao> randomChannelClaimDaos() {
@@ -95,11 +91,7 @@ public class CustomerDataGenerator {
     }
 
     public static ChannelClaimDao randomChannelClaimDao() {
-        return ChannelClaimDao.builder()
-                .withChannel(randomUri())
-                .withScope(randomScopes())
-                .withConstraints(randomConstraints())
-                .build();
+        return new ChannelClaimDao(randomUri(), randomScopes(), randomConstraints());
     }
 
     public static List<ChannelConstraint> randomConstraints() {

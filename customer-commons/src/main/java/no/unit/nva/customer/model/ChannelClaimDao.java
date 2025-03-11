@@ -5,12 +5,10 @@ import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import static java.util.Objects.nonNull;
+import static java.util.Collections.emptyList;
 
 @DynamoDbBean
 public class ChannelClaimDao implements JsonSerializable {
@@ -19,29 +17,23 @@ public class ChannelClaimDao implements JsonSerializable {
     private List<PublicationInstanceTypes> scope;
     private List<ChannelConstraint> constraints;
 
-    @JacocoGenerated
     public ChannelClaimDao() {
-        super();
+        this.scope = emptyList();
+        this.constraints = emptyList();
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public ChannelClaimDao(URI channel, List<PublicationInstanceTypes> scope, List<ChannelConstraint> constraints) {
+        this.channel = channel;
+        this.scope = scope;
+        this.constraints = constraints;
     }
 
     public static ChannelClaimDao fromDto(ChannelClaimDto dto) {
-        return new ChannelClaimDao.Builder()
-                .withChannel(dto.getChannel())
-                .withScope(dto.getScope())
-                .withConstraints(dto.getConstraints())
-                .build();
+        return new ChannelClaimDao(dto.getChannel(), dto.getScope(), dto.getConstraints());
     }
 
     public ChannelClaimDto toDto() {
-        return ChannelClaimDto.builder()
-                .withChannel(getChannel())
-                .withScope(getScope())
-                .withConstraints(getConstraints())
-                .build();
+        return new ChannelClaimDto(getChannel(), getScope(), getConstraints());
     }
 
     public URI getChannel() {
@@ -95,37 +87,5 @@ public class ChannelClaimDao implements JsonSerializable {
     @Override
     public String toString() {
         return this.toJsonString();
-    }
-
-    public static final class Builder {
-
-        private final ChannelClaimDao channelClaimDao;
-
-        private Builder() {
-            channelClaimDao = new ChannelClaimDao();
-        }
-
-        public Builder withChannel(URI channel) {
-            channelClaimDao.setChannel(channel);
-            return this;
-        }
-
-        public Builder withScope(Collection<PublicationInstanceTypes> scope) {
-            if (nonNull(scope)) {
-                channelClaimDao.setScope(new ArrayList<>(scope));
-            }
-            return this;
-        }
-
-        public Builder withConstraints(Collection<ChannelConstraint> constraints) {
-            if (nonNull(constraints)) {
-                channelClaimDao.setConstraints(new ArrayList<>(constraints));
-            }
-            return this;
-        }
-
-        public ChannelClaimDao build() {
-            return channelClaimDao;
-        }
     }
 }

@@ -49,6 +49,7 @@ public class ChannelClaimDao implements JsonSerializable {
         return constraints;
     }
 
+    @JacocoGenerated
     public void setConstraints(List<ChannelConstraint> constraints) {
         this.constraints = constraints;
     }

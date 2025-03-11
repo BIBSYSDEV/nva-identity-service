@@ -28,6 +28,7 @@ public class ChannelClaimDto {
         return channel;
     }
 
+    @JacocoGenerated
     public void setChannel(URI channel) {
         this.channel = channel;
     }
@@ -36,6 +37,7 @@ public class ChannelClaimDto {
         return scope;
     }
 
+    @JacocoGenerated
     public void setScope(List<PublicationInstanceTypes> scope) {
         this.scope = scope;
     }
@@ -44,6 +46,7 @@ public class ChannelClaimDto {
         return constraints;
     }
 
+    @JacocoGenerated
     public void setConstraints(List<ChannelConstraint> constraints) {
         this.constraints = constraints;
     }

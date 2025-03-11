@@ -58,8 +58,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Request;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Request;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
@@ -228,12 +228,12 @@ class UserSelectionUponLoginHandlerTest {
         return identityService.fetchOnePageOfUsers(request).getRetrievedUsers();
     }
 
-    private CognitoUserPoolPreTokenGenerationEvent newLoginEvent(String personNin,
-                                                                 LoginEventType loginEventType) {
+    private CognitoUserPoolPreTokenGenerationEventV2 newLoginEvent(String personNin,
+                                                                   LoginEventType loginEventType) {
         return LoginEventType.FEIDE.equals(loginEventType) ? feideLogin(personNin) : nonFeideLogin(personNin);
     }
 
-    private static CognitoUserPoolPreTokenGenerationEvent nonFeideLogin(String nin) {
+    private static CognitoUserPoolPreTokenGenerationEventV2 nonFeideLogin(String nin) {
         Request request;
         if (nonNull(nin)) {
             request = Request.builder()
@@ -244,16 +244,16 @@ class UserSelectionUponLoginHandlerTest {
             request = Request.builder()
                           .withUserAttributes(Map.of("SOME", "VALUE")).build();
         }
-        var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
+        var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
         loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
         loginEvent.setRequest(request);
         return loginEvent;
     }
 
-    private CognitoUserPoolPreTokenGenerationEvent feideLogin(String nin) {
+    private CognitoUserPoolPreTokenGenerationEventV2 feideLogin(String nin) {
         var feideDomain = fetchFeideDomainFromRandomCustomerWithActiveEmployment(nin);
         var request = Request.builder().withUserAttributes(setupUserAttributesForFeideLogin(nin, feideDomain)).build();
-        var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
+        var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
         loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
         loginEvent.setRequest(request);
         return loginEvent;
@@ -345,9 +345,9 @@ class UserSelectionUponLoginHandlerTest {
 
         assertThat(testAppender.getMessages(), containsString("Could not extract required data from request"));
         assertThat(testAppender.getMessages(), containsString(
-            "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEvent.Request"
-            + "(super=CognitoUserPoolEvent.Request(userAttributes={SOME=VALUE}), clientMetadata=null, "
-            + "groupConfiguration=null)"));
+            "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEventV2.Request"
+            + "(super=CognitoUserPoolEvent.Request(userAttributes={SOME=VALUE}), scopes=null, "
+            + "groupConfiguration=null, clientMetadata=null"));
     }
 
     @ParameterizedTest(name = "Login event type: {0}")
@@ -465,7 +465,7 @@ class UserSelectionUponLoginHandlerTest {
         var event = newLoginEvent(personLoggingIn, FEIDE);
         var response = handler.handleRequest(event, context);
         String[] groupsToOverride = response.getResponse()
-                                        .getClaimsOverrideDetails()
+                                        .getClaimsAndScopeOverrideDetails()
                                         .getGroupOverrideDetails()
                                         .getGroupsToOverride();
         assertThat(groupsToOverride.length, is(equalTo(0)));
@@ -478,10 +478,10 @@ class UserSelectionUponLoginHandlerTest {
     private static void assertThatResponseContainsAssignedAccessRights(
         UserDto existingUser,
         Set<AccessRight> assignedAccessRights,
-        CognitoUserPoolPreTokenGenerationEvent response) {
+        CognitoUserPoolPreTokenGenerationEventV2 response) {
 
         var groups =
-            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
+            response.getResponse().getClaimsAndScopeOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
         var groupsList = Arrays.asList(groups);
         var expectedAccessRight = constructExpectedAccessRightsForGroup(existingUser, assignedAccessRights);
         assertThat(groupsList, hasItems(expectedAccessRight.toArray(String[]::new)));
@@ -585,7 +585,7 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualCustomerId, is(equalTo(expectedCustomerId.toString())));
     }
 
-    private static String extractFeideDomainFromInputEvent(CognitoUserPoolPreTokenGenerationEvent event) {
+    private static String extractFeideDomainFromInputEvent(CognitoUserPoolPreTokenGenerationEventV2 event) {
         return event.getRequest().getUserAttributes().get(ORG_FEIDE_DOMAIN);
     }
 
@@ -687,9 +687,9 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(accessRights, is(empty()));
     }
 
-    private List<String> extractAccessRights(CognitoUserPoolPreTokenGenerationEvent response) {
+    private List<String> extractAccessRights(CognitoUserPoolPreTokenGenerationEventV2 response) {
         return Arrays.asList(
-            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
+            response.getResponse().getClaimsAndScopeOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
     }
 
     // The following scenario happens when a customer was deleted and instead of being restored by backup data,
@@ -1220,7 +1220,7 @@ class UserSelectionUponLoginHandlerTest {
     }
 
     private void assertIdTokenContainsGroupAccessRightClaims(UserDto user,
-                                                             CognitoUserPoolPreTokenGenerationEvent response,
+                                                             CognitoUserPoolPreTokenGenerationEventV2 response,
                                                              AccessRight... accessRights) {
         var actualAccessRightClaims = extractAccessRights(response);
         var expectedAccessRightClaims =
@@ -1291,16 +1291,16 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(lastName, is(equalTo(expectedLastName)));
     }
 
-    private CognitoUserPoolPreTokenGenerationEvent feideLoginWithImpersonation(String adminUsername,
-                                                                               String adminNin,
-                                                                               String impersonatedNin) {
+    private CognitoUserPoolPreTokenGenerationEventV2 feideLoginWithImpersonation(String adminUsername,
+                                                                                 String adminNin,
+                                                                                 String impersonatedNin) {
 
         var attributes = new ConcurrentHashMap<String, String>();
         attributes.put(NIN_FOR_FEIDE_USERS, adminNin);
         attributes.put(IMPERSONATING_CLAIM, impersonatedNin);
 
         var request = Request.builder().withUserAttributes(attributes).build();
-        var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
+        var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
         loginEvent.setRequest(request);
         loginEvent.setUserName(adminUsername);
         loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);

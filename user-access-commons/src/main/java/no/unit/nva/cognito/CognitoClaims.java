@@ -29,6 +29,17 @@ public final class CognitoClaims {
     static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {
         NIN_FOR_NON_FEIDE_USERS,
         NIN_FOR_FEIDE_USERS, IMPERSONATING_CLAIM};
+    static final String[] CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN = {
+        CURRENT_CUSTOMER_CLAIM,
+        PERSON_ID_CLAIM,
+        NVA_USERNAME_CLAIM,
+        TOP_ORG_CRISTIN_ID,
+        PERSON_CRISTIN_ID_CLAIM,
+        ROLES_CLAIM,
+        ACCESS_RIGHTS_CLAIM,
+        PERSON_AFFILIATION_CLAIM,
+        VIEWING_SCOPE_INCLUDED_CLAIM,
+        VIEWING_SCOPE_EXCLUDED_CLAIM};
     public static final String AT = "@";
     public static final String ELEMENTS_DELIMITER = ",";
 

@@ -58,6 +58,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
@@ -226,9 +227,13 @@ public class UserSelectionUponLoginHandler
                                         authenticationDetails.getUsername()
             );
 
-            injectAccessRightsToEventResponse(input, accessRightsResponseStrings, userAttributes);
+            input.setResponse(Response.builder()
+                                  .withClaimsAndScopeOverrideDetails(buildOverrideClaims(accessRightsResponseStrings, userAttributes))
+                                  .build());
         } else {
-            injectAccessRightsToEventResponse(input, Collections.emptyList(), Collections.emptyList());
+            input.setResponse(Response.builder()
+                                  .withClaimsAndScopeOverrideDetails(buildOverrideClaims(Collections.emptyList(), Collections.emptyList()))
+                                  .build());
         }
 
         logIfDebug("Leaving request handler having spent {} ms.", start);
@@ -531,13 +536,6 @@ public class UserSelectionUponLoginHandler
         return AttributeType.builder().name(name).value(value).build();
     }
 
-    private void injectAccessRightsToEventResponse(
-        CognitoUserPoolPreTokenGenerationEventV2 input, List<String> accessRights, List<AttributeType> userAttributes) {
-        input.setResponse(Response.builder()
-                              .withClaimsAndScopeOverrideDetails(buildOverrideClaims(accessRights, userAttributes))
-                              .build());
-    }
-
     private List<UserAccessRightForCustomer> createAccessRightForCustomer(
         List<UserDto> personUsers,
         Set<CustomerDto> customers,
@@ -569,10 +567,9 @@ public class UserSelectionUponLoginHandler
 
     @SuppressWarnings("PMD.UnusedFormalParameter")
     private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
+        var includedClaims = Arrays.asList(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN);
         var claims = userAttributes.stream()
-                         .filter(a -> !Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
-                                           .toList()
-                                           .contains(a.name()))
+                         .filter(a -> includedClaims.contains(a.name()))
                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
 
         return AccessTokenGeneration.builder()

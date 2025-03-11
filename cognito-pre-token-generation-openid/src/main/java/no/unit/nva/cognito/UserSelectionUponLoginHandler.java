@@ -238,7 +238,8 @@ public class UserSelectionUponLoginHandler
         return input;
     }
 
-    private ArrayList<AttributeType> getUserAttributes(Person person, URI currentTerms, URI acceptedTerms,
+    @SuppressWarnings("PMD.ExcessiveParameterList")
+    private List<AttributeType> getUserAttributes(Person person, URI currentTerms, URI acceptedTerms,
                                                        List<UserDto> users, Set<CustomerDto> customersForPerson,
                                                        CustomerDto currentCustomer,
                                                        AuthenticationDetails authenticationDetails,

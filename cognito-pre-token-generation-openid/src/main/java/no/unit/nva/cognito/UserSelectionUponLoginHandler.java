@@ -8,14 +8,12 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.function.Function;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.TermsAndConditionsService;
-import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
@@ -556,12 +554,11 @@ public class UserSelectionUponLoginHandler
                                                               List<AttributeType> userAttributes) {
         var groups = GroupOverrideDetails.builder()
                          .withGroupsToOverride(groupsToOverride.toArray(String[]::new))
-
                          .build();
 
         return ClaimsAndScopeOverrideDetails.builder()
                    .withGroupOverrideDetails(groups)
-                   .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes, groupsToOverride))
+                   .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes))
                    .withIdTokenGeneration(buildIdTokenGeneration())
                    .build();
     }
@@ -571,18 +568,13 @@ public class UserSelectionUponLoginHandler
     }
 
     @SuppressWarnings("PMD.UnusedFormalParameter")
-    private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes,
-                                                             List<String> groupsToOverride) {
+    private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
         var claims = userAttributes.stream()
                          .filter(a -> !Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC)
                                            .toList()
                                            .contains(a.name()))
                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
-        try {
-            claims.put("cognito:groups", JsonConfig.writeValueAsString(groupsToOverride));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
         return AccessTokenGeneration.builder()
                    .withClaimsToAddOrOverride(claims)
                    .build();

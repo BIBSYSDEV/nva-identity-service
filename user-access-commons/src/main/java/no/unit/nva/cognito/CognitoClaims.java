@@ -31,6 +31,7 @@ public final class CognitoClaims {
         NIN_FOR_FEIDE_USERS, IMPERSONATING_CLAIM};
     static final String[] CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN = {
         CURRENT_CUSTOMER_CLAIM,
+        ALLOWED_CUSTOMERS_CLAIM,
         PERSON_CRISTIN_ID_CLAIM,
         NVA_USERNAME_CLAIM,
         TOP_ORG_CRISTIN_ID,

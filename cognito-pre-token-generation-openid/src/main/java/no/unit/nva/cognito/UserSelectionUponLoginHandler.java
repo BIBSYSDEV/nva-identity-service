@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
 import java.util.Arrays;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -562,7 +563,10 @@ public class UserSelectionUponLoginHandler
     }
 
     private IdTokenGeneration buildIdTokenGeneration() {
-        return IdTokenGeneration.builder().withClaimsToSuppress(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC).build();
+        var excludedClaims = Stream.concat(Arrays.stream(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN),
+                                           Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC))
+                                 .toArray(String[]::new);
+        return IdTokenGeneration.builder().withClaimsToSuppress(excludedClaims).build();
     }
 
     @SuppressWarnings("PMD.UnusedFormalParameter")

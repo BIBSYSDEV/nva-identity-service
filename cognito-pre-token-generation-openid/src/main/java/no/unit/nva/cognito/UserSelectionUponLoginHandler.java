@@ -48,6 +48,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
@@ -443,7 +444,7 @@ public class UserSelectionUponLoginHandler
     private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
         var includedClaims = Arrays.asList(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN);
         var claims = userAttributes.stream()
-                         .filter(a -> includedClaims.contains(a.name()))
+                         .filter(a -> includedClaims.contains(a.name()) && nonNull(a.value()))
                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
 
         return AccessTokenGeneration.builder()

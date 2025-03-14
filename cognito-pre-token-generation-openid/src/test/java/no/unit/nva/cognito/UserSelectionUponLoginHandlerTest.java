@@ -10,6 +10,7 @@ import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.CUSTOMER_ACCEPTED_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
@@ -263,6 +264,7 @@ class UserSelectionUponLoginHandlerTest {
                                                                         String feideDomain) {
         var attributes = new ConcurrentHashMap<String, String>();
         attributes.put(NIN_FOR_FEIDE_USERS, nin);
+        attributes.put(FEIDE_ID, "feideid@domain.no");
         if (nonNull(feideDomain)) {
             attributes.put(ORG_FEIDE_DOMAIN, feideDomain);
         }

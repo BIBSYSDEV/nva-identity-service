@@ -9,17 +9,13 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
 import java.util.Arrays;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.TermsAndConditionsService;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import no.unit.nva.useraccessservice.model.UserDto;
-import no.unit.nva.useraccessservice.model.ViewingScope;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
@@ -31,9 +27,7 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
-import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
@@ -45,41 +39,22 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
-import static no.unit.nva.cognito.CognitoClaims.CUSTOMER_ACCEPTED_TERMS;
-import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
-import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
-import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
-import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
-import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_EXCLUDED_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_INCLUDED_CLAIM;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
@@ -102,7 +77,6 @@ public class UserSelectionUponLoginHandler
         = "Failed to retrieve customer for active affiliation %s when logging in as %s with the following "
           + "affiliations: %s";
     public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
-    private static final String EMPTY_STRING = "";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -219,9 +193,18 @@ public class UserSelectionUponLoginHandler
                                                   .map(UserAccessRightForCustomer::toString)
                                                   .toList();
 
-            var userAttributes = getUserAttributes(
-                person, currentTerms, acceptedTerms, users, customersForPerson, currentCustomer, authenticationDetails,
-                impersonatedBy, currentUser, accessRightsPersistedFormat);
+            List<AttributeType> userAttributes = new UserAttributesBuilder()
+                                                     .withPerson(person)
+                                                     .withCurrentTerms(currentTerms)
+                                                     .withAcceptedTerms(acceptedTerms)
+                                                     .withUsers(users)
+                                                     .withCustomersForPerson(customersForPerson)
+                                                     .withCurrentCustomer(currentCustomer)
+                                                     .withAuthenticationDetails(authenticationDetails)
+                                                     .withImpersonatedBy(impersonatedBy)
+                                                     .withCurrentUser(currentUser)
+                                                     .withAccessRightsPersistedFormat(accessRightsPersistedFormat)
+                                                     .build();
 
             updateCognitoUserAttributes(userAttributes,
                                         authenticationDetails.getUserPoolId(),
@@ -242,66 +225,7 @@ public class UserSelectionUponLoginHandler
         return input;
     }
 
-    @SuppressWarnings("PMD.ExcessiveParameterList")
-    private List<AttributeType> getUserAttributes(Person person, URI currentTerms, URI acceptedTerms,
-                                                       List<UserDto> users, Set<CustomerDto> customersForPerson,
-                                                       CustomerDto currentCustomer,
-                                                       AuthenticationDetails authenticationDetails,
-                                                       String impersonatedBy, UserDto currentUser,
-                                                       List<String> accessRightsPersistedFormat) {
-        ArrayList<AttributeType> userAttributes = new ArrayList<>();
-        userAttributes.add(createAttribute(FIRST_NAME_CLAIM, person.getFirstname()));
-        userAttributes.add(createAttribute(LAST_NAME_CLAIM, person.getSurname()));
 
-        var userAcceptedTerms = currentTerms.equals(acceptedTerms);
-
-        userAttributes.add(
-            createAttribute(ACCESS_RIGHTS_CLAIM, String.join(ELEMENTS_DELIMITER,accessRightsPersistedFormat)));
-
-        var rolesPerCustomerForPerson = rolesForCustomer(users, currentCustomer, userAcceptedTerms);
-        userAttributes.add(createAttribute(ROLES_CLAIM, rolesPerCustomerForPerson));
-
-        var allowedCustomersString = createAllowedCustomersString(userAcceptedTerms,
-                                                                  customersForPerson,
-                                                                  authenticationDetails.getFeideDomain());
-        userAttributes.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString));
-
-        userAttributes.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
-        userAttributes.add(createAttribute(IMPERSONATED_BY_CLAIM,
-                                           isNull(impersonatedBy) ? "" : impersonatedBy));
-        userAttributes.add(createAttribute(CURRENT_TERMS, currentTerms.toString()));
-        userAttributes.add(createAttribute(CUSTOMER_ACCEPTED_TERMS, nonNull(acceptedTerms) ?
-                                                                        acceptedTerms.toString() : ""));
-
-        if (currentCustomer != null && currentUser != null) {
-            userAttributes.add(createAttribute(CURRENT_CUSTOMER_CLAIM, currentCustomer.getId().toString()));
-            userAttributes.add(createAttribute(TOP_ORG_CRISTIN_ID, currentCustomer.getCristinId().toString()));
-            userAttributes.add(createAttribute(NVA_USERNAME_CLAIM, currentUser.getUsername()));
-            userAttributes.add(createAttribute(PERSON_AFFILIATION_CLAIM, currentUser.getAffiliation().toString()));
-        } else {
-            userAttributes.add(createAttribute(CURRENT_CUSTOMER_CLAIM, EMPTY_CLAIM));
-            userAttributes.add(createAttribute(TOP_ORG_CRISTIN_ID, EMPTY_CLAIM));
-            userAttributes.add(createAttribute(NVA_USERNAME_CLAIM, EMPTY_CLAIM));
-            userAttributes.add(createAttribute(PERSON_AFFILIATION_CLAIM, EMPTY_CLAIM));
-        }
-
-        final Set<URI> viewingScopeIncluded = getViewingScope(ViewingScope::getIncludedUnits, currentUser);
-        userAttributes.add(createAttribute(VIEWING_SCOPE_INCLUDED_CLAIM,
-                                           uriSetToCommaSeparatedString(viewingScopeIncluded)));
-
-        final Set<URI> viewingScopeExcluded = getViewingScope(ViewingScope::getExcludedUnits, currentUser);
-        userAttributes.add(createAttribute(VIEWING_SCOPE_EXCLUDED_CLAIM,
-                                           uriSetToCommaSeparatedString(viewingScopeExcluded)));
-        return userAttributes;
-    }
-
-    Set<URI> getViewingScope(Function<ViewingScope, Set<URI>> unitExtractor, UserDto currentUser) {
-        if (currentUser != null && currentUser.getViewingScope() != null) {
-            return unitExtractor.apply(currentUser.getViewingScope());
-        } else {
-            return Collections.emptySet();
-        }
-    }
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,
                                            Set<CustomerDto> customersForPerson, String triggerSource,
@@ -466,23 +390,6 @@ public class UserSelectionUponLoginHandler
         return Optional.empty();
     }
 
-    private String rolesForCustomer(List<UserDto> usersForPerson, CustomerDto customer, boolean userAcceptedTerms) {
-        if (isNull(customer) || !userAcceptedTerms) {
-            return EMPTY_STRING;
-        }
-        var rolesPerCustomerForPerson = usersForPerson.stream()
-                                            .filter(user -> user.getInstitution().equals(customer.getId()))
-                                            .map(UserDto::getRoles)
-                                            .flatMap(Collection::stream)
-                                            .map(RoleDto::getRoleName)
-                                            .collect(Collectors.toUnmodifiableSet());
-
-        return String.join(ELEMENTS_DELIMITER,
-                           rolesPerCustomerForPerson.stream()
-                               .map(RoleName::getValue)
-                               .toList());
-    }
-
     private void updateCognitoUserAttributes(Collection<AttributeType> userAttributes,
                                              String userPoolId, String username) {
         final var updateUserAttributesRequest =
@@ -498,43 +405,6 @@ public class UserSelectionUponLoginHandler
                    .username(username)
                    .userAttributes(userAttributes)
                    .build();
-    }
-
-    private String uriSetToCommaSeparatedString(Set<URI> uris) {
-        final String commaSeparatedString;
-
-        if (uris.isEmpty()) {
-            commaSeparatedString = EMPTY_CLAIM;
-        } else {
-            commaSeparatedString = uris.stream()
-                                       .map(UriWrapper::fromUri)
-                                       .map(UriWrapper::getLastPathElement)
-                                       .collect(Collectors.joining(","));
-        }
-        return commaSeparatedString;
-    }
-
-    private String createAllowedCustomersString(boolean userAcceptedTerms, Collection<CustomerDto> allowedCustomers,
-                                                String feideDomain) {
-        var result = allowedCustomers
-                         .stream()
-                         .filter(isNotFeideRequestOrIsFeideRequestForCustomer(feideDomain))
-                         .map(CustomerDto::getId)
-                         .map(URI::toString)
-                         .collect(Collectors.joining(ELEMENTS_DELIMITER));
-        return StringUtils.isNotBlank(result) && userAcceptedTerms
-                   ? result
-                   : EMPTY_CLAIM;
-    }
-
-    private Predicate<CustomerDto> isNotFeideRequestOrIsFeideRequestForCustomer(String feideDomain) {
-        return customer -> isNull(feideDomain)
-                           || nonNull(customer.getFeideOrganizationDomain())
-                              && customer.getFeideOrganizationDomain().equals(feideDomain);
-    }
-
-    private AttributeType createAttribute(String name, String value) {
-        return AttributeType.builder().name(name).value(value).build();
     }
 
     private List<UserAccessRightForCustomer> createAccessRightForCustomer(

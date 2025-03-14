@@ -104,7 +104,7 @@ public class UserAttributesBuilder {
     }
 
     public List<AttributeType> build() {
-        ArrayList<AttributeType> userAttributes = new ArrayList<>();
+        var userAttributes = new ArrayList<AttributeType>();
         userAttributes.add(createAttribute(FIRST_NAME_CLAIM, person.getFirstname()));
         userAttributes.add(createAttribute(LAST_NAME_CLAIM, person.getSurname()));
 
@@ -139,11 +139,11 @@ public class UserAttributesBuilder {
             userAttributes.add(createAttribute(PERSON_AFFILIATION_CLAIM, EMPTY_CLAIM));
         }
 
-        final Set<URI> viewingScopeIncluded = getViewingScope(ViewingScope::getIncludedUnits, currentUser);
+        var viewingScopeIncluded = getViewingScope(ViewingScope::getIncludedUnits, currentUser);
         userAttributes.add(
             createAttribute(VIEWING_SCOPE_INCLUDED_CLAIM, uriSetToCommaSeparatedString(viewingScopeIncluded)));
 
-        final Set<URI> viewingScopeExcluded = getViewingScope(ViewingScope::getExcludedUnits, currentUser);
+        var viewingScopeExcluded = getViewingScope(ViewingScope::getExcludedUnits, currentUser);
         userAttributes.add(
             createAttribute(VIEWING_SCOPE_EXCLUDED_CLAIM, uriSetToCommaSeparatedString(viewingScopeExcluded)));
 

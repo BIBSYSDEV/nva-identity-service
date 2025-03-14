@@ -22,6 +22,7 @@ public final class CognitoClaims {
     public static final String CURRENT_TERMS = "custom:currentTerms";
     public static final String CUSTOMER_ACCEPTED_TERMS = "custom:acceptedTerms";
     public static final String NIN_FOR_FEIDE_USERS = "custom:feideIdNin";
+    public static final String FEIDE_ID = "custom:feideId";
     public static final String NIN_FOR_NON_FEIDE_USERS = "custom:nin";
     public static final String VIEWING_SCOPE_INCLUDED_CLAIM = "custom:viewingScopeIncluded";
     public static final String VIEWING_SCOPE_EXCLUDED_CLAIM = "custom:viewingScopeExcluded";
@@ -29,6 +30,7 @@ public final class CognitoClaims {
     static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {
         NIN_FOR_NON_FEIDE_USERS,
         NIN_FOR_FEIDE_USERS, IMPERSONATING_CLAIM};
+
     static final String[] CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN = {
         CURRENT_CUSTOMER_CLAIM,
         ALLOWED_CUSTOMERS_CLAIM,
@@ -39,7 +41,9 @@ public final class CognitoClaims {
         ACCESS_RIGHTS_CLAIM,
         PERSON_AFFILIATION_CLAIM,
         VIEWING_SCOPE_INCLUDED_CLAIM,
-        VIEWING_SCOPE_EXCLUDED_CLAIM};
+        VIEWING_SCOPE_EXCLUDED_CLAIM,
+        FEIDE_ID
+    };
     public static final String AT = "@";
     public static final String ELEMENTS_DELIMITER = ",";
 

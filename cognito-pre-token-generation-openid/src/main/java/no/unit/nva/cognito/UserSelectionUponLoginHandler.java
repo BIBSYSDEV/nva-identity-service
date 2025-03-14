@@ -66,6 +66,7 @@ import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.CUSTOMER_ACCEPTED_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
@@ -91,7 +92,6 @@ public class UserSelectionUponLoginHandler
 
     public static final Environment ENVIRONMENT = new Environment();
     public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
-    public static final String FEIDE_ID = "custom:feideId";
     public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
     public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR = "Could not find user for customer: ";
     public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";

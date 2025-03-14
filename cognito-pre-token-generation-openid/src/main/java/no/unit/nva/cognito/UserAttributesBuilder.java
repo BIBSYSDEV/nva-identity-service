@@ -27,6 +27,7 @@ import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.CUSTOMER_ACCEPTED_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
@@ -118,6 +119,7 @@ public class UserAttributesBuilder {
         var allowedCustomersString = createAllowedCustomersString(userAcceptedTerms, customersForPerson,
                                                                   authenticationDetails.getFeideDomain());
         userAttributes.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString));
+        userAttributes.add(createAttribute(FEIDE_ID, authenticationDetails.getFeideIdentifier()));
 
         userAttributes.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
         userAttributes.add(createAttribute(IMPERSONATED_BY_CLAIM, isNull(impersonatedBy) ? "" : impersonatedBy));

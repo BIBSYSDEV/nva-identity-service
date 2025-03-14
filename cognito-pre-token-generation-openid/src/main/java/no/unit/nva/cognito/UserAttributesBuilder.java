@@ -119,7 +119,10 @@ public class UserAttributesBuilder {
         var allowedCustomersString = createAllowedCustomersString(userAcceptedTerms, customersForPerson,
                                                                   authenticationDetails.getFeideDomain());
         userAttributes.add(createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString));
-        userAttributes.add(createAttribute(FEIDE_ID, authenticationDetails.getFeideIdentifier()));
+
+        if (nonNull(authenticationDetails.getFeideIdentifier())) {
+            userAttributes.add(createAttribute(FEIDE_ID, authenticationDetails.getFeideIdentifier()));
+        }
 
         userAttributes.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
         userAttributes.add(createAttribute(IMPERSONATED_BY_CLAIM, isNull(impersonatedBy) ? "" : impersonatedBy));

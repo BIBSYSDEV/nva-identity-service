@@ -1,24 +1,24 @@
 [versions]
-nvaCommons = { strictly = '1.40.20' }
+nvaCommons = { strictly = '1.41.8' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
-awsSdk2 = { strictly = '2.27.24' }
-jackson = { strictly = "2.17.2" }
+awsSdk2 = { strictly = '2.30.27' }
+jackson = { strictly = "2.18.2" }
 #xraySdk = { strictly = '2.9.1' }
 dynamoDbLocal = { strictly = '2.5.3' }
 zalandoProblem = { strictly = '0.27.1' }
 awsLambdaCore = { strictly = '1.2.3' }
-jupiter = { strictly = "5.11.0" }
+jupiter = { strictly = "5.12.0" }
 slf4j = { strictly = '2.0.16' }
-apacheHttpClient = { strictly = '4.5.13' }
+apacheHttpClient = { strictly = '4.5.14' }
 hamcrest = { strictly = '3.0' }
 javersCore = { strictly = '7.6.1' }
-datafaker = { strictly = '2.3.1' }
-mockitoCore = { strictly = '4.5.1' }
-guava = { require = '32.1.2-jre' }
-log4j = { strictly = '2.24.0' }
-awsLambdaEvents = { strictly = '3.13.0' }
-wiremock = { strictly = "3.9.1" }
+datafaker = { strictly = '2.4.2' }
+mockitoCore = { strictly = '5.15.2' }
+guava = { require = '33.4.0-jre' }
+log4j = { strictly = '2.24.3' }
+awsLambdaEvents = { strictly = '3.15.0' }
+wiremock = { strictly = "3.12.0" }
 
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }

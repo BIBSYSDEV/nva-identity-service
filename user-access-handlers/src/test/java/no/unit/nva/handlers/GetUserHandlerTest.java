@@ -1,19 +1,7 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.core.IsNull.nullValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Map;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -28,6 +16,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Map;
+
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.IsNull.nullValue;
 
 class GetUserHandlerTest extends HandlerTest {
 
@@ -61,6 +63,12 @@ class GetUserHandlerTest extends HandlerTest {
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseBodyType) throws IOException {
         getUserHandler.handleRequest(request, outputStream, context);
         return GatewayResponse.fromOutputStream(outputStream, responseBodyType);
+    }
+
+    private InputStream createRequest(String username) throws JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+            .withPathParameters(Map.of(GetUserHandler.USERNAME_PATH_PARAMETER, username))
+            .build();
     }
 
     @Test
@@ -105,11 +113,5 @@ class GetUserHandlerTest extends HandlerTest {
         var request = new HandlerRequestBuilder<String>(dtoObjectMapper).withBody(randomString()).build();
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
-    }
-
-    private InputStream createRequest(String username) throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-            .withPathParameters(Map.of(GetUserHandler.USERNAME_PATH_PARAMETER, username))
-            .build();
     }
 }

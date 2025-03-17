@@ -1,18 +1,5 @@
 package no.unit.identityservice.fsproxy;
 
-import static nva.commons.core.attempt.Try.attempt;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
-import java.time.Year;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import no.unit.identityservice.fsproxy.model.course.FsCourse;
 import no.unit.identityservice.fsproxy.model.course.FsCoursesSearchResult;
 import no.unit.identityservice.fsproxy.model.person.FsIdNumber;
@@ -30,6 +17,21 @@ import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.attribute.UserPrincipalNotFoundException;
+import java.time.Year;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static nva.commons.core.attempt.Try.attempt;
+
 public class FsApi {
 
     public static final String BIRTHDATE_IDENTIFIER = "fodselsdato0";
@@ -43,12 +45,12 @@ public class FsApi {
     public static final String DB_IDENTIFIER = "dbId";
     public static final String LIMIT_IDENTIFIER = "limit";
     public static final String LIMIT_VALUE = "0";
+    public static final String FETCH_FS_USER_EXCEPTION_MESSAGE = "Not possible to fetch fs id-number to user "
+        + "with following national number: ";
+    public static final String COURSES_FETCHED_SUCCESSFULLY = "Courses fetched successfully to user with"
+        + " id-number ";
     private static final Environment ENVIRONMENT = new Environment();
     public static final URI FS_HOST = readFsHost();
-    public static final String FETCH_FS_USER_EXCEPTION_MESSAGE = "Not possible to fetch fs id-number to user "
-                                                                 + "with following national number: ";
-    public static final String COURSES_FETCHED_SUCCESSFULLY = "Courses fetched successfully to user with"
-                                                              + " id-number ";
     private final String username = ENVIRONMENT.readEnv("FS_USERNAME");
     private final String password = ENVIRONMENT.readEnv("FS_PASSWORD");
     private final URI baseFsHostUrl;
@@ -56,14 +58,19 @@ public class FsApi {
 
     private final Logger logger = LoggerFactory.getLogger(FsApi.class);
 
+    @JacocoGenerated
+    public FsApi() {
+        this(HttpClient.newBuilder().build(), FS_HOST);
+    }
+
     public FsApi(HttpClient httpClient, URI baseFsHostUrl) {
         this.baseFsHostUrl = baseFsHostUrl;
         this.httpClient = httpClient;
     }
 
-    @JacocoGenerated
-    public FsApi() {
-        this(HttpClient.newBuilder().build(), FS_HOST);
+    private static URI readFsHost() {
+        var hostUriString = ENVIRONMENT.readEnv("FS_HOST");
+        return URI.create(hostUriString);
     }
 
     public List<FsCourse> fetchCoursesForPerson(NationalIdentityNumber nin) throws IOException, InterruptedException {
@@ -88,9 +95,9 @@ public class FsApi {
         var fsIdSearchResult = FsPersonSearchResponse.fromJson(responseBody);
 
         return fsIdSearchResult.getSearchResult()
-                   .orElseThrow(() -> new UserPrincipalNotFoundException(FETCH_FS_USER_EXCEPTION_MESSAGE + nin))
-                   .getFsPerson()
-                   .getFsIdNumber();
+            .orElseThrow(() -> new UserPrincipalNotFoundException(FETCH_FS_USER_EXCEPTION_MESSAGE + nin))
+            .getFsPerson()
+            .getFsIdNumber();
     }
 
     public List<FsCourse> fetchCoursesToStudent(FsIdNumber fsIdNumber) throws IOException, InterruptedException {
@@ -98,9 +105,9 @@ public class FsApi {
         var fsCoursesSearchResult = FsCoursesSearchResult.fromJson(responseBody);
 
         return fsCoursesSearchResult.getItems() == null ? Collections.emptyList() : fsCoursesSearchResult.getItems()
-                                                                                        .stream()
-                                                                                        .map(c -> c.getId().getCourse())
-                                                                                        .collect(Collectors.toList());
+            .stream()
+            .map(c -> c.getId().getCourse())
+            .collect(Collectors.toList());
     }
 
     public List<FsRoleToStaffPerson> fetchRolesToStaffPerson(FsIdNumber fsIdNumber)
@@ -128,8 +135,8 @@ public class FsApi {
 
     private List<FsCourse> fetchCourseDetails(Stream<FsUriToCourseActivity> coursesUri) {
         return coursesUri.map(attempt(this::fetchCourseToStaffPersonGivenUriToCourse))
-                   .map(Try::orElseThrow)
-                   .collect(Collectors.toList());
+            .map(Try::orElseThrow)
+            .collect(Collectors.toList());
     }
 
     private Stream<FsUriToCourseActivity> fetchAllCourseUrisBasedOnRolesOfStaffPerson(List<FsRoleToStaffPerson> roles) {
@@ -141,43 +148,43 @@ public class FsApi {
 
     private HttpResponse<String> getResponse(URI uri) throws IOException, InterruptedException {
         var httpRequest = HttpRequest.newBuilder(uri)
-                              .header("Authorization", getBasicAuthenticationHeader())
-                              .GET()
-                              .build();
+            .header("Authorization", getBasicAuthenticationHeader())
+            .GET()
+            .build();
 
         return httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
     }
 
     private URI createSearchPersonUri(NationalIdentityNumber nin) {
         return UriWrapper.fromUri(baseFsHostUrl)
-                   .addChild(PERSON_PATH)
-                   .addQueryParameter(DB_IDENTIFIER, "true")
-                   .addQueryParameter(LIMIT_IDENTIFIER, LIMIT_VALUE)
-                   .addQueryParameter(BIRTHDATE_IDENTIFIER, nin.getBirthDate())
-                   .addQueryParameter(PERSONAL_NUMBER_IDENTIFIER, nin.getPersonalNumber())
-                   .getUri();
+            .addChild(PERSON_PATH)
+            .addQueryParameter(DB_IDENTIFIER, "true")
+            .addQueryParameter(LIMIT_IDENTIFIER, LIMIT_VALUE)
+            .addQueryParameter(BIRTHDATE_IDENTIFIER, nin.getBirthDate())
+            .addQueryParameter(PERSONAL_NUMBER_IDENTIFIER, nin.getPersonalNumber())
+            .getUri();
     }
 
     private URI createSearchCourseUri(FsIdNumber fsIdNumber) {
         final String year = Year.now().toString();
 
         return UriWrapper.fromUri(baseFsHostUrl)
-                   .addChild(STUDENT_TEACHING_PATH)
-                   .addQueryParameter(DB_IDENTIFIER, "true")
-                   .addQueryParameter(LIMIT_IDENTIFIER, LIMIT_VALUE)
-                   .addQueryParameter(FS_PERSON_ID_NUMBER_PATH, fsIdNumber.toString())
-                   .addQueryParameter(TEACHING_SEMESTER_AR_PATH, year)
-                   .getUri();
+            .addChild(STUDENT_TEACHING_PATH)
+            .addQueryParameter(DB_IDENTIFIER, "true")
+            .addQueryParameter(LIMIT_IDENTIFIER, LIMIT_VALUE)
+            .addQueryParameter(FS_PERSON_ID_NUMBER_PATH, fsIdNumber.toString())
+            .addQueryParameter(TEACHING_SEMESTER_AR_PATH, year)
+            .getUri();
     }
 
     private URI createSearchRolesToStaffPersonUri(FsIdNumber fsIdNumber) {
         final String year = Year.now().toString();
 
         return UriWrapper.fromUri(baseFsHostUrl)
-                   .addChild(PERSON_ROLES)
-                   .addQueryParameter(FS_PERSON_ID_NUMBER_PATH, fsIdNumber.toString())
-                   .addQueryParameter(SEMESTER_YEAR_PATH, year)
-                   .getUri();
+            .addChild(PERSON_ROLES)
+            .addQueryParameter(FS_PERSON_ID_NUMBER_PATH, fsIdNumber.toString())
+            .addQueryParameter(SEMESTER_YEAR_PATH, year)
+            .getUri();
     }
 
     private URI createSearchCourseToRoleUri(FsRoleToStaffPerson role) {
@@ -192,10 +199,5 @@ public class FsApi {
         final String valueToEncode = this.username + ":" + this.password;
 
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
-    }
-
-    private static URI readFsHost() {
-        var hostUriString = ENVIRONMENT.readEnv("FS_HOST");
-        return URI.create(hostUriString);
     }
 }

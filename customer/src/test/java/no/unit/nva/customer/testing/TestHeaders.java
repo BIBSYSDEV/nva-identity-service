@@ -1,14 +1,16 @@
 package no.unit.nva.customer.testing;
 
+import nva.commons.core.JacocoGenerated;
+
+import java.util.Map;
+
 import static com.google.common.net.HttpHeaders.ACCEPT;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.HttpHeaders.STRICT_TRANSPORT_SECURITY;
-import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
 import static com.google.common.net.HttpHeaders.VARY;
+import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
 import static com.google.common.net.MediaType.JSON_UTF_8;
-import java.util.Map;
-import nva.commons.core.JacocoGenerated;
 
 @JacocoGenerated
 public class TestHeaders {

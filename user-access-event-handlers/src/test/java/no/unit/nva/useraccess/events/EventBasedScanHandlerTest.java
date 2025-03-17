@@ -1,21 +1,7 @@
 package no.unit.nva.useraccess.events;
 
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
-import static nva.commons.core.attempt.Try.attempt;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
@@ -41,6 +27,22 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.useraccess.events.EventsConfig.IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC;
+import static nva.commons.core.attempt.Try.attempt;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 class EventBasedScanHandlerTest extends LocalIdentityService {
 
@@ -72,7 +74,7 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
     }
 
     @ParameterizedTest(name = "should send message to Event Bridge for next scan containing the key of the last "
-                              + "scanned object.Page size:{0}")
+        + "scanned object.Page size:{0}")
     @ValueSource(ints = {1, 5, 10, 50})
     void shouldSendEventForNextScanContainingTheKeyOfLastScannedObjectAsNextScanStartMarker(int pageSize) {
         final var insertedUsers = insertRandomUsers(2 * pageSize);
@@ -83,65 +85,6 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
         var expectedTableEntry = calculateLastScannedUser(pageSize, insertedUsers);
         var actualTableEntry = fetchLastScannedUserUsingTheEmittedEvent(emittedScanRequest);
         assertThat(actualTableEntry, is(equalTo(expectedTableEntry)));
-    }
-
-    @ParameterizedTest(name = "should scan all users in database and not enter an infinite loop. PageSize:{0}")
-    @ValueSource(ints = {1, 5, 10, 20, 99, 100, 101, 200})
-    void shouldNotEnterAnInfiniteLoop(int pageSize) throws JsonProcessingException {
-        insertRandomUsers(100);
-        var firstEvent = sampleEventWithoutStartingPointer(pageSize);
-        performEventDrivenScanInWholeDatabase(firstEvent);
-    }
-
-    @ParameterizedTest(name = "should apply migration action to all users in database.PageSize:{0}")
-    @ValueSource(ints = {1, 5, 10, 20, 99, 100, 101, 200})
-    void shouldApplyMigrationActionToAllUsersInDatabase(int pageSize) throws JsonProcessingException {
-        var expectedFamilyName = randomString();
-        final var insertedUsers = insertRandomUsers(100);
-        var migrationService = new FamilyNameChangeMigration(expectedFamilyName);
-
-        handler = new EventBasedScanHandler(localDynamo, eventClient, migrationService);
-        final var expectedUsers = migrateUsersDirectly(insertedUsers, expectedFamilyName);
-
-        var firstEvent = sampleEventWithoutStartingPointer(pageSize);
-        performEventDrivenScanInWholeDatabase(firstEvent);
-        var updatedUsers = scanAllUsersInDatabaseDirectly();
-        assertThat(updatedUsers, contains(expectedUsers.toArray(UserDto[]::new)));
-    }
-
-    private List<UserDto> scanAllUsersInDatabaseDirectly() {
-        return localDynamo.scanPaginator(ScanRequest.builder().tableName(Constants.USERS_AND_ROLES_TABLE).build())
-                   .stream()
-                   .flatMap(page -> page.items().stream())
-                   .filter(this::isUser)
-                   .map(UserDao.TABLE_SCHEMA::mapToItem)
-                   .map(UserDao::toUserDto)
-                   .collect(Collectors.toList());
-    }
-
-    private boolean isUser(Map<String, AttributeValue> entry) {
-        return entry.get(Typed.TYPE_FIELD).s().equals(UserDao.TYPE_VALUE);
-    }
-
-    private void performEventDrivenScanInWholeDatabase(InputStream firstEvent) throws JsonProcessingException {
-        handler.handleRequest(firstEvent, outputStream, CONTEXT);
-        while (!eventClient.getRequestEntries().isEmpty()) {
-            InputStream reconstructEvent = fetchNextEventFromEventBridgeClient();
-            eventClient.getRequestEntries().remove(0);
-            handler.handleRequest(reconstructEvent, outputStream, CONTEXT);
-        }
-    }
-
-    private InputStream fetchNextEventFromEventBridgeClient() throws JsonProcessingException {
-        PutEventsRequestEntry emittedEvent = eventClient.getRequestEntries().get(0);
-        ScanDatabaseRequestV2 scanRequest = ScanDatabaseRequestV2.fromJson(emittedEvent.detail());
-        return EventBridgeEventBuilder.sampleEvent(scanRequest);
-    }
-
-    private List<UserDto> migrateUsersDirectly(List<UserDto> insertedUsers, String expectedFilename) {
-        return insertedUsers.stream()
-            .map(user -> user.copy().withFamilyName(expectedFilename).build())
-            .collect(Collectors.toList());
     }
 
     private UserDto fetchLastScannedUserUsingTheEmittedEvent(ScanDatabaseRequestV2 emittedScanRequest) {
@@ -156,7 +99,7 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
 
     private GetItemRequest createGetItemRequest(Map<String, AttributeValue> startMarker) {
         return GetItemRequest.builder()
-                   .tableName(Constants.USERS_AND_ROLES_TABLE)
+            .tableName(Constants.USERS_AND_ROLES_TABLE)
             .key(startMarker)
             .build();
     }
@@ -183,8 +126,22 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
             .boxed()
             .map(attempt(i -> randomUser()))
             .map(Try::orElseThrow)
-            .collect(Collectors.toList());
+            .toList();
         return scanAllUsersInDatabaseDirectly();
+    }
+
+    private List<UserDto> scanAllUsersInDatabaseDirectly() {
+        return localDynamo.scanPaginator(ScanRequest.builder().tableName(Constants.USERS_AND_ROLES_TABLE).build())
+            .stream()
+            .flatMap(page -> page.items().stream())
+            .filter(this::isUser)
+            .map(UserDao.TABLE_SCHEMA::mapToItem)
+            .map(UserDao::toUserDto)
+            .collect(Collectors.toList());
+    }
+
+    private boolean isUser(Map<String, AttributeValue> entry) {
+        return entry.get(Typed.TYPE_FIELD).s().equals(UserDao.TYPE_VALUE);
     }
 
     private UserDto randomUser() throws ConflictException, NotFoundException {
@@ -199,6 +156,51 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
 
     private ScanDatabaseRequestV2 createSampleScanRequest(Integer pageSize) {
         return new ScanDatabaseRequestV2(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC, pageSize, NO_START_MARKER);
+    }
+
+    @ParameterizedTest(name = "should scan all users in database and not enter an infinite loop. PageSize:{0}")
+    @ValueSource(ints = {1, 5, 10, 20, 99, 100, 101, 200})
+    void shouldNotEnterAnInfiniteLoop(int pageSize) throws JsonProcessingException {
+        insertRandomUsers(100);
+        var firstEvent = sampleEventWithoutStartingPointer(pageSize);
+        performEventDrivenScanInWholeDatabase(firstEvent);
+    }
+
+    private void performEventDrivenScanInWholeDatabase(InputStream firstEvent) throws JsonProcessingException {
+        handler.handleRequest(firstEvent, outputStream, CONTEXT);
+        while (!eventClient.getRequestEntries().isEmpty()) {
+            InputStream reconstructEvent = fetchNextEventFromEventBridgeClient();
+            eventClient.getRequestEntries().remove(0);
+            handler.handleRequest(reconstructEvent, outputStream, CONTEXT);
+        }
+    }
+
+    private InputStream fetchNextEventFromEventBridgeClient() throws JsonProcessingException {
+        PutEventsRequestEntry emittedEvent = eventClient.getRequestEntries().get(0);
+        ScanDatabaseRequestV2 scanRequest = ScanDatabaseRequestV2.fromJson(emittedEvent.detail());
+        return EventBridgeEventBuilder.sampleEvent(scanRequest);
+    }
+
+    @ParameterizedTest(name = "should apply migration action to all users in database.PageSize:{0}")
+    @ValueSource(ints = {1, 5, 10, 20, 99, 100, 101, 200})
+    void shouldApplyMigrationActionToAllUsersInDatabase(int pageSize) throws JsonProcessingException {
+        var expectedFamilyName = randomString();
+        final var insertedUsers = insertRandomUsers(100);
+        var migrationService = new FamilyNameChangeMigration(expectedFamilyName);
+
+        handler = new EventBasedScanHandler(localDynamo, eventClient, migrationService);
+        final var expectedUsers = migrateUsersDirectly(insertedUsers, expectedFamilyName);
+
+        var firstEvent = sampleEventWithoutStartingPointer(pageSize);
+        performEventDrivenScanInWholeDatabase(firstEvent);
+        var updatedUsers = scanAllUsersInDatabaseDirectly();
+        assertThat(updatedUsers, contains(expectedUsers.toArray(UserDto[]::new)));
+    }
+
+    private List<UserDto> migrateUsersDirectly(List<UserDto> insertedUsers, String expectedFilename) {
+        return insertedUsers.stream()
+            .map(user -> user.copy().withFamilyName(expectedFilename).build())
+            .collect(Collectors.toList());
     }
 
     private static class FamilyNameChangeMigration implements UserMigrationService {

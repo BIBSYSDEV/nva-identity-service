@@ -1,19 +1,5 @@
 package no.unit.nva.database;
 
-import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
-import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
-import static nva.commons.core.attempt.Try.attempt;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import java.util.Set;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -27,6 +13,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+
+import java.util.Set;
+
+import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
+import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
+import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
+import static nva.commons.core.attempt.Try.attempt;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class IdentityServiceImplTest extends LocalIdentityService {
 
@@ -51,13 +52,27 @@ public class IdentityServiceImplTest extends LocalIdentityService {
         assertThat(exception.getMessage(), containsString(EXPECTED_EXCEPTION_MESSAGE));
     }
 
+    private IdentityService mockServiceThrowsExceptionWhenLoadingRole() {
+        DynamoDbClient failingClient = mockMapperThrowingException();
+        return new IdentityServiceImpl(failingClient);
+    }
+
+    private DynamoDbClient mockMapperThrowingException() {
+        DynamoDbClient failingClient = mock(DynamoDbClient.class);
+        when(failingClient.getItem(any(GetItemRequest.class)))
+            .thenAnswer(ignored -> {
+                throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);
+            });
+        return failingClient;
+    }
+
     @Test
     public void getRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
         TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
         RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.randomRoleName());
         attempt(() -> databaseService.getRole(nonExistingRole));
         assertThat(testAppender.getMessages(),
-                   StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
+            StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
     }
 
     @Test
@@ -80,7 +95,7 @@ public class IdentityServiceImplTest extends LocalIdentityService {
         RoleDto role = EntityUtils.createRole(EntityUtils.randomRoleName());
         assertThrows(NotFoundException.class, () -> databaseService.updateRole(role));
         assertThat(testAppender.getMessages(),
-                   StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
+            StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
     }
 
     @Test
@@ -91,19 +106,5 @@ public class IdentityServiceImplTest extends LocalIdentityService {
 
         var users = databaseService.listAllUsers();
         assertThat(users, hasSize(2));
-    }
-
-    private IdentityService mockServiceThrowsExceptionWhenLoadingRole() {
-        DynamoDbClient failingClient = mockMapperThrowingException();
-        return new IdentityServiceImpl(failingClient);
-    }
-
-    private DynamoDbClient mockMapperThrowingException() {
-        DynamoDbClient failingClient = mock(DynamoDbClient.class);
-        when(failingClient.getItem(any(GetItemRequest.class)))
-            .thenAnswer(ignored -> {
-                throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);
-            });
-        return failingClient;
     }
 }

@@ -1,8 +1,5 @@
 package no.unit.nva.database;
 
-import static java.util.Objects.isNull;
-import static nva.commons.core.attempt.Try.attempt;
-import java.util.Optional;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.EmptyInputException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -13,6 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+import java.util.Optional;
+
+import static java.util.Objects.isNull;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class DatabaseSubService {
 

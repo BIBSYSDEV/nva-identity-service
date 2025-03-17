@@ -1,11 +1,13 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.isNull;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import nva.commons.core.SingletonCollector;
+
 import java.net.URI;
 import java.util.Arrays;
-import nva.commons.core.SingletonCollector;
+
+import static java.util.Objects.isNull;
 
 public enum ApplicationDomain {
 
@@ -20,21 +22,21 @@ public enum ApplicationDomain {
     public static ApplicationDomain fromUri(URI candidate) {
         var uri = mapValuesFromPreviousDatamodel(candidate);
         return Arrays.stream(ApplicationDomain.values())
-                   .filter(applicationDomain -> applicationDomain.getUri().equals(uri))
-                   .collect(SingletonCollector.collect());
+            .filter(applicationDomain -> applicationDomain.getUri().equals(uri))
+            .collect(SingletonCollector.collect());
     }
 
-    @JsonValue
-    @Override
-    public String toString() {
-        return uri.toString();
+    private static URI mapValuesFromPreviousDatamodel(URI uri) {
+        return isNull(uri) || uri.toString().isEmpty() ? NVA.getUri() : uri;
     }
 
     public URI getUri() {
         return this.uri;
     }
 
-    private static URI mapValuesFromPreviousDatamodel(URI uri) {
-        return isNull(uri) || uri.toString().isEmpty() ? NVA.getUri() : uri;
+    @JsonValue
+    @Override
+    public String toString() {
+        return uri.toString();
     }
 }

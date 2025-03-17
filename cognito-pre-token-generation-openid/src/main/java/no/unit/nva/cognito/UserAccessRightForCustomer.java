@@ -1,15 +1,18 @@
 package no.unit.nva.cognito;
 
 import static no.unit.nva.cognito.CognitoClaims.AT;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import static java.lang.Boolean.FALSE;
 
 public class UserAccessRightForCustomer {
 
@@ -22,11 +25,24 @@ public class UserAccessRightForCustomer {
         this.customer = customerDto;
     }
 
-    public static List<UserAccessRightForCustomer> fromUser(UserDto user, Set<CustomerDto> customers) {
+    public static List<UserAccessRightForCustomer> fromUser(UserDto user, Set<CustomerDto> customers,
+                                                            boolean hasAcceptedTerms) {
+        if (FALSE.equals(hasAcceptedTerms)) {
+            return List.of();
+        }
+
         var customer = customers.stream()
-                           .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
-                           .collect(SingletonCollector.collect());
+            .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
+            .collect(SingletonCollector.collect());
         return createAccessRightsForExistingCustomer(user, customer);
+    }
+
+    private static List<UserAccessRightForCustomer> createAccessRightsForExistingCustomer(UserDto user,
+                                                                                          CustomerDto customer) {
+        return user.getAccessRights()
+            .stream()
+            .map(accessRight -> new UserAccessRightForCustomer(customer, accessRight))
+            .toList();
     }
 
     public CustomerDto getCustomer() {
@@ -59,14 +75,6 @@ public class UserAccessRightForCustomer {
     @JacocoGenerated
     public String toString() {
         return accessRightWithCustomerId();
-    }
-
-    private static List<UserAccessRightForCustomer> createAccessRightsForExistingCustomer(UserDto user,
-                                                                                          CustomerDto customer) {
-        return user.getAccessRights()
-                   .stream()
-                   .map(accessRight -> new UserAccessRightForCustomer(customer, accessRight))
-                   .collect(Collectors.toList());
     }
 
     private String accessRightWithCustomerId() {

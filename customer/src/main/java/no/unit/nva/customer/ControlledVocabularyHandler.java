@@ -1,14 +1,16 @@
 package no.unit.nva.customer;
 
-import static nva.commons.core.attempt.Try.attempt;
 import com.google.common.net.MediaType;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.RequestInfo;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static nva.commons.core.attempt.Try.attempt;
 
 public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandler<I, O> {
 
@@ -24,7 +26,7 @@ public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandle
     }
 
     protected static UUID extractIdentifier(RequestInfo requestInfo) {
-        return attempt(() -> RequestUtils.getPathParameter(requestInfo,IDENTIFIER_PATH_PARAMETER))
+        return attempt(() -> RequestUtils.getPathParameter(requestInfo, IDENTIFIER_PATH_PARAMETER))
             .map(Optional::orElseThrow)
             .map(UUID::fromString)
             .orElseThrow();

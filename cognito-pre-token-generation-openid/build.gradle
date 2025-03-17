@@ -17,6 +17,7 @@ dependencies {
     implementation libs.nva.core
     implementation libs.nva.secrets
     implementation libs.nva.auth
+    implementation libs.nva.json
     implementation libs.aws.lambda.events
     implementation libs.zalando.problem
 
@@ -36,7 +37,7 @@ dependencies {
 }
 
 test {
-
+    environment "TERMS_TABLE_NAME", "TermsTable"
     environment "COGNITO_HOST", "example.com"
     environment "AWS_REGION", "eu-west-1"
     environment "API_DOMAIN", "localhost"

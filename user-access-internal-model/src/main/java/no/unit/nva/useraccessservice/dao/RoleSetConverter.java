@@ -1,15 +1,16 @@
 package no.unit.nva.useraccessservice.dao;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RoleSetConverter implements AttributeConverter<Set<RoleDb>> {
 
@@ -28,7 +29,7 @@ public class RoleSetConverter implements AttributeConverter<Set<RoleDb>> {
         if (input.hasL()) {
             return input.l().stream()
                 .map(AttributeValue::m)
-                .map(map -> RoleDb.TABLE_SCHEMA.mapToItem(map))
+                .map(RoleDb.TABLE_SCHEMA::mapToItem)
                 .collect(Collectors.toSet());
         }
         return Collections.emptySet();

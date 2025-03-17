@@ -1,9 +1,5 @@
 package no.unit.nva.customer;
 
-import static java.util.Objects.isNull;
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser.Feature;
@@ -13,11 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -28,6 +19,17 @@ import nva.commons.core.attempt.Failure;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
 import org.zalando.problem.jackson.ProblemModule;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.core.attempt.Try.attempt;
 
 public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String> {
 
@@ -52,7 +54,11 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
     protected UUID getIdentifier(RequestInfo requestInfo) throws InputException {
         String identifier = RequestUtils.getPathParameter(requestInfo, IDENTIFIER).orElse(null);
         return attempt(() -> UUID.fromString(identifier))
-                   .orElseThrow(fail -> handleIdentifierParsingError(identifier, fail));
+            .orElseThrow(fail -> handleIdentifierParsingError(identifier, fail));
+    }
+
+    private InputException handleIdentifierParsingError(String identifier, Failure<UUID> fail) {
+        return new InputException(IDENTIFIER_IS_NOT_A_VALID_UUID + identifier, fail.getException());
     }
 
     protected Map<UUID, SecretManagerDoiAgentDao> getSecretsManagerDoiAgent() throws JsonProcessingException {
@@ -70,9 +76,15 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
                 SecretManagerDoiAgentDao::merge));
     }
 
+    private UUID extractKey(SecretManagerDoiAgentDao doiAgent) {
+        return toUuid(doiAgent.getCustomerId());
+    }
 
-    private InputException handleIdentifierParsingError(String identifier, Failure<UUID> fail) {
-        return new InputException(IDENTIFIER_IS_NOT_A_VALID_UUID + identifier, fail.getException());
+    private UUID toUuid(URI customerId) {
+        return
+            UUID.fromString(
+                UriWrapper.fromUri(customerId).getLastPathElement()
+            );
     }
 
     protected void authorizeDoiAgentRead(RequestInfo requestInfo) throws ForbiddenException {
@@ -83,17 +95,6 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
 
     private boolean notCustomerManager(RequestInfo requestInfo) {
         return !requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
-    }
-
-    private UUID toUuid(URI customerId) {
-        return
-            UUID.fromString(
-                UriWrapper.fromUri(customerId).getLastPathElement()
-            );
-    }
-
-    private UUID extractKey(SecretManagerDoiAgentDao doiAgent) {
-        return toUuid(doiAgent.getCustomerId());
     }
 
     private ObjectMapper createJsonParser() {

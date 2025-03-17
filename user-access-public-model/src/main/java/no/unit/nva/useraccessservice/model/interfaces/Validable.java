@@ -6,12 +6,12 @@ import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 public interface Validable {
 
     @JsonIgnore
-    boolean isValid();
-
-    @JsonIgnore
     default boolean isInvalid() {
         return !isValid();
     }
+
+    @JsonIgnore
+    boolean isValid();
 
     InvalidInputException exceptionWhenInvalid();
 }

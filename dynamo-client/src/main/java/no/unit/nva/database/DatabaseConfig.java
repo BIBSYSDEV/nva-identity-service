@@ -1,4 +1,4 @@
-package no.unit.useraccessservice.database;
+package no.unit.nva.database;
 
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -14,6 +14,10 @@ public final class DatabaseConfig {
     @JacocoGenerated
     public static final DynamoDbClient DEFAULT_DYNAMO_CLIENT = defaultDynamoDbClient();
 
+    private DatabaseConfig() {
+        // NO-OP
+    }
+
     @JacocoGenerated
     private static DynamoDbClient defaultDynamoDbClient() {
         return DynamoDbClient.builder()
@@ -22,9 +26,4 @@ public final class DatabaseConfig {
             .region(Region.of(AWS_REGION))
             .build();
     }
-
-    private DatabaseConfig() {
-        // NO-OP
-    }
-
 }

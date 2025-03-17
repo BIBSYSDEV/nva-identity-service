@@ -1,16 +1,17 @@
 package no.unit.nva.useraccessservice.dao;
 
-import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
-import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
-import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
-import java.net.URI;
-import java.util.Collections;
-import java.util.Set;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
+
+import java.net.URI;
+import java.util.Collections;
+import java.util.Set;
+
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
+import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
 
 public final class EntityUtils {
 

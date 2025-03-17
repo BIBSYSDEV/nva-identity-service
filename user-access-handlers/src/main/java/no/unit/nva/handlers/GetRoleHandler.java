@@ -1,9 +1,6 @@
 package no.unit.nva.handlers;
 
-import static java.util.function.Predicate.not;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
-import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.model.RoleDto;
@@ -13,6 +10,11 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+import java.util.Optional;
+
+import static java.util.function.Predicate.not;
 
 public class GetRoleHandler extends ApiGatewayHandler<Void, RoleDto> {
 
@@ -54,9 +56,9 @@ public class GetRoleHandler extends ApiGatewayHandler<Void, RoleDto> {
 
     private RoleName roleNameThatIsNotNullOrBlank(RequestInfo requestInfo) {
         return Optional.ofNullable(requestInfo.getPathParameters())
-                   .map(pathParams -> pathParams.get(ROLE_PATH_PARAMETER))
-                   .filter(not(String::isBlank))
-                   .map(RoleName::fromValue)
-                   .orElseThrow();
+            .map(pathParams -> pathParams.get(ROLE_PATH_PARAMETER))
+            .filter(not(String::isBlank))
+            .map(RoleName::fromValue)
+            .orElseThrow();
     }
 }

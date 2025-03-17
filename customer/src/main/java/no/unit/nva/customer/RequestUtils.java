@@ -1,7 +1,8 @@
 package no.unit.nva.customer;
 
-import java.util.Optional;
 import nva.commons.apigateway.RequestInfo;
+
+import java.util.Optional;
 
 public final class RequestUtils {
 

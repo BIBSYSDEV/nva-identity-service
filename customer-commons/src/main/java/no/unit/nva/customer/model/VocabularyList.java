@@ -1,22 +1,24 @@
 package no.unit.nva.customer.model;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.net.URI;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
+
+import java.net.URI;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
+import static nva.commons.core.attempt.Try.attempt;
 
 @SuppressWarnings("PMD.ExcessivePublicCount")
 public class VocabularyList implements Context, Typed {
@@ -49,14 +51,6 @@ public class VocabularyList implements Context, Typed {
         return attempt(() -> JsonConfig.readValue(json, VocabularyList.class)).orElseThrow();
     }
 
-    public List<VocabularyDto> getVocabularies() {
-        return JacksonJrDoesNotSupportSets.toList(vocabularies);
-    }
-
-    public void setVocabularies(List<VocabularyDto> vocabularies) {
-        this.vocabularies = JacksonJrDoesNotSupportSets.toSet(vocabularies);
-    }
-
     @JacocoGenerated
     @JsonProperty(LINKED_DATA_ID)
     public URI getId() {
@@ -84,6 +78,14 @@ public class VocabularyList implements Context, Typed {
     @Override
     public int hashCode() {
         return Objects.hash(getVocabularies());
+    }
+
+    public List<VocabularyDto> getVocabularies() {
+        return JacksonJrDoesNotSupportSets.toList(vocabularies);
+    }
+
+    public void setVocabularies(List<VocabularyDto> vocabularies) {
+        this.vocabularies = JacksonJrDoesNotSupportSets.toSet(vocabularies);
     }
 
     @JacocoGenerated

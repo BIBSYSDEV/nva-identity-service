@@ -1,11 +1,5 @@
 package no.unit.nva.database;
 
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccessservice.dao.UserDao;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -21,6 +15,14 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
+
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 public class IdentityServiceImpl implements IdentityService {
 
@@ -124,11 +126,12 @@ public class IdentityServiceImpl implements IdentityService {
         return dynamoDbClient.scan(dynamoScanRequest);
     }
 
-    private boolean databaseEntryIsUser(Map<String, AttributeValue> databaseEntry) {
-        return Optional.ofNullable(databaseEntry)
-            .map(item -> item.get(Typed.TYPE_FIELD))
-            .map(fields -> UserDao.TYPE_VALUE.equals(fields.s()))
-            .orElse(false);
+    private ScanRequest createScanDynamoRequest(ScanDatabaseRequestV2 input) {
+        return ScanRequest.builder()
+            .tableName(Constants.USERS_AND_ROLES_TABLE)
+            .limit(input.getPageSize())
+            .exclusiveStartKey(input.toDynamoScanMarker())
+            .build();
     }
 
     private List<UserDto> parseUsersFromScanResult(ScanResponse result) {
@@ -140,11 +143,10 @@ public class IdentityServiceImpl implements IdentityService {
             .collect(Collectors.toList());
     }
 
-    private ScanRequest createScanDynamoRequest(ScanDatabaseRequestV2 input) {
-        return ScanRequest.builder()
-                   .tableName(Constants.USERS_AND_ROLES_TABLE)
-            .limit(input.getPageSize())
-            .exclusiveStartKey(input.toDynamoScanMarker())
-            .build();
+    private boolean databaseEntryIsUser(Map<String, AttributeValue> databaseEntry) {
+        return Optional.ofNullable(databaseEntry)
+            .map(item -> item.get(Typed.TYPE_FIELD))
+            .map(fields -> UserDao.TYPE_VALUE.equals(fields.s()))
+            .orElse(false);
     }
 }

@@ -1,13 +1,15 @@
 package no.unit.nva.handlers;
 
-import static nva.commons.core.attempt.Try.attempt;
-import java.util.Optional;
-import java.util.concurrent.Callable;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
+import java.util.concurrent.Callable;
+
+import static nva.commons.core.attempt.Try.attempt;
 
 public abstract class HandlerWithEventualConsistency<I, O> extends ApiGatewayHandler<I, O> {
 

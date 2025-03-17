@@ -1,5 +1,31 @@
 package no.unit.nva.customer.update;
 
+import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.net.MediaType;
+import no.unit.nva.customer.exception.InputException;
+import no.unit.nva.customer.model.ApplicationDomain;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
+import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import org.apache.http.HttpHeaders;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.TestHeaders.getRequestHeaders;
 import static no.unit.nva.customer.update.UpdateCustomerHandler.IDENTIFIER;
@@ -18,38 +44,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.time.Instant;
-import java.util.Map;
-import java.util.UUID;
-import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.ApplicationDomain;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
-import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.stubs.FakeContext;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.apigateway.GatewayResponse;
-import nva.commons.apigateway.exceptions.NotFoundException;
-import org.apache.http.HttpHeaders;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.zalando.problem.Problem;
 
 public class UpdateCustomerHandlerTest {
 
+    private final URI testServiceCenterUri = randomUri();
     private CustomerService customerServiceMock;
     private UpdateCustomerHandler handler;
     private ByteArrayOutputStream outputStream;
     private Context context;
-    private final URI testServiceCenterUri = randomUri();
 
     /**
      * Setting up test environment.
@@ -75,6 +77,28 @@ public class UpdateCustomerHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
+    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, context);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
+    }
+
+    private InputStream createInput(CustomerDto customer, Map<String, String> pathParameters)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
+            .withHeaders(getRequestHeaders())
+            .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+            .withPathParameters(pathParameters)
+            .build();
+    }
+
+    private CustomerDto createCustomer(UUID uuid) {
+        return CustomerDto.builder()
+            .withIdentifier(uuid)
+            .withName("New Customer")
+            .withCustomerOf(randomElement(ApplicationDomain.values()))
+            .build();
+    }
+
     @Test
     void shouldReturnForbiddenWhenNoAccess() throws InputException, NotFoundException, IOException {
         CustomerDto customer = createCustomer(UUID.randomUUID());
@@ -85,6 +109,14 @@ public class UpdateCustomerHandlerTest {
         var response = sendRequest(request, CustomerDto.class);
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    private InputStream createInputWithoutAccessRights(CustomerDto customer, Map<String, String> pathParameters)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
+            .withHeaders(getRequestHeaders())
+            .withPathParameters(pathParameters)
+            .build();
     }
 
     @Test
@@ -150,7 +182,7 @@ public class UpdateCustomerHandlerTest {
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
         assertThat(response.getBody(),
-                   containsString(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID + malformedIdentifier));
+            containsString(UpdateCustomerHandler.IDENTIFIER_IS_NOT_A_VALID_UUID + malformedIdentifier));
     }
 
     @Test
@@ -158,9 +190,9 @@ public class UpdateCustomerHandlerTest {
 
         var pathParameters = Map.of(IDENTIFIER, UUID.randomUUID().toString());
         var request = new HandlerRequestBuilder<String>(dtoObjectMapper).withBody(randomString())
-                          .withHeaders(getRequestHeaders())
-                          .withPathParameters(pathParameters)
-                          .build();
+            .withHeaders(getRequestHeaders())
+            .withPathParameters(pathParameters)
+            .build();
 
         var response = sendRequest(request, Problem.class);
 
@@ -176,35 +208,5 @@ public class UpdateCustomerHandlerTest {
     //TODO
     @Test
     void shouldReturnDefaultPublicationWorkflowWhenNoneIsSet() {
-    }
-
-    private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
-        handler.handleRequest(request, outputStream, context);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private InputStream createInput(CustomerDto customer, Map<String, String> pathParameters)
-        throws JsonProcessingException {
-        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
-                   .withHeaders(getRequestHeaders())
-                   .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
-                   .withPathParameters(pathParameters)
-                   .build();
-    }
-
-    private InputStream createInputWithoutAccessRights(CustomerDto customer, Map<String, String> pathParameters)
-        throws JsonProcessingException {
-        return new HandlerRequestBuilder<CustomerDto>(dtoObjectMapper).withBody(customer)
-                   .withHeaders(getRequestHeaders())
-                   .withPathParameters(pathParameters)
-                   .build();
-    }
-
-    private CustomerDto createCustomer(UUID uuid) {
-        return CustomerDto.builder()
-                   .withIdentifier(uuid)
-                   .withName("New Customer")
-                   .withCustomerOf(randomElement(ApplicationDomain.values()))
-                   .build();
     }
 }

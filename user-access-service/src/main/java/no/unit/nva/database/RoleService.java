@@ -1,7 +1,5 @@
 package no.unit.nva.database;
 
-import static java.util.Objects.nonNull;
-import java.util.Optional;
 import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.useraccessservice.dao.RoleDb;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -13,6 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+import java.util.Optional;
+
+import static java.util.Objects.nonNull;
 
 public class RoleService extends DatabaseSubService {
 
@@ -42,6 +44,33 @@ public class RoleService extends DatabaseSubService {
         table.putItem(RoleDb.fromRoleDto(roleDto));
     }
 
+    private void checkRoleDoesNotExist(RoleDto roleDto) throws ConflictException {
+        if (roleAlreadyExists(roleDto)) {
+            throw new ConflictException(ROLE_ALREADY_EXISTS_ERROR_MESSAGE + roleDto.getRoleName());
+        }
+    }
+
+    private boolean roleAlreadyExists(RoleDto roleDto) {
+        return getRoleAsOptional(roleDto).isPresent();
+    }
+
+    private Optional<RoleDto> getRoleAsOptional(RoleDto queryObject) {
+        logger.debug(GET_ROLE_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
+        return Optional.ofNullable(attemptFetchRole(queryObject));
+    }
+
+    private RoleDto attemptFetchRole(RoleDto queryObject) {
+        RoleDb roledb = Try.of(queryObject)
+            .map(RoleDb::fromRoleDto)
+            .map(this::fetchRoleDb)
+            .orElseThrow(DatabaseSubService::handleError);
+        return nonNull(roledb) ? roledb.toRoleDto() : null;
+    }
+
+    protected RoleDb fetchRoleDb(RoleDb queryObject) {
+        return table.getItem(queryObject);
+    }
+
     /**
      * Fetches a role from the database.
      *
@@ -53,45 +82,18 @@ public class RoleService extends DatabaseSubService {
             .orElseThrow(() -> handleRoleNotFound(queryObject));
     }
 
-    public void updateRole(RoleDto roleToUpdate) throws NotFoundException, InvalidInputException {
-        validate(roleToUpdate);
-
-        var originalRole = getRoleAsOptional(roleToUpdate)
-                   .orElseThrow(() -> handleRoleNotFound(roleToUpdate));
-
-        var updatedRole = originalRole.copy().withAccessRights(roleToUpdate.getAccessRights()).build();
-        table.putItem(RoleDb.fromRoleDto(updatedRole));
-    }
-
-    protected RoleDb fetchRoleDb(RoleDb queryObject) {
-        return table.getItem(queryObject);
-    }
-
     private static NotFoundException handleRoleNotFound(RoleDto queryObject) {
         logger.debug(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName());
         return new NotFoundException(ROLE_NOT_FOUND_MESSAGE + queryObject.getRoleName().getValue());
     }
 
-    private Optional<RoleDto> getRoleAsOptional(RoleDto queryObject) {
-        logger.debug(GET_ROLE_DEBUG_MESSAGE + convertToStringOrWriteErrorMessage(queryObject));
-        return Optional.ofNullable(attemptFetchRole(queryObject));
-    }
+    public void updateRole(RoleDto roleToUpdate) throws NotFoundException, InvalidInputException {
+        validate(roleToUpdate);
 
-    private void checkRoleDoesNotExist(RoleDto roleDto) throws ConflictException {
-        if (roleAlreadyExists(roleDto)) {
-            throw new ConflictException(ROLE_ALREADY_EXISTS_ERROR_MESSAGE + roleDto.getRoleName());
-        }
-    }
+        var originalRole = getRoleAsOptional(roleToUpdate)
+            .orElseThrow(() -> handleRoleNotFound(roleToUpdate));
 
-    private boolean roleAlreadyExists(RoleDto roleDto) {
-        return getRoleAsOptional(roleDto).isPresent();
-    }
-
-    private RoleDto attemptFetchRole(RoleDto queryObject) {
-        RoleDb roledb = Try.of(queryObject)
-            .map(RoleDb::fromRoleDto)
-            .map(this::fetchRoleDb)
-            .orElseThrow(DatabaseSubService::handleError);
-        return nonNull(roledb) ? roledb.toRoleDto() : null;
+        var updatedRole = originalRole.copy().withAccessRights(roleToUpdate.getAccessRights()).build();
+        table.putItem(RoleDb.fromRoleDto(updatedRole));
     }
 }

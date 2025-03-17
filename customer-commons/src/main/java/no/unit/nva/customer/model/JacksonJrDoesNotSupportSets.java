@@ -1,13 +1,15 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.nonNull;
+import nva.commons.core.JacocoGenerated;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import nva.commons.core.JacocoGenerated;
+
+import static java.util.Objects.nonNull;
 
 @JacocoGenerated
 public final class JacksonJrDoesNotSupportSets {

@@ -1,12 +1,5 @@
 package no.unit.nva.useraccessservice.dao;
 
-import static java.util.Objects.nonNull;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
-import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Set;
 import no.unit.nva.useraccessservice.dao.RoleDb.Builder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.interfaces.Typed;
@@ -23,6 +16,15 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
+
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+
+import static java.util.Objects.nonNull;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
 
 @DynamoDbBean(converterProviders = {AccessRightSetConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed {
@@ -46,10 +48,6 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         setAccessRights(builder.accessRights);
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
     /**
      * Creates a DAO from a DTO.
      *
@@ -64,63 +62,8 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
             .build();
     }
 
-    @JacocoGenerated
-    @DynamoDbAttribute(NAME_FIELD)
-    public RoleName getName() {
-        return name;
-    }
-
-    @JacocoGenerated
-    public void setName(RoleName name) {
-        this.name = name;
-    }
-
-    @JacocoGenerated
-    @DynamoDbAttribute(TYPE_FIELD)
-    @Override
-    public String getType() {
-        return TYPE_VALUE;
-    }
-
-    @Override
-    public void setType(String ignored){
-        //DO NOTHING
-    }
-
-    @JacocoGenerated
-    @Override
-    @DynamoDbPartitionKey
-    @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
-    public String getPrimaryKeyHashKey() {
-        return this.getType() + FIELD_DELIMITER + getName().getValue();
-    }
-
-    @Override
-    public void setPrimaryKeyHashKey(String primaryRangeKey) {
-        //DO NOTHING
-    }
-
-    @Override
-    @DynamoDbAttribute(PRIMARY_KEY_RANGE_KEY)
-    @DynamoDbSortKey
-    public String getPrimaryKeyRangeKey() {
-        return this.getPrimaryKeyHashKey();
-    }
-
-    @Override
-    public void setPrimaryKeyRangeKey(String primaryRangeKey) {
-        //DO NOTHING
-    }
-
-    @DynamoDbAttribute(ACCESS_RIGHTS_FIELDS)
-    @DynamoDbIgnoreNulls
-    public Set<AccessRight> getAccessRights() {
-        return nonEmpty(accessRights) ? accessRights : Collections.emptySet();
-    }
-
-    @SuppressWarnings("PMD.NullAssignment")
-    public void setAccessRights(Set<AccessRight> accessRights) {
-        this.accessRights = nonEmpty(accessRights) ? accessRights : null;
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     @Override
@@ -128,12 +71,38 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         return new Builder()
             .withName(this.getName())
             .withAccessRights(this.getAccessRights());
+    }    @JacocoGenerated
+    @DynamoDbAttribute(NAME_FIELD)
+    public RoleName getName() {
+        return name;
+    }
+
+    @DynamoDbAttribute(ACCESS_RIGHTS_FIELDS)
+    @DynamoDbIgnoreNulls
+    public Set<AccessRight> getAccessRights() {
+        return nonEmpty(accessRights) ? accessRights : Collections.emptySet();
+    }    @JacocoGenerated
+    public void setName(RoleName name) {
+        this.name = name;
+    }
+
+    @SuppressWarnings("PMD.NullAssignment")
+    public void setAccessRights(Set<AccessRight> accessRights) {
+        this.accessRights = nonEmpty(accessRights) ? accessRights : null;
+    }    @JacocoGenerated
+    @DynamoDbAttribute(TYPE_FIELD)
+    @Override
+    public String getType() {
+        return TYPE_VALUE;
     }
 
     @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getAccessRights(), getName());
+    }    @Override
+    public void setType(String ignored) {
+        //DO NOTHING
     }
 
     @Override
@@ -147,14 +116,23 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         }
         RoleDb roleDbEntry = (RoleDb) o;
         return Objects.equals(getAccessRights(), roleDbEntry.getAccessRights())
-               && Objects.equals(getName(), roleDbEntry.getName());
+            && Objects.equals(getName(), roleDbEntry.getName());
+    }    @JacocoGenerated
+    @Override
+    @DynamoDbPartitionKey
+    @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
+    public String getPrimaryKeyHashKey() {
+        return this.getType() + FIELD_DELIMITER + getName().getValue();
     }
 
     public RoleDto toRoleDto() {
         return RoleDto.newBuilder()
-                .withRoleName(this.getName())
-                .withAccessRights(getAccessRights())
-                .build();
+            .withRoleName(this.getName())
+            .withAccessRights(getAccessRights())
+            .build();
+    }    @Override
+    public void setPrimaryKeyHashKey(String primaryRangeKey) {
+        //DO NOTHING
     }
 
     public static class Builder {
@@ -183,5 +161,29 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
             }
             throw new InvalidEntryInternalException(EMPTY_ROLE_NAME_ERROR);
         }
+    }    @Override
+    @DynamoDbAttribute(PRIMARY_KEY_RANGE_KEY)
+    @DynamoDbSortKey
+    public String getPrimaryKeyRangeKey() {
+        return this.getPrimaryKeyHashKey();
     }
+
+    @Override
+    public void setPrimaryKeyRangeKey(String primaryRangeKey) {
+        //DO NOTHING
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

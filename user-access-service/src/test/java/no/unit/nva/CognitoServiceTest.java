@@ -1,11 +1,5 @@
 package no.unit.nva;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import java.util.List;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
@@ -24,14 +18,22 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.ResourceSer
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ScopeDoesNotExistException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientType;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 class CognitoServiceTest {
 
-    private CognitoService cognitoService;
-    private CognitoIdentityProviderClient cognitoClient;
     public static final String CLIENT_NAME = "client1";
     public static final String CLIENT_ID = "id1";
     public static final String CLIENT_SECRET = "secret1";
     private static final String EXTERNAL_SCOPE_IDENTIFIER = new Environment().readEnv("EXTERNAL_SCOPE_IDENTIFIER");
+    private CognitoService cognitoService;
+    private CognitoIdentityProviderClient cognitoClient;
 
     @BeforeEach
     public void setup() {
@@ -46,18 +48,18 @@ class CognitoServiceTest {
             .thenReturn(createUserPoolClientResponse);
 
         var describeRequestServerResponse = DescribeResourceServerResponse
-                                                .builder()
-                                                .resourceServer(ResourceServerType
-                                                                    .builder()
-                                                                    .identifier(EXTERNAL_SCOPE_IDENTIFIER)
-                                                                    .scopes(List.of(
-                                                                        ResourceServerScopeType
-                                                                            .builder()
-                                                                            .scopeName("publication-read")
-                                                                            .build()
-                                                                    ))
-                                                                    .build())
-                                                .build();
+            .builder()
+            .resourceServer(ResourceServerType
+                .builder()
+                .identifier(EXTERNAL_SCOPE_IDENTIFIER)
+                .scopes(List.of(
+                    ResourceServerScopeType
+                        .builder()
+                        .scopeName("publication-read")
+                        .build()
+                ))
+                .build())
+            .build();
 
         when(cognitoClient.describeResourceServer(any(DescribeResourceServerRequest.class)))
             .thenReturn(describeRequestServerResponse);

@@ -1,23 +1,8 @@
 package no.unit.nva.handlers;
 
-import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
-import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static nva.commons.core.attempt.Try.attempt;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsMapContaining.hasEntry;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.MediaType;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Map;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -31,6 +16,23 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Map;
+
+import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static nva.commons.core.attempt.Try.attempt;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 public class UpdateViewingScopeHandlerTest extends HandlerTest {
 
@@ -58,6 +60,21 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
         assertThat(actualViewingScope, is(equalTo(expectedViewingScope)));
     }
 
+    private UserDto addSampleUserToDb() throws ConflictException {
+        var sampleUser = createSampleUserAndInsertUserRoles();
+        databaseService.addUser(sampleUser);
+        return sampleUser;
+    }
+
+    private InputStream createUpdateViewingScopeRequest(UserDto sampleUser,
+                                                        ViewingScope expectedViewingScope)
+        throws JsonProcessingException {
+        return new HandlerRequestBuilder<ViewingScope>(dtoObjectMapper)
+            .withBody(expectedViewingScope)
+            .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, sampleUser.getUsername()))
+            .build();
+    }
+
     @Test
     void shouldReturnAcceptedWhenInputIsValidAndUpdateHasBeenSubmittedToEventuallyConsistentDb()
         throws ConflictException, IOException {
@@ -65,6 +82,11 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
         var request = createUpdateViewingScopeRequest(sampleUser, randomViewingScope());
         var response = sendRequest(request, Void.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_ACCEPTED)));
+    }
+
+    private <I> GatewayResponse<I> sendRequest(InputStream request, Class<I> responseType) throws IOException {
+        handler.handleRequest(request, outputStream, CONTEXT);
+        return GatewayResponse.fromOutputStream(outputStream, responseType);
     }
 
     @Test
@@ -82,6 +104,18 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
         var request = createInvalidUpdateViewingScopeRequest(sampleUser);
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+    }
+
+    private InputStream createInvalidUpdateViewingScopeRequest(UserDto objectThatIsNotViewingScope)
+        throws JsonProcessingException {
+        var jsonMap = attempt(() -> JsonConfig.writeValueAsString(objectThatIsNotViewingScope))
+            .map(JsonConfig::mapFrom)
+            .orElseThrow();
+        jsonMap.remove("type");
+        return new HandlerRequestBuilder<Map<String,?>>(dtoObjectMapper)
+            .withBody(jsonMap)
+            .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, objectThatIsNotViewingScope.getUsername()))
+            .build();
     }
 
     @Test
@@ -102,37 +136,5 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
             .build();
         var response = sendRequest(request, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_BAD_REQUEST)));
-    }
-
-    private <I> GatewayResponse<I> sendRequest(InputStream request, Class<I> responseType) throws IOException {
-        handler.handleRequest(request, outputStream, CONTEXT);
-        return GatewayResponse.fromOutputStream(outputStream, responseType);
-    }
-
-    private UserDto addSampleUserToDb() throws ConflictException {
-        var sampleUser = createSampleUserAndInsertUserRoles();
-        databaseService.addUser(sampleUser);
-        return sampleUser;
-    }
-
-    private InputStream createUpdateViewingScopeRequest(UserDto sampleUser,
-                                                        ViewingScope expectedViewingScope)
-        throws JsonProcessingException {
-        return new HandlerRequestBuilder<ViewingScope>(dtoObjectMapper)
-            .withBody(expectedViewingScope)
-            .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, sampleUser.getUsername()))
-            .build();
-    }
-
-    private InputStream createInvalidUpdateViewingScopeRequest(UserDto objectThatIsNotViewingScope)
-        throws JsonProcessingException {
-        var jsonMap = attempt(() -> JsonConfig.writeValueAsString(objectThatIsNotViewingScope))
-            .map(JsonConfig::mapFrom)
-            .orElseThrow();
-        jsonMap.remove("type");
-        return new HandlerRequestBuilder<Map>(dtoObjectMapper)
-            .withBody(jsonMap)
-            .withPathParameters(Map.of(USERNAME_PATH_PARAMETER, objectThatIsNotViewingScope.getUsername()))
-            .build();
     }
 }

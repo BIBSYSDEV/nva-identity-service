@@ -1,13 +1,5 @@
 package no.unit.nva.customer.service.impl;
 
-import static nva.commons.core.attempt.Try.attempt;
-import java.net.URI;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
@@ -26,17 +18,27 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
+import java.net.URI;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static nva.commons.core.attempt.Try.attempt;
+
 
 public class DynamoDBCustomerService implements CustomerService {
 
     public static final String BY_ORG_DOMAIN_INDEX_NAME = "byOrgDomain";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found: ";
     public static final String IDENTIFIERS_NOT_EQUAL = "Identifier in request parameters '%s' "
-                                                       + "is not equal to identifier in customer object '%s'";
+        + "is not equal to identifier in customer object '%s'";
     public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
 
     public static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
-                                                         + "DynamoDB connection";
+        + "DynamoDB connection";
     public static final String CUSTOMER_ALREADY_EXISTS_ERROR = "Customer with Institution ID %s already exists.";
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
@@ -59,6 +61,19 @@ public class DynamoDBCustomerService implements CustomerService {
         warmupDynamoDbConnection(table);
     }
 
+    private void warmupDynamoDbConnection(DynamoDbTable<CustomerDao> table) {
+        try {
+            table.describeTable();
+        } catch (Exception e) {
+            logger.warn(DYNAMODB_WARMUP_PROBLEM, e);
+        }
+    }
+
+    private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
+        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
+        return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
+    }
+
     @Override
     public CustomerDto getCustomer(URI customerId) throws NotFoundException {
         var customerIdentifier = UriWrapper.fromUri(customerId).getLastPathElement();
@@ -68,9 +83,9 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public CustomerDto getCustomer(UUID identifier) throws NotFoundException {
         return Optional.of(CustomerDao.builder().withIdentifier(identifier).build())
-                   .map(table::getItem)
-                   .map(CustomerDao::toCustomerDto)
-                   .orElseThrow(() -> notFoundException(identifier.toString()));
+            .map(table::getItem)
+            .map(CustomerDao::toCustomerDto)
+            .orElseThrow(() -> notFoundException(identifier.toString()));
     }
 
     @Override
@@ -82,10 +97,10 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public List<CustomerDto> getCustomers() {
         return table.scan()
-                   .stream()
-                   .flatMap(page -> page.items().stream())
-                   .map(CustomerDao::toCustomerDto)
-                   .collect(Collectors.toList());
+            .stream()
+            .flatMap(page -> page.items().stream())
+            .map(CustomerDao::toCustomerDto)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -104,11 +119,6 @@ public class DynamoDBCustomerService implements CustomerService {
         return getCustomer(identifier);
     }
 
-    private CustomerDto refreshCustomer(CustomerDto customer) {
-        table.putItem(CustomerDao.fromCustomerDto(customer));
-        return attempt(() -> getCustomer(customer.getIdentifier())).orElseThrow();
-    }
-
     @Override
     public CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException {
         CustomerDao queryObject = createQueryForCristinNumber(cristinId);
@@ -118,14 +128,24 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public List<CustomerDto> refreshCustomers() {
         return table.scan().items().stream()
-                   .map(CustomerDao::toCustomerDto)
-                   .map(this::refreshCustomer)
-                   .collect(Collectors.toList());
+            .map(CustomerDao::toCustomerDto)
+            .map(this::refreshCustomer)
+            .collect(Collectors.toList());
     }
 
-    private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
-        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
-        return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
+    private CustomerDto refreshCustomer(CustomerDto customer) {
+        table.putItem(CustomerDao.fromCustomerDto(customer));
+        return attempt(() -> getCustomer(customer.getIdentifier())).orElseThrow();
+    }
+
+    private CustomerDao createQueryForCristinNumber(URI cristinId) {
+        return CustomerDao.builder().withCristinId(cristinId).build();
+    }
+
+    private void validateIdentifier(UUID identifier, CustomerDto customer) throws InputException {
+        if (!identifier.equals(customer.getIdentifier())) {
+            throw new InputException(String.format(IDENTIFIERS_NOT_EQUAL, identifier, customer.getIdentifier()), null);
+        }
     }
 
     private CustomerDto addInternalDetails(CustomerDto customer) {
@@ -145,18 +165,10 @@ public class DynamoDBCustomerService implements CustomerService {
         QueryEnhancedRequest query = createQuery(queryObject, indexPartitionValue);
         var results = table.index(indexName).query(query);
         return results.stream()
-                   .flatMap(page -> page.items().stream())
-                   .map(CustomerDao::toCustomerDto)
-                   .collect(SingletonCollector.tryCollect())
-                   .orElseThrow(fail -> notFoundException(queryObject.toString()));
-    }
-
-    private CustomerDao createQueryForOrgDomain(String feideDomain) {
-        return CustomerDao.builder().withFeideOrganizationDomain(feideDomain).build();
-    }
-
-    private CustomerDao createQueryForCristinNumber(URI cristinId) {
-        return CustomerDao.builder().withCristinId(cristinId).build();
+            .flatMap(page -> page.items().stream())
+            .map(CustomerDao::toCustomerDto)
+            .collect(SingletonCollector.tryCollect())
+            .orElseThrow(fail -> notFoundException(queryObject.toString()));
     }
 
     private QueryEnhancedRequest createQuery(CustomerDao queryObject,
@@ -166,18 +178,8 @@ public class DynamoDBCustomerService implements CustomerService {
         return QueryEnhancedRequest.builder().queryConditional(queryConditional).build();
     }
 
-    private void warmupDynamoDbConnection(DynamoDbTable<CustomerDao> table) {
-        try {
-            table.describeTable();
-        } catch (Exception e) {
-            logger.warn(DYNAMODB_WARMUP_PROBLEM, e);
-        }
-    }
-
-    private void validateIdentifier(UUID identifier, CustomerDto customer) throws InputException {
-        if (!identifier.equals(customer.getIdentifier())) {
-            throw new InputException(String.format(IDENTIFIERS_NOT_EQUAL, identifier, customer.getIdentifier()), null);
-        }
+    private CustomerDao createQueryForOrgDomain(String feideDomain) {
+        return CustomerDao.builder().withFeideOrganizationDomain(feideDomain).build();
     }
 
     private NotFoundException notFoundException(String queryValue) {

@@ -35,6 +35,7 @@ dependencies {
 }
 
 test{
+    environment "TERMS_TABLE_NAME", "TermsTable"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "API_KEY_SECRET_NAME", "ApiKeySecretName"
     environment "API_KEY_SECRET_KEY", "ApiKeySecretKey"
@@ -51,4 +52,5 @@ test{
     environment "BOT_FILTER_BYPASS_HEADER_NAME", "ExampleHeaderName"
     environment "BOT_FILTER_BYPASS_HEADER_VALUE", "ExampleHeaderValue"
     environment "USER_POOL_ID", "eu-west-1-some-id"
+    environment "BACKEND_CLIENT_ID", "some-client-id"
 }

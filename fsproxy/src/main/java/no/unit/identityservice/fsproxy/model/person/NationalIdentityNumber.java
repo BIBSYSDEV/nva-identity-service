@@ -1,7 +1,8 @@
 package no.unit.identityservice.fsproxy.model.person;
 
-import java.util.Objects;
 import nva.commons.core.JacocoGenerated;
+
+import java.util.Objects;
 
 public class NationalIdentityNumber {
 

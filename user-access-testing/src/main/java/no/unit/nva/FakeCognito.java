@@ -1,8 +1,5 @@
 package no.unit.nva;
 
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupResponse;
@@ -23,6 +20,11 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserA
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientDescription;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolClientType;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 
 public class FakeCognito implements CognitoIdentityProviderClient {
 

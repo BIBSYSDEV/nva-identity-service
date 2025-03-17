@@ -1,20 +1,6 @@
 package no.unit.nva.database;
 
-import static java.util.Objects.nonNull;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
-import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.StringContains.containsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
-import java.util.ArrayList;
-import java.util.List;
 import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.database.interfaces.WithEnvironment;
 import org.junit.jupiter.api.AfterEach;
@@ -32,6 +18,22 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Objects.nonNull;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_CRISTIN_IDENTIFIERS;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARCH_USERS_BY_INSTITUTION_INDEX_NAME;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_1_RANGE_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
+import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("PMD.JUnitAssertionsShouldIncludeMessage")
 public class LocalIdentityService implements WithEnvironment {
@@ -60,7 +62,7 @@ public class LocalIdentityService implements WithEnvironment {
     public DynamoDbClient initializeTestDatabase() {
 
         localDynamo = createLocalDynamoDbMock();
-    
+
         String tableName = Constants.USERS_AND_ROLES_TABLE;
         CreateTableResponse createTableResult = createTable(localDynamo, tableName);
         TableDescription tableDescription = createTableResult.tableDescription();
@@ -72,17 +74,6 @@ public class LocalIdentityService implements WithEnvironment {
         ListTablesResponse tables = localDynamo.listTables();
         assertEquals(SINGLE_TABLE_EXPECTED, tables.tableNames().size());
         return localDynamo;
-    }
-
-    /**
-     * Closes db.
-     */
-    @AfterEach
-    @SuppressWarnings("PMD.NullAssignment")
-    public void closeDB() {
-        if (nonNull(localDynamo)) {
-            localDynamo = null;
-        }
     }
 
     private static CreateTableResponse createTable(DynamoDbClient client, String tableName) {
@@ -99,12 +90,12 @@ public class LocalIdentityService implements WithEnvironment {
                 .globalSecondaryIndexes(
 
                     newGsi(SEARCH_USERS_BY_INSTITUTION_INDEX_NAME,
-                           SECONDARY_INDEX_1_HASH_KEY,
-                           SECONDARY_INDEX_1_RANGE_KEY),
+                        SECONDARY_INDEX_1_HASH_KEY,
+                        SECONDARY_INDEX_1_RANGE_KEY),
 
                     newGsi(SEARCH_USERS_BY_CRISTIN_IDENTIFIERS,
-                           SECONDARY_INDEX_2_HASH_KEY,
-                           SECONDARY_INDEX_2_RANGE_KEY)
+                        SECONDARY_INDEX_2_HASH_KEY,
+                        SECONDARY_INDEX_2_RANGE_KEY)
                 )
                 .build();
 
@@ -169,5 +160,16 @@ public class LocalIdentityService implements WithEnvironment {
 
     private DynamoDbClient createLocalDynamoDbMock() {
         return DynamoDBEmbedded.create().dynamoDbClient();
+    }
+
+    /**
+     * Closes db.
+     */
+    @AfterEach
+    @SuppressWarnings("PMD.NullAssignment")
+    public void closeDB() {
+        if (nonNull(localDynamo)) {
+            localDynamo = null;
+        }
     }
 }

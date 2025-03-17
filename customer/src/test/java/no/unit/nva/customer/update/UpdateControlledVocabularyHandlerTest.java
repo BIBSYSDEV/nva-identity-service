@@ -1,16 +1,7 @@
 package no.unit.nva.customer.update;
 
-import static no.unit.nva.customer.update.UpdateControlledVocabularyHandler.VOCABULARY_SETTINGS_NOT_DEFINED_ERROR;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.StringContains.containsString;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.util.Collections;
-import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
@@ -25,6 +16,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.util.Collections;
+import java.util.UUID;
+
+import static no.unit.nva.customer.update.UpdateControlledVocabularyHandler.VOCABULARY_SETTINGS_NOT_DEFINED_ERROR;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.StringContains.containsString;
+
 public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlledVocabularySettingsTests {
 
     public static final Context CONTEXT = new FakeContext();
@@ -32,6 +34,16 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
     @BeforeEach
     public void init() throws ApiGatewayException {
         super.init();
+    }
+
+    @Override
+    protected ControlledVocabularyHandler<?, ?> createHandler() {
+        return new UpdateControlledVocabularyHandler(customerService);
+    }
+
+    @Override
+    protected CustomerDto createExistingCustomer() {
+        return CustomerDataGenerator.createSampleCustomerDto();
     }
 
     @Test
@@ -108,14 +120,6 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
         assertThat(responseBody, containsString(VOCABULARY_SETTINGS_NOT_DEFINED_ERROR));
     }
 
-    @Test
-    public void handleRequestReturnsUpdatedVocabularyListWhenUserWithAccessRightManageOwnAffiliationsUpdatesVocabulary()
-        throws IOException {
-        var result = sendRequestWithAccessRight(existingIdentifier(), AccessRight.MANAGE_OWN_AFFILIATION);
-        var actualBody = VocabularyList.fromJson(result.getResponse().getBody());
-        assertThat(actualBody, is(equalTo(result.getExpectedBody())));
-    }
-
     private CustomerDto createCustomerWithoutVocabularySettings() {
         return CustomerDataGenerator
             .createSampleCustomerDto().copy()
@@ -123,13 +127,11 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
             .build();
     }
 
-    @Override
-    protected ControlledVocabularyHandler<?, ?> createHandler() {
-        return new UpdateControlledVocabularyHandler(customerService);
-    }
-
-    @Override
-    protected CustomerDto createExistingCustomer() {
-        return CustomerDataGenerator.createSampleCustomerDto();
+    @Test
+    public void handleRequestReturnsUpdatedVocabularyListWhenUserWithAccessRightManageOwnAffiliationsUpdatesVocabulary()
+        throws IOException {
+        var result = sendRequestWithAccessRight(existingIdentifier(), AccessRight.MANAGE_OWN_AFFILIATION);
+        var actualBody = VocabularyList.fromJson(result.getResponse().getBody());
+        assertThat(actualBody, is(equalTo(result.getExpectedBody())));
     }
 }

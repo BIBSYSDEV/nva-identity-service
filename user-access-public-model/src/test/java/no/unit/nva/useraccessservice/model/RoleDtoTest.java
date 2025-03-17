@@ -1,5 +1,26 @@
 package no.unit.nva.useraccessservice.model;
 
+import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
+import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.RoleDto.Builder;
+import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import org.hamcrest.core.IsSame;
+import org.hamcrest.core.StringContains;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Set;
+
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -16,25 +37,6 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Set;
-import no.unit.nva.identityservice.json.JsonConfig;
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
-import no.unit.nva.useraccessservice.model.RoleDto.Builder;
-import nva.commons.apigateway.AccessRight;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import org.hamcrest.core.IsSame;
-import org.hamcrest.core.StringContains;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullSource;
 
 class RoleDtoTest extends DtoTest {
 

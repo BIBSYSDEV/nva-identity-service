@@ -1,5 +1,33 @@
 package no.unit.nva.useraccessservice.dao;
 
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
+import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.attempt.Try;
+import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.TestAppender;
+import org.hamcrest.core.StringContains;
+import org.javers.core.Javers;
+import org.javers.core.JaversBuilder;
+import org.javers.core.diff.Diff;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
@@ -21,33 +49,6 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.model.RoleName;
-import no.unit.nva.useraccessservice.model.UserDto;
-import nva.commons.apigateway.AccessRight;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.core.attempt.Try;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
-import org.hamcrest.core.StringContains;
-import org.javers.core.Javers;
-import org.javers.core.JaversBuilder;
-import org.javers.core.diff.Diff;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class UserDaoTest {
 
@@ -62,6 +63,17 @@ class UserDaoTest {
 
     private UserDao userDao;
     private UserDao sampleUser;
+
+    private static List<RoleDb> createSampleRoles() {
+        return Stream.of(randomRoleName(), randomRoleName())
+            .map(attempt(UserDaoTest::newRole))
+            .map(Try::get)
+            .collect(Collectors.toList());
+    }
+
+    private static RoleDb newRole(RoleName roleName) throws InvalidEntryInternalException {
+        return RoleDb.newBuilder().withName(roleName).build();
+    }
 
     @BeforeEach
     public void init() throws InvalidEntryInternalException {
@@ -78,19 +90,19 @@ class UserDaoTest {
 
     @Test
     void extractRolesDoesNotThrowExceptionWhenRolesAreValid()
-        throws InvalidEntryInternalException, InvalidInputException {
+        throws InvalidEntryInternalException {
         UserDao userWithValidRole = UserDao.fromUserDto(createUserWithRolesAndInstitution());
         Executable action = userWithValidRole::toUserDto;
         assertDoesNotThrow(action);
     }
 
     @Test
-    void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() throws BadRequestException {
+    void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() {
 
         var includedCristinUnit = randomCristinOrgId();
         var excludedCristinUnit = randomCristinOrgId();
         ViewingScopeDb scope = new ViewingScopeDb(Set.of(includedCristinUnit),
-                                                  Set.of(excludedCristinUnit));
+            Set.of(excludedCristinUnit));
         UserDao userDao = UserDao.newBuilder().withUsername(randomString())
             .withViewingScope(scope)
             .build();
@@ -152,29 +164,6 @@ class UserDaoTest {
         assertThrows(InvalidEntryInternalException.class, () -> userDao.setUsername(invalidUsername));
     }
 
-    @Test
-    void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException {
-        UserDao originalUser = randomUserDb();
-        UserDao copy = originalUser.copy().build();
-        assertThat(copy, is(equalTo(originalUser)));
-
-        assertThat(copy, is(not(sameInstance(originalUser))));
-    }
-
-    @Test
-    void shouldConvertToDtoAndBackWithoutInformationLoss() {
-        UserDao originalUser = randomUserDb();
-        UserDao converted = Try.of(originalUser)
-            .map(UserDao::toUserDto)
-            .map(UserDao::fromUserDto)
-            .orElseThrow();
-
-        assertThat(originalUser, is(equalTo(converted)));
-        Diff diff = JAVERS.compare(originalUser, converted);
-        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
-        assertThat(converted, doesNotHaveEmptyValues());
-    }
-
 //    @ParameterizedTest(name = "fromUserDb throws Exception user contains invalidRole. Rolename:\"{0}\"")
 //    @NullAndEmptySource
 //    void fromUserDbThrowsExceptionWhenUserDbContainsInvalidRole(String invalidRoleName)
@@ -207,81 +196,12 @@ class UserDaoTest {
 //    }
 
     @Test
-    void roleValidationMethodLogsError()
-        throws InvalidEntryInternalException {
-        TestAppender appender = LogUtils.getTestingAppender(UserDao.class);
-        RoleDto invalidRole = RoleDto.newBuilder().withRoleName(randomRoleName()).build();
-        invalidRole.setRoleName(null);
+    void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException {
+        UserDao originalUser = randomUserDb();
+        UserDao copy = originalUser.copy().build();
+        assertThat(copy, is(equalTo(originalUser)));
 
-        List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
-        UserDto userWithInvalidRole = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
-
-        Executable action = () -> UserDao.fromUserDto(userWithInvalidRole);
-        assertThrows(RuntimeException.class, action);
-
-        assertThat(appender.getMessages(), StringContains.containsString(ERROR_DUE_TO_INVALID_ROLE));
-    }
-
-    @Test
-    void toUserDbReturnsValidUserDbWhenUserDtoIsValid() throws InvalidEntryInternalException {
-        UserDto userOnlyWithOnlyUsername = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
-        UserDto actualUserOnlyWithName = convertToUserDbAndBack(userOnlyWithOnlyUsername);
-        assertThat(actualUserOnlyWithName, is(equalTo(userOnlyWithOnlyUsername)));
-    }
-
-    @Test
-    void shouldContainListOfCristinOrganizationIdsThatDefineCuratorsScope()
-        throws InvalidEntryInternalException, BadRequestException {
-        URI someCristinUnit = randomCristinOrgId();
-        URI someOtherCristinUnit = randomCristinOrgId();
-        Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
-
-        ViewingScopeDb scope = new ViewingScopeDb(visisbleUnits, null);
-        UserDao userDao = UserDao.newBuilder().withUsername(randomString())
-            .withViewingScope(scope)
-            .build();
-
-        assertThat(userDao.getViewingScope().getIncludedUnits(),
-                   containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
-    }
-
-    @Test
-    void shouldContainInformationThatAllowsLocatingUserBasedOnFeideAndCristinInformationOfAssociatedPerson() {
-        var feideIdentifier = randomString();
-        var personCristinId = randomUri();
-        var orgCristinId = randomUri();
-        var dao = UserDao.newBuilder().withUsername(randomString())
-            .withCristinId(personCristinId)
-            .withFamilyName(randomString())
-            .withGivenName(randomString())
-            .withInstitution(randomUri())
-            .withFeideIdentifier(feideIdentifier)
-            .withInstitutionCristinId(orgCristinId)
-            .build();
-
-        assertThat(dao.getCristinId(), is(equalTo(personCristinId)));
-        assertThat(dao.getFeideIdentifier(), is(equalTo(feideIdentifier)));
-        assertThat(dao.getInstitutionCristinId(), is(equalTo(orgCristinId)));
-    }
-
-    @Test
-    void shouldCopyWithoutInformationLoss() {
-        var source = randomUserDb();
-        assertThat(source,doesNotHaveEmptyValues());
-        var copy = source.copy().build();
-        assertThat(copy,doesNotHaveEmptyValues());
-        assertThat(copy,is(equalTo(source)));
-    }
-
-    private static List<RoleDb> createSampleRoles() {
-        return Stream.of(randomRoleName(), randomRoleName())
-            .map(attempt(UserDaoTest::newRole))
-            .map(Try::get)
-            .collect(Collectors.toList());
-    }
-
-    private static RoleDb newRole(RoleName roleName) throws InvalidEntryInternalException {
-        return RoleDb.newBuilder().withName(roleName).build();
+        assertThat(copy, is(not(sameInstance(originalUser))));
     }
 
     private UserDao randomUserDb() {
@@ -310,7 +230,88 @@ class UserDaoTest {
         return RoleDb.newBuilder().withName(randomRoleName()).withAccessRights(accessRight).build();
     }
 
+    @Test
+    void shouldConvertToDtoAndBackWithoutInformationLoss() {
+        UserDao originalUser = randomUserDb();
+        UserDao converted = Try.of(originalUser)
+            .map(UserDao::toUserDto)
+            .map(UserDao::fromUserDto)
+            .orElseThrow();
+
+        assertThat(originalUser, is(equalTo(converted)));
+        Diff diff = JAVERS.compare(originalUser, converted);
+        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
+        assertThat(converted, doesNotHaveEmptyValues());
+    }
+
+    @Test
+    void roleValidationMethodLogsError()
+        throws InvalidEntryInternalException {
+        TestAppender appender = LogUtils.getTestingAppender(UserDao.class);
+        RoleDto invalidRole = RoleDto.newBuilder().withRoleName(randomRoleName()).build();
+        invalidRole.setRoleName(null);
+
+        List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
+        UserDto userWithInvalidRole = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
+
+        Executable action = () -> UserDao.fromUserDto(userWithInvalidRole);
+        assertThrows(RuntimeException.class, action);
+
+        assertThat(appender.getMessages(), StringContains.containsString(ERROR_DUE_TO_INVALID_ROLE));
+    }
+
+    @Test
+    void toUserDbReturnsValidUserDbWhenUserDtoIsValid() throws InvalidEntryInternalException {
+        UserDto userOnlyWithOnlyUsername = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
+        UserDto actualUserOnlyWithName = convertToUserDbAndBack(userOnlyWithOnlyUsername);
+        assertThat(actualUserOnlyWithName, is(equalTo(userOnlyWithOnlyUsername)));
+    }
+
     private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {
         return UserDao.fromUserDto(userDto).toUserDto();
+    }
+
+    @Test
+    void shouldContainListOfCristinOrganizationIdsThatDefineCuratorsScope()
+        throws InvalidEntryInternalException {
+        URI someCristinUnit = randomCristinOrgId();
+        URI someOtherCristinUnit = randomCristinOrgId();
+        Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
+
+        ViewingScopeDb scope = new ViewingScopeDb(visisbleUnits, null);
+        UserDao userDao = UserDao.newBuilder().withUsername(randomString())
+            .withViewingScope(scope)
+            .build();
+
+        assertThat(userDao.getViewingScope().getIncludedUnits(),
+            containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
+    }
+
+    @Test
+    void shouldContainInformationThatAllowsLocatingUserBasedOnFeideAndCristinInformationOfAssociatedPerson() {
+        var feideIdentifier = randomString();
+        var personCristinId = randomUri();
+        var orgCristinId = randomUri();
+        var dao = UserDao.newBuilder().withUsername(randomString())
+            .withCristinId(personCristinId)
+            .withFamilyName(randomString())
+            .withGivenName(randomString())
+            .withInstitution(randomUri())
+            .withFeideIdentifier(feideIdentifier)
+            .withInstitutionCristinId(orgCristinId)
+            .build();
+
+        assertThat(dao.getCristinId(), is(equalTo(personCristinId)));
+        assertThat(dao.getFeideIdentifier(), is(equalTo(feideIdentifier)));
+        assertThat(dao.getInstitutionCristinId(), is(equalTo(orgCristinId)));
+    }
+
+    @Test
+    void shouldCopyWithoutInformationLoss() {
+        var source = randomUserDb();
+        assertThat(source, doesNotHaveEmptyValues());
+        var copy = source.copy().build();
+        assertThat(copy, doesNotHaveEmptyValues());
+        assertThat(copy, is(equalTo(source)));
     }
 }

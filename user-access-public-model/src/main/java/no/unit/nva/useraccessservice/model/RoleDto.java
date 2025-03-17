@@ -1,18 +1,8 @@
 package no.unit.nva.useraccessservice.model;
 
-import static java.util.Objects.nonNull;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -23,6 +13,18 @@ import no.unit.nva.useraccessservice.model.interfaces.Validable;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Objects.nonNull;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class RoleDto implements WithCopy<Builder>, Validable, Typed {
 
@@ -50,11 +52,6 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
 
     public static Builder newBuilder() {
         return new RoleDto.Builder();
-    }
-
-    @Override
-    public String toString() {
-        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     @Override
@@ -108,7 +105,12 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
         }
         RoleDto roleDto = (RoleDto) o;
         return Objects.equals(getRoleName(), roleDto.getRoleName())
-               && Objects.equals(getAccessRights(), roleDto.getAccessRights());
+            && Objects.equals(getAccessRights(), roleDto.getAccessRights());
+    }
+
+    @Override
+    public String toString() {
+        return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
     }
 
     @Override

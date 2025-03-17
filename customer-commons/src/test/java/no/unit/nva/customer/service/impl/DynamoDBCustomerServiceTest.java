@@ -1,5 +1,34 @@
 package no.unit.nva.customer.service.impl;
 
+import no.unit.nva.customer.exception.InputException;
+import no.unit.nva.customer.model.ApplicationDomain;
+import no.unit.nva.customer.model.CustomerDao;
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.VocabularyDao;
+import no.unit.nva.customer.model.VocabularyDto;
+import no.unit.nva.customer.model.VocabularyStatus;
+import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import static no.unit.nva.customer.model.VocabularyStatus.ALLOWED;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
@@ -29,36 +58,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import java.net.URI;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.ApplicationDomain;
-import no.unit.nva.customer.model.CustomerDao;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.VocabularyDao;
-import no.unit.nva.customer.model.VocabularyDto;
-import no.unit.nva.customer.model.VocabularyStatus;
-import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
 class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     public static final int SINGLE_VOCABULARY = 0;
     private DynamoDBCustomerService service;
+    private static Logger logger = LoggerFactory.getLogger(DynamoDBCustomerServiceTest.class);
 
     /**
      * Set up environment.
@@ -78,6 +83,50 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         //inject automatically generated id
         customer.setId(createdCustomer.getId());
         assertThat(createdCustomer, is(equalTo(createdCustomer)));
+    }
+
+    private CustomerDto newActiveCustomerDto() {
+        var customer = newInactiveCustomerDto();
+        customer.setInactiveFrom(null);
+        return customer;
+    }
+
+    private CustomerDto newInactiveCustomerDto() {
+        var oneMinuteInThePast = Instant.now().minusSeconds(60L);
+        var customer = CustomerDto.builder()
+            .withName(randomString())
+            .withShortName(randomString())
+            .withCreatedDate(oneMinuteInThePast)
+            .withModifiedDate(oneMinuteInThePast)
+            .withDisplayName(randomString())
+            .withArchiveName(randomString())
+            .withCname(randomString())
+            .withInstitutionDns(randomString())
+            .withFeideOrganizationDomain(randomString())
+            .withCristinId(randomCristinOrgId())
+            .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
+            .withVocabularies(randomVocabularySet())
+            .withRorId(randomUri())
+            .withPublicationWorkflow(randomPublicationWorkflow())
+            .withDoiAgent(randomDoiAgent(randomString()))
+            .withSector(randomSector())
+            .withNviInstitution(randomBoolean())
+            .withRboInstitution(randomBoolean())
+            .withInactiveFrom(randomInstant())
+            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+            .build();
+        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
+            "doiAgent.password", "doiAgent.id")));
+        return customer;
+    }
+
+    private Set<VocabularyDto> randomVocabularySet() {
+        return Set.of(randomVocabulary(), randomVocabulary());
+    }
+
+    private VocabularyDto randomVocabulary() {
+        return new VocabularyDto(randomString(), randomUri(), randomElement(VocabularyStatus.values()));
     }
 
     @Test
@@ -147,9 +196,9 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         var createdCustomer = service.createCustomer(customer);
         var differentIdentifier = UUID.randomUUID();
         var exception = assertThrows(InputException.class,
-                                     () -> service.updateCustomer(differentIdentifier, createdCustomer));
+            () -> service.updateCustomer(differentIdentifier, createdCustomer));
         var expectedMessage = String.format(DynamoDBCustomerService.IDENTIFIERS_NOT_EQUAL,
-                                            differentIdentifier, createdCustomer.getIdentifier());
+            differentIdentifier, createdCustomer.getIdentifier());
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -161,7 +210,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         try {
             getCustomer = service.getCustomer(createdCustomer.getIdentifier());
         } catch (NotFoundException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         assertEquals(createdCustomer, getCustomer);
     }
@@ -174,7 +223,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         try {
             retrievedCustomer = service.getCustomer(createdCustomer.getId());
         } catch (NotFoundException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         assertThat(createdCustomer, is(equalTo(retrievedCustomer)));
     }
@@ -187,7 +236,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         try {
             getCustomer = service.getCustomerByOrgDomain(createdCustomer.getFeideOrganizationDomain());
         } catch (NotFoundException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         assertEquals(createdCustomer, getCustomer);
     }
@@ -223,7 +272,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     void getCustomerNotFoundThrowsException() {
         var nonExistingCustomer = UUID.randomUUID();
         var exception = assertThrows(NotFoundException.class,
-                                     () -> service.getCustomer(nonExistingCustomer));
+            () -> service.getCustomer(nonExistingCustomer));
         assertThat(exception.getMessage(), Matchers.containsString(nonExistingCustomer.toString()));
     }
 
@@ -237,7 +286,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
             });
         var failingService = new DynamoDBCustomerService(failingTable);
         var exception = assertThrows(RuntimeException.class,
-                                     () -> failingService.getCustomer(UUID.randomUUID()));
+            () -> failingService.getCustomer(UUID.randomUUID()));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -263,7 +312,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
             .when(failingTable).putItem(any(CustomerDao.class));
         var failingService = new DynamoDBCustomerService(failingTable);
         var exception = assertThrows(RuntimeException.class,
-                                     () -> failingService.createCustomer(newInactiveCustomerDto()));
+            () -> failingService.createCustomer(newInactiveCustomerDto()));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -279,8 +328,8 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         var customer = newActiveCustomerDto();
         customer.setIdentifier(UUID.randomUUID());
         var exception = assertThrows(RuntimeException.class,
-                                     () -> failingService.updateCustomer(customer.getIdentifier(),
-                                                                         customer));
+            () -> failingService.updateCustomer(customer.getIdentifier(),
+                customer));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -297,23 +346,10 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         assertThat(updatedCustomer.getVocabularies().get(0).getStatus(), is(equalTo(ALLOWED)));
     }
 
-    @Test
-    void shouldThrowConflictErrorWhenCustomerWithSameInstitutionIdExists() throws NotFoundException, ConflictException {
-        var existingCustomer = createCustomerWithSingleVocabularyEntry();
-        var customerDuplicate = CustomerDto.builder()
-                                    .withCristinId(existingCustomer.getCristinId())
-                                    .withCname(randomString())
-                                    .withArchiveName(randomString())
-                                    .withName(randomString())
-                                    .build();
-        Executable action = () -> service.createCustomer(customerDuplicate);
-        assertThrows(ConflictException.class, action);
-    }
-
     private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
         Map<String, AttributeValue> updatedEntry) {
         return updatedEntry.get(CustomerDao.VOCABULARIES_FIELD).l().get(SINGLE_VOCABULARY)
-                   .m().get(VocabularyDao.STATUS_FIELD).s();
+            .m().get(VocabularyDao.STATUS_FIELD).s();
     }
 
     private void updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(Map<String, AttributeValue> entry) {
@@ -332,6 +368,10 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         return newEntry;
     }
 
+    private String statusWithAlternateCase() {
+        return "AlLoWed";
+    }
+
     private Map<String, AttributeValue> fetchCustomerDirectlyFromDatabaseAsKeyValueMap() {
         var allEntries = this.dynamoClient.scan(ScanRequest.builder().tableName(CUSTOMERS_TABLE_NAME).build());
         return allEntries.items().get(0);
@@ -343,51 +383,16 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         return service.createCustomer(customer);
     }
 
-    private String statusWithAlternateCase() {
-        return "AlLoWed";
-    }
-
-    private CustomerDto newInactiveCustomerDto() {
-        var oneMinuteInThePast = Instant.now().minusSeconds(60L);
-        var customer = CustomerDto.builder()
-                           .withName(randomString())
-                           .withShortName(randomString())
-                           .withCreatedDate(oneMinuteInThePast)
-                           .withModifiedDate(oneMinuteInThePast)
-                           .withDisplayName(randomString())
-                           .withArchiveName(randomString())
-                           .withCname(randomString())
-                           .withInstitutionDns(randomString())
-                           .withFeideOrganizationDomain(randomString())
-                           .withCristinId(randomCristinOrgId())
-                           .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
-                           .withVocabularies(randomVocabularySet())
-                           .withRorId(randomUri())
-                           .withPublicationWorkflow(randomPublicationWorkflow())
-                           .withDoiAgent(randomDoiAgent(randomString()))
-                           .withSector(randomSector())
-                           .withNviInstitution(randomBoolean())
-                           .withRboInstitution(randomBoolean())
-                           .withInactiveFrom(randomInstant())
-                           .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                           .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                           .build();
-        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
-                                                                         "doiAgent.password","doiAgent.id")));
-        return customer;
-    }
-
-    private CustomerDto newActiveCustomerDto() {
-        var customer = newInactiveCustomerDto();
-        customer.setInactiveFrom(null);
-        return customer;
-    }
-
-    private Set<VocabularyDto> randomVocabularySet() {
-        return Set.of(randomVocabulary(), randomVocabulary());
-    }
-
-    private VocabularyDto randomVocabulary() {
-        return new VocabularyDto(randomString(), randomUri(), randomElement(VocabularyStatus.values()));
+    @Test
+    void shouldThrowConflictErrorWhenCustomerWithSameInstitutionIdExists() throws NotFoundException, ConflictException {
+        var existingCustomer = createCustomerWithSingleVocabularyEntry();
+        var customerDuplicate = CustomerDto.builder()
+            .withCristinId(existingCustomer.getCristinId())
+            .withCname(randomString())
+            .withArchiveName(randomString())
+            .withName(randomString())
+            .build();
+        Executable action = () -> service.createCustomer(customerDuplicate);
+        assertThrows(ConflictException.class, action);
     }
 }

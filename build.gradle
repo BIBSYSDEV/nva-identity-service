@@ -8,10 +8,7 @@ allprojects{
     apply plugin: 'nva.identity.service.dynamodblocal'
 }
 
-tasks.withType(JavaCompile) {
-    options.release = 17
-}
 wrapper {
-    gradleVersion = '8.2.1'
+    gradleVersion = '8.12.1'
     distributionType = Wrapper.DistributionType.ALL
 }

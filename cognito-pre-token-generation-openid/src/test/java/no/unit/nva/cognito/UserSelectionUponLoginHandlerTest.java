@@ -6,24 +6,30 @@ import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.cognito.CognitoClaims.ACCESS_RIGHTS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
+import static no.unit.nva.cognito.CognitoClaims.CUSTOMER_ACCEPTED_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
+import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
+import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_EXCLUDED_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_INCLUDED_CLAIM;
 import static no.unit.nva.cognito.LoginEventType.FEIDE;
 import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
-import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_FEIDE_USERS;
-import static no.unit.nva.cognito.UserSelectionUponLoginHandler.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.USER_NOT_ALLOWED_TO_IMPERSONATE;
+import static no.unit.nva.database.TermsAndConditionsService.TERMS_TABLE_NAME_ENV;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -50,14 +56,18 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent;
-import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEvent.Request;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Request;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +81,11 @@ import no.unit.nva.FakeCognito;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
+import no.unit.nva.database.DatabaseTestConfig;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.LocalIdentityService;
+import no.unit.nva.database.SingleTableTemplateCreator;
+import no.unit.nva.database.TermsAndConditionsService;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeSecretsManagerClient;
@@ -90,6 +103,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
@@ -104,6 +118,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.EnumSource.Mode;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @WireMockTest(httpsEnabled = true)
 class UserSelectionUponLoginHandlerTest {
@@ -111,12 +126,18 @@ class UserSelectionUponLoginHandlerTest {
     public static final int SINGLE_EXPECTED_USER = 1;
     public static final boolean ACTIVE = true;
     public static final boolean INACTIVE = false;
+    public static final String TERMS_TABLE = "TermsTable";
+    public static final URI TERMS_URI = URI.create("https://nva.sikt.no/terms/2024-10-01");
+    public static final String TRIGGER_SOURCE_AUTHENTICATION = "TokenGeneration_Authentication";
+    public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
+    private static final String COMMA = ",";
 
     private final Context context = new FakeContext();
     private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
     private UserSelectionUponLoginHandler handler;
     private DynamoDBCustomerService customerService;
     private IdentityService identityService;
+    private TermsAndConditionsService termsAndConditionsService;
     private FakeCognito cognitoClient;
     private MockPersonRegistry mockPersonRegistry;
     private LocalIdentityService identityServiceDb;
@@ -145,15 +166,38 @@ class UserSelectionUponLoginHandlerTest {
 
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
         cognitoClient = new FakeCognito(randomString());
+        var environment = mock(Environment.class);
+        when(environment.readEnv(TERMS_TABLE_NAME_ENV)).thenReturn(TERMS_TABLE);
+
+        DynamoDbClient embeddedClient = DatabaseTestConfig.getEmbeddedClient();
+        new SingleTableTemplateCreator(embeddedClient)
+            .createTable(TERMS_TABLE);
+
+        termsAndConditionsService = new TermsAndConditionsService(embeddedClient,
+                                                                  environment);
 
         var httpClient = WiremockHttpClient.create();
-        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService,
-                                                    CristinPersonRegistry.customPersonRegistry(
-                                                        httpClient,
-                                                        wiremockUri,
-                                                        ServiceConstants.API_DOMAIN,
-                                                        defaultRequestHeaders,
-                                                        new SecretsReader(secretsManagerClient)));
+        var personRegistry = CristinPersonRegistry.customPersonRegistry(
+            httpClient,
+            wiremockUri,
+            ServiceConstants.API_DOMAIN,
+            defaultRequestHeaders,
+            new SecretsReader(secretsManagerClient));
+
+        handler = new UserSelectionUponLoginHandler(
+            cognitoClient, customerService, identityService, personRegistry, termsAndConditionsService);
+    }
+
+    private DynamoDBCustomerService initializeCustomerService() {
+        customerServiceDatabase = new LocalCustomerServiceDatabase();
+        customerServiceDatabase.setupDatabase();
+        return new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
+    }
+
+    private IdentityService initializeIdentityService() {
+        identityServiceDb = new LocalIdentityService();
+        var client = identityServiceDb.initializeTestDatabase();
+        return IdentityService.defaultIdentityService(client);
     }
 
     @AfterEach
@@ -180,6 +224,62 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualUser.getInstitutionCristinId(), is(equalTo(expectedAffiliation)));
     }
 
+    private List<UserDto> scanAllUsers() {
+        var request = new ScanDatabaseRequestV2(randomString(), 100, null);
+        return identityService.fetchOnePageOfUsers(request).getRetrievedUsers();
+    }
+
+    private CognitoUserPoolPreTokenGenerationEventV2 newLoginEvent(String personNin,
+                                                                   LoginEventType loginEventType) {
+        return LoginEventType.FEIDE.equals(loginEventType) ? feideLogin(personNin) : nonFeideLogin(personNin);
+    }
+
+    private static CognitoUserPoolPreTokenGenerationEventV2 nonFeideLogin(String nin) {
+        Request request;
+        if (nonNull(nin)) {
+            request = Request.builder()
+                          .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin,
+                                                     CUSTOMER_ACCEPTED_TERMS, TERMS_URI.toString(),
+                                                     CURRENT_TERMS, TERMS_URI.toString())).build();
+        } else {
+            request = Request.builder()
+                          .withUserAttributes(Map.of("SOME", "VALUE")).build();
+        }
+        var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
+        loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
+        loginEvent.setRequest(request);
+        return loginEvent;
+    }
+
+    private CognitoUserPoolPreTokenGenerationEventV2 feideLogin(String nin) {
+        var feideDomain = fetchFeideDomainFromRandomCustomerWithActiveEmployment(nin);
+        var request = Request.builder().withUserAttributes(setupUserAttributesForFeideLogin(nin, feideDomain)).build();
+        var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
+        loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
+        loginEvent.setRequest(request);
+        return loginEvent;
+    }
+
+    private static Map<String, String> setupUserAttributesForFeideLogin(String nin,
+                                                                        String feideDomain) {
+        var attributes = new ConcurrentHashMap<String, String>();
+        attributes.put(NIN_FOR_FEIDE_USERS, nin);
+        attributes.put(FEIDE_ID, "feideid@domain.no");
+        if (nonNull(feideDomain)) {
+            attributes.put(ORG_FEIDE_DOMAIN, feideDomain);
+        }
+        return attributes;
+    }
+
+    private String fetchFeideDomainFromRandomCustomerWithActiveEmployment(String nin) {
+        return scenarios.fetchCustomersForPerson(nin)
+                   .stream()
+                   .filter(customer -> Objects.nonNull(customer.getFeideOrganizationDomain()))
+                   .findAny()
+                   .map(CustomerDto::getFeideOrganizationDomain)
+                   .orElse(null);
+    }
+
     @ParameterizedTest(name = "Login event type: {0}")
     @DisplayName("should log and throw exception when Cristin is unavailable during login")
     @EnumSource(LoginEventType.class)
@@ -202,7 +302,8 @@ class UserSelectionUponLoginHandlerTest {
             ServiceConstants.API_DOMAIN,
             defaultRequestHeaders,
             new SecretsReader(secretsManagerClient));
-        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService, personRegistry);
+        handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService, personRegistry,
+                                                    termsAndConditionsService);
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
         assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
         assertThat(testAppender.getMessages(), containsString("Cristin is unavailable"));
@@ -246,9 +347,9 @@ class UserSelectionUponLoginHandlerTest {
 
         assertThat(testAppender.getMessages(), containsString("Could not extract required data from request"));
         assertThat(testAppender.getMessages(), containsString(
-            "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEvent.Request"
-            + "(super=CognitoUserPoolEvent.Request(userAttributes={SOME=VALUE}), clientMetadata=null, "
-            + "groupConfiguration=null)"));
+            "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEventV2.Request"
+            + "(super=CognitoUserPoolEvent.Request(userAttributes={SOME=VALUE}), scopes=null, "
+            + "groupConfiguration=null, clientMetadata=null"));
     }
 
     @ParameterizedTest(name = "Login event type: {0}")
@@ -311,6 +412,12 @@ class UserSelectionUponLoginHandlerTest {
                                                                                     inactiveEmployments);
     }
 
+    private static void assertThatEmployeeWithInactiveAndActiveEmploymentInSameTopLevelOrgGetsAUser(
+        Set<URI> topLevelOrgsForCreatedUsers, Set<URI> activeEmployments, Set<URI> inactiveEmployments) {
+        assertThat(topLevelOrgsForCreatedUsers, containsInAnyOrder(activeEmployments.toArray(URI[]::new)));
+        assertThat(topLevelOrgsForCreatedUsers, containsInAnyOrder(inactiveEmployments.toArray(URI[]::new)));
+    }
+
     @ParameterizedTest(name = "should maintain legacy user names for users that have already logged in "
                               + "to avoid missing the reference between publications and users")
     @EnumSource(LoginEventType.class)
@@ -335,6 +442,8 @@ class UserSelectionUponLoginHandlerTest {
         var existingUserInitiallyWithoutRoles
             = scenarios.createUsersForAllActiveAffiliations(personLoggingIn, identityService).stream()
                   .collect(SingletonCollector.collect());
+        termsAndConditionsService.updateTermsAndConditions(existingUserInitiallyWithoutRoles.getCristinId(), TERMS_URI,
+                                                           existingUserInitiallyWithoutRoles.getUsername());
         var assignedAccessRights = randomAccessRights();
         var role = persistRoleToDatabase(assignedAccessRights);
         assignExistingRoleToUser(existingUserInitiallyWithoutRoles, role);
@@ -344,6 +453,97 @@ class UserSelectionUponLoginHandlerTest {
                                                        response);
 
         assertThatAccessRightsArePersistedInCognitoEntry(assignedAccessRights);
+    }
+
+    @Test
+    void shouldNotReturnAccessRightsWhenLatestTermsIsNotAccepted()
+        throws InvalidInputException, ConflictException, NotFoundException {
+        var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment().nin();
+        var user = scenarios.createUsersForAllActiveAffiliations(personLoggingIn, identityService).stream()
+                       .collect(SingletonCollector.collect());
+        var assignedAccessRights = randomAccessRights();
+        var role = persistRoleToDatabase(assignedAccessRights);
+        assignExistingRoleToUser(user, role);
+        var event = newLoginEvent(personLoggingIn, FEIDE);
+        var response = handler.handleRequest(event, context);
+        String[] groupsToOverride = response.getResponse()
+                                        .getClaimsAndScopeOverrideDetails()
+                                        .getGroupOverrideDetails()
+                                        .getGroupsToOverride();
+        assertThat(groupsToOverride.length, is(equalTo(0)));
+    }
+
+    private static Set<AccessRight> randomAccessRights() {
+        return new HashSet<>(List.of(randomElement(AccessRight.values()), randomElement(AccessRight.values())));
+    }
+
+    private static void assertThatResponseContainsAssignedAccessRights(
+        UserDto existingUser,
+        Set<AccessRight> assignedAccessRights,
+        CognitoUserPoolPreTokenGenerationEventV2 response) {
+
+        var groups =
+            response.getResponse().getClaimsAndScopeOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
+        var groupsList = Arrays.asList(groups);
+        var expectedAccessRight = constructExpectedAccessRightsForGroup(existingUser, assignedAccessRights);
+        assertThat(groupsList, hasItems(expectedAccessRight.toArray(String[]::new)));
+    }
+
+    private static List<String> constructExpectedAccessRightsForGroup(UserDto existingUserInitiallyWithoutRoles,
+                                                                      Set<AccessRight> assignedAccessRights) {
+        return assignedAccessRights.stream()
+                   .map(accessRight -> accessRight.toPersistedString()
+                                       + AT
+                                       + existingUserInitiallyWithoutRoles.getInstitution()
+                                             .toString())
+                   .collect(Collectors.toList());
+    }
+
+    private void assertThatAccessRightsArePersistedInCognitoEntry(Set<AccessRight> assignedAccessRights) {
+        var accessRightsPersistedInCognito = extractAccessRightFromCognitoEntry();
+        var expectedAccessRights = constructExpectedAccessRights(assignedAccessRights);
+        for (var expectedAccessRight : expectedAccessRights) {
+            assertThat(accessRightsPersistedInCognito, containsString(expectedAccessRight));
+        }
+    }
+
+    private static List<String> constructExpectedAccessRights(Set<AccessRight> assignedAccessRights) {
+        return assignedAccessRights.stream()
+                   .map(AccessRight::toPersistedString)
+                   .collect(Collectors.toList());
+    }
+
+    private String extractAccessRightFromCognitoEntry() {
+        return fetchCognitoEntryUpdateRequestSentByHandler().userAttributes()
+                   .stream()
+                   .filter(userAttribute -> ACCESS_RIGHTS_CLAIM.equals(userAttribute.name()))
+                   .map(AttributeType::value)
+                   .collect(SingletonCollector.collect());
+    }
+
+    private AdminUpdateUserAttributesRequest fetchCognitoEntryUpdateRequestSentByHandler() {
+        return cognitoClient.getAdminUpdateUserRequest();
+    }
+
+    private void assignExistingRoleToUser(UserDto existingUser, RoleDto role) throws NotFoundException {
+        existingUser.setRoles(Set.of(role));
+        identityService.updateUser(existingUser);
+    }
+
+    private RoleDto persistRoleToDatabase(Collection<AccessRight> accessRights)
+        throws InvalidInputException, ConflictException, NotFoundException {
+        var roleDto = RoleDto.newBuilder()
+                          .withRoleName(randomRoleNameButNot(RoleName.CREATOR))
+                          .withAccessRights(accessRights)
+                          .build();
+        persistRoleIfNotExist(roleDto);
+        return identityService.getRole(roleDto);
+    }
+
+    private void persistRoleIfNotExist(RoleDto newRole) throws ConflictException, InvalidInputException {
+        if (attempt(() -> identityService.getRole(newRole)).toOptional().isEmpty()) {
+            identityService.addRole(newRole);
+        }
     }
 
     @ParameterizedTest(name = "should add customer id as custom:customerId claim when user logs in and has only one "
@@ -364,6 +564,14 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualCustomerId, is(equalTo(expectedCustomerId.toString())));
     }
 
+    private String extractClaimFromCognitoUpdateRequest(String claimName) {
+        return cognitoClient.getAdminUpdateUserRequest()
+                   .userAttributes().stream()
+                   .filter(a -> a.name().equals(claimName))
+                   .map(AttributeType::value)
+                   .collect(SingletonCollector.collect());
+    }
+
     @ParameterizedTest(name = "should add Feide specified customer id as current customer id when user logs in "
                               + "with feide")
     @EnumSource(value = LoginEventType.class, names = {"FEIDE"}, mode = Mode.INCLUDE)
@@ -379,15 +587,23 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualCustomerId, is(equalTo(expectedCustomerId.toString())));
     }
 
+    private static String extractFeideDomainFromInputEvent(CognitoUserPoolPreTokenGenerationEventV2 event) {
+        return event.getRequest().getUserAttributes().get(ORG_FEIDE_DOMAIN);
+    }
+
     @ParameterizedTest(name = "should add firstName and lastName in claims when logging in")
     @EnumSource(value = LoginEventType.class)
-    void shouldStoreGivenNameAndFamilyNameInUserTableWhenLoggingIn(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
-        var event = newLoginEvent(person, loginEventType);
+    void shouldStoreGivenNameAndFamilyNameInUserTableWhenLoggingIn(LoginEventType loginEventType)
+        throws NotFoundException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var user = scenarios.createUsersForAllActiveAffiliations(person.nin(), identityService).stream()
+                       .collect(SingletonCollector.collect());
+        var event = newLoginEvent(person.nin(), loginEventType);
+        termsAndConditionsService.updateTermsAndConditions(user.getCristinId(), TERMS_URI, user.getUsername());
         handler.handleRequest(event, context);
 
-        var expectedFirstName = scenarios.getPersonFromRegistry(person).getFirstname();
-        var expectedLastName = scenarios.getPersonFromRegistry(person).getSurname();
+        var expectedFirstName = scenarios.getPersonFromRegistry(person.nin()).getFirstname();
+        var expectedLastName = scenarios.getPersonFromRegistry(person.nin()).getSurname();
 
         var firstName = extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM);
         var lastName = extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM);
@@ -409,6 +625,56 @@ class UserSelectionUponLoginHandlerTest {
         assertThatCustomerSelectionClaimsAreCleared();
     }
 
+    @ParameterizedTest(name = "should not clear customer selection claims when refreshing token")
+    @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"}, mode = Mode.INCLUDE)
+    void shouldNotClearCustomerSelectionClaimsRefreshingToken(
+        LoginEventType loginEventType) {
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+        var event = newLoginEvent(person, loginEventType);
+        var userAttributes = new HashMap<>(event.getRequest().getUserAttributes());
+        var customer = fetchCustomersWithActiveEmploymentsForPerson(person).stream().findFirst();
+        userAttributes.put(CURRENT_CUSTOMER_CLAIM, customer.get().toString());
+        event.getRequest().setUserAttributes(userAttributes);
+        event.setTriggerSource(TRIGGER_SOURCE_REFRESH_TOKENS);
+        handler.handleRequest(event, context);
+
+        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        assertThat(customerId, is(not(equalTo(EMPTY_CLAIM))));
+    }
+
+    @ParameterizedTest(name = "should not return allowed customers when no affiliations")
+    @EnumSource(value = LoginEventType.class, names = {"NON_FEIDE"}, mode = Mode.INCLUDE)
+    void shouldNotReturnAllowedCustomersWhenNoAffiliations(
+        LoginEventType loginEventType) throws NotFoundException {
+        var person = scenarios.personWithoutAffiliations().nin();
+        var cristinPersonId = mockPersonRegistry.getCristinIdForPerson(person);
+        termsAndConditionsService.updateTermsAndConditions(cristinPersonId, TERMS_URI,
+                                                           randomString());
+        var event = newLoginEvent(person, loginEventType);
+        event.setTriggerSource(TRIGGER_SOURCE_REFRESH_TOKENS);
+        handler.handleRequest(event, context);
+
+        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        assertThat(customerId, is(equalTo(EMPTY_CLAIM)));
+
+        final var allowedCustomers = extractClaimFromCognitoUpdateRequest(ALLOWED_CUSTOMERS_CLAIM);
+        assertThat(allowedCustomers, is(equalTo(EMPTY_CLAIM)));
+    }
+
+    private void assertThatCustomerSelectionClaimsAreCleared() {
+        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        assertThat(customerId, is(equalTo(EMPTY_CLAIM)));
+
+        final var topOrgCristinId = extractClaimFromCognitoUpdateRequest(TOP_ORG_CRISTIN_ID);
+        assertThat(topOrgCristinId, is(equalTo(EMPTY_CLAIM)));
+
+        final var nvaUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
+        assertThat(nvaUsername, is(equalTo(EMPTY_CLAIM)));
+
+        final var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
+        assertThat(personAffiliation, is(equalTo(EMPTY_CLAIM)));
+    }
+
     @ParameterizedTest(name = "should not assign access rights for active employment when institution (top-level org) "
                               + "is not a registered customer in NVA")
     @EnumSource(LoginEventType.class)
@@ -421,6 +687,11 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(allUsers, is(empty()));
         var accessRights = extractAccessRights(response);
         assertThat(accessRights, is(empty()));
+    }
+
+    private List<String> extractAccessRights(CognitoUserPoolPreTokenGenerationEventV2 response) {
+        return Arrays.asList(
+            response.getResponse().getClaimsAndScopeOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
     }
 
     // The following scenario happens when a customer was deleted and instead of being restored by backup data,
@@ -445,9 +716,14 @@ class UserSelectionUponLoginHandlerTest {
                               + "custom:allowedCustomers")
     @EnumSource(value = LoginEventType.class, names = "NON_FEIDE", mode = Mode.INCLUDE)
     void shouldIncludeAllCustomersWithActiveEmploymentsInCognitoFieldAllowedCustomersWhenLoggingInWithNonFeide(
-        LoginEventType loginEventType) {
+        LoginEventType loginEventType) throws NotFoundException {
 
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+        var usersWithRoles = createUsersWithRolesForPerson(person);
+        var firstUser = usersWithRoles.stream().findFirst().get();
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
+
         var expectedCustomerIds = scenarios.fetchCustomersForPerson(person)
                                       .stream()
                                       .map(CustomerDto::getId)
@@ -459,6 +735,27 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualAllowedCustomerIds, containsInAnyOrder(expectedCustomerIds.toArray(URI[]::new)));
     }
 
+    private List<URI> extractAllowedCustomersFromCongitoUpdateRequest() {
+        return cognitoClient.getAdminUpdateUserRequest()
+                   .userAttributes().stream()
+                   .filter(attribute -> attribute.name().equals(ALLOWED_CUSTOMERS_CLAIM))
+                   .map(AttributeType::value)
+                   .map(this::extractAllowedCustomersRespectingEmptyStringNull)
+                   .flatMap(Arrays::stream)
+                   .collect(Collectors.toList());
+    }
+
+    private URI[] extractAllowedCustomersRespectingEmptyStringNull(String value) {
+        if (EMPTY_CLAIM.equals(value)) {
+            return new URI[]{};
+        } else {
+            return Arrays.stream(value.split(","))
+                       .map(URI::create)
+                       .toList()
+                       .toArray(URI[]::new);
+        }
+    }
+
     @ParameterizedTest(name = "should include only customer from feide in the Cognito field "
                               + "custom:allowedCustomers")
     @EnumSource(value = LoginEventType.class, names = "FEIDE", mode = Mode.INCLUDE)
@@ -466,6 +763,11 @@ class UserSelectionUponLoginHandlerTest {
         LoginEventType loginEventType) throws NotFoundException {
 
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+        var usersWithRoles = createUsersWithRolesForPerson(person);
+
+        var firstUser = usersWithRoles.stream().findFirst().get();
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var orgFeideDomain = extractFeideDomainFromInputEvent(event);
@@ -478,8 +780,15 @@ class UserSelectionUponLoginHandlerTest {
     @ParameterizedTest(name = "should not include customers with inactive employments in the Cognito field "
                               + "custom:allowedCustomers")
     @EnumSource(LoginEventType.class)
-    void shouldNotIncludeCustomersWithInactiveEmploymentsInCognitoField(LoginEventType loginEventType) {
+    void shouldNotIncludeCustomersWithInactiveEmploymentsInCognitoField(LoginEventType loginEventType)
+        throws NotFoundException {
         var person = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
+        var usersWithRoles = createUsersWithRolesForPerson(person);
+
+        var firstUser = usersWithRoles.stream().findFirst().get();
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
+
         var expectedCustomerIds = fetchCustomersWithActiveEmploymentsForPerson(person);
         assertThat(expectedCustomerIds, hasSize(1));
         var event = newLoginEvent(person, loginEventType);
@@ -488,10 +797,23 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualAllowedCustomerIds, containsInAnyOrder(expectedCustomerIds.toArray(URI[]::new)));
     }
 
+    private List<URI> fetchCustomersWithActiveEmploymentsForPerson(String nin) {
+        return scenarios.getCristinUriForInstitutionAffiliations(nin, ACTIVE)
+                   .stream()
+                   .map(attempt(cristinId -> customerService.getCustomerByCristinId(cristinId)))
+                   .map(Try::orElseThrow)
+                   .map(CustomerDto::getId)
+                   .collect(Collectors.toList());
+    }
+
     @Test
     void shouldStoreAllUserRolesForActiveTopLevelAffiliationInCognitoUserAttributesForFeide() throws NotFoundException {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var usersWithRoles = createUsersWithRolesForPerson(person);
+
+        var firstUser = usersWithRoles.stream().findFirst().get();
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
 
         var event = newLoginEvent(person, FEIDE);
         handler.handleRequest(event, context);
@@ -514,6 +836,29 @@ class UserSelectionUponLoginHandlerTest {
                               .flatMap(Arrays::stream)
                               .collect(Collectors.toList());
         assertThat(actualRoles, containsInAnyOrder(expectedRoles.toArray(String[]::new)));
+    }
+
+    private List<UserDto> createUsersWithRolesForPerson(String nin) {
+        return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
+                   .stream()
+                   .map(attempt(user -> addRoleToUser(user, persistRandomRole())))
+                   .map(Try::orElseThrow)
+                   .collect(Collectors.toList());
+    }
+
+    private UserDto addRoleToUser(UserDto user, RoleDto persistRandomRole) throws NotFoundException {
+        user.setRoles(Set.of(persistRandomRole));
+        identityService.updateUser(user);
+        return identityService.getUser(user);
+    }
+
+    private RoleDto persistRandomRole() throws InvalidInputException, ConflictException {
+        var newRole = RoleDto.newBuilder()
+                          .withRoleName(randomRoleName())
+                          .withAccessRights(randomAccessRights())
+                          .build();
+        persistRoleIfNotExist(newRole.copy().withRoleName(newRole.getRoleName()).build());
+        return attempt(() -> identityService.getRole(newRole)).orElseThrow();
     }
 
     @Test
@@ -593,13 +938,39 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualAccessRights, is(emptyString()));
     }
 
+    private void addAccessRightToExistingRole(RoleDto role, AccessRight accessRight)
+        throws InvalidInputException, NotFoundException {
+        var accessRights = new HashSet<>(role.getAccessRights());
+        accessRights.add(accessRight);
+        var updatedRole = RoleDto.newBuilder()
+                              .withRoleName(role.getRoleName())
+                              .withAccessRights(accessRights)
+                              .build();
+        updateRole(updatedRole);
+    }
+
+    private void updateRole(RoleDto updatedRole) throws InvalidInputException, NotFoundException {
+        identityService.updateRole(updatedRole);
+    }
+
+    private List<UserDto> createUsersWithRolesForPerson(String nin, RoleDto role) {
+        return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
+                   .stream()
+                   .map(attempt(user -> addRoleToUser(user, role)))
+                   .map(Try::orElseThrow)
+                   .collect(Collectors.toList());
+    }
+
     @Test
     void shouldOnlyStoreAccessRightsInCognitoOfCurrentCustomerWhenUserHasSeveralActiveAffiliationsAndActiveCustomer()
         throws NotFoundException, InvalidInputException, ConflictException {
         var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
         var role = persistRandomRole();
-        createUsersWithRolesForPerson(person, role);
+        var users = createUsersWithRolesForPerson(person, role);
+        var firstUser = users.stream().findFirst().get();
         addAccessRightToExistingRole(role, AccessRight.MANAGE_DOI);
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
 
         var event = newLoginEvent(person, FEIDE);
 
@@ -624,6 +995,7 @@ class UserSelectionUponLoginHandlerTest {
         var role = persistRoleToDatabase(List.of(accessRight));
         assignExistingRoleToUser(user, role);
         addAccessRightToExistingRole(role, accessRight);
+        termsAndConditionsService.updateTermsAndConditions(user.getCristinId(), TERMS_URI, user.getUsername());
 
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
@@ -636,13 +1008,17 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldStoreAccessRightsToDatabaseWhenUserHasSeveralActiveAffiliations(LoginEventType loginEventType)
         throws InvalidInputException, NotFoundException, ConflictException {
-        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+        var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
         var role = persistRandomRole();
-        var users = createUsersWithRolesForPerson(person, role);
+        var users = createUsersWithRolesForPerson(person.nin(), role);
         var accessRight = randomElement(AccessRight.values());
         addAccessRightToExistingRole(role, accessRight);
+        var firstUser = users.stream().findFirst().get();
 
-        var event = newLoginEvent(person, loginEventType);
+        termsAndConditionsService.updateTermsAndConditions(firstUser.getCristinId(), TERMS_URI,
+                                                           firstUser.getUsername());
+
+        var event = newLoginEvent(person.nin(), loginEventType);
         handler.handleRequest(event, context);
 
         users.forEach(user -> {
@@ -665,6 +1041,12 @@ class UserSelectionUponLoginHandlerTest {
         handler.handleRequest(event, context);
         var actualUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
         assertThat(actualUsername, is(equalTo(expectedUsername)));
+    }
+
+    private String constructExpectedUsername(String nin, CustomerDto currentCustomer) {
+        String personIdentifier = scenarios.getPersonFromRegistry(nin).getId();
+        String topOrgCristinIdentifier = UriWrapper.fromUri(currentCustomer.getCristinId()).getLastPathElement();
+        return String.join(AT, personIdentifier, topOrgCristinIdentifier);
     }
 
     @ParameterizedTest(name = "should store user's username in cognito user attributes when "
@@ -703,7 +1085,6 @@ class UserSelectionUponLoginHandlerTest {
         var employment = scenarios.getCristinUriForUnitAffiliations(person)
                              .stream()
                              .collect(SingletonCollector.collect());
-
         var event = newLoginEvent(person, loginEventType);
         handler.handleRequest(event, context);
         var user = scanAllUsers().stream().collect(SingletonCollector.collect());
@@ -732,13 +1113,23 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(userAfterLogin.getAffiliation(), is(equalTo(expectedAffiliation)));
     }
 
+    private void removeEmployment(UserDto existingUser) throws NotFoundException {
+        existingUser.setAffiliation(null);
+        identityService.updateUser(existingUser);
+    }
+
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
-    void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType) {
-        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
-        var event = newLoginEvent(person, loginEventType);
+    void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType)
+        throws NotFoundException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var user = scenarios.createUsersForAllActiveAffiliations(person.nin(), identityService).stream()
+                       .collect(SingletonCollector.collect());
+        var event = newLoginEvent(person.nin(), loginEventType);
+        termsAndConditionsService.updateTermsAndConditions(user.getCristinId(), TERMS_URI, user.getUsername());
+
         handler.handleRequest(event, context);
-        var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(person)
+        var expectedAffiliation = scenarios.getCristinUriForUnitAffiliations(person.nin())
                                       .stream()
                                       .collect(SingletonCollector.collect());
         var cognitoAttribute = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
@@ -772,6 +1163,9 @@ class UserSelectionUponLoginHandlerTest {
 
         addAccessRightToExistingRole(role, approvePublishAccessRight);
 
+        termsAndConditionsService.updateTermsAndConditions(user.getCristinId(), TERMS_URI,
+                                                           user.getUsername());
+
         var event = newLoginEvent(person, LoginEventType.FEIDE);
 
         var response = handler.handleRequest(event, context);
@@ -780,6 +1174,60 @@ class UserSelectionUponLoginHandlerTest {
 
         assertUserAccessRightsAreUpdated(user, approveDoiAccessRight,
                                          approvePublishAccessRight);
+    }
+
+    @Test
+    void shouldUpdateViewingScopeClaimsUponLogin() throws NotFoundException {
+        var person = scenarios.personWithExactlyOneActiveEmployment().nin();
+        var user = scenarios.createUsersForAllActiveAffiliations(person, identityService)
+                       .stream()
+                       .collect(SingletonCollector.collect());
+
+        termsAndConditionsService.updateTermsAndConditions(user.getCristinId(), TERMS_URI,
+                                                           user.getUsername());
+
+        var event = newLoginEvent(person, LoginEventType.FEIDE);
+
+        handler.handleRequest(event, context);
+
+        assertThatViewingScopeClaimsArePresent(new String[]{"1", "2"}, new String[]{"3", "4"});
+    }
+
+    private void assertThatViewingScopeClaimsArePresent(String[] expectedViewingScopeIncluded,
+                                                        String[] expectedViewingScopeExcluded) {
+        final var viewingScopeIncluded = extractClaimFromCognitoUpdateRequest(VIEWING_SCOPE_INCLUDED_CLAIM);
+        assertCommaSeparatedClaimContainsInAnyOrder(VIEWING_SCOPE_INCLUDED_CLAIM, viewingScopeIncluded,
+                                                    expectedViewingScopeIncluded);
+
+        final var viewingScopeExcluded = extractClaimFromCognitoUpdateRequest(VIEWING_SCOPE_EXCLUDED_CLAIM);
+        assertCommaSeparatedClaimContainsInAnyOrder(VIEWING_SCOPE_EXCLUDED_CLAIM, viewingScopeExcluded,
+                                                    expectedViewingScopeExcluded);
+    }
+
+    private void assertCommaSeparatedClaimContainsInAnyOrder(String claimName, String actual, String[] expected) {
+        Set<String> actualAsSet;
+        if (actual == null || EMPTY_CLAIM.equals(actual)) {
+            actualAsSet = Collections.emptySet();
+        } else {
+            actualAsSet = new HashSet<>(Arrays.asList(actual.split(COMMA)));
+        }
+        assertThat(claimName + " should contain comma separated values in any order",
+                   actualAsSet,
+                   containsInAnyOrder(expected));
+    }
+
+    private void assertUserAccessRightsAreUpdated(UserDto user, AccessRight... accessRights) throws NotFoundException {
+        var updatedUser = identityService.getUser(user);
+        assertThat(updatedUser.getAccessRights(), containsInAnyOrder(accessRights));
+    }
+
+    private void assertIdTokenContainsGroupAccessRightClaims(UserDto user,
+                                                             CognitoUserPoolPreTokenGenerationEventV2 response,
+                                                             AccessRight... accessRights) {
+        var actualAccessRightClaims = extractAccessRights(response);
+        var expectedAccessRightClaims =
+            constructExpectedAccessRightsForGroup(user, Set.of(accessRights)).toArray();
+        assertThat(actualAccessRightClaims, containsInAnyOrder(expectedAccessRightClaims));
     }
 
     @Test
@@ -800,6 +1248,22 @@ class UserSelectionUponLoginHandlerTest {
         var expectedUsername = constructExpectedUsername(person, selectedCustomer);
 
         assertThatCustomerSelectionClaimsArePresent(expectedCustomerId, expectedCristinId, expectedUsername);
+    }
+
+    private void assertThatCustomerSelectionClaimsArePresent(URI expectedCustomerId,
+                                                             URI expectedCristinId,
+                                                             String expectedUsername) {
+        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+        assertThat(customerId, is(equalTo(expectedCustomerId.toString())));
+
+        final var topOrgCristinId = extractClaimFromCognitoUpdateRequest(TOP_ORG_CRISTIN_ID);
+        assertThat(topOrgCristinId, is(equalTo(expectedCristinId.toString())));
+
+        final var nvaUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
+        assertThat(nvaUsername, is(equalTo(expectedUsername)));
+
+        final var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
+        assertThat(personAffiliation, is(notNullValue()));
     }
 
     @Test
@@ -827,6 +1291,30 @@ class UserSelectionUponLoginHandlerTest {
 
         assertThat(firstName, is(equalTo(expectedFirstName)));
         assertThat(lastName, is(equalTo(expectedLastName)));
+    }
+
+    private CognitoUserPoolPreTokenGenerationEventV2 feideLoginWithImpersonation(String adminUsername,
+                                                                                 String adminNin,
+                                                                                 String impersonatedNin) {
+
+        var attributes = new ConcurrentHashMap<String, String>();
+        attributes.put(NIN_FOR_FEIDE_USERS, adminNin);
+        attributes.put(IMPERSONATING_CLAIM, impersonatedNin);
+
+        var request = Request.builder().withUserAttributes(attributes).build();
+        var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
+        loginEvent.setRequest(request);
+        loginEvent.setUserName(adminUsername);
+        loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
+        return loginEvent;
+    }
+
+    private List<UserDto> createUserWithRolesForPerson(String nin, RoleDto role) {
+        return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
+                   .stream()
+                   .map(attempt(user -> addRoleToUser(user, role)))
+                   .map(Try::orElseThrow)
+                   .collect(Collectors.toList());
     }
 
     @Test
@@ -860,319 +1348,5 @@ class UserSelectionUponLoginHandlerTest {
         var impersonatedByClaim = extractClaimFromCognitoUpdateRequest(IMPERSONATED_BY_CLAIM);
 
         assertThat(impersonatedByClaim, is(equalTo(adminName)));
-    }
-
-    private static String extractFeideDomainFromInputEvent(CognitoUserPoolPreTokenGenerationEvent event) {
-        return event.getRequest().getUserAttributes().get(ORG_FEIDE_DOMAIN);
-    }
-
-    private static Set<AccessRight> randomAccessRights() {
-        return new HashSet<>(List.of(randomElement(AccessRight.values()), randomElement(AccessRight.values())));
-    }
-
-    private static void assertThatResponseContainsAssignedAccessRights(
-        UserDto existingUser,
-        Set<AccessRight> assignedAccessRights,
-        CognitoUserPoolPreTokenGenerationEvent response) {
-
-        var groups =
-            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride();
-        var groupsList = Arrays.asList(groups);
-        var expectedAccessRight = constructExpectedAccessRightsForGroup(existingUser, assignedAccessRights);
-        assertThat(groupsList, hasItems(expectedAccessRight.toArray(String[]::new)));
-    }
-
-    private static Map<String, String> setupUserAttributesForFeideLogin(String nin,
-                                                                        String feideDomain) {
-        var attributes = new ConcurrentHashMap<String, String>();
-        attributes.put(NIN_FOR_FEIDE_USERS, nin);
-        if (nonNull(feideDomain)) {
-            attributes.put(ORG_FEIDE_DOMAIN, feideDomain);
-        }
-        return attributes;
-    }
-
-    private static List<String> constructExpectedAccessRights(Set<AccessRight> assignedAccessRights) {
-        return assignedAccessRights.stream()
-                   .map(AccessRight::toPersistedString)
-                   .collect(Collectors.toList());
-    }
-
-    private static List<String> constructExpectedAccessRightsForGroup(UserDto existingUserInitiallyWithoutRoles,
-                                                                      Set<AccessRight> assignedAccessRights) {
-        return assignedAccessRights.stream()
-                   .map(accessRight -> accessRight.toPersistedString()
-                                       + AT
-                                       + existingUserInitiallyWithoutRoles.getInstitution()
-                                             .toString())
-                   .collect(Collectors.toList());
-    }
-
-    private static void assertThatEmployeeWithInactiveAndActiveEmploymentInSameTopLevelOrgGetsAUser(
-        Set<URI> topLevelOrgsForCreatedUsers, Set<URI> activeEmployments, Set<URI> inactiveEmployments) {
-        assertThat(topLevelOrgsForCreatedUsers, containsInAnyOrder(activeEmployments.toArray(URI[]::new)));
-        assertThat(topLevelOrgsForCreatedUsers, containsInAnyOrder(inactiveEmployments.toArray(URI[]::new)));
-    }
-
-    private static CognitoUserPoolPreTokenGenerationEvent nonFeideLogin(String nin) {
-        Request request;
-        if (nonNull(nin)) {
-            request = Request.builder()
-                          .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin)).build();
-        } else {
-            request = Request.builder()
-                          .withUserAttributes(Map.of("SOME", "VALUE")).build();
-        }
-        var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
-        loginEvent.setRequest(request);
-        return loginEvent;
-    }
-
-    private void assertUserAccessRightsAreUpdated(UserDto user, AccessRight... accessRights) throws NotFoundException {
-        var updatedUser = identityService.getUser(user);
-        assertThat(updatedUser.getAccessRights(), containsInAnyOrder(accessRights));
-    }
-
-    private void assertIdTokenContainsGroupAccessRightClaims(UserDto user,
-                                                             CognitoUserPoolPreTokenGenerationEvent response,
-                                                             AccessRight... accessRights) {
-        var actualAccessRightClaims = extractAccessRights(response);
-        var expectedAccessRightClaims =
-            constructExpectedAccessRightsForGroup(user, Set.of(accessRights)).toArray();
-        assertThat(actualAccessRightClaims, containsInAnyOrder(expectedAccessRightClaims));
-    }
-
-    private void assertThatCustomerSelectionClaimsAreCleared() {
-        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
-        assertThat(customerId, is(equalTo(EMPTY_CLAIM)));
-
-        final var topOrgCristinId = extractClaimFromCognitoUpdateRequest(TOP_ORG_CRISTIN_ID);
-        assertThat(topOrgCristinId, is(equalTo(EMPTY_CLAIM)));
-
-        final var nvaUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
-        assertThat(nvaUsername, is(equalTo(EMPTY_CLAIM)));
-
-        final var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
-        assertThat(personAffiliation, is(equalTo(EMPTY_CLAIM)));
-    }
-
-    private void assertThatCustomerSelectionClaimsArePresent(URI expectedCustomerId,
-                                                             URI expectedCristinId,
-                                                             String expectedUsername) {
-
-        final var customerId = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
-        assertThat(customerId, is(equalTo(expectedCustomerId.toString())));
-
-        final var topOrgCristinId = extractClaimFromCognitoUpdateRequest(TOP_ORG_CRISTIN_ID);
-        assertThat(topOrgCristinId, is(equalTo(expectedCristinId.toString())));
-
-        final var nvaUsername = extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM);
-        assertThat(nvaUsername, is(equalTo(expectedUsername)));
-
-        final var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
-        assertThat(personAffiliation, is(notNullValue()));
-    }
-
-    private void assertThatAccessRightsArePersistedInCognitoEntry(Set<AccessRight> assignedAccessRights) {
-        var accessRightsPersistedInCognito = extractAccessRightFromCognitoEntry();
-        var expectedAccessRights = constructExpectedAccessRights(assignedAccessRights);
-        for (var expectedAccessRight : expectedAccessRights) {
-            assertThat(accessRightsPersistedInCognito, containsString(expectedAccessRight));
-        }
-    }
-
-    private void assignExistingRoleToUser(UserDto existingUser, RoleDto role) throws NotFoundException {
-        existingUser.setRoles(Set.of(role));
-        identityService.updateUser(existingUser);
-    }
-
-    private DynamoDBCustomerService initializeCustomerService() {
-        customerServiceDatabase = new LocalCustomerServiceDatabase();
-        customerServiceDatabase.setupDatabase();
-        return new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
-    }
-
-    private IdentityService initializeIdentityService() {
-        identityServiceDb = new LocalIdentityService();
-        var client = identityServiceDb.initializeTestDatabase();
-        return IdentityService.defaultIdentityService(client);
-    }
-
-    private List<UserDto> scanAllUsers() {
-        var request = new ScanDatabaseRequestV2(randomString(), 100, null);
-        return identityService.fetchOnePageOfUsers(request).getRetrievedUsers();
-    }
-
-    private CognitoUserPoolPreTokenGenerationEvent feideLogin(String nin) {
-        var feideDomain = fetchFeideDomainFromRandomCustomerWithActiveEmployment(nin);
-        var request = Request.builder().withUserAttributes(setupUserAttributesForFeideLogin(nin, feideDomain)).build();
-        var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
-        loginEvent.setRequest(request);
-        return loginEvent;
-    }
-
-    private String extractAccessRightFromCognitoEntry() {
-        return fetchCognitoEntryUpdateRequestSentByHandler().userAttributes()
-                   .stream()
-                   .filter(userAttribute -> ACCESS_RIGHTS_CLAIM.equals(userAttribute.name()))
-                   .map(AttributeType::value)
-                   .collect(SingletonCollector.collect());
-    }
-
-    private AdminUpdateUserAttributesRequest fetchCognitoEntryUpdateRequestSentByHandler() {
-        return cognitoClient.getAdminUpdateUserRequest();
-    }
-
-    private RoleDto persistRoleToDatabase(Collection<AccessRight> accessRights)
-        throws InvalidInputException, ConflictException, NotFoundException {
-        var roleDto = RoleDto.newBuilder()
-                          .withRoleName(randomRoleNameButNot(RoleName.CREATOR))
-                          .withAccessRights(accessRights)
-                          .build();
-        persistRoleIfNotExist(roleDto);
-        return identityService.getRole(roleDto);
-    }
-
-    private void addAccessRightToExistingRole(RoleDto role, AccessRight accessRight)
-        throws InvalidInputException, NotFoundException {
-        var accessRights = new HashSet<>(role.getAccessRights());
-        accessRights.add(accessRight);
-        var updatedRole = RoleDto.newBuilder()
-                              .withRoleName(role.getRoleName())
-                              .withAccessRights(accessRights)
-                              .build();
-        updateRole(updatedRole);
-    }
-
-    private String fetchFeideDomainFromRandomCustomerWithActiveEmployment(String nin) {
-        return scenarios.fetchCustomersForPerson(nin)
-                   .stream()
-                   .filter(customer -> Objects.nonNull(customer.getFeideOrganizationDomain()))
-                   .findAny()
-                   .map(CustomerDto::getFeideOrganizationDomain)
-                   .orElse(null);
-    }
-
-    private CognitoUserPoolPreTokenGenerationEvent newLoginEvent(String personNin,
-                                                                 LoginEventType loginEventType) {
-        return LoginEventType.FEIDE.equals(loginEventType) ? feideLogin(personNin) : nonFeideLogin(personNin);
-    }
-
-    private CognitoUserPoolPreTokenGenerationEvent feideLoginWithImpersonation(String adminUsername,
-                                                                               String adminNin,
-                                                                               String impersonatedNin) {
-
-        var attributes = new ConcurrentHashMap<String, String>();
-        attributes.put(NIN_FOR_FEIDE_USERS, adminNin);
-        attributes.put(IMPERSONATING_CLAIM, impersonatedNin);
-
-        var request = Request.builder().withUserAttributes(attributes).build();
-        var loginEvent = new CognitoUserPoolPreTokenGenerationEvent();
-        loginEvent.setRequest(request);
-        loginEvent.setUserName(adminUsername);
-        return loginEvent;
-    }
-
-    private List<UserDto> createUsersWithRolesForPerson(String nin) {
-        return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
-                   .stream()
-                   .map(attempt(user -> addRoleToUser(user, persistRandomRole())))
-                   .map(Try::orElseThrow)
-                   .collect(Collectors.toList());
-    }
-
-    private List<UserDto> createUsersWithRolesForPerson(String nin, RoleDto role) {
-        return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
-                   .stream()
-                   .map(attempt(user -> addRoleToUser(user, role)))
-                   .map(Try::orElseThrow)
-                   .collect(Collectors.toList());
-    }
-
-    private List<UserDto> createUserWithRolesForPerson(String nin, RoleDto role) {
-        return scenarios.createUsersForAllActiveAffiliations(nin, identityService)
-                   .stream()
-                   .map(attempt(user -> addRoleToUser(user, role)))
-                   .map(Try::orElseThrow)
-                   .collect(Collectors.toList());
-    }
-
-    private UserDto addRoleToUser(UserDto user, RoleDto persistRandomRole) throws NotFoundException {
-        user.setRoles(Set.of(persistRandomRole));
-        identityService.updateUser(user);
-        return identityService.getUser(user);
-    }
-
-    private RoleDto persistRandomRole() throws InvalidInputException, ConflictException {
-        var newRole = RoleDto.newBuilder()
-                          .withRoleName(randomRoleName())
-                          .withAccessRights(randomAccessRights())
-                          .build();
-        persistRoleIfNotExist(newRole.copy().withRoleName(newRole.getRoleName()).build());
-        return attempt(() -> identityService.getRole(newRole)).orElseThrow();
-    }
-
-    private void persistRoleIfNotExist(RoleDto newRole) throws ConflictException, InvalidInputException {
-        if (attempt(() -> identityService.getRole(newRole)).toOptional().isEmpty()) {
-            identityService.addRole(newRole);
-        }
-    }
-
-    private void updateRole(RoleDto updatedRole) throws InvalidInputException, NotFoundException {
-        identityService.updateRole(updatedRole);
-    }
-
-    private List<URI> extractAllowedCustomersFromCongitoUpdateRequest() {
-        return cognitoClient.getAdminUpdateUserRequest()
-                   .userAttributes().stream()
-                   .filter(attribute -> attribute.name().equals(ALLOWED_CUSTOMERS_CLAIM))
-                   .map(AttributeType::value)
-                   .map(this::extractAllowedCustomersRespectingEmptyStringNull)
-                   .flatMap(Arrays::stream)
-                   .collect(Collectors.toList());
-    }
-
-    private URI[] extractAllowedCustomersRespectingEmptyStringNull(String value) {
-        if (EMPTY_CLAIM.equals(value)) {
-            return new URI[]{};
-        } else {
-            return Arrays.stream(value.split(","))
-                       .map(URI::create)
-                       .toList()
-                       .toArray(URI[]::new);
-        }
-    }
-
-    private String extractClaimFromCognitoUpdateRequest(String claimName) {
-        return cognitoClient.getAdminUpdateUserRequest()
-                   .userAttributes().stream()
-                   .filter(a -> a.name().equals(claimName))
-                   .map(AttributeType::value)
-                   .collect(SingletonCollector.collect());
-    }
-
-    private List<URI> fetchCustomersWithActiveEmploymentsForPerson(String nin) {
-        return scenarios.getCristinUriForInstitutionAffiliations(nin, ACTIVE)
-                   .stream()
-                   .map(attempt(cristinId -> customerService.getCustomerByCristinId(cristinId)))
-                   .map(Try::orElseThrow)
-                   .map(CustomerDto::getId)
-                   .collect(Collectors.toList());
-    }
-
-    private String constructExpectedUsername(String nin, CustomerDto currentCustomer) {
-        String personIdentifier = scenarios.getPersonFromRegistry(nin).getId();
-        String topOrgCristinIdentifier = UriWrapper.fromUri(currentCustomer.getCristinId()).getLastPathElement();
-        return String.join(AT, personIdentifier, topOrgCristinIdentifier);
-    }
-
-    private void removeEmployment(UserDto existingUser) throws NotFoundException {
-        existingUser.setAffiliation(null);
-        identityService.updateUser(existingUser);
-    }
-
-    private List<String> extractAccessRights(CognitoUserPoolPreTokenGenerationEvent response) {
-        return Arrays.asList(
-            response.getResponse().getClaimsOverrideDetails().getGroupOverrideDetails().getGroupsToOverride());
     }
 }

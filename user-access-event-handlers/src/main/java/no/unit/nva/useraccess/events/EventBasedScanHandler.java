@@ -1,10 +1,6 @@
 package no.unit.nva.useraccess.events;
 
-import static no.unit.useraccessservice.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.util.List;
-import java.util.stream.Collectors;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.events.handlers.EventHandler;
@@ -22,6 +18,12 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, Void> {
 
@@ -51,6 +53,13 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
         this.eventsClient = eventsClient;
     }
 
+    @JacocoGenerated
+    private static UserMigrationServiceImpl defaultMigrationService(
+        DynamoDbClient dynamoDBClient) {
+        DynamoDBCustomerService customerService = new DynamoDBCustomerService(dynamoDBClient);
+        return new UserMigrationServiceImpl(customerService);
+    }
+
     @Override
     protected Void processInput(ScanDatabaseRequestV2 scanDatabaseRequest,
                                 AwsEventBridgeEvent<ScanDatabaseRequestV2> event,
@@ -62,14 +71,6 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
         emitNexScanRequestIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
         return VOID;
     }
-
-    @JacocoGenerated
-    private static UserMigrationServiceImpl defaultMigrationService(
-        DynamoDbClient dynamoDBClient) {
-        DynamoDBCustomerService customerService = new DynamoDBCustomerService(dynamoDBClient);
-        return new UserMigrationServiceImpl(customerService);
-    }
-
 
     private List<UserDto> persistMigratedUsersToDatabase(List<UserDto> migratedUsers) {
         var updatedUsers = migratedUsers.stream()
@@ -108,15 +109,6 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
         logger.info("nextEvent:" + eventForNextScanRequest);
     }
 
-    private List<UserDto> migrateUsers(List<UserDto> users) {
-        var migratedUsers = users
-            .stream()
-            .map(migrationService::migrateUser)
-            .collect(Collectors.toList());
-        logger.info("Number of users to be migrated:" + migratedUsers.size());
-        return migratedUsers;
-    }
-
     private PutEventsRequest creteEventForNextPageScan(ScanDatabaseRequestV2 inputScanRequest,
                                                        UserScanResult scanResult,
                                                        Context context) {
@@ -128,11 +120,20 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
 
     private PutEventsRequestEntry createNewEventEntry(Context context, ScanDatabaseRequestV2 scanRequest) {
         return scanRequest.createNewEventEntry(EventsConfig.EVENT_BUS,
-                                               EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE,
-                                               context.getInvokedFunctionArn());
+            EventsConfig.SCAN_REQUEST_EVENTS_DETAIL_TYPE,
+            context.getInvokedFunctionArn());
     }
 
     private ScanDatabaseRequestV2 createNextScanRequest(ScanDatabaseRequestV2 input, UserScanResult scanResult) {
         return input.newScanDatabaseRequest(scanResult.getStartMarkerForNextScan());
+    }
+
+    private List<UserDto> migrateUsers(List<UserDto> users) {
+        var migratedUsers = users
+            .stream()
+            .map(migrationService::migrateUser)
+            .collect(Collectors.toList());
+        logger.info("Number of users to be migrated:" + migratedUsers.size());
+        return migratedUsers;
     }
 }

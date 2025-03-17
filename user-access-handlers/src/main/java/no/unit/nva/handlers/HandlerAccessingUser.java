@@ -1,7 +1,8 @@
 package no.unit.nva.handlers;
 
-import java.nio.charset.StandardCharsets;
 import nva.commons.apigateway.ApiGatewayHandler;
+
+import java.nio.charset.StandardCharsets;
 
 public abstract class HandlerAccessingUser<I, O> extends ApiGatewayHandler<I, O> {
 

@@ -44,11 +44,11 @@ public class AuthenticationDetails {
     @Override
     public String toString() {
         return "AuthenticationDetails{"
-               + "nin=" + nin
-               + ", feideIdentifier='" + feideIdentifier + '\''
-               + ", feideDomain='" + feideDomain + '\''
-               + ", userPoolId='" + userPoolId + '\''
-               + ", username='" + username + '\''
-               + '}';
+            + "nin=" + nin
+            + ", feideIdentifier='" + feideIdentifier + '\''
+            + ", feideDomain='" + feideDomain + '\''
+            + ", userPoolId='" + userPoolId + '\''
+            + ", username='" + username + '\''
+            + '}';
     }
 }

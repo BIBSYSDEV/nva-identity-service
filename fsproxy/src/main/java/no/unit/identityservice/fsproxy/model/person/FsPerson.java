@@ -2,9 +2,10 @@ package no.unit.identityservice.fsproxy.model.person;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Objects;
 import no.unit.nva.commons.json.JsonSerializable;
 import nva.commons.core.JacocoGenerated;
+
+import java.util.Objects;
 
 public class FsPerson implements JsonSerializable {
 
@@ -31,6 +32,12 @@ public class FsPerson implements JsonSerializable {
         this.personalNumber = personalNumber;
     }
 
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getFsIdNumber(), getStaffPerson(), getBirthDate(), getPersonalNumber());
+    }
+
     public String getBirthDate() {
         return birthDate;
     }
@@ -45,12 +52,6 @@ public class FsPerson implements JsonSerializable {
 
     public String getStaffPerson() {
         return fagperson;
-    }
-
-    @Override
-    @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getFsIdNumber(), getStaffPerson(), getBirthDate(), getPersonalNumber());
     }
 
     @JacocoGenerated

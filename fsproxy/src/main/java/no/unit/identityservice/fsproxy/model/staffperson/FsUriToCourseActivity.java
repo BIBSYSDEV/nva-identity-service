@@ -2,9 +2,10 @@ package no.unit.identityservice.fsproxy.model.staffperson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import nva.commons.core.JacocoGenerated;
+
 import java.net.URI;
 import java.util.Objects;
-import nva.commons.core.JacocoGenerated;
 
 public class FsUriToCourseActivity {
 
@@ -18,6 +19,12 @@ public class FsUriToCourseActivity {
 
     @JacocoGenerated
     @Override
+    public int hashCode() {
+        return Objects.hash(uriToCourse);
+    }
+
+    @JacocoGenerated
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -27,12 +34,6 @@ public class FsUriToCourseActivity {
         }
         FsUriToCourseActivity that = (FsUriToCourseActivity) o;
         return Objects.equals(uriToCourse, that.uriToCourse);
-    }
-
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(uriToCourse);
     }
 
     public URI getUri() {

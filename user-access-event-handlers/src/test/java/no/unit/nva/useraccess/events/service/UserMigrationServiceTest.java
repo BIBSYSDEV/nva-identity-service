@@ -1,5 +1,18 @@
 package no.unit.nva.useraccess.events.service;
 
+import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.TestAppender;
+import nva.commons.secrets.SecretsReader;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.UUID;
+
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.model.ViewingScope.defaultViewingScope;
@@ -12,17 +25,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import java.io.IOException;
-import java.net.URI;
-import java.util.UUID;
-import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.service.CustomerService;
-import no.unit.nva.useraccessservice.model.UserDto;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
-import nva.commons.secrets.SecretsReader;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 class UserMigrationServiceTest {
 
@@ -51,6 +53,25 @@ class UserMigrationServiceTest {
         assertThat(actualUser, is(equalTo(expectedUser)));
     }
 
+    private CustomerDto createSampleCustomer() {
+        return CustomerDto.builder()
+            .withCristinId(SAMPLE_ORG_ID)
+            .build();
+    }
+
+    private UserDto createSampleUser() {
+        return UserDto.newBuilder()
+            .withUsername(randomString())
+            .withGivenName(randomString())
+            .withFamilyName(randomString())
+            .withInstitution(randomInstitutionUri())
+            .build();
+    }
+
+    private URI randomInstitutionUri() {
+        return URI.create("https://www.example.com/" + UUID.randomUUID());
+    }
+
     @Test
     void shouldLogMessageWhenCustomerIdentifierIsNotValidUuid() throws IOException, InterruptedException {
         final TestAppender appender = LogUtils.getTestingAppenderForRootLogger();
@@ -64,24 +85,5 @@ class UserMigrationServiceTest {
 
     private UserDto createSampleUserWithInvalidCustomerId() {
         return createSampleUser().copy().withInstitution(randomUri()).build();
-    }
-
-    private CustomerDto createSampleCustomer() {
-        return CustomerDto.builder()
-                   .withCristinId(SAMPLE_ORG_ID)
-                   .build();
-    }
-
-    private UserDto createSampleUser() {
-        return UserDto.newBuilder()
-                   .withUsername(randomString())
-                   .withGivenName(randomString())
-                   .withFamilyName(randomString())
-                   .withInstitution(randomInstitutionUri())
-                   .build();
-    }
-
-    private URI randomInstitutionUri() {
-        return URI.create("https://www.example.com/" + UUID.randomUUID());
     }
 }

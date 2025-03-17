@@ -1,9 +1,6 @@
-
 package no.unit.nva.handlers;
 
-import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.GetExternalClientResponse;
@@ -11,6 +8,10 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+
+import static nva.commons.apigateway.AccessRight.MANAGE_EXTERNAL_CLIENTS;
 
 public class GetExternalClientHandler
     extends HandlerWithEventualConsistency<Void, GetExternalClientResponse> {
@@ -71,6 +72,6 @@ public class GetExternalClientHandler
 
     private boolean userIsNotAuthorized(RequestInfo requestInfo) {
         return !(requestInfo.clientIsInternalBackend()
-                 || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
+            || requestInfo.userIsAuthorized(MANAGE_EXTERNAL_CLIENTS));
     }
 }

@@ -1,12 +1,13 @@
 package no.unit.nva.customer.model;
 
-import java.net.URI;
-import java.util.Optional;
-import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto.Builder;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
+
+import java.net.URI;
+import java.util.Optional;
+import java.util.UUID;
 
 public final class LinkedDataContextUtils {
 

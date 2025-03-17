@@ -1,37 +1,5 @@
 package no.unit.nva.database;
 
-import static java.util.Objects.nonNull;
-import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
-import static no.unit.nva.database.EntityUtils.createRole;
-import static no.unit.nva.database.EntityUtils.randomRoleName;
-import static no.unit.nva.database.RoleService.ROLE_ALREADY_EXISTS_ERROR_MESSAGE;
-import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
-import static no.unit.nva.database.UserService.USER_ALREADY_EXISTS_ERROR_MESSAGE;
-import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
-import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
-import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
-import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static nva.commons.core.attempt.Try.attempt;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.core.IsSame.sameInstance;
-import static org.hamcrest.core.StringContains.containsString;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService.Constants;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.testutils.RandomDataGenerator;
@@ -66,6 +34,40 @@ import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
+import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
+import static no.unit.nva.database.EntityUtils.createRole;
+import static no.unit.nva.database.EntityUtils.randomRoleName;
+import static no.unit.nva.database.RoleService.ROLE_ALREADY_EXISTS_ERROR_MESSAGE;
+import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
+import static no.unit.nva.database.UserService.USER_ALREADY_EXISTS_ERROR_MESSAGE;
+import static no.unit.nva.database.UserService.USER_NOT_FOUND_MESSAGE;
+import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
+import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
+import static nva.commons.core.attempt.Try.attempt;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.IsSame.sameInstance;
+import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 class IdentityServiceTest extends LocalIdentityService {
 
     public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
@@ -79,6 +81,21 @@ class IdentityServiceTest extends LocalIdentityService {
     private IdentityService identityService;
     private DynamoDbTable<RoleDb> rolesTable;
     private DynamoDbTable<UserDao> usersTable;
+
+    private static List<RoleDb> createSampleRoles() {
+        try {
+            return Collections.singletonList(randomRole());
+        } catch (InvalidEntryInternalException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static RoleDb randomRole() {
+        return RoleDb.newBuilder()
+            .withName(randomRoleName())
+            .withAccessRights(Set.of(randomElement(AccessRight.values())))
+            .build();
+    }
 
     @BeforeEach
     public void init() {
@@ -109,6 +126,14 @@ class IdentityServiceTest extends LocalIdentityService {
         assertThat(savedUser, is(equalTo(insertedUser)));
     }
 
+    private RoleDto createSampleRoleAndAddToDb(RoleName roleName)
+        throws InvalidEntryInternalException, InvalidInputException, ConflictException {
+        RoleDto roleDto = createRole(roleName);
+        identityService.addRole(roleDto);
+
+        return roleDto;
+    }
+
     @DisplayName("addRole() throws Exception when trying to save role without name")
     @Test
     void addRoleShouldNotSaveUserWithoutUsername() throws InvalidEntryInternalException {
@@ -116,6 +141,12 @@ class IdentityServiceTest extends LocalIdentityService {
         Executable illegalAction = () -> identityService.addRole(illegalRole);
         InvalidInputException exception = assertThrows(InvalidInputException.class, illegalAction);
         assertThat(exception.getMessage(), containsString(RoleDto.MISSING_ROLE_NAME_ERROR));
+    }
+
+    private RoleDto createIllegalRole() throws InvalidEntryInternalException {
+        RoleDto illegalRole = createRole(randomRoleName());
+        illegalRole.setRoleName(null);
+        return illegalRole;
     }
 
     @DisplayName("addRole() throws ConflictException when trying to save user with existing username")
@@ -142,6 +173,51 @@ class IdentityServiceTest extends LocalIdentityService {
 
         assertThat(insertedUser, doesNotHaveEmptyValues());
         assertThat(savedUser, is(equalTo(insertedUser)));
+    }
+
+    private UserDto createSampleUserAndAddUserToDb(String username, URI institution, RoleName roleName)
+        throws InvalidEntryInternalException, ConflictException,
+        NotFoundException, InvalidInputException {
+        var userDto = createSampleUser(username, institution, roleName);
+        var roles = userDto.getRoles();
+        addRolesIfTheyDoNotExist(roles);
+        identityService.addUser(userDto);
+
+        return identityService.getUser(userDto);
+    }
+
+    private void addRolesIfTheyDoNotExist(Collection<RoleDto> roles) throws InvalidInputException, ConflictException {
+        for (var role : roles) {
+            var fetchRole = attempt(() -> identityService.getRole(role));
+            if (fetchRole.isFailure()) {
+                identityService.addRole(role);
+            }
+        }
+    }
+
+    private UserDto createSampleUser(String username, URI institution, RoleName roleName)
+        throws InvalidEntryInternalException {
+        return UserDto.newBuilder()
+            .withRoles(createRoleList(roleName))
+            .withInstitution(institution)
+            .withUsername(username)
+            .withGivenName(SOME_GIVEN_NAME)
+            .withFamilyName(SOME_FAMILY_NAME)
+            .withViewingScope(randomViewingScope())
+            .withCristinId(randomUri())
+            .withFeideIdentifier(randomString())
+            .withInstitutionCristinId(randomCristinOrgId())
+            .withAffiliation(randomCristinOrgId())
+            .build();
+    }
+
+    private List<RoleDto> createRoleList(RoleName rolename) throws InvalidEntryInternalException {
+        if (nonNull(rolename)) {
+            RoleDto roleDto = createRole(rolename);
+            return Collections.singletonList(roleDto);
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     @DisplayName("getUser() throws NotFoundException when the username does exist in the database")
@@ -174,11 +250,20 @@ class IdentityServiceTest extends LocalIdentityService {
         createSampleUserAndAddUserToDb(conflictingUsername, SOME_INSTITUTION, randomRoleName());
 
         UserDto conflictingUser = createUserWithRole(conflictingUsername,
-                                                     SOME_OTHER_INSTITUTION, createRole(randomRoleName()));
+            SOME_OTHER_INSTITUTION, createRole(randomRoleName()));
 
         Executable action = () -> identityService.addUser(conflictingUser);
         ConflictException exception = assertThrows(ConflictException.class, action);
         assertThat(exception.getMessage(), containsString(USER_ALREADY_EXISTS_ERROR_MESSAGE));
+    }
+
+    private UserDto createUserWithRole(String someUsername, URI someInstitution, RoleDto existingRole)
+        throws InvalidEntryInternalException {
+        return UserDto.newBuilder().withUsername(someUsername)
+            .withInstitution(someInstitution)
+            .withRoles(Collections.singletonList(existingRole))
+            .withViewingScope(randomViewingScope())
+            .build();
     }
 
     @Test
@@ -194,11 +279,20 @@ class IdentityServiceTest extends LocalIdentityService {
         assertThat(actualRole, is(equalTo(existingRole)));
     }
 
+    private UserDto createUserWithRoleReference(RoleDto existingRole)
+        throws InvalidEntryInternalException {
+        RoleDto roleWithoutDetails = RoleDto.newBuilder().withRoleName(existingRole.getRoleName()).build();
+        return createSampleUser(SOME_USERNAME, SOME_INSTITUTION, randomRoleName())
+            .copy()
+            .withRoles(Collections.singletonList(roleWithoutDetails))
+            .build();
+    }
+
     @DisplayName("updateUser() updates existing user with input user when input user is valid")
     @Test
     void updateUserUpdatesExistingUserWithInputUserWhenInputUserIsValid()
         throws ConflictException, InvalidEntryInternalException, NotFoundException, InvalidInputException,
-               BadRequestException {
+        BadRequestException {
         UserDto existingUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, RoleName.DOI_CURATOR);
         UserDto expectedUser = cloneAndAddNewRoleAndViewingScope(existingUser);
 
@@ -206,6 +300,17 @@ class IdentityServiceTest extends LocalIdentityService {
         UserDto actualUser = identityService.getUser(expectedUser);
         assertThat(actualUser, is(equalTo(expectedUser)));
         assertThat(actualUser, is(not(sameInstance(expectedUser))));
+    }
+
+    private UserDto cloneAndAddNewRoleAndViewingScope(UserDto existingUser)
+        throws InvalidEntryInternalException, InvalidInputException, ConflictException, BadRequestException {
+        var someOtherRole = createRole(RoleName.SUPPORT_CURATOR);
+        var viewingScope = ViewingScope.create(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId()));
+
+        identityService.addRole(someOtherRole);
+        return existingUser.copy().withRoles(Collections.singletonList(someOtherRole))
+            .withViewingScope(viewingScope)
+            .build();
     }
 
     @DisplayName("updateUser() throws NotFoundException when the input username does not exist")
@@ -222,7 +327,7 @@ class IdentityServiceTest extends LocalIdentityService {
     @Test
     void updateUserThrowsExceptionWhenTheInputIsInvalid()
         throws ConflictException, InvalidEntryInternalException,
-               NotFoundException, InvalidInputException {
+        NotFoundException, InvalidInputException {
         createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, randomRoleName());
         UserDto invalidUser = new UserDto();
         Executable action = () -> identityService.updateUser(invalidUser);
@@ -232,7 +337,7 @@ class IdentityServiceTest extends LocalIdentityService {
     @Test
     void listUsersByInstitutionReturnsAllUsersForSpecifiedInstitution()
         throws ConflictException, InvalidEntryInternalException,
-               NotFoundException, InvalidInputException {
+        NotFoundException, InvalidInputException {
         UserDto someUser = createSampleUserAndAddUserToDb(SOME_USERNAME, SOME_INSTITUTION, randomRoleName());
         UserDto someOtherUser = createSampleUserAndAddUserToDb(SOME_OTHER_USERNAME, SOME_INSTITUTION, randomRoleName());
         List<UserDto> queryResult = identityService.listUsers(SOME_INSTITUTION);
@@ -252,14 +357,21 @@ class IdentityServiceTest extends LocalIdentityService {
         var accessRights = Set.of(AccessRight.MANAGE_DOI, AccessRight.MANAGE_CUSTOMERS);
 
         RoleDb roleWithAccessRights = RoleDb.newBuilder()
-                                          .withAccessRights(accessRights)
-                                          .withName(randomRoleName())
-                                          .build();
+            .withAccessRights(accessRights)
+            .withName(randomRoleName())
+            .build();
 
         rolesTable.putItem(roleWithAccessRights);
 
         var savedRole = fetchRoleDirectlyFromTable(roleWithAccessRights);
         assertThat(savedRole, is(equalTo(roleWithAccessRights)));
+    }
+
+    private RoleDb fetchRoleDirectlyFromTable(RoleDb roleWithAccessRights) {
+        return rolesTable.getItem(Key.builder()
+            .partitionValue(roleWithAccessRights.getPrimaryKeyHashKey())
+            .sortValue(roleWithAccessRights.getPrimaryKeyRangeKey())
+            .build());
     }
 
     @DisplayName("getRole() returns non empty role when role-name exists in database")
@@ -286,7 +398,7 @@ class IdentityServiceTest extends LocalIdentityService {
     @DisplayName("addUser() saves user with roles and without institution")
     @Test
     void addUserSavesAUserWithoutInstitution() throws InvalidEntryInternalException, ConflictException,
-                                                      NotFoundException, InvalidInputException {
+        NotFoundException, InvalidInputException {
         UserDto expectedUser = createSampleUserAndAddUserToDb(SOME_USERNAME, null, randomRoleName());
         UserDto actualUser = identityService.getUser(expectedUser);
 
@@ -297,7 +409,7 @@ class IdentityServiceTest extends LocalIdentityService {
     @Test
     void addUserDoesNotAddNonExistingRolesInCreatedUser() throws ConflictException, NotFoundException {
         UserDto userWithNonExistingRole = createUserWithRole(SOME_USERNAME, SOME_INSTITUTION,
-                                                             createRole(randomRoleName()));
+            createRole(randomRoleName()));
         identityService.addUser(userWithNonExistingRole);
 
         UserDto actualUser = identityService.getUser(userWithNonExistingRole);
@@ -325,13 +437,24 @@ class IdentityServiceTest extends LocalIdentityService {
         assertThat(actualUser, is(not(sameInstance(expectedUser))));
     }
 
+    private UserDto userUpdateWithRoleMissingAccessRights(UserDto existingUser)
+        throws InvalidEntryInternalException {
+        RoleDto roleWithOnlyRolename =
+            RoleDto.newBuilder().withRoleName(existingUser.getRoles().stream().findFirst().orElseThrow().getRoleName())
+                .build();
+        return existingUser.copy()
+            .withGivenName(SOME_GIVEN_NAME)
+            .withRoles(Collections.singletonList(roleWithOnlyRolename))
+            .build();
+    }
+
     @Test
     void userDbShouldBeWriteableToDatabase() throws InvalidEntryInternalException {
 
         UserDao sampleUser = UserDao.newBuilder()
-                                 .withUsername(SOME_USERNAME)
-                                 .withInstitution(randomCristinOrgId())
-                                 .build();
+            .withUsername(SOME_USERNAME)
+            .withInstitution(randomCristinOrgId())
+            .build();
         usersTable.putItem(sampleUser);
         assertDoesNotThrow(() -> usersTable.putItem(sampleUser));
     }
@@ -340,23 +463,23 @@ class IdentityServiceTest extends LocalIdentityService {
     void userDbShouldBeReadFromDatabaseWithoutDataLoss() throws InvalidEntryInternalException {
 
         UserDao insertedUser = UserDao.newBuilder()
-                                   .withUsername(SOME_USERNAME)
-                                   .withGivenName(SOME_GIVEN_NAME)
-                                   .withFamilyName(SOME_FAMILY_NAME)
-                                   .withInstitution(SOME_INSTITUTION)
-                                   .withRoles(SAMPLE_ROLES)
-                                   .withViewingScope(ViewingScopeDb.fromViewingScope(randomViewingScope()))
-                                   .withCristinId(randomUri())
-                                   .withFeideIdentifier(randomString())
-                                   .withInstitutionCristinId(randomCristinOrgId())
-                                   .withAffiliation(randomCristinOrgId())
-                                   .build();
+            .withUsername(SOME_USERNAME)
+            .withGivenName(SOME_GIVEN_NAME)
+            .withFamilyName(SOME_FAMILY_NAME)
+            .withInstitution(SOME_INSTITUTION)
+            .withRoles(SAMPLE_ROLES)
+            .withViewingScope(ViewingScopeDb.fromViewingScope(randomViewingScope()))
+            .withCristinId(randomUri())
+            .withFeideIdentifier(randomString())
+            .withInstitutionCristinId(randomCristinOrgId())
+            .withAffiliation(randomCristinOrgId())
+            .build();
 
         usersTable.putItem(insertedUser);
         assertThat(insertedUser, doesNotHaveEmptyValues());
         var savedUser = usersTable.getItem(Key.builder().partitionValue(insertedUser.getPrimaryKeyHashKey())
-                                               .sortValue(insertedUser.getPrimaryKeyRangeKey())
-                                               .build());
+            .sortValue(insertedUser.getPrimaryKeyRangeKey())
+            .build());
         assertThat(savedUser, is(equalTo(insertedUser)));
     }
 
@@ -366,7 +489,7 @@ class IdentityServiceTest extends LocalIdentityService {
         RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.randomRoleName());
         attempt(() -> databaseService.getRole(nonExistingRole));
         assertThat(testAppender.getMessages(),
-                   StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
+            StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
     }
 
     @Test
@@ -391,102 +514,6 @@ class IdentityServiceTest extends LocalIdentityService {
         assertThat(firstPageOfUsers.getRetrievedUsers(), is(equalTo(expectedFirstPageOfUsers)));
     }
 
-    @Test
-    void shouldFetchAllUsersOfPersonBasedOnCristinPersonIdentifier()
-        throws ConflictException, NotFoundException, InvalidInputException {
-        var cristinPersonId = randomUri();
-        var user1 = createUserAndAddUserToDb(cristinPersonId, randomCristinOrgId(), randomString(), RoleName.DOI_CURATOR);
-        var user2 = createUserAndAddUserToDb(cristinPersonId, randomCristinOrgId(), randomString(), RoleName.EMBARGO_THESIS_CURATOR);
-        var retrievedUsers = identityService.getUsersByCristinId(cristinPersonId);
-        assertThat(retrievedUsers, containsInAnyOrder(user1, user2));
-    }
-
-    @Test
-    void shouldFetchUsersOfPersonBasedOnCristinPersonIdAndCristinOrgId()
-        throws ConflictException, NotFoundException, InvalidInputException {
-        var cirstinPersonId = randomUri();
-        var cristinOrgId = randomCristinOrgId();
-        var expectedUser = createUserAndAddUserToDb(cirstinPersonId, cristinOrgId, randomString(),
-                                                    RoleName.EMBARGO_THESIS_CURATOR);
-        var retrievedUser = identityService.getUserByPersonCristinIdAndCustomerCristinId(cirstinPersonId, cristinOrgId);
-        assertThat(retrievedUser, is(equalTo(expectedUser)));
-    }
-
-    @Test
-    void addClientInsertsValidItemInDatabase() throws InvalidEntryInternalException, NotFoundException {
-        var expectedClient = ClientDto
-                                 .newBuilder()
-                                 .withClientId(RandomDataGenerator.randomString())
-                                 .withCustomer(RandomDataGenerator.randomUri())
-                                 .build();
-
-        identityService.addExternalClient(expectedClient);
-        var insertedClient = databaseService.getClient(expectedClient);
-
-        assertThat(insertedClient, is(equalTo(expectedClient)));
-    }
-
-    @Test
-    void getExternalClientReturnsTheItemFromDatabase() throws InvalidEntryInternalException, NotFoundException {
-        var expectedClient = ClientDto
-                                 .newBuilder()
-                                 .withClientId(RandomDataGenerator.randomString())
-                                 .withCustomer(RandomDataGenerator.randomUri())
-                                 .build();
-
-        databaseService.addExternalClient(expectedClient);
-        var databaseClient = identityService.getClient(expectedClient);
-
-        assertThat(databaseClient, is(equalTo(expectedClient)));
-    }
-
-    private static List<RoleDb> createSampleRoles() {
-        try {
-            return Collections.singletonList(randomRole());
-        } catch (InvalidEntryInternalException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static RoleDb randomRole() {
-        return RoleDb.newBuilder()
-                   .withName(randomRoleName())
-                   .withAccessRights(Set.of(randomElement(AccessRight.values())))
-                   .build();
-    }
-
-    private UserDto createUserAndAddUserToDb(URI cristinId, URI cristinOrgId, String feideIdentifier,
-                                             RoleName roleName)
-        throws ConflictException, NotFoundException, InvalidInputException {
-        var role = randomRoleDtoWithRoleName(roleName);
-        identityService.addRole(role);
-        var user = UserDto.newBuilder().withCristinId(cristinId)
-                       .withFeideIdentifier(feideIdentifier)
-                       .withCristinId(cristinId)
-                       .withFamilyName(randomString())
-                       .withGivenName(randomString())
-                       .withInstitution(randomUri())
-                       .withInstitutionCristinId(cristinOrgId)
-                       .withUsername(randomString())
-                       .withRoles(List.of(role))
-                       .withViewingScope(randomViewingScope())
-                       .withAffiliation(randomCristinOrgId())
-                       .build();
-        identityService.addUser(user);
-        var savedUser = identityService.getUser(user);
-        assertThat(user, doesNotHaveEmptyValues());
-        assertThat(savedUser, doesNotHaveEmptyValues());
-        return user;
-    }
-
-    private static RoleDto randomRoleDtoWithRoleName(RoleName roleName) {
-        return RoleDb.newBuilder()
-                   .withName(roleName)
-                   .withAccessRights(Set.of(randomElement(AccessRight.values())))
-                   .build()
-                   .toRoleDto();
-    }
-
     private void createSampleUsers(int numberOfUsers)
         throws ConflictException, NotFoundException, InvalidInputException {
         for (int counter = 0; counter < numberOfUsers; counter++) {
@@ -497,18 +524,18 @@ class IdentityServiceTest extends LocalIdentityService {
     private List<UserDto> scanDatabaseDirectlyAndGetAllUsersInExpectedOrderIgnoringRoleEntries(int pageSize) {
         return localDynamo.scan(ScanRequest.builder().tableName(Constants.USERS_AND_ROLES_TABLE).scanFilter(
                 filterOutNonUserEntries()).limit(pageSize).build())
-                   .items()
-                   .stream()
-                   .map(UserDao.TABLE_SCHEMA::mapToItem)
-                   .map(UserDao::toUserDto)
-                   .collect(Collectors.toList());
+            .items()
+            .stream()
+            .map(UserDao.TABLE_SCHEMA::mapToItem)
+            .map(UserDao::toUserDto)
+            .collect(Collectors.toList());
     }
 
     private Map<String, Condition> filterOutNonUserEntries() {
         var primaryKeyStartsWithUserType = Condition.builder()
-                                               .attributeValueList(userType())
-                                               .comparisonOperator(ComparisonOperator.BEGINS_WITH)
-                                               .build();
+            .attributeValueList(userType())
+            .comparisonOperator(ComparisonOperator.BEGINS_WITH)
+            .build();
         return Map.of(DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY, primaryKeyStartsWithUserType);
     }
 
@@ -516,108 +543,86 @@ class IdentityServiceTest extends LocalIdentityService {
         return AttributeValue.builder().s(UserDao.TYPE_VALUE).build();
     }
 
-    private UserDto createUserWithRoleReference(RoleDto existingRole)
-        throws InvalidEntryInternalException {
-        RoleDto roleWithoutDetails = RoleDto.newBuilder().withRoleName(existingRole.getRoleName()).build();
-        return createSampleUser(SOME_USERNAME, SOME_INSTITUTION, randomRoleName())
-                   .copy()
-                   .withRoles(Collections.singletonList(roleWithoutDetails))
-                   .build();
+    @Test
+    void shouldFetchAllUsersOfPersonBasedOnCristinPersonIdentifier()
+        throws ConflictException, NotFoundException, InvalidInputException {
+        var cristinPersonId = randomUri();
+        var user1 =
+            createUserAndAddUserToDb(cristinPersonId, randomCristinOrgId(), randomString(), RoleName.DOI_CURATOR);
+        var user2 = createUserAndAddUserToDb(cristinPersonId, randomCristinOrgId(), randomString(),
+            RoleName.EMBARGO_THESIS_CURATOR);
+        var retrievedUsers = identityService.getUsersByCristinId(cristinPersonId);
+        assertThat(retrievedUsers, containsInAnyOrder(user1, user2));
     }
 
-    private RoleDb fetchRoleDirectlyFromTable(RoleDb roleWithAccessRights) {
-        return rolesTable.getItem(Key.builder()
-                                      .partitionValue(roleWithAccessRights.getPrimaryKeyHashKey())
-                                      .sortValue(roleWithAccessRights.getPrimaryKeyRangeKey())
-                                      .build());
+    private UserDto createUserAndAddUserToDb(URI cristinId, URI cristinOrgId, String feideIdentifier,
+                                             RoleName roleName)
+        throws ConflictException, NotFoundException, InvalidInputException {
+        var role = randomRoleDtoWithRoleName(roleName);
+        identityService.addRole(role);
+        var user = UserDto.newBuilder().withCristinId(cristinId)
+            .withFeideIdentifier(feideIdentifier)
+            .withCristinId(cristinId)
+            .withFamilyName(randomString())
+            .withGivenName(randomString())
+            .withInstitution(randomUri())
+            .withInstitutionCristinId(cristinOrgId)
+            .withUsername(randomString())
+            .withRoles(List.of(role))
+            .withViewingScope(randomViewingScope())
+            .withAffiliation(randomCristinOrgId())
+            .build();
+        identityService.addUser(user);
+        var savedUser = identityService.getUser(user);
+        assertThat(user, doesNotHaveEmptyValues());
+        assertThat(savedUser, doesNotHaveEmptyValues());
+        return user;
     }
 
-    private UserDto userUpdateWithRoleMissingAccessRights(UserDto existingUser)
-        throws InvalidEntryInternalException {
-        RoleDto roleWithOnlyRolename =
-            RoleDto.newBuilder().withRoleName(existingUser.getRoles().stream().findFirst().orElseThrow().getRoleName()).build();
-        return existingUser.copy()
-                   .withGivenName(SOME_GIVEN_NAME)
-                   .withRoles(Collections.singletonList(roleWithOnlyRolename))
-                   .build();
+    private static RoleDto randomRoleDtoWithRoleName(RoleName roleName) {
+        return RoleDb.newBuilder()
+            .withName(roleName)
+            .withAccessRights(Set.of(randomElement(AccessRight.values())))
+            .build()
+            .toRoleDto();
     }
 
-    private UserDto createUserWithRole(String someUsername, URI someInstitution, RoleDto existingRole)
-        throws InvalidEntryInternalException {
-        return UserDto.newBuilder().withUsername(someUsername)
-                   .withInstitution(someInstitution)
-                   .withRoles(Collections.singletonList(existingRole))
-                   .withViewingScope(randomViewingScope())
-                   .build();
+    @Test
+    void shouldFetchUsersOfPersonBasedOnCristinPersonIdAndCristinOrgId()
+        throws ConflictException, NotFoundException, InvalidInputException {
+        var cirstinPersonId = randomUri();
+        var cristinOrgId = randomCristinOrgId();
+        var expectedUser = createUserAndAddUserToDb(cirstinPersonId, cristinOrgId, randomString(),
+            RoleName.EMBARGO_THESIS_CURATOR);
+        var retrievedUser = identityService.getUserByPersonCristinIdAndCustomerCristinId(cirstinPersonId, cristinOrgId);
+        assertThat(retrievedUser, is(equalTo(expectedUser)));
     }
 
-    private RoleDto createIllegalRole() throws InvalidEntryInternalException {
-        RoleDto illegalRole = createRole(randomRoleName());
-        illegalRole.setRoleName(null);
-        return illegalRole;
+    @Test
+    void addClientInsertsValidItemInDatabase() throws InvalidEntryInternalException, NotFoundException {
+        var expectedClient = ClientDto
+            .newBuilder()
+            .withClientId(RandomDataGenerator.randomString())
+            .withCustomer(RandomDataGenerator.randomUri())
+            .build();
+
+        identityService.addExternalClient(expectedClient);
+        var insertedClient = databaseService.getClient(expectedClient);
+
+        assertThat(insertedClient, is(equalTo(expectedClient)));
     }
 
-    private UserDto cloneAndAddNewRoleAndViewingScope(UserDto existingUser)
-        throws InvalidEntryInternalException, InvalidInputException, ConflictException, BadRequestException {
-        var someOtherRole = createRole(RoleName.SUPPORT_CURATOR);
-        var viewingScope = ViewingScope.create(Set.of(randomCristinOrgId()), Set.of(randomCristinOrgId()));
+    @Test
+    void getExternalClientReturnsTheItemFromDatabase() throws InvalidEntryInternalException, NotFoundException {
+        var expectedClient = ClientDto
+            .newBuilder()
+            .withClientId(RandomDataGenerator.randomString())
+            .withCustomer(RandomDataGenerator.randomUri())
+            .build();
 
-        identityService.addRole(someOtherRole);
-        return existingUser.copy().withRoles(Collections.singletonList(someOtherRole))
-                   .withViewingScope(viewingScope)
-                   .build();
-    }
+        databaseService.addExternalClient(expectedClient);
+        var databaseClient = identityService.getClient(expectedClient);
 
-    private UserDto createSampleUserAndAddUserToDb(String username, URI institution, RoleName roleName)
-        throws InvalidEntryInternalException, ConflictException,
-               NotFoundException, InvalidInputException {
-        var userDto = createSampleUser(username, institution, roleName);
-        var roles = userDto.getRoles();
-        addRolesIfTheyDoNotExist(roles);
-        identityService.addUser(userDto);
-
-        return identityService.getUser(userDto);
-    }
-
-    private void addRolesIfTheyDoNotExist(Collection<RoleDto> roles) throws InvalidInputException, ConflictException {
-        for (var role : roles) {
-            var fetchRole = attempt(() -> identityService.getRole(role));
-            if (fetchRole.isFailure()) {
-                identityService.addRole(role);
-            }
-        }
-    }
-
-    private UserDto createSampleUser(String username, URI institution, RoleName roleName)
-        throws InvalidEntryInternalException {
-        return UserDto.newBuilder()
-                   .withRoles(createRoleList(roleName))
-                   .withInstitution(institution)
-                   .withUsername(username)
-                   .withGivenName(SOME_GIVEN_NAME)
-                   .withFamilyName(SOME_FAMILY_NAME)
-                   .withViewingScope(randomViewingScope())
-                   .withCristinId(randomUri())
-                   .withFeideIdentifier(randomString())
-                   .withInstitutionCristinId(randomCristinOrgId())
-                   .withAffiliation(randomCristinOrgId())
-                   .build();
-    }
-
-    private RoleDto createSampleRoleAndAddToDb(RoleName roleName)
-        throws InvalidEntryInternalException, InvalidInputException, ConflictException {
-        RoleDto roleDto = createRole(roleName);
-        identityService.addRole(roleDto);
-
-        return roleDto;
-    }
-
-    private List<RoleDto> createRoleList(RoleName rolename) throws InvalidEntryInternalException {
-        if (nonNull(rolename)) {
-            RoleDto roleDto = createRole(rolename);
-            return Collections.singletonList(roleDto);
-        } else {
-            return Collections.emptyList();
-        }
+        assertThat(databaseClient, is(equalTo(expectedClient)));
     }
 }

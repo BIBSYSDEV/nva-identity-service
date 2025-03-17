@@ -1,9 +1,6 @@
 package no.unit.nva.handlers;
 
-import static java.util.function.Predicate.not;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
-import java.util.Optional;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -12,6 +9,11 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+import java.util.Optional;
+
+import static java.util.function.Predicate.not;
 
 public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
@@ -28,11 +30,6 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, UserDto output) {
-        return HttpURLConnection.HTTP_OK;
-    }
-
-    @Override
     protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         //Do nothing
     }
@@ -43,6 +40,11 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
         String username = extractValidUserNameOrThrowException(requestInfo);
         UserDto queryObject = UserDto.newBuilder().withUsername(username).build();
         return databaseService.getUser(queryObject);
+    }
+
+    @Override
+    protected Integer getSuccessStatusCode(Void input, UserDto output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     private String extractValidUserNameOrThrowException(RequestInfo requestInfo) {

@@ -1,18 +1,20 @@
 package no.unit.nva.handlers;
 
-import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
-import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
-import static nva.commons.core.attempt.Try.attempt;
-import java.net.URI;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
+
+import java.net.URI;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
+import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
+import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
+import static nva.commons.core.attempt.Try.attempt;
 
 public final class EntityUtils {
 

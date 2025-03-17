@@ -1,8 +1,9 @@
 package no.unit.nva.useraccessservice.constants;
 
-import java.net.URI;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.URI;
 
 @JacocoGenerated
 public final class ServiceConstants {

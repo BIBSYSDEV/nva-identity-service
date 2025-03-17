@@ -1,12 +1,10 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
-
 import nva.commons.core.JacocoGenerated;
 
 public class CustomerReference {
@@ -14,8 +12,9 @@ public class CustomerReference {
     private URI id;
     private String displayName;
     private Instant createdDate;
-
+    private boolean active;
     private String doiPrefix;
+    private boolean nviInstitution;
 
     public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
         var customerReference = new CustomerReference();
@@ -23,14 +22,35 @@ public class CustomerReference {
         customerReference.setId(customerDto.getId());
         customerReference.setCreatedDate(customerDto.getCreatedDate());
         customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
+        customerReference.setActive(customerDto.isActive());
+        customerReference.setNviInstitution(customerDto.isNviInstitution());
         return customerReference;
     }
 
-    private static String extractDoiPrefix(CustomerDto customerDto) {
-        return Optional
-            .ofNullable(customerDto.getDoiAgent())
-            .map(CustomerDto.DoiAgentDto::getPrefix)
-            .orElse(null);
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix());
+    }
+
+    @JacocoGenerated
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof CustomerReference that)) {
+            return false;
+        }
+        return isActive() == that.isActive() && Objects.equals(getId(), that.getId()) &&
+               Objects.equals(getDisplayName(), that.getDisplayName()) &&
+               Objects.equals(getCreatedDate(), that.getCreatedDate()) &&
+               Objects.equals(getDoiPrefix(), that.getDoiPrefix());
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public URI getId() {
@@ -67,27 +87,15 @@ public class CustomerReference {
         this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
     }
 
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(),
-            getDisplayName(),
-            getDoiPrefix(),
-            getCreatedDate());
+    public boolean isNviInstitution() {
+        return nviInstitution;
     }
 
-    @JacocoGenerated
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof CustomerReference that)) {
-            return false;
-        }
-        return Objects.equals(getId(), that.getId())
-            && Objects.equals(getDisplayName(), that.getDisplayName())
-            && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
-            && Objects.equals(getCreatedDate(), that.getCreatedDate());
+    public void setNviInstitution(boolean nviInstitution) {
+        this.nviInstitution = nviInstitution;
+    }
+
+    private static String extractDoiPrefix(CustomerDto customerDto) {
+        return Optional.ofNullable(customerDto.getDoiAgent()).map(CustomerDto.DoiAgentDto::getPrefix).orElse(null);
     }
 }

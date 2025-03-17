@@ -127,6 +127,7 @@ paths:
             "application/json":
               schema:
                 $ref: '#/components/schemas/User'
+
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetUserHandler.Arn}/invocations
@@ -162,6 +163,49 @@ paths:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateUserHandler.Arn}/invocations
         responses: {}
+        httpMethod: POST
+        type: aws_proxy
+  /users/mine/accepted-terms:
+    put:
+      summary: Updates Terms and agreement for an existing User (person)
+      operationId: updatePersonTermsConditionsHandler
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertTermsConditionsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpsertTermsConditionsRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                UnauthorizedExample:
+                  $ref: '#/components/examples/UnauthorizedProblemExample'
+        '502':
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewatExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdatePersonTermsConditionsHandler.Arn}/invocations
+        responses: { }
         httpMethod: POST
         type: aws_proxy
   /impersonation/stop:
@@ -200,6 +244,31 @@ paths:
         responses: {}
         httpMethod: POST
         type: aws_proxy
+  /terms-and-conditions/current:
+    get:
+      summary: Access current terms & conditions
+      operationId: getCurrentTermsConditionsHandler
+      responses:
+        '200':
+          description: Returns the externalClient
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/TermsConditions'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetCurrentTermsConditionsHandler.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: aws_proxy
+
   /external-clients:
     get:
       summary: Access stored external client info by its token
@@ -389,6 +458,15 @@ components:
             $ref: '#/components/schemas/AccessRight'
         viewingScope:
           $ref: '#/components/schemas/ViewingScope'
+    UpsertTermsConditionsRequest:
+      type: object
+      required:
+        - termsConditionsUri
+      properties:
+        termsConditionsUri:
+          type: string
+          description: URI to the terms and conditions
+          format: uri
     CreateUserRequest:
       type: object
       required:
@@ -477,6 +555,19 @@ components:
         type:
           type: string
           default: CustomerSelection
+    TermsConditions:
+      type: object
+      description: NVA license agreement
+      required:
+        - id
+        - validFrom
+      properties:
+        id:
+          type: string
+          description: URI to our license agreement
+        validFrom:
+          type: string
+          description: LocalDateTime
     Problem:
       type: object
       description: NVA error reporting object
@@ -503,3 +594,32 @@ components:
         type:
           type: string
           description: A URI describing the error and mitigations, in generic cases, this is about:blank
+  examples:
+    BadRequestProblemExample:
+      value:
+        type: about:blank
+        status: 400
+        title: Bad Request
+        detail: 'Identifier is not a valid UUID: HelloWorld!'
+        instance: /path/to/resource
+    UnauthorizedProblemExample:
+      value:
+        type: about:blank
+        status: 401
+        title: Unauthorized
+        detail: 'User is not authorized to perform this action'
+        instance: /path/to/resource
+    NotFoundProblemExample:
+      value:
+        type: about:blank
+        status: 404
+        title: Not Found
+        detail: 'The requested resource was not found'
+        instance: /path/to/resource
+    BadGatewayProblemExample:
+      value:
+        type: about:blank
+        status: 502
+        title: Bad Gateway
+        detail: 'Persistence service is unavailable'
+        instance: /path/to/resource

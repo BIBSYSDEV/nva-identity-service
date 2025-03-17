@@ -1,15 +1,17 @@
 package no.unit.nva.identityservice.json;
 
-import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import no.unit.nva.commons.json.JsonUtils;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import no.unit.nva.commons.json.JsonUtils;
+
+import static java.util.Objects.nonNull;
 
 public final class JsonConfig {
 

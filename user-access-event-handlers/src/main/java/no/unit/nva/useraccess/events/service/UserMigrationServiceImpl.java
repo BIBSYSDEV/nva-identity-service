@@ -1,9 +1,5 @@
 package no.unit.nva.useraccess.events.service;
 
-import static nva.commons.core.attempt.Try.attempt;
-import java.net.URI;
-import java.util.Optional;
-import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -12,6 +8,12 @@ import nva.commons.core.exceptions.ExceptionUtils;
 import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.util.Optional;
+import java.util.UUID;
+
+import static nva.commons.core.attempt.Try.attempt;
 
 public class UserMigrationServiceImpl implements UserMigrationService {
 

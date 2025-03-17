@@ -1,11 +1,10 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import no.unit.nva.identityservice.json.JsonConfig;
+import nva.commons.core.JacocoGenerated;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,8 +12,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import no.unit.nva.identityservice.json.JsonConfig;
-import nva.commons.core.JacocoGenerated;
+
+import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
+import static nva.commons.core.attempt.Try.attempt;
 
 @SuppressWarnings("PMD.ShortMethodName")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -32,8 +34,24 @@ public class CustomerList {
         this.customers = extractCustomers(customers);
     }
 
+    private List<CustomerReference> extractCustomers(List<CustomerDto> customers) {
+        return Optional.ofNullable(customers)
+            .stream()
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .filter(Objects::nonNull)
+            .map(CustomerReference::fromCustomerDto)
+            .collect(Collectors.toList());
+    }
+
     public static CustomerList fromString(String json) {
         return attempt(() -> JsonConfig.readValue(json, CustomerList.class)).orElseThrow();
+    }
+
+    @Override
+    @JacocoGenerated
+    public int hashCode() {
+        return Objects.hash(getId(), getCustomers(), getContext());
     }
 
     @JsonProperty(LINKED_DATA_CONTEXT)
@@ -56,12 +74,6 @@ public class CustomerList {
 
     @Override
     @JacocoGenerated
-    public int hashCode() {
-        return Objects.hash(getId(), getCustomers(), getContext());
-    }
-
-    @Override
-    @JacocoGenerated
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -71,22 +83,12 @@ public class CustomerList {
         }
         CustomerList that = (CustomerList) o;
         return Objects.equals(getId(), that.getId())
-               && Objects.equals(customers, that.customers)
-               && Objects.equals(getContext(), that.getContext());
+            && Objects.equals(customers, that.customers)
+            && Objects.equals(getContext(), that.getContext());
     }
 
     @Override
     public String toString() {
         return attempt(() -> JsonConfig.writeValueAsString(this)).orElseThrow();
-    }
-
-    private List<CustomerReference> extractCustomers(List<CustomerDto> customers) {
-        return Optional.ofNullable(customers)
-            .stream()
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
-            .filter(Objects::nonNull)
-            .map(CustomerReference::fromCustomerDto)
-            .collect(Collectors.toList());
     }
 }

@@ -1,13 +1,14 @@
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+
+import java.net.HttpURLConnection;
 
 public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope, Void> {
 

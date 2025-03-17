@@ -2,8 +2,9 @@ package no.unit.nva.useraccessservice.dao;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
 import nva.commons.core.JacocoGenerated;
+
+import java.util.Arrays;
 
 public enum RoleName {
 
@@ -34,9 +35,9 @@ public enum RoleName {
 
     public static RoleName fromValue(String value) {
         return Arrays.stream(RoleName.values())
-                   .filter(entry -> entry.getValue().equals(value))
-                   .findFirst()
-                   .orElseThrow();
+            .filter(entry -> entry.getValue().equals(value))
+            .findFirst()
+            .orElseThrow();
     }
 
     @JsonValue
@@ -53,7 +54,7 @@ public enum RoleName {
     @JsonIgnore
     public boolean isDeprecated() {
         return this.equals(DEPRECATED_NVI_CURATOR)
-               || this.equals(DEPRECATED_CURATOR)
-               || this.equals(DEPRECATED_INTERNAL_IMPORT);
+            || this.equals(DEPRECATED_CURATOR)
+            || this.equals(DEPRECATED_INTERNAL_IMPORT);
     }
 }

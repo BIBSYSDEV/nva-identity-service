@@ -1,14 +1,6 @@
 package no.unit.nva.handlers;
 
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -20,6 +12,16 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.HttpURLConnection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 
 public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
@@ -60,6 +62,15 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
         return HttpURLConnection.HTTP_ACCEPTED;
     }
 
+    private Supplier<Map<String, String>> addLocationHeaderToResponseSupplier(UserDto input) {
+        String location = createUserLocationPath(input);
+        return () -> Collections.singletonMap(LOCATION_HEADER, location);
+    }
+
+    private String createUserLocationPath(UserDto input) {
+        return USERS_RELATIVE_PATH + input.getUsername();
+    }
+
     private void authorizeRequest(UserDto input, RequestInfo requestInfo) throws ForbiddenException, NotFoundException {
         if (!isAuthorized(input, requestInfo)) {
             throw new ForbiddenException();
@@ -68,8 +79,8 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
     private boolean isAuthorized(UserDto input, RequestInfo requestInfo) throws NotFoundException {
         return requestInfo.clientIsInternalBackend()
-               || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS)
-               || isAuthorizedUser(input, requestInfo);
+            || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS)
+            || isAuthorizedUser(input, requestInfo);
     }
 
     private boolean isAuthorizedUser(UserDto input, RequestInfo requestInfo) throws NotFoundException {
@@ -106,14 +117,5 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
         if (!userIdFromPathParameter.equals(input.getUsername())) {
             throw new InvalidInputException(INCONSISTENT_USERNAME_IN_PATH_AND_OBJECT_ERROR);
         }
-    }
-
-    private Supplier<Map<String, String>> addLocationHeaderToResponseSupplier(UserDto input) {
-        String location = createUserLocationPath(input);
-        return () -> Collections.singletonMap(LOCATION_HEADER, location);
-    }
-
-    private String createUserLocationPath(UserDto input) {
-        return USERS_RELATIVE_PATH + input.getUsername();
     }
 }

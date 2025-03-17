@@ -1,10 +1,11 @@
 package no.unit.nva.useraccessservice.model;
 
+import org.junit.jupiter.api.Test;
+
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import org.junit.jupiter.api.Test;
 
 class CustomerSelectionTest {
 

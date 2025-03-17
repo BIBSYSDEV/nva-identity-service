@@ -20,6 +20,7 @@ dependencies {
     implementation libs.nva.events
     implementation libs.bundles.aws.lambda
 
+    testImplementation libs.dynamoDbLocal
     testImplementation project(':user-access-testing')
 
 }

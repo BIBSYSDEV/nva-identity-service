@@ -1,11 +1,13 @@
 package no.unit.nva.customer.model;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class CustomerListTest {
 
@@ -37,6 +39,6 @@ class CustomerListTest {
     @Test
     void jacocoTestForTestCoverage() {
         var cust = new CustomerList().getCustomers();
-        assertEquals(Collections.emptyList(),cust);
+        assertEquals(Collections.emptyList(), cust);
     }
 }

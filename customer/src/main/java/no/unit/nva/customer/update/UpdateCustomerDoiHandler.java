@@ -1,14 +1,7 @@
 package no.unit.nva.customer.update;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerDoiHandler;
 import no.unit.nva.customer.exception.InputException;
@@ -23,6 +16,15 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.secrets.SecretsReader;
 import nva.commons.secrets.SecretsWriter;
+
+import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
 

@@ -1,9 +1,19 @@
 package no.unit.nva.useraccessservice.dao;
 
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.model.RoleName;
+import nva.commons.apigateway.AccessRight;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.util.Collections;
+import java.util.Set;
+
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
 import static no.unit.nva.hamcrest.DoesNotHaveEmptyValues.doesNotHaveEmptyValues;
-import static no.unit.nva.testutils.RandomDataGenerator.randomInteger;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -14,16 +24,6 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.hamcrest.text.IsEmptyString.emptyString;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.util.Collections;
-import java.util.Set;
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.model.RoleName;
-import nva.commons.apigateway.AccessRight;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 
 public class RoleDbTest {
 
@@ -91,6 +91,14 @@ public class RoleDbTest {
         assertThat(roleDbEntry.getName().getValue(), is(equalTo(roleNameValue)));
     }
 
+    private RoleDb createSampleRole(String roleNameValue) throws InvalidEntryInternalException {
+        Set<AccessRight> accessRights = Collections.singleton(AccessRight.MANAGE_DOI);
+        return RoleDb.newBuilder()
+            .withName(RoleName.fromValue(roleNameValue))
+            .withAccessRights(accessRights)
+            .build();
+    }
+
     @Test
     void builderSetsTheRolename() throws InvalidEntryInternalException {
         var name = randomRoleName();
@@ -155,13 +163,5 @@ public class RoleDbTest {
         var attributeValue = ROLE_SET_CONVERTER.transformFrom(Set.of(sampleRole));
         var actual = ROLE_SET_CONVERTER.transformTo(attributeValue);
         assertThat(actual, is(equalTo(expected)));
-    }
-
-    private RoleDb createSampleRole(String roleNameValue) throws InvalidEntryInternalException {
-        Set<AccessRight> accessRights = Collections.singleton(AccessRight.MANAGE_DOI);
-        return RoleDb.newBuilder()
-            .withName(RoleName.fromValue(roleNameValue))
-            .withAccessRights(accessRights)
-            .build();
     }
 }

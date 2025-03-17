@@ -1,20 +1,7 @@
 package no.unit.nva.customer.model;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
-import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.net.URI;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
 import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
@@ -24,6 +11,21 @@ import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
+import static nva.commons.core.attempt.Try.attempt;
 
 //Overriding setters and getters is necessary for Jackson-Jr
 @SuppressWarnings({"PMD.ExcessivePublicCount",
@@ -76,6 +78,47 @@ public class CustomerDto implements Context {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    @JsonIgnore
+    public boolean isActive() {
+        return isNull(inactiveFrom) || isInactiveFromInFuture();
+    }
+
+    @JsonIgnore
+    private boolean isInactiveFromInFuture() {
+        var now = Instant.now();
+        return now.isBefore(inactiveFrom);
+    }
+
+    public Builder copy() {
+        return new Builder()
+            .withArchiveName(getArchiveName())
+            .withCname(getCname())
+            .withContext(getContext())
+            .withCreatedDate(getCreatedDate())
+            .withCristinId(getCristinId())
+            .withCustomerOf(getCustomerOf())
+            .withDisplayName(getDisplayName())
+            .withFeideOrganizationDomain(getFeideOrganizationDomain())
+            .withId(getId())
+            .withIdentifier(getIdentifier())
+            .withInstitutionDns(getInstitutionDns())
+            .withModifiedDate(getModifiedDate())
+            .withName(getName())
+            .withPublicationWorkflow(getPublicationWorkflow())
+            .withRorId(getRorId())
+            .withShortName(getShortName())
+            .withDoiAgent(getDoiAgent())
+            .withNviInstitution(isNviInstitution())
+            .withRboInstitution(isRboInstitution())
+            .withInactiveFrom(getInactiveFrom())
+            .withSector(getSector())
+            .withVocabularies(getVocabularies())
+            .withRightsRetentionStrategy(getRightsRetentionStrategy())
+            .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
+            .withGeneralSupportEnabled(isGeneralSupportEnabled())
+            .withServiceCenter(getServiceCenter());
     }
 
     public URI getId() {
@@ -253,6 +296,14 @@ public class CustomerDto implements Context {
         return allowFileUploadForTypes;
     }
 
+    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
+        this.allowFileUploadForTypes = allowFileUploadForTypes;
+    }
+
+    private Set<PublicationInstanceTypes> defaultAllowFileUploadForTypes() {
+        return Set.of(PublicationInstanceTypes.values());
+    }
+
     public boolean isGeneralSupportEnabled() {
         return generalSupportEnabled;
     }
@@ -261,31 +312,12 @@ public class CustomerDto implements Context {
         this.generalSupportEnabled = generalSupportEnabled;
     }
 
-    @JsonIgnore
-    public boolean isActive() {
-        return isNull(inactiveFrom) || isInactiveFromInFuture();
-    }
-
     public ServiceCenter getServiceCenter() {
         return nonNull(serviceCenter) ? serviceCenter : ServiceCenter.emptyServiceCenter();
     }
 
     public void setServiceCenter(ServiceCenter serviceCenter) {
         this.serviceCenter = serviceCenter;
-    }
-
-    @JsonIgnore
-    private boolean isInactiveFromInFuture() {
-        var now = Instant.now();
-        return now.isBefore(inactiveFrom);
-    }
-
-    private Set<PublicationInstanceTypes> defaultAllowFileUploadForTypes() {
-        return Set.of(PublicationInstanceTypes.values());
-    }
-
-    public void setAllowFileUploadForTypes(Set<PublicationInstanceTypes> allowFileUploadForTypes) {
-        this.allowFileUploadForTypes = allowFileUploadForTypes;
     }
 
     public RightsRetentionStrategyDto getRightsRetentionStrategy() {
@@ -306,45 +338,15 @@ public class CustomerDto implements Context {
         this.context = context;
     }
 
-    public Builder copy() {
-        return new Builder()
-                   .withArchiveName(getArchiveName())
-                   .withCname(getCname())
-                   .withContext(getContext())
-                   .withCreatedDate(getCreatedDate())
-                   .withCristinId(getCristinId())
-                   .withCustomerOf(getCustomerOf())
-                   .withDisplayName(getDisplayName())
-                   .withFeideOrganizationDomain(getFeideOrganizationDomain())
-                   .withId(getId())
-                   .withIdentifier(getIdentifier())
-                   .withInstitutionDns(getInstitutionDns())
-                   .withModifiedDate(getModifiedDate())
-                   .withName(getName())
-                   .withPublicationWorkflow(getPublicationWorkflow())
-                   .withRorId(getRorId())
-                   .withShortName(getShortName())
-                   .withDoiAgent(getDoiAgent())
-                   .withNviInstitution(isNviInstitution())
-                   .withRboInstitution(isRboInstitution())
-                   .withInactiveFrom(getInactiveFrom())
-                   .withSector(getSector())
-                   .withVocabularies(getVocabularies())
-                   .withRightsRetentionStrategy(getRightsRetentionStrategy())
-                   .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
-                   .withGeneralSupportEnabled(isGeneralSupportEnabled())
-                   .withServiceCenter(getServiceCenter());
-    }
-
     @Override
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
-                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-                            getRorId(), getPublicationWorkflow(), getDoiAgent(),
-                            getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom(),
-                            isGeneralSupportEnabled(), getServiceCenter());
+            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+            getRorId(), getPublicationWorkflow(), getDoiAgent(),
+            getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom(),
+            isGeneralSupportEnabled(), getServiceCenter());
     }
 
     @Override
@@ -358,28 +360,28 @@ public class CustomerDto implements Context {
         }
         CustomerDto that = (CustomerDto) o;
         return Objects.equals(getArchiveName(), that.getArchiveName())
-               && Objects.equals(getContext(), that.getContext())
-               && Objects.equals(getCname(), that.getCname())
-               && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getCristinId(), that.getCristinId())
-               && Objects.equals(getCustomerOf(), that.getCustomerOf())
-               && Objects.equals(getDisplayName(), that.getDisplayName())
-               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-               && Objects.equals(getId(), that.getId())
-               && Objects.equals(getIdentifier(), that.getIdentifier())
-               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-               && Objects.equals(getModifiedDate(), that.getModifiedDate())
-               && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
-               && Objects.equals(getName(), that.getName())
-               && Objects.equals(getRorId(), that.getRorId())
-               && Objects.equals(getServiceCenter(), that.getServiceCenter())
-               && Objects.equals(getShortName(), that.getShortName())
-               && Objects.equals(getVocabularies(), that.getVocabularies())
-               && Objects.equals(getDoiAgent(), that.getDoiAgent())
-               && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
-               && getPublicationWorkflow() == that.getPublicationWorkflow()
-               && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
-               && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled());
+            && Objects.equals(getContext(), that.getContext())
+            && Objects.equals(getCname(), that.getCname())
+            && Objects.equals(getCreatedDate(), that.getCreatedDate())
+            && Objects.equals(getCristinId(), that.getCristinId())
+            && Objects.equals(getCustomerOf(), that.getCustomerOf())
+            && Objects.equals(getDisplayName(), that.getDisplayName())
+            && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+            && Objects.equals(getId(), that.getId())
+            && Objects.equals(getIdentifier(), that.getIdentifier())
+            && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+            && Objects.equals(getModifiedDate(), that.getModifiedDate())
+            && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
+            && Objects.equals(getName(), that.getName())
+            && Objects.equals(getRorId(), that.getRorId())
+            && Objects.equals(getServiceCenter(), that.getServiceCenter())
+            && Objects.equals(getShortName(), that.getShortName())
+            && Objects.equals(getVocabularies(), that.getVocabularies())
+            && Objects.equals(getDoiAgent(), that.getDoiAgent())
+            && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
+            && getPublicationWorkflow() == that.getPublicationWorkflow()
+            && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
+            && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled());
     }
 
     @Override
@@ -512,6 +514,15 @@ public class CustomerDto implements Context {
             return this;
         }
 
+        private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
+            if (nonNull(doiAgent)) {
+                return nonNull(customerDto.identifier)
+                    ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
+                    : new DoiAgentDto(doiAgent);
+            }
+            return null;
+        }
+
         public Builder withNviInstitution(boolean hasNviInstitution) {
             customerDto.setNviInstitution(hasNviInstitution);
             return this;
@@ -542,25 +553,16 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withGeneralSupportEnabled(boolean generalSupportEnabled) {
-            customerDto.setGeneralSupportEnabled(generalSupportEnabled);
-            return this;
-        }
-
-        private DoiAgentDto buildDoiAgentDto(DoiAgent doiAgent) {
-            if (nonNull(doiAgent)) {
-                return nonNull(customerDto.identifier)
-                           ? new DoiAgentDto(doiAgent).addIdByIdentifier(customerDto.identifier)
-                           : new DoiAgentDto(doiAgent);
-            }
-            return null;
-        }
-
         private RightsRetentionStrategyDto buildRetentionStrategyDto(RightsRetentionStrategy rightsRetentionStrategy) {
             if (nonNull(rightsRetentionStrategy)) {
                 return new RightsRetentionStrategyDto(rightsRetentionStrategy);
             }
             return null;
+        }
+
+        public Builder withGeneralSupportEnabled(boolean generalSupportEnabled) {
+            customerDto.setGeneralSupportEnabled(generalSupportEnabled);
+            return this;
         }
 
         public CustomerDto build() {
@@ -591,14 +593,6 @@ public class CustomerDto implements Context {
                 fail -> new BadRequestException("Could not parse input:" + json, fail.getException()));
         }
 
-        public URI getId() {
-            return id;
-        }
-
-        public void setId(URI id) {
-            this.id = id;
-        }
-
         public DoiAgentDto addId(URI doiAgentId) {
             this.id = doiAgentId;
             return this;
@@ -609,50 +603,21 @@ public class CustomerDto implements Context {
          */
         public DoiAgentDto addIdByIdentifier(UUID identifier) {
             this.id = UriWrapper
-                          .fromUri(toId(identifier))
-                          .addChild(DOI_AGENT)
-                          .getUri();
+                .fromUri(toId(identifier))
+                .addChild(DOI_AGENT)
+                .getUri();
             return this;
-        }
-
-        @Override
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String name) {
-            this.username = name;
-        }
-
-        @Override
-        public String getPrefix() {
-            return prefix;
-        }
-
-        @Override
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public void setPrefix(String prefix) {
-            this.prefix = prefix;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
         }
 
         public DoiAgentDto addPassword(String secretString) {
             password = secretString;
             return this;
+        }
+
+        @Override
+        @JacocoGenerated
+        public int hashCode() {
+            return Objects.hash(getId(), getUrl(), getPrefix(), getUsername(), getPassword());
         }
 
         @Override
@@ -665,16 +630,53 @@ public class CustomerDto implements Context {
                 return false;
             }
             return Objects.equals(getId(), that.getId())
-                   && Objects.equals(getUrl(), that.getUrl())
-                   && Objects.equals(getPrefix(), that.getPrefix())
-                   && Objects.equals(getUsername(), that.getUsername())
-                   && Objects.equals(getPassword(), that.getPassword());
+                && Objects.equals(getUrl(), that.getUrl())
+                && Objects.equals(getPrefix(), that.getPrefix())
+                && Objects.equals(getUsername(), that.getUsername())
+                && Objects.equals(getPassword(), that.getPassword());
+        }
+
+        public URI getId() {
+            return id;
+        }
+
+        public void setId(URI id) {
+            this.id = id;
         }
 
         @Override
-        @JacocoGenerated
-        public int hashCode() {
-            return Objects.hash(getId(), getUrl(), getPrefix(), getUsername(), getPassword());
+        public String getPrefix() {
+            return prefix;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
+        @Override
+        public String getUrl() {
+            return url;
+        }
+
+        @Override
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String name) {
+            this.username = name;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
 
         @Override
@@ -686,12 +688,12 @@ public class CustomerDto implements Context {
 
     public record ServiceCenter(URI uri, String name) {
 
-        public ServiceCenterDao toDao() {
-            return new ServiceCenterDao(uri, name);
-        }
-
         public static ServiceCenter emptyServiceCenter() {
             return new ServiceCenter(null, null);
+        }
+
+        public ServiceCenterDao toDao() {
+            return new ServiceCenterDao(uri, name);
         }
     }
 }

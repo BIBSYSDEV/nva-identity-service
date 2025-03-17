@@ -1,5 +1,12 @@
 package no.unit.nva.useraccessservice.model;
 
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
@@ -7,11 +14,6 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.IsSame.sameInstance;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import org.junit.jupiter.api.Test;
 
 class UserListTest {
 
@@ -36,7 +38,7 @@ class UserListTest {
         var userList = UserList.fromList(list);
         var json = userList.toString();
         var deserialized = UserList.fromJson(json);
-        assertThat(deserialized.getUsers(),is(not(empty())));
-        assertThat(deserialized.getUsers(),containsInAnyOrder(userList.getUsers().toArray()));
+        assertThat(deserialized.getUsers(), is(not(empty())));
+        assertThat(deserialized.getUsers(), containsInAnyOrder(userList.getUsers().toArray()));
     }
 }

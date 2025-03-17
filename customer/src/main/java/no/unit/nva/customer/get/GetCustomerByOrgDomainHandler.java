@@ -1,12 +1,7 @@
 package no.unit.nva.customer.get;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static no.unit.nva.customer.RequestUtils.getPathParameter;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
@@ -17,6 +12,13 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.List;
+
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static no.unit.nva.customer.RequestUtils.getPathParameter;
 
 public class GetCustomerByOrgDomainHandler extends ApiGatewayHandler<Void, CustomerIdentifiers> {
 
@@ -35,8 +37,13 @@ public class GetCustomerByOrgDomainHandler extends ApiGatewayHandler<Void, Custo
     }
 
     @Override
-    protected Integer getSuccessStatusCode(Void input, CustomerIdentifiers output) {
-        return HttpURLConnection.HTTP_OK;
+    protected List<MediaType> listSupportedMediaTypes() {
+        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
+    }
+
+    @Override
+    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        //Do nothing
     }
 
     @Override
@@ -53,13 +60,8 @@ public class GetCustomerByOrgDomainHandler extends ApiGatewayHandler<Void, Custo
     }
 
     @Override
-    protected List<MediaType> listSupportedMediaTypes() {
-        return Constants.DEFAULT_RESPONSE_MEDIA_TYPES;
-    }
-
-    @Override
-    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        //Do nothing
+    protected Integer getSuccessStatusCode(Void input, CustomerIdentifiers output) {
+        return HttpURLConnection.HTTP_OK;
     }
 
     private String getOrgIdentifier(RequestInfo request) {

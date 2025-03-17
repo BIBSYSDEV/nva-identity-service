@@ -1,9 +1,10 @@
 package no.unit.nva.customer.model;
 
-import java.net.URI;
-import java.util.Objects;
 import no.unit.nva.customer.model.interfaces.Vocabulary;
 import nva.commons.core.JacocoGenerated;
+
+import java.net.URI;
+import java.util.Objects;
 
 public class VocabularyDto implements Vocabulary {
 
@@ -11,15 +12,21 @@ public class VocabularyDto implements Vocabulary {
     private URI id;
     private VocabularyStatus status;
 
-    public VocabularyDto() {
-    }
-
     @JacocoGenerated
     public VocabularyDto(String name, URI id, VocabularyStatus status) {
         this();
         this.name = name;
         this.id = id;
         this.status = status;
+    }
+
+    public VocabularyDto() {
+    }
+
+    @JacocoGenerated
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getId(), getStatus());
     }
 
     @JacocoGenerated
@@ -60,22 +67,15 @@ public class VocabularyDto implements Vocabulary {
 
     @JacocoGenerated
     @Override
-    public int hashCode() {
-        return Objects.hash(getName(), getId(), getStatus());
-    }
-
-    @JacocoGenerated
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof VocabularyDto)) {
+        if (!(o instanceof VocabularyDto that)) {
             return false;
         }
-        VocabularyDto that = (VocabularyDto) o;
         return Objects.equals(getName(), that.getName())
-               && Objects.equals(getId(), that.getId())
-               && getStatus() == that.getStatus();
+            && Objects.equals(getId(), that.getId())
+            && getStatus() == that.getStatus();
     }
 }

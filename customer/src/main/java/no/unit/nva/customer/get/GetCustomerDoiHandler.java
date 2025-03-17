@@ -1,11 +1,7 @@
 package no.unit.nva.customer.get;
 
-import static java.util.Objects.nonNull;
-import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.google.common.net.MediaType;
-import java.net.HttpURLConnection;
-import java.util.List;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerDoiHandler;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
@@ -15,6 +11,12 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import nva.commons.secrets.SecretsReader;
+
+import java.net.HttpURLConnection;
+import java.util.List;
+
+import static java.util.Objects.nonNull;
+import static nva.commons.core.attempt.Try.attempt;
 
 public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
 
@@ -51,15 +53,14 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
         throws ApiGatewayException {
 
 
-
         var identifier = getIdentifier(requestInfo);
 
         var doiSecretDao = attempt(() -> getSecretsManagerDoiAgent().get(identifier))
-                               .orElseThrow(this::throwException);
+            .orElseThrow(this::throwException);
 
         var doiAgentDto = nonNull(doiSecretDao)
-                              ? doiSecretDao.toDoiAgentDto()
-                              : new DoiAgentDto().addIdByIdentifier(identifier);
+            ? doiSecretDao.toDoiAgentDto()
+            : new DoiAgentDto().addIdByIdentifier(identifier);
 
         return attempt(() -> mapperToJsonCompact.writeValueAsString(doiAgentDto)).orElseThrow();
     }

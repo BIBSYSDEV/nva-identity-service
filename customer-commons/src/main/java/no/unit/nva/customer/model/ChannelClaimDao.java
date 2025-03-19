@@ -29,7 +29,7 @@ public class ChannelClaimDao implements JsonSerializable {
     }
 
     public static ChannelClaimDao fromDto(ChannelClaimDto dto) {
-        return new ChannelClaimDao(dto.getChannel(), dto.getScope(), dto.getConstraints());
+        return new ChannelClaimDao(dto.channel(), dto.scope(), dto.constraints());
     }
 
     public ChannelClaimDto toDto() {

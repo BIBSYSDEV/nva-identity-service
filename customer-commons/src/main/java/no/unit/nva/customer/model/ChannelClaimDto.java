@@ -4,10 +4,8 @@ import no.unit.nva.commons.json.JsonSerializable;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.URI;
-import java.util.List;
 
-public record ChannelClaimDto(URI channel, List<PublicationInstanceTypes> scope,
-                              List<ChannelConstraint> constraints) implements JsonSerializable {
+public record ChannelClaimDto(URI channel, ChannelConstraintDto constraint) implements JsonSerializable {
     @JacocoGenerated
     @Override
     public String toString() {

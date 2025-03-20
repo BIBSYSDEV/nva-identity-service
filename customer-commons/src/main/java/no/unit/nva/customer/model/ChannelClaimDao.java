@@ -5,35 +5,28 @@ import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Objects;
-
-import static java.util.Collections.emptyList;
 
 @DynamoDbBean
 public class ChannelClaimDao implements JsonSerializable {
 
     private URI channel;
-    private List<PublicationInstanceTypes> scope;
-    private List<ChannelConstraint> constraints;
+    private ChannelConstraintDao constraint;
 
     public ChannelClaimDao() {
-        this.scope = emptyList();
-        this.constraints = emptyList();
     }
 
-    public ChannelClaimDao(URI channel, List<PublicationInstanceTypes> scope, List<ChannelConstraint> constraints) {
+    public ChannelClaimDao(URI channel, ChannelConstraintDao constraint) {
         this.channel = channel;
-        this.scope = scope;
-        this.constraints = constraints;
+        this.constraint = constraint;
     }
 
     public static ChannelClaimDao fromDto(ChannelClaimDto dto) {
-        return new ChannelClaimDao(dto.channel(), dto.scope(), dto.constraints());
+        return new ChannelClaimDao(dto.channel(), ChannelConstraintDao.fromDto(dto.constraint()));
     }
 
     public ChannelClaimDto toDto() {
-        return new ChannelClaimDto(getChannel(), getScope(), getConstraints());
+        return new ChannelClaimDto(getChannel(), getConstraint().toDto());
     }
 
     public URI getChannel() {
@@ -45,43 +38,27 @@ public class ChannelClaimDao implements JsonSerializable {
         this.channel = channel;
     }
 
-    public List<ChannelConstraint> getConstraints() {
-        return constraints;
+    public ChannelConstraintDao getConstraint() {
+        return constraint;
     }
 
     @JacocoGenerated
-    public void setConstraints(List<ChannelConstraint> constraints) {
-        this.constraints = constraints;
-    }
-
-    public List<PublicationInstanceTypes> getScope() {
-        return scope;
-    }
-
-    @JacocoGenerated
-    public void setScope(List<PublicationInstanceTypes> scope) {
-        this.scope = scope;
+    public void setConstraint(ChannelConstraintDao constraint) {
+        this.constraint = constraint;
     }
 
     @JacocoGenerated
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (o == null || getClass() != o.getClass()) return false;
         ChannelClaimDao that = (ChannelClaimDao) o;
-        return Objects.equals(getChannel(), that.getChannel())
-                && Objects.equals(getScope(), that.getScope())
-                && Objects.equals(getConstraints(), that.getConstraints());
+        return Objects.equals(getChannel(), that.getChannel()) && Objects.equals(getConstraint(), that.getConstraint());
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getChannel(), getScope(), getConstraints());
+        return Objects.hash(getChannel(), getConstraint());
     }
 
     @JacocoGenerated

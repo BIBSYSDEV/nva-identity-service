@@ -70,7 +70,9 @@ public class ChannelConstraintDao implements JsonSerializable {
     @JacocoGenerated
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ChannelConstraintDao that = (ChannelConstraintDao) o;
         return getPublishesMetadataPolicy() == that.getPublishesMetadataPolicy()
                 && getEditsMetadataPolicy() == that.getEditsMetadataPolicy()

@@ -50,7 +50,9 @@ public class ChannelClaimDao implements JsonSerializable {
     @JacocoGenerated
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ChannelClaimDao that = (ChannelClaimDao) o;
         return Objects.equals(getChannel(), that.getChannel()) && Objects.equals(getConstraint(), that.getConstraint());
     }

@@ -1,6 +1,5 @@
 package no.unit.nva.cognito;
 
-import com.amazonaws.services.lambda.runtime.CognitoIdentity;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.nva.FakeCognito;
@@ -44,6 +43,7 @@ import java.util.stream.IntStream;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
 
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
+import static no.unit.nva.auth.CognitoUserInfo.COGNITO_USER_NAME;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
@@ -61,7 +61,6 @@ import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class CustomerSelectionHandlerTest {
 
@@ -218,7 +217,7 @@ class CustomerSelectionHandlerTest {
     }
 
     @AfterEach
-    public void close() {
+    void close() {
         customerDatabase.deleteDatabase();
         usersDatabase.closeDB();
     }
@@ -229,6 +228,9 @@ class CustomerSelectionHandlerTest {
         var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
         var input = createRequest(selectedCustomer);
         var response = sendRequest(input, Void.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+
         var updatedSelectedCustomer = extractSelectedCustomerAttributeUpdate();
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
@@ -253,25 +255,16 @@ class CustomerSelectionHandlerTest {
 
     private InputStream createRequest(URI customerId) throws JsonProcessingException {
         var randomCustomer = CustomerSelection.fromCustomerId(customerId);
-        when(context.getIdentity()).thenReturn(new CognitoIdentity() {
-            @Override
-            public String getIdentityId() {
-                return randomString();
-            }
 
-            @Override
-            public String getIdentityPoolId() {
-                return randomString();
-            }
-        });
-
+        String testCognitoGroupId = "test_cognito_group_id";
         return new HandlerRequestBuilder<CustomerSelection>(dtoObjectMapper)
                    .withPersonCristinId(randomUri())
                    .withCurrentCustomer(customerId)
                    .withAllowedCustomers(allowedCustomers)
                    .withUserName(randomString())
+                   .withIssuer(randomUri() + "/" + testCognitoGroupId)
+                   .withAuthorizerClaim(COGNITO_USER_NAME, randomString())
                    .withBody(randomCustomer)
                    .build();
     }
-
 }

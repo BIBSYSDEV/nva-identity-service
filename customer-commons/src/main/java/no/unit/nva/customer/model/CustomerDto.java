@@ -64,11 +64,13 @@ public class CustomerDto implements Context {
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
+    private List<ChannelClaimDto> channelClaims;
 
     public CustomerDto() {
         super();
         this.vocabularies = Collections.emptyList();
         this.allowFileUploadForTypes = Collections.emptySet();
+        this.channelClaims = Collections.emptyList();
     }
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
@@ -118,7 +120,8 @@ public class CustomerDto implements Context {
             .withRightsRetentionStrategy(getRightsRetentionStrategy())
             .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
             .withGeneralSupportEnabled(isGeneralSupportEnabled())
-            .withServiceCenter(getServiceCenter());
+            .withServiceCenter(getServiceCenter())
+            .withChannelClaims(getChannelClaims());
     }
 
     public URI getId() {
@@ -328,6 +331,14 @@ public class CustomerDto implements Context {
         this.rightsRetentionStrategy = rightsRetentionStrategy;
     }
 
+    public List<ChannelClaimDto> getChannelClaims() {
+        return channelClaims;
+    }
+
+    public void setChannelClaims(List<ChannelClaimDto> channelClaims) {
+        this.channelClaims = channelClaims;
+    }
+
     @Override
     public URI getContext() {
         return context;
@@ -346,7 +357,7 @@ public class CustomerDto implements Context {
             getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
             getRorId(), getPublicationWorkflow(), getDoiAgent(),
             getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom(),
-            isGeneralSupportEnabled(), getServiceCenter());
+            isGeneralSupportEnabled(), getServiceCenter(), getChannelClaims());
     }
 
     @Override
@@ -381,7 +392,8 @@ public class CustomerDto implements Context {
             && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
             && getPublicationWorkflow() == that.getPublicationWorkflow()
             && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
-            && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled());
+            && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled())
+            && Objects.equals(getChannelClaims(), that.getChannelClaims());
     }
 
     @Override
@@ -562,6 +574,11 @@ public class CustomerDto implements Context {
 
         public Builder withGeneralSupportEnabled(boolean generalSupportEnabled) {
             customerDto.setGeneralSupportEnabled(generalSupportEnabled);
+            return this;
+        }
+
+        public Builder withChannelClaims(List<ChannelClaimDto> channelClaims) {
+            customerDto.setChannelClaims(new ArrayList<>(channelClaims));
             return this;
         }
 

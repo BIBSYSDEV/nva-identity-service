@@ -5,7 +5,9 @@ import no.unit.nva.useraccessservice.model.CustomerSelection;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
+import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
@@ -37,10 +39,10 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
     }
 
     @Override
-    protected Void processInput(CustomerSelection input, RequestInfo event, Context context) {
-
-        updateCognitoUserEntryAttributes(input, context.getIdentity().getIdentityId(),
-                                         context.getIdentity().getIdentityPoolId());
+    protected Void processInput(CustomerSelection input, RequestInfo event, Context context)
+        throws UnauthorizedException {
+        String cognitoGroupId = UriWrapper.fromUri(event.getIssuer()).getLastPathElement();
+        updateCognitoUserEntryAttributes(input, event.getCognitoUsername(), cognitoGroupId);
         return null;
     }
 

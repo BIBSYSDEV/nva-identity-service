@@ -33,7 +33,7 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
     @Override
     protected void validateRequest(CustomerSelection customerSelection, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
-        validateInput(requestInfo.getAllowedCustomers(), requestInfo.getCurrentCustomer());
+        validateInput(requestInfo.getAllowedCustomers(), customerSelection.getCustomerId());
     }
 
     @Override

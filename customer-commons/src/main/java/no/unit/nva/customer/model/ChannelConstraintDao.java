@@ -13,49 +13,49 @@ import static no.unit.nva.customer.model.ChannelConstraintPolicy.OWNER_ONLY;
 
 @DynamoDbBean
 public class ChannelConstraintDao implements JsonSerializable {
-    private ChannelConstraintPolicy publishesMetadataPolicy;
-    private ChannelConstraintPolicy editsMetadataPolicy;
+    private ChannelConstraintPolicy publishingPolicy;
+    private ChannelConstraintPolicy editingPolicy;
     private List<PublicationInstanceTypes> scope;
 
     public ChannelConstraintDao() {
-        this.publishesMetadataPolicy = EVERYONE;
-        this.editsMetadataPolicy = OWNER_ONLY;
+        this.publishingPolicy = EVERYONE;
+        this.editingPolicy = OWNER_ONLY;
         this.scope = emptyList();
     }
 
     public ChannelConstraintDao(
-            ChannelConstraintPolicy publishesMetadataPolicy,
-            ChannelConstraintPolicy editsMetadataPolicy,
+            ChannelConstraintPolicy publishingPolicy,
+            ChannelConstraintPolicy editingPolicy,
             List<PublicationInstanceTypes> scope) {
-        this.publishesMetadataPolicy = publishesMetadataPolicy;
-        this.editsMetadataPolicy = editsMetadataPolicy;
+        this.publishingPolicy = publishingPolicy;
+        this.editingPolicy = editingPolicy;
         this.scope = scope;
     }
 
     public static ChannelConstraintDao fromDto(ChannelConstraintDto dto) {
-        return new ChannelConstraintDao(dto.publishesMetadataPolicy(), dto.editsMetadataPolicy(), dto.scope());
+        return new ChannelConstraintDao(dto.publishingPolicy(), dto.editingPolicy(), dto.scope());
     }
 
     public ChannelConstraintDto toDto() {
-        return new ChannelConstraintDto(getPublishesMetadataPolicy(), getEditsMetadataPolicy(), getScope());
+        return new ChannelConstraintDto(getPublishingPolicy(), getEditingPolicy(), getScope());
     }
 
-    public ChannelConstraintPolicy getPublishesMetadataPolicy() {
-        return publishesMetadataPolicy;
-    }
-
-    @JacocoGenerated
-    public void setPublishesMetadataPolicy(ChannelConstraintPolicy publishesMetadataPolicy) {
-        this.publishesMetadataPolicy = publishesMetadataPolicy;
-    }
-
-    public ChannelConstraintPolicy getEditsMetadataPolicy() {
-        return editsMetadataPolicy;
+    public ChannelConstraintPolicy getPublishingPolicy() {
+        return publishingPolicy;
     }
 
     @JacocoGenerated
-    public void setEditsMetadataPolicy(ChannelConstraintPolicy editsMetadataPolicy) {
-        this.editsMetadataPolicy = editsMetadataPolicy;
+    public void setPublishingPolicy(ChannelConstraintPolicy publishingPolicy) {
+        this.publishingPolicy = publishingPolicy;
+    }
+
+    public ChannelConstraintPolicy getEditingPolicy() {
+        return editingPolicy;
+    }
+
+    @JacocoGenerated
+    public void setEditingPolicy(ChannelConstraintPolicy editingPolicy) {
+        this.editingPolicy = editingPolicy;
     }
 
     public List<PublicationInstanceTypes> getScope() {
@@ -76,15 +76,15 @@ public class ChannelConstraintDao implements JsonSerializable {
         if (!(o instanceof ChannelConstraintDao that)) {
             return false;
         }
-        return Objects.equals(getPublishesMetadataPolicy(), that.getPublishesMetadataPolicy()) &&
-                Objects.equals(getEditsMetadataPolicy(), that.getEditsMetadataPolicy()) &&
+        return Objects.equals(getPublishingPolicy(), that.getPublishingPolicy()) &&
+                Objects.equals(getEditingPolicy(), that.getEditingPolicy()) &&
                 Objects.equals(getScope(), that.getScope());
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getPublishesMetadataPolicy(), getEditsMetadataPolicy(), getScope());
+        return Objects.hash(getPublishingPolicy(), getEditingPolicy(), getScope());
     }
 
     @JacocoGenerated

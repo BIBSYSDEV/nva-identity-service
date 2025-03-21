@@ -4,7 +4,7 @@ import no.unit.nva.commons.json.JsonSerializable;
 
 import java.util.List;
 
-public record ChannelConstraintDto(ChannelConstraintPolicy publishesMetadataPolicy,
-                                   ChannelConstraintPolicy editsMetadataPolicy,
+public record ChannelConstraintDto(ChannelConstraintPolicy publishingPolicy,
+                                   ChannelConstraintPolicy editingPolicy,
                                    List<PublicationInstanceTypes> scope) implements JsonSerializable {
 }

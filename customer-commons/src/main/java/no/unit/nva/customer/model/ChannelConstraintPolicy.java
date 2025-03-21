@@ -13,8 +13,8 @@ public enum ChannelConstraintPolicy {
     OWNER_ONLY("OwnerOnly"),
     EVERYONE("Everyone");
 
-    public static final String ERROR_MESSAGE_TEMPLATE = "%s not a valid ChannelConstraintPolicy, expected one of: %s";
-    public static final String DELIMITER = ", ";
+    private static final String ERROR_MESSAGE_TEMPLATE = "%s not a valid ChannelConstraintPolicy, expected one of: %s";
+    private static final String DELIMITER = ", ";
 
     private final String value;
 

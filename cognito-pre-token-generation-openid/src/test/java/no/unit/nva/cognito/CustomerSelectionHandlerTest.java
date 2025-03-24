@@ -79,7 +79,7 @@ class CustomerSelectionHandlerTest {
     private RoleDto role;
 
     @BeforeEach
-    public void init() throws InvalidInputException, ConflictException {
+    void init() throws InvalidInputException, ConflictException {
         outputStream = new ByteArrayOutputStream();
         setupCustomerService();
         setupIdentityService();
@@ -235,6 +235,15 @@ class CustomerSelectionHandlerTest {
 
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
         assertThat(updatedSelectedCustomer, is(in(allowedCustomers.toArray(URI[]::new))));
+    }
+
+    @Test
+    void shouldDenyRequestWhenCustomerSelectionIsNotAmongTheValidOptions() throws IOException {
+        var invalidCustomer = randomUri();
+        var input = createRequest(invalidCustomer);
+        var response = sendRequest(input, Void.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
     }
 
     private <T> GatewayResponse<T> sendRequest(InputStream input, Class<T> responseType) throws IOException {

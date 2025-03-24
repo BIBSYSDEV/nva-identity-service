@@ -20,6 +20,7 @@ import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 
 public class CustomerSelectionHandler extends CognitoCommunicationHandler<CustomerSelection, Void> {
 
+    private static final String CUSTOM_ATTR_PREFIX = "custom:";
     private final CognitoIdentityProviderClient cognito;
 
     @JacocoGenerated
@@ -72,6 +73,7 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
     private static String[] getAllAttributeNames(AdminGetUserResponse user) {
         return user.userAttributes().stream()
                    .map(AttributeType::name)
+                   .filter(attributeName -> attributeName.startsWith(CUSTOM_ATTR_PREFIX))
                    .toArray(String[]::new);
     }
 

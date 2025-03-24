@@ -3,6 +3,10 @@ package no.unit.nva;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminDeleteUserAttributesRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminDeleteUserAttributesResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CreateGroupRequest;
@@ -35,6 +39,7 @@ public class FakeCognito implements CognitoIdentityProviderClient {
 
     private AdminUpdateUserAttributesRequest adminUpdateUserRequest;
     private UpdateUserAttributesRequest updateUserAttributesRequest;
+    private AdminDeleteUserAttributesRequest adminDeleteUserAttributesRequest;
 
     public FakeCognito(String clientName) {
         this.clientName = clientName;
@@ -51,6 +56,10 @@ public class FakeCognito implements CognitoIdentityProviderClient {
 
     public AdminUpdateUserAttributesRequest getAdminUpdateUserRequest() {
         return adminUpdateUserRequest;
+    }
+
+    public AdminDeleteUserAttributesRequest getAdminDeleteUserAttributesRequest() {
+        return adminDeleteUserAttributesRequest;
     }
 
     public String getFakeClientId() {
@@ -85,9 +94,9 @@ public class FakeCognito implements CognitoIdentityProviderClient {
     @Override
     public CreateGroupResponse createGroup(CreateGroupRequest request) {
         GroupType group = GroupType.builder()
-            .userPoolId(request.userPoolId())
-            .groupName(request.groupName())
-            .build();
+                              .userPoolId(request.userPoolId())
+                              .groupName(request.groupName())
+                              .build();
         return CreateGroupResponse.builder().group(group).build();
     }
 
@@ -95,18 +104,18 @@ public class FakeCognito implements CognitoIdentityProviderClient {
     public DescribeUserPoolClientResponse describeUserPoolClient(
         DescribeUserPoolClientRequest describeUserPoolClientRequest) {
         var userPoolClient = UserPoolClientType.builder()
-            .clientId(describeUserPoolClientRequest.clientId())
-            .clientSecret(fakeClientSecret)
-            .build();
+                                 .clientId(describeUserPoolClientRequest.clientId())
+                                 .clientSecret(fakeClientSecret)
+                                 .build();
         return DescribeUserPoolClientResponse.builder().userPoolClient(userPoolClient).build();
     }
 
     @Override
     public GetGroupResponse getGroup(GetGroupRequest request) {
         GroupType group = GroupType.builder()
-            .userPoolId(request.userPoolId())
-            .groupName(request.groupName())
-            .build();
+                              .userPoolId(request.userPoolId())
+                              .groupName(request.groupName())
+                              .build();
         return GetGroupResponse.builder().group(group).build();
     }
 
@@ -116,12 +125,30 @@ public class FakeCognito implements CognitoIdentityProviderClient {
     }
 
     @Override
+    public AdminGetUserResponse adminGetUser(AdminGetUserRequest getUserRequest) {
+        return users.values().stream()
+                   .filter(getUserResponse -> getUserResponse.username().equals(getUserRequest.username()))
+                   .map(a -> AdminGetUserResponse.builder()
+                                 .userAttributes(a.userAttributes())
+                                 .username(a.username())
+                                 .build())
+                   .findFirst()
+                   .orElseThrow();
+    }
+
+    @Override
+    public AdminDeleteUserAttributesResponse adminDeleteUserAttributes(AdminDeleteUserAttributesRequest request) {
+        this.adminDeleteUserAttributesRequest = request;
+        return AdminDeleteUserAttributesResponse.builder().build();
+    }
+
+    @Override
     public ListUserPoolClientsResponse listUserPoolClients(ListUserPoolClientsRequest request) {
 
         UserPoolClientDescription userPoolClient = UserPoolClientDescription.builder()
-            .clientId(fakeClientId)
-            .clientName(clientName)
-            .build();
+                                                       .clientId(fakeClientId)
+                                                       .clientName(clientName)
+                                                       .build();
         return ListUserPoolClientsResponse.builder().userPoolClients(userPoolClient).build();
     }
 

@@ -143,6 +143,7 @@ Resources:
             Action:
               - cognito-idp:AdminAddUserToGroup
               - cognito-idp:AdminUpdateUserAttributes
+              - cognito-idp:AdminDeleteUserAttributes
               - cognito-idp:AdminGetUser
               - cognito-idp:AddCustomAttributes
               - cognito-idp:DescribeUserPoolClient

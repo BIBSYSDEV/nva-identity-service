@@ -9,7 +9,7 @@ import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
 import java.net.HttpURLConnection;
@@ -56,12 +56,23 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
                                                   String userPoolId) {
         var selectedCustomerCustomClaim = createAttribute(CURRENT_CUSTOMER_CLAIM, customerSelection.getCustomerId());
 
-        var request = AdminUpdateUserAttributesRequest.builder()
-                          .userAttributes(selectedCustomerCustomClaim)
-                          .userPoolId(userPoolId)
-                          .username(cognitoUsername)
-                          .build();
-        cognito.adminUpdateUserAttributes(request);
+        var user = cognito.adminGetUser(request -> request.userPoolId(userPoolId).username(cognitoUsername));
+
+        // Delete all existing data so there is no way to have illegal combinations of data
+        cognito.adminDeleteUserAttributes(request -> request.userPoolId(userPoolId)
+                                                         .username(cognitoUsername)
+                                                         .userAttributeNames(getAllAttributeNames(user)));
+
+        // Set customer selection
+        cognito.adminUpdateUserAttributes(request -> request.username(cognitoUsername)
+                                                         .userPoolId(userPoolId)
+                                                         .userAttributes(selectedCustomerCustomClaim));
+    }
+
+    private static String[] getAllAttributeNames(AdminGetUserResponse user) {
+        return user.userAttributes().stream()
+                   .map(AttributeType::name)
+                   .toArray(String[]::new);
     }
 
     private AttributeType createAttribute(String attributeName, URI attributeValue) {

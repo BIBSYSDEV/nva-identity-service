@@ -40,14 +40,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UpdateUserAttributesRequest;
 
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.auth.CognitoUserInfo.COGNITO_USER_NAME;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.CURRENT_TERMS;
-import static no.unit.nva.cognito.CognitoClaims.CUSTOMER_ACCEPTED_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -57,6 +54,7 @@ import static no.unit.nva.useraccessservice.constants.ServiceConstants.API_DOMAI
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.CRISTIN_PATH;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -106,14 +104,6 @@ class CustomerSelectionHandlerTest {
         cognito = new FakeCognito(randomString());
         var user = createUserEntryInCognito(allowedCustomers, person);
         cognito.addUser(personAccessToken, user);
-        var currentTerms = AttributeType.builder().name(CURRENT_TERMS).value(CURRENT_TERMS).build();
-        var acceptedTerms =
-            AttributeType.builder().name(CUSTOMER_ACCEPTED_TERMS).value(CUSTOMER_ACCEPTED_TERMS).build();
-
-        cognito.updateUserAttributes(UpdateUserAttributesRequest.builder()
-                                         .accessToken(personAccessToken)
-                                         .userAttributes(currentTerms, acceptedTerms)
-                                         .build());
     }
 
     private GetUserResponse createUserEntryInCognito(Set<URI> allowedCustomers, URI personId) {
@@ -124,6 +114,7 @@ class CustomerSelectionHandlerTest {
         var cristinPersonIdClaim = createAttribute(PERSON_ID_CLAIM, personId.toString());
         return GetUserResponse.builder()
                    .userAttributes(allowedCustomersClaim, cristinPersonIdClaim)
+                   .username(randomString())
                    .build();
     }
 
@@ -238,6 +229,18 @@ class CustomerSelectionHandlerTest {
     }
 
     @Test
+    void shouldDeleteAllUserAttributesOnCustomerSelect()
+        throws IOException {
+        var selectedCustomer = randomElement(allowedCustomers.toArray(URI[]::new));
+        var input = createRequest(selectedCustomer);
+        var response = sendRequest(input, Void.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+
+        assertThat(cognito.getAdminDeleteUserAttributesRequest(), is(notNullValue()));
+    }
+
+    @Test
     void shouldDenyRequestWhenCustomerSelectionIsNotAmongTheValidOptions() throws IOException {
         var invalidCustomer = randomUri();
         var input = createRequest(invalidCustomer);
@@ -272,7 +275,9 @@ class CustomerSelectionHandlerTest {
                    .withAllowedCustomers(allowedCustomers)
                    .withUserName(randomString())
                    .withIssuer(randomUri() + "/" + testCognitoGroupId)
-                   .withAuthorizerClaim(COGNITO_USER_NAME, randomString())
+                   .withAuthorizerClaim(COGNITO_USER_NAME,
+                                        cognito.getUser(GetUserRequest.builder().accessToken(personAccessToken).build())
+                                            .username())
                    .withBody(randomCustomer)
                    .build();
     }

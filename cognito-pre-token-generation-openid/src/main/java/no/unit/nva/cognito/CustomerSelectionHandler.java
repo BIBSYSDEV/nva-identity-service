@@ -1,5 +1,7 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.util.Arrays;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
@@ -17,13 +19,10 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.List;
 
-import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.SELECTED_CUSTOMER_ID_CLAIM;
-
 public class CustomerSelectionHandler extends CognitoCommunicationHandler<CustomerSelection, Void> {
 
     private static final String CUSTOM_ATTR_PREFIX = "custom:";
-    private static final List<String> CLAIMS_TO_KEEP = Arrays.asList(SELECTED_CUSTOMER_ID_CLAIM, PERSON_ID_CLAIM);
+    private static final List<String> CLAIMS_TO_KEEP = Arrays.asList(CURRENT_CUSTOMER_CLAIM, PERSON_CRISTIN_ID_CLAIM);
     private final CognitoIdentityProviderClient cognito;
 
     @JacocoGenerated
@@ -58,7 +57,7 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
     private void updateCognitoUserEntryAttributes(CustomerSelection customerSelection,
                                                   String cognitoUsername,
                                                   String userPoolId) {
-        var selectedCustomerCustomClaim = createAttribute(SELECTED_CUSTOMER_ID_CLAIM,
+        var selectedCustomerCustomClaim = createAttribute(CURRENT_CUSTOMER_CLAIM,
                                                           customerSelection.getCustomerId());
 
         var user = cognito.adminGetUser(request -> request.userPoolId(userPoolId).username(cognitoUsername));

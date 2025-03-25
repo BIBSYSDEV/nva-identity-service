@@ -6,9 +6,7 @@ import nva.commons.core.JacocoGenerated;
 public final class CognitoClaims {
 
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:customerId";
-    public static final String SELECTED_CUSTOMER_ID_CLAIM = "custom:selectedCustomerId";
     public static final String ALLOWED_CUSTOMERS_CLAIM = "custom:allowedCustomers";
-    public static final String PERSON_ID_CLAIM = "custom:personId";
     public static final String NVA_USERNAME_CLAIM = "custom:nvaUsername";
     public static final String TOP_ORG_CRISTIN_ID = "custom:topOrgCristinId";
     public static final String PERSON_CRISTIN_ID_CLAIM = "custom:cristinId";
@@ -34,7 +32,6 @@ public final class CognitoClaims {
 
     static final String[] CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN = {
         CURRENT_CUSTOMER_CLAIM,
-        SELECTED_CUSTOMER_ID_CLAIM,
         ALLOWED_CUSTOMERS_CLAIM,
         PERSON_CRISTIN_ID_CLAIM,
         NVA_USERNAME_CLAIM,

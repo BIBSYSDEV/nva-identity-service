@@ -52,12 +52,12 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
-import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.SELECTED_CUSTOMER_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
@@ -229,7 +229,7 @@ public class UserSelectionUponLoginHandler
 
     private Optional<Person> getPerson(Map<String, String> attributes, AuthenticationDetails authenticationDetails) {
         Optional<Person> requestedPerson;
-        var personId = Optional.ofNullable(attributes.get(PERSON_ID_CLAIM));
+        var personId = Optional.ofNullable(attributes.get(PERSON_CRISTIN_ID_CLAIM));
         if (personId.isPresent()) {
             var cristinId = UriWrapper.fromUri(personId.get()).getLastPathElement();
             requestedPerson = personRegistry.fetchPersonByIdentifier(cristinId);
@@ -251,7 +251,7 @@ public class UserSelectionUponLoginHandler
             currentCustomer = customersForPerson.stream()
                                   .filter(customer -> customer.getId()
                                                           .equals(Optional.ofNullable(
-                                                                  userAttributes.getOrDefault(SELECTED_CUSTOMER_ID_CLAIM,
+                                                                  userAttributes.getOrDefault(CURRENT_CUSTOMER_CLAIM,
                                                                                               null))
                                                                       .map(URI::create)
                                                                       .orElse(null)))

@@ -1361,14 +1361,6 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: selectedCustomerId
-          AttributeDataType: String
-          Mutable: false
-          Required: false
-        - Name: personId
-          AttributeDataType: String
-          Mutable: false
-          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value

@@ -34,9 +34,7 @@ import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.ROLES_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.SELECTED_CUSTOMER_ID_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.TOP_ORG_CRISTIN_ID;
 import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_EXCLUDED_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_INCLUDED_CLAIM;
@@ -127,7 +125,6 @@ public class UserAttributesBuilder {
         }
 
         userAttributes.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
-        userAttributes.add(createAttribute(PERSON_ID_CLAIM, person.getId().toString()));
         userAttributes.add(createAttribute(IMPERSONATED_BY_CLAIM, isNull(impersonatedBy) ? "" : impersonatedBy));
         userAttributes.add(createAttribute(CURRENT_TERMS, currentTerms.toString()));
         userAttributes.add(
@@ -135,13 +132,11 @@ public class UserAttributesBuilder {
 
         if (currentCustomer != null && currentUser != null) {
             userAttributes.add(createAttribute(CURRENT_CUSTOMER_CLAIM, currentCustomer.getId().toString()));
-            userAttributes.add(createAttribute(SELECTED_CUSTOMER_ID_CLAIM, currentCustomer.getId().toString()));
             userAttributes.add(createAttribute(TOP_ORG_CRISTIN_ID, currentCustomer.getCristinId().toString()));
             userAttributes.add(createAttribute(NVA_USERNAME_CLAIM, currentUser.getUsername()));
             userAttributes.add(createAttribute(PERSON_AFFILIATION_CLAIM, currentUser.getAffiliation().toString()));
         } else {
             userAttributes.add(createAttribute(CURRENT_CUSTOMER_CLAIM, EMPTY_CLAIM));
-            userAttributes.add(createAttribute(SELECTED_CUSTOMER_ID_CLAIM, EMPTY_CLAIM));
             userAttributes.add(createAttribute(TOP_ORG_CRISTIN_ID, EMPTY_CLAIM));
             userAttributes.add(createAttribute(NVA_USERNAME_CLAIM, EMPTY_CLAIM));
             userAttributes.add(createAttribute(PERSON_AFFILIATION_CLAIM, EMPTY_CLAIM));

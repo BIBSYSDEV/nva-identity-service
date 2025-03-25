@@ -44,8 +44,8 @@ import java.util.stream.IntStream;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.auth.CognitoUserInfo.COGNITO_USER_NAME;
 import static no.unit.nva.cognito.CognitoClaims.ALLOWED_CUSTOMERS_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.SELECTED_CUSTOMER_ID_CLAIM;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -111,7 +111,7 @@ class CustomerSelectionHandlerTest {
                                          .map(URI::toString)
                                          .collect(Collectors.joining(MULTI_VALUE_CLAIMS_DELIMITER));
         var allowedCustomersClaim = createAttribute(ALLOWED_CUSTOMERS_CLAIM, allowedCustomersString);
-        var cristinPersonIdClaim = createAttribute(PERSON_ID_CLAIM, personId.toString());
+        var cristinPersonIdClaim = createAttribute(PERSON_CRISTIN_ID_CLAIM, personId.toString());
         return GetUserResponse.builder()
                    .userAttributes(allowedCustomersClaim, cristinPersonIdClaim)
                    .username(randomString())
@@ -193,10 +193,10 @@ class CustomerSelectionHandlerTest {
         return cognito.getUser(creteGetUserRequest())
                    .userAttributes()
                    .stream()
-                   .filter(attribute -> attribute.name().equals(PERSON_ID_CLAIM))
+                   .filter(attribute -> attribute.name().equals(PERSON_CRISTIN_ID_CLAIM))
                    .map(AttributeType::value)
                    .collect(SingletonCollector.tryCollect())
-                   .orElseThrow(fail -> new RuntimeException("Could not find " + PERSON_ID_CLAIM));
+                   .orElseThrow(fail -> new RuntimeException("Could not find " + PERSON_CRISTIN_ID_CLAIM));
     }
 
     private GetUserRequest creteGetUserRequest() {
@@ -260,7 +260,7 @@ class CustomerSelectionHandlerTest {
         return request
                    .userAttributes()
                    .stream()
-                   .filter(attribute -> CURRENT_CUSTOMER_CLAIM.equals(attribute.name()))
+                   .filter(attribute -> SELECTED_CUSTOMER_ID_CLAIM.equals(attribute.name()))
                    .map(AttributeType::value)
                    .map(URI::create).findFirst().orElseThrow();
     }

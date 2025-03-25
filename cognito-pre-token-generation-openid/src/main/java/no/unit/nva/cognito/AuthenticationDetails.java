@@ -1,27 +1,21 @@
 package no.unit.nva.cognito;
 
-import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import nva.commons.core.JacocoGenerated;
 
 public class AuthenticationDetails {
-    private final NationalIdentityNumber nin;
     private final String feideIdentifier;
     private final String feideDomain;
     private final String userPoolId;
     private final String username;
+    private final String impersonating;
 
-
-    public AuthenticationDetails(NationalIdentityNumber nin, String feideIdentifier, String feideDomain,
-                                 String userPoolId, String username) {
-        this.nin = nin;
+    public AuthenticationDetails(String feideIdentifier, String feideDomain,
+                                 String userPoolId, String username, String impersonating) {
         this.feideIdentifier = feideIdentifier;
         this.feideDomain = feideDomain;
         this.userPoolId = userPoolId;
         this.username = username;
-    }
-
-    public NationalIdentityNumber getNin() {
-        return nin;
+        this.impersonating = impersonating;
     }
 
     public String getFeideIdentifier() {
@@ -40,15 +34,19 @@ public class AuthenticationDetails {
         return username;
     }
 
+    public String getImpersonating() {
+        return impersonating;
+    }
+
     @JacocoGenerated
     @Override
     public String toString() {
         return "AuthenticationDetails{"
-            + "nin=" + nin
             + ", feideIdentifier='" + feideIdentifier + '\''
             + ", feideDomain='" + feideDomain + '\''
             + ", userPoolId='" + userPoolId + '\''
             + ", username='" + username + '\''
+            + ", impersonating='" + impersonating + '\''
             + '}';
     }
 }

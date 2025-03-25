@@ -150,7 +150,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     @Override
-    public Optional<Person> fetchPersonByIdentifier(String cristinIdentifier) {
+    public Optional<Person> fetchPersonByIdentifier(String identifier) {
         var start = Instant.now();
         var cristinCredentials = this.cristinCredentialsSupplier.get();
 
@@ -159,7 +159,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
                 Instant.now().toEpochMilli() - start.toEpochMilli());
         }
 
-        return fetchPersonByIdentifierFromCristin(cristinIdentifier, cristinCredentials)
+        return fetchPersonByIdentifierFromCristin(identifier, cristinCredentials)
             .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
     }
 

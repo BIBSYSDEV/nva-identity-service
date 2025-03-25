@@ -28,6 +28,7 @@ import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Failure;
+import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
@@ -51,11 +52,12 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN;
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
-import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.SELECTED_CUSTOMER_ID_CLAIM;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
@@ -157,24 +159,23 @@ public class UserSelectionUponLoginHandler
 
         final var start = Instant.now();
 
+        var attributes = input.getRequest().getUserAttributes();
+
         final var authenticationDetails = extractAuthenticationDetails(input);
 
         var startFetchingPerson = Instant.now();
 
-        var impersonating = input.getRequest().getUserAttributes().get(IMPERSONATING_CLAIM);
-        var nin = getCurrentNin(impersonating, authenticationDetails);
-
-        var requestedPerson = personRegistry.fetchPersonByNin(nin);
+        Optional<Person> requestedPerson = getPerson(attributes, authenticationDetails);
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
         if (requestedPerson.isPresent()) {
-            var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
+            var impersonatedBy = getImpersonatedBy(authenticationDetails);
             var person = requestedPerson.get();
 
             var customersForPerson = fetchCustomersWithActiveAffiliations(person);
             var currentCustomer = getCurrentCustomer(authenticationDetails, customersForPerson,
-                                                     input.getTriggerSource(), input.getRequest().getUserAttributes());
+                                                     input.getTriggerSource(), attributes);
 
             var users = createUsers(person, customersForPerson, authenticationDetails);
             var currentTerms = termsService
@@ -226,7 +227,18 @@ public class UserSelectionUponLoginHandler
         return input;
     }
 
-
+    private Optional<Person> getPerson(Map<String, String> attributes, AuthenticationDetails authenticationDetails) {
+        Optional<Person> requestedPerson;
+        var personId = Optional.ofNullable(attributes.get(PERSON_ID_CLAIM));
+        if (personId.isPresent()) {
+            var cristinId = UriWrapper.fromUri(personId.get()).getLastPathElement();
+            requestedPerson = personRegistry.fetchPersonByIdentifier(cristinId);
+        } else {
+            var nin = getCurrentNin(authenticationDetails, attributes);
+            requestedPerson = personRegistry.fetchPersonByNin(nin);
+        }
+        return requestedPerson;
+    }
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,
                                            Set<CustomerDto> customersForPerson, String triggerSource,
@@ -239,7 +251,7 @@ public class UserSelectionUponLoginHandler
             currentCustomer = customersForPerson.stream()
                                   .filter(customer -> customer.getId()
                                                           .equals(Optional.ofNullable(
-                                                                  userAttributes.getOrDefault(CURRENT_CUSTOMER_CLAIM,
+                                                                  userAttributes.getOrDefault(SELECTED_CUSTOMER_ID_CLAIM,
                                                                                               null))
                                                                       .map(URI::create)
                                                                       .orElse(null)))
@@ -250,18 +262,18 @@ public class UserSelectionUponLoginHandler
         return currentCustomer;
     }
 
-    private NationalIdentityNumber getCurrentNin(
-        String impersonating, AuthenticationDetails authenticationDetails) {
+    private NationalIdentityNumber getCurrentNin(AuthenticationDetails authenticationDetails, Map<String, String> attributes) {
+        var nin = extractNin(attributes);
 
-        if (isNull(impersonating)) {
-            return authenticationDetails.getNin();
+        if (isNull(authenticationDetails.getImpersonating())) {
+            return nin;
         }
-        var impersonator = personRegistry.fetchPersonByNin(authenticationDetails.getNin()).get();
+        var impersonator = personRegistry.fetchPersonByNin(nin).get();
 
         LOGGER.info("User {} {} impersonating: {}",
                     impersonator.getIdentifier(),
                     authenticationDetails.getUsername(),
-                    impersonating);
+                    authenticationDetails.getImpersonating());
 
         var customerForImpersonators = fetchCustomersWithActiveAffiliations(impersonator);
         var usersForImpersonator = createUsers(impersonator, customerForImpersonators, authenticationDetails);
@@ -281,11 +293,11 @@ public class UserSelectionUponLoginHandler
             throw new IllegalStateException(USER_NOT_ALLOWED_TO_IMPERSONATE);
         }
 
-        return NationalIdentityNumber.fromString(impersonating);
+        return NationalIdentityNumber.fromString(authenticationDetails.getImpersonating());
     }
 
-    private String getImpersonatedBy(String impersonating, AuthenticationDetails authenticationDetails) {
-        return isNull(impersonating) ? null : authenticationDetails.getUsername();
+    private String getImpersonatedBy(AuthenticationDetails authenticationDetails) {
+        return isNull(authenticationDetails.getImpersonating()) ? null : authenticationDetails.getUsername();
     }
 
     private URI getAcceptedTerms(Person person) {
@@ -310,13 +322,13 @@ public class UserSelectionUponLoginHandler
 
     private AuthenticationDetails extractAuthenticationDetails(CognitoUserPoolPreTokenGenerationEventV2 input) {
         try {
-            var nin = extractNin(input.getRequest().getUserAttributes());
             var feideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
             var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
             var userPoolId = input.getUserPoolId();
             var username = input.getUserName();
+            var impersonating = input.getRequest().getUserAttributes().get(IMPERSONATING_CLAIM);
 
-            return new AuthenticationDetails(nin, feideIdentifier, feideDomain, userPoolId, username);
+            return new AuthenticationDetails(feideIdentifier, feideDomain, userPoolId, username, impersonating);
         } catch (Exception e) {
             LOGGER.error("Could not extract required data from request", e);
             LOGGER.error("User name: {}, userPoolId: {}, input request: {}", input.getUserName(), input.getUserPoolId(),

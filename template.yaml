@@ -1361,6 +1361,14 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+        - Name: selectedCustomerId
+          AttributeDataType: String
+          Mutable: false
+          Required: false
+        - Name: personId
+          AttributeDataType: String
+          Mutable: false
+          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value
@@ -1546,7 +1554,6 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
-
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
@@ -1627,7 +1634,6 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
-
   TestingApplicationClient:
     DependsOn: ResourceServerScopes
     Type: AWS::Cognito::UserPoolClient
@@ -1709,7 +1715,6 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
-
   ## External API
   ExternalUserPoolName:
     Type: AWS::SSM::Parameter

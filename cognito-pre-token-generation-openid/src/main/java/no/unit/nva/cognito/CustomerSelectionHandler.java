@@ -1,6 +1,7 @@
 package no.unit.nva.cognito;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import java.util.Arrays;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -16,11 +17,13 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.List;
 
-import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.PERSON_ID_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.SELECTED_CUSTOMER_ID_CLAIM;
 
 public class CustomerSelectionHandler extends CognitoCommunicationHandler<CustomerSelection, Void> {
 
     private static final String CUSTOM_ATTR_PREFIX = "custom:";
+    private static final List<String> CLAIMS_TO_KEEP = Arrays.asList(SELECTED_CUSTOMER_ID_CLAIM, PERSON_ID_CLAIM);
     private final CognitoIdentityProviderClient cognito;
 
     @JacocoGenerated
@@ -55,14 +58,15 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
     private void updateCognitoUserEntryAttributes(CustomerSelection customerSelection,
                                                   String cognitoUsername,
                                                   String userPoolId) {
-        var selectedCustomerCustomClaim = createAttribute(CURRENT_CUSTOMER_CLAIM, customerSelection.getCustomerId());
+        var selectedCustomerCustomClaim = createAttribute(SELECTED_CUSTOMER_ID_CLAIM,
+                                                          customerSelection.getCustomerId());
 
         var user = cognito.adminGetUser(request -> request.userPoolId(userPoolId).username(cognitoUsername));
 
         // Delete all existing data so there is no way to have illegal combinations of data
         cognito.adminDeleteUserAttributes(request -> request.userPoolId(userPoolId)
                                                          .username(cognitoUsername)
-                                                         .userAttributeNames(getAllAttributeNames(user)));
+                                                         .userAttributeNames(geAttributeNamesForDeletion(user)));
 
         // Set customer selection
         cognito.adminUpdateUserAttributes(request -> request.username(cognitoUsername)
@@ -70,10 +74,11 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
                                                          .userAttributes(selectedCustomerCustomClaim));
     }
 
-    private static String[] getAllAttributeNames(AdminGetUserResponse user) {
+    private static String[] geAttributeNamesForDeletion(AdminGetUserResponse user) {
         return user.userAttributes().stream()
                    .map(AttributeType::name)
                    .filter(attributeName -> attributeName.startsWith(CUSTOM_ATTR_PREFIX))
+                   .filter(attributeName -> !CLAIMS_TO_KEEP.contains(attributeName))
                    .toArray(String[]::new);
     }
 

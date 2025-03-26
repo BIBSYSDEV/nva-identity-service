@@ -1,29 +1,5 @@
 package no.unit.nva.useraccessservice.model;
 
-import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
-import no.unit.nva.commons.json.JsonUtils;
-import no.unit.nva.identityservice.json.JsonConfig;
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import nva.commons.apigateway.AccessRight;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.core.attempt.Try;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
@@ -49,6 +25,30 @@ import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.IsSame.sameInstance;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
+import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import no.unit.nva.commons.json.JsonUtils;
+import no.unit.nva.identityservice.json.JsonConfig;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.attempt.Try;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class UserDtoTest extends DtoTest {
 
@@ -186,12 +186,19 @@ class UserDtoTest extends DtoTest {
         assertThat(user.getInstitution(), is(equalTo(SOME_INSTITUTION)));
     }
 
-    @ParameterizedTest(name = "build throws exception when username is:\"{0}\"")
-    @NullAndEmptySource
-    @ValueSource(strings = {" ", "\t", "\n"})
+    @ParameterizedTest
+    @MethodSource("invalidNameProvider")
     void buildThrowsExceptionWhenUsernameIsNullOrEmpty(String username) {
         Executable action = () -> UserDto.newBuilder().withUsername(username).build();
         assertThrows(RuntimeException.class, action);
+    }
+
+    private static Stream<Arguments> invalidNameProvider() {
+        return Stream.of(argumentSet("null string", (String) null),
+                         argumentSet("Empty string", ""),
+                         argumentSet("Space character", " "),
+                         argumentSet("Tab character", "\t"),
+                         argumentSet("Newline character", "\n"));
     }
 
     @Test

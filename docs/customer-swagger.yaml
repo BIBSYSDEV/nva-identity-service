@@ -882,6 +882,9 @@ components:
         id:
           type: string
           format: uri
+        cristinId:
+          type: string
+          format: uri
         displayName:
           type: string
         createdDate:
@@ -889,6 +892,8 @@ components:
           format: date-time
         doiPrefix:
           type: string
+        nviInstitution:
+          type: boolean
     DoiAgent:
       type: object
       properties:
@@ -1084,9 +1089,12 @@ components:
         type: CustomerList
         customers:
           - id: 'https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6'
+            cristinId: 'https://api.test.nva.aws.unit.no/cristin/organization/1.2.3.4'
             createdDate: '2021-05-07T14:29:04.144Z'
+            active: true
             displayName: 'Universitet for Reindrift'
             doiPrefix: "1000.10"
+            nviInstitution: false
     DoiAgentExample:
       value:
         id: 'https://example.com/example/#/doiagent'

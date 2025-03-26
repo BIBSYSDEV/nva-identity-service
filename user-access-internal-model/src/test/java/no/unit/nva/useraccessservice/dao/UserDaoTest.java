@@ -1,33 +1,5 @@
 package no.unit.nva.useraccessservice.dao;
 
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.model.RoleName;
-import no.unit.nva.useraccessservice.model.UserDto;
-import nva.commons.apigateway.AccessRight;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.core.attempt.Try;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
-import org.hamcrest.core.StringContains;
-import org.javers.core.Javers;
-import org.javers.core.JaversBuilder;
-import org.javers.core.diff.Diff;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static no.unit.nva.RandomUserDataGenerator.randomCristinOrgId;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
@@ -49,6 +21,34 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
+import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
+import no.unit.nva.useraccessservice.model.UserDto;
+import nva.commons.apigateway.AccessRight;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.attempt.Try;
+import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.TestAppender;
+import org.hamcrest.core.StringContains;
+import org.javers.core.Javers;
+import org.javers.core.JaversBuilder;
+import org.javers.core.diff.Diff;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 class UserDaoTest {
 
@@ -141,8 +141,8 @@ class UserDaoTest {
         assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
     }
 
-    @ParameterizedTest(name = "builder should throw exception when username is:\"{0}\"")
-    @NullAndEmptySource
+    @ParameterizedTest
+    @MethodSource("invalidNameProvider")
     void builderShouldThrowExceptionWhenUsernameIsNotValid(String invalidUsername) {
         Executable action = () -> UserDao.newBuilder()
             .withUsername(invalidUsername)
@@ -156,12 +156,19 @@ class UserDaoTest {
         assertThat(exception.getMessage(), containsString(UserDao.INVALID_USER_EMPTY_USERNAME));
     }
 
-    @ParameterizedTest(name = "setUsername should throw exception when input is:\"{0}\"")
-    @NullAndEmptySource
-    @ValueSource(strings = {" ", "\t", "", "\n"})
+    @ParameterizedTest
+    @MethodSource("invalidNameProvider")
     void setUsernameThrowsExceptionWhenUsernameIsNotValid(String invalidUsername) {
         UserDao userDao = new UserDao();
         assertThrows(InvalidEntryInternalException.class, () -> userDao.setUsername(invalidUsername));
+    }
+
+    private static Stream<Arguments> invalidNameProvider() {
+        return Stream.of(argumentSet("null string", (String) null),
+                         argumentSet("Empty string", ""),
+                         argumentSet("Space character", " "),
+                         argumentSet("Tab character", "\t"),
+                         argumentSet("Newline character", "\n"));
     }
 
 //    @ParameterizedTest(name = "fromUserDb throws Exception user contains invalidRole. Rolename:\"{0}\"")

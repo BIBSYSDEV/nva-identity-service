@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDto;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,6 +20,15 @@ class CustomerReferenceTest {
         var expectedCustomerReference = constructExpectedCustomerReference(customerDto);
 
         assertEquals(expectedCustomerReference, CustomerReference.fromCustomerDto(customerDto));
+    }
+
+    @Test
+    void shouldIncludeNviInformationInCustomerReference() {
+        var customerDto = createSampleCustomerDto().copy().withNviInstitution(true).build();
+        var customerReference = CustomerReference.fromCustomerDto(customerDto);
+
+        assertEquals(customerReference.getCristinId(), customerDto.getCristinId());
+        assertEquals(customerReference.isNviInstitution(), customerDto.isNviInstitution());
     }
 
     private static CustomerReference constructExpectedCustomerReference(CustomerDto customerDto) {

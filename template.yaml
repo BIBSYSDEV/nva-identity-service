@@ -1361,14 +1361,6 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-        - Name: selectedCustomerId # should be deleted when recreating user pool
-          AttributeDataType: String
-          Mutable: false
-          Required: false
-        - Name: personId # should be deleted when recreating user pool
-          AttributeDataType: String
-          Mutable: false
-          Required: false
       UsernameConfiguration:
         CaseSensitive: true
       UserPoolName: !GetAtt UserPoolName.Value

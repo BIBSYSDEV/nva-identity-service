@@ -143,6 +143,7 @@ Resources:
             Action:
               - cognito-idp:AdminAddUserToGroup
               - cognito-idp:AdminUpdateUserAttributes
+              - cognito-idp:AdminDeleteUserAttributes
               - cognito-idp:AdminGetUser
               - cognito-idp:AddCustomAttributes
               - cognito-idp:DescribeUserPoolClient
@@ -1545,7 +1546,6 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
-
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
@@ -1626,7 +1626,6 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
-
   TestingApplicationClient:
     DependsOn: ResourceServerScopes
     Type: AWS::Cognito::UserPoolClient
@@ -1708,7 +1707,6 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
-
   ## External API
   ExternalUserPoolName:
     Type: AWS::SSM::Parameter

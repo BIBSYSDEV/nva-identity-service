@@ -7,7 +7,6 @@ public final class CognitoClaims {
 
     public static final String CURRENT_CUSTOMER_CLAIM = "custom:customerId";
     public static final String ALLOWED_CUSTOMERS_CLAIM = "custom:allowedCustomers";
-    public static final String PERSON_ID_CLAIM = "custom:cristinId";
     public static final String NVA_USERNAME_CLAIM = "custom:nvaUsername";
     public static final String TOP_ORG_CRISTIN_ID = "custom:topOrgCristinId";
     public static final String PERSON_CRISTIN_ID_CLAIM = "custom:cristinId";

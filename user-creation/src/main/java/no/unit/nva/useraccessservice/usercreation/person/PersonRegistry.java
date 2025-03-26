@@ -6,5 +6,5 @@ public interface PersonRegistry {
 
     Optional<Person> fetchPersonByNin(NationalIdentityNumber nin);
 
-    Optional<Person> fetchPersonByIdentifier(String cristinIdentifier);
+    Optional<Person> fetchPersonByIdentifier(String identifier);
 }

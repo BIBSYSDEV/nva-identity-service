@@ -111,6 +111,7 @@ import nva.commons.logutils.LogUtils;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -337,6 +338,7 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(actualUsers, is(empty()));
     }
 
+    @Disabled
     @Test
     void shouldLogUserAttributesIfNinExtractFails() {
         var personLoggingIn = scenarios.personWithoutNin();

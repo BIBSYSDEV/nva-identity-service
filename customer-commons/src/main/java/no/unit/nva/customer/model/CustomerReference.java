@@ -10,6 +10,7 @@ import nva.commons.core.JacocoGenerated;
 public class CustomerReference {
 
     private URI id;
+    private URI cristinId;
     private String displayName;
     private Instant createdDate;
     private boolean active;
@@ -20,6 +21,7 @@ public class CustomerReference {
         var customerReference = new CustomerReference();
         customerReference.setDisplayName(customerDto.getDisplayName());
         customerReference.setId(customerDto.getId());
+        customerReference.setCristinId(customerDto.getCristinId());
         customerReference.setCreatedDate(customerDto.getCreatedDate());
         customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
         customerReference.setActive(customerDto.isActive());
@@ -30,7 +32,7 @@ public class CustomerReference {
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix());
+        return Objects.hash(getId(), getCristinId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix());
     }
 
     @JacocoGenerated
@@ -39,10 +41,12 @@ public class CustomerReference {
         if (!(o instanceof CustomerReference that)) {
             return false;
         }
-        return isActive() == that.isActive() && Objects.equals(getId(), that.getId()) &&
-               Objects.equals(getDisplayName(), that.getDisplayName()) &&
-               Objects.equals(getCreatedDate(), that.getCreatedDate()) &&
-               Objects.equals(getDoiPrefix(), that.getDoiPrefix());
+        return isActive() == that.isActive()
+               && Objects.equals(getId(), that.getId())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getDoiPrefix(), that.getDoiPrefix());
     }
 
     public boolean isActive() {
@@ -59,6 +63,14 @@ public class CustomerReference {
 
     public void setId(URI id) {
         this.id = id;
+    }
+
+    public URI getCristinId() {
+        return cristinId;
+    }
+
+    public void setCristinId(URI cristinId) {
+        this.cristinId = cristinId;
     }
 
     public String getDisplayName() {

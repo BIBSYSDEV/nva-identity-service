@@ -9,10 +9,6 @@ public record ChannelConstraintRequest(ChannelConstraintPolicy publishingPolicy,
                                        ChannelConstraintPolicy editingPolicy,
                                        List<PublicationInstanceTypes> scope) {
 
-    public static ChannelConstraintRequest fromDto(ChannelConstraintDto dto) {
-        return new ChannelConstraintRequest(dto.publishingPolicy(), dto.editingPolicy(), dto.scope());
-    }
-
     public ChannelConstraintDto toDto() {
         return new ChannelConstraintDto(publishingPolicy(), editingPolicy(), scope());
     }

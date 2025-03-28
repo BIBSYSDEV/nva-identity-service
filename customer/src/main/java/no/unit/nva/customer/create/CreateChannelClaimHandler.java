@@ -17,7 +17,7 @@ import nva.commons.core.paths.UriWrapper;
 
 public class CreateChannelClaimHandler extends ApiGatewayHandler<ChannelClaimRequest, Void> {
 
-    public static final String IDENTIFIER_PARAMETER = "identifier";
+    private static final String IDENTIFIER_PARAMETER = "identifier";
     private final CustomerService customerService;
 
     @JacocoGenerated

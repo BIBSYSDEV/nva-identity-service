@@ -18,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.model.ChannelClaimDto;
+import no.unit.nva.customer.model.ChannelConstraintDto;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
@@ -143,6 +144,14 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     private ChannelClaimRequest randomChannelClaimRequest() {
-        return ChannelClaimRequest.fromDto(randomChannelClaimDto());
+        return fromDto(randomChannelClaimDto());
+    }
+
+    private ChannelClaimRequest fromDto(ChannelClaimDto dto) {
+        return new ChannelClaimRequest(dto.channel(), fromDto(dto.constraint()));
+    }
+
+    private ChannelConstraintRequest fromDto(ChannelConstraintDto dto) {
+        return new ChannelConstraintRequest(dto.publishingPolicy(), dto.editingPolicy(), dto.scope());
     }
 }

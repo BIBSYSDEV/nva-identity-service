@@ -3,6 +3,7 @@ package no.unit.nva.customer.create;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDto;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDto;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.apigateway.AccessRight.MANAGE_CHANNEL_CLAIMS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +27,7 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,7 +114,11 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
 
     private InputStream createRequestWithNonExistingCustomer() throws JsonProcessingException {
         var nonExistingCustomerIdentifier = UUID.randomUUID();
+        var nonExistingCustomerId = UriWrapper.fromHost(randomString())
+                                        .addChild(nonExistingCustomerIdentifier.toString())
+                                        .getUri();
         return createDefaultRequestBuilder(nonExistingCustomerIdentifier, randomChannelClaimRequest())
+                   .withCurrentCustomer(nonExistingCustomerId)
                    .withAccessRights(existingCustomer.getId(), MANAGE_CHANNEL_CLAIMS)
                    .build();
     }

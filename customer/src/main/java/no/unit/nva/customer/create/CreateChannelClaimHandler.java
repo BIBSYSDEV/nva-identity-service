@@ -11,9 +11,9 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
-import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 
 public class CreateChannelClaimHandler extends ApiGatewayHandler<ChannelClaimRequest, Void> {
 
@@ -52,12 +52,12 @@ public class CreateChannelClaimHandler extends ApiGatewayHandler<ChannelClaimReq
         return HttpURLConnection.HTTP_CREATED;
     }
 
-    private boolean userIsAuthorizedOnCustomer(RequestInfo requestInfo) throws UnauthorizedException,
-                                                                               NotFoundException {
-        var customerFromPath = customerService.getCustomer(extractIdentifierFromPath(requestInfo));
-        var customerFromUser = customerService.getCustomer(requestInfo.getCurrentCustomer());
+    private boolean userIsAuthorizedOnCustomer(RequestInfo requestInfo) throws UnauthorizedException {
+        var customerIdentifierFromPath = extractIdentifierFromPath(requestInfo).toString();
+        var customerIdentifierFromUser = UriWrapper.fromUri(requestInfo.getCurrentCustomer()).getLastPathElement();
 
-        return customerFromPath.equals(customerFromUser) && requestInfo.userIsAuthorized(MANAGE_CHANNEL_CLAIMS);
+        return customerIdentifierFromPath.equals(customerIdentifierFromUser)
+               && requestInfo.userIsAuthorized(MANAGE_CHANNEL_CLAIMS);
     }
 
     private UUID extractIdentifierFromPath(RequestInfo requestInfo) {

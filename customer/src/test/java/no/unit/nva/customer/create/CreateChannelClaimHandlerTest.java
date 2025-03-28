@@ -8,9 +8,10 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.AccessRight.MANAGE_CHANNEL_CLAIMS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
@@ -19,21 +20,25 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Map;
 import java.util.UUID;
+import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ChannelClaimDto;
 import no.unit.nva.customer.model.ChannelConstraintDto;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
 
 class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
 
@@ -64,15 +69,15 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
         var request = createValidRequest();
         handler.handleRequest(request, outputStream, context);
         var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
+        assertEquals(HttpURLConnection.HTTP_CREATED, response.getStatusCode());
     }
 
     @Test
     void shouldReturnNotFoundWhenCustomerDoesNotExist() throws IOException {
         var request = createRequestWithNonExistingCustomer();
         handler.handleRequest(request, outputStream, context);
-        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_NOT_FOUND, response.getStatusCode());
     }
 
     @Test
@@ -80,32 +85,47 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
         throws IOException, ConflictException, NotFoundException {
         var request = createRequestWithUserNotBelongingToCustomer();
         handler.handleRequest(request, outputStream, context);
-        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, response.getStatusCode());
     }
 
     @Test
     void shouldReturnForbiddenWhenCreatingChannelClaimWithoutAccessRight() throws IOException {
         var request = createRequestWithoutAccessRights();
         handler.handleRequest(request, outputStream, context);
-        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, response.getStatusCode());
     }
 
     @Test
     void shouldReturnForbiddenWhenCreatingChannelClaimWithWrongAccessRight() throws IOException {
         var request = createRequestWithWrongAccessRight();
         handler.handleRequest(request, outputStream, context);
-        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, response.getStatusCode());
     }
 
     @Test
     void shouldReturnBadRequestWhenInvalidChannelUriIsProvidedInRequest() throws IOException {
         var request = createRequestWithInvalidChannelUriInBody();
         handler.handleRequest(request, outputStream, context);
-        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
-        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void shouldReturnInternalErrorWhenUnexpectedError()
+        throws IOException, InputException, NotFoundException, BadRequestException {
+        var request = createValidRequest();
+        var customerService = mock(CustomerService.class);
+        doThrow(new IllegalStateException()).when(customerService).createChannelClaim(any(), any());
+        var handler = new CreateChannelClaimHandler(customerService);
+
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, response.getStatusCode());
+        assertEquals("Internal server error. Contact application administrator.",
+                     response.getBodyObject(Problem.class).getDetail());
     }
 
     private HandlerRequestBuilder<ChannelClaimRequest> createDefaultRequestBuilder(UUID customerToClaim,

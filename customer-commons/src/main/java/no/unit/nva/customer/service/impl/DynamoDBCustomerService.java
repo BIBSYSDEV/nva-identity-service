@@ -1,5 +1,6 @@
 package no.unit.nva.customer.service.impl;
 
+import static java.util.Objects.isNull;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
@@ -137,10 +138,10 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     private void validateChannelClaim(ChannelClaimDto channelClaim) throws BadRequestException {
-        if (channelClaim == null) {
+        if (isNull(channelClaim)) {
             throw new BadRequestException(CHANNEL_CLAIM_CANNOT_BE_NULL);
         }
-        if (channelClaim.channel() == null) {
+        if (isNull(channelClaim.channel())) {
             throw new BadRequestException(CHANNEL_REQUIRED);
         }
         if (!isPublicationChannel(channelClaim.channel())) {

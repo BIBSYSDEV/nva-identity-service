@@ -332,7 +332,7 @@ public class CustomerDto implements Context {
     }
 
     public List<ChannelClaimDto> getChannelClaims() {
-        return nonNull(channelClaims) ? channelClaims : new ArrayList<>();
+        return nonNull(channelClaims) ? channelClaims : Collections.emptyList();
     }
 
     public void setChannelClaims(List<ChannelClaimDto> channelClaims) {
@@ -340,7 +340,7 @@ public class CustomerDto implements Context {
     }
 
     public void addChannelClaim(ChannelClaimDto channelClaim) {
-        getChannelClaims().add(channelClaim);
+        this.channelClaims.add(channelClaim);
     }
 
     @Override

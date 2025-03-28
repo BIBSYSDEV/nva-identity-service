@@ -3,7 +3,9 @@ package no.unit.nva.customer.create;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDto;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDto;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelConstraintDto;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.AccessRight.MANAGE_CHANNEL_CLAIMS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -38,7 +40,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     private static final String IDENTIFIER_PATH_PARAMETER = "identifier";
     private CreateChannelClaimHandler handler;
     private Context context;
-    private ByteArrayOutputStream outputSteam;
+    private ByteArrayOutputStream outputStream;
     private DynamoDBCustomerService customerService;
     private CustomerDto existingCustomer;
 
@@ -49,7 +51,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
         existingCustomer = customerService.createCustomer(createSampleCustomerDto());
         handler = new CreateChannelClaimHandler(customerService);
         context = new FakeContext();
-        outputSteam = new ByteArrayOutputStream();
+        outputStream = new ByteArrayOutputStream();
     }
 
     @AfterEach
@@ -60,16 +62,16 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void shouldReturnCreatedWhenCreatingChannelClaim() throws IOException {
         var request = createValidRequest();
-        handler.handleRequest(request, outputSteam, context);
-        var response = GatewayResponse.fromOutputStream(outputSteam, ChannelClaimDto.class);
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
     }
 
     @Test
     void shouldReturnNotFoundWhenCustomerDoesNotExist() throws IOException {
         var request = createRequestWithNonExistingCustomer();
-        handler.handleRequest(request, outputSteam, context);
-        var response = GatewayResponse.fromOutputStream(outputSteam, ChannelClaimDto.class);
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
     }
 
@@ -77,25 +79,33 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     void shouldReturnForbiddenWhenCreatingChannelClaimForAnotherCustomer()
         throws IOException, ConflictException, NotFoundException {
         var request = createRequestWithUserNotBelongingToCustomer();
-        handler.handleRequest(request, outputSteam, context);
-        var response = GatewayResponse.fromOutputStream(outputSteam, ChannelClaimDto.class);
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
     }
 
     @Test
     void shouldReturnForbiddenWhenCreatingChannelClaimWithoutAccessRight() throws IOException {
         var request = createRequestWithoutAccessRights();
-        handler.handleRequest(request, outputSteam, context);
-        var response = GatewayResponse.fromOutputStream(outputSteam, ChannelClaimDto.class);
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
     }
 
     @Test
     void shouldReturnForbiddenWhenCreatingChannelClaimWithWrongAccessRight() throws IOException {
         var request = createRequestWithWrongAccessRight();
-        handler.handleRequest(request, outputSteam, context);
-        var response = GatewayResponse.fromOutputStream(outputSteam, ChannelClaimDto.class);
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenInvalidChannelUriIsProvidedInRequest() throws IOException {
+        var request = createRequestWithInvalidChannelUriInBody();
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, ChannelClaimDto.class);
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 
     private HandlerRequestBuilder<ChannelClaimRequest> createDefaultRequestBuilder(UUID customerToClaim,
@@ -140,6 +150,13 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     private InputStream createRequestWithWrongAccessRight() throws JsonProcessingException {
         return createDefaultRequestBuilder(existingCustomer.getIdentifier(), randomChannelClaimRequest())
                    .withAccessRights(existingCustomer.getId(), MANAGE_DOI)
+                   .build();
+    }
+
+    private InputStream createRequestWithInvalidChannelUriInBody() throws JsonProcessingException {
+        var channelClaimRequest = new ChannelClaimRequest(randomUri(), fromDto(randomChannelConstraintDto()));
+        return createDefaultRequestBuilder(existingCustomer.getIdentifier(), channelClaimRequest)
+                   .withAccessRights(existingCustomer.getId(), MANAGE_CHANNEL_CLAIMS)
                    .build();
     }
 

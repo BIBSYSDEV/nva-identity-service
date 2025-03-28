@@ -133,7 +133,7 @@ public class DynamoDBCustomerService implements CustomerService {
     }
 
     private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
-        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
+        var enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
         return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
     }
 
@@ -144,15 +144,15 @@ public class DynamoDBCustomerService implements CustomerService {
         if (isNull(channelClaim.channel())) {
             throw new BadRequestException(CHANNEL_REQUIRED);
         }
-        if (!isPublicationChannel(channelClaim.channel())) {
+        if (isNotPublicationChannel(channelClaim.channel())) {
             throw new BadRequestException(INVALID_CHANNEL_MESSAGE.formatted(channelClaim.channel()));
         }
     }
 
-    private boolean isPublicationChannel(URI channelId) {
+    private boolean isNotPublicationChannel(URI channelId) {
         var host = ENVIRONMENT.readEnv(API_HOST);
-        return host.equals(channelId.getHost())
-               && channelId.toString().contains(ENVIRONMENT.readEnv(PUBLICATION_CHANNEL_PATH));
+        var publicationChannelPath = ENVIRONMENT.readEnv(PUBLICATION_CHANNEL_PATH);
+        return !host.equals(channelId.getHost()) || !channelId.toString().contains(publicationChannelPath);
     }
 
     private void warmupDynamoDbConnection(DynamoDbTable<CustomerDao> table) {

@@ -1,9 +1,20 @@
 package no.unit.nva.customer.service.impl;
 
+import static java.util.Objects.isNull;
+import static nva.commons.core.attempt.Try.attempt;
+import java.net.URI;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.InputException;
+import no.unit.nva.customer.model.ChannelClaimDto;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
@@ -18,32 +29,24 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-import java.net.URI;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static nva.commons.core.attempt.Try.attempt;
-
-
 public class DynamoDBCustomerService implements CustomerService {
 
     public static final String BY_ORG_DOMAIN_INDEX_NAME = "byOrgDomain";
-    public static final String CUSTOMER_NOT_FOUND = "Customer not found: ";
     public static final String IDENTIFIERS_NOT_EQUAL = "Identifier in request parameters '%s' "
-        + "is not equal to identifier in customer object '%s'";
+                                                       + "is not equal to identifier in customer object '%s'";
     public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
-
-    public static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
-        + "DynamoDB connection";
-    public static final String CUSTOMER_ALREADY_EXISTS_ERROR = "Customer with Institution ID %s already exists.";
+    public static final String INVALID_CHANNEL_MESSAGE = "%s is not a valid channel";
+    public static final String CHANNEL_CLAIM_CANNOT_BE_NULL = "ChannelClaim cannot be null";
+    private static final String CUSTOMER_NOT_FOUND = "Customer not found: ";
+    private static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
+                                                          + "DynamoDB connection";
+    private static final String CUSTOMER_ALREADY_EXISTS_ERROR = "Customer with Institution ID %s already exists.";
+    private static final String PUBLICATION_CHANNEL_PATH = "PUBLICATION_CHANNEL_PATH";
+    private static final String API_HOST = "API_HOST";
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
-
+    private static final String CHANNEL_REQUIRED = "Channel required";
     private final DynamoDbTable<CustomerDao> table;
 
     /**
@@ -61,19 +64,6 @@ public class DynamoDBCustomerService implements CustomerService {
         warmupDynamoDbConnection(table);
     }
 
-    private void warmupDynamoDbConnection(DynamoDbTable<CustomerDao> table) {
-        try {
-            table.describeTable();
-        } catch (Exception e) {
-            logger.warn(DYNAMODB_WARMUP_PROBLEM, e);
-        }
-    }
-
-    private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
-        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
-        return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
-    }
-
     @Override
     public CustomerDto getCustomer(URI customerId) throws NotFoundException {
         var customerIdentifier = UriWrapper.fromUri(customerId).getLastPathElement();
@@ -83,9 +73,9 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public CustomerDto getCustomer(UUID identifier) throws NotFoundException {
         return Optional.of(CustomerDao.builder().withIdentifier(identifier).build())
-            .map(table::getItem)
-            .map(CustomerDao::toCustomerDto)
-            .orElseThrow(() -> notFoundException(identifier.toString()));
+                   .map(table::getItem)
+                   .map(CustomerDao::toCustomerDto)
+                   .orElseThrow(() -> notFoundException(identifier.toString()));
     }
 
     @Override
@@ -97,10 +87,10 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public List<CustomerDto> getCustomers() {
         return table.scan()
-            .stream()
-            .flatMap(page -> page.items().stream())
-            .map(CustomerDao::toCustomerDto)
-            .collect(Collectors.toList());
+                   .stream()
+                   .flatMap(page -> page.items().stream())
+                   .map(CustomerDao::toCustomerDto)
+                   .collect(Collectors.toList());
     }
 
     @Override
@@ -128,9 +118,49 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public List<CustomerDto> refreshCustomers() {
         return table.scan().items().stream()
-            .map(CustomerDao::toCustomerDto)
-            .map(this::refreshCustomer)
-            .collect(Collectors.toList());
+                   .map(CustomerDao::toCustomerDto)
+                   .map(this::refreshCustomer)
+                   .collect(Collectors.toList());
+    }
+
+    @Override
+    public void createChannelClaim(UUID customerIdentifier, ChannelClaimDto channelClaim)
+        throws NotFoundException, InputException, BadRequestException {
+        validateChannelClaim(channelClaim);
+        var customer = getCustomer(customerIdentifier);
+        customer.addChannelClaim(channelClaim);
+        updateCustomer(customerIdentifier, customer);
+    }
+
+    private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
+        var enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
+        return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
+    }
+
+    private void validateChannelClaim(ChannelClaimDto channelClaim) throws BadRequestException {
+        if (isNull(channelClaim)) {
+            throw new BadRequestException(CHANNEL_CLAIM_CANNOT_BE_NULL);
+        }
+        if (isNull(channelClaim.channel())) {
+            throw new BadRequestException(CHANNEL_REQUIRED);
+        }
+        if (isNotPublicationChannel(channelClaim.channel())) {
+            throw new BadRequestException(INVALID_CHANNEL_MESSAGE.formatted(channelClaim.channel()));
+        }
+    }
+
+    private boolean isNotPublicationChannel(URI channelId) {
+        var host = ENVIRONMENT.readEnv(API_HOST);
+        var publicationChannelPath = ENVIRONMENT.readEnv(PUBLICATION_CHANNEL_PATH);
+        return !host.equals(channelId.getHost()) || !channelId.toString().contains(publicationChannelPath);
+    }
+
+    private void warmupDynamoDbConnection(DynamoDbTable<CustomerDao> table) {
+        try {
+            table.describeTable();
+        } catch (Exception e) {
+            logger.warn(DYNAMODB_WARMUP_PROBLEM, e);
+        }
     }
 
     private CustomerDto refreshCustomer(CustomerDto customer) {
@@ -165,10 +195,10 @@ public class DynamoDBCustomerService implements CustomerService {
         QueryEnhancedRequest query = createQuery(queryObject, indexPartitionValue);
         var results = table.index(indexName).query(query);
         return results.stream()
-            .flatMap(page -> page.items().stream())
-            .map(CustomerDao::toCustomerDto)
-            .collect(SingletonCollector.tryCollect())
-            .orElseThrow(fail -> notFoundException(queryObject.toString()));
+                   .flatMap(page -> page.items().stream())
+                   .map(CustomerDao::toCustomerDto)
+                   .collect(SingletonCollector.tryCollect())
+                   .orElseThrow(fail -> notFoundException(queryObject.toString()));
     }
 
     private QueryEnhancedRequest createQuery(CustomerDao queryObject,

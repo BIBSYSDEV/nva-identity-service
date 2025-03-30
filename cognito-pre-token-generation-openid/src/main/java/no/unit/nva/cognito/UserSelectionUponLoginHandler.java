@@ -8,8 +8,10 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -153,6 +155,21 @@ public class UserSelectionUponLoginHandler
     private CognitoUserPoolPreTokenGenerationEventV2 processInput(CognitoUserPoolPreTokenGenerationEventV2 input) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Entering request handler...");
+        }
+
+        /*
+              AttributeMapping:
+                custom:nin: https://n.feide.no/claims/nin
+                custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
+                custom:feidememberrole: eduPersonAffiliation
+                custom:feideIdNin: norEduPersonNIN
+                custom:orgFeideDomain: schacHomeOrganization
+         */
+
+        try { // todo: remove this after debugging
+            LOGGER.info(JsonUtils.dtoObjectMapper.writeValueAsString(input));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
 
         final var start = Instant.now();

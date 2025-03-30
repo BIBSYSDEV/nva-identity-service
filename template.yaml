@@ -1376,12 +1376,6 @@ Resources:
   ConnectionToDataporten:
     Type: AWS::Cognito::UserPoolIdentityProvider
     Properties:
-      AttributeMapping:
-        custom:nin: https://n.feide.no/claims/nin
-        custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
-        custom:feidememberrole: eduPersonAffiliation
-        custom:feideIdNin: norEduPersonNIN
-        custom:orgFeideDomain: schacHomeOrganization
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
@@ -1493,28 +1487,6 @@ Resources:
         - ALLOW_REFRESH_TOKEN_AUTH
       GenerateSecret: false
       PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feideIdNin
-        - custom:feidememberrole
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
-        - custom:personAffiliation
-        - custom:impersonating
-        - custom:impersonatedBy
-        - custom:currentTerms
-        - custom:acceptedTerms
-        - custom:viewingScopeIncluded
-        - custom:viewingScopeExcluded
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 9
@@ -1525,26 +1497,6 @@ Resources:
       SupportedIdentityProviders:
         - !Ref ConnectionToDataporten
       UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideIdNin
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
-        - custom:personAffiliation
-        - custom:currentTerms
-        - custom:acceptedTerms
-        - custom:viewingScopeIncluded
-        - custom:viewingScopeExcluded
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
@@ -1609,7 +1561,7 @@ Resources:
       SupportedIdentityProviders:
         - !Ref ConnectionToDataporten
       UserPoolId: !Ref UserPool
-      WriteAttributes:
+      WriteAttributes: # TODO: remove these
         - custom:feideId
         - custom:nin
         - custom:feidememberrole
@@ -1658,26 +1610,6 @@ Resources:
         - ALLOW_USER_PASSWORD_AUTH
       GenerateSecret: false
       PreventUserExistenceErrors: LEGACY
-      ReadAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feideIdNin
-        - custom:feidememberrole
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
-        - custom:personAffiliation
-        - custom:currentTerms
-        - custom:acceptedTerms
-        - custom:viewingScopeIncluded
-        - custom:viewingScopeExcluded
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -1688,26 +1620,6 @@ Resources:
       SupportedIdentityProviders:
         - COGNITO
       UserPoolId: !Ref UserPool
-      WriteAttributes:
-        - custom:feideId
-        - custom:nin
-        - custom:feidememberrole
-        - custom:feideIdNin
-        - custom:orgFeideDomain
-        - custom:firstName
-        - custom:lastName
-        - custom:accessRights
-        - custom:customerId
-        - custom:allowedCustomers
-        - custom:roles
-        - custom:nvaUsername
-        - custom:cristinId
-        - custom:topOrgCristinId
-        - custom:personAffiliation
-        - custom:currentTerms
-        - custom:acceptedTerms
-        - custom:viewingScopeIncluded
-        - custom:viewingScopeExcluded
 
   ## External API
   ExternalUserPoolName:

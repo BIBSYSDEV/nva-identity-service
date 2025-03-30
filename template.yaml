@@ -1487,6 +1487,8 @@ Resources:
         - ALLOW_REFRESH_TOKEN_AUTH
       GenerateSecret: false
       PreventUserExistenceErrors: LEGACY
+      ReadAttributes: [ ]
+      WriteAttributes: [ ]
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 9
@@ -1610,6 +1612,8 @@ Resources:
         - ALLOW_USER_PASSWORD_AUTH
       GenerateSecret: false
       PreventUserExistenceErrors: LEGACY
+      ReadAttributes: [ ]
+      WriteAttributes: [ ]
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2

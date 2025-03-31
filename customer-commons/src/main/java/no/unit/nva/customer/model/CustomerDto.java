@@ -332,11 +332,15 @@ public class CustomerDto implements Context {
     }
 
     public List<ChannelClaimDto> getChannelClaims() {
-        return channelClaims;
+        return nonNull(channelClaims) ? channelClaims : Collections.emptyList();
     }
 
     public void setChannelClaims(List<ChannelClaimDto> channelClaims) {
         this.channelClaims = channelClaims;
+    }
+
+    public void addChannelClaim(ChannelClaimDto channelClaim) {
+        this.channelClaims.add(channelClaim);
     }
 
     @Override

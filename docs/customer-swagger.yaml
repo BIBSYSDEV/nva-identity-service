@@ -530,8 +530,84 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
-                BadGatewatExample:
+                BadGatewayExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
+  /{identifier}/channel-claim:
+    post:
+      summary: Claim a channel for a customer
+      operationId: PostChannelClaim
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer to claim the channel
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelClaim'
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/ChannelClaim'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateChannelClaimFunction.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                UnauthorizedExample:
+                  $ref: '#/components/examples/UnauthorizedProblemExample'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                ForbiddenExample:
+                  $ref: '#/components/examples/ForbiddenProblemExample'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                NotFoundExample:
+                  $ref: '#/components/examples/NotFoundProblemExample'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                InternalServerErrorExample:
+                  $ref: '#/components/examples/InternalServerErrorProblemExample'
   /orgDomain/{orgDomain}:
     get:
       summary: Get CustomerIdentifiers by orgDomain
@@ -894,6 +970,35 @@ components:
           type: string
         nviInstitution:
           type: boolean
+    ChannelClaim:
+      type: object
+      required:
+        - channel
+        - constraints
+      properties:
+        channel:
+          type: string
+          format: uri
+        constraints:
+          type: object
+          required:
+            - publishingPolicy
+            - editingPolicy
+            - scope
+          properties:
+            publishingPolicy:
+              $ref: '#/components/schemas/ChannelConstraintPolicy'
+            editingPolicy:
+              $ref: '#/components/schemas/ChannelConstraintPolicy'
+            scope:
+              type: array
+              items:
+                type: string
+    ChannelConstraintPolicy:
+      type: string
+      enum:
+        - OwnerOnly
+        - Everyone
     DoiAgent:
       type: object
       properties:
@@ -1119,12 +1224,33 @@ components:
         title: Bad Request
         detail: 'Identifier is not a valid UUID: HelloWorld!'
         instance: /path/to/resource
+    UnauthorizedProblemExample:
+      value:
+        type: about:blank
+        status: 401
+        title: Unauthorized
+        detail: 'Unauthorized'
+        instance: /path/to/resource
+    ForbiddenProblemExample:
+      value:
+        type: about:blank
+        status: 403
+        title: Forbidden
+        detail: 'Forbidden'
+        instance: /path/to/resource
     NotFoundProblemExample:
       value:
         type: about:blank
         status: 404
         title: Not Found
         detail: The requested resource was not found
+        instance: /path/to/resource
+    InternalServerErrorProblemExample:
+      value:
+        type: about:blank
+        status: 500
+        title: Internal Server Error
+        detail: 'Internal Server Error'
         instance: /path/to/resource
     BadGatewayProblemExample:
       value:

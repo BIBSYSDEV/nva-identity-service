@@ -867,6 +867,28 @@ Resources:
             Path: /{identifier}/vocabularies
             Method: put
             RestApiId: !Ref NvaCustomerApi
+  NvaCreateChannelClaimFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Handler: no.unit.nva.customer.create.CreateChannelClaimHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          API_HOST: !ref ApiDomain
+          PUBLICATION_CHANNEL_PATH: "publication-channels-v2"
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        PostChannelClaimEvent:
+          Type: Api
+          Properties:
+            Path: /{identifier}/channel-claim/
+            Method: post
+            RestApiId: !Ref NvaCustomerApi
   NvaGetCustomerByOrgDomainFunction:
     Type: AWS::Serverless::Function
     Properties:

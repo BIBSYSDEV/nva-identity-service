@@ -877,7 +877,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-          API_HOST: !ref ApiDomain
+          API_HOST: !Ref ApiDomain
           PUBLICATION_CHANNEL_PATH: "publication-channels-v2"
       Policies:
         - DynamoDBCrudPolicy:

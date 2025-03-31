@@ -166,12 +166,6 @@ public class UserSelectionUponLoginHandler
                 custom:orgFeideDomain: schacHomeOrganization
          */
 
-        try { // todo: remove this after debugging
-            LOGGER.info(JsonUtils.dtoObjectMapper.writeValueAsString(input));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
         final var start = Instant.now();
 
         var attributes = Collections.unmodifiableMap(input.getRequest().getUserAttributes());

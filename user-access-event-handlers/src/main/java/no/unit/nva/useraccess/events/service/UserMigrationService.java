@@ -4,5 +4,5 @@ import no.unit.nva.useraccessservice.model.UserDto;
 
 public interface UserMigrationService {
 
-    UserDto migrateUser(UserDto user);
+    UserDto migrateUser(UserDto user, String action);
 }

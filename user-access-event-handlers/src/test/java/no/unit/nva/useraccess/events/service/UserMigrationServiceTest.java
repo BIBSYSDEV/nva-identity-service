@@ -9,7 +9,6 @@ import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
@@ -29,11 +28,12 @@ import static org.mockito.Mockito.when;
 class UserMigrationServiceTest {
 
     private static final URI SAMPLE_ORG_ID = URI.create("https://localhost/cristin/organization/123.0.0.0");
+    private static final String RESET_VIEWING_SCOPE_ACTION = "resetViewingScope";
     private CustomerService customerServiceMock;
     private UserMigrationService userMigrationService;
 
     @BeforeEach
-    public void init() {
+    void init() {
         SecretsReader secretsReaderMock = mock(SecretsReader.class);
         when(secretsReaderMock.fetchSecret(anyString(), anyString())).thenReturn(randomString());
         customerServiceMock = mock(CustomerService.class);
@@ -47,7 +47,7 @@ class UserMigrationServiceTest {
         when(customerServiceMock.getCustomer(any(UUID.class))).thenReturn(customer);
 
         var user = createSampleUser();
-        var actualUser = userMigrationService.migrateUser(user.copy().build());
+        var actualUser = userMigrationService.migrateUser(user.copy().build(), RESET_VIEWING_SCOPE_ACTION);
         var expectedUser = user.copy().withViewingScope(defaultViewingScope(SAMPLE_ORG_ID)).build();
 
         assertThat(actualUser, is(equalTo(expectedUser)));
@@ -73,12 +73,12 @@ class UserMigrationServiceTest {
     }
 
     @Test
-    void shouldLogMessageWhenCustomerIdentifierIsNotValidUuid() throws IOException, InterruptedException {
+    void shouldLogMessageWhenCustomerIdentifierIsNotValidUuid() {
         final TestAppender appender = LogUtils.getTestingAppenderForRootLogger();
         var user = createSampleUserWithInvalidCustomerId();
         var customerIdExpectedInLogMessage = user.getInstitution().toString();
         var usernameExpectedInLogMessage = user.getUsername();
-        assertDoesNotThrow(() -> userMigrationService.migrateUser(user));
+        assertDoesNotThrow(() -> userMigrationService.migrateUser(user, RESET_VIEWING_SCOPE_ACTION));
         assertThat(appender.getMessages(), containsString(customerIdExpectedInLogMessage));
         assertThat(appender.getMessages(), containsString(usernameExpectedInLogMessage));
     }

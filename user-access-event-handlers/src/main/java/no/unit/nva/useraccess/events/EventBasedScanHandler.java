@@ -30,6 +30,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
     public static final Void VOID = null;
     public static final String END_OF_SCAN_MESSAGE = "Last event was processed.";
     private static final Logger logger = LoggerFactory.getLogger(EventBasedScanHandler.class);
+    private static final String EMPTY_ACTION = "";
     private final UserMigrationService migrationService;
     private final EventBridgeClient eventsClient;
     private final IdentityServiceImpl identityService;
@@ -66,7 +67,7 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
                                 Context context) {
 
         var scanResult = identityService.fetchOnePageOfUsers(scanDatabaseRequest);
-        var migratedUsers = migrateUsers(scanResult.getRetrievedUsers());
+        var migratedUsers = migrateUsers(scanResult.getRetrievedUsers(), EMPTY_ACTION);
         persistMigratedUsersToDatabase(migratedUsers);
         emitNexScanRequestIfThereAreMoreResults(scanResult, scanDatabaseRequest, context);
         return VOID;
@@ -128,10 +129,10 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
         return input.newScanDatabaseRequest(scanResult.getStartMarkerForNextScan());
     }
 
-    private List<UserDto> migrateUsers(List<UserDto> users) {
+    private List<UserDto> migrateUsers(List<UserDto> users, String action) {
         var migratedUsers = users
             .stream()
-            .map(migrationService::migrateUser)
+            .map(user -> migrationService.migrateUser(user, action))
             .collect(Collectors.toList());
         logger.info("Number of users to be migrated:" + migratedUsers.size());
         return migratedUsers;

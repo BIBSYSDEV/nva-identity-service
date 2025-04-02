@@ -11,6 +11,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -42,6 +43,9 @@ public class CustomerDataGenerator {
 
     private static final String API_DOMAIN = new Environment().readEnv("API_DOMAIN");
     private static final String CRISTIN_PATH = "/cristin/organization";
+    private static final String SERIAL_PUBLICATION = "serial-publication";
+    private static final String PUBLISHER = "publisher";
+    private static final List<String> CHANNEL_TYPES = List.of(SERIAL_PUBLICATION, PUBLISHER);
 
     public static CustomerDto createSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
@@ -89,8 +93,12 @@ public class CustomerDataGenerator {
     public static URI randomChannelId() {
         var publicationChannelPath = new Environment().readEnv("PUBLICATION_CHANNEL_PATH");
         return UriWrapper.fromHost(new Environment().readEnv("API_HOST"))
-                   .addChild(publicationChannelPath, randomString())
+                   .addChild(publicationChannelPath, randomChannelType(), UUID.randomUUID().toString())
                    .getUri();
+    }
+
+    private static String randomChannelType() {
+        return CHANNEL_TYPES.get(new Random().nextInt(CHANNEL_TYPES.size()));
     }
 
     public static List<ChannelClaimDao> randomChannelClaimDaos() {

@@ -218,7 +218,7 @@ class EventBasedScanHandlerTest extends LocalIdentityService {
         }
 
         @Override
-        public UserDto migrateUser(UserDto userDto) {
+        public UserDto migrateUser(UserDto userDto, String action) {
             var migratedUser = userDto.copy().withFamilyName(familyName).build();
             migratedUsers.add(migratedUser);
             return migratedUser;

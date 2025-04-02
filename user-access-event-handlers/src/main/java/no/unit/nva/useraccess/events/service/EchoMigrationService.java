@@ -5,7 +5,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 public class EchoMigrationService implements UserMigrationService {
 
     @Override
-    public UserDto migrateUser(UserDto user) {
+    public UserDto migrateUser(UserDto user, String action) {
         return user;
     }
 }

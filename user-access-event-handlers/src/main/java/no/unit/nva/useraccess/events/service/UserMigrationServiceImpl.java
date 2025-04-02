@@ -18,6 +18,7 @@ import static nva.commons.core.attempt.Try.attempt;
 public class UserMigrationServiceImpl implements UserMigrationService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserMigrationServiceImpl.class);
+    private static final String RESET_VIEWING_SCOPE = "resetViewingScope";
     private final CustomerService customerService;
 
     public UserMigrationServiceImpl(CustomerService customerService) {
@@ -25,9 +26,11 @@ public class UserMigrationServiceImpl implements UserMigrationService {
     }
 
     @Override
-    public UserDto migrateUser(UserDto user) {
+    public UserDto migrateUser(UserDto user, String action) {
         logger.trace("Updating user:{}", user.getUsername());
-        resetViewingScope(user);
+        if (RESET_VIEWING_SCOPE.equals(action)) {
+            resetViewingScope(user);
+        }
         return user;
     }
 

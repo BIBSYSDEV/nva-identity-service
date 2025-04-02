@@ -537,7 +537,7 @@ paths:
       summary: Claim a channel for a customer
       operationId: PostChannelClaim
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to claim the channel

@@ -127,7 +127,7 @@ public class DefaultRoleSourceTest {
         var editorRole = getRoleByName(RoleName.EDITOR);
 
         assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION,
-            MANAGE_RESOURCES_ALL, MANAGE_CHANNEL_CLAIMS));
+            MANAGE_RESOURCES_ALL));
     }
 
     @Test

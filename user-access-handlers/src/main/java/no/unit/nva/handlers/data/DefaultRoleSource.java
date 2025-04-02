@@ -87,8 +87,7 @@ public class DefaultRoleSource implements RoleSource {
     private static final RoleDto EDITOR_ROLE = RoleDto.newBuilder()
         .withRoleName(RoleName.EDITOR)
         .withAccessRights(List.of(MANAGE_OWN_AFFILIATION,
-            MANAGE_RESOURCES_ALL,
-            MANAGE_CHANNEL_CLAIMS))
+            MANAGE_RESOURCES_ALL))
         .build();
 
 

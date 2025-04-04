@@ -14,6 +14,10 @@ Description: >
 #
 
 Parameters:
+  LogRetentionInDays:
+    Type: Number
+    Default: 180
+    Description: Number of days to retain logs in CloudWatch Log Groups.
   # Parameters from Cognito
   AuthenticationDomainPrefix:
     Type: String
@@ -302,6 +306,12 @@ Resources:
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 
+  GetRoleHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${GetRoleHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   CreateUserHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -331,6 +341,12 @@ Resources:
             Method: post
             RestApiId: !Ref UsersAndRolesApi
 
+  CreateUserHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${CreateUserHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   UpdateUserHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -349,6 +365,12 @@ Resources:
             Path: /users/{username}
             Method: put
             RestApiId: !Ref UsersAndRolesApi
+
+  UpdateUserHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${UpdateUserHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   GetUserHandler:
     Type: AWS::Serverless::Function
@@ -369,6 +391,12 @@ Resources:
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 
+  GetUserHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${GetUserHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   GetCurrentTermsConditionsHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -384,6 +412,12 @@ Resources:
             Path: /terms-and-conditions/current
             Method: get
             RestApiId: !Ref UsersAndRolesApi
+
+  GetCurrentTermsConditionsHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${GetCurrentTermsConditionsHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   UpdatePersonTermsConditionsHandler:
     Type: AWS::Serverless::Function
@@ -406,6 +440,12 @@ Resources:
             Path: /users/mine/accepted-terms
             Method: put
             RestApiId: !Ref UsersAndRolesApi
+
+  UpdatePersonTermsConditionsHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${UpdatePersonTermsConditionsHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   CustomerSelectionHandler:
     Type: AWS::Serverless::Function
@@ -432,6 +472,12 @@ Resources:
             Method: post
             RestApiId: !Ref UsersAndRolesApi
 
+  CustomerSelectionHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${CustomerSelectionHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   CognitoUserInfoHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -452,6 +498,12 @@ Resources:
             Path: /userinfo
             Method: get
             RestApiId: !Ref UsersAndRolesApi
+
+  CognitoUserInfoHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${CognitoUserInfoHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   ListByInstitutionHandler:
     Type: AWS::Serverless::Function
@@ -475,6 +527,12 @@ Resources:
                   Required: true
             RestApiId: !Ref UsersAndRolesApi
 
+  ListByInstitutionHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ListByInstitutionHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   InitIdenitityServiceHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -492,6 +550,12 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
 
+  InitIdenitityServiceHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${InitIdenitityServiceHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   MigrateCuratorsIdentityServiceHandler:
     Type: AWS::Serverless::Function
     Description: 'Migrated users that has Curator role to instead have support, doi, nvi, and file-curator'
@@ -508,6 +572,12 @@ Resources:
             TableName: !Ref UserRoleMappings
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
+
+  MigrateCuratorsIdentityServiceHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${MigrateCuratorsIdentityServiceHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   SetImpersonationHandler:
     Type: AWS::Serverless::Function
@@ -530,6 +600,12 @@ Resources:
             Method: post
             RestApiId: !Ref UsersAndRolesApi
 
+  SetImpersonationHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${SetImpersonationHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   StopImpersonationHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -550,6 +626,12 @@ Resources:
             Path: /impersonation/stop
             Method: post
             RestApiId: !Ref UsersAndRolesApi
+
+  StopImpersonationHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${StopImpersonationHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   CreateExternalClientHandler:
     Type: AWS::Serverless::Function
@@ -578,6 +660,12 @@ Resources:
             Method: post
             RestApiId: !Ref UsersAndRolesApi
 
+  CreateExternalClientHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${CreateExternalClientHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   GetExternalClientUserinfoHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -605,6 +693,12 @@ Resources:
             Method: get
             RestApiId: !Ref UsersAndRolesApi
 
+  GetExternalClientUserinfoHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${GetExternalClientUserinfoHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   GetExternalClientHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -631,6 +725,12 @@ Resources:
             Path: /external-clients/{clientId}
             Method: get
             RestApiId: !Ref UsersAndRolesApi
+
+  GetExternalClientHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${GetExternalClientHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   UsersAndRolesApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping
@@ -746,6 +846,12 @@ Resources:
             Method: post
             RestApiId: !Ref NvaCustomerApi
 
+  NvaCreateCustomerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaCreateCustomerFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaGetCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -767,6 +873,12 @@ Resources:
             Method: get
             RestApiId: !Ref NvaCustomerApi
 
+  NvaGetCustomerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaGetCustomerDoiAgentFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -784,6 +896,12 @@ Resources:
             Path: /{identifier}/doiagent
             Method: get
             RestApiId: !Ref NvaCustomerApi
+
+  NvaGetCustomerDoiAgentFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerDoiAgentFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   NvaUpdateCustomerDoiAgentFunction:
     Type: AWS::Serverless::Function
@@ -807,6 +925,12 @@ Resources:
             Method: put
             RestApiId: !Ref NvaCustomerApi
 
+  NvaUpdateCustomerDoiAgentFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaUpdateCustomerDoiAgentFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaGetCustomerVocabulariesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -827,6 +951,13 @@ Resources:
             Path: /{identifier}/vocabularies
             Method: get
             RestApiId: !Ref NvaCustomerApi
+
+  NvaGetCustomerVocabulariesFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerVocabulariesFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaCreateCustomerVocabulariesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -847,6 +978,13 @@ Resources:
             Path: /{identifier}/vocabularies
             Method: post
             RestApiId: !Ref NvaCustomerApi
+
+  NvaCreateCustomerVocabulariesFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaCreateCustomerVocabulariesFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaUpdateCustomerVocabulariesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -867,6 +1005,13 @@ Resources:
             Path: /{identifier}/vocabularies
             Method: put
             RestApiId: !Ref NvaCustomerApi
+
+  NvaUpdateCustomerVocabulariesFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaUpdateCustomerVocabulariesFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaCreateChannelClaimFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -889,6 +1034,13 @@ Resources:
             Path: /{identifier}/channel-claim/
             Method: post
             RestApiId: !Ref NvaCustomerApi
+
+  NvaCreateChannelClaimFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaCreateChannelClaimFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaGetCustomerByOrgDomainFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -909,6 +1061,13 @@ Resources:
             Path: /orgDomain/{orgDomain}
             Method: get
             RestApiId: !Ref NvaCustomerApi
+
+  NvaGetCustomerByOrgDomainFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerByOrgDomainFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaGetCustomerByCristinIdFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -929,6 +1088,13 @@ Resources:
             Path: /cristinId/{cristinId}
             Method: get
             RestApiId: !Ref NvaCustomerApi
+
+  NvaGetCustomerByCristinIdFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerByCristinIdFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaListAllCustomersFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -949,6 +1115,13 @@ Resources:
             Path: /
             Method: get
             RestApiId: !Ref NvaCustomerApi
+
+  NvaListAllCustomersFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaListAllCustomersFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaUpdateCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -969,6 +1142,13 @@ Resources:
             Path: /{identifier}
             Method: put
             RestApiId: !Ref NvaCustomerApi
+
+  NvaUpdateCustomerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${NvaUpdateCustomerFunction}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   CustomerBatchScanHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -982,6 +1162,12 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
+
+  CustomerBatchScanHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${CustomerBatchScanHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   NvaCustomerBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
@@ -1006,6 +1192,12 @@ Resources:
         Variables:
           EVENT_BUS: !GetAtt InternalBus.Name
 
+  StartBatchScanHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${StartBatchScanHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   EventBasedBatchScanHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -1028,6 +1220,12 @@ Resources:
               detail:
                 topic:
                   - IdentityService.IdentityEntry.ScanAndUpdate
+
+  EventBasedBatchScanHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${EventBasedBatchScanHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   InternalBus:
     Type: AWS::Events::EventBus
@@ -1789,6 +1987,12 @@ Resources:
           CRISTIN_API_URL: !Ref CristinApiUrl
           TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
       Timeout: 20
+
+  PreTokenGenerationHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${PreTokenGenerationHandler}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   PreTokenGenerationHandlerScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget

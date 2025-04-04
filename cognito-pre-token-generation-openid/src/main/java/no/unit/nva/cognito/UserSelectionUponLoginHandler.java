@@ -8,8 +8,10 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -155,13 +157,26 @@ public class UserSelectionUponLoginHandler
             LOGGER.debug("Entering request handler...");
         }
 
+        /*
+              AttributeMapping:
+                custom:nin: https://n.feide.no/claims/nin
+                custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
+                custom:feidememberrole: eduPersonAffiliation
+                custom:feideIdNin: norEduPersonNIN
+                custom:orgFeideDomain: schacHomeOrganization
+         */
+
         final var start = Instant.now();
 
-        final var authenticationDetails = extractAuthenticationDetails(input);
+        var attributes = Collections.unmodifiableMap(input.getRequest().getUserAttributes());
+        input.getRequest().setUserAttributes(Collections.emptyMap());
+
+        final var authenticationDetails = extractAuthenticationDetails(attributes, input.getUserName(),
+                                                                       input.getUserPoolId());
 
         var startFetchingPerson = Instant.now();
 
-        var impersonating = input.getRequest().getUserAttributes().get(IMPERSONATING_CLAIM);
+        var impersonating = attributes.get(IMPERSONATING_CLAIM);
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
         var requestedPerson = personRegistry.fetchPersonByNin(nin);
@@ -174,7 +189,7 @@ public class UserSelectionUponLoginHandler
 
             var customersForPerson = fetchCustomersWithActiveAffiliations(person);
             var currentCustomer = getCurrentCustomer(authenticationDetails, customersForPerson,
-                                                     input.getTriggerSource(), input.getRequest().getUserAttributes());
+                                                     input.getTriggerSource(), attributes);
 
             var users = createUsers(person, customersForPerson, authenticationDetails);
             var currentTerms = termsService
@@ -185,7 +200,8 @@ public class UserSelectionUponLoginHandler
 
             var currentUser = getCurrentUser(currentCustomer, users);
 
-            var userAccessRights = createAccessRightForCustomer(users, customersForPerson, currentCustomer, hasAcceptedTerms);
+            var userAccessRights = createAccessRightForCustomer(users, customersForPerson, currentCustomer,
+                                                                hasAcceptedTerms);
 
             var accessRightsPersistedFormat = userAccessRights.stream().map(UserAccessRightForCustomer::getAccessRight)
                                                   .map(AccessRight::toPersistedString)
@@ -213,20 +229,27 @@ public class UserSelectionUponLoginHandler
             );
 
             input.setResponse(Response.builder()
-                                  .withClaimsAndScopeOverrideDetails(buildOverrideClaims(accessRightsResponseStrings, userAttributes))
+                                  .withClaimsAndScopeOverrideDetails(
+                                      buildOverrideClaims(accessRightsResponseStrings, userAttributes))
                                   .build());
         } else {
             input.setResponse(Response.builder()
-                                  .withClaimsAndScopeOverrideDetails(buildOverrideClaims(Collections.emptyList(), Collections.emptyList()))
+                                  .withClaimsAndScopeOverrideDetails(
+                                      buildOverrideClaims(Collections.emptyList(), Collections.emptyList()))
                                   .build());
         }
+
+        try { // todo: remove this after debugging
+            LOGGER.info("response {}", JsonUtils.dtoObjectMapper.writeValueAsString(input));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
 
         logIfDebug("Leaving request handler having spent {} ms.", start);
 
         return input;
     }
-
-
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,
                                            Set<CustomerDto> customersForPerson, String triggerSource,
@@ -308,19 +331,17 @@ public class UserSelectionUponLoginHandler
         return userCreator.createUsers(userCreationContext);
     }
 
-    private AuthenticationDetails extractAuthenticationDetails(CognitoUserPoolPreTokenGenerationEventV2 input) {
+    private AuthenticationDetails extractAuthenticationDetails(Map<String, String> requestAttributes, String username,
+                                                               String userPoolId) {
         try {
-            var nin = extractNin(input.getRequest().getUserAttributes());
-            var feideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
-            var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
-            var userPoolId = input.getUserPoolId();
-            var username = input.getUserName();
+            var nin = extractNin(requestAttributes);
+            var feideDomain = extractOrgFeideDomain(requestAttributes);
+            var feideIdentifier = extractFeideIdentifier(requestAttributes);
 
             return new AuthenticationDetails(nin, feideIdentifier, feideDomain, userPoolId, username);
         } catch (Exception e) {
             LOGGER.error("Could not extract required data from request", e);
-            LOGGER.error("User name: {}, userPoolId: {}, input request: {}", input.getUserName(), input.getUserPoolId(),
-                         input.getRequest());
+            LOGGER.error("User name: {}, userPoolId: {}", username, userPoolId);
             throw e;
         }
     }

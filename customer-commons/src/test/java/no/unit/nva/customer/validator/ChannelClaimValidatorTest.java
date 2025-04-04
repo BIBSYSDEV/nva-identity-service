@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 class ChannelClaimValidatorTest {
     @Test
     void shouldThrowBadRequestExceptionWhenChannelIsMissing() {
-        var channelClaimWithInvalidChannel = new ChannelClaimDto(null, randomChannelConstraintDto());
-        assertThrows(BadRequestException.class, () -> ChannelClaimValidator.validate(channelClaimWithInvalidChannel));
+        var channelClaimWithoutChannel = new ChannelClaimDto(null, randomChannelConstraintDto());
+        assertThrows(BadRequestException.class, () -> ChannelClaimValidator.validate(channelClaimWithoutChannel));
     }
 
     @Test

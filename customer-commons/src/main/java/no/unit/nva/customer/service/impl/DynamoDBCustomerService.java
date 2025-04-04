@@ -106,9 +106,11 @@ public class DynamoDBCustomerService implements CustomerService {
         validateIdentifier(identifier, customer);
         customer.setModifiedDate(Instant.now().toString());
         if (shouldOverwriteChannelClaims) {
-            customer = overwriteChannelClaims(customer);
+            var customerWithOverWrittenChannelClaims = overwriteChannelClaims(customer);
+            table.putItem(CustomerDao.fromCustomerDto(customerWithOverWrittenChannelClaims));
+        } else {
+            table.putItem(CustomerDao.fromCustomerDto(customer));
         }
-        table.putItem(CustomerDao.fromCustomerDto(customer));
         return getCustomer(identifier);
     }
 

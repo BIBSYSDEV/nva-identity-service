@@ -3,12 +3,12 @@ package no.unit.nva.customer.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
-import no.unit.nva.customer.model.interfaces.Context;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
 import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
@@ -24,7 +24,8 @@ import java.util.UUID;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.toId;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
 import static nva.commons.core.attempt.Try.attempt;
 
 //Overriding setters and getters is necessary for Jackson-Jr
@@ -34,13 +35,11 @@ import static nva.commons.core.attempt.Try.attempt;
     "PMD.GodClass",
     "PMD.NullAssignment",
     "PMD.SingularField"})
-public class CustomerDto implements Context {
+public class CustomerDto {
 
     private static final String CHANNEL_CLAIM_ALREADY_EXISTS = "Channel claim already exists";
 
     public static final String TYPE = "Customer";
-    @JsonProperty("@context")
-    private URI context;
     private URI id;
     private UUID identifier;
     private Instant createdDate;
@@ -73,6 +72,14 @@ public class CustomerDto implements Context {
         this.vocabularies = Collections.emptyList();
         this.allowFileUploadForTypes = Collections.emptySet();
         this.channelClaims = Collections.emptyList();
+    }
+
+    private static String getIdNamespace() {
+        return new Environment().readEnv("ID_NAMESPACE");
+    }
+
+    private static URI toId(UUID identifier) {
+        return UriWrapper.fromUri(getIdNamespace()).addChild(identifier.toString()).getUri();
     }
 
     public CustomerDto addChannelClaim(ChannelClaimDto channelClaim) {
@@ -112,13 +119,11 @@ public class CustomerDto implements Context {
         return new Builder()
             .withArchiveName(getArchiveName())
             .withCname(getCname())
-            .withContext(getContext())
             .withCreatedDate(getCreatedDate())
             .withCristinId(getCristinId())
             .withCustomerOf(getCustomerOf())
             .withDisplayName(getDisplayName())
             .withFeideOrganizationDomain(getFeideOrganizationDomain())
-            .withId(getId())
             .withIdentifier(getIdentifier())
             .withInstitutionDns(getInstitutionDns())
             .withModifiedDate(getModifiedDate())
@@ -153,6 +158,9 @@ public class CustomerDto implements Context {
 
     public void setIdentifier(UUID identifier) {
         this.identifier = identifier;
+        if (nonNull(identifier)) {
+            this.id = toId(identifier);
+        }
     }
 
     public String getCreatedDate() {
@@ -354,14 +362,9 @@ public class CustomerDto implements Context {
         this.channelClaims = channelClaims;
     }
 
-    @Override
+    @JsonProperty(LINKED_DATA_CONTEXT)
     public URI getContext() {
-        return context;
-    }
-
-    @Override
-    public void setContext(URI context) {
-        this.context = context;
+        return LINKED_DATA_CONTEXT_VALUE;
     }
 
     @Override
@@ -432,11 +435,6 @@ public class CustomerDto implements Context {
 
         private Builder() {
             customerDto = new CustomerDto();
-        }
-
-        public Builder withId(URI id) {
-            customerDto.setId(id);
-            return this;
         }
 
         public Builder withIdentifier(UUID identifier) {
@@ -513,11 +511,6 @@ public class CustomerDto implements Context {
             if (nonNull(vocabularies)) {
                 customerDto.setVocabularies(new ArrayList<>(vocabularies));
             }
-            return this;
-        }
-
-        public Builder withContext(URI context) {
-            customerDto.setContext(context);
             return this;
         }
 

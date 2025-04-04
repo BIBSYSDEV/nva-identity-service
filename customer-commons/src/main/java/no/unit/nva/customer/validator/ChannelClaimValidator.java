@@ -10,9 +10,10 @@ import nva.commons.core.JacocoGenerated;
 public final class ChannelClaimValidator {
     private static final String API_HOST = "API_HOST";
     private static final String CHANNEL_REQUIRED = "Channel required";
-    private static final String INVALID_CHANNEL_MESSAGE = "%s is not a valid channel";
-    private static final String PUBLICATION_CHANNEL_PATH = "PUBLICATION_CHANNEL_PATH";
+    private static final String INVALID_CHANNEL_MESSAGE = "Invalid channel";
     private static final Environment ENVIRONMENT = new Environment();
+    public static final String PUBLICATION_CHANNEL_PATH = ENVIRONMENT.readEnv("PUBLICATION_CHANNEL_PATH");
+    private static final String HOST = ENVIRONMENT.readEnv(API_HOST);
 
     @JacocoGenerated
     public ChannelClaimValidator() {}
@@ -21,14 +22,12 @@ public final class ChannelClaimValidator {
         if (isNull(channelClaim) || isNull(channelClaim.channel())) {
             throw new BadRequestException(CHANNEL_REQUIRED);
         }
-        if (!isPublicationChannel(channelClaim.channel())) {
-            throw new BadRequestException(INVALID_CHANNEL_MESSAGE.formatted(channelClaim.channel()));
+        if (isNotPublicationChannel(channelClaim.channel())) {
+            throw new BadRequestException(INVALID_CHANNEL_MESSAGE);
         }
     }
 
-    private static boolean isPublicationChannel(URI channelId) {
-        var host = ENVIRONMENT.readEnv(API_HOST);
-        var publicationChannelPath = ENVIRONMENT.readEnv(PUBLICATION_CHANNEL_PATH);
-        return host.equals(channelId.getHost()) && channelId.toString().contains(publicationChannelPath);
+    private static boolean isNotPublicationChannel(URI channelId) {
+        return !HOST.equals(channelId.getHost()) || !channelId.toString().contains(PUBLICATION_CHANNEL_PATH);
     }
 }

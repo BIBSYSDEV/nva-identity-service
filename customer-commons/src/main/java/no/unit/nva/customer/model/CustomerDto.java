@@ -83,8 +83,8 @@ public class CustomerDto {
     }
 
     public CustomerDto addChannelClaim(ChannelClaimDto channelClaim) {
-        if (getChannelClaims().stream().anyMatch(c -> c.channel().equals(channelClaim.channel()))) {
-            throw new IllegalArgumentException(CHANNEL_CLAIM_ALREADY_EXISTS);
+        if (getChannelClaims().stream().anyMatch(item -> item.channel().equals(channelClaim.channel()))) {
+            return this;
         }
 
         getChannelClaims().add(channelClaim);

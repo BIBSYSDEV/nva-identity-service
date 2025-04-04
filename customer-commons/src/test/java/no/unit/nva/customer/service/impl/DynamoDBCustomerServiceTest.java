@@ -347,7 +347,8 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void updateCustomerShouldIgnoreChannelClaims() throws ConflictException, NotFoundException, InputException {
+    void shouldIgnoreChannelClaimsWhenUpdatingCustomer() throws ConflictException, NotFoundException,
+                                                                   InputException {
         var customer = createCustomerWithoutChannelClaim();
         customer.overwriteChannelClaims(randomChannelClaimDtos());
 

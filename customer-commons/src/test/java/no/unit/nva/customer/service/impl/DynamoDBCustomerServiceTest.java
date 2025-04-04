@@ -67,7 +67,6 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     public static final int SINGLE_VOCABULARY = 0;
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerServiceTest.class);
-    private static final String CHANNEL_CLAIM_ALREADY_EXISTS = "Channel claim already exists";
     private DynamoDBCustomerService service;
 
     /**
@@ -335,15 +334,14 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldThrowExceptionWhenCreatingChannelClaimWithChannelTheCustomerAlreadyHaveClaimed()
+    void shouldIgnoreTheCreateChannelCLaimWhenTheCustomerAlreadyHaveClaimedTheChannel()
         throws ConflictException, NotFoundException, InputException, BadRequestException {
-        var customer = createCustomerWithoutChannelClaim();
         var existingClaim = randomChannelClaimDto();
-        service.createChannelClaim(customer.getIdentifier(), existingClaim);
+        var customer = createCustomerWithChannelClaim(existingClaim);
 
-        var thrown = assertThrows(IllegalArgumentException.class,
-                     () -> service.createChannelClaim(customer.getIdentifier(), existingClaim));
-        assertEquals(CHANNEL_CLAIM_ALREADY_EXISTS, thrown.getMessage());
+        service.createChannelClaim(customer.getIdentifier(), existingClaim);
+        var updatedCustomer = service.getCustomer(customer.getIdentifier());
+        assertEquals(1, updatedCustomer.getChannelClaims().size());
     }
 
     @Test
@@ -445,5 +443,11 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     private CustomerDto createCustomerWithoutChannelClaim() throws NotFoundException, ConflictException {
         var customer = newActiveCustomerDto();
         return service.createCustomer(customer.overwriteChannelClaims(Collections.emptyList()));
+    }
+
+    private CustomerDto createCustomerWithChannelClaim(ChannelClaimDto channelClaim) throws NotFoundException,
+                                                                                   ConflictException {
+        var customer = newActiveCustomerDto();
+        return service.createCustomer(customer.overwriteChannelClaims(List.of(channelClaim)));
     }
 }

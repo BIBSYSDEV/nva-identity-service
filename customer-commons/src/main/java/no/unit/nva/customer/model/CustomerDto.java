@@ -37,8 +37,6 @@ import static nva.commons.core.attempt.Try.attempt;
     "PMD.SingularField"})
 public class CustomerDto {
 
-    private static final String CHANNEL_CLAIM_ALREADY_EXISTS = "Channel claim already exists";
-
     public static final String TYPE = "Customer";
     private URI id;
     private UUID identifier;

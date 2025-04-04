@@ -36,6 +36,8 @@ import static nva.commons.core.attempt.Try.attempt;
     "PMD.SingularField"})
 public class CustomerDto implements Context {
 
+    private static final String CHANNEL_CLAIM_ALREADY_EXISTS = "Channel claim already exists";
+
     public static final String TYPE = "Customer";
     @JsonProperty("@context")
     private URI context;
@@ -64,13 +66,26 @@ public class CustomerDto implements Context {
     private Sector sector;
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
-    private List<ChannelClaimDto> channelClaims;
+    private Collection<ChannelClaimDto> channelClaims;
 
     public CustomerDto() {
         super();
         this.vocabularies = Collections.emptyList();
         this.allowFileUploadForTypes = Collections.emptySet();
         this.channelClaims = Collections.emptyList();
+    }
+
+    public CustomerDto addChannelClaim(ChannelClaimDto channelClaim) {
+        if (getChannelClaims().stream().anyMatch(c -> c.channel().equals(channelClaim.channel()))) {
+            throw new IllegalArgumentException(CHANNEL_CLAIM_ALREADY_EXISTS);
+        }
+
+        getChannelClaims().add(channelClaim);
+        return this.copy().withChannelClaims(getChannelClaims()).build();
+    }
+
+    public CustomerDto overwriteChannelClaims(Collection<ChannelClaimDto> channelClaims) {
+        return this.copy().withChannelClaims(channelClaims).build();
     }
 
     public static CustomerDto fromJson(String json) throws BadRequestException {
@@ -331,16 +346,12 @@ public class CustomerDto implements Context {
         this.rightsRetentionStrategy = rightsRetentionStrategy;
     }
 
-    public List<ChannelClaimDto> getChannelClaims() {
-        return nonNull(channelClaims) ? channelClaims : Collections.emptyList();
+    public Collection<ChannelClaimDto> getChannelClaims() {
+        return channelClaims;
     }
 
-    public void setChannelClaims(List<ChannelClaimDto> channelClaims) {
+    private void setChannelClaims(Collection<ChannelClaimDto> channelClaims) {
         this.channelClaims = channelClaims;
-    }
-
-    public void addChannelClaim(ChannelClaimDto channelClaim) {
-        this.channelClaims.add(channelClaim);
     }
 
     @Override
@@ -581,8 +592,8 @@ public class CustomerDto implements Context {
             return this;
         }
 
-        public Builder withChannelClaims(List<ChannelClaimDto> channelClaims) {
-            customerDto.setChannelClaims(new ArrayList<>(channelClaims));
+        public Builder withChannelClaims(Collection<ChannelClaimDto> channelClaims) {
+            customerDto.setChannelClaims(nonNull(channelClaims) ? channelClaims : Collections.emptyList());
             return this;
         }
 

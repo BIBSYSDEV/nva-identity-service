@@ -26,7 +26,6 @@ import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDao.RightsRetentionStrategyDao;
 import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
 import no.unit.nva.customer.model.CustomerDto;
-import no.unit.nva.customer.model.LinkedDataContextUtils;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.PublicationWorkflow;
 import no.unit.nva.customer.model.RightsRetentionStrategyType;
@@ -49,7 +48,6 @@ public class CustomerDataGenerator {
 
     public static CustomerDto createSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
-        URI id = LinkedDataContextUtils.toId(identifier);
         CustomerDto customer = CustomerDto.builder()
                                    .withName(randomString())
                                    .withCristinId(randomUri())
@@ -57,9 +55,7 @@ public class CustomerDataGenerator {
                                    .withFeideOrganizationDomain(randomString())
                                    .withModifiedDate(randomInstant())
                                    .withIdentifier(identifier)
-                                   .withId(id)
                                    .withCname(randomString())
-                                   .withContext(LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE)
                                    .withArchiveName(randomString())
                                    .withShortName(randomString())
                                    .withInstitutionDns(randomString())

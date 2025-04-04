@@ -10,9 +10,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
+import static no.unit.nva.customer.Constants.LINKED_DATA_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;

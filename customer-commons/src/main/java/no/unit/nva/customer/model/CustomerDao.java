@@ -452,7 +452,7 @@ public class CustomerDao implements Typed, JsonSerializable {
     }
 
     public CustomerDto toCustomerDto() {
-        CustomerDto customerDto = CustomerDto.builder()
+        return CustomerDto.builder()
                 .withCname(getCname())
                 .withName(getName())
                 .withIdentifier(getIdentifier())
@@ -479,7 +479,6 @@ public class CustomerDao implements Typed, JsonSerializable {
                 .withGeneralSupportEnabled(generalSupportEnabled)
                 .withChannelClaims(extractChannelClaims())
                 .build();
-        return LinkedDataContextUtils.addContextAndId(customerDto);
     }
 
     private Set<VocabularyDto> extractVocabularySettings() {

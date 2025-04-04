@@ -34,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -281,7 +282,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         var customer = newActiveCustomerDto();
         customer.setIdentifier(UUID.randomUUID());
         var exception = assertThrows(RuntimeException.class,
-                                     () -> failingService.updateCustomer(customer.getIdentifier(), customer));
+                                     () -> failingService.putCustomer(customer.getIdentifier(), customer, false));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -330,6 +331,27 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
         assertThrows(BadRequestException.class,
                      () -> service.createChannelClaim(customer.getIdentifier(), channelClaim));
+    }
+
+    @Test
+    void shouldIgnoreTheCreateChannelCLaimWhenTheCustomerAlreadyHaveClaimedTheChannel()
+        throws ConflictException, NotFoundException, InputException, BadRequestException {
+        var existingClaim = randomChannelClaimDto();
+        var customer = createCustomerWithChannelClaim(existingClaim);
+
+        service.createChannelClaim(customer.getIdentifier(), existingClaim);
+        var updatedCustomer = service.getCustomer(customer.getIdentifier());
+        assertEquals(1, updatedCustomer.getChannelClaims().size());
+    }
+
+    @Test
+    void shouldIgnoreChannelClaimsWhenUpdatingCustomer() throws ConflictException, NotFoundException,
+                                                                   InputException {
+        var customer = createCustomerWithoutChannelClaim();
+        customer.overwriteChannelClaims(randomChannelClaimDtos());
+
+        var updatedCustomer = service.updateCustomer(customer.getIdentifier(), customer);
+        assertTrue(updatedCustomer.getChannelClaims().isEmpty());
     }
 
     private CustomerDto newActiveCustomerDto() {
@@ -420,7 +442,12 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     private CustomerDto createCustomerWithoutChannelClaim() throws NotFoundException, ConflictException {
         var customer = newActiveCustomerDto();
-        customer.setChannelClaims(null);
-        return service.createCustomer(customer);
+        return service.createCustomer(customer.overwriteChannelClaims(Collections.emptyList()));
+    }
+
+    private CustomerDto createCustomerWithChannelClaim(ChannelClaimDto channelClaim) throws NotFoundException,
+                                                                                   ConflictException {
+        var customer = newActiveCustomerDto();
+        return service.createCustomer(customer.overwriteChannelClaims(List.of(channelClaim)));
     }
 }

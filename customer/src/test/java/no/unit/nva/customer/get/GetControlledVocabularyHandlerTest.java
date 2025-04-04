@@ -27,9 +27,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
+import static no.unit.nva.customer.Constants.LINKED_DATA_ID;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.core.attempt.Try.attempt;

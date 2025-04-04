@@ -13,7 +13,6 @@ class CustomerReferenceTest {
     @Test
     void shouldCreateCustomerReferenceFromCustomerDto() {
         var customerDto = CustomerDto.builder()
-                              .withId(randomUri())
                               .withDisplayName(randomString())
                               .withCreatedDate(Instant.now())
                               .build();

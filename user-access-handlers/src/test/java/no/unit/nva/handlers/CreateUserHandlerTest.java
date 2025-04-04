@@ -377,11 +377,11 @@ class CreateUserHandlerTest extends HandlerTest {
     @Test
     void shouldDenyAccessToUsersThatDoNotHaveTheRightToAddAnyUserAndTheyAreTryingToAddUsersForAnotherInstitution()
         throws IOException {
-        var uri = UriWrapper.fromUri(randomUri()).addChild(UUID.randomUUID().toString()).getUri();
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(randomPerson(), uri,
+        var customerIdentifier = UUID.randomUUID();
+        var customerId = UriWrapper.fromUri(randomUri()).addChild(customerIdentifier.toString()).getUri();
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(randomPerson(), customerId,
             ViewingScope.defaultViewingScope(randomCristinOrganization()));
-        var identifier = UUID.fromString(UriWrapper.fromUri(requestBody.customerId()).getLastPathElement());
-        var customer = CustomerDto.builder().withIdentifier(identifier).build();
+        var customer = CustomerDto.builder().withIdentifier(customerIdentifier).build();
         var request = createRequest(requestBody, customer);
 
         var response = sendRequest(request, Problem.class);

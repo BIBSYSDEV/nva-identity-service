@@ -1403,6 +1403,14 @@ Resources:
       Type: String
       Value: !GetAtt ExternalUserPool.ProviderURL
 
+  CognitoAuthorizerUrlsParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '${ParameterNamePrefix}CognitoAuthorizerUrls'
+      Description: Combined URLs of the providers of the Amazon Cognito user pools
+      Type: StringList
+      Value: !Sub '${ExternalUserPool.ProviderURL},${UserPool.ProviderURL}'
+
   CognitoIdentityPoolIdParameter:
     Type: AWS::SSM::Parameter
     Properties:

@@ -24,11 +24,11 @@ public class GetCurrentTermsConditionsHandler extends ApiGatewayHandler<Void, Te
     protected TermsConditionsResponse processInput(Void unused, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         var termsConditionsUri = new TermsAndConditionsService()
-            .getCurrentTermsAndConditions().termsConditionsUri();
+                .getCurrentTermsAndConditions().termsConditionsUri();
 
         return TermsConditionsResponse.builder()
-            .withTermsConditionsUri(termsConditionsUri)
-            .build();
+                .withTermsConditionsUri(termsConditionsUri)
+                .build();
     }
 
     @Override

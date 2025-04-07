@@ -1210,7 +1210,7 @@ Resources:
     Properties:
       Name: !Sub '${ParameterNamePrefix}CognitoAuthorizerUrls'
       Description: Combined URLs of the providers of the Amazon Cognito user pools
-      Type: String
+      Type: StringList
       Value: !Sub '${ExternalUserPool.ProviderURL},${UserPool.ProviderURL}'
 
   CognitoIdentityPoolIdParameter:

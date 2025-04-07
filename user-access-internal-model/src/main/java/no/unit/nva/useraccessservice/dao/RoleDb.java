@@ -42,10 +42,11 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         this.accessRights = Collections.emptySet();
     }
 
+    @SuppressWarnings("PMD.NullAssignment") // FIXME: Do we really need to set accessRights to null?
     private RoleDb(Builder builder) {
         super();
-        setName(builder.name);
-        setAccessRights(builder.accessRights);
+        this.name = builder.name;
+        this.accessRights = nonEmpty(builder.accessRights) ? builder.accessRights : null;
     }
 
     /**
@@ -56,7 +57,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
      */
     public static RoleDb fromRoleDto(RoleDto roleDto) {
 
-        return RoleDb.newBuilder()
+        return newBuilder()
             .withName(roleDto.getRoleName())
             .withAccessRights(roleDto.getAccessRights())
             .build();

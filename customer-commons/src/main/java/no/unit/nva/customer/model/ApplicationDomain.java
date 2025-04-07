@@ -21,7 +21,7 @@ public enum ApplicationDomain {
 
     public static ApplicationDomain fromUri(URI candidate) {
         var uri = mapValuesFromPreviousDatamodel(candidate);
-        return Arrays.stream(ApplicationDomain.values())
+        return Arrays.stream(values())
             .filter(applicationDomain -> applicationDomain.getUri().equals(uri))
             .collect(SingletonCollector.collect());
     }

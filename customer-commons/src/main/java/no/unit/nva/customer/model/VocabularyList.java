@@ -109,7 +109,7 @@ public class VocabularyList implements Context, Typed {
     @Override
     @JsonProperty(TYPE_FIELD)
     public String getType() {
-        return VocabularyList.TYPE;
+        return TYPE;
     }
 
     @Override

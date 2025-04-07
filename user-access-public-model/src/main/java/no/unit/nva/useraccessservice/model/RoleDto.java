@@ -3,6 +3,7 @@ package no.unit.nva.useraccessservice.model;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.EnumSet;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -16,13 +17,12 @@ import nva.commons.core.JacocoGenerated;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static java.util.Collections.emptySet;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 
@@ -38,11 +38,11 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     private Set<AccessRight> accessRights;
 
     public RoleDto() {
-        accessRights = Collections.emptySet();
+        accessRights = emptySet();
     }
 
     public static RoleDto fromJson(String json) throws BadRequestException, InvalidInputException {
-        RoleDto roleDto = attempt(() -> JsonConfig.readValue(json, RoleDto.class))
+        var roleDto = attempt(() -> JsonConfig.readValue(json, RoleDto.class))
             .orElseThrow(fail -> new BadRequestException("Could not parse role: " + json));
         if (roleDto.isInvalid()) {
             throw roleDto.exceptionWhenInvalid();
@@ -51,7 +51,7 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     public static Builder newBuilder() {
-        return new RoleDto.Builder();
+        return new Builder();
     }
 
     @Override
@@ -70,11 +70,11 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     public Set<AccessRight> getAccessRights() {
-        return nonNull(accessRights) ? accessRights : Collections.emptySet();
+        return nonNull(accessRights) ? accessRights : emptySet();
     }
 
     public void setAccessRights(List<AccessRight> accessRights) {
-        this.accessRights = nonNull(accessRights) ? new HashSet<>(accessRights) : Collections.emptySet();
+        this.accessRights = nonNull(accessRights) ? EnumSet.copyOf(accessRights) : emptySet();
     }
 
     @Override
@@ -114,9 +114,9 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     @Override
-    @JsonProperty(Typed.TYPE_FIELD)
+    @JsonProperty(TYPE_FIELD)
     public String getType() {
-        return RoleDto.TYPE;
+        return TYPE;
     }
 
     @Override

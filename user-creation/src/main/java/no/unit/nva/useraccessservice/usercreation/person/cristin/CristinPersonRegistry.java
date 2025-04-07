@@ -43,6 +43,7 @@ import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTE
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static nva.commons.core.attempt.Try.attempt;
 
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public final class CristinPersonRegistry implements PersonRegistry {
 
     public static final String AUTHORIZATION = "Authorization";
@@ -128,6 +129,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     @JacocoGenerated
+    @SuppressWarnings("PMD.DoNotUseThreads")
     private static void conditionallyInterrupt(Exception e) {
         if (e instanceof InterruptedException) {
             Thread.currentThread().interrupt();

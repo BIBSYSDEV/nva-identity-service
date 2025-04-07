@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
 
@@ -74,7 +75,11 @@ public class RoleDto implements WithCopy<Builder>, Validable, Typed {
     }
 
     public void setAccessRights(List<AccessRight> accessRights) {
-        this.accessRights = nonNull(accessRights) ? EnumSet.copyOf(accessRights) : emptySet();
+        if (isNull(accessRights) || accessRights.isEmpty()) {
+            this.accessRights = emptySet();
+        } else {
+            this.accessRights = EnumSet.copyOf(accessRights);
+        }
     }
 
     @Override

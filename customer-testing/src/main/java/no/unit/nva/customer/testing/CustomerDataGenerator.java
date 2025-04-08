@@ -15,6 +15,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.ChannelClaimDao;
@@ -182,9 +183,11 @@ public final class CustomerDataGenerator {
     }
 
     public static Set<PublicationInstanceTypes> randomAllowFileUploadForTypes() {
-        return EnumSet.of(randomAllowFileUploadForTypesDto(),
-                          randomAllowFileUploadForTypesDto(),
-                          randomAllowFileUploadForTypesDto());
+        var randomTypes = IntStream
+                              .of(3)
+                              .mapToObj(i -> randomAllowFileUploadForTypesDto())
+                              .collect(Collectors.toSet());
+        return EnumSet.copyOf(randomTypes);
     }
 
     public static PublicationInstanceTypes randomAllowFileUploadForTypesDto() {

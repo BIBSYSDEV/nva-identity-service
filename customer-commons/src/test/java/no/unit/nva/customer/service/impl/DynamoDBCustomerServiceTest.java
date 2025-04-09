@@ -354,6 +354,42 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         assertTrue(updatedCustomer.getChannelClaims().isEmpty());
     }
 
+    @Test
+    void shouldReturnAllChannelClaims() throws ConflictException, NotFoundException {
+        createCustomerWithChannelClaim(randomChannelClaimDto());
+        createCustomerWithChannelClaim(randomChannelClaimDto());
+
+        var allChannelClaims = service.getChannelClaims();
+        assertEquals(2, allChannelClaims.size());
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoCustomersHasAnyChannelClaims() throws ConflictException, NotFoundException {
+        createCustomerWithoutChannelClaim();
+
+        var allChannelClaims = service.getChannelClaims();
+        assertEquals(0, allChannelClaims.size());
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoCustomersExists() {
+        var allChannelClaims = service.getChannelClaims();
+        assertEquals(0, allChannelClaims.size());
+    }
+
+    @Test
+    void shouldReturnCustomerIdentifierAndCristinIdWhenRequestingChannelClaims()
+        throws ConflictException, NotFoundException {
+        var channelClaim = randomChannelClaimDto();
+        var customer = createCustomerWithChannelClaim(channelClaim);
+
+        var allChannelClaims = service.getChannelClaims();
+        var actualChannelClaim = allChannelClaims.stream().findFirst().orElseThrow();
+        assertEquals(customer.getIdentifier(), actualChannelClaim.getValue().getIdentifier());
+        assertEquals(customer.getCristinId(), actualChannelClaim.getValue().getCristinId());
+        assertEquals(channelClaim, actualChannelClaim.getKey());
+    }
+
     private CustomerDto newActiveCustomerDto() {
         var customer = newInactiveCustomerDto();
         customer.setInactiveFrom(null);

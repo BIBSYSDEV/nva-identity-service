@@ -3,6 +3,8 @@ package no.unit.nva.customer.service.impl;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -139,6 +141,14 @@ public class DynamoDBCustomerService implements CustomerService {
         ChannelClaimValidator.validate(channelClaim);
         var customer = getCustomer(customerIdentifier);
         putCustomer(customerIdentifier, customer.addChannelClaim(channelClaim), false);
+    }
+
+    @Override
+    public Collection<SimpleEntry<ChannelClaimDto, CustomerDto>> getChannelClaims() {
+        return getCustomers().stream()
+                   .flatMap(customer -> customer.getChannelClaims().stream()
+                                            .map(claim -> new SimpleEntry<>(claim, customer)))
+                   .collect(Collectors.toList());
     }
 
     private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {

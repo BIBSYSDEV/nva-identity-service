@@ -10,32 +10,32 @@ import java.util.Objects;
 @DynamoDbBean
 public class ChannelClaimDao implements JsonSerializable {
 
-    private URI channel;
+    private URI channelId;
     private ChannelConstraintDao constraint;
 
     public ChannelClaimDao() {
     }
 
     public ChannelClaimDao(URI channel, ChannelConstraintDao constraint) {
-        this.channel = channel;
+        this.channelId = channel;
         this.constraint = constraint;
     }
 
     public static ChannelClaimDao fromDto(ChannelClaimDto dto) {
-        return new ChannelClaimDao(dto.channel(), ChannelConstraintDao.fromDto(dto.constraint()));
+        return new ChannelClaimDao(dto.channelId(), ChannelConstraintDao.fromDto(dto.constraint()));
     }
 
     public ChannelClaimDto toDto() {
-        return new ChannelClaimDto(getChannel(), getConstraint().toDto());
+        return new ChannelClaimDto(getChannelId(), getConstraint().toDto());
     }
 
-    public URI getChannel() {
-        return channel;
+    public URI getChannelId() {
+        return channelId;
     }
 
     @JacocoGenerated
-    public void setChannel(URI channel) {
-        this.channel = channel;
+    public void setChannelId(URI channelId) {
+        this.channelId = channelId;
     }
 
     public ChannelConstraintDao getConstraint() {
@@ -56,13 +56,13 @@ public class ChannelClaimDao implements JsonSerializable {
         if (!(o instanceof ChannelClaimDao that)) {
             return false;
         }
-        return Objects.equals(getChannel(), that.getChannel()) && Objects.equals(getConstraint(), that.getConstraint());
+        return Objects.equals(getChannelId(), that.getChannelId()) && Objects.equals(getConstraint(), that.getConstraint());
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getChannel(), getConstraint());
+        return Objects.hash(getChannelId(), getConstraint());
     }
 
     @JacocoGenerated

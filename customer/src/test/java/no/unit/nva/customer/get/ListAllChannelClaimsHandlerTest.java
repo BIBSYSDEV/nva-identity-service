@@ -2,7 +2,6 @@ package no.unit.nva.customer.get;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDto;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDtos;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -83,7 +82,7 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
 
         var body = response.getBodyObject(ChannelClaimsListResponse.class);
         var actualChannelClaim = body.channelClaims().stream().findFirst().orElseThrow();
-        assertEquals(expectedChannelClaim.channel(), actualChannelClaim.channelClaim().channel());
+        assertEquals(expectedChannelClaim.channelId(), actualChannelClaim.channelClaim().channelId());
     }
 
     private void insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims) throws ApiGatewayException {

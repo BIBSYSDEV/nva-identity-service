@@ -80,19 +80,18 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     }
 
     public static UserDao fromUserDto(UserDto userDto) {
-        UserDao.Builder userDb = UserDao.newBuilder()
-            .withUsername(userDto.getUsername())
-            .withGivenName(userDto.getGivenName())
-            .withFamilyName(userDto.getFamilyName())
-            .withInstitution(userDto.getInstitution())
-            .withRoles(createRoleDbSet(userDto))
-            .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
-            .withCristinId(userDto.getCristinId())
-            .withFeideIdentifier(userDto.getFeideIdentifier())
-            .withInstitutionCristinId(userDto.getInstitutionCristinId())
-            .withAffiliation(userDto.getAffiliation());
-
-        return userDb.build();
+        return newBuilder()
+                   .withUsername(userDto.getUsername())
+                   .withGivenName(userDto.getGivenName())
+                   .withFamilyName(userDto.getFamilyName())
+                   .withInstitution(userDto.getInstitution())
+                   .withRoles(createRoleDbSet(userDto))
+                   .withViewingScope(ViewingScopeDb.fromViewingScope(userDto.getViewingScope()))
+                   .withCristinId(userDto.getCristinId())
+                   .withFeideIdentifier(userDto.getFeideIdentifier())
+                   .withInstitutionCristinId(userDto.getInstitutionCristinId())
+                   .withAffiliation(userDto.getAffiliation())
+                   .build();
     }
 
     public static Builder newBuilder() {
@@ -293,7 +292,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     private String primaryHashKeyIsTypeAndUsername() {
         checkUsername(username);
-        return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE_VALUE, username);
+        return String.join(FIELD_DELIMITER, TYPE_VALUE, username);
     }
 
     private void checkUsername(String username) {

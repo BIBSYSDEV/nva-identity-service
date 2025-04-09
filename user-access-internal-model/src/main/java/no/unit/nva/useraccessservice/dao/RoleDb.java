@@ -17,10 +17,10 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 
+import static java.util.Collections.emptySet;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
@@ -39,13 +39,13 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
 
     public RoleDb() {
         super();
-        this.accessRights = Collections.emptySet();
+        this.accessRights = emptySet();
     }
 
     private RoleDb(Builder builder) {
         super();
-        setName(builder.name);
-        setAccessRights(builder.accessRights);
+        this.name = builder.name;
+        this.accessRights = nonEmpty(builder.accessRights) ? builder.accessRights : emptySet();
     }
 
     /**
@@ -56,7 +56,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
      */
     public static RoleDb fromRoleDto(RoleDto roleDto) {
 
-        return RoleDb.newBuilder()
+        return newBuilder()
             .withName(roleDto.getRoleName())
             .withAccessRights(roleDto.getAccessRights())
             .build();
@@ -71,7 +71,9 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         return new Builder()
             .withName(this.getName())
             .withAccessRights(this.getAccessRights());
-    }    @JacocoGenerated
+    }
+
+    @JacocoGenerated
     @DynamoDbAttribute(NAME_FIELD)
     public RoleName getName() {
         return name;
@@ -80,16 +82,17 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
     @DynamoDbAttribute(ACCESS_RIGHTS_FIELDS)
     @DynamoDbIgnoreNulls
     public Set<AccessRight> getAccessRights() {
-        return nonEmpty(accessRights) ? accessRights : Collections.emptySet();
+        return nonEmpty(accessRights) ? accessRights : emptySet();
     }    @JacocoGenerated
     public void setName(RoleName name) {
         this.name = name;
     }
 
-    @SuppressWarnings("PMD.NullAssignment")
     public void setAccessRights(Set<AccessRight> accessRights) {
-        this.accessRights = nonEmpty(accessRights) ? accessRights : null;
-    }    @JacocoGenerated
+        this.accessRights = nonEmpty(accessRights) ? accessRights : emptySet();
+    }
+
+    @JacocoGenerated
     @DynamoDbAttribute(TYPE_FIELD)
     @Override
     public String getType() {
@@ -117,7 +120,9 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         RoleDb roleDbEntry = (RoleDb) o;
         return Objects.equals(getAccessRights(), roleDbEntry.getAccessRights())
             && Objects.equals(getName(), roleDbEntry.getName());
-    }    @JacocoGenerated
+    }
+
+    @JacocoGenerated
     @Override
     @DynamoDbPartitionKey
     @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
@@ -142,7 +147,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         private Set<AccessRight> accessRights;
 
         protected Builder() {
-            accessRights = Collections.emptySet();
+            accessRights = emptySet();
         }
 
         public Builder withName(RoleName name) {
@@ -151,7 +156,7 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
         }
 
         public Builder withAccessRights(Set<AccessRight> accessRights) {
-            this.accessRights = nonNull(accessRights) ? accessRights : Collections.emptySet();
+            this.accessRights = nonNull(accessRights) ? accessRights : emptySet();
             return this;
         }
 
@@ -161,7 +166,9 @@ public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed
             }
             throw new InvalidEntryInternalException(EMPTY_ROLE_NAME_ERROR);
         }
-    }    @Override
+    }
+
+    @Override
     @DynamoDbAttribute(PRIMARY_KEY_RANGE_KEY)
     @DynamoDbSortKey
     public String getPrimaryKeyRangeKey() {

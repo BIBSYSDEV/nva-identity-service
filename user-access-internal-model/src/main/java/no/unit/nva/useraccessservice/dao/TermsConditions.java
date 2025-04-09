@@ -44,7 +44,7 @@ public record TermsConditions(
     @DynamoDbIgnore
     @Override
     public TermsConditions merge(TermsConditions item) {
-        return TermsConditions.builder()
+        return builder()
             .id(id())
             .type(type())
             .created(created())

@@ -47,6 +47,7 @@ public class CognitoUserInfoEndpoint extends CognitoCommunicationHandler<Void, M
         return attributes;
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod") // False positive?
     private static void removeAccessWhenNoAcceptedTerms(Map<String, String> attributes) {
         var acceptedTerms = attributes.get(CognitoClaims.CUSTOMER_ACCEPTED_TERMS);
         var currentTerms = attributes.get(CognitoClaims.CURRENT_TERMS);

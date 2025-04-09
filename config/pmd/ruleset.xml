@@ -10,7 +10,6 @@
   <exclude-pattern>.*/test/.*</exclude-pattern>
 
   <rule ref="category/java/errorprone.xml">
-    <exclude name="DataflowAnomalyAnalysis"/>
     <exclude name="MissingSerialVersionUID"/>
     <exclude name="NonSerializableClass"/>
   </rule>
@@ -27,7 +26,7 @@
 
     <!-- In TableManager we map ResourceNotFoundException to TableNotFoundException -->
     <exclude name="PreserveStackTrace"/>
-
+    <exclude name="UnitTestAssertionsShouldIncludeMessage"/>
   </rule>
 
   <rule ref="category/java/codestyle.xml">
@@ -41,20 +40,9 @@
     <exclude name="TooManyStaticImports"/>
     <exclude name="ClassNamingConventions"/>
     <exclude name="UnnecessaryConstructor"/>
-    <!-- Conflicts with the rule category/java/codestyle.xml/AvoidProtectedMethodInFinalClassNotExtending -->
     <exclude name="CommentDefaultAccessModifier"/>
-    <!-- Conflicts with the rule category/java/codestyle.xml/AvoidProtectedMethodInFinalClassNotExtending -->
-    <exclude name="DefaultPackage"/>
-
-
-    <!--<exclude name="BeanMembersShouldSerialize"/>-->
-
+    <exclude name="UseExplicitTypes"/>
     <exclude name="ConfusingTernary"/>
-
-    <!-- printStackTrace is used in the Default Amazon handler in a static clause
-        We can re-enable this rule if we find a way to set a logger there
-    -->
-    <!--<exclude name="AvoidPrintStackTrace"/>-->
 
 
     <!-- This rule does not allow us the following:
@@ -65,10 +53,7 @@
 
     <!-- Sometimes it is useful in debugging to assign the return value to a local variable  -->
     <exclude name="UnnecessaryLocalBeforeReturn"/>
-
-
   </rule>
-
 
   <rule ref="category/java/performance.xml">
     <!-- https://softwareengineering.stackexchange.com/questions/149563/should-we-avoid-object-creation-in-java -->

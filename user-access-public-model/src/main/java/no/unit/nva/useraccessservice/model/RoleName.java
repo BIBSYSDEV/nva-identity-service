@@ -31,7 +31,7 @@ public enum RoleName {
     }
 
     public static RoleName fromValue(String value) {
-        return Arrays.stream(RoleName.values())
+        return Arrays.stream(values())
             .filter(entry -> entry.getValue().equals(value))
             .findFirst()
             .orElseThrow();

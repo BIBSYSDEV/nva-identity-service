@@ -9,12 +9,13 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.ChannelClaimDao;
@@ -38,13 +39,18 @@ import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 
-public class CustomerDataGenerator {
+@SuppressWarnings("PMD.CouplingBetweenObjects")
+public final class CustomerDataGenerator {
 
     private static final String API_DOMAIN = new Environment().readEnv("API_DOMAIN");
     private static final String CRISTIN_PATH = "/cristin/organization";
     private static final String SERIAL_PUBLICATION = "serial-publication";
     private static final String PUBLISHER = "publisher";
     private static final List<String> CHANNEL_TYPES = List.of(SERIAL_PUBLICATION, PUBLISHER);
+
+    private CustomerDataGenerator() {
+        // Hidden constructor to prevent instantiation
+    }
 
     public static CustomerDto createSampleCustomerDto() {
         UUID identifier = UUID.randomUUID();
@@ -139,7 +145,7 @@ public class CustomerDataGenerator {
     public static RightsRetentionStrategy randomRightsRetentionStrategy() {
         var elements = Arrays.stream(RightsRetentionStrategyType.values())
                            .filter(f -> f.ordinal() > 0)
-                           .collect(Collectors.toList());
+                           .toList();
         return
             new RightsRetentionStrategyDao(randomElement(elements), randomUri());
     }
@@ -173,8 +179,11 @@ public class CustomerDataGenerator {
     }
 
     public static Set<PublicationInstanceTypes> randomAllowFileUploadForTypes() {
-        return new HashSet<>(Arrays.asList(randomAllowFileUploadForTypesDto(), randomAllowFileUploadForTypesDto(),
-                                           randomAllowFileUploadForTypesDto()));
+        var randomTypes = IntStream
+                              .range(0, 3)
+                              .mapToObj(i -> randomAllowFileUploadForTypesDto())
+                              .collect(Collectors.toSet());
+        return EnumSet.copyOf(randomTypes);
     }
 
     public static PublicationInstanceTypes randomAllowFileUploadForTypesDto() {

@@ -52,7 +52,7 @@ public class UserList implements Typed {
         this.users = users;
     }
 
-    @JsonProperty(Typed.TYPE_FIELD)
+    @JsonProperty(TYPE_FIELD)
     @Override
     @JacocoGenerated
     public String getType() {

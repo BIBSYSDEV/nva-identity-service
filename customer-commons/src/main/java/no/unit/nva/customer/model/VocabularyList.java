@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_ID;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
+import static no.unit.nva.customer.Constants.LINKED_DATA_ID;
 import static nva.commons.core.attempt.Try.attempt;
 
 @SuppressWarnings("PMD.ExcessivePublicCount")

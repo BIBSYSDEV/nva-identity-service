@@ -1,6 +1,5 @@
 package no.unit.nva.customer.service.impl;
 
-import static java.util.Objects.isNull;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
@@ -14,6 +13,7 @@ import no.unit.nva.customer.model.ChannelClaimDto;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
+import no.unit.nva.customer.validator.ChannelClaimValidator;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -35,18 +35,13 @@ public class DynamoDBCustomerService implements CustomerService {
     public static final String IDENTIFIERS_NOT_EQUAL = "Identifier in request parameters '%s' "
                                                        + "is not equal to identifier in customer object '%s'";
     public static final String BY_CRISTIN_ID_INDEX_NAME = "byCristinId";
-    public static final String INVALID_CHANNEL_MESSAGE = "%s is not a valid channel";
-    public static final String CHANNEL_CLAIM_CANNOT_BE_NULL = "ChannelClaim cannot be null";
     private static final String CUSTOMER_NOT_FOUND = "Customer not found: ";
     private static final String DYNAMODB_WARMUP_PROBLEM = "There was a problem during describe table to warm up "
                                                           + "DynamoDB connection";
     private static final String CUSTOMER_ALREADY_EXISTS_ERROR = "Customer with Institution ID %s already exists.";
-    private static final String PUBLICATION_CHANNEL_PATH = "PUBLICATION_CHANNEL_PATH";
-    private static final String API_HOST = "API_HOST";
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
-    private static final String CHANNEL_REQUIRED = "Channel required";
     private final DynamoDbTable<CustomerDao> table;
 
     /**
@@ -103,10 +98,25 @@ public class DynamoDBCustomerService implements CustomerService {
 
     @Override
     public CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws InputException, NotFoundException {
+        return putCustomer(identifier, customer, true);
+    }
+
+    public CustomerDto putCustomer(UUID identifier, CustomerDto customer, boolean shouldOverwriteChannelClaims)
+        throws NotFoundException, InputException {
         validateIdentifier(identifier, customer);
         customer.setModifiedDate(Instant.now().toString());
-        table.putItem(CustomerDao.fromCustomerDto(customer));
+        if (shouldOverwriteChannelClaims) {
+            var customerWithOverWrittenChannelClaims = overwriteChannelClaims(customer);
+            table.putItem(CustomerDao.fromCustomerDto(customerWithOverWrittenChannelClaims));
+        } else {
+            table.putItem(CustomerDao.fromCustomerDto(customer));
+        }
         return getCustomer(identifier);
+    }
+
+    private CustomerDto overwriteChannelClaims(CustomerDto customer) throws NotFoundException {
+        var existingChannelClaims = getCustomer(customer.getIdentifier()).getChannelClaims();
+        return customer.overwriteChannelClaims(existingChannelClaims);
     }
 
     @Override
@@ -126,33 +136,14 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public void createChannelClaim(UUID customerIdentifier, ChannelClaimDto channelClaim)
         throws NotFoundException, InputException, BadRequestException {
-        validateChannelClaim(channelClaim);
+        ChannelClaimValidator.validate(channelClaim);
         var customer = getCustomer(customerIdentifier);
-        customer.addChannelClaim(channelClaim);
-        updateCustomer(customerIdentifier, customer);
+        putCustomer(customerIdentifier, customer.addChannelClaim(channelClaim), false);
     }
 
     private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {
         var enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(client).build();
         return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
-    }
-
-    private void validateChannelClaim(ChannelClaimDto channelClaim) throws BadRequestException {
-        if (isNull(channelClaim)) {
-            throw new BadRequestException(CHANNEL_CLAIM_CANNOT_BE_NULL);
-        }
-        if (isNull(channelClaim.channel())) {
-            throw new BadRequestException(CHANNEL_REQUIRED);
-        }
-        if (isNotPublicationChannel(channelClaim.channel())) {
-            throw new BadRequestException(INVALID_CHANNEL_MESSAGE.formatted(channelClaim.channel()));
-        }
-    }
-
-    private boolean isNotPublicationChannel(URI channelId) {
-        var host = ENVIRONMENT.readEnv(API_HOST);
-        var publicationChannelPath = ENVIRONMENT.readEnv(PUBLICATION_CHANNEL_PATH);
-        return !host.equals(channelId.getHost()) || !channelId.toString().contains(publicationChannelPath);
     }
 
     private void warmupDynamoDbConnection(DynamoDbTable<CustomerDao> table) {

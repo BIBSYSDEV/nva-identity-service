@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -376,9 +377,11 @@ class CreateUserHandlerTest extends HandlerTest {
     @Test
     void shouldDenyAccessToUsersThatDoNotHaveTheRightToAddAnyUserAndTheyAreTryingToAddUsersForAnotherInstitution()
         throws IOException {
-        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(randomPerson(), randomUri(),
+        var customerIdentifier = UUID.randomUUID();
+        var customerId = UriWrapper.fromUri(randomUri()).addChild(customerIdentifier.toString()).getUri();
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(randomPerson(), customerId,
             ViewingScope.defaultViewingScope(randomCristinOrganization()));
-        var customer = CustomerDto.builder().withId(requestBody.customerId()).build();
+        var customer = CustomerDto.builder().withIdentifier(customerIdentifier).build();
         var request = createRequest(requestBody, customer);
 
         var response = sendRequest(request, Problem.class);
@@ -487,7 +490,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
     private CustomerDto randomCustomer() {
         return CustomerDto.builder()
-            .withId(randomUri())
+            .withIdentifier(UUID.randomUUID())
             .withCristinId(randomCristinOrganization())
             .build();
     }

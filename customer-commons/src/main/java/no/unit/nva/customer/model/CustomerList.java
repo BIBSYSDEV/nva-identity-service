@@ -3,6 +3,7 @@ package no.unit.nva.customer.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import no.unit.nva.identityservice.json.JsonConfig;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.URI;
@@ -14,8 +15,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.ID_NAMESPACE;
-import static no.unit.nva.customer.model.LinkedDataContextUtils.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
 import static nva.commons.core.attempt.Try.attempt;
 
 @SuppressWarnings("PMD.ShortMethodName")
@@ -56,12 +57,12 @@ public class CustomerList {
 
     @JsonProperty(LINKED_DATA_CONTEXT)
     public URI getContext() {
-        return LinkedDataContextUtils.LINKED_DATA_CONTEXT_VALUE;
+        return LINKED_DATA_CONTEXT_VALUE;
     }
 
     @JsonProperty("id")
     public URI getId() {
-        return ID_NAMESPACE;
+        return URI.create(new Environment().readEnv("ID_NAMESPACE"));
     }
 
     public List<CustomerReference> getCustomers() {

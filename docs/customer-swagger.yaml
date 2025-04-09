@@ -621,17 +621,12 @@ paths:
         httpMethod: GET
         type: AWS_PROXY
       responses:
-        '201':
-          description: Created
-        '400':
-          description: Bad Request
+        '200':
+          description: Ok
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-              examples:
-                BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
+                $ref: '#/components/schemas/ChannelClaimList'
         '401':
           description: Unauthorized
           content:
@@ -641,33 +636,15 @@ paths:
               examples:
                 UnauthorizedExample:
                   $ref: '#/components/examples/UnauthorizedProblemExample'
-        '403':
-          description: Forbidden
+        '502':
+          description: Bad Gateway
           content:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
-                ForbiddenExample:
-                  $ref: '#/components/examples/ForbiddenProblemExample'
-        '404':
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-              examples:
-                NotFoundExample:
-                  $ref: '#/components/examples/NotFoundProblemExample'
-        '500':
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-              examples:
-                InternalServerErrorExample:
-                  $ref: '#/components/examples/InternalServerErrorProblemExample'
+                BadGatewayExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
   /orgDomain/{orgDomain}:
     get:
       summary: Get CustomerIdentifiers by orgDomain
@@ -1030,12 +1007,32 @@ components:
           type: string
         nviInstitution:
           type: boolean
+    ChannelClaimList:
+      type: object
+      properties:
+        type:
+          type: string
+        claimedChannels:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClaimedChannel'
+    ClaimedChannel:
+      type: object
+      properties:
+        type:
+          type: string
+        claimedBy:
+          $ref: '#/components/schemas/ClaimedBy'
+        channelClaim:
+          $ref: '#/components/schemas/ChannelClaim'
     ChannelClaim:
       type: object
       required:
         - channel
         - constraints
       properties:
+        type:
+          type: string
         channel:
           type: string
           format: uri
@@ -1059,6 +1056,17 @@ components:
       enum:
         - OwnerOnly
         - Everyone
+    ClaimedBy:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+          format: uri
+        cristinId:
+          type: string
+          format: uri
     DoiAgent:
       type: object
       properties:

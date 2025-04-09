@@ -45,13 +45,12 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     }
 
     public static ClientDao fromClientDto(ClientDto clientDto) {
-        ClientDao.Builder clientDb = ClientDao.newBuilder()
-            .withClientId(clientDto.getClientId())
-            .withCustomer(clientDto.getCustomer())
-            .withCristinOrgUri(clientDto.getCristinOrgUri())
-            .withActingUser(clientDto.getActingUser());
-
-        return clientDb.build();
+        return newBuilder()
+                   .withClientId(clientDto.getClientId())
+                   .withCustomer(clientDto.getCustomer())
+                   .withCristinOrgUri(clientDto.getCristinOrgUri())
+                   .withActingUser(clientDto.getActingUser())
+                   .build();
     }
 
     public static Builder newBuilder() {
@@ -171,7 +170,7 @@ public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
     }
 
     private String primaryHashKeyIsTypeAndUsername() {
-        return String.join(DynamoEntryWithRangeKey.FIELD_DELIMITER, TYPE_VALUE, clientTd);
+        return String.join(FIELD_DELIMITER, TYPE_VALUE, clientTd);
     }
 
     @JacocoGenerated

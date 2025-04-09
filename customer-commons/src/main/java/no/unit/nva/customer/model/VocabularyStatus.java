@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyStatusConverter;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.attempt.Failure;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 
 import static java.lang.String.format;
@@ -34,12 +33,12 @@ public enum VocabularyStatus {
         return stream(values())
             .filter(nameType -> nameType.getValue().equalsIgnoreCase(value))
             .collect(SingletonCollector.tryCollect())
-            .orElseThrow(failure -> throwException(failure, value));
+            .orElseThrow(failure -> throwException(value));
     }
 
-    private static RuntimeException throwException(Failure<VocabularyStatus> failure, String value) {
+    private static RuntimeException throwException(String value) {
         return new IllegalArgumentException(
-            format(ERROR_MESSAGE_TEMPLATE, value, stream(VocabularyStatus.values())
+            format(ERROR_MESSAGE_TEMPLATE, value, stream(values())
                 .map(VocabularyStatus::toString).collect(joining(DELIMITER))));
     }
 

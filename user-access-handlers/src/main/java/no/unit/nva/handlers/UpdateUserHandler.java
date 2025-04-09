@@ -83,6 +83,7 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
             || isAuthorizedUser(input, requestInfo);
     }
 
+    @SuppressWarnings("PMD.SimplifyBooleanReturns")
     private boolean isAuthorizedUser(UserDto input, RequestInfo requestInfo) throws NotFoundException {
         var isAlteringAppAdmin = isAlteringAppAdmin(input);
 

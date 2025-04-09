@@ -40,7 +40,7 @@ import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_D
 import static nva.commons.core.attempt.Try.attempt;
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
-@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields"})
+@SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields", "PMD.CouplingBetweenObjects"})
 public class CustomerDao implements Typed, JsonSerializable {
 
     public static final String IDENTIFIER = "identifier";

@@ -385,9 +385,9 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
         var allChannelClaims = service.getChannelClaims();
         var actualChannelClaim = allChannelClaims.stream().findFirst().orElseThrow();
-        assertEquals(customer.getIdentifier(), actualChannelClaim.getValue().getIdentifier());
-        assertEquals(customer.getCristinId(), actualChannelClaim.getValue().getCristinId());
-        assertEquals(channelClaim, actualChannelClaim.getKey());
+        assertEquals(customer.getId(), actualChannelClaim.customerId());
+        assertEquals(customer.getCristinId(), actualChannelClaim.cristinId());
+        assertEquals(channelClaim, actualChannelClaim.channelClaim());
     }
 
     private CustomerDto newActiveCustomerDto() {

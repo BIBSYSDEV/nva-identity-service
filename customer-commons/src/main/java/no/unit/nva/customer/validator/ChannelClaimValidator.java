@@ -2,7 +2,7 @@ package no.unit.nva.customer.validator;
 
 import static java.util.Objects.isNull;
 import java.net.URI;
-import no.unit.nva.customer.model.ChannelClaimDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;

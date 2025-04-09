@@ -1,6 +1,7 @@
-package no.unit.nva.customer.model;
+package no.unit.nva.customer.model.channelclaim;
 
 import no.unit.nva.commons.json.JsonSerializable;
+import no.unit.nva.customer.model.PublicationInstanceTypes;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
@@ -8,8 +9,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.Collections.emptyList;
-import static no.unit.nva.customer.model.ChannelConstraintPolicy.EVERYONE;
-import static no.unit.nva.customer.model.ChannelConstraintPolicy.OWNER_ONLY;
+import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.EVERYONE;
+import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.OWNER_ONLY;
 
 @DynamoDbBean
 public class ChannelConstraintDao implements JsonSerializable {

@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ApplicationDomain;
-import no.unit.nva.customer.model.ChannelClaimDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDao;

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDao;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.dynamo.converters.DoiAgentConverter;
 import no.unit.nva.customer.model.dynamo.converters.RightsRetentionStrategyConverter;
 import no.unit.nva.customer.model.dynamo.converters.VocabularyConverterProvider;

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.stream.Collectors;
-import no.unit.nva.customer.model.ChannelClaimDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.CustomerDto;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")

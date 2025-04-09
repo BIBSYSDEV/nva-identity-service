@@ -4,15 +4,13 @@ import java.net.URI;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.ChannelClaimDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.CustomerDto;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import software.amazon.awssdk.utils.Pair;
 
 public interface CustomerService {
 

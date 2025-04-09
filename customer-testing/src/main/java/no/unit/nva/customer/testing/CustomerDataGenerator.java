@@ -184,7 +184,7 @@ public final class CustomerDataGenerator {
 
     public static Set<PublicationInstanceTypes> randomAllowFileUploadForTypes() {
         var randomTypes = IntStream
-                              .of(3)
+                              .range(0, 3)
                               .mapToObj(i -> randomAllowFileUploadForTypesDto())
                               .collect(Collectors.toSet());
         return EnumSet.copyOf(randomTypes);

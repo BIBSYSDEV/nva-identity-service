@@ -12,7 +12,7 @@ public final class ChannelClaimValidator {
     private static final String CHANNEL_REQUIRED = "Channel required";
     private static final String INVALID_CHANNEL_MESSAGE = "Invalid channel";
     private static final Environment ENVIRONMENT = new Environment();
-    public static final String PUBLICATION_CHANNEL_PATH = ENVIRONMENT.readEnv("PUBLICATION_CHANNEL_PATH");
+    private static final String PUBLICATION_CHANNEL_PATH = ENVIRONMENT.readEnv("PUBLICATION_CHANNEL_PATH");
     private static final String HOST = ENVIRONMENT.readEnv(API_HOST);
 
     @JacocoGenerated

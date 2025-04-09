@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
-import static no.unit.nva.customer.Constants.LINKED_DATA_ID;
 import static nva.commons.core.attempt.Try.attempt;
 
 @SuppressWarnings("PMD.ShortMethodName")

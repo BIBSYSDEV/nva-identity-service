@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.attempt.Failure;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
@@ -32,12 +31,12 @@ public enum PublicationWorkflow {
         return stream(values())
             .filter(nameType -> nameType.getValue().equalsIgnoreCase(value))
             .collect(SingletonCollector.tryCollect())
-            .orElseThrow(failure -> throwException(failure, value));
+            .orElseThrow(failure -> throwException(value));
     }
 
-    private static RuntimeException throwException(Failure<PublicationWorkflow> failure, String value) {
+    private static RuntimeException throwException(String value) {
         return new IllegalArgumentException(
-            format(ERROR_MESSAGE_TEMPLATE, value, stream(PublicationWorkflow.values())
+            format(ERROR_MESSAGE_TEMPLATE, value, stream(values())
                 .map(PublicationWorkflow::toString).collect(joining(DELIMITER))));
     }
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /*
     NOTE: Changes here must be aligned with frontend and data model/publication api.
  */
+@SuppressWarnings("PMD.ExcessivePublicCount")
 public enum PublicationInstanceTypes {
     ARCHITECTURE("Architecture"),
     ARTISTIC_DESIGN("ArtisticDesign"),

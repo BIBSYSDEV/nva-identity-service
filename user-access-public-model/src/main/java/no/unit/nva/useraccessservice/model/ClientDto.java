@@ -52,9 +52,9 @@ public class ClientDto implements WithCopy<Builder>, Typed {
     }
 
     @Override
-    @JsonProperty(Typed.TYPE_FIELD)
+    @JsonProperty(TYPE_FIELD)
     public String getType() {
-        return ClientDto.TYPE;
+        return TYPE;
     }
 
     @Override

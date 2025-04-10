@@ -62,7 +62,7 @@ import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.core.attempt.Try.attempt;
 
-@SuppressWarnings({"PMD.GodClass"})
+@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.GodClass"})
 public class UserSelectionUponLoginHandler
     implements RequestHandler<CognitoUserPoolPreTokenGenerationEventV2, CognitoUserPoolPreTokenGenerationEventV2> {
 

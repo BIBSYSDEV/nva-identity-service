@@ -97,9 +97,9 @@ public class UserDto implements WithCopy<Builder>, Typed {
     }
 
     @Override
-    @JsonProperty(Typed.TYPE_FIELD)
+    @JsonProperty(TYPE_FIELD)
     public String getType() {
-        return UserDto.TYPE;
+        return TYPE;
     }
 
     @Override

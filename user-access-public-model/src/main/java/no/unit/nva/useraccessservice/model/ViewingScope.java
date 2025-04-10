@@ -89,7 +89,7 @@ public class ViewingScope {
 
     public static ViewingScope defaultViewingScope(URI organizationId) {
         attempt(() -> validate(organizationId)).orElseThrow();
-        return attempt(() -> ViewingScope.create(Set.of(organizationId), Collections.emptySet())).orElseThrow();
+        return attempt(() -> create(Set.of(organizationId), Collections.emptySet())).orElseThrow();
     }
 
     public static ViewingScope create(Collection<URI> includedUnits, Collection<URI> excludedUnits)

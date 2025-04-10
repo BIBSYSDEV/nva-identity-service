@@ -98,7 +98,7 @@ public class UserService extends DatabaseSubService {
             .stream()
             .map(Page::items)
             .flatMap(Collection::stream)
-            .filter(dao -> dao.getType().equals(TYPE_VALUE))
+            .filter(dao -> TYPE_VALUE.equals(dao.getType()))
             .map(UserDao::toUserDto)
             .toList();
     }

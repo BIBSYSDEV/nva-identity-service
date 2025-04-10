@@ -71,8 +71,8 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
 
     @Test
     void shouldReturnOkWhenListingChannelClaims() throws IOException, ApiGatewayException {
-        var expectedChannelClaim = randomChannelClaimDto();
-        insertRandomCustomerWithChannelClaim(List.of(expectedChannelClaim));
+        insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
+        insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
 
         var request = createAuthorizedRequest();
         handler.handleRequest(request, output, CONTEXT);
@@ -80,9 +80,9 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
         var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
 
-        var body = response.getBodyObject(ChannelClaimsListResponse.class);
-        var actualChannelClaim = body.channelClaims().stream().findFirst().orElseThrow();
-        assertEquals(expectedChannelClaim.channelId(), actualChannelClaim.channelClaim().channelId());
+        var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
+
+        assertThat(channelClaimsListResponse.channelClaims().size(), is(4));
     }
 
     private void insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims) throws ApiGatewayException {

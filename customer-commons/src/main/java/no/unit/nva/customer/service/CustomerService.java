@@ -3,6 +3,7 @@ package no.unit.nva.customer.service;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
@@ -35,4 +36,6 @@ public interface CustomerService {
                                                                                           BadRequestException;
 
     Collection<ChannelClaimWithClaimer> getChannelClaims();
+
+    Optional<ChannelClaimWithClaimer> getChannelClaim(UUID identifier);
 }

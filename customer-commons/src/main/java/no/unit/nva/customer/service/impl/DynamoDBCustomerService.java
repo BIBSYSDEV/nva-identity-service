@@ -148,7 +148,16 @@ public class DynamoDBCustomerService implements CustomerService {
         return getCustomers().stream()
                    .flatMap(customer -> customer.getChannelClaims().stream()
                                             .map(claim -> getChannelClaimWithClaimer(claim, customer)))
-                   .collect(Collectors.toList());
+                   .toList();
+    }
+
+    @Override
+    public Optional<ChannelClaimWithClaimer> getChannelClaim(UUID identifier) {
+        return getCustomers().stream()
+                   .flatMap(customer -> customer.getChannelClaims().stream()
+                                            .map(claim -> getChannelClaimWithClaimer(claim, customer)))
+                   .filter(channelClaimWithClaimer -> identifier.equals(channelClaimWithClaimer.channelClaimIdentifier()))
+                   .findFirst();
     }
 
     private static ChannelClaimWithClaimer getChannelClaimWithClaimer(ChannelClaimDto channelClaim,

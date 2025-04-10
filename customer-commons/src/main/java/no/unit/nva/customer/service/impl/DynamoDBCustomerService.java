@@ -151,6 +151,13 @@ public class DynamoDBCustomerService implements CustomerService {
                    .collect(Collectors.toList());
     }
 
+    @Override
+    public Collection<ChannelClaimWithClaimer> getChannelClaimsForCustomer(URI cristinId) {
+        return getChannelClaims().stream()
+                   .filter(channelClaimWithClaimer -> channelClaimWithClaimer.isClaimedBy(cristinId))
+                   .collect(Collectors.toSet());
+    }
+
     private static ChannelClaimWithClaimer getChannelClaimWithClaimer(ChannelClaimDto channelClaim,
                                                                       CustomerDto customer) {
         return new ChannelClaimWithClaimer(channelClaim, customer.getId(), customer.getCristinId());

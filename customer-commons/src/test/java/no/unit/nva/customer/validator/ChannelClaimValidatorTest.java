@@ -3,7 +3,7 @@ package no.unit.nva.customer.validator;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelConstraintDto;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import no.unit.nva.customer.model.ChannelClaimDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import org.junit.jupiter.api.Test;
 

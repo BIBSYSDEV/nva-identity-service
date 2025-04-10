@@ -1,4 +1,4 @@
-package no.unit.nva.customer.model;
+package no.unit.nva.customer.model.channelclaim;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

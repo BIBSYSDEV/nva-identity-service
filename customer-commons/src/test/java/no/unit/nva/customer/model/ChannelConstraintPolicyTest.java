@@ -1,5 +1,6 @@
 package no.unit.nva.customer.model;
 
+import no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 

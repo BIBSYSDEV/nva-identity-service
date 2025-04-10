@@ -21,8 +21,8 @@ import java.net.HttpURLConnection;
 import java.util.Map;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.ChannelClaimDto;
-import no.unit.nva.customer.model.ChannelConstraintDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
+import no.unit.nva.customer.model.channelclaim.ChannelConstraintDto;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -185,7 +185,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     private ChannelClaimRequest fromDto(ChannelClaimDto dto) {
-        return new ChannelClaimRequest(dto.channel(), fromDto(dto.constraint()));
+        return new ChannelClaimRequest(dto.channelId(), fromDto(dto.constraint()));
     }
 
     private ChannelConstraintRequest fromDto(ChannelConstraintDto dto) {

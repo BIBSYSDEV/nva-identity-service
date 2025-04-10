@@ -1,8 +1,8 @@
 package no.unit.nva.customer.create;
 
 import java.util.List;
-import no.unit.nva.customer.model.ChannelConstraintDto;
-import no.unit.nva.customer.model.ChannelConstraintPolicy;
+import no.unit.nva.customer.model.channelclaim.ChannelConstraintDto;
+import no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 
 public record ChannelConstraintRequest(ChannelConstraintPolicy publishingPolicy,

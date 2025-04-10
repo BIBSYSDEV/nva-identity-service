@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ApplicationDomain;
-import no.unit.nva.customer.model.ChannelClaimDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDao;
@@ -352,6 +352,42 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
         var updatedCustomer = service.updateCustomer(customer.getIdentifier(), customer);
         assertTrue(updatedCustomer.getChannelClaims().isEmpty());
+    }
+
+    @Test
+    void shouldReturnAllChannelClaims() throws ConflictException, NotFoundException {
+        createCustomerWithChannelClaim(randomChannelClaimDto());
+        createCustomerWithChannelClaim(randomChannelClaimDto());
+
+        var allChannelClaims = service.getChannelClaims();
+        assertEquals(2, allChannelClaims.size());
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoCustomersHasAnyChannelClaims() throws ConflictException, NotFoundException {
+        createCustomerWithoutChannelClaim();
+
+        var allChannelClaims = service.getChannelClaims();
+        assertEquals(0, allChannelClaims.size());
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoCustomersExists() {
+        var allChannelClaims = service.getChannelClaims();
+        assertEquals(0, allChannelClaims.size());
+    }
+
+    @Test
+    void shouldReturnCustomerIdentifierAndCristinIdWhenRequestingChannelClaims()
+        throws ConflictException, NotFoundException {
+        var channelClaim = randomChannelClaimDto();
+        var customer = createCustomerWithChannelClaim(channelClaim);
+
+        var allChannelClaims = service.getChannelClaims();
+        var actualChannelClaim = allChannelClaims.stream().findFirst().orElseThrow();
+        assertEquals(customer.getId(), actualChannelClaim.customerId());
+        assertEquals(customer.getCristinId(), actualChannelClaim.cristinId());
+        assertEquals(channelClaim, actualChannelClaim.channelClaim());
     }
 
     private CustomerDto newActiveCustomerDto() {

@@ -3,15 +3,17 @@ package no.unit.nva.customer.service.impl;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.ChannelClaimDto;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimWithClaimer;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.validator.ChannelClaimValidator;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -139,6 +141,19 @@ public class DynamoDBCustomerService implements CustomerService {
         ChannelClaimValidator.validate(channelClaim);
         var customer = getCustomer(customerIdentifier);
         putCustomer(customerIdentifier, customer.addChannelClaim(channelClaim), false);
+    }
+
+    @Override
+    public Collection<ChannelClaimWithClaimer> getChannelClaims() {
+        return getCustomers().stream()
+                   .flatMap(customer -> customer.getChannelClaims().stream()
+                                            .map(claim -> getChannelClaimWithClaimer(claim, customer)))
+                   .collect(Collectors.toList());
+    }
+
+    private static ChannelClaimWithClaimer getChannelClaimWithClaimer(ChannelClaimDto channelClaim,
+                                                                      CustomerDto customer) {
+        return new ChannelClaimWithClaimer(channelClaim, customer.getId(), customer.getCristinId());
     }
 
     private static DynamoDbTable<CustomerDao> createTable(DynamoDbClient client) {

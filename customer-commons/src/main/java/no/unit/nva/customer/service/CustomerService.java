@@ -1,11 +1,13 @@
 package no.unit.nva.customer.service;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
-import no.unit.nva.customer.model.ChannelClaimDto;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimWithClaimer;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -31,4 +33,6 @@ public interface CustomerService {
     void createChannelClaim(UUID customerIdentifier, ChannelClaimDto channelClaim) throws NotFoundException,
                                                                                           InputException,
                                                                                           BadRequestException;
+
+    Collection<ChannelClaimWithClaimer> getChannelClaims();
 }

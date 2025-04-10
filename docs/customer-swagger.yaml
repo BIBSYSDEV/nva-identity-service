@@ -608,6 +608,43 @@ paths:
               examples:
                 InternalServerErrorExample:
                   $ref: '#/components/examples/InternalServerErrorProblemExample'
+  /channel-claims:
+    get:
+      summary: List all channel claims
+      operationId: ListChannelClaims
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin", "https://api.nva.unit.no/scopes/backend" ]
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaListChannelClaimsFunction.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelClaimList'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                UnauthorizedExample:
+                  $ref: '#/components/examples/UnauthorizedProblemExample'
+        '502':
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadGatewayExample:
+                  $ref: '#/components/examples/BadGatewayProblemExample'
   /orgDomain/{orgDomain}:
     get:
       summary: Get CustomerIdentifiers by orgDomain
@@ -970,12 +1007,32 @@ components:
           type: string
         nviInstitution:
           type: boolean
+    ChannelClaimList:
+      type: object
+      properties:
+        type:
+          type: string
+        claimedChannels:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClaimedChannel'
+    ClaimedChannel:
+      type: object
+      properties:
+        type:
+          type: string
+        claimedBy:
+          $ref: '#/components/schemas/ClaimedBy'
+        channelClaim:
+          $ref: '#/components/schemas/ChannelClaim'
     ChannelClaim:
       type: object
       required:
         - channel
         - constraints
       properties:
+        type:
+          type: string
         channel:
           type: string
           format: uri
@@ -999,6 +1056,17 @@ components:
       enum:
         - OwnerOnly
         - Everyone
+    ClaimedBy:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+          format: uri
+        cristinId:
+          type: string
+          format: uri
     DoiAgent:
       type: object
       properties:

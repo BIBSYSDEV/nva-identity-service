@@ -12,6 +12,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.JacocoGenerated;
 
 public class FetchChannelClaimHandler extends ApiGatewayHandler<Void, ChannelClaimResponse> {
@@ -33,6 +34,10 @@ public class FetchChannelClaimHandler extends ApiGatewayHandler<Void, ChannelCla
 
     @Override
     protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        userIsAuthorized(requestInfo);
+    }
+
+    private static void userIsAuthorized(RequestInfo requestInfo) throws UnauthorizedException {
         requestInfo.getCurrentCustomer();
     }
 

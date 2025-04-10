@@ -4,8 +4,12 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Optional;
 import no.unit.nva.customer.get.response.ChannelClaimsListResponse;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimWithClaimer;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
@@ -39,16 +43,27 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
     protected ChannelClaimsListResponse processInput(Void unused, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         try {
-            return getInstitution(requestInfo).map(customerService::getChannelClaimsForCustomer)
-                       .map(ChannelClaimsListResponse::fromChannelClaims)
-                       .orElse(ChannelClaimsListResponse.fromChannelClaims(customerService.getChannelClaims()));
+            return ChannelClaimsListResponse.fromChannelClaims(listChannelClaims(requestInfo));
         } catch (Exception e) {
             throw new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
         }
     }
 
-    private static Optional<URI> getInstitution(RequestInfo requestInfo) {
-        return requestInfo.getQueryParameterOpt(INSTITUTION_QUERY_PARAM).map(URI::create);
+    private Collection<ChannelClaimWithClaimer> listChannelClaims(RequestInfo requestInfo) {
+        return getInstitutionCristinId(requestInfo)
+                   .map(customerService::getChannelClaimsForCustomer)
+                   .orElse(customerService.getChannelClaims());
+    }
+
+    private static Optional<URI> getInstitutionCristinId(RequestInfo requestInfo) {
+
+        return requestInfo.getQueryParameterOpt(INSTITUTION_QUERY_PARAM)
+                   .map(ListAllChannelClaimsHandler::decode)
+                   .map(URI::create);
+    }
+
+    private static String decode(String cristinId) {
+        return URLDecoder.decode(cristinId, StandardCharsets.UTF_8);
     }
 
     @Override

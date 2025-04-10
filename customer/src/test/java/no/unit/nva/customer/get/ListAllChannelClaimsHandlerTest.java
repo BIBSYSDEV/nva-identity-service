@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import no.unit.nva.customer.get.response.ChannelClaimsListResponse;
@@ -93,7 +95,7 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
         var customer = insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
         insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
 
-        var request = createAuthorizedRequestWithInstitution(customer.getCristinId());
+        var request = createAuthorizedRequestWithEncodedInstitutionInQueryParams(customer.getCristinId());
         handler.handleRequest(request, output, CONTEXT);
 
         var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
@@ -101,7 +103,7 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
 
         var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
 
-        channelClaimsListResponse.channelClaims().stream().forEach(channelClaimResponse ->
+        channelClaimsListResponse.channelClaims().forEach(channelClaimResponse ->
                          assertEquals(customer.getCristinId(), channelClaimResponse.claimedBy().cristinId()));
     }
 
@@ -122,12 +124,12 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
                    .build();
     }
 
-    private static InputStream createAuthorizedRequestWithInstitution(URI cristinId) throws JsonProcessingException {
+    private static InputStream createAuthorizedRequestWithEncodedInstitutionInQueryParams(URI cristinId) throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
                    .withCurrentCustomer(randomUri())
                    .withUserName(randomString())
-                   .withTopLevelCristinOrgId(cristinId)
-                   .withQueryParameters(Map.of("institution", cristinId.toString()))
+                   .withTopLevelCristinOrgId(randomUri())
+                   .withQueryParameters(Map.of("institution", URLEncoder.encode(cristinId.toString(), StandardCharsets.UTF_8)))
                    .build();
     }
 

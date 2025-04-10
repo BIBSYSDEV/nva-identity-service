@@ -1082,6 +1082,13 @@ Resources:
             Path: /{identifier}/channel-claim/
             Method: post
             RestApiId: !Ref NvaCustomerApi
+
+  NvaCreateChannelClaimFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/nva-identity-service/NvaCreateChannelClaimFunction/${AWS::AccountId}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaListChannelClaimsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -1103,10 +1110,10 @@ Resources:
             Method: get
             RestApiId: !Ref NvaCustomerApi
 
-  NvaCreateChannelClaimFunctionLogGroup:
+  NvaListChannelClaimsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaCreateChannelClaimFunction/${AWS::AccountId}'
+      LogGroupName: !Sub '/nva-identity-service/NvaListChannelClaimsFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerByOrgDomainFunction:

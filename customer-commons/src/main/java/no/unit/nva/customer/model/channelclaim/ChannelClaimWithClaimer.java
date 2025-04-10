@@ -1,11 +1,11 @@
 package no.unit.nva.customer.model.channelclaim;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.net.URI;
-import nva.commons.core.JacocoGenerated;
 
 public record ChannelClaimWithClaimer(ChannelClaimDto channelClaim, URI customerId, URI cristinId) {
 
-    @JacocoGenerated
+    @JsonIgnore
     public boolean isClaimedBy(URI cristinId) {
         return cristinId.equals(cristinId());
     }

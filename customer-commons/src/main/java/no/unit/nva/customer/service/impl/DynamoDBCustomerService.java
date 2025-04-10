@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
@@ -146,18 +147,21 @@ public class DynamoDBCustomerService implements CustomerService {
     @Override
     public Collection<ChannelClaimWithClaimer> getChannelClaims() {
         return getCustomers().stream()
-                   .flatMap(customer -> customer.getChannelClaims().stream()
-                                            .map(claim -> getChannelClaimWithClaimer(claim, customer)))
+                   .flatMap(DynamoDBCustomerService::toChannelClaimWithClaimer)
                    .toList();
     }
 
     @Override
     public Optional<ChannelClaimWithClaimer> getChannelClaim(UUID identifier) {
         return getCustomers().stream()
-                   .flatMap(customer -> customer.getChannelClaims().stream()
-                                            .map(claim -> getChannelClaimWithClaimer(claim, customer)))
+                   .flatMap(DynamoDBCustomerService::toChannelClaimWithClaimer)
                    .filter(channelClaimWithClaimer -> identifier.equals(channelClaimWithClaimer.channelClaimIdentifier()))
                    .findFirst();
+    }
+
+    private static Stream<ChannelClaimWithClaimer> toChannelClaimWithClaimer(CustomerDto customer) {
+        return customer.getChannelClaims().stream()
+                   .map(claim -> getChannelClaimWithClaimer(claim, customer));
     }
 
     private static ChannelClaimWithClaimer getChannelClaimWithClaimer(ChannelClaimDto channelClaim,

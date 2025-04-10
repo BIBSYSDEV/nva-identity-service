@@ -6,6 +6,6 @@ import java.util.UUID;
 public record ChannelClaimWithClaimer(ChannelClaimDto channelClaim, URI customerId, URI cristinId) {
 
     public UUID channelClaimIdentifier() {
-        return channelClaim.identifier();
+        return channelClaim().identifier();
     }
 }

@@ -18,6 +18,7 @@ public class FetchChannelClaimHandler extends ApiGatewayHandler<Void, ChannelCla
 
     private static final String CLAIM_NOT_FOUND = "Channel claim with identifier %s not found";
     private static final String NOT_VALID_IDENTIFIER = "Provided channel claim identifier is not valid!";
+    private static final String IDENTIFIER_PATH = "identifier";
     private final CustomerService customerService;
 
     @JacocoGenerated
@@ -45,7 +46,7 @@ public class FetchChannelClaimHandler extends ApiGatewayHandler<Void, ChannelCla
     }
 
     private static UUID getIdentifier(RequestInfo requestInfo) throws BadRequestException {
-        return attempt(() -> requestInfo.getPathParameter("identifier"))
+        return attempt(() -> requestInfo.getPathParameter(IDENTIFIER_PATH))
                    .map(UUID::fromString)
                    .orElseThrow(failure -> new BadRequestException(NOT_VALID_IDENTIFIER));
     }

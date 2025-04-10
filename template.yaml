@@ -290,6 +290,8 @@ Resources:
   GetRoleHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref GetRoleHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetRoleHandler::handleRequest
       Environment:
@@ -309,12 +311,14 @@ Resources:
   GetRoleHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${GetRoleHandler}'
+      LogGroupName: !Sub '/nva-identity-service/GetRoleHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   CreateUserHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref CreateUserHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.CreateUserHandler::handleRequest
       Policies:
@@ -344,12 +348,14 @@ Resources:
   CreateUserHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${CreateUserHandler}'
+      LogGroupName: !Sub '/nva-identity-service/CreateUserHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   UpdateUserHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref UpdateUserHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UpdateUserHandler::handleRequest
       Environment:
@@ -369,12 +375,14 @@ Resources:
   UpdateUserHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${UpdateUserHandler}'
+      LogGroupName: !Sub '/nva-identity-service/UpdateUserHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   GetUserHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref GetUserHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetUserHandler::handleRequest
       Environment:
@@ -394,12 +402,14 @@ Resources:
   GetUserHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${GetUserHandler}'
+      LogGroupName: !Sub '/nva-identity-service/GetUserHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   GetCurrentTermsConditionsHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref GetCurrentTermsConditionsHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetCurrentTermsConditionsHandler::handleRequest
       Environment:
@@ -416,12 +426,14 @@ Resources:
   GetCurrentTermsConditionsHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${GetCurrentTermsConditionsHandler}'
+      LogGroupName: !Sub '/nva-identity-service/GetCurrentTermsConditionsHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   UpdatePersonTermsConditionsHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref UpdatePersonTermsConditionsHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.UpdatePersonTermsConditionsHandler::handleRequest
       Environment:
@@ -444,12 +456,14 @@ Resources:
   UpdatePersonTermsConditionsHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${UpdatePersonTermsConditionsHandler}'
+      LogGroupName: !Sub '/nva-identity-service/UpdatePersonTermsConditionsHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   CustomerSelectionHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref CustomerSelectionHandlerLogGroup
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.CustomerSelectionHandler::handleRequest
       Policies:
@@ -475,12 +489,14 @@ Resources:
   CustomerSelectionHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${CustomerSelectionHandler}'
+      LogGroupName: !Sub '/nva-identity-service/CustomerSelectionHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   CognitoUserInfoHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref CognitoUserInfoHandlerLogGroup
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.CognitoUserInfoEndpoint::handleRequest
       Policies:
@@ -502,12 +518,14 @@ Resources:
   CognitoUserInfoHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${CognitoUserInfoHandler}'
+      LogGroupName: !Sub '/nva-identity-service/CognitoUserInfoHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   ListByInstitutionHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref ListByInstitutionHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.ListByInstitutionHandler::handleRequest
       Environment:
@@ -530,12 +548,14 @@ Resources:
   ListByInstitutionHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${ListByInstitutionHandler}'
+      LogGroupName: !Sub '/nva-identity-service/ListByInstitutionHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   InitIdenitityServiceHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref InitIdenitityServiceHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.IdentityServiceInitHandler::handleRequest
       Environment:
@@ -553,13 +573,15 @@ Resources:
   InitIdenitityServiceHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${InitIdenitityServiceHandler}'
+      LogGroupName: !Sub '/nva-identity-service/InitIdenitityServiceHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   MigrateCuratorsIdentityServiceHandler:
     Type: AWS::Serverless::Function
     Description: 'Migrated users that has Curator role to instead have support, doi, nvi, and file-curator'
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref MigrateCuratorsIdentityServiceHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.IdentityServiceMigrateCuratorHandler::handleRequest
       Environment:
@@ -576,12 +598,14 @@ Resources:
   MigrateCuratorsIdentityServiceHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${MigrateCuratorsIdentityServiceHandler}'
+      LogGroupName: !Sub '/nva-identity-service/MigrateCuratorsIdentityServiceHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   SetImpersonationHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref SetImpersonationHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.SetImpersonationHandler::handleRequest
       Policies:
@@ -603,12 +627,14 @@ Resources:
   SetImpersonationHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${SetImpersonationHandler}'
+      LogGroupName: !Sub '/nva-identity-service/SetImpersonationHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   StopImpersonationHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref StopImpersonationHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.StopImpersonationHandler::handleRequest
       Policies:
@@ -630,12 +656,14 @@ Resources:
   StopImpersonationHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${StopImpersonationHandler}'
+      LogGroupName: !Sub '/nva-identity-service/StopImpersonationHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   CreateExternalClientHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref CreateExternalClientHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.CreateExternalClientHandler::handleRequest
       Description: Creates a new Cognito Client assosicated with the external user pool
@@ -663,12 +691,14 @@ Resources:
   CreateExternalClientHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${CreateExternalClientHandler}'
+      LogGroupName: !Sub '/nva-identity-service/CreateExternalClientHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   GetExternalClientUserinfoHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref GetExternalClientUserinfoHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetExternalClientUserinfoHandler::handleRequest
       Policies:
@@ -696,12 +726,14 @@ Resources:
   GetExternalClientUserinfoHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${GetExternalClientUserinfoHandler}'
+      LogGroupName: !Sub '/nva-identity-service/GetExternalClientUserinfoHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   GetExternalClientHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref GetExternalClientHandlerLogGroup
       CodeUri: user-access-handlers
       Handler: no.unit.nva.handlers.GetExternalClientHandler::handleRequest
       Policies:
@@ -729,7 +761,7 @@ Resources:
   GetExternalClientHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${GetExternalClientHandler}'
+      LogGroupName: !Sub '/nva-identity-service/GetExternalClientHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   UsersAndRolesApiStaticUrl:
@@ -828,6 +860,8 @@ Resources:
   NvaCreateCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaCreateCustomerFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.create.CreateCustomerHandler::handleRequest
       Environment:
@@ -849,12 +883,14 @@ Resources:
   NvaCreateCustomerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaCreateCustomerFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaCreateCustomerFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaGetCustomerFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.get.GetCustomerHandler::handleRequest
       Environment:
@@ -876,12 +912,14 @@ Resources:
   NvaGetCustomerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerDoiAgentFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaGetCustomerDoiAgentFunctionLogGroup
       CodeUri: customer
       Role: !GetAtt CustomerSecretAdminRole.Arn
       Handler: no.unit.nva.customer.get.GetCustomerDoiHandler::handleRequest
@@ -900,12 +938,14 @@ Resources:
   NvaGetCustomerDoiAgentFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerDoiAgentFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerDoiAgentFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaUpdateCustomerDoiAgentFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaUpdateCustomerDoiAgentFunctionLogGroup
       CodeUri: customer
       Role: !GetAtt CustomerSecretAdminRole.Arn
       Handler: no.unit.nva.customer.update.UpdateCustomerDoiHandler::handleRequest
@@ -928,12 +968,14 @@ Resources:
   NvaUpdateCustomerDoiAgentFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaUpdateCustomerDoiAgentFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaUpdateCustomerDoiAgentFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerVocabulariesFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaGetCustomerVocabulariesFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.get.GetControlledVocabularyHandler::handleRequest
       Environment:
@@ -955,12 +997,14 @@ Resources:
   NvaGetCustomerVocabulariesFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerVocabulariesFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerVocabulariesFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaCreateCustomerVocabulariesFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaCreateCustomerVocabulariesFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.create.CreateControlledVocabularyHandler::handleRequest
       Environment:
@@ -982,12 +1026,14 @@ Resources:
   NvaCreateCustomerVocabulariesFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaCreateCustomerVocabulariesFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaCreateCustomerVocabulariesFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaUpdateCustomerVocabulariesFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaUpdateCustomerVocabulariesFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.update.UpdateControlledVocabularyHandler::handleRequest
       Environment:
@@ -1009,12 +1055,14 @@ Resources:
   NvaUpdateCustomerVocabulariesFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaUpdateCustomerVocabulariesFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaUpdateCustomerVocabulariesFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaCreateChannelClaimFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaCreateChannelClaimFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.create.CreateChannelClaimHandler::handleRequest
       Environment:
@@ -1038,12 +1086,14 @@ Resources:
   NvaCreateChannelClaimFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaCreateChannelClaimFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaCreateChannelClaimFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerByOrgDomainFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaGetCustomerByOrgDomainFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.get.GetCustomerByOrgNumberHandler::handleRequest
       Environment:
@@ -1065,12 +1115,14 @@ Resources:
   NvaGetCustomerByOrgDomainFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerByOrgDomainFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerByOrgDomainFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerByCristinIdFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaGetCustomerByCristinIdFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.get.GetCustomerByCristinIdHandler::handleRequest
       Environment:
@@ -1092,12 +1144,14 @@ Resources:
   NvaGetCustomerByCristinIdFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaGetCustomerByCristinIdFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerByCristinIdFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaListAllCustomersFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaListAllCustomersFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.get.ListAllCustomersHandler::handleRequest
       Environment:
@@ -1119,12 +1173,14 @@ Resources:
   NvaListAllCustomersFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaListAllCustomersFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaListAllCustomersFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaUpdateCustomerFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaUpdateCustomerFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.update.UpdateCustomerHandler::handleRequest
       Environment:
@@ -1146,12 +1202,14 @@ Resources:
   NvaUpdateCustomerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${NvaUpdateCustomerFunction}'
+      LogGroupName: !Sub '/nva-identity-service/NvaUpdateCustomerFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   CustomerBatchScanHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref CustomerBatchScanHandlerLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.CustomerBatchScanHandler::handleRequest
       Environment:
@@ -1166,7 +1224,7 @@ Resources:
   CustomerBatchScanHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${CustomerBatchScanHandler}'
+      LogGroupName: !Sub '/nva-identity-service/CustomerBatchScanHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaCustomerBasePathMapping:
@@ -1185,6 +1243,8 @@ Resources:
   StartBatchScanHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref StartBatchScanHandlerLogGroup
       CodeUri: user-access-event-handlers
       Handler: no.unit.nva.useraccess.events.StartBatchScan::handleRequest
       Role: !GetAtt BatchScanRole.Arn
@@ -1195,12 +1255,14 @@ Resources:
   StartBatchScanHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${StartBatchScanHandler}'
+      LogGroupName: !Sub '/nva-identity-service/StartBatchScanHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   EventBasedBatchScanHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref EventBasedBatchScanHandlerLogGroup
       CodeUri: user-access-event-handlers
       Handler: no.unit.nva.useraccess.events.EventBasedScanHandler::handleRequest
       Role: !GetAtt BatchScanRole.Arn
@@ -1224,7 +1286,7 @@ Resources:
   EventBasedBatchScanHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${EventBasedBatchScanHandler}'
+      LogGroupName: !Sub '/nva-identity-service/EventBasedBatchScanHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   InternalBus:
@@ -1965,6 +2027,8 @@ Resources:
   PreTokenGenerationHandler:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref PreTokenGenerationHandlerLogGroup
       CodeUri: cognito-pre-token-generation-openid
       Handler: no.unit.nva.cognito.UserSelectionUponLoginHandler::handleRequest
       Policies:
@@ -1999,7 +2063,7 @@ Resources:
   PreTokenGenerationHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${PreTokenGenerationHandler}'
+      LogGroupName: !Sub '/nva-identity-service/PreTokenGenerationHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   PreTokenGenerationHandlerScalableTarget:

@@ -1092,6 +1092,8 @@ Resources:
   NvaListChannelClaimsFunction:
     Type: AWS::Serverless::Function
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaListChannelClaimsFunctionLogGroup
       CodeUri: customer
       Handler: no.unit.nva.customer.get.ListAllChannelClaimsHandler::handleRequest
       Environment:

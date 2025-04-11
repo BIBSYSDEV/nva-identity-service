@@ -2,6 +2,7 @@ package no.unit.nva.customer.model.channelclaim;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.net.URI;
+import java.util.UUID;
 
 public record ChannelClaimWithClaimer(ChannelClaimDto channelClaim, URI customerId, URI cristinId) {
 
@@ -10,4 +11,7 @@ public record ChannelClaimWithClaimer(ChannelClaimDto channelClaim, URI customer
         return cristinId.equals(cristinId());
     }
 
+    public UUID channelClaimIdentifier() {
+        return channelClaim().identifier();
+    }
 }

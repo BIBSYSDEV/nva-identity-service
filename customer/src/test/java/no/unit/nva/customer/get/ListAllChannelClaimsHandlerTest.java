@@ -105,7 +105,7 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
         var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
 
         channelClaimsListResponse.channelClaims().forEach(channelClaimResponse ->
-                         assertEquals(customer.getCristinId(), channelClaimResponse.claimedBy().cristinId()));
+                         assertEquals(customer.getCristinId(), channelClaimResponse.claimedBy().organizationId()));
     }
 
     private CustomerDto insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims) throws ApiGatewayException {

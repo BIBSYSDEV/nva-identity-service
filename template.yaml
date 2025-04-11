@@ -1118,6 +1118,36 @@ Resources:
       LogGroupName: !Sub '/nva-identity-service/NvaListChannelClaimsFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
+  NvaFetchChannelClaimFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaFetchChannelClaimFunctionLogGroup
+      CodeUri: customer
+      Handler: no.unit.nva.customer.get.FetchChannelClaimHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          API_HOST: !Ref ApiDomain
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        PostChannelClaimEvent:
+          Type: Api
+          Properties:
+            Path: /channel-claims/{identifier}
+            Method: get
+            RestApiId: !Ref NvaCustomerApi
+
+  NvaFetchChannelClaimFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/nva-identity-service/NvaFetchChannelClaimFunction/${AWS::AccountId}'
+      RetentionInDays: !Ref LogRetentionInDays
+
   NvaGetCustomerByOrgDomainFunction:
     Type: AWS::Serverless::Function
     Properties:

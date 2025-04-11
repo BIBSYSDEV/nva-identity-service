@@ -42,12 +42,13 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
 
     @JacocoGenerated
     public IdentityServiceInitHandler() {
-        this(IdentityService.defaultIdentityService(), defaultCustomerService(), new DefaultRoleSource());
+        this(IdentityService.defaultIdentityService(), defaultCustomerService(), new DefaultRoleSource(),
+             new Environment());
     }
 
     public IdentityServiceInitHandler(IdentityService identityService, CustomerService customerService,
-                                      RoleSource roleSource) {
-        super(Void.class);
+                                      RoleSource roleSource, Environment environment) {
+        super(Void.class, environment);
         this.identityService = identityService;
         this.customerService = customerService;
         this.roleSource = roleSource;
@@ -61,11 +62,11 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
     @Override
     protected RoleList processInput(Void input, RequestInfo requestInfo, Context context) {
         var defaultRoles = roleSource.roles()
-            .stream()
-            .map(attempt(this::addOrUpdateRole))
-            .map(attempt -> attempt.toOptional(fail -> logError(fail.getException())))
-            .flatMap(Optional::stream)
-            .collect(Collectors.toSet());
+                               .stream()
+                               .map(attempt(this::addOrUpdateRole))
+                               .map(attempt -> attempt.toOptional(fail -> logError(fail.getException())))
+                               .flatMap(Optional::stream)
+                               .collect(Collectors.toSet());
 
         var sikt = createDefaultCustomer();
 
@@ -86,11 +87,11 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
         }).or(() -> {
             logger.info("Client not found. Creating new client...");
             var clientDto = ClientDto.newBuilder()
-                .withClientId(backendClientId)
-                .withCustomer(sikt.getId())
-                .withCristinOrgUri(sikt.getCristinId())
-                .withActingUser(SIKT_ACTING_USER)
-                .build();
+                                .withClientId(backendClientId)
+                                .withCustomer(sikt.getId())
+                                .withCristinOrgUri(sikt.getCristinId())
+                                .withActingUser(SIKT_ACTING_USER)
+                                .build();
 
             identityService.addExternalClient(clientDto);
             return clientDto;
@@ -100,14 +101,14 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
     private CustomerDto createDefaultCustomer() {
         logger.info("Attempting to create default customer...");
         var customer = CustomerDto.builder()
-            .withCristinId(SIKT_CRISTIN_ID)
-            .withFeideOrganizationDomain(SIKT_NO)
-            .withCname(SIKT)
-            .withName(SIKT)
-            .withDisplayName(SIKT)
-            .withShortName(SIKT)
-            .withCustomerOf(ApplicationDomain.NVA)
-            .build();
+                           .withCristinId(SIKT_CRISTIN_ID)
+                           .withFeideOrganizationDomain(SIKT_NO)
+                           .withCname(SIKT)
+                           .withName(SIKT)
+                           .withDisplayName(SIKT)
+                           .withShortName(SIKT)
+                           .withCustomerOf(ApplicationDomain.NVA)
+                           .build();
 
         return attempt(() -> {
             logger.info("Creating customer...");
@@ -117,7 +118,6 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
             return customerService.getCustomerByOrgDomain(SIKT_NO);
         }).orElseThrow();
     }
-
 
     @Override
     protected Integer getSuccessStatusCode(Void input, RoleList output) {

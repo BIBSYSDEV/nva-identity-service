@@ -14,6 +14,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.Environment;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +65,7 @@ public class CreateCustomerHandlerTest extends LocalCustomerServiceDatabase {
     public void setUp() {
         super.setupDatabase();
         CustomerService customerServiceMock = new DynamoDBCustomerService(this.dynamoClient);
-        handler = new CreateCustomerHandler(customerServiceMock);
+        handler = new CreateCustomerHandler(customerServiceMock, new Environment());
         context = new FakeContext();
         outputSteam = new ByteArrayOutputStream();
     }

@@ -20,6 +20,7 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Failure;
@@ -46,6 +47,7 @@ import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import static nva.commons.core.attempt.Try.attempt;
 
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUserRequest, UserDto> {
 
     public static final String BAD_GATEWAY_ERROR_MESSAGE = "Something went wrong, contact application administrator!";
@@ -58,29 +60,21 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     @JacocoGenerated
     public CreateUserHandler() {
-        this(IdentityService.defaultIdentityService(), defaultCustomerService());
+        this(IdentityService.defaultIdentityService(),
+             defaultCustomerService(),
+             CristinPersonRegistry.defaultPersonRegistry(), new Environment());
     }
 
-    @JacocoGenerated
-    public CreateUserHandler(IdentityService identityService, CustomerService customerService) {
-        this(defaultUserCreator(identityService),
-            identityService,
-            customerService,
-            CristinPersonRegistry.defaultPersonRegistry());
-    }
-
-    public CreateUserHandler(UserEntriesCreatorForPerson userCreator,
-                             IdentityService identityService,
+    public CreateUserHandler(IdentityService identityService,
                              CustomerService customerService,
-                             PersonRegistry personRegistry) {
-        super(CreateUserRequest.class);
-        this.userCreator = userCreator;
+                             PersonRegistry personRegistry, Environment environment) {
+        super(CreateUserRequest.class, environment);
+        this.userCreator = defaultUserCreator(identityService);
         this.identityService = identityService;
         this.customerService = customerService;
         this.personRegistry = personRegistry;
     }
 
-    @JacocoGenerated
     private static UserEntriesCreatorForPerson defaultUserCreator(IdentityService identityService) {
         return new UserEntriesCreatorForPerson(identityService);
     }
@@ -95,7 +89,6 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     protected UserDto processInput(CreateUserRequest input, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
 
-
         var existingUser = fetchExistingUser(input);
         if (existingUser.isPresent()) {
             this.statusCode = HTTP_OK;
@@ -108,9 +101,9 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private UserDto persistNewUser(CreateUserRequest input) throws ApiGatewayException {
         return attempt(() -> createNewUser(input))
-            .map(userDto -> addRolesAndViewingScope(userDto, input))
-            .map(identityService::updateUser)
-            .orElseThrow(CreateUserHandler::castToCorrectRuntimeException);
+                   .map(userDto -> addRolesAndViewingScope(userDto, input))
+                   .map(identityService::updateUser)
+                   .orElseThrow(CreateUserHandler::castToCorrectRuntimeException);
     }
 
     public static ApiGatewayException castToCorrectRuntimeException(Failure<?> failure) {
@@ -149,10 +142,10 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {
         return affiliations.stream()
-            .map(Affiliation::getInstitutionId)
-            .map(attempt(customerService::getCustomerByCristinId))
-            .flatMap(Try::stream)
-            .collect(Collectors.toSet());
+                   .map(Affiliation::getInstitutionId)
+                   .map(attempt(customerService::getCustomerByCristinId))
+                   .flatMap(Try::stream)
+                   .collect(Collectors.toSet());
     }
 
     private void explainWhyUserCannotBeCreated(Person person,
@@ -168,7 +161,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private String noCustomersForActiveAffiliations(String personId) {
         return String.format("Person %s has no active affiliations with an Institution that is an NVA customer",
-            personId);
+                             personId);
     }
 
     private String noActiveAffiliationsMessage(String personId) {
@@ -181,31 +174,32 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private UserDto addRolesAndViewingScope(UserDto newUser, CreateUserRequest input) {
         return getEventuallyConsistent(() -> identityService.getUser(newUser))
-            .map(UserDto::copy)
-            .map(user -> user.withRoles(createUnionOfRoleSets(input, newUser)))
-            .map(user -> user.withViewingScope(input.viewingScope()))
-            .map(UserDto.Builder::build)
-            .orElseThrow();
+                   .map(UserDto::copy)
+                   .map(user -> user.withRoles(createUnionOfRoleSets(input, newUser)))
+                   .map(user -> user.withViewingScope(input.viewingScope()))
+                   .map(UserDto.Builder::build)
+                   .orElseThrow();
     }
 
     private Set<RoleDto> createUnionOfRoleSets(CreateUserRequest input, UserDto newUser) {
         return Stream.of(input.roles(), newUser.getRoles())
-            .flatMap(Collection::stream)
-            .collect(Collectors.toSet());
+                   .flatMap(Collection::stream)
+                   .collect(Collectors.toSet());
     }
 
     private Optional<UserDto> fetchExistingUser(CreateUserRequest input) throws ConflictException {
         return fetchCristinPersonFromIdentifierOrNin(input)
-            .map(person -> fetchUserAtCustomer(person, input.customerId()))
-            .orElseThrow(() -> new ConflictException(personIsNotRegisteredError(input.nationalIdentityNumber())));
+                   .map(person -> fetchUserAtCustomer(person, input.customerId()))
+                   .orElseThrow(
+                       () -> new ConflictException(personIsNotRegisteredError(input.nationalIdentityNumber())));
     }
 
     private Optional<Person> fetchCristinPersonFromIdentifierOrNin(CreateUserRequest input) {
         return nonNull(input.cristinIdentifier()) ?
-            personRegistry.fetchPersonByIdentifier(input.cristinIdentifier()) :
-            personRegistry.fetchPersonByNin(
-                NationalIdentityNumber.fromString(
-                    input.nationalIdentityNumber()));
+                   personRegistry.fetchPersonByIdentifier(input.cristinIdentifier()) :
+                                                                                         personRegistry.fetchPersonByNin(
+                                                                                             NationalIdentityNumber.fromString(
+                                                                                                 input.nationalIdentityNumber()));
     }
 
     private Optional<UserDto> fetchUserAtCustomer(Person person, URI customerId) {
@@ -236,6 +230,6 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
 
     private boolean userIsInternalBackendOrHasManageOwnAffiliationAccess(RequestInfo requestInfo) {
         return requestInfo.clientIsInternalBackend()
-            || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
+               || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS);
     }
 }

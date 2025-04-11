@@ -37,11 +37,11 @@ public class SetImpersonationHandler extends HandlerWithEventualConsistency<Impe
 
     @JacocoGenerated
     public SetImpersonationHandler() {
-        this(defaultCognitoClient());
+        this(defaultCognitoClient(), new Environment());
     }
 
-    public SetImpersonationHandler(CognitoIdentityProviderClient cognitoClient) {
-        super(ImpersonationRequest.class);
+    public SetImpersonationHandler(CognitoIdentityProviderClient cognitoClient, Environment environment) {
+        super(ImpersonationRequest.class, environment);
         this.cognitoClient = cognitoClient;
     }
 

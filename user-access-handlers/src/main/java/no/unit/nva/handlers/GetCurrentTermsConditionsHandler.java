@@ -8,11 +8,18 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 
 import java.net.HttpURLConnection;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 
 public class GetCurrentTermsConditionsHandler extends ApiGatewayHandler<Void, TermsConditionsResponse> {
 
+    @JacocoGenerated
     public GetCurrentTermsConditionsHandler() {
-        super(Void.class);
+        this(new Environment());
+    }
+
+    public GetCurrentTermsConditionsHandler(Environment environment) {
+        super(Void.class, environment);
     }
 
     @Override

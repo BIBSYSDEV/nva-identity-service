@@ -48,5 +48,6 @@ test {
     environment "ALLOWED_ORIGIN", "*"
     environment "BOT_FILTER_BYPASS_HEADER_NAME", "ExampleHeaderName"
     environment "BOT_FILTER_BYPASS_HEADER_VALUE", "ExampleHeaderValue"
+    environment "COGNITO_AUTHORIZER_URLS", "http://localhost:3000"
 }
 

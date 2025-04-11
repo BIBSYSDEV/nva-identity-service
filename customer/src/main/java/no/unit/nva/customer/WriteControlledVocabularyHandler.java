@@ -9,6 +9,7 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 
 import java.util.UUID;
+import nva.commons.core.Environment;
 
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
@@ -16,8 +17,8 @@ import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 public abstract class WriteControlledVocabularyHandler
     extends ControlledVocabularyHandler<VocabularyList, VocabularyList> {
 
-    protected WriteControlledVocabularyHandler(CustomerService customerService) {
-        super(customerService, VocabularyList.class);
+    protected WriteControlledVocabularyHandler(CustomerService customerService, Environment environment) {
+        super(customerService, VocabularyList.class, environment);
     }
 
     @Override

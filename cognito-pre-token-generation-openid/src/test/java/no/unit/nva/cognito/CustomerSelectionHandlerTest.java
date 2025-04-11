@@ -24,6 +24,7 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
@@ -106,14 +107,15 @@ class CustomerSelectionHandlerTest {
         setupCognitoAndPersonInformation(person);
         termsService = mock(TermsAndConditionsService.class);
         var terms = TermsConditionsResponse.builder()
-                                            .withTermsConditionsUri(TERMS_URL)
-                                            .build();
+                        .withTermsConditionsUri(TERMS_URL)
+                        .build();
         when(termsService.getCurrentTermsAndConditions()).thenReturn(terms);
         when(termsService.getTermsAndConditionsByPerson(any())).thenReturn(terms);
 
         addUserEntriesInIdentityService(person, allowedCustomers, role);
 
-        this.handler = new CustomerSelectionHandler(cognito, customerService, identityService, termsService);
+        this.handler = new CustomerSelectionHandler(cognito, customerService, identityService, termsService,
+                                                    new Environment());
     }
 
     private static RoleDb randomRoleWithAccessRight(AccessRight accessRight) {
@@ -331,7 +333,7 @@ class CustomerSelectionHandlerTest {
     @Test
     void shouldNotSendAnUpdateCustomerRequestToCognitoWhenInputDoesNotContainAccessToken()
         throws IOException {
-        cognito.updateUserAttributes((UpdateUserAttributesRequest)null);//clear mock value@
+        cognito.updateUserAttributes((UpdateUserAttributesRequest) null);//clear mock value@
         var input = createRequest(randomUri());
         var response = sendRequest(input, Void.class);
         assertThatUpdateRequestHasNotBeenSent();

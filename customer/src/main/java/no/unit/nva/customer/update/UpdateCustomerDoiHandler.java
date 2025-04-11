@@ -13,6 +13,7 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.secrets.SecretsReader;
 import nva.commons.secrets.SecretsWriter;
@@ -49,7 +50,7 @@ public class UpdateCustomerDoiHandler extends CustomerDoiHandler<String> {
      */
     public UpdateCustomerDoiHandler(CustomerService customerService, SecretsWriter secretsWriter,
                                     SecretsReader secretsReader) {
-        super(String.class, secretsReader);
+        super(String.class, secretsReader, new Environment());
         this.customerService = customerService;
         this.secretsWriter = secretsWriter;
     }

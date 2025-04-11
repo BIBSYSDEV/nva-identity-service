@@ -16,6 +16,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.UnauthorizedException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -57,15 +58,16 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
         this(defaultCognitoClient(),
              defaultCustomerService(DEFAULT_DYNAMO_CLIENT),
              IdentityService.defaultIdentityService(DEFAULT_DYNAMO_CLIENT),
-             new TermsAndConditionsService()
+             new TermsAndConditionsService(),
+             new Environment()
         );
     }
 
     public CustomerSelectionHandler(CognitoIdentityProviderClient cognito,
                                     CustomerService customerService,
                                     IdentityService identityService,
-                                    TermsAndConditionsService termsAndConditionsService) {
-        super(CustomerSelection.class);
+                                    TermsAndConditionsService termsAndConditionsService, Environment environment) {
+        super(CustomerSelection.class, environment);
         this.cognito = cognito;
         this.customerService = customerService;
         this.identityService = identityService;

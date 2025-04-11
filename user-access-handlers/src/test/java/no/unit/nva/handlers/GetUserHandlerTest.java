@@ -11,6 +11,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +41,7 @@ class GetUserHandlerTest extends HandlerTest {
     @BeforeEach
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
-        getUserHandler = new GetUserHandler(databaseService);
+        getUserHandler = new GetUserHandler(databaseService, new Environment());
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }

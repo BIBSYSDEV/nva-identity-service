@@ -12,6 +12,7 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
@@ -38,7 +39,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Override
     protected ControlledVocabularyHandler<?, ?> createHandler() {
-        return new UpdateControlledVocabularyHandler(customerService);
+        return new UpdateControlledVocabularyHandler(customerService, new Environment());
     }
 
     @Override

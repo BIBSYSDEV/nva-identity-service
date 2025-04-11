@@ -16,6 +16,7 @@ import no.unit.nva.useraccessservice.model.RoleName;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,7 +53,7 @@ class GetRoleHandlerTest extends LocalIdentityService implements WithEnvironment
     @BeforeEach
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
-        getRoleHandler = new GetRoleHandler(databaseService);
+        getRoleHandler = new GetRoleHandler(databaseService, new Environment());
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }

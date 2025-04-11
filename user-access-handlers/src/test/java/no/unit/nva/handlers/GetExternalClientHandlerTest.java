@@ -8,7 +8,7 @@ import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.CreateExternalClientRequest;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
-import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
@@ -37,7 +37,7 @@ class GetExternalClientHandlerTest extends HandlerTest {
         databaseService = createDatabaseServiceUsingLocalStorage();
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-        handler = new GetExternalClientHandler(databaseService);
+        handler = new GetExternalClientHandler(databaseService, new Environment());
     }
 
     @Test

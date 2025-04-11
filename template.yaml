@@ -297,6 +297,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UserRoleMappings
@@ -337,6 +338,7 @@ Resources:
           COGNITO_SECRET_KEY: backendClientSecret
           #TODO rename ID_NAMESPACE to CUSTOMER_ID_NAMESPACE
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
           Type: Api
@@ -361,6 +363,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
@@ -388,6 +391,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UserRoleMappings
@@ -415,6 +419,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
           Type: Api
@@ -441,6 +446,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
           USER_POOL_ID: !GetAtt UserPool.UserPoolId
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TermsAndConditionsTable
@@ -478,6 +484,7 @@ Resources:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
           Type: Api
@@ -507,6 +514,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
           Type: Api
@@ -531,6 +539,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UserRoleMappings
@@ -564,6 +573,7 @@ Resources:
           SIKT_CRISTIN_ID: !Ref SiktCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           BACKEND_CLIENT_ID: !Ref BackendApplicationClient
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
@@ -589,6 +599,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           SIKT_CRISTIN_ID: !Ref SiktCristinId
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserRoleMappings
@@ -616,6 +627,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           USER_POOL_ID: !GetAtt UserPool.UserPoolId
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
           Type: Api
@@ -645,6 +657,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           USER_POOL_ID: !GetAtt UserPool.UserPoolId
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
           Type: Api
@@ -680,6 +693,7 @@ Resources:
           EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
           EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
           EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
           Type: Api
@@ -715,6 +729,7 @@ Resources:
           EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
           EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
           EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
           Type: Api
@@ -750,6 +765,7 @@ Resources:
           EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
           EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
           EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
           Type: Api
@@ -869,6 +885,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -898,6 +915,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -927,6 +945,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         GetCustomerDoiEvent:
           Type: Api
@@ -954,6 +973,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -983,6 +1003,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -1012,6 +1033,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -1041,6 +1063,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -1072,6 +1095,7 @@ Resources:
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           API_HOST: !Ref ApiDomain
           PUBLICATION_CHANNEL_PATH: "publication-channels-v2"
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -1101,6 +1125,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
           API_HOST: !Ref ApiDomain
       Policies:
         - DynamoDBCrudPolicy:
@@ -1161,6 +1186,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -1190,6 +1216,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -1219,6 +1246,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -1248,6 +1276,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
@@ -1277,6 +1306,7 @@ Resources:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE:
             Fn::Sub: https://${ApiDomain}/${CustomerDomainBasePath}
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable

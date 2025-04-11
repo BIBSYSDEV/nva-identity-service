@@ -14,6 +14,7 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
@@ -58,7 +59,7 @@ class GetCustomerHandlerTest {
     @BeforeEach
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
-        handler = new GetCustomerHandler(customerServiceMock);
+        handler = new GetCustomerHandler(customerServiceMock, new Environment());
 
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();

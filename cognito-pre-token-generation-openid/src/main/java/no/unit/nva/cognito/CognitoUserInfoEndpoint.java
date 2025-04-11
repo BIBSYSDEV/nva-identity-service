@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 import com.amazonaws.services.lambda.runtime.Context;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
@@ -21,11 +22,11 @@ public class CognitoUserInfoEndpoint extends CognitoCommunicationHandler<Void, M
 
     @JacocoGenerated
     public CognitoUserInfoEndpoint() {
-        this(defaultCognitoClient());
+        this(defaultCognitoClient(), new Environment());
     }
 
-    public CognitoUserInfoEndpoint(CognitoIdentityProviderClient cognitoClient) {
-        super(Void.class);
+    public CognitoUserInfoEndpoint(CognitoIdentityProviderClient cognitoClient, Environment environment) {
+        super(Void.class, environment);
         this.cognito = cognitoClient;
     }
 

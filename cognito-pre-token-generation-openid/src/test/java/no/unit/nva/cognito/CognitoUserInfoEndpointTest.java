@@ -7,6 +7,7 @@ import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.core.Environment;
 import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,8 @@ import java.util.stream.Collectors;
 import static no.unit.nva.cognito.CognitoCommunicationHandler.AUTHORIZATION_HEADER;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class CognitoUserInfoEndpointTest {
@@ -40,7 +41,7 @@ class CognitoUserInfoEndpointTest {
     public void init() {
         this.outputStream = new ByteArrayOutputStream();
         this.cognito = new FakeCognito(randomString());
-        this.handler = new CognitoUserInfoEndpoint(cognito);
+        this.handler = new CognitoUserInfoEndpoint(cognito, new Environment());
     }
 
     @Test
@@ -77,9 +78,9 @@ class CognitoUserInfoEndpointTest {
 
     private GetUserResponse createUserResponseFromDemoUserInfo(Map<String, String> demoUserInfo) {
         var demoContent = demoUserInfo.entrySet()
-            .stream()
-            .map(this::toAttributeType)
-            .collect(Collectors.toList());
+                              .stream()
+                              .map(this::toAttributeType)
+                              .collect(Collectors.toList());
         return GetUserResponse.builder().userAttributes(demoContent).build();
     }
 
@@ -95,8 +96,9 @@ class CognitoUserInfoEndpointTest {
 
     private InputStream requestWithAccessToken(String accessToken) throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(JsonUtils.dtoObjectMapper)
-            .withHeaders(authHeader(accessToken))
-            .build();
+                   .withHeaders(authHeader(accessToken))
+                   .withUserName(randomString())
+                   .build();
     }
 
     private Map<String, String> authHeader(String accessToken) {

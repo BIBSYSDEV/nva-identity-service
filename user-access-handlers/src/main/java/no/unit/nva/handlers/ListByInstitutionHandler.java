@@ -11,6 +11,7 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
@@ -33,11 +34,11 @@ public class ListByInstitutionHandler extends ApiGatewayHandler<Void, UserList> 
     @SuppressWarnings("unused")
     @JacocoGenerated
     public ListByInstitutionHandler() {
-        this(new IdentityServiceImpl());
+        this(new IdentityServiceImpl(), new Environment());
     }
 
-    public ListByInstitutionHandler(IdentityService databaseService) {
-        super(Void.class);
+    public ListByInstitutionHandler(IdentityService databaseService, Environment environment) {
+        super(Void.class, environment);
         this.databaseService = databaseService;
     }
 

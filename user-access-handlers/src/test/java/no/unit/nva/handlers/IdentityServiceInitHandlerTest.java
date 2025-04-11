@@ -19,6 +19,7 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,7 +99,7 @@ class IdentityServiceInitHandlerTest {
     @Test
     void shouldCreateTheDefaultRolesForTheService() throws IOException {
 
-        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE, new Environment());
         handler.handleRequest(createRequest(), output, context);
         var response = GatewayResponse.fromOutputStream(output, RoleList.class);
         var allRoles = response.getBodyObject(RoleList.class);
@@ -128,7 +129,7 @@ class IdentityServiceInitHandlerTest {
         var role = invalidRole();
         RoleSource roleSourceContainingIllegalRoleName = () -> List.of(role);
         var handler = new IdentityServiceInitHandler(identityService, customerService,
-            roleSourceContainingIllegalRoleName);
+                                                     roleSourceContainingIllegalRoleName, new Environment());
         handler.handleRequest(createRequest(), output, context);
         assertThat(logger.getMessages(), containsString(MISSING_ROLE_NAME_ERROR));
     }
@@ -149,7 +150,7 @@ class IdentityServiceInitHandlerTest {
             .build();
         identityService.addRole(role);
 
-        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE, new Environment());
         handler.handleRequest(createRequest(), output, context);
 
         var updatedRole = identityService.getRole(role);
@@ -158,7 +159,7 @@ class IdentityServiceInitHandlerTest {
 
     @Test
     void shouldCreateSiktCustomer() throws NotFoundException, IOException {
-        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE, new Environment());
         handler.handleRequest(createRequest(), output, context);
         var customer = customerService.getCustomerByCristinId(SIKT_CRISTIN_ID);
         assertThat(customer, is(not(nullValue())));
@@ -167,7 +168,7 @@ class IdentityServiceInitHandlerTest {
 
     @Test
     void shouldCreateSiktBackendClientDBRow() throws NotFoundException, IOException {
-        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE, new Environment());
         handler.handleRequest(createRequest(), output, context);
         var client = identityService.getClient(ClientDto.newBuilder().withClientId(BACKEND_CLIENT_ID).build());
         assertThat(client, is(not(nullValue())));
@@ -176,7 +177,7 @@ class IdentityServiceInitHandlerTest {
 
     @Test
     void shouldNotCreateDuplicateSiktBackendClientDBRow() throws IOException {
-        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE);
+        var handler = new IdentityServiceInitHandler(identityService, customerService, ROLE_SOURCE, new Environment());
         handler.handleRequest(createRequest(), output, context);
         handler.handleRequest(createRequest(), output, context);
         verify(identityService, atMostOnce()).addExternalClient(any());

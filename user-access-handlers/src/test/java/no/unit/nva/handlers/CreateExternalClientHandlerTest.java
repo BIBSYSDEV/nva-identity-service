@@ -76,7 +76,7 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
 
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-        handler = new CreateExternalClientHandler(databaseService, cognitoService);
+        handler = new CreateExternalClientHandler(databaseService, cognitoService, new Environment());
     }
 
     private CognitoIdentityProviderClient setupCognitoMock() {

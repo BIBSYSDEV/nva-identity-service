@@ -29,11 +29,11 @@ public class StopImpersonationHandler extends HandlerWithEventualConsistency<Voi
 
     @JacocoGenerated
     public StopImpersonationHandler() {
-        this(defaultCognitoClient());
+        this(defaultCognitoClient(), new Environment());
     }
 
-    public StopImpersonationHandler(CognitoIdentityProviderClient cognitoClient) {
-        super(Void.class);
+    public StopImpersonationHandler(CognitoIdentityProviderClient cognitoClient, Environment environment) {
+        super(Void.class, environment);
         this.cognitoClient = cognitoClient;
     }
 

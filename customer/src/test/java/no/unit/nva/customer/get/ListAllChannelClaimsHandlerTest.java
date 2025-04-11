@@ -33,6 +33,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
@@ -48,7 +49,7 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
     public void init() {
         super.setupDatabase();
         customerService = new DynamoDBCustomerService(dynamoClient);
-        handler = new ListAllChannelClaimsHandler(customerService);
+        handler = new ListAllChannelClaimsHandler(customerService, new Environment());
         output = new ByteArrayOutputStream();
     }
 
@@ -68,7 +69,7 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
         var customerServiceThrowingException = mock(CustomerService.class);
 
         when(customerServiceThrowingException.getChannelClaims()).thenThrow(RuntimeException.class);
-        new ListAllChannelClaimsHandler(customerServiceThrowingException).handleRequest(request, output, CONTEXT);
+        new ListAllChannelClaimsHandler(customerServiceThrowingException, new Environment()).handleRequest(request, output, CONTEXT);
 
         var response = GatewayResponse.fromOutputStream(output, Problem.class);
         assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_BAD_GATEWAY));

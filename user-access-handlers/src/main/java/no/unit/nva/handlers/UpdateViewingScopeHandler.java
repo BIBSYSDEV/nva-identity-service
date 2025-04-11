@@ -9,13 +9,14 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 
 import java.net.HttpURLConnection;
+import nva.commons.core.Environment;
 
 public class UpdateViewingScopeHandler extends HandlerAccessingUser<ViewingScope, Void> {
 
     private final IdentityService databaseService;
 
-    public UpdateViewingScopeHandler(IdentityService databaseService) {
-        super(ViewingScope.class);
+    public UpdateViewingScopeHandler(IdentityService databaseService, Environment environment) {
+        super(ViewingScope.class, environment);
         this.databaseService = databaseService;
     }
 

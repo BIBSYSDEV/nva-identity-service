@@ -10,6 +10,7 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
@@ -27,7 +28,7 @@ public class ListAllCustomersHandler extends ApiGatewayHandler<Void, CustomerLis
      */
     @JacocoGenerated
     public ListAllCustomersHandler() {
-        this(defaultCustomerService());
+        this(defaultCustomerService(), new Environment());
     }
 
     /**
@@ -35,8 +36,8 @@ public class ListAllCustomersHandler extends ApiGatewayHandler<Void, CustomerLis
      *
      * @param customerService customerService
      */
-    public ListAllCustomersHandler(CustomerService customerService) {
-        super(Void.class);
+    public ListAllCustomersHandler(CustomerService customerService, Environment environment) {
+        super(Void.class, environment);
         this.customerService = customerService;
     }
 

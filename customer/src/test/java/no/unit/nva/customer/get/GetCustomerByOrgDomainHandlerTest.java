@@ -10,6 +10,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +49,7 @@ class GetCustomerByOrgDomainHandlerTest {
     @BeforeEach
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
-        handler = new GetCustomerByOrgDomainHandler(customerServiceMock);
+        handler = new GetCustomerByOrgDomainHandler(customerServiceMock, new Environment());
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }

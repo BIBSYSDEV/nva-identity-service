@@ -3,6 +3,7 @@ package no.unit.nva.handlers;
 import com.amazonaws.services.lambda.runtime.Context;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
 import nva.commons.logutils.LogUtils;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,7 @@ class HandlerWithEventualConsistencyTest {
     public static final HandlerWithEventualConsistency<String, String> handler = getHandlerWithEventualConsistency();
 
     private static HandlerWithEventualConsistency<String, String> getHandlerWithEventualConsistency() {
-        return new HandlerWithEventualConsistency<>(String.class) {
+        return new HandlerWithEventualConsistency<>(String.class, new Environment()) {
 
             @Override
             protected void validateRequest(String s, RequestInfo requestInfo, Context context)

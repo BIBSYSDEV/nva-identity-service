@@ -16,6 +16,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.UnauthorizedException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, ChannelClaimsListResponse> {
@@ -26,11 +27,11 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
 
     @JacocoGenerated
     public ListAllChannelClaimsHandler() {
-        this(defaultCustomerService());
+        this(defaultCustomerService(), new Environment());
     }
 
-    public ListAllChannelClaimsHandler(CustomerService customerService) {
-        super(Void.class);
+    public ListAllChannelClaimsHandler(CustomerService customerService, Environment environment) {
+        super(Void.class, environment);
         this.customerService = customerService;
     }
 

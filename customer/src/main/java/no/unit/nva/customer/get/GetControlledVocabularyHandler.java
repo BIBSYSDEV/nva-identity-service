@@ -9,6 +9,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
@@ -20,11 +21,11 @@ public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<
 
     @JacocoGenerated
     public GetControlledVocabularyHandler() {
-        this(defaultCustomerService());
+        this(defaultCustomerService(), new Environment());
     }
 
-    public GetControlledVocabularyHandler(CustomerService customerService) {
-        super(customerService, Void.class);
+    public GetControlledVocabularyHandler(CustomerService customerService, Environment environment) {
+        super(customerService, Void.class, environment);
     }
 
     @Override

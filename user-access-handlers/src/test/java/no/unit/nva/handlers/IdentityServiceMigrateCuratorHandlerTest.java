@@ -14,6 +14,7 @@ import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,7 @@ class IdentityServiceMigrateCuratorHandlerTest {
     @BeforeEach
     public void init() {
         initializeIdentityService();
-        handler = new IdentityServiceMigrateCuratorHandler(identityService);
+        handler = new IdentityServiceMigrateCuratorHandler(identityService, new Environment());
         this.context = new FakeContext();
 
         this.output = new ByteArrayOutputStream();

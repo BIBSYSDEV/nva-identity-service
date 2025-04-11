@@ -8,6 +8,7 @@ import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import nva.commons.secrets.SecretsReader;
@@ -35,7 +36,7 @@ public class GetCustomerDoiHandler extends CustomerDoiHandler<Void> {
      * @param secretsReader A valid SecretsReader.
      */
     public GetCustomerDoiHandler(SecretsReader secretsReader) {
-        super(Void.class, secretsReader);
+        super(Void.class, secretsReader, new Environment());
     }
 
     @Override

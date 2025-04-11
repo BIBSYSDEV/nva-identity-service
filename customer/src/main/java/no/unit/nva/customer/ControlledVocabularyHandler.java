@@ -9,6 +9,7 @@ import nva.commons.apigateway.RequestInfo;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import nva.commons.core.Environment;
 
 import static nva.commons.core.attempt.Try.attempt;
 
@@ -20,8 +21,8 @@ public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandle
         List.of(MediaType.JSON_UTF_8, MediaTypes.APPLICATION_JSON_LD);
     protected final CustomerService customerService;
 
-    public ControlledVocabularyHandler(CustomerService customerService, Class<I> inputClass) {
-        super(inputClass);
+    public ControlledVocabularyHandler(CustomerService customerService, Class<I> inputClass, Environment environment) {
+        super(inputClass, environment);
         this.customerService = customerService;
     }
 

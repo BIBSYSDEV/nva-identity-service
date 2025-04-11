@@ -13,6 +13,7 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.apigateway.exceptions.UnauthorizedException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 public class FetchChannelClaimHandler extends ApiGatewayHandler<Void, ChannelClaimResponse> {
@@ -24,11 +25,11 @@ public class FetchChannelClaimHandler extends ApiGatewayHandler<Void, ChannelCla
 
     @JacocoGenerated
     public FetchChannelClaimHandler() {
-        this(defaultCustomerService());
+        this(defaultCustomerService(), new Environment());
     }
 
-    public FetchChannelClaimHandler(CustomerService customerService) {
-        super(Void.class);
+    public FetchChannelClaimHandler(CustomerService customerService, Environment environment) {
+        super(Void.class, environment);
         this.customerService = customerService;
     }
 

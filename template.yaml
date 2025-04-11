@@ -1076,7 +1076,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
       Events:
-        PostChannelClaimEvent:
+        ApiGatewayEvent:
           Type: Api
           Properties:
             Path: /{identifier}/channel-claim/
@@ -1101,11 +1101,12 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          API_HOST: !Ref ApiDomain
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
       Events:
-        PostChannelClaimEvent:
+        ApiGatewayEvent:
           Type: Api
           Properties:
             Path: /channel-claims
@@ -1135,7 +1136,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable
       Events:
-        PostChannelClaimEvent:
+        ApiGatewayEvent:
           Type: Api
           Properties:
             Path: /channel-claim/{identifier}

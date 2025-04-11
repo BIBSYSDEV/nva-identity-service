@@ -50,7 +50,7 @@ class FetchChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     public void init() {
         super.setupDatabase();
         customerService = new DynamoDBCustomerService(dynamoClient);
-        handler = new FetchChannelClaimHandler(customerService);
+        handler = new FetchChannelClaimHandler(customerService, new Environment());
         output = new ByteArrayOutputStream();
     }
 
@@ -90,7 +90,7 @@ class FetchChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void shouldReturnInternalServerErrorWhenUnexpectedExceptionOccurred() throws IOException {
         var request = createAuthenticatedRequest(UUID.randomUUID().toString());
-        var handler = new FetchChannelClaimHandler(failingCustomerService());
+        var handler = new FetchChannelClaimHandler(failingCustomerService(), new Environment());
         handler.handleRequest(request, output, CONTEXT);
 
         var response = GatewayResponse.fromOutputStream(output, Problem.class);

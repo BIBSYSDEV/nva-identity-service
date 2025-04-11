@@ -23,7 +23,7 @@ import static no.unit.nva.customer.Constants.defaultCustomerService;
 
 public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, CustomerDto> {
 
-    public static final String CRISTIN_ID = "organizationId";
+    public static final String CRISTIN_ID = "cristinId";
     private final CustomerService customerService;
 
     @JacocoGenerated

@@ -37,5 +37,7 @@ public interface CustomerService {
 
     Collection<ChannelClaimWithClaimer> getChannelClaims();
 
+    Collection<ChannelClaimWithClaimer> getChannelClaimsForCustomer(URI cristinId);
+
     Optional<ChannelClaimWithClaimer> getChannelClaim(UUID identifier);
 }

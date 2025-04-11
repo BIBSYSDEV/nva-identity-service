@@ -2,6 +2,7 @@ package no.unit.nva.customer.get;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDto;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDtos;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -92,7 +93,7 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
     @Test
     void shouldReturnOkAndListChannelClaimsForInstitutionProvidedInQueryParam() throws IOException,
                                                                                        ApiGatewayException {
-        var customer = insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
+        var customer = insertRandomCustomerWithChannelClaim(randomChannelClaimDtos());
         insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
 
         var request = createAuthorizedRequestWithEncodedInstitutionInQueryParams(customer.getCristinId());

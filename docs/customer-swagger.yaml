@@ -645,7 +645,7 @@ paths:
               examples:
                 BadGatewayExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
-  /channel-claims/{identifier}:
+  /channel-claim/{identifier}:
     get:
       summary: Get channel claim by identifier
       operationId: GetChannelClaim

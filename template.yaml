@@ -1138,7 +1138,7 @@ Resources:
         PostChannelClaimEvent:
           Type: Api
           Properties:
-            Path: /channel-claims/{identifier}
+            Path: /channel-claim/{identifier}
             Method: get
             RestApiId: !Ref NvaCustomerApi
 

@@ -325,7 +325,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldThrowBadRequestExceptionWhenCreatingChannelClaimWithInvalidChannelId()
+    void shouldThrowBadRequestExceptionWhenCreatingChannelClaimWithInvalidChannel()
         throws NotFoundException, ConflictException {
         var customer = createCustomerWithoutChannelClaim();
         var channelClaim = new ChannelClaimDto(randomUri(), randomChannelConstraintDto());

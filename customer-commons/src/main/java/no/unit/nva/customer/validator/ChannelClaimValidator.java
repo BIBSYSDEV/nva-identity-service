@@ -27,7 +27,7 @@ public final class ChannelClaimValidator {
         }
     }
 
-    private static boolean isNotPublicationChannel(URI channelId) {
-        return !HOST.equals(channelId.getHost()) || !channelId.toString().contains(PUBLICATION_CHANNEL_PATH);
+    private static boolean isNotPublicationChannel(URI channel) {
+        return !HOST.equals(channel.getHost()) || !channel.toString().contains(PUBLICATION_CHANNEL_PATH);
     }
 }

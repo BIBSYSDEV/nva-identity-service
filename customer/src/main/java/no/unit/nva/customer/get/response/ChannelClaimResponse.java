@@ -27,7 +27,7 @@ public record ChannelClaimResponse(CustomerResponse claimedBy, ChannelClaimDto c
 
     @JsonProperty(ID_FIELD)
     public URI getId() {
-        var identifier = UriWrapper.fromUri(channelClaim().channelId()).getLastPathElement();
+        var identifier = UriWrapper.fromUri(channelClaim().channel()).getLastPathElement();
         return UriWrapper.fromHost(new Environment().readEnv(API_HOST))
                    .addChild(CUSTOMER)
                    .addChild(CHANNEL_CLAIM)

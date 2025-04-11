@@ -21,7 +21,7 @@ public record ChannelClaimsListResponse(Collection<ChannelClaimResponse> channel
     }
 
     private static ChannelClaimResponse getChannelClaimResponse(ChannelClaimWithClaimer channelClaimWithClaimer) {
-        var claimedBy = new CustomerResponse(channelClaimWithClaimer.customerId(), channelClaimWithClaimer.organizationId());
+        var claimedBy = new CustomerResponse(channelClaimWithClaimer.customerId(), channelClaimWithClaimer.cristinId());
         return new ChannelClaimResponse(claimedBy, channelClaimWithClaimer.channelClaim());
     }
 }

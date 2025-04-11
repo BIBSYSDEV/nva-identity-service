@@ -21,7 +21,7 @@ public record ChannelClaimResponse(CustomerResponse claimedBy, ChannelClaimDto c
 
     @JsonIgnore
     public static ChannelClaimResponse create(ChannelClaimWithClaimer channelClaim) {
-        return new ChannelClaimResponse(new CustomerResponse(channelClaim.customerId(), channelClaim.organizationId()),
+        return new ChannelClaimResponse(new CustomerResponse(channelClaim.customerId(), channelClaim.cristinId()),
                                         channelClaim.channelClaim());
     }
 

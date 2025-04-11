@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.net.URI;
 import java.util.UUID;
 
-public record ChannelClaimWithClaimer(ChannelClaimDto channelClaim, URI customerId, URI organizationId) {
+public record ChannelClaimWithClaimer(ChannelClaimDto channelClaim, URI customerId, URI cristinId) {
 
     @JsonIgnore
     public boolean isClaimedBy(URI cristinId) {
-        return cristinId.equals(organizationId());
+        return cristinId.equals(cristinId());
     }
 
     public UUID channelClaimIdentifier() {

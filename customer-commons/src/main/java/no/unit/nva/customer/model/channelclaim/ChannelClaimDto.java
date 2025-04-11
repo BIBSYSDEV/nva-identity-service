@@ -12,7 +12,7 @@ import nva.commons.core.paths.UriWrapper;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonTypeName("ChannelClaim")
-public record ChannelClaimDto(URI channelId, ChannelConstraintDto constraint) implements JsonSerializable {
+public record ChannelClaimDto(URI channel, ChannelConstraintDto constraint) implements JsonSerializable {
     @JacocoGenerated
     @Override
     public String toString() {
@@ -21,7 +21,7 @@ public record ChannelClaimDto(URI channelId, ChannelConstraintDto constraint) im
 
     @JsonIgnore
     public UUID identifier() {
-        var lastPathElement = UriWrapper.fromUri(channelId()).getLastPathElement();
+        var lastPathElement = UriWrapper.fromUri(channel()).getLastPathElement();
         return UUID.fromString(lastPathElement);
     }
 }

@@ -185,7 +185,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     private ChannelClaimRequest fromDto(ChannelClaimDto dto) {
-        return new ChannelClaimRequest(dto.channelId(), fromDto(dto.constraint()));
+        return new ChannelClaimRequest(dto.channel(), fromDto(dto.constraint()));
     }
 
     private ChannelConstraintRequest fromDto(ChannelConstraintDto dto) {

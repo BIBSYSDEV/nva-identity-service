@@ -35,4 +35,6 @@ public interface CustomerService {
                                                                                           BadRequestException;
 
     Collection<ChannelClaimWithClaimer> getChannelClaims();
+
+    Collection<ChannelClaimWithClaimer> getChannelClaimsForCustomer(URI cristinId);
 }

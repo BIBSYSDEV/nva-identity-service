@@ -390,6 +390,19 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         assertEquals(channelClaim, actualChannelClaim.channelClaim());
     }
 
+    @Test
+    void shouldListChannelClaimsForInstitution()
+        throws ConflictException, NotFoundException {
+        var customer = createCustomerWithChannelClaim(randomChannelClaimDto());
+        createCustomerWithChannelClaim(randomChannelClaimDto());
+        createCustomerWithChannelClaim(randomChannelClaimDto());
+
+        var channelClaims = service.getChannelClaimsForCustomer(customer.getCristinId());
+
+        assertEquals(1, channelClaims.size());
+        assertEquals(customer.getCristinId(), channelClaims.stream().findFirst().orElseThrow().cristinId());
+    }
+
     private CustomerDto newActiveCustomerDto() {
         var customer = newInactiveCustomerDto();
         customer.setInactiveFrom(null);

@@ -82,7 +82,7 @@ public class CustomerDto {
     }
 
     public CustomerDto addChannelClaim(ChannelClaimDto channelClaim) {
-        if (getChannelClaims().stream().anyMatch(item -> item.channelId().equals(channelClaim.channelId()))) {
+        if (getChannelClaims().stream().anyMatch(item -> item.channel().equals(channelClaim.channel()))) {
             return this;
         }
 

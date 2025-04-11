@@ -89,10 +89,10 @@ public final class CustomerDataGenerator {
     }
 
     public static ChannelClaimDto randomChannelClaimDto() {
-        return new ChannelClaimDto(randomChannelId(), randomChannelConstraintDto());
+        return new ChannelClaimDto(randomChannel(), randomChannelConstraintDto());
     }
 
-    public static URI randomChannelId() {
+    public static URI randomChannel() {
         var publicationChannelPath = new Environment().readEnv("PUBLICATION_CHANNEL_PATH");
         return UriWrapper.fromHost(new Environment().readEnv("API_HOST"))
                    .addChild(publicationChannelPath, randomChannelType(), UUID.randomUUID().toString())

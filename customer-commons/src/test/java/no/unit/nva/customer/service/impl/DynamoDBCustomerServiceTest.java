@@ -52,7 +52,6 @@ import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.paths.UriWrapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -387,7 +386,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         var allChannelClaims = service.getChannelClaims();
         var actualChannelClaim = allChannelClaims.stream().findFirst().orElseThrow();
         assertEquals(customer.getId(), actualChannelClaim.customerId());
-        assertEquals(customer.getCristinId(), actualChannelClaim.cristinId());
+        assertEquals(customer.getCristinId(), actualChannelClaim.organizationId());
         assertEquals(channelClaim, actualChannelClaim.channelClaim());
     }
 
@@ -401,7 +400,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         var channelClaims = service.getChannelClaimsForCustomer(customer.getCristinId());
 
         assertEquals(1, channelClaims.size());
-        assertEquals(customer.getCristinId(), channelClaims.stream().findFirst().orElseThrow().cristinId());
+        assertEquals(customer.getCristinId(), channelClaims.stream().findFirst().orElseThrow().organizationId());
     }
 
     @Test

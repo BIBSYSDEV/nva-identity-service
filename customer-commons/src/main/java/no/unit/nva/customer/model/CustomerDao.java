@@ -45,7 +45,7 @@ public class CustomerDao implements Typed, JsonSerializable {
 
     public static final String IDENTIFIER = "identifier";
     public static final String ORG_DOMAIN = "feideOrganizationDomain";
-    public static final String CRISTIN_ID = "cristinId";
+    public static final String CRISTIN_ID = "organizationId";
     public static final String TYPE = "Customer";
     public static final Set<VocabularyDao> EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
     public static final List<ChannelClaimDao> CHANNEL_CLAIM_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO = null;
@@ -213,7 +213,7 @@ public class CustomerDao implements Typed, JsonSerializable {
                 ", cname='" + cname + '\'' +
                 ", institutionDns='" + institutionDns + '\'' +
                 ", feideOrganizationDomain='" + feideOrganizationDomain + '\'' +
-                ", cristinId=" + cristinId +
+                ", organizationId=" + cristinId +
                 ", customerOf=" + customerOf +
                 ", vocabularies=" + vocabularies +
                 ", rorId=" + rorId +

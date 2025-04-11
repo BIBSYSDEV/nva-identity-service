@@ -6,4 +6,4 @@ import java.net.URI;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonTypeName("Customer")
-public record CustomerResponse(URI id, URI cristinId) {}
+public record CustomerResponse(URI id, URI organizationId) {}

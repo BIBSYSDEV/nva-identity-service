@@ -2,6 +2,7 @@ package no.unit.nva.customer.get;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDto;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDtos;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -15,7 +16,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import no.unit.nva.customer.get.response.ChannelClaimsListResponse;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
@@ -85,20 +90,47 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(channelClaimsListResponse.channelClaims().size(), is(4));
     }
 
-    private void insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims) throws ApiGatewayException {
+    @Test
+    void shouldReturnOkAndListChannelClaimsForInstitutionProvidedInQueryParam() throws IOException,
+                                                                                       ApiGatewayException {
+        var customer = insertRandomCustomerWithChannelClaim(randomChannelClaimDtos());
+        insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
+
+        var request = createAuthorizedRequestWithEncodedInstitutionInQueryParams(customer.getCristinId());
+        handler.handleRequest(request, output, CONTEXT);
+
+        var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
+
+        var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
+
+        channelClaimsListResponse.channelClaims().forEach(channelClaimResponse ->
+                         assertEquals(customer.getCristinId(), channelClaimResponse.claimedBy().organizationId()));
+    }
+
+    private CustomerDto insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims) throws ApiGatewayException {
         var customer = CustomerDto.builder()
                            .withDisplayName(randomString())
                            .withCristinId(randomUri())
                            .withCustomerOf(randomElement(ApplicationDomain.values()))
                            .withChannelClaims(channelClaims)
                            .build();
-        customerService.createCustomer(customer);
+        return customerService.createCustomer(customer);
     }
 
     private static InputStream createAuthorizedRequest() throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
                    .withCurrentCustomer(randomUri())
                    .withUserName(randomString())
+                   .build();
+    }
+
+    private static InputStream createAuthorizedRequestWithEncodedInstitutionInQueryParams(URI cristinId) throws JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+                   .withCurrentCustomer(randomUri())
+                   .withUserName(randomString())
+                   .withTopLevelCristinOrgId(randomUri())
+                   .withQueryParameters(Map.of("institution", URLEncoder.encode(cristinId.toString(), StandardCharsets.UTF_8)))
                    .build();
     }
 

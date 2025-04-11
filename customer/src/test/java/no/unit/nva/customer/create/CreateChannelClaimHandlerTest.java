@@ -6,8 +6,8 @@ import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelCl
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelConstraintDto;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
-import static nva.commons.apigateway.AccessRight.MANAGE_CHANNEL_CLAIMS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
+import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_ALL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -140,7 +140,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
 
     private InputStream createValidRequest() throws JsonProcessingException {
         return createDefaultRequestBuilder(existingCustomer.getIdentifier(), randomChannelClaimRequest())
-                   .withAccessRights(existingCustomer.getId(), MANAGE_CHANNEL_CLAIMS)
+                   .withAccessRights(existingCustomer.getId(), MANAGE_RESOURCES_ALL)
                    .build();
     }
 
@@ -151,7 +151,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
                                         .getUri();
         return createDefaultRequestBuilder(nonExistingCustomerIdentifier, randomChannelClaimRequest())
                    .withCurrentCustomer(nonExistingCustomerId)
-                   .withAccessRights(existingCustomer.getId(), MANAGE_CHANNEL_CLAIMS)
+                   .withAccessRights(existingCustomer.getId(), MANAGE_RESOURCES_ALL)
                    .build();
     }
 
@@ -159,7 +159,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
         throws JsonProcessingException, ConflictException, NotFoundException {
         var anotherCustomer = customerService.createCustomer(createSampleCustomerDto());
         return createDefaultRequestBuilder(anotherCustomer.getIdentifier(), randomChannelClaimRequest())
-                   .withAccessRights(existingCustomer.getId(), MANAGE_CHANNEL_CLAIMS)
+                   .withAccessRights(existingCustomer.getId(), MANAGE_RESOURCES_ALL)
                    .build();
     }
 
@@ -177,7 +177,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     private InputStream createRequestWithInvalidChannelUriInBody() throws JsonProcessingException {
         var channelClaimRequest = new ChannelClaimRequest(randomUri(), fromDto(randomChannelConstraintDto()));
         return createDefaultRequestBuilder(existingCustomer.getIdentifier(), channelClaimRequest)
-                   .withAccessRights(existingCustomer.getId(), MANAGE_CHANNEL_CLAIMS)
+                   .withAccessRights(existingCustomer.getId(), MANAGE_RESOURCES_ALL)
                    .build();
     }
 

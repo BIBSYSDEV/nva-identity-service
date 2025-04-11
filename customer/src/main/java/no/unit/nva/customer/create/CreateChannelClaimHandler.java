@@ -1,7 +1,7 @@
 package no.unit.nva.customer.create;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
-import static nva.commons.apigateway.AccessRight.MANAGE_CHANNEL_CLAIMS;
+import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_ALL;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import java.util.UUID;
@@ -57,7 +57,7 @@ public class CreateChannelClaimHandler extends ApiGatewayHandler<ChannelClaimReq
         var customerIdentifierFromUser = UriWrapper.fromUri(requestInfo.getCurrentCustomer()).getLastPathElement();
 
         return customerIdentifierFromPath.equals(customerIdentifierFromUser)
-               && requestInfo.userIsAuthorized(MANAGE_CHANNEL_CLAIMS);
+               && requestInfo.userIsAuthorized(MANAGE_RESOURCES_ALL);
     }
 
     private UUID extractIdentifierFromPath(RequestInfo requestInfo) {

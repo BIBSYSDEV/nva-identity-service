@@ -11,6 +11,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
@@ -33,11 +34,11 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
 
     @JacocoGenerated
     public UpdateUserHandler() {
-        this(new IdentityServiceImpl());
+        this(new IdentityServiceImpl(), new Environment());
     }
 
-    public UpdateUserHandler(IdentityService databaseService) {
-        super(UserDto.class);
+    public UpdateUserHandler(IdentityService databaseService, Environment environment) {
+        super(UserDto.class, environment);
         this.databaseService = databaseService;
     }
 

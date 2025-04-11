@@ -12,6 +12,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.UnauthorizedException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
 
@@ -22,11 +23,11 @@ public class CreateChannelClaimHandler extends ApiGatewayHandler<ChannelClaimReq
 
     @JacocoGenerated
     public CreateChannelClaimHandler() {
-        this(defaultCustomerService());
+        this(defaultCustomerService(), new Environment());
     }
 
-    public CreateChannelClaimHandler(CustomerService customerService) {
-        super(ChannelClaimRequest.class);
+    public CreateChannelClaimHandler(CustomerService customerService, Environment environment) {
+        super(ChannelClaimRequest.class, environment);
         this.customerService = customerService;
     }
 

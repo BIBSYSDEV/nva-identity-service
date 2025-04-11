@@ -53,4 +53,5 @@ test{
     environment "BOT_FILTER_BYPASS_HEADER_VALUE", "ExampleHeaderValue"
     environment "USER_POOL_ID", "eu-west-1-some-id"
     environment "BACKEND_CLIENT_ID", "some-client-id"
+    environment "COGNITO_AUTHORIZER_URLS", "http://localhost:3000"
 }

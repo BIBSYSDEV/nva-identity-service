@@ -61,6 +61,8 @@ class UpdatePersonTermsConditionsHandlerTest extends HandlerTest {
         when(environment.readEnv("COGNITO_HOST")).thenReturn("COGNITO_HOST");
         when(environment.readEnv("API_HOST")).thenReturn("API_HOST");
         when(environment.readEnv("AWS_REGION")).thenReturn("AWS_REGION");
+        when(environment.readEnv("COGNITO_AUTHORIZER_URLS")).thenReturn("http://localhost:3000");
+        when(environment.readEnv("ALLOWED_ORIGIN")).thenReturn("*");
         handler = new UpdatePersonTermsConditionsHandler(mockedService, cognito, environment);
         response = TermsConditionsResponse.builder()
                        .withTermsConditionsUri(randomUri())

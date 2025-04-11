@@ -14,6 +14,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.MediaTypes;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
@@ -52,7 +53,7 @@ class GetControlledVocabularyHandlerTest extends LocalCustomerServiceDatabase {
         existingCustomer = attempt(CustomerDataGenerator::createSampleCustomerDto)
             .map(customerInput -> customerService.createCustomer(customerInput))
             .orElseThrow();
-        handler = new GetControlledVocabularyHandler(customerService);
+        handler = new GetControlledVocabularyHandler(customerService, new Environment());
         outputStream = new ByteArrayOutputStream();
     }
 

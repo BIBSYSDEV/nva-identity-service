@@ -16,6 +16,7 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +53,7 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     public void setUp() {
         this.setupDatabase();
         customerService = new DynamoDBCustomerService(this.dynamoClient);
-        handler = new ListAllCustomersHandler(customerService);
+        handler = new ListAllCustomersHandler(customerService, new Environment());
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }

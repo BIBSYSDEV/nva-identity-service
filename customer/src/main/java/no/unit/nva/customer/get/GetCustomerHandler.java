@@ -11,6 +11,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
@@ -27,16 +28,17 @@ public class GetCustomerHandler extends CustomerHandler<Void> {
      */
     @JacocoGenerated
     public GetCustomerHandler() {
-        this(defaultCustomerService());
+        this(defaultCustomerService(), new Environment());
     }
 
     /**
      * Constructor for CreateCustomerHandler.
      *
      * @param customerService customerService
+     * @param environment
      */
-    public GetCustomerHandler(CustomerService customerService) {
-        super(Void.class);
+    public GetCustomerHandler(CustomerService customerService, Environment environment) {
+        super(Void.class, environment);
         this.customerService = customerService;
     }
 

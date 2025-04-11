@@ -36,12 +36,14 @@ public class CreateExternalClientHandler
     public CreateExternalClientHandler() {
         this(
             IdentityService.defaultIdentityService(),
-            CognitoService.defaultCognitoService()
+            CognitoService.defaultCognitoService(),
+            new Environment()
         );
     }
 
-    public CreateExternalClientHandler(IdentityService databaseService, CognitoService cognitoService) {
-        super(CreateExternalClientRequest.class);
+    public CreateExternalClientHandler(IdentityService databaseService, CognitoService cognitoService,
+                                       Environment environment) {
+        super(CreateExternalClientRequest.class, environment);
         this.databaseService = databaseService;
         this.cognitoService = cognitoService;
     }

@@ -33,6 +33,7 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
@@ -87,7 +88,6 @@ class CreateUserHandlerTest extends HandlerTest {
     private LocalCustomerServiceDatabase customerServiceDatabase;
     private CustomerService customerService;
     private AuthenticationScenarios scenarios;
-    private UserEntriesCreatorForPerson userCreator;
     private PersonRegistry personRegistry;
 
     @BeforeEach
@@ -111,8 +111,6 @@ class CreateUserHandlerTest extends HandlerTest {
 
         this.scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
 
-        userCreator = new UserEntriesCreatorForPerson(identityService);
-
         var httpClient = WiremockHttpClient.create();
         personRegistry = CristinPersonRegistry.customPersonRegistry(
             httpClient,
@@ -121,7 +119,8 @@ class CreateUserHandlerTest extends HandlerTest {
             defaultRequestHeaders,
             new SecretsReader(secretsManagerClient));
 
-        handler = new CreateUserHandler(userCreator, identityService, customerService, personRegistry);
+        handler = new CreateUserHandler(identityService, customerService, personRegistry,
+                                        new Environment());
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }
@@ -312,8 +311,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
         var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
         sendRequest(request, UserDto.class);
-        var actualUser = identityService.listUsers(customer.getId())
-            .stream().collect(SingletonCollector.collect());
+
         outputStream = new ByteArrayOutputStream();
         request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
         var response = sendRequest(request, UserDto.class);
@@ -539,7 +537,8 @@ class CreateUserHandlerTest extends HandlerTest {
 
         var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
         var mockedIdentityService = mock(IdentityService.class);
-        handler = new CreateUserHandler(userCreator, mockedIdentityService, customerService, personRegistry);
+        handler = new CreateUserHandler(mockedIdentityService, customerService, personRegistry,
+                                        new Environment());
         handler.handleRequest(request, outputStream, context);
         var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 

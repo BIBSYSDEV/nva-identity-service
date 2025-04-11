@@ -19,8 +19,8 @@ public abstract class CognitoCommunicationHandler<I, O> extends ApiGatewayHandle
     protected static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
 
-    protected CognitoCommunicationHandler(Class<I> iclass) {
-        super(iclass);
+    protected CognitoCommunicationHandler(Class<I> iclass, Environment environment) {
+        super(iclass, environment);
     }
 
     @JacocoGenerated

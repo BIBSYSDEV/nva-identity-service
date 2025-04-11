@@ -8,6 +8,7 @@ import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.CreateExternalClientRequest;
 import no.unit.nva.useraccessservice.model.GetExternalClientResponse;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +34,7 @@ public class GetExternalClientUserinfoHandlerTest extends HandlerTest {
         databaseService = createDatabaseServiceUsingLocalStorage();
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-        handler = new GetExternalClientUserinfoHandler(databaseService);
+        handler = new GetExternalClientUserinfoHandler(databaseService, new Environment());
     }
 
     @Test

@@ -11,6 +11,7 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.model.UserList;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +56,7 @@ class ListByInstitutionHandlerTest extends HandlerTest {
     @BeforeEach
     public void init() {
         databaseService = createDatabaseServiceUsingLocalStorage();
-        listByInstitutionHandler = new ListByInstitutionHandler(databaseService);
+        listByInstitutionHandler = new ListByInstitutionHandler(databaseService, new Environment());
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }

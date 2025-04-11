@@ -11,6 +11,7 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +28,11 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
 
     @JacocoGenerated
     public IdentityServiceMigrateCuratorHandler() {
-        this(IdentityService.defaultIdentityService());
+        this(IdentityService.defaultIdentityService(), new Environment());
     }
 
-    public IdentityServiceMigrateCuratorHandler(IdentityService identityService) {
-        super(Void.class);
+    public IdentityServiceMigrateCuratorHandler(IdentityService identityService, Environment environment) {
+        super(Void.class, environment);
         this.identityService = identityService;
     }
 

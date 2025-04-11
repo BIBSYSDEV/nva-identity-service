@@ -12,6 +12,7 @@ import no.unit.nva.useraccessservice.model.ViewingScope;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ public class UpdateViewingScopeHandlerTest extends HandlerTest {
     @BeforeEach
     public void init() {
         createDatabaseServiceUsingLocalStorage();
-        handler = new UpdateViewingScopeHandler(databaseService);
+        handler = new UpdateViewingScopeHandler(databaseService, new Environment());
         outputStream = new ByteArrayOutputStream();
     }
 

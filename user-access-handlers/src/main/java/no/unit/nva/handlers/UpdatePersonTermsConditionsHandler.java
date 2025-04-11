@@ -38,7 +38,7 @@ public class UpdatePersonTermsConditionsHandler extends
     public UpdatePersonTermsConditionsHandler(TermsAndConditionsService service,
                                               CognitoIdentityProviderClient cognito,
                                               Environment environment) {
-        super(TermsConditionsResponse.class);
+        super(TermsConditionsResponse.class, environment);
         this.service = service;
         this.cognito = cognito;
         this.userPoolId = environment.readEnv(USER_POOL_ID_ENV);

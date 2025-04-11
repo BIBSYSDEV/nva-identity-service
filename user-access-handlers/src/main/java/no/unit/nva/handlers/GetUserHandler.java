@@ -8,6 +8,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
@@ -21,11 +22,11 @@ public class GetUserHandler extends HandlerAccessingUser<Void, UserDto> {
 
     @JacocoGenerated
     public GetUserHandler() {
-        this(new IdentityServiceImpl());
+        this(new IdentityServiceImpl(), new Environment());
     }
 
-    public GetUserHandler(IdentityService databaseService) {
-        super(Void.class);
+    public GetUserHandler(IdentityService databaseService, Environment environment) {
+        super(Void.class, environment);
         this.databaseService = databaseService;
     }
 

@@ -14,6 +14,7 @@ import no.unit.nva.customer.model.SecretManagerDoiAgentDao;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ForbiddenException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.paths.UriWrapper;
@@ -43,11 +44,11 @@ public abstract class CustomerDoiHandler<I> extends ApiGatewayHandler<I, String>
 
     @JacocoGenerated
     public CustomerDoiHandler(Class<I> iclass) {
-        this(iclass, new SecretsReader());
+        this(iclass, new SecretsReader(), new Environment());
     }
 
-    public CustomerDoiHandler(Class<I> iclass, SecretsReader secretsReader) {
-        super(iclass);
+    public CustomerDoiHandler(Class<I> iclass, SecretsReader secretsReader, Environment environment) {
+        super(iclass, environment);
         this.secretsReader = secretsReader;
     }
 

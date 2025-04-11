@@ -9,23 +9,16 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.core.JacocoGenerated;
-
+import nva.commons.core.Environment;
 import java.net.HttpURLConnection;
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
 
 public class CreateControlledVocabularyHandler extends WriteControlledVocabularyHandler {
 
     public static final String CUSTOMER_SETTINGS_EXIST_ERROR = "Customer has already defined Vocabulary settings";
 
-    @JacocoGenerated
-    public CreateControlledVocabularyHandler() {
-        this(defaultCustomerService());
-    }
-
-    public CreateControlledVocabularyHandler(CustomerService customerService) {
-        super(customerService);
+    public CreateControlledVocabularyHandler(CustomerService customerService, Environment environment) {
+        super(customerService, environment);
     }
 
     @Override

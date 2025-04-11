@@ -9,6 +9,7 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
@@ -27,11 +28,11 @@ public class GetRoleHandler extends ApiGatewayHandler<Void, RoleDto> {
      */
     @JacocoGenerated
     public GetRoleHandler() {
-        this(new IdentityServiceImpl());
+        this(new IdentityServiceImpl(), new Environment());
     }
 
-    public GetRoleHandler(IdentityService databaseService) {
-        super(Void.class);
+    public GetRoleHandler(IdentityService databaseService, Environment environment) {
+        super(Void.class, environment);
         this.databaseService = databaseService;
     }
 

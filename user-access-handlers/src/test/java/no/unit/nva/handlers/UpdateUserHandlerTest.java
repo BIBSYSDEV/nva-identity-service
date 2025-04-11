@@ -14,6 +14,7 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -119,7 +120,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private <I, O> GatewayResponse<O> sendUpdateRequest(String userId, I userUpdate,
                                                         Class<O> responseType)
         throws IOException {
-        var updateUserHandler = new UpdateUserHandler(databaseService);
+        var updateUserHandler = new UpdateUserHandler(databaseService, new Environment());
         var customerId = randomUri();
         var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
             .withBody(userUpdate)
@@ -233,7 +234,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private GatewayResponse<Problem> sendUpdateRequestWithoutPathParameters(UserDto userUpdate)
         throws IOException {
         var customerId = randomUri();
-        var updateUserHandler = new UpdateUserHandler(databaseService);
+        var updateUserHandler = new UpdateUserHandler(databaseService, new Environment());
         var input = new HandlerRequestBuilder<UserDto>(dtoObjectMapper)
             .withCurrentCustomer(customerId)
             .withAccessRights(customerId, MANAGE_OWN_AFFILIATION)
@@ -303,7 +304,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private <I, O> GatewayResponse<O> sendUpdateRequestWithoutAccessRights(String userId, I userUpdate,
                                                                            Class<O> responseType)
         throws IOException {
-        var updateUserHandler = new UpdateUserHandler(databaseService);
+        var updateUserHandler = new UpdateUserHandler(databaseService, new Environment());
         var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
             .withBody(userUpdate)
             .withPathParameters(Collections.singletonMap(USERNAME_PATH_PARAMETER, userId))
@@ -323,7 +324,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
     private <I, O> GatewayResponse<O> sendUpdateRequestForInstitutionAdmin(String userId, I userUpdate,
                                                                            Class<O> responseType)
         throws IOException {
-        var updateUserHandler = new UpdateUserHandler(databaseService);
+        var updateUserHandler = new UpdateUserHandler(databaseService, new Environment());
         var customerId = randomUri();
         var input = new HandlerRequestBuilder<I>(dtoObjectMapper)
             .withBody(userUpdate)

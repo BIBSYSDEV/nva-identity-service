@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.core.Environment;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +19,8 @@ public abstract class HandlerWithEventualConsistency<I, O> extends ApiGatewayHan
     protected static final long WAITING_TIME = 100;
     private static final Logger logger = LoggerFactory.getLogger(HandlerWithEventualConsistency.class);
 
-    protected HandlerWithEventualConsistency(Class<I> iclass) {
-        super(iclass);
+    protected HandlerWithEventualConsistency(Class<I> iclass, Environment environment) {
+        super(iclass, environment);
     }
 
     protected Optional<O> getEventuallyConsistent(Callable<O> fetchEntry) {

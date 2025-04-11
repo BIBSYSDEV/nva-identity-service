@@ -7,6 +7,7 @@ import no.unit.nva.useraccessservice.model.GetExternalClientResponse;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
@@ -22,12 +23,12 @@ public class GetExternalClientHandler
     @JacocoGenerated
     public GetExternalClientHandler() {
         this(
-            IdentityService.defaultIdentityService()
+            IdentityService.defaultIdentityService(), new Environment()
         );
     }
 
-    public GetExternalClientHandler(IdentityService databaseService) {
-        super(Void.class);
+    public GetExternalClientHandler(IdentityService databaseService, Environment environment) {
+        super(Void.class, environment);
         this.databaseService = databaseService;
     }
 

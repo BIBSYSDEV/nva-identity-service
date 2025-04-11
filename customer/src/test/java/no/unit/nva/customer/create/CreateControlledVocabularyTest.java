@@ -10,6 +10,7 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.MediaTypes;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
@@ -33,7 +34,7 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
 
     @Override
     protected ControlledVocabularyHandler<?, ?> createHandler() {
-        return new CreateControlledVocabularyHandler(customerService);
+        return new CreateControlledVocabularyHandler(customerService, new Environment());
     }
 
     @Override

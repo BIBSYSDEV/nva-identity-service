@@ -4,6 +4,7 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.CustomerDto;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.core.Environment;
 import nva.commons.core.attempt.Failure;
 
 import java.util.UUID;
@@ -15,8 +16,8 @@ public abstract class CustomerHandler<I> extends ApiGatewayHandler<I, CustomerDt
     public static final String IDENTIFIER = "identifier";
     public static final String IDENTIFIER_IS_NOT_A_VALID_UUID = "Identifier is not a valid UUID: ";
 
-    public CustomerHandler(Class<I> iclass) {
-        super(iclass);
+    protected CustomerHandler(Class<I> iclass, Environment environment) {
+        super(iclass, environment);
     }
 
     protected UUID getIdentifier(RequestInfo requestInfo) throws InputException {

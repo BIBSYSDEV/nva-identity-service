@@ -11,6 +11,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,8 +51,8 @@ public class UpdateCustomerHandlerPublicationWorkflowTest extends LocalCustomerS
     public void setUp() {
         super.setupDatabase();
         var customerServiceMock = new DynamoDBCustomerService(getDynamoClient());
-        handler = new UpdateCustomerHandler(customerServiceMock);
-        createHandler = new CreateCustomerHandler(customerServiceMock);
+        handler = new UpdateCustomerHandler(customerServiceMock, new Environment());
+        createHandler = new CreateCustomerHandler(customerServiceMock, new Environment());
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }

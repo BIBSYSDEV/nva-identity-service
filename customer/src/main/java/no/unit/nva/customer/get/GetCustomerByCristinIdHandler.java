@@ -11,6 +11,7 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
@@ -28,7 +29,7 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
 
     @JacocoGenerated
     public GetCustomerByCristinIdHandler() {
-        this(defaultCustomerService());
+        this(defaultCustomerService(), new Environment());
     }
 
     /**
@@ -36,8 +37,8 @@ public class GetCustomerByCristinIdHandler extends ApiGatewayHandler<Void, Custo
      *
      * @param customerService customerService
      */
-    public GetCustomerByCristinIdHandler(CustomerService customerService) {
-        super(Void.class);
+    public GetCustomerByCristinIdHandler(CustomerService customerService, Environment environment) {
+        super(Void.class, environment);
         this.customerService = customerService;
     }
 

@@ -25,4 +25,5 @@ test {
     environment "ALLOWED_ORIGIN", "*"
     environment "API_HOST", "host"
     environment "PUBLICATION_CHANNEL_PATH", "publication-channels-path"
+    environment "COGNITO_AUTHORIZER_URLS", "http://localhost:3000"
 }

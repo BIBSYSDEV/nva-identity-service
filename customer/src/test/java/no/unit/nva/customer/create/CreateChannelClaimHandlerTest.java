@@ -34,6 +34,7 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import nva.commons.core.paths.UriWrapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +55,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
         super.setupDatabase();
         this.customerService = new DynamoDBCustomerService(this.dynamoClient);
         existingCustomer = customerService.createCustomer(createSampleCustomerDto());
-        handler = new CreateChannelClaimHandler(customerService);
+        handler = new CreateChannelClaimHandler(customerService, new Environment());
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
     }
@@ -119,7 +120,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
         var request = createValidRequest();
         var customerService = mock(CustomerService.class);
         doThrow(new IllegalStateException()).when(customerService).createChannelClaim(any(), any());
-        var handler = new CreateChannelClaimHandler(customerService);
+        var handler = new CreateChannelClaimHandler(customerService, new Environment());
 
         handler.handleRequest(request, outputStream, context);
         var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);

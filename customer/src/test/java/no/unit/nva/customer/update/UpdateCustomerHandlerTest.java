@@ -12,6 +12,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,7 @@ public class UpdateCustomerHandlerTest {
     public void setUp() {
         customerServiceMock = mock(CustomerService.class);
 
-        handler = new UpdateCustomerHandler(customerServiceMock);
+        handler = new UpdateCustomerHandler(customerServiceMock, new Environment());
         outputStream = new ByteArrayOutputStream();
         context = new FakeContext();
     }

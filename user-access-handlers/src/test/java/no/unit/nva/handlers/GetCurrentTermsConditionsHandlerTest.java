@@ -8,6 +8,7 @@ import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +33,7 @@ class GetCurrentTermsConditionsHandlerTest extends HandlerTest {
     public void setup() {
         context = new FakeContext();
         outputStream = new ByteArrayOutputStream();
-        handler = new GetCurrentTermsConditionsHandler();
+        handler = new GetCurrentTermsConditionsHandler(new Environment());
     }
 
     @Test

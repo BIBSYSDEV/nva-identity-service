@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
+import nva.commons.core.Environment;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.ControlledVocabularyHandler.IDENTIFIER_PATH_PARAMETER;
@@ -108,7 +109,8 @@ public abstract class CreateUpdateControlledVocabularySettingsTests extends Loca
     }
 
     protected void assertThatExistingUserHasEmptyVocabularySettings() throws IOException {
-        GetControlledVocabularyHandler getHandler = new GetControlledVocabularyHandler(customerService);
+        GetControlledVocabularyHandler getHandler = new GetControlledVocabularyHandler(customerService,
+                                                                                       new Environment());
         var getRequest = createGetRequest(existingIdentifier(), MediaType.JSON_UTF_8);
         var response = sendRequest(getHandler, getRequest, VocabularyList.class);
         var getResponseObject = VocabularyList.fromJson(response.getBody());

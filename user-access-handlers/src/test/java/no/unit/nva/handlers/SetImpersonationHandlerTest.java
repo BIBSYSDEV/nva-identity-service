@@ -7,6 +7,7 @@ import no.unit.nva.handlers.models.ImpersonationRequest;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
@@ -37,7 +38,7 @@ class SetImpersonationHandlerTest {
     @BeforeEach
     public void setup() {
         cognitoClient = new FakeCognito(randomString());
-        handler = new SetImpersonationHandler(cognitoClient);
+        handler = new SetImpersonationHandler(cognitoClient, new Environment());
         outputStream = new ByteArrayOutputStream();
     }
 

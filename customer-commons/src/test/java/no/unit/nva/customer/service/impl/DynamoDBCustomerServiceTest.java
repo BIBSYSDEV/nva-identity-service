@@ -52,6 +52,7 @@ import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.paths.UriWrapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -390,6 +391,29 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         assertEquals(channelClaim, actualChannelClaim.channelClaim());
     }
 
+    @Test
+    void shouldListChannelClaimsForInstitution()
+        throws ConflictException, NotFoundException {
+        var customer = createCustomerWithChannelClaim(randomChannelClaimDto());
+        createCustomerWithChannelClaim(randomChannelClaimDto());
+        createCustomerWithChannelClaim(randomChannelClaimDto());
+
+        var channelClaims = service.getChannelClaimsForCustomer(customer.getCristinId());
+
+        assertEquals(1, channelClaims.size());
+        assertEquals(customer.getCristinId(), channelClaims.stream().findFirst().orElseThrow().cristinId());
+    }
+
+    @Test
+    void shouldReturnChannelClaimByChannelIdentifier() throws ConflictException, NotFoundException {
+        var channelClaim = randomChannelClaimDto();
+        createCustomerWithChannelClaim(channelClaim);
+
+        var channelClaimIdentifier = channelClaim.identifier();
+        var fetchedClaim = service.getChannelClaim(channelClaimIdentifier);
+
+        assertEquals(channelClaim, fetchedClaim.orElseThrow().channelClaim());
+    }
     private CustomerDto newActiveCustomerDto() {
         var customer = newInactiveCustomerDto();
         customer.setInactiveFrom(null);

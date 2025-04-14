@@ -108,7 +108,7 @@ public final class CustomerDataGenerator {
     }
 
     public static ChannelClaimDao randomChannelClaimDao() {
-        return new ChannelClaimDao(randomUri(), randomChannelConstraintDao());
+        return new ChannelClaimDao(randomChannel(), randomChannelConstraintDao());
     }
 
     public static ChannelConstraintDao randomChannelConstraintDao() {

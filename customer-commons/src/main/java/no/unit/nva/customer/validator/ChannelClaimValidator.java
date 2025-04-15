@@ -1,13 +1,13 @@
 package no.unit.nva.customer.validator;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import java.net.URI;
+import java.util.List;
+import java.util.UUID;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.paths.UriWrapper;
 
 public final class ChannelClaimValidator {
 
@@ -17,8 +17,12 @@ public final class ChannelClaimValidator {
     private static final Environment ENVIRONMENT = new Environment();
     private static final String PUBLICATION_CHANNEL_PATH = ENVIRONMENT.readEnv("PUBLICATION_CHANNEL_PATH");
     private static final String HOST = ENVIRONMENT.readEnv(API_HOST);
-    private static final String TRAILING_YEAR_MESSAGE = "Channel should not have trailing year";
-    private static final String REGEX_FOUR_DIGITS = "\\d{4}";
+    private static final String SERIAL_PUBLICATION = "serial-publication";
+    private static final String PUBLISHER = "publisher";
+    private static final List<String> CHANNEL_TYPES = List.of(SERIAL_PUBLICATION, PUBLISHER);
+    private static final String SLASH = "/";
+    private static final String EMPTY_STRING = "";
+    private static final int THREE = 3;
 
     @JacocoGenerated
     public ChannelClaimValidator() {}
@@ -27,20 +31,39 @@ public final class ChannelClaimValidator {
         if (isNull(channelClaim) || isNull(channelClaim.channel())) {
             throw new BadRequestException(CHANNEL_REQUIRED);
         }
-        if (isNotPublicationChannel(channelClaim.channel())) {
+        if (!isValidPublicationChannel(channelClaim.channel())) {
             throw new BadRequestException(INVALID_CHANNEL_MESSAGE);
         }
-        if (hasTrailingYear(channelClaim.channel())) {
-            throw new BadRequestException(TRAILING_YEAR_MESSAGE);
+    }
+
+    private static boolean isValidPublicationChannel(URI channel) {
+        return HOST.equals(channel.getHost()) && pathIsValid(channel);
+    }
+
+    private static boolean pathIsValid(URI channel) {
+        var pathElements = channel.getPath().replaceFirst(SLASH, EMPTY_STRING).split(SLASH);
+
+        if (pathElements.length != THREE) {
+            return false;
         }
+
+        return isChannelPath(pathElements[0]) && isChannelType(pathElements[1]) && isUuid(pathElements[2]);
     }
 
-    private static boolean isNotPublicationChannel(URI channel) {
-        return !HOST.equals(channel.getHost()) || !channel.toString().contains(PUBLICATION_CHANNEL_PATH);
+    private static boolean isChannelPath(String string) {
+        return PUBLICATION_CHANNEL_PATH.equals(string);
     }
 
-    private static boolean hasTrailingYear(URI channel) {
-        var lastPathElement = UriWrapper.fromUri(channel).getLastPathElement();
-        return nonNull(lastPathElement) && lastPathElement.matches(REGEX_FOUR_DIGITS);
+    private static boolean isChannelType(String string) {
+        return CHANNEL_TYPES.contains(string);
+    }
+
+    private static boolean isUuid(String string) {
+        try {
+            UUID.fromString(string);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

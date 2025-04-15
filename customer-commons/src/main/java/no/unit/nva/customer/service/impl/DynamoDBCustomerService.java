@@ -45,6 +45,7 @@ public class DynamoDBCustomerService implements CustomerService {
     private static final Environment ENVIRONMENT = new Environment();
     public static final String CUSTOMERS_TABLE_NAME = ENVIRONMENT.readEnv("CUSTOMERS_TABLE_NAME");
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerService.class);
+    private static final String CHANNEL_ALREADY_CLAIMED_MESSAGE = "Channel is already claimed";
     private final DynamoDbTable<CustomerDao> table;
 
     /**
@@ -138,10 +139,17 @@ public class DynamoDBCustomerService implements CustomerService {
 
     @Override
     public void createChannelClaim(UUID customerIdentifier, ChannelClaimDto channelClaim)
-        throws NotFoundException, InputException, BadRequestException {
+        throws NotFoundException, InputException, BadRequestException, ConflictException {
         ChannelClaimValidator.validate(channelClaim);
+        throwIfChannelIsAlreadyClaimed(channelClaim);
         var customer = getCustomer(customerIdentifier);
         putCustomer(customerIdentifier, customer.addChannelClaim(channelClaim), false);
+    }
+
+    private void throwIfChannelIsAlreadyClaimed(ChannelClaimDto channelClaim) throws ConflictException {
+        if (getChannelClaim(channelClaim.identifier()).isPresent()) {
+            throw new ConflictException(CHANNEL_ALREADY_CLAIMED_MESSAGE);
+        }
     }
 
     @Override

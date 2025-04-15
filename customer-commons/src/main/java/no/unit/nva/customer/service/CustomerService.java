@@ -33,7 +33,8 @@ public interface CustomerService {
 
     void createChannelClaim(UUID customerIdentifier, ChannelClaimDto channelClaim) throws NotFoundException,
                                                                                           InputException,
-                                                                                          BadRequestException;
+                                                                                          BadRequestException,
+                                                                                          ConflictException;
 
     Collection<ChannelClaimWithClaimer> getChannelClaims();
 

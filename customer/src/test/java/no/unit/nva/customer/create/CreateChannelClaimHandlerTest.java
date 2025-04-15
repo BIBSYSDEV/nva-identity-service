@@ -74,6 +74,14 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
+    void shouldReturnBadRequestWhenInvalidChannelUriIsProvidedInRequest() throws IOException {
+        var request = createRequestWithInvalidChannelUriInBody();
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
     void shouldReturnNotFoundWhenCustomerDoesNotExist() throws IOException {
         var request = createRequestWithNonExistingCustomer();
         handler.handleRequest(request, outputStream, context);
@@ -107,16 +115,25 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldReturnBadRequestWhenInvalidChannelUriIsProvidedInRequest() throws IOException {
-        var request = createRequestWithInvalidChannelUriInBody();
+    void shouldReturnConflictWhenClaimingChannelAlreadyClaimedByCustomer() throws IOException {
+        var request = createRequestClaimingChannelAlreadyClaimedByCustomer();
         handler.handleRequest(request, outputStream, context);
         var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.getStatusCode());
+        assertEquals(HttpURLConnection.HTTP_CONFLICT, response.getStatusCode());
+    }
+
+    @Test
+    void shouldReturnConflictWhenClaimingChannelAlreadyClaimedByAnotherCustomer()
+        throws IOException, ConflictException, NotFoundException {
+        var request = createRequestClaimingChannelClaimedByAnotherCustomer();
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_CONFLICT, response.getStatusCode());
     }
 
     @Test
     void shouldReturnInternalErrorWhenUnexpectedError()
-        throws IOException, InputException, NotFoundException, BadRequestException {
+        throws IOException, InputException, NotFoundException, BadRequestException, ConflictException {
         var request = createValidRequest();
         var customerService = mock(CustomerService.class);
         doThrow(new IllegalStateException()).when(customerService).createChannelClaim(any(), any());
@@ -140,6 +157,22 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
 
     private InputStream createValidRequest() throws JsonProcessingException {
         return createDefaultRequestBuilder(existingCustomer.getIdentifier(), randomChannelClaimRequest())
+                   .withAccessRights(existingCustomer.getId(), MANAGE_RESOURCES_ALL)
+                   .build();
+    }
+
+    private InputStream createRequestClaimingChannelAlreadyClaimedByCustomer() throws JsonProcessingException {
+        var existingClaim = existingCustomer.getChannelClaims().stream().findFirst().orElseThrow();
+        return createDefaultRequestBuilder(existingCustomer.getIdentifier(), fromDto(existingClaim))
+                   .withAccessRights(existingCustomer.getId(), MANAGE_RESOURCES_ALL)
+                   .build();
+    }
+
+    private InputStream createRequestClaimingChannelClaimedByAnotherCustomer()
+        throws ConflictException, NotFoundException, JsonProcessingException {
+        var anotherCustomer = customerService.createCustomer(createSampleCustomerDto());
+        var existingClaimByAnotherCustomer = anotherCustomer.getChannelClaims().stream().findFirst().orElseThrow();
+        return createDefaultRequestBuilder(existingCustomer.getIdentifier(), fromDto(existingClaimByAnotherCustomer))
                    .withAccessRights(existingCustomer.getId(), MANAGE_RESOURCES_ALL)
                    .build();
     }

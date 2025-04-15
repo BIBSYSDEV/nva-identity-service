@@ -335,14 +335,22 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldIgnoreTheCreateChannelCLaimWhenTheCustomerAlreadyHaveClaimedTheChannel()
-        throws ConflictException, NotFoundException, InputException, BadRequestException {
+    void shouldThrowConflictExceptionWhenTheCustomerAlreadyHaveClaimedTheChannel() throws ConflictException,
+                                                                                   NotFoundException {
         var existingClaim = randomChannelClaimDto();
         var customer = createCustomerWithChannelClaim(existingClaim);
 
-        service.createChannelClaim(customer.getIdentifier(), existingClaim);
-        var updatedCustomer = service.getCustomer(customer.getIdentifier());
-        assertEquals(1, updatedCustomer.getChannelClaims().size());
+        assertThrows(ConflictException.class, () -> service.createChannelClaim(customer.getIdentifier(), existingClaim));
+    }
+
+    @Test
+    void shouldThrowConflictExceptionWhenAnotherCustomerHasAlreadyClaimedTheChannel() throws ConflictException,
+                                                                                   NotFoundException {
+        var existingClaim = randomChannelClaimDto();
+        createCustomerWithChannelClaim(existingClaim);
+
+        var customer = createCustomerWithoutChannelClaim();
+        assertThrows(ConflictException.class, () -> service.createChannelClaim(customer.getIdentifier(), existingClaim));
     }
 
     @Test

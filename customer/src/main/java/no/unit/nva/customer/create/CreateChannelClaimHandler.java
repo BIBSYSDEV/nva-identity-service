@@ -45,7 +45,6 @@ public class CreateChannelClaimHandler extends ApiGatewayHandler<ChannelClaimReq
         throws ApiGatewayException {
         var customerIdentifier = extractIdentifierFromPath(requestInfo);
         customerService.createChannelClaim(customerIdentifier, request.toDto());
-//        return new ChannelClaimResponse();
         return null;
     }
 

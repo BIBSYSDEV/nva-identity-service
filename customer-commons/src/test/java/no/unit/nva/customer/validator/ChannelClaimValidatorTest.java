@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 class ChannelClaimValidatorTest {
 
     private static final String RANDOM_YEAR = "2025";
+    private static final int ZERO = 0;
+    private static final String EMPTY_STRING = "";
 
     @Test
     void shouldNotThrowExceptionWhenChannelClaimIsValid() {
@@ -37,6 +39,15 @@ class ChannelClaimValidatorTest {
     void shouldThrowBadRequestExceptionWhenChannelHasTrailingYear() {
         var channelWithTrailingYear = UriWrapper.fromUri(randomChannel()).addChild(RANDOM_YEAR).getUri();
         var channelClaimWithInvalidChannel = new ChannelClaimDto(channelWithTrailingYear, randomChannelConstraintDto());
+        assertThrows(BadRequestException.class, () -> ChannelClaimValidator.validate(channelClaimWithInvalidChannel));
+    }
+
+    @Test
+    void shouldThrowBadRequestExceptionWhenLastPathElementOfChannelIsNotUuid() {
+        var channelWithRandomLastPathElement = UriWrapper.fromUri(randomChannel())
+                                                   .replacePathElementByIndexFromEnd(ZERO, EMPTY_STRING)
+                                                   .getUri();
+        var channelClaimWithInvalidChannel = new ChannelClaimDto(channelWithRandomLastPathElement, randomChannelConstraintDto());
         assertThrows(BadRequestException.class, () -> ChannelClaimValidator.validate(channelClaimWithInvalidChannel));
     }
 }

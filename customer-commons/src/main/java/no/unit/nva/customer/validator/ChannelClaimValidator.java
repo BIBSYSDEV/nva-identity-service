@@ -1,8 +1,9 @@
 package no.unit.nva.customer.validator;
 
-import static java.util.Objects.isNull;
+import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -28,7 +29,7 @@ public final class ChannelClaimValidator {
     public ChannelClaimValidator() {}
 
     public static void validate(ChannelClaimDto channelClaim) throws BadRequestException {
-        if (isNull(channelClaim) || isNull(channelClaim.channel())) {
+        if (Optional.ofNullable(channelClaim).map(ChannelClaimDto::channel).isEmpty()) {
             throw new BadRequestException(CHANNEL_REQUIRED);
         }
         if (!isValidPublicationChannel(channelClaim.channel())) {
@@ -59,11 +60,6 @@ public final class ChannelClaimValidator {
     }
 
     private static boolean isUuid(String string) {
-        try {
-            UUID.fromString(string);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        return attempt(() -> UUID.fromString(string)).isSuccess();
     }
 }

@@ -1,9 +1,9 @@
 package no.unit.nva.customer.create;
 
+import static java.net.HttpURLConnection.HTTP_CREATED;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static nva.commons.apigateway.AccessRight.MANAGE_RESOURCES_ALL;
 import com.amazonaws.services.lambda.runtime.Context;
-import java.net.HttpURLConnection;
 import java.util.UUID;
 import no.unit.nva.customer.RequestUtils;
 import no.unit.nva.customer.service.CustomerService;
@@ -32,7 +32,7 @@ public class CreateChannelClaimHandler extends ApiGatewayHandler<ChannelClaimReq
     }
 
     @Override
-    protected void validateRequest(ChannelClaimRequest channelClaimRequest, RequestInfo requestInfo, Context context)
+    protected void validateRequest(ChannelClaimRequest request, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         if (userIsAuthorizedOnCustomer(requestInfo)) {
             return;
@@ -41,16 +41,16 @@ public class CreateChannelClaimHandler extends ApiGatewayHandler<ChannelClaimReq
     }
 
     @Override
-    protected Void processInput(ChannelClaimRequest channelClaimRequest, RequestInfo requestInfo, Context context)
+    protected Void processInput(ChannelClaimRequest request, RequestInfo requestInfo, Context context)
         throws ApiGatewayException {
         var customerIdentifier = extractIdentifierFromPath(requestInfo);
-        customerService.createChannelClaim(customerIdentifier, channelClaimRequest.toDto());
+        customerService.createChannelClaim(customerIdentifier, request.toDto());
         return null;
     }
 
     @Override
-    protected Integer getSuccessStatusCode(ChannelClaimRequest channelClaimRequest, Void o) {
-        return HttpURLConnection.HTTP_CREATED;
+    protected Integer getSuccessStatusCode(ChannelClaimRequest request, Void response) {
+        return HTTP_CREATED;
     }
 
     private boolean userIsAuthorizedOnCustomer(RequestInfo requestInfo) throws UnauthorizedException {

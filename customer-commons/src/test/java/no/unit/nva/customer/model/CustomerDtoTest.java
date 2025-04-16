@@ -155,4 +155,16 @@ class CustomerDtoTest {
         var randomActiveCustomer = randomActiveCustomer();
         assertThat(randomActiveCustomer.isActive(), is(true));
     }
+
+    @Test
+    void shouldNotAddChannelClaimWhenChannelIsAlreadyClaimed() {
+        var customer = randomActiveCustomer();
+        var numberOfClaimsBefore = customer.getChannelClaims().size();
+
+        var alreadyClaimedChannel = customer.getChannelClaims().stream().findFirst().orElseThrow();
+        customer.addChannelClaim(alreadyClaimedChannel);
+        var numberOfClaimsAfter = customer.getChannelClaims().size();
+
+        assertThat(numberOfClaimsAfter, is(equalTo(numberOfClaimsBefore)));
+    }
 }

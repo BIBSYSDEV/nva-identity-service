@@ -39,7 +39,9 @@ public class FetchChannelClaimHandler extends ApiGatewayHandler<Void, ChannelCla
     }
 
     private static void userIsAuthorized(RequestInfo requestInfo) throws UnauthorizedException {
-        requestInfo.getCurrentCustomer();
+        if (!requestInfo.clientIsInternalBackend()) {
+            requestInfo.getCurrentCustomer();
+        }
     }
 
     @Override

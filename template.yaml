@@ -1157,6 +1157,7 @@ Resources:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           API_HOST: !Ref ApiDomain
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NvaCustomersTable

@@ -1096,20 +1096,22 @@ components:
       type: object
       required:
         - channel
-        - constraints
+        - constraint
       properties:
         type:
           type: string
         channel:
           type: string
           format: uri
-        constraints:
+        constraint:
           type: object
           required:
             - publishingPolicy
             - editingPolicy
             - scope
           properties:
+            type:
+              type: string
             publishingPolicy:
               $ref: '#/components/schemas/ChannelConstraintPolicy'
             editingPolicy:

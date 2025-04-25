@@ -1,6 +1,6 @@
 package no.unit.nva.useraccessservice.exceptions;
 
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;

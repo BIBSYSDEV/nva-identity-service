@@ -22,7 +22,8 @@ import nva.commons.core.JacocoGenerated;
 public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, ChannelClaimsListResponse> {
 
     private static final String BAD_GATEWAY_ERROR_MESSAGE = "Something went wrong, contact application administrator!";
-    private static final String INSTITUTION_QUERY_PARAM = "institution";
+    private static final String QUERY_PARAM_INSTITUTION = "institution";
+    private static final String QUERY_PARAM_TYPE = "type";
     private final CustomerService customerService;
 
     @JacocoGenerated
@@ -50,15 +51,13 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
         }
     }
 
-    private Collection<ChannelClaimWithClaimer> listChannelClaims(RequestInfo requestInfo) {
-        return getInstitutionCristinId(requestInfo)
-                   .map(customerService::getChannelClaimsForCustomer)
-                   .orElse(customerService.getChannelClaims());
+    @Override
+    protected Integer getSuccessStatusCode(Void unused, ChannelClaimsListResponse o) {
+        return HTTP_OK;
     }
 
     private static Optional<URI> getInstitutionCristinId(RequestInfo requestInfo) {
-
-        return requestInfo.getQueryParameterOpt(INSTITUTION_QUERY_PARAM)
+        return requestInfo.getQueryParameterOpt(QUERY_PARAM_INSTITUTION)
                    .map(ListAllChannelClaimsHandler::decode)
                    .map(URI::create);
     }
@@ -67,12 +66,29 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
         return URLDecoder.decode(cristinId, StandardCharsets.UTF_8);
     }
 
-    @Override
-    protected Integer getSuccessStatusCode(Void unused, ChannelClaimsListResponse o) {
-        return HTTP_OK;
+    private static Optional<String> getType(RequestInfo requestInfo) {
+        return requestInfo.getQueryParameterOpt(QUERY_PARAM_TYPE);
     }
 
     private static void userIsAuthorized(RequestInfo requestInfo) throws UnauthorizedException {
         requestInfo.getCurrentCustomer();
+    }
+
+    private Collection<ChannelClaimWithClaimer> listChannelClaims(RequestInfo requestInfo) {
+        var claims = getInstitutionCristinId(requestInfo)
+                         .map(customerService::getChannelClaimsForCustomer)
+                         .orElse(customerService.getChannelClaims());
+
+        return getType(requestInfo)
+                   .map(type -> filterByType(claims, type))
+                   .orElse(claims);
+    }
+
+    private Collection<ChannelClaimWithClaimer> filterByType(Collection<ChannelClaimWithClaimer> claims, String type) {
+        return claims.stream().filter(claim -> isType(claim, type)).toList();
+    }
+
+    private boolean isType(ChannelClaimWithClaimer claim, String type) {
+        return claim.channelClaim().channel().toString().contains(type);
     }
 }

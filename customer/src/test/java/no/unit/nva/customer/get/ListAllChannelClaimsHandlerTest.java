@@ -3,6 +3,8 @@ package no.unit.nva.customer.get;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDto;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDtos;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelConstraintDto;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelOfType;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -41,6 +43,9 @@ import org.zalando.problem.Problem;
 class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
 
     public static final Context CONTEXT = new FakeContext();
+    private static final String CHANNEL_TYPE_PUBLISHER = "publisher";
+    private static final String CHANNEL_TYPE_SERIAL_PUBLICATION = "serial-publication";
+    private static final int ONE = 1;
     private ListAllChannelClaimsHandler handler;
     private CustomerService customerService;
     private ByteArrayOutputStream output;
@@ -109,6 +114,25 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
                          assertEquals(customer.getCristinId(), channelClaimResponse.claimedBy().organizationId()));
     }
 
+    @Test
+    void shouldReturnOkAndListChannelClaimsOnlyOfTypeProvidedInQueryParam() throws ApiGatewayException, IOException {
+        var claimPublisher = new ChannelClaimDto(randomChannelOfType(CHANNEL_TYPE_PUBLISHER),
+                                                 randomChannelConstraintDto());
+        var claimSerialPublication = new ChannelClaimDto(randomChannelOfType(CHANNEL_TYPE_SERIAL_PUBLICATION),
+                                                         randomChannelConstraintDto());
+
+        insertRandomCustomerWithChannelClaim(List.of(claimPublisher, claimSerialPublication));
+
+        var request = createAuthorizedRequestWithTypeInQueryParams(CHANNEL_TYPE_PUBLISHER);
+        handler.handleRequest(request, output, CONTEXT);
+
+        var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
+
+        var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
+        assertEquals(ONE, channelClaimsListResponse.channelClaims().size());
+    }
+
     private CustomerDto insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims) throws ApiGatewayException {
         var customer = CustomerDto.builder()
                            .withDisplayName(randomString())
@@ -132,6 +156,14 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
                    .withUserName(randomString())
                    .withTopLevelCristinOrgId(randomUri())
                    .withQueryParameters(Map.of("institution", URLEncoder.encode(cristinId.toString(), StandardCharsets.UTF_8)))
+                   .build();
+    }
+
+    private static InputStream createAuthorizedRequestWithTypeInQueryParams(String type) throws JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+                   .withCurrentCustomer(randomUri())
+                   .withUserName(randomString())
+                   .withQueryParameters(Map.of("type", type))
                    .build();
     }
 

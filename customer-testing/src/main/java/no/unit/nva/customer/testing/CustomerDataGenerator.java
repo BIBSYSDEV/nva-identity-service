@@ -119,7 +119,7 @@ public final class CustomerDataGenerator {
     }
 
     private static ChannelConstraintDao defaultChannelConstraintDao() {
-        return new ChannelConstraintDao(ChannelConstraintPolicy.EVERYONE, ChannelConstraintPolicy.OWNER_ONLY, degreeScopes());
+        return new ChannelConstraintDao(ChannelConstraintPolicy.EVERYONE, ChannelConstraintPolicy.OWNER_ONLY, degreeScope());
     }
 
     public static ChannelConstraintDto randomChannelConstraintDto() {
@@ -130,7 +130,7 @@ public final class CustomerDataGenerator {
     }
 
     private static ChannelConstraintDto defaultChannelConstraintDto() {
-        return new ChannelConstraintDto(ChannelConstraintPolicy.EVERYONE, ChannelConstraintPolicy.OWNER_ONLY, degreeScopes());
+        return new ChannelConstraintDto(ChannelConstraintPolicy.EVERYONE, ChannelConstraintPolicy.OWNER_ONLY, degreeScope());
     }
 
     // Commented out until restriction of constraints are removed
@@ -146,7 +146,7 @@ public final class CustomerDataGenerator {
     //         randomElement(PublicationInstanceTypes.values()));
     // }
 
-    public static List<PublicationInstanceTypes> degreeScopes() {
+    public static List<PublicationInstanceTypes> degreeScope() {
         return List.of(
             PublicationInstanceTypes.DEGREE_BACHELOR,
             PublicationInstanceTypes.DEGREE_MASTER,

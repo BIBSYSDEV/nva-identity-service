@@ -4,7 +4,7 @@ import static no.unit.nva.customer.model.PublicationInstanceTypes.ACADEMIC_ARTIC
 import static no.unit.nva.customer.model.PublicationInstanceTypes.DEGREE_MASTER;
 import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.EVERYONE;
 import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.OWNER_ONLY;
-import static no.unit.nva.customer.testing.CustomerDataGenerator.degreeScopes;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.degreeScope;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannel;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDto;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelConstraintDto;
@@ -76,7 +76,7 @@ class ChannelClaimValidatorTest {
 
     @Test
     void shouldThrowBadRequestExceptionWhenPublishingPolicyIsOwnerOnly() {
-        var nonDefaultConstraint = new ChannelConstraintDto(OWNER_ONLY, OWNER_ONLY, degreeScopes());
+        var nonDefaultConstraint = new ChannelConstraintDto(OWNER_ONLY, OWNER_ONLY, degreeScope());
         var channelClaimWithNotDefaultConstraint = new ChannelClaimDto(randomChannel(), nonDefaultConstraint);
         assertThrows(BadRequestException.class,
                      () -> ChannelClaimValidator.validate(channelClaimWithNotDefaultConstraint));
@@ -84,7 +84,7 @@ class ChannelClaimValidatorTest {
 
     @Test
     void shouldThrowBadRequestExceptionWhenEditingPolicyIsEveryone() {
-        var nonDefaultConstraint = new ChannelConstraintDto(EVERYONE, EVERYONE, degreeScopes());
+        var nonDefaultConstraint = new ChannelConstraintDto(EVERYONE, EVERYONE, degreeScope());
         var channelClaimWithNotDefaultConstraint = new ChannelClaimDto(randomChannel(), nonDefaultConstraint);
         assertThrows(BadRequestException.class,
                      () -> ChannelClaimValidator.validate(channelClaimWithNotDefaultConstraint));

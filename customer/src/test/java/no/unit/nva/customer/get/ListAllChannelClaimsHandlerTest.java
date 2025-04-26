@@ -11,6 +11,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -131,6 +132,9 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
 
         var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
         assertEquals(ONE, channelClaimsListResponse.channelClaims().size());
+
+        var claim = channelClaimsListResponse.channelClaims().stream().findFirst().orElseThrow();
+        assertTrue(claim.channelClaim().channel().toString().contains(CHANNEL_TYPE_PUBLISHER));
     }
 
     private CustomerDto insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims) throws ApiGatewayException {

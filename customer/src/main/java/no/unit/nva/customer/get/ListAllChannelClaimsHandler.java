@@ -19,12 +19,14 @@ import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.paths.UriWrapper;
 
 public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, ChannelClaimsListResponse> {
 
     private static final String BAD_GATEWAY_ERROR_MESSAGE = "Something went wrong, contact application administrator!";
     private static final String QUERY_PARAM_INSTITUTION = "institution";
     private static final String QUERY_PARAM_CHANNEL_TYPE = "channelType";
+    private static final int ONE = 1;
     private final CustomerService customerService;
 
     @JacocoGenerated
@@ -92,7 +94,11 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
 
     private boolean isChannelType(ChannelClaimWithClaimer claim, String channelType) {
         return Optional.of(claim.channelClaim().channel())
-                   .map(channel -> channel.toString().contains(channelType))
+                   .map(channel -> getTypePathParameter(channel).equals(channelType))
                    .orElse(false);
+    }
+
+    private String getTypePathParameter(URI channel) {
+        return UriWrapper.fromUri(channel).getPath().getPathElementByIndexFromEnd(ONE);
     }
 }

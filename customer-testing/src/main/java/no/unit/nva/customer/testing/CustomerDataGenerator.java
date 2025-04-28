@@ -148,9 +148,9 @@ public final class CustomerDataGenerator {
 
     public static List<PublicationInstanceTypes> degreeScope() {
         return List.of(
-            PublicationInstanceTypes.DEGREE_BACHELOR,
-            PublicationInstanceTypes.DEGREE_MASTER,
             PublicationInstanceTypes.DEGREE_PHD,
+            PublicationInstanceTypes.DEGREE_MASTER,
+            PublicationInstanceTypes.DEGREE_BACHELOR,
             PublicationInstanceTypes.DEGREE_LICENTIATE,
             PublicationInstanceTypes.ARTISTIC_DEGREE_PHD,
             PublicationInstanceTypes.OTHER_STUDENT_WORK);

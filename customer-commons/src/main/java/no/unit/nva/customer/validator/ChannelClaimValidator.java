@@ -10,6 +10,7 @@ import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.EV
 import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.OWNER_ONLY;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,7 +59,7 @@ public final class ChannelClaimValidator {
         if (!isValidPublicationChannel(channelClaim.channel())) {
             throw new BadRequestException(INVALID_CHANNEL_MESSAGE);
         }
-        if (!isDefaultConstraints(channelClaim.constraint())) {
+        if (!isDefaultConstraint(channelClaim.constraint())) {
             throw new BadRequestException(PROVIDED_CONSTRAINT_IS_NOT_ALLOWED);
         }
     }
@@ -90,9 +91,9 @@ public final class ChannelClaimValidator {
     }
 
     // Temporary validation while constraints are restricted
-    private static boolean isDefaultConstraints(ChannelConstraintDto constraint) {
-        return constraint.publishingPolicy().equals(EVERYONE)
-               && constraint.editingPolicy().equals(OWNER_ONLY)
-               && DEGREES.equals(constraint.scope());
+    private static boolean isDefaultConstraint(ChannelConstraintDto constraint) {
+        return EVERYONE.equals(constraint.publishingPolicy())
+               && OWNER_ONLY.equals(constraint.editingPolicy())
+               && new HashSet<>(DEGREES).containsAll(constraint.scope());
     }
 }

@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import no.unit.nva.customer.get.response.ChannelClaimsListResponse;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimWithClaimer;
@@ -74,18 +75,18 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
         requestInfo.getCurrentCustomer();
     }
 
-    private Collection<ChannelClaimWithClaimer> listChannelClaims(RequestInfo requestInfo) {
+    private List<ChannelClaimWithClaimer> listChannelClaims(RequestInfo requestInfo) {
         var claims = getInstitutionCristinId(requestInfo)
                          .map(customerService::getChannelClaimsForCustomer)
                          .orElse(customerService.getChannelClaims());
 
         return getChannelType(requestInfo)
                    .map(channelType -> filterByChannelType(claims, channelType))
-                   .orElse(claims);
+                   .orElse(claims.stream().toList());
     }
 
-    private Collection<ChannelClaimWithClaimer> filterByChannelType(Collection<ChannelClaimWithClaimer> claims,
-                                                                    String channelType) {
+    private List<ChannelClaimWithClaimer> filterByChannelType(Collection<ChannelClaimWithClaimer> claims,
+                                                              String channelType) {
         return claims.stream().filter(claim -> isChannelType(claim, channelType)).toList();
     }
 

@@ -125,7 +125,7 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
 
         insertRandomCustomerWithChannelClaim(List.of(claimPublisher, claimSerialPublication));
 
-        var request = createAuthorizedRequestWithTypeInQueryParams(CHANNEL_TYPE_PUBLISHER);
+        var request = createAuthorizedRequestWithChannelTypeInQueryParams(CHANNEL_TYPE_PUBLISHER);
         handler.handleRequest(request, output, CONTEXT);
 
         var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
@@ -164,11 +164,11 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
                    .build();
     }
 
-    private static InputStream createAuthorizedRequestWithTypeInQueryParams(String type) throws JsonProcessingException {
+    private static InputStream createAuthorizedRequestWithChannelTypeInQueryParams(String channelType) throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper)
                    .withCurrentCustomer(randomUri())
                    .withUserName(randomString())
-                   .withQueryParameters(Map.of("type", type))
+                   .withQueryParameters(Map.of("channelType", channelType))
                    .build();
     }
 

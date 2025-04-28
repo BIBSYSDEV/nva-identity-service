@@ -23,7 +23,7 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
 
     private static final String BAD_GATEWAY_ERROR_MESSAGE = "Something went wrong, contact application administrator!";
     private static final String QUERY_PARAM_INSTITUTION = "institution";
-    private static final String QUERY_PARAM_TYPE = "type";
+    private static final String QUERY_PARAM_CHANNEL_TYPE = "channelType";
     private final CustomerService customerService;
 
     @JacocoGenerated
@@ -66,8 +66,8 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
         return URLDecoder.decode(cristinId, StandardCharsets.UTF_8);
     }
 
-    private static Optional<String> getType(RequestInfo requestInfo) {
-        return requestInfo.getQueryParameterOpt(QUERY_PARAM_TYPE);
+    private static Optional<String> getChannelType(RequestInfo requestInfo) {
+        return requestInfo.getQueryParameterOpt(QUERY_PARAM_CHANNEL_TYPE);
     }
 
     private static void userIsAuthorized(RequestInfo requestInfo) throws UnauthorizedException {
@@ -79,16 +79,17 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
                          .map(customerService::getChannelClaimsForCustomer)
                          .orElse(customerService.getChannelClaims());
 
-        return getType(requestInfo)
-                   .map(type -> filterByType(claims, type))
+        return getChannelType(requestInfo)
+                   .map(channelType -> filterByChannelType(claims, channelType))
                    .orElse(claims);
     }
 
-    private Collection<ChannelClaimWithClaimer> filterByType(Collection<ChannelClaimWithClaimer> claims, String type) {
-        return claims.stream().filter(claim -> isType(claim, type)).toList();
+    private Collection<ChannelClaimWithClaimer> filterByChannelType(Collection<ChannelClaimWithClaimer> claims,
+                                                                    String channelType) {
+        return claims.stream().filter(claim -> isChannelType(claim, channelType)).toList();
     }
 
-    private boolean isType(ChannelClaimWithClaimer claim, String type) {
+    private boolean isChannelType(ChannelClaimWithClaimer claim, String type) {
         return claim.channelClaim().channel().toString().contains(type);
     }
 }

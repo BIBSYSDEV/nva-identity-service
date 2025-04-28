@@ -116,7 +116,8 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
-    void shouldReturnOkAndListChannelClaimsOnlyOfTypeProvidedInQueryParam() throws ApiGatewayException, IOException {
+    void shouldReturnOkAndListChannelClaimsOnlyOfChannelTypeProvidedInQueryParam() throws ApiGatewayException,
+                                                                                       IOException {
         var claimPublisher = new ChannelClaimDto(randomChannelOfType(CHANNEL_TYPE_PUBLISHER),
                                                  randomChannelConstraintDto());
         var claimSerialPublication = new ChannelClaimDto(randomChannelOfType(CHANNEL_TYPE_SERIAL_PUBLICATION),

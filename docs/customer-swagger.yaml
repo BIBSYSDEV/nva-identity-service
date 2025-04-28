@@ -621,7 +621,7 @@ paths:
         httpMethod: POST
         type: AWS_PROXY
       parameters:
-        - name: type
+        - name: channelType
           in: query
           description: "Returns channel claims of channel type"
           required: false

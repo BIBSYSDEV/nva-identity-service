@@ -112,22 +112,48 @@ public final class CustomerDataGenerator {
     }
 
     public static ChannelConstraintDao randomChannelConstraintDao() {
-        return new ChannelConstraintDao(randomChannelPolicy(), randomChannelPolicy(), randomScopes());
+        return defaultChannelConstraintDao();
+
+        // Commented out until restriction of constraints are removed
+        // return new ChannelConstraintDao(randomChannelPolicy(), randomChannelPolicy(), randomScopes());
+    }
+
+    private static ChannelConstraintDao defaultChannelConstraintDao() {
+        return new ChannelConstraintDao(ChannelConstraintPolicy.EVERYONE, ChannelConstraintPolicy.OWNER_ONLY, degreeScope());
     }
 
     public static ChannelConstraintDto randomChannelConstraintDto() {
-        return new ChannelConstraintDto(randomChannelPolicy(), randomChannelPolicy(), randomScopes());
+        return defaultChannelConstraintDto();
+
+        // Commented out until restriction of constraints are removed
+        // return new ChannelConstraintDto(randomChannelPolicy(), randomChannelPolicy(), randomScopes());
     }
 
-    public static ChannelConstraintPolicy randomChannelPolicy() {
-        return randomElement(ChannelConstraintPolicy.values());
+    private static ChannelConstraintDto defaultChannelConstraintDto() {
+        return new ChannelConstraintDto(ChannelConstraintPolicy.EVERYONE, ChannelConstraintPolicy.OWNER_ONLY, degreeScope());
     }
 
-    public static List<PublicationInstanceTypes> randomScopes() {
+    // Commented out until restriction of constraints are removed
+    // public static ChannelConstraintPolicy randomChannelPolicy() {
+    //    return randomElement(ChannelConstraintPolicy.values());
+    // }
+
+    // Commented out until restriction of constraints are removed
+    // public static List<PublicationInstanceTypes> randomScopes() {
+    //     return List.of(
+    //         randomElement(PublicationInstanceTypes.values()),
+    //         randomElement(PublicationInstanceTypes.values()),
+    //         randomElement(PublicationInstanceTypes.values()));
+    // }
+
+    public static List<PublicationInstanceTypes> degreeScope() {
         return List.of(
-            randomElement(PublicationInstanceTypes.values()),
-            randomElement(PublicationInstanceTypes.values()),
-            randomElement(PublicationInstanceTypes.values()));
+            PublicationInstanceTypes.DEGREE_PHD,
+            PublicationInstanceTypes.DEGREE_MASTER,
+            PublicationInstanceTypes.DEGREE_BACHELOR,
+            PublicationInstanceTypes.DEGREE_LICENTIATE,
+            PublicationInstanceTypes.ARTISTIC_DEGREE_PHD,
+            PublicationInstanceTypes.OTHER_STUDENT_WORK);
     }
 
     public static Set<VocabularyDto> randomVocabularyDtoSettings() {

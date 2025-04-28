@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.Collections.emptyList;
-import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.EVERYONE;
-import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.OWNER_ONLY;
 
 @DynamoDbBean
 public class ChannelConstraintDao implements JsonSerializable {
@@ -19,8 +17,6 @@ public class ChannelConstraintDao implements JsonSerializable {
     private List<PublicationInstanceTypes> scope;
 
     public ChannelConstraintDao() {
-        this.publishingPolicy = EVERYONE;
-        this.editingPolicy = OWNER_ONLY;
         this.scope = emptyList();
     }
 

@@ -92,11 +92,18 @@ public final class CustomerDataGenerator {
         return new ChannelClaimDto(randomChannel(), randomChannelConstraintDto());
     }
 
-    public static URI randomChannel() {
+    public static URI randomChannelOfType(String channelType) {
+        if (!CHANNEL_TYPES.contains(channelType)) {
+            throw new IllegalArgumentException();
+        }
         var publicationChannelPath = new Environment().readEnv("PUBLICATION_CHANNEL_PATH");
         return UriWrapper.fromHost(new Environment().readEnv("API_HOST"))
-                   .addChild(publicationChannelPath, randomChannelType(), UUID.randomUUID().toString())
+                   .addChild(publicationChannelPath, channelType, UUID.randomUUID().toString())
                    .getUri();
+    }
+
+    public static URI randomChannel() {
+        return randomChannelOfType(randomChannelType());
     }
 
     private static String randomChannelType() {

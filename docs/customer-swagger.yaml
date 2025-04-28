@@ -620,6 +620,20 @@ paths:
         responses: { }
         httpMethod: POST
         type: AWS_PROXY
+      parameters:
+        - name: channelType
+          in: query
+          description: "Returns channel claims of channel type"
+          required: false
+          schema:
+            type: string
+        - name: institution
+          in: query
+          description: "Returns channel claims by institution"
+          required: false
+          schema:
+            type: string
+            format: uri
       responses:
         '200':
           description: Ok

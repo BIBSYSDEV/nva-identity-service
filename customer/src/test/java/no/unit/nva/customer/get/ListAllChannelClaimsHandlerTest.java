@@ -3,12 +3,15 @@ package no.unit.nva.customer.get;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDto;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDtos;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelConstraintDto;
+import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelOfType;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -41,6 +44,9 @@ import org.zalando.problem.Problem;
 class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
 
     public static final Context CONTEXT = new FakeContext();
+    private static final String CHANNEL_TYPE_PUBLISHER = "publisher";
+    private static final String CHANNEL_TYPE_SERIAL_PUBLICATION = "serial-publication";
+    private static final int ONE = 1;
     private ListAllChannelClaimsHandler handler;
     private CustomerService customerService;
     private ByteArrayOutputStream output;
@@ -109,6 +115,29 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
                          assertEquals(customer.getCristinId(), channelClaimResponse.claimedBy().organizationId()));
     }
 
+    @Test
+    void shouldReturnOkAndListChannelClaimsOnlyOfChannelTypeProvidedInQueryParam() throws ApiGatewayException,
+                                                                                       IOException {
+        var claimPublisher = new ChannelClaimDto(randomChannelOfType(CHANNEL_TYPE_PUBLISHER),
+                                                 randomChannelConstraintDto());
+        var claimSerialPublication = new ChannelClaimDto(randomChannelOfType(CHANNEL_TYPE_SERIAL_PUBLICATION),
+                                                         randomChannelConstraintDto());
+
+        insertRandomCustomerWithChannelClaim(List.of(claimPublisher, claimSerialPublication));
+
+        var request = createAuthorizedRequestWithChannelTypeInQueryParams(CHANNEL_TYPE_PUBLISHER);
+        handler.handleRequest(request, output, CONTEXT);
+
+        var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
+        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
+
+        var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
+        assertEquals(ONE, channelClaimsListResponse.channelClaims().size());
+
+        var claim = channelClaimsListResponse.channelClaims().stream().findFirst().orElseThrow();
+        assertTrue(claim.channelClaim().channel().toString().contains(CHANNEL_TYPE_PUBLISHER));
+    }
+
     private CustomerDto insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims) throws ApiGatewayException {
         var customer = CustomerDto.builder()
                            .withDisplayName(randomString())
@@ -132,6 +161,14 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
                    .withUserName(randomString())
                    .withTopLevelCristinOrgId(randomUri())
                    .withQueryParameters(Map.of("institution", URLEncoder.encode(cristinId.toString(), StandardCharsets.UTF_8)))
+                   .build();
+    }
+
+    private static InputStream createAuthorizedRequestWithChannelTypeInQueryParams(String channelType) throws JsonProcessingException {
+        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+                   .withCurrentCustomer(randomUri())
+                   .withUserName(randomString())
+                   .withQueryParameters(Map.of("channelType", channelType))
                    .build();
     }
 

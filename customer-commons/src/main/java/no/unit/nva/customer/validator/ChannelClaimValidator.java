@@ -38,9 +38,10 @@ public final class ChannelClaimValidator {
     private static final String SLASH = "/";
     private static final String EMPTY_STRING = "";
     private static final int THREE = 3;
-    private static final List<PublicationInstanceTypes> DEGREES = List.of(DEGREE_BACHELOR, DEGREE_MASTER, DEGREE_PHD,
-                                                                          DEGREE_LICENTIATE, ARTISTIC_DEGREE_PHD,
-                                                                          OTHER_STUDENT_WORK);
+    private static final HashSet<PublicationInstanceTypes> DEGREES = new HashSet<>(
+        List.of(DEGREE_BACHELOR, DEGREE_MASTER, DEGREE_PHD,
+                DEGREE_LICENTIATE, ARTISTIC_DEGREE_PHD,
+                OTHER_STUDENT_WORK));
 
     @JacocoGenerated
     public ChannelClaimValidator() {
@@ -94,6 +95,6 @@ public final class ChannelClaimValidator {
     private static boolean isDefaultConstraint(ChannelConstraintDto constraint) {
         return EVERYONE.equals(constraint.publishingPolicy())
                && OWNER_ONLY.equals(constraint.editingPolicy())
-               && new HashSet<>(DEGREES).containsAll(constraint.scope());
+               && DEGREES.containsAll(constraint.scope());
     }
 }

@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import no.unit.nva.customer.get.response.ChannelClaimsListResponse;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimWithClaimer;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -93,12 +94,14 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
     }
 
     private boolean isChannelType(ChannelClaimWithClaimer claim, String channelType) {
-        return Optional.of(claim.channelClaim().channel())
-                   .map(channel -> getTypePathParameter(channel).equals(channelType))
-                   .orElse(false);
+        return Optional.ofNullable(claim.channelClaim())
+                   .map(ChannelClaimDto::channel)
+                   .map(this::getChannelTypeFromPath)
+                   .filter(channelTypeFromPath -> channelTypeFromPath.equals(channelType))
+                   .isPresent();
     }
 
-    private String getTypePathParameter(URI channel) {
+    private String getChannelTypeFromPath(URI channel) {
         return UriWrapper.fromUri(channel).getPath().getPathElementByIndexFromEnd(ONE);
     }
 }

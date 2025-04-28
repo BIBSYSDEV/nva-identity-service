@@ -90,7 +90,9 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
         return claims.stream().filter(claim -> isChannelType(claim, channelType)).toList();
     }
 
-    private boolean isChannelType(ChannelClaimWithClaimer claim, String type) {
-        return claim.channelClaim().channel().toString().contains(type);
+    private boolean isChannelType(ChannelClaimWithClaimer claim, String channelType) {
+        return Optional.of(claim.channelClaim().channel())
+                   .map(channel -> channel.toString().contains(channelType))
+                   .orElse(false);
     }
 }

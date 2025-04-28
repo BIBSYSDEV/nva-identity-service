@@ -10,9 +10,10 @@ import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.EV
 import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.OWNER_ONLY;
 import static nva.commons.core.attempt.Try.attempt;
 import java.net.URI;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
@@ -38,10 +39,10 @@ public final class ChannelClaimValidator {
     private static final String SLASH = "/";
     private static final String EMPTY_STRING = "";
     private static final int THREE = 3;
-    private static final HashSet<PublicationInstanceTypes> DEGREES = new HashSet<>(
-        List.of(DEGREE_BACHELOR, DEGREE_MASTER, DEGREE_PHD,
-                DEGREE_LICENTIATE, ARTISTIC_DEGREE_PHD,
-                OTHER_STUDENT_WORK));
+    private static final Set<PublicationInstanceTypes> DEGREES = EnumSet.of(DEGREE_BACHELOR, DEGREE_MASTER,
+                                                                            DEGREE_PHD, DEGREE_LICENTIATE,
+                                                                            ARTISTIC_DEGREE_PHD,
+                                                                            OTHER_STUDENT_WORK);
 
     @JacocoGenerated
     public ChannelClaimValidator() {

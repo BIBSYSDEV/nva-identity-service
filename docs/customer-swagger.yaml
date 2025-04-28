@@ -627,6 +627,9 @@ paths:
           required: false
           schema:
             type: string
+            enum:
+              - publisher
+              - serial-publication
         - name: institution
           in: query
           description: "Returns channel claims by institution"

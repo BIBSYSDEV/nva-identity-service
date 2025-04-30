@@ -608,14 +608,21 @@ paths:
               examples:
                 InternalServerErrorExample:
                   $ref: '#/components/examples/InternalServerErrorProblemExample'
+  /{customerIdentifier}/channel-claim/{channelClaimIdentifier}:
     delete:
-      summary: Delete a channel claim
-      operationId: PostChannelClaim
+      summary: Unclaim a channel claim
+      operationId: UnclaimChannelClaim
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
-        - name: identifier
-          description: UUID identifier of the channel claim to delete
+        - name: customerIdentifier
+          description: UUID identifier of the customer to unclaim channel claim for
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerIdentifier'
+        - name: channelClaimIdentifier
+          description: UUID identifier of the channel claim to unclaim
           in: path
           required: true
           schema:
@@ -638,6 +645,15 @@ paths:
               examples:
                 BadRequestExample:
                   $ref: '#/components/examples/BadRequestProblemExample'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                UnauthorizedExample:
+                  $ref: '#/components/examples/UnauthorizedProblemExample'
         '403':
           description: Forbidden
           content:

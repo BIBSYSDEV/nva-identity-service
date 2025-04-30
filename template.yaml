@@ -1195,7 +1195,7 @@ Resources:
         ApiGatewayEvent:
           Type: Api
           Properties:
-            Path: /channel-claim/{identifier}
+            Path: /{customerIdentifier}/channel-claim/{channelClaimIdentifier}
             Method: delete
             RestApiId: !Ref NvaCustomerApi
 

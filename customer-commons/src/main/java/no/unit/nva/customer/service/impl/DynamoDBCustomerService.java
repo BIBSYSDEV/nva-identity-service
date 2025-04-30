@@ -172,7 +172,7 @@ public class DynamoDBCustomerService implements CustomerService {
         var channelClaimWithClaimer = getChannelClaim(identifier);
         if (channelClaimWithClaimer.isPresent()) {
             var customer = getCustomer(channelClaimWithClaimer.get().customerId());
-            var updatedCustomer = customer.removeChannelClaim(channelClaimWithClaimer.get().channelClaim());
+            var updatedCustomer = customer.unclaimChannel(channelClaimWithClaimer.get().channelClaim());
             putCustomer(customer.getIdentifier(), updatedCustomer, false);
         }
     }

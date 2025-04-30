@@ -1103,7 +1103,7 @@ Resources:
         ApiGatewayEvent:
           Type: Api
           Properties:
-            Path: /{identifier}/channel-claim/
+            Path: /{identifier}/channel-claim
             Method: post
             RestApiId: !Ref NvaCustomerApi
 

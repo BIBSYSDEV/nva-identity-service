@@ -1203,6 +1203,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/nva-identity-service/NvaDeleteChannelClaimFunction/${AWS::AccountId}'
+      RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerByOrgDomainFunction:
     Type: AWS::Serverless::Function

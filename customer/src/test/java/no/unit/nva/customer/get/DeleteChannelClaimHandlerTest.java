@@ -38,7 +38,7 @@ import org.zalando.problem.Problem;
 class DeleteChannelClaimHandlerTest {
 
     public static final Context CONTEXT = new FakeContext();
-    private static final String CUSTOMER_IDENTIFIER = "customerIdentifier";
+    private static final String IDENTIFIER = "identifier";
     private static final String CHANNEL_CLAIM_IDENTIFIER = "channelClaimIdentifier";
     private DeleteChannelClaimHandler handler;
     private ByteArrayOutputStream output;
@@ -135,7 +135,7 @@ class DeleteChannelClaimHandlerTest {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper).withUserName(randomString())
                    .withCurrentCustomer(customerId)
                    .withAccessRights(customerId, accessRight)
-                   .withPathParameters(Map.of(CUSTOMER_IDENTIFIER, customerIdentifier, CHANNEL_CLAIM_IDENTIFIER,
+                   .withPathParameters(Map.of(IDENTIFIER, customerIdentifier, CHANNEL_CLAIM_IDENTIFIER,
                                               channelClaimIdentifier))
                    .build();
     }
@@ -143,7 +143,7 @@ class DeleteChannelClaimHandlerTest {
     private InputStream createRequest(UUID channelClaimIdentifier, UUID customerIdentifier)
         throws JsonProcessingException {
         return new HandlerRequestBuilder<Void>(dtoObjectMapper).withPathParameters(
-            Map.of(CUSTOMER_IDENTIFIER, customerIdentifier.toString(), CHANNEL_CLAIM_IDENTIFIER,
+            Map.of(IDENTIFIER, customerIdentifier.toString(), CHANNEL_CLAIM_IDENTIFIER,
                    channelClaimIdentifier.toString())).build();
     }
 }

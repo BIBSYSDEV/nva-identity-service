@@ -9,7 +9,7 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 
 public final class RequestUtils {
 
-    private static final String CUSTOMER_IDENTIFIER = "customerIdentifier";
+    private static final String IDENTIFIER = "identifier";
     private static final String CHANNEL_CLAIM_IDENTIFIER = "channelClaimIdentifier";
     private static final String INVALID_IDENTIFIER_MESSAGE = "Invalid identifier in path provided!";
 
@@ -23,8 +23,8 @@ public final class RequestUtils {
             .map(m -> m.get(pathParameter));
     }
 
-    public static UUID getCustomerIdentifier(RequestInfo requestInfo) throws BadRequestException {
-        return attempt(() -> requestInfo.getPathParameter(CUSTOMER_IDENTIFIER))
+    public static UUID getIdentifier(RequestInfo requestInfo) throws BadRequestException {
+        return attempt(() -> requestInfo.getPathParameter(IDENTIFIER))
                    .map(UUID::fromString)
                    .orElseThrow(failure -> new BadRequestException(INVALID_IDENTIFIER_MESSAGE));
     }

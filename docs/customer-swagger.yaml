@@ -608,14 +608,14 @@ paths:
               examples:
                 InternalServerErrorExample:
                   $ref: '#/components/examples/InternalServerErrorProblemExample'
-  /{customerIdentifier}/channel-claim/{channelClaimIdentifier}:
+  /{identifier}/channel-claim/{channelClaimIdentifier}:
     delete:
       summary: Unclaim a channel claim
       operationId: UnclaimChannelClaim
       security:
         - CognitoUserPool: [ "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       parameters:
-        - name: customerIdentifier
+        - name: identifier
           description: UUID identifier of the customer to unclaim channel claim for
           in: path
           required: true

@@ -2,7 +2,7 @@ package no.unit.nva.customer.get;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.customer.RequestUtils.getChannelClaimIdentifier;
-import static no.unit.nva.customer.RequestUtils.getCustomerIdentifier;
+import static no.unit.nva.customer.RequestUtils.getIdentifier;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import no.unit.nva.customer.service.CustomerService;
@@ -53,7 +53,7 @@ public class DeleteChannelClaimHandler extends ApiGatewayHandler<Void, Void> {
 
     private static boolean isAuthorizedToUnclaimChannel(RequestInfo requestInfo)
         throws BadRequestException, UnauthorizedException {
-        var customerIdentifierFromPath = getCustomerIdentifier(requestInfo).toString();
+        var customerIdentifierFromPath = getIdentifier(requestInfo).toString();
         var customerIdentifierFromUser = UriWrapper.fromUri(requestInfo.getCurrentCustomer()).getLastPathElement();
         return customerIdentifierFromUser.equals(customerIdentifierFromPath) &&
                requestInfo.getAccessRights().contains(AccessRight.MANAGE_CHANNEL_CLAIMS);

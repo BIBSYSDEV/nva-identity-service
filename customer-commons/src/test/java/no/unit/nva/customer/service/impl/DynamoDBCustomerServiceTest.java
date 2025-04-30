@@ -29,8 +29,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.time.Instant;
@@ -42,17 +45,16 @@ import java.util.Set;
 import java.util.UUID;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ApplicationDomain;
-import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyDao;
 import no.unit.nva.customer.model.VocabularyDto;
 import no.unit.nva.customer.model.VocabularyStatus;
+import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.paths.UriWrapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,7 +68,6 @@ import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
 class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
-    public static final int SINGLE_VOCABULARY = 0;
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerServiceTest.class);
     private DynamoDBCustomerService service;
 
@@ -297,7 +298,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
             updatedEntry);
         assertThat(updatedVocabularyStatus, is(equalTo(statusWithAlternateCase())));
         var updatedCustomer = service.getCustomer(savedCustomer.getIdentifier());
-        assertThat(updatedCustomer.getVocabularies().get(0).getStatus(), is(equalTo(ALLOWED)));
+        assertThat(updatedCustomer.getVocabularies().getFirst().getStatus(), is(equalTo(ALLOWED)));
     }
 
     @Test
@@ -422,6 +423,27 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
         assertEquals(channelClaim, fetchedClaim.orElseThrow().channelClaim());
     }
+
+    @Test
+    void shouldRemoveChannelClaimFromCustomer() throws ConflictException, NotFoundException, InputException {
+        var channelClaim = randomChannelClaimDto();
+        createCustomerWithChannelClaim(channelClaim);
+
+        service.deleteChannelClaim(channelClaim.identifier());
+        var fetchedChannelClaim = service.getChannelClaim(channelClaim.identifier());
+
+        assertTrue(fetchedChannelClaim.isEmpty());
+    }
+
+    @Test
+    void shouldNotCallUpdateCustomerWhenRemovingNotExistingChannelClaim() throws NotFoundException, InputException {
+        var mockedService = mock(DynamoDBCustomerService.class);
+        mockedService.deleteChannelClaim(UUID.randomUUID());
+
+        verify(mockedService, never())
+            .putCustomer(any(), any(), eq(false));
+    }
+
     private CustomerDto newActiveCustomerDto() {
         var customer = newInactiveCustomerDto();
         customer.setInactiveFrom(null);
@@ -471,7 +493,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
         Map<String, AttributeValue> updatedEntry) {
         return updatedEntry.get(CustomerDao.VOCABULARIES_FIELD)
                    .l()
-                   .get(SINGLE_VOCABULARY)
+                   .getFirst()
                    .m()
                    .get(VocabularyDao.STATUS_FIELD)
                    .s();
@@ -484,7 +506,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     private HashMap<String, AttributeValue> createNewEntryWithVocabularyStatusHavingAlternateCase(
         Map<String, AttributeValue> entry) {
-        var vocabulary = new HashMap<>(entry.get(CustomerDao.VOCABULARIES_FIELD).l().get(SINGLE_VOCABULARY).m());
+        var vocabulary = new HashMap<>(entry.get(CustomerDao.VOCABULARIES_FIELD).l().getFirst().m());
         vocabulary.put(VocabularyDao.STATUS_FIELD, AttributeValue.builder().s(statusWithAlternateCase()).build());
         var newEntry = new HashMap<>(entry);
         AttributeValue vocabularyEntry = AttributeValue.builder().m(vocabulary).build();
@@ -499,7 +521,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
     private Map<String, AttributeValue> fetchCustomerDirectlyFromDatabaseAsKeyValueMap() {
         var allEntries = this.dynamoClient.scan(ScanRequest.builder().tableName(CUSTOMERS_TABLE_NAME).build());
-        return allEntries.items().get(0);
+        return allEntries.items().getFirst();
     }
 
     private CustomerDto createCustomerWithSingleVocabularyEntry() throws NotFoundException, ConflictException {

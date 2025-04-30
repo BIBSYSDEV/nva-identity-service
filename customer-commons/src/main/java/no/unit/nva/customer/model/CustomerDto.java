@@ -90,6 +90,14 @@ public class CustomerDto {
         return this.copy().withChannelClaims(getChannelClaims()).build();
     }
 
+    public CustomerDto removeChannelClaim(ChannelClaimDto channelClaim) {
+        if (getChannelClaims().stream().anyMatch(item -> item.channel().equals(channelClaim.channel()))) {
+            getChannelClaims().remove(channelClaim);
+        }
+
+        return this.copy().withChannelClaims(getChannelClaims()).build();
+    }
+
     public CustomerDto overwriteChannelClaims(Collection<ChannelClaimDto> channelClaims) {
         return this.copy().withChannelClaims(channelClaims).build();
     }

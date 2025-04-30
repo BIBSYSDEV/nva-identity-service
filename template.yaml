@@ -1175,6 +1175,35 @@ Resources:
       LogGroupName: !Sub '/nva-identity-service/NvaFetchChannelClaimFunction/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
+  NvaDeleteChannelClaimFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      LoggingConfig:
+        LogGroup: !Ref NvaFetchChannelClaimFunctionLogGroup
+      CodeUri: customer
+      Handler: no.unit.nva.customer.delete.DeleteChannelClaimHandler::handleRequest
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NvaCustomersTable
+      Events:
+        ApiGatewayEvent:
+          Type: Api
+          Properties:
+            Path: /channel-claim/{identifier}
+            Method: delete
+            RestApiId: !Ref NvaCustomerApi
+
+  NvaDeleteChannelClaimFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/nva-identity-service/NvaDeleteChannelClaimFunction/${AWS::AccountId}'
+
   NvaGetCustomerByOrgDomainFunction:
     Type: AWS::Serverless::Function
     Properties:

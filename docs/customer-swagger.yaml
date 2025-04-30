@@ -608,6 +608,54 @@ paths:
               examples:
                 InternalServerErrorExample:
                   $ref: '#/components/examples/InternalServerErrorProblemExample'
+    delete:
+      summary: Delete a channel claim
+      operationId: PostChannelClaim
+      security:
+        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+      parameters:
+        - name: identifier
+          description: UUID identifier of the channel claim to delete
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ChannelClaimIdentifier'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaDeleteChannelClaimFunction.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '204':
+          description: No content
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                BadRequestExample:
+                  $ref: '#/components/examples/BadRequestProblemExample'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                ForbiddenExample:
+                  $ref: '#/components/examples/ForbiddenProblemExample'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                InternalServerErrorExample:
+                  $ref: '#/components/examples/InternalServerErrorProblemExample'
   /channel-claims:
     get:
       summary: List all channel claims

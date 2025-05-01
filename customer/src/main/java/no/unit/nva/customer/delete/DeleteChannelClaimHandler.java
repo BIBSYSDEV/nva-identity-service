@@ -1,4 +1,4 @@
-package no.unit.nva.customer.get;
+package no.unit.nva.customer.delete;
 
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.customer.RequestUtils.getChannelClaimIdentifier;

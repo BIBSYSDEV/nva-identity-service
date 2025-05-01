@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
+import no.unit.nva.customer.delete.DeleteChannelClaimHandler;
 import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.stubs.FakeContext;

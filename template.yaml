@@ -878,6 +878,13 @@ Resources:
               - Effect: Allow
                 Action: events:PutEvents
                 Resource: !Ref NvaEventBusArn
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetRecords
+                  - dynamodb:GetShardIterator
+                  - dynamodb:DescribeStream
+                  - dynamodb:ListStreams
+                Resource: !GetAtt NvaCustomersTable.StreamArn
 
   CustomerDynamoDbStreamToEventBridgeFunction:
     Type: AWS::Serverless::Function

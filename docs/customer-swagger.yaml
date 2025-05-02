@@ -622,7 +622,7 @@ paths:
           schema:
             $ref: '#/components/schemas/CustomerIdentifier'
         - name: channelClaimIdentifier
-          description: UUID identifier of the channel claim to unclaim
+          description: UUID identifier of the channel to unclaim
           in: path
           required: true
           schema:

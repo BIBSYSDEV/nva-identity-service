@@ -14,6 +14,12 @@ Description: >
 #
 
 Parameters:
+  NvaEventBusArn:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/NVA/Events/EventsBusArn'
+  NvaEventBusName:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/NVA/Events/EventsBusName'
   LogRetentionInDays:
     Type: Number
     Default: 180
@@ -829,6 +835,63 @@ Resources:
       Tags:
         - Key: IncludedInBackup
           Value: 'true'
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+  NvaCustomersTableStreamMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      StartingPosition: TRIM_HORIZON
+      EventSourceArn: !GetAtt NvaCustomersTable.StreamArn
+      FunctionName: !Ref CustomerDynamoDbStreamToEventBridgeFunction
+      Enabled: true
+
+  CustomerDynamoDbStreamToEventBridgeFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/nva-identity-service/CustomerDynamoDbStreamToEventBridgeFunction/${AWS::AccountId}'
+      RetentionInDays: !Ref LogRetentionInDays
+
+  CustomerEventForwarderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CustomerEventBridgeForwarderLambdaRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CustomerDynamodbToEventBridge
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Effect: Allow
+                Action: events:PutEvents
+                Resource: !Ref NvaEventBusArn
+
+  CustomerDynamoDbStreamToEventBridgeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: customer
+      Handler: no.unit.nva.customer.events.CustomerTableDynamodbStreamToEventBridgeHandler::handleRequest
+      Role: !GetAtt CustomerEventForwarderRole.Arn
+      Timeout: 360
+      Tracing: Active
+      LoggingConfig:
+        LogGroup: !Ref CustomerDynamoDbStreamToEventBridgeFunctionLogGroup
+      Environment:
+        Variables:
+          EVENT_BUS_NAME: !Ref NvaEventBusName
 
   TermsAndConditionsTable:
     Type: AWS::DynamoDB::Table

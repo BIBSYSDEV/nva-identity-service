@@ -167,6 +167,16 @@ public class DynamoDBCustomerService implements CustomerService {
                    .findFirst();
     }
 
+    @Override
+    public void deleteChannelClaim(UUID identifier) throws NotFoundException, InputException {
+        var channelClaimWithClaimer = getChannelClaim(identifier);
+        if (channelClaimWithClaimer.isPresent()) {
+            var customer = getCustomer(channelClaimWithClaimer.get().customerId());
+            var updatedCustomer = customer.unclaimChannel(channelClaimWithClaimer.get().channelClaim());
+            putCustomer(customer.getIdentifier(), updatedCustomer, false);
+        }
+    }
+
     private static Stream<ChannelClaimWithClaimer> toChannelClaimWithClaimer(CustomerDto customer) {
         return customer.getChannelClaims().stream()
                    .map(claim -> getChannelClaimWithClaimer(claim, customer));

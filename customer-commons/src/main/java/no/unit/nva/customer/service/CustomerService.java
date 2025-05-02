@@ -41,4 +41,6 @@ public interface CustomerService {
     Collection<ChannelClaimWithClaimer> getChannelClaimsForCustomer(URI cristinId);
 
     Optional<ChannelClaimWithClaimer> getChannelClaim(UUID identifier);
+
+    void deleteChannelClaim(UUID identifier) throws NotFoundException, InputException;
 }

@@ -9,6 +9,7 @@ dependencies {
     implementation libs.bundles.aws.lambda
     implementation libs.bundles.logging
     implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.dynamodbenhanced
     implementation libs.aws.sdk2.eventbridge
     implementation libs.guava
     implementation libs.bundles.jackson

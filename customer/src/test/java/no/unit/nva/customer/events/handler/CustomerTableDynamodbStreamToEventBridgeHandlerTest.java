@@ -311,6 +311,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         return Map.of(
             "identifier", new AttributeValue().withS(identifier.toString()),
             "cristinId", new AttributeValue().withS(organizationId.toString()),
+            "rightsRetentionStrategy", new AttributeValue().withM(rightsRetentionStrategyArraibuteMap()),
             "channelClaims",
             new AttributeValue().withL(
                 new AttributeValue().withM(channelClaimAttributeMap(channelId,
@@ -323,7 +324,14 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
     private Map<String, AttributeValue> customerAttributeMap(UUID identifier, URI organizationId) {
         return Map.of(
             "identifier", new AttributeValue().withS(identifier.toString()),
-            "cristinId", new AttributeValue().withS(organizationId.toString())
+            "cristinId", new AttributeValue().withS(organizationId.toString()),
+            "rightsRetentionStrategy", new AttributeValue().withM(rightsRetentionStrategyArraibuteMap())
+        );
+    }
+
+    private Map<String, AttributeValue> rightsRetentionStrategyArraibuteMap() {
+        return Map.of(
+            "type", new AttributeValue().withS("NullRightsRetentionStrategy")
         );
     }
 

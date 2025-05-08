@@ -41,30 +41,11 @@ public final class AttributeValueConverter {
         if (isNullValue(value)) {
             return AttributeValue.builder().nul(true).build();
         }
-        if (containsAttributeValueMap(value)) {
-            return mapEachAttributeValueToDynamoDbValue(value);
-        }
         if (nonNull(value.getL()) && value.getL().isEmpty()) {
             return AttributeValue.builder().l(emptyList()).build();
         }
         var json = writeAsString(value);
         return dtoObjectMapper.readValue(json, AttributeValue.serializableBuilderClass()).build();
-    }
-
-    private static AttributeValue mapEachAttributeValueToDynamoDbValue(
-        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value) {
-        var attributeValueMap =
-            value.getM().entrySet().stream()
-                .collect(
-                    Collectors.toMap(
-                        Entry::getKey,
-                        entry -> attempt(() -> mapToDynamoDbValue(entry.getValue())).orElseThrow()));
-        return AttributeValue.builder().m(attributeValueMap).build();
-    }
-
-    private static boolean containsAttributeValueMap(
-        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value) {
-        return nonNull(value.getM());
     }
 
     private static boolean isNullValue(

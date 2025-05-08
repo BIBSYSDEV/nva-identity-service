@@ -1,4 +1,4 @@
-package no.unit.nva.customer.events;
+package no.unit.nva.customer.events.aws;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.nonNull;
@@ -11,14 +11,15 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-public final class AttributeValueConverter {
+public class JacksonAttributeValueConverter implements AttributeValueConverter {
 
-    private AttributeValueConverter() {
+    public JacksonAttributeValueConverter() {
     }
 
-    public static Map<String, AttributeValue> mapToDynamoDbAttributeValue(
-        Map<String, com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue>
-            image) {
+    @Override
+    public Map<String, AttributeValue> convert(
+        final Map<String, com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue> image
+    ) {
         return image.entrySet().stream().collect(toDynamoDbMap());
     }
 

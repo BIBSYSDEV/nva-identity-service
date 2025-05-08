@@ -890,7 +890,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: customer
-      Handler: no.unit.nva.customer.events.CustomerTableDynamodbStreamToEventBridgeHandler::handleRequest
+      Handler: no.unit.nva.customer.events.handler.CustomerTableDynamodbStreamToEventBridgeHandler::handleRequest
       Role: !GetAtt CustomerEventForwarderRole.Arn
       Timeout: 360
       Tracing: Active
@@ -899,6 +899,8 @@ Resources:
       Environment:
         Variables:
           EVENT_BUS_NAME: !Ref NvaEventBusName
+          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          API_HOST: !Ref ApiDomain
 
   TermsAndConditionsTable:
     Type: AWS::DynamoDB::Table

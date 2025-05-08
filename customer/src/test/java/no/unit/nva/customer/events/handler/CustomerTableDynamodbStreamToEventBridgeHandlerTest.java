@@ -1,4 +1,4 @@
-package no.unit.nva.customer.events;
+package no.unit.nva.customer.events.handler;
 
 import static no.unit.nva.customer.model.PublicationInstanceTypes.ARTISTIC_DEGREE_PHD;
 import static no.unit.nva.customer.model.PublicationInstanceTypes.DEGREE_BACHELOR;
@@ -16,13 +16,14 @@ import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeVal
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.StreamRecord;
 import java.net.URI;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import no.unit.nva.customer.events.EventData.Action;
-import no.unit.nva.customer.events.EventData.ChannelClaim;
-import no.unit.nva.customer.events.EventData.Constraints;
+import java.util.stream.Collectors;
+import no.unit.nva.customer.events.model.ChannelClaim;
+import no.unit.nva.customer.events.model.ChannelClaim.Constraints;
+import no.unit.nva.customer.events.model.ResourceUpdateEvent;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy;
 import no.unit.nva.stubs.FakeContext;
@@ -57,16 +58,22 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
     @Test
     void shouldEmitEventForNewChannelClaimAddedOnCreationOfNewCustomer() {
-        var channelId = randomChannelId();
+        var channelIdentifier = UUID.randomUUID();
+        var channelId = channelId(channelIdentifier);
         var customerIdentifier = UUID.randomUUID();
+        var organizationId = randomOrganizationId();
 
-        var event = customerCreationEventWithChannelClaim(customerIdentifier, channelId);
+        var event = customerCreationEventWithChannelClaim(customerIdentifier, organizationId, channelId);
 
         var result = handler.handleRequest(event, new FakeContext());
 
         var customerId = customerId(customerIdentifier);
-        assertThat(result, containsInAnyOrder(expectedEvent(Action.ADDED,
+        var channelClaimId = channelClaimId(channelIdentifier);
+
+        assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.ADDED,
+                                                            channelClaimId,
                                                             customerId,
+                                                            organizationId,
                                                             channelId,
                                                             DEFAULT_SCOPE,
                                                             EVERYONE,
@@ -75,10 +82,13 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
     @Test
     void shouldEmitEventForNewChannelClaimAddedOnCustomerUpdate() {
-        var channelId = randomChannelId();
+        var channelIdentifier = UUID.randomUUID();
+        var channelId = channelId(channelIdentifier);
         var customerIdentifier = UUID.randomUUID();
+        var organizationId = randomOrganizationId();
 
         var event = customerUpdateEvent(customerIdentifier,
+                                        organizationId,
                                         channelId,
                                         DEFAULT_SCOPE,
                                         OWNER_ONLY,
@@ -87,8 +97,12 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         var result = handler.handleRequest(event, new FakeContext());
 
         var customerId = customerId(customerIdentifier);
-        assertThat(result, containsInAnyOrder(expectedEvent(Action.UPDATED,
+        var channelClaimId = channelClaimId(channelIdentifier);
+
+        assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.UPDATED,
+                                                            channelClaimId,
                                                             customerId,
+                                                            organizationId,
                                                             channelId,
                                                             DEFAULT_SCOPE,
                                                             OWNER_ONLY,
@@ -97,17 +111,21 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
     @Test
     void shouldEmitEventForChannelClaimDeletedOnCustomerUpdate() {
-        var channelId = randomChannelId();
+        var channelIdentifier = UUID.randomUUID();
+        var channelId = channelId(channelIdentifier);
         var customerIdentifier = UUID.randomUUID();
+        var organizationId = randomOrganizationId();
 
-        var event = customerUpdateEvent(customerIdentifier,
-                                        channelId);
+        var event = customerUpdateEvent(customerIdentifier, organizationId, channelId);
 
         var result = handler.handleRequest(event, new FakeContext());
 
         var customerId = customerId(customerIdentifier);
-        assertThat(result, containsInAnyOrder(expectedEvent(Action.REMOVED,
+        var channelClaimId = channelClaimId(channelIdentifier);
+        assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.REMOVED,
+                                                            channelClaimId,
                                                             customerId,
+                                                            organizationId,
                                                             channelId,
                                                             DEFAULT_SCOPE,
                                                             EVERYONE,
@@ -116,23 +134,40 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
     @Test
     void shouldEmitEventForChannelClaimDeletedOnCustomerDeletion() {
-        var channelId = randomChannelId();
+        var channelIdentifier = UUID.randomUUID();
+        var channelId = channelId(channelIdentifier);
         var customerIdentifier = UUID.randomUUID();
+        var organizationId = randomOrganizationId();
         var event = customerDeletedEvent(customerIdentifier,
+                                         organizationId,
                                          channelId);
 
         var result = handler.handleRequest(event, new FakeContext());
 
         var customerId = customerId(customerIdentifier);
-        assertThat(result, containsInAnyOrder(expectedEvent(Action.REMOVED,
+        var channelClaimId = channelClaimId(channelIdentifier);
+        assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.REMOVED,
+                                                            channelClaimId,
                                                             customerId,
+                                                            organizationId,
                                                             channelId,
                                                             DEFAULT_SCOPE,
                                                             EVERYONE,
                                                             OWNER_ONLY)));
     }
 
-    private DynamodbEvent customerCreationEventWithChannelClaim(UUID customerIdentifier, URI channelId) {
+    private URI randomOrganizationId() {
+        var identifier = new Random().ints(4, 1, 9)
+                             .mapToObj(String::valueOf)
+                             .collect(Collectors.joining("."));
+        var organizationId =
+            "https://localhost/cristin/organization/" + identifier;
+        return URI.create(organizationId);
+    }
+
+    private DynamodbEvent customerCreationEventWithChannelClaim(UUID customerIdentifier,
+                                                                URI organizationId,
+                                                                URI channelId) {
         var event = new DynamodbEvent();
 
         var record = new DynamodbEvent.DynamodbStreamRecord();
@@ -141,6 +176,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
         streamRecord.setOldImage(null);
         streamRecord.setNewImage(customerAttributeMap(customerIdentifier,
+                                                      organizationId,
                                                       channelId,
                                                       DEFAULT_SCOPE,
                                                       EVERYONE,
@@ -154,6 +190,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
     }
 
     private DynamodbEvent customerUpdateEvent(UUID customerIdentifier,
+                                              URI organizationId,
                                               URI channelId,
                                               Set<PublicationInstanceTypes> newScope,
                                               ChannelConstraintPolicy newPublishingPolicy,
@@ -165,11 +202,13 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         var streamRecord = new StreamRecord();
 
         streamRecord.setOldImage(customerAttributeMap(customerIdentifier,
+                                                      organizationId,
                                                       channelId,
                                                       DEFAULT_SCOPE,
                                                       EVERYONE,
                                                       OWNER_ONLY));
         streamRecord.setNewImage(customerAttributeMap(customerIdentifier,
+                                                      organizationId,
                                                       channelId,
                                                       newScope,
                                                       newPublishingPolicy,
@@ -182,7 +221,9 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         return event;
     }
 
-    private DynamodbEvent customerDeletedEvent(UUID customerIdentifier, URI channelId) {
+    private DynamodbEvent customerDeletedEvent(UUID customerIdentifier,
+                                               URI organizationId,
+                                               URI channelId) {
         var event = new DynamodbEvent();
 
         var record = new DynamodbEvent.DynamodbStreamRecord();
@@ -190,6 +231,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         var streamRecord = new StreamRecord();
 
         streamRecord.setOldImage(customerAttributeMap(customerIdentifier,
+                                                      organizationId,
                                                       channelId,
                                                       DEFAULT_SCOPE,
                                                       EVERYONE,
@@ -204,6 +246,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
     }
 
     private DynamodbEvent customerUpdateEvent(UUID customerIdentifier,
+                                              URI organizationId,
                                               URI channelId) {
         var event = new DynamodbEvent();
 
@@ -212,11 +255,12 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         var streamRecord = new StreamRecord();
 
         streamRecord.setOldImage(customerAttributeMap(customerIdentifier,
+                                                      organizationId,
                                                       channelId,
                                                       DEFAULT_SCOPE,
                                                       EVERYONE,
                                                       OWNER_ONLY));
-        streamRecord.setNewImage(customerAttributeMap(customerIdentifier));
+        streamRecord.setNewImage(customerAttributeMap(customerIdentifier, organizationId));
 
         record.setDynamodb(streamRecord);
 
@@ -225,48 +269,62 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         return event;
     }
 
-    private EventData expectedEvent(Action action,
-                                    URI customerId,
-                                    URI channelId,
-                                    Set<PublicationInstanceTypes> scope,
-                                    ChannelConstraintPolicy publishingPolicy,
-                                    ChannelConstraintPolicy editingPolicy) {
+    private ResourceUpdateEvent<ChannelClaim> expectedEvent(ResourceUpdateEvent.Action action,
+                                                            URI channelClaimId,
+                                                            URI customerId,
+                                                            URI organizationId,
+                                                            URI channelId,
+                                                            Set<PublicationInstanceTypes> scope,
+                                                            ChannelConstraintPolicy publishingPolicy,
+                                                            ChannelConstraintPolicy editingPolicy) {
         var constraint = new Constraints(scope,
                                          publishingPolicy,
                                          editingPolicy);
-        var channelClaim = new ChannelClaim(channelId, customerId, constraint);
-        return new EventData(action, "ChannelClaim", channelClaim);
+        var channelClaim = new ChannelClaim(channelClaimId, channelId, customerId, organizationId, constraint);
+        return new ResourceUpdateEvent<>(action, "ChannelClaim", channelClaim);
     }
 
-    private URI randomChannelId() {
-        var identifier = UUID.randomUUID().toString().toUpperCase(Locale.ROOT);
+    private URI channelClaimId(UUID identifier) {
+        var channelClaimId =
+            "https://localhost/customer/channel-claim/" + identifier;
+        return URI.create(channelClaimId);
+    }
+
+    private URI channelId(UUID identifier) {
         var channelId =
-            "https://api.unittest.nva.aws.unit.no/publication-channels-v2/serial-publication/" + identifier;
+            "https://localhost/publication-channels-v2/serial-publication/" + identifier;
         return URI.create(channelId);
     }
 
     private URI customerId(UUID identifier) {
         var customerId =
-            "https://localhost/" + identifier;
+            "https://localhost/customer/" + identifier;
         return URI.create(customerId);
     }
 
     private Map<String, AttributeValue> customerAttributeMap(UUID identifier,
+                                                             URI organizationId,
                                                              URI channelId,
                                                              Set<PublicationInstanceTypes> scope,
                                                              ChannelConstraintPolicy publishingPolicy,
                                                              ChannelConstraintPolicy editingPolicy) {
-        return Map.of("identifier", new AttributeValue().withS(identifier.toString()),
-                      "channelClaims",
-                      new AttributeValue().withL(
-                          new AttributeValue().withM(channelClaimAttributeMap(channelId,
-                                                                              scope,
-                                                                              publishingPolicy,
-                                                                              editingPolicy))));
+        return Map.of(
+            "identifier", new AttributeValue().withS(identifier.toString()),
+            "cristinId", new AttributeValue().withS(organizationId.toString()),
+            "channelClaims",
+            new AttributeValue().withL(
+                new AttributeValue().withM(channelClaimAttributeMap(channelId,
+                                                                    scope,
+                                                                    publishingPolicy,
+                                                                    editingPolicy)))
+        );
     }
 
-    private Map<String, AttributeValue> customerAttributeMap(UUID identifier) {
-        return Map.of("identifier", new AttributeValue().withS(identifier.toString()));
+    private Map<String, AttributeValue> customerAttributeMap(UUID identifier, URI organizationId) {
+        return Map.of(
+            "identifier", new AttributeValue().withS(identifier.toString()),
+            "cristinId", new AttributeValue().withS(organizationId.toString())
+        );
     }
 
     private Map<String, AttributeValue> channelClaimAttributeMap(URI channelId,

@@ -7,9 +7,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import nva.commons.core.JacocoGenerated;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class JacksonAttributeValueConverter implements AttributeValueConverter {
@@ -19,65 +17,66 @@ public class JacksonAttributeValueConverter implements AttributeValueConverter {
 
     @Override
     public Map<String, AttributeValue> convert(
-        final Map<String, com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue> image
+        Map<String, com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue> image
     ) {
-        return image.entrySet().stream().collect(toDynamoDbMap());
+        return image.entrySet().stream()
+                   .collect(Collectors.toMap(
+                       Entry::getKey,
+                       entry -> convertValue(entry.getValue())
+                   ));
     }
 
-    private static Collector<
-                                Entry<
-                                         String,
-                                         com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue>,
-                                ?,
-                                Map<String, AttributeValue>>
-    toDynamoDbMap() {
-        return Collectors.toMap(
-            Entry::getKey,
-            attributeValue ->
-                attempt(() -> mapToDynamoDbValue(attributeValue.getValue())).orElseThrow());
+    private AttributeValue convertValue(
+        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue awsValue
+    ) {
+        return attempt(() -> toSdkAttributeValue(awsValue)).orElseThrow();
     }
 
-    private static AttributeValue mapToDynamoDbValue(
-        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value)
-        throws JsonProcessingException {
+    private AttributeValue toSdkAttributeValue(
+        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value
+    ) throws JsonProcessingException {
         if (isNullValue(value)) {
             return AttributeValue.builder().nul(true).build();
         }
+
         if (containsAttributeValueMap(value)) {
-            return mapEachAttributeValueToDynamoDbValue(value);
+            return convertNestedMap(value);
         }
+
         if (nonNull(value.getL()) && value.getL().isEmpty()) {
             return AttributeValue.builder().l(emptyList()).build();
         }
-        var json = writeAsString(value);
+
+        return convertViaJson(value);
+    }
+
+    private AttributeValue convertNestedMap(
+        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value
+    ) {
+        var convertedMap = value.getM().entrySet().stream()
+                               .collect(Collectors.toMap(
+                                   Entry::getKey,
+                                   entry -> convertValue(entry.getValue())
+                               ));
+        return AttributeValue.builder().m(convertedMap).build();
+    }
+
+    private AttributeValue convertViaJson(
+        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value
+    ) throws JsonProcessingException {
+        var json = dtoObjectMapper.writeValueAsString(value);
         return dtoObjectMapper.readValue(json, AttributeValue.serializableBuilderClass()).build();
     }
 
-    private static boolean containsAttributeValueMap(
-        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value) {
-        return nonNull(value.getM());
+    private boolean isNullValue(
+        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value
+    ) {
+        return Boolean.TRUE.equals(value.isNULL());
     }
 
-    @JacocoGenerated
-    private static AttributeValue mapEachAttributeValueToDynamoDbValue(
-        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value) {
-        var attributeValueMap =
-            value.getM().entrySet().stream()
-                .collect(
-                    Collectors.toMap(
-                        Entry::getKey,
-                        entry -> attempt(() -> mapToDynamoDbValue(entry.getValue())).orElseThrow()));
-        return AttributeValue.builder().m(attributeValueMap).build();
-    }
-
-    private static boolean isNullValue(
-        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value) {
-        return nonNull(value.isNULL()) && value.isNULL();
-    }
-
-    private static String writeAsString(
-        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue attributeValue)
-        throws JsonProcessingException {
-        return dtoObjectMapper.writeValueAsString(attributeValue);
+    private boolean containsAttributeValueMap(
+        com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value
+    ) {
+        return value.getM() != null;
     }
 }

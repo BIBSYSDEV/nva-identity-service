@@ -31,7 +31,8 @@ The event detail looks like this:
         "DegreeMaster",
         "DegreePhd",
         "DegreeLicentiate",
-        "ArtisticDegreePhd"
+        "ArtisticDegreePhd",
+        "OtherStudentWork"
       ],
       "publishingPolicy": "Everyone",
       "editingPolicy": "OwnerOnly"

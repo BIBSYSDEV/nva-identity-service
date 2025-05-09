@@ -1,9 +1,13 @@
 package no.unit.nva.customer.events.model;
 
+import static no.unit.nva.customer.events.model.ResourceUpdateEvent.Action.ADDED;
+import static no.unit.nva.customer.events.model.ResourceUpdateEvent.Action.REMOVED;
+import static no.unit.nva.customer.events.model.ResourceUpdateEvent.Action.UPDATED;
 import java.net.URI;
 import java.util.EnumSet;
 import no.unit.nva.customer.ChannelClaimIdProducer;
 import no.unit.nva.customer.events.model.ChannelClaim.Constraints;
+import no.unit.nva.customer.events.model.ResourceUpdateEvent.Action;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 
 public final class ChannelClaimUpdateEvents {
@@ -15,22 +19,22 @@ public final class ChannelClaimUpdateEvents {
 
     public static ResourceUpdateEvent<ChannelClaim> addedChannelClaim(URI customerId, URI organizationId,
                                                                       ChannelClaimDto claim) {
-        return channelClaimEvent(customerId, organizationId, ResourceUpdateEvent.Action.ADDED, claim);
+        return channelClaimEvent(customerId, organizationId, ADDED, claim);
     }
 
     public static ResourceUpdateEvent<ChannelClaim> removedChannelClaim(URI customerId, URI organizationId,
                                                                         ChannelClaimDto claim) {
-        return channelClaimEvent(customerId, organizationId, ResourceUpdateEvent.Action.REMOVED, claim);
+        return channelClaimEvent(customerId, organizationId, REMOVED, claim);
     }
 
     public static ResourceUpdateEvent<ChannelClaim> updatedChannelClaim(URI customerId, URI organizationId,
                                                                         ChannelClaimDto claim) {
-        return channelClaimEvent(customerId, organizationId, ResourceUpdateEvent.Action.UPDATED, claim);
+        return channelClaimEvent(customerId, organizationId, UPDATED, claim);
     }
 
     private static ResourceUpdateEvent<ChannelClaim> channelClaimEvent(URI customerId,
                                                                        URI organizationId,
-                                                                       ResourceUpdateEvent.Action action,
+                                                                       Action action,
                                                                        ChannelClaimDto claim) {
         var constraint =
             new Constraints(EnumSet.copyOf(claim.constraint().scope()),

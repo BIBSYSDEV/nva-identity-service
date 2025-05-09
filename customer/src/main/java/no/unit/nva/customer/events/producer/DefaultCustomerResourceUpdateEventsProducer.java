@@ -1,6 +1,10 @@
 package no.unit.nva.customer.events.producer;
 
-import static nva.commons.core.attempt.Try.attempt;
+import static java.util.Objects.nonNull;
+import static java.util.function.Predicate.not;
+import static no.unit.nva.customer.events.model.ChannelClaimUpdateEvents.addedChannelClaim;
+import static no.unit.nva.customer.events.model.ChannelClaimUpdateEvents.removedChannelClaim;
+import static no.unit.nva.customer.events.model.ChannelClaimUpdateEvents.updatedChannelClaim;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent.DynamodbStreamRecord;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
 import java.net.URI;
@@ -12,10 +16,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import no.unit.nva.commons.json.JsonUtils;
+import java.util.stream.Stream;
 import no.unit.nva.customer.events.aws.AttributeValueConverter;
 import no.unit.nva.customer.events.model.ChannelClaim;
-import no.unit.nva.customer.events.model.ChannelClaimUpdateEvents;
 import no.unit.nva.customer.events.model.ResourceUpdateEvent;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
@@ -25,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 public class DefaultCustomerResourceUpdateEventsProducer implements CustomerResourceUpdateEventsProducer {
+
     private static final Logger logger = LoggerFactory.getLogger(DefaultCustomerResourceUpdateEventsProducer.class);
     private static final TableSchema<CustomerDao> CUSTOMER_DAO_TABLE_SCHEMA = TableSchema.fromBean(CustomerDao.class);
 
@@ -55,52 +59,63 @@ public class DefaultCustomerResourceUpdateEventsProducer implements CustomerReso
         return computeChannelClaimEvents(customerId, organizationId, oldClaims, newClaims);
     }
 
-    private String claimKey(ChannelClaimDto claim) {
-        return claim.channel().toString(); // Adjust fields as needed
-    }
-
     private boolean isModified(ChannelClaimDto oldClaim, ChannelClaimDto newClaim) {
         return !Objects.equals(oldClaim, newClaim);
     }
 
     private List<ResourceUpdateEvent<ChannelClaim>> computeChannelClaimEvents(URI customerId,
-                                                                                 URI organizationId,
-                                                                                 Collection<ChannelClaimDto> oldClaims,
-                                                                                 Collection<ChannelClaimDto> newClaims) {
+                                                                              URI organizationId,
+                                                                              Collection<ChannelClaimDto> oldClaims,
+                                                                              Collection<ChannelClaimDto> newClaims) {
         var oldMap = oldClaims.stream()
-                         .collect(Collectors.toMap(this::claimKey, Function.identity()));
+                         .collect(Collectors.toMap(ChannelClaimDto::channel, Function.identity()));
 
         var newMap = newClaims.stream()
-                         .collect(Collectors.toMap(this::claimKey, Function.identity()));
+                         .collect(Collectors.toMap(ChannelClaimDto::channel, Function.identity()));
 
+        return Stream.of(
+                computeAddedEvents(customerId, organizationId, newMap, oldMap),
+                computeRemovedEvents(customerId, organizationId, oldMap, newMap),
+                computeModifiedEvents(customerId, organizationId, oldMap, newMap)
+            )
+                   .flatMap(Collection::stream)
+                   .toList();
+    }
+
+    private List<ResourceUpdateEvent<ChannelClaim>> computeModifiedEvents(URI customerId,
+                                                                          URI organizationId,
+                                                                          Map<URI, ChannelClaimDto> oldMap,
+                                                                          Map<URI, ChannelClaimDto> newMap) {
         var events = new ArrayList<ResourceUpdateEvent<ChannelClaim>>();
-
-        // additions
-        for (var entry : newMap.entrySet()) {
-            if (!oldMap.containsKey(entry.getKey())) {
-                events.add(ChannelClaimUpdateEvents.addedChannelClaim(customerId, organizationId, entry.getValue()));
-            }
-        }
-
-        // removals
-        for (var entry : oldMap.entrySet()) {
-            if (!newMap.containsKey(entry.getKey())) {
-                events.add(ChannelClaimUpdateEvents.removedChannelClaim(customerId, organizationId, entry.getValue()));
-            }
-        }
-
-        // modifications
         for (var key : oldMap.keySet()) {
             var oldClaim = oldMap.get(key);
             var newClaim = newMap.get(key);
-            if (newClaim != null && isModified(oldClaim, newClaim)) {
-                events.add(ChannelClaimUpdateEvents.updatedChannelClaim(customerId, organizationId, newClaim));
+            if (nonNull(newClaim) && isModified(oldClaim, newClaim)) {
+                events.add(updatedChannelClaim(customerId, organizationId, newClaim));
             }
         }
 
-        var eventsAsJson = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(events)).orElseThrow();
-        logger.info("Derived the following events from dynamodb stream: {}", eventsAsJson);
         return events;
+    }
+
+    private static List<ResourceUpdateEvent<ChannelClaim>> computeRemovedEvents(URI customerId, URI organizationId,
+                                                                                Map<URI, ChannelClaimDto> oldMap,
+                                                                                Map<URI, ChannelClaimDto> newMap) {
+        return oldMap.keySet().stream()
+                   .filter(not(newMap::containsKey))
+                   .map(key -> removedChannelClaim(customerId, organizationId,
+                                                   oldMap.get(key)))
+                   .toList();
+    }
+
+    private static List<ResourceUpdateEvent<ChannelClaim>> computeAddedEvents(URI customerId,
+                                                                              URI organizationId,
+                                                                              Map<URI, ChannelClaimDto> newMap,
+                                                                              Map<URI, ChannelClaimDto> oldMap) {
+        return newMap.keySet().stream()
+                   .filter(not(oldMap::containsKey))
+                   .map(key -> addedChannelClaim(customerId, organizationId, newMap.get(key)))
+                   .toList();
     }
 
     private Optional<CustomerDto> convertToCustomerDto(Map<String, AttributeValue> image) {
@@ -109,5 +124,4 @@ public class DefaultCustomerResourceUpdateEventsProducer implements CustomerReso
                    .map(CUSTOMER_DAO_TABLE_SCHEMA::mapToItem)
                    .map(CustomerDao::toCustomerDto);
     }
-
 }

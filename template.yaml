@@ -871,10 +871,9 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: "*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/nva-identity-service/CustomerDynamoDbStreamToEventBridgeFunction/${AWS::AccountId}:*"
               - Effect: Allow
                 Action: events:PutEvents
                 Resource: !Ref NvaEventBusArn

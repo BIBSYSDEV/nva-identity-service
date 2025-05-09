@@ -11,6 +11,7 @@ import static no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy.OW
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.StreamRecord;
@@ -21,12 +22,14 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.customer.events.emitter.EventEmitterException;
 import no.unit.nva.customer.events.model.ChannelClaim;
 import no.unit.nva.customer.events.model.ChannelClaim.Constraints;
 import no.unit.nva.customer.events.model.ResourceUpdateEvent;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy;
 import no.unit.nva.stubs.FakeContext;
+import no.unit.nva.stubs.FakeEventBridgeClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,11 +44,27 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         OTHER_STUDENT_WORK
     );
 
+    private FakeEventBridgeClient eventBridgeClient;
     private CustomerTableDynamodbStreamToEventBridgeHandler handler;
+    private ChannelClaimContext channelClaimContext;
 
     @BeforeEach
     void beforeEach() {
-        handler = new CustomerTableDynamodbStreamToEventBridgeHandler();
+        eventBridgeClient = new FakeEventBridgeClient();
+        handler = new CustomerTableDynamodbStreamToEventBridgeHandler(eventBridgeClient);
+        channelClaimContext = generateContext();
+    }
+
+    private ChannelClaimContext generateContext() {
+        var channelIdentifier = UUID.randomUUID();
+        var channelId = channelId(channelIdentifier);
+        var customerIdentifier = UUID.randomUUID();
+        var organizationId = randomOrganizationId();
+        var customerId = customerId(customerIdentifier);
+        var channelClaimId = channelClaimId(channelIdentifier);
+
+        return new ChannelClaimContext(channelClaimId, channelIdentifier, channelId, customerIdentifier,
+                                       customerId, organizationId);
     }
 
     @Test
@@ -57,24 +76,34 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
     }
 
     @Test
-    void shouldEmitEventForNewChannelClaimAddedOnCreationOfNewCustomer() {
-        var channelIdentifier = UUID.randomUUID();
-        var channelId = channelId(channelIdentifier);
-        var customerIdentifier = UUID.randomUUID();
-        var organizationId = randomOrganizationId();
+    void shouldThrowWhenEventBridgeClientFailsWithHttpStatus() {
+        var event = customerCreationEventWithChannelClaim(channelClaimContext);
 
-        var event = customerCreationEventWithChannelClaim(customerIdentifier, organizationId, channelId);
+        handler = new CustomerTableDynamodbStreamToEventBridgeHandler(new FailingEventBridgeClient(true));
+
+        assertThrows(EventEmitterException.class, () -> handler.handleRequest(event, new FakeContext()));
+    }
+
+    @Test
+    void shouldThrowWhenEventBridgeClientFailsOnIndividualEntries() {
+        var event = customerCreationEventWithChannelClaim(channelClaimContext);
+
+        handler = new CustomerTableDynamodbStreamToEventBridgeHandler(new FailingEventBridgeClient(false));
+
+        assertThrows(EventEmitterException.class, () -> handler.handleRequest(event, new FakeContext()));
+    }
+
+    @Test
+    void shouldEmitEventForNewChannelClaimAddedOnCreationOfNewCustomer() {
+        var event = customerCreationEventWithChannelClaim(channelClaimContext);
 
         var result = handler.handleRequest(event, new FakeContext());
 
-        var customerId = customerId(customerIdentifier);
-        var channelClaimId = channelClaimId(channelIdentifier);
-
         assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.ADDED,
-                                                            channelClaimId,
-                                                            customerId,
-                                                            organizationId,
-                                                            channelId,
+                                                            channelClaimContext.channelClaimId,
+                                                            channelClaimContext.customerId,
+                                                            channelClaimContext.organizationId,
+                                                            channelClaimContext.channelId,
                                                             DEFAULT_SCOPE,
                                                             EVERYONE,
                                                             OWNER_ONLY)));
@@ -82,28 +111,18 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
     @Test
     void shouldEmitEventForNewChannelClaimAddedOnCustomerUpdate() {
-        var channelIdentifier = UUID.randomUUID();
-        var channelId = channelId(channelIdentifier);
-        var customerIdentifier = UUID.randomUUID();
-        var organizationId = randomOrganizationId();
-
-        var event = customerUpdateEvent(customerIdentifier,
-                                        organizationId,
-                                        channelId,
+        var event = customerUpdateEvent(channelClaimContext,
                                         DEFAULT_SCOPE,
                                         OWNER_ONLY,
                                         OWNER_ONLY);
 
         var result = handler.handleRequest(event, new FakeContext());
 
-        var customerId = customerId(customerIdentifier);
-        var channelClaimId = channelClaimId(channelIdentifier);
-
         assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.UPDATED,
-                                                            channelClaimId,
-                                                            customerId,
-                                                            organizationId,
-                                                            channelId,
+                                                            channelClaimContext.channelClaimId,
+                                                            channelClaimContext.customerId,
+                                                            channelClaimContext.organizationId,
+                                                            channelClaimContext.channelId,
                                                             DEFAULT_SCOPE,
                                                             OWNER_ONLY,
                                                             OWNER_ONLY)));
@@ -111,22 +130,15 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
     @Test
     void shouldEmitEventForChannelClaimDeletedOnCustomerUpdate() {
-        var channelIdentifier = UUID.randomUUID();
-        var channelId = channelId(channelIdentifier);
-        var customerIdentifier = UUID.randomUUID();
-        var organizationId = randomOrganizationId();
-
-        var event = customerUpdateEvent(customerIdentifier, organizationId, channelId);
+        var event = customerUpdateEvent(channelClaimContext);
 
         var result = handler.handleRequest(event, new FakeContext());
 
-        var customerId = customerId(customerIdentifier);
-        var channelClaimId = channelClaimId(channelIdentifier);
         assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.REMOVED,
-                                                            channelClaimId,
-                                                            customerId,
-                                                            organizationId,
-                                                            channelId,
+                                                            channelClaimContext.channelClaimId,
+                                                            channelClaimContext.customerId,
+                                                            channelClaimContext.organizationId,
+                                                            channelClaimContext.channelId,
                                                             DEFAULT_SCOPE,
                                                             EVERYONE,
                                                             OWNER_ONLY)));
@@ -134,23 +146,15 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
     @Test
     void shouldEmitEventForChannelClaimDeletedOnCustomerDeletion() {
-        var channelIdentifier = UUID.randomUUID();
-        var channelId = channelId(channelIdentifier);
-        var customerIdentifier = UUID.randomUUID();
-        var organizationId = randomOrganizationId();
-        var event = customerDeletedEvent(customerIdentifier,
-                                         organizationId,
-                                         channelId);
+        var event = customerDeletedEvent(channelClaimContext);
 
         var result = handler.handleRequest(event, new FakeContext());
 
-        var customerId = customerId(customerIdentifier);
-        var channelClaimId = channelClaimId(channelIdentifier);
         assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.REMOVED,
-                                                            channelClaimId,
-                                                            customerId,
-                                                            organizationId,
-                                                            channelId,
+                                                            channelClaimContext.channelClaimId,
+                                                            channelClaimContext.customerId,
+                                                            channelClaimContext.organizationId,
+                                                            channelClaimContext.channelId,
                                                             DEFAULT_SCOPE,
                                                             EVERYONE,
                                                             OWNER_ONLY)));
@@ -165,9 +169,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         return URI.create(organizationId);
     }
 
-    private DynamodbEvent customerCreationEventWithChannelClaim(UUID customerIdentifier,
-                                                                URI organizationId,
-                                                                URI channelId) {
+    private DynamodbEvent customerCreationEventWithChannelClaim(ChannelClaimContext context) {
         var event = new DynamodbEvent();
 
         var record = new DynamodbEvent.DynamodbStreamRecord();
@@ -175,9 +177,9 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         var streamRecord = new StreamRecord();
 
         streamRecord.setOldImage(null);
-        streamRecord.setNewImage(customerAttributeMap(customerIdentifier,
-                                                      organizationId,
-                                                      channelId,
+        streamRecord.setNewImage(customerAttributeMap(context.customerIdentifier,
+                                                      context.organizationId,
+                                                      context.channelId,
                                                       DEFAULT_SCOPE,
                                                       EVERYONE,
                                                       OWNER_ONLY));
@@ -189,9 +191,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         return event;
     }
 
-    private DynamodbEvent customerUpdateEvent(UUID customerIdentifier,
-                                              URI organizationId,
-                                              URI channelId,
+    private DynamodbEvent customerUpdateEvent(ChannelClaimContext context,
                                               Set<PublicationInstanceTypes> newScope,
                                               ChannelConstraintPolicy newPublishingPolicy,
                                               ChannelConstraintPolicy newEditingPolicy) {
@@ -201,15 +201,15 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
         var streamRecord = new StreamRecord();
 
-        streamRecord.setOldImage(customerAttributeMap(customerIdentifier,
-                                                      organizationId,
-                                                      channelId,
+        streamRecord.setOldImage(customerAttributeMap(context.customerIdentifier,
+                                                      context.organizationId,
+                                                      context.channelId,
                                                       DEFAULT_SCOPE,
                                                       EVERYONE,
                                                       OWNER_ONLY));
-        streamRecord.setNewImage(customerAttributeMap(customerIdentifier,
-                                                      organizationId,
-                                                      channelId,
+        streamRecord.setNewImage(customerAttributeMap(context.customerIdentifier,
+                                                      context.organizationId,
+                                                      context.channelId,
                                                       newScope,
                                                       newPublishingPolicy,
                                                       newEditingPolicy));
@@ -221,18 +221,16 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         return event;
     }
 
-    private DynamodbEvent customerDeletedEvent(UUID customerIdentifier,
-                                               URI organizationId,
-                                               URI channelId) {
+    private DynamodbEvent customerDeletedEvent(ChannelClaimContext context) {
         var event = new DynamodbEvent();
 
         var record = new DynamodbEvent.DynamodbStreamRecord();
 
         var streamRecord = new StreamRecord();
 
-        streamRecord.setOldImage(customerAttributeMap(customerIdentifier,
-                                                      organizationId,
-                                                      channelId,
+        streamRecord.setOldImage(customerAttributeMap(context.customerIdentifier,
+                                                      context.organizationId,
+                                                      context.channelId,
                                                       DEFAULT_SCOPE,
                                                       EVERYONE,
                                                       OWNER_ONLY));
@@ -245,22 +243,20 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         return event;
     }
 
-    private DynamodbEvent customerUpdateEvent(UUID customerIdentifier,
-                                              URI organizationId,
-                                              URI channelId) {
+    private DynamodbEvent customerUpdateEvent(ChannelClaimContext context) {
         var event = new DynamodbEvent();
 
         var record = new DynamodbEvent.DynamodbStreamRecord();
 
         var streamRecord = new StreamRecord();
 
-        streamRecord.setOldImage(customerAttributeMap(customerIdentifier,
-                                                      organizationId,
-                                                      channelId,
+        streamRecord.setOldImage(customerAttributeMap(context.customerIdentifier,
+                                                      context.organizationId,
+                                                      context.channelId,
                                                       DEFAULT_SCOPE,
                                                       EVERYONE,
                                                       OWNER_ONLY));
-        streamRecord.setNewImage(customerAttributeMap(customerIdentifier, organizationId));
+        streamRecord.setNewImage(customerAttributeMap(context.customerIdentifier, context.organizationId));
 
         record.setDynamodb(streamRecord);
 
@@ -355,5 +351,10 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         return Map.of("scope", new AttributeValue().withL(serializedScope),
                       "publishingPolicy", new AttributeValue().withS(publishingPolicy.name()),
                       "editingPolicy", new AttributeValue().withS(editingPolicy.name()));
+    }
+
+    record ChannelClaimContext(URI channelClaimId, UUID channelIdentifier, URI channelId, UUID customerIdentifier,
+                               URI customerId, URI organizationId) {
+
     }
 }

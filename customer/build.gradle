@@ -9,6 +9,8 @@ dependencies {
     implementation libs.bundles.aws.lambda
     implementation libs.bundles.logging
     implementation libs.aws.sdk2.dynamodb
+    implementation libs.aws.sdk2.dynamodbenhanced
+    implementation libs.aws.sdk2.eventbridge
     implementation libs.guava
     implementation libs.bundles.jackson
     testImplementation libs.apache.httpclient
@@ -21,9 +23,9 @@ dependencies {
 test {
     environment "API_DOMAIN", "localhost"
     environment "CUSTOMERS_TABLE_NAME", "nva_customers"
-    environment "ID_NAMESPACE", "https://localhost"
+    environment "ID_NAMESPACE", "https://localhost/customer"
     environment "ALLOWED_ORIGIN", "*"
-    environment "API_HOST", "host"
+    environment "API_HOST", "localhost"
     environment "PUBLICATION_CHANNEL_PATH", "publication-channels-path"
     environment "COGNITO_AUTHORIZER_URLS", "http://localhost:3000"
 }

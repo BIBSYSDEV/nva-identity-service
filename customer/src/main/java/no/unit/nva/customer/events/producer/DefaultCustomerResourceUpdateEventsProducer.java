@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeVal
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,7 +47,7 @@ public class DefaultCustomerResourceUpdateEventsProducer implements CustomerReso
         var newCustomerOpt = convertToCustomerDto(record.getDynamodb().getNewImage());
 
         if (oldCustomerOpt.isEmpty() && newCustomerOpt.isEmpty()) {
-            return List.of();
+            return Collections.emptyList();
         }
 
         var customer = newCustomerOpt.or(() -> oldCustomerOpt).orElseThrow();

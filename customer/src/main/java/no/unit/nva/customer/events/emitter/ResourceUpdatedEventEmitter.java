@@ -6,5 +6,5 @@ import no.unit.nva.customer.events.model.ResourceUpdateEvent;
 
 @FunctionalInterface
 public interface ResourceUpdatedEventEmitter {
-    <T extends IdentifiedResource> void emitEvents(List<ResourceUpdateEvent<T>> events);
+    <T extends IdentifiedResource> void emitEvents(List<ResourceUpdateEvent<T>> events, String detailType);
 }

@@ -12,6 +12,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.StreamRecord;
@@ -30,6 +33,7 @@ import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeEventBridgeClient;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -47,12 +51,20 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
     private FakeEventBridgeClient eventBridgeClient;
     private CustomerTableDynamodbStreamToEventBridgeHandler handler;
     private ChannelClaimContext channelClaimContext;
+    private Environment environment;
+    private Context context;
 
     @BeforeEach
     void beforeEach() {
-        eventBridgeClient = new FakeEventBridgeClient();
-        handler = new CustomerTableDynamodbStreamToEventBridgeHandler(eventBridgeClient);
-        channelClaimContext = generateContext();
+        this.environment = mock(Environment.class);
+        when(environment.readEnv("EVENT_BUS_NAME")).thenReturn("MY_EVENT_BUS_NAME");
+
+        this.context = mock(Context.class);
+        when(context.getInvokedFunctionArn()).thenReturn("FAKE_INVOKED_FUNCTION_ARN");
+
+        this.eventBridgeClient = new FakeEventBridgeClient();
+        this.handler = new CustomerTableDynamodbStreamToEventBridgeHandler(environment, eventBridgeClient);
+        this.channelClaimContext = generateContext();
     }
 
     private ChannelClaimContext generateContext() {
@@ -72,32 +84,34 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
         var event = new DynamodbEvent();
         event.setRecords(Collections.emptyList());
 
-        assertDoesNotThrow(() -> handler.handleRequest(event, new FakeContext()));
+        assertDoesNotThrow(() -> handler.handleRequest(event, context));
     }
 
     @Test
     void shouldThrowWhenEventBridgeClientFailsWithHttpStatus() {
         var event = customerCreationEventWithChannelClaim(channelClaimContext);
 
-        handler = new CustomerTableDynamodbStreamToEventBridgeHandler(new FailingEventBridgeClient(true));
+        handler = new CustomerTableDynamodbStreamToEventBridgeHandler(environment,
+                                                                      new FailingEventBridgeClient(true));
 
-        assertThrows(EventEmitterException.class, () -> handler.handleRequest(event, new FakeContext()));
+        assertThrows(EventEmitterException.class, () -> handler.handleRequest(event, context));
     }
 
     @Test
     void shouldThrowWhenEventBridgeClientFailsOnIndividualEntries() {
         var event = customerCreationEventWithChannelClaim(channelClaimContext);
 
-        handler = new CustomerTableDynamodbStreamToEventBridgeHandler(new FailingEventBridgeClient(false));
+        handler = new CustomerTableDynamodbStreamToEventBridgeHandler(environment,
+                                                                      new FailingEventBridgeClient(false));
 
-        assertThrows(EventEmitterException.class, () -> handler.handleRequest(event, new FakeContext()));
+        assertThrows(EventEmitterException.class, () -> handler.handleRequest(event, context));
     }
 
     @Test
     void shouldEmitEventForNewChannelClaimAddedOnCreationOfNewCustomer() {
         var event = customerCreationEventWithChannelClaim(channelClaimContext);
 
-        var result = handler.handleRequest(event, new FakeContext());
+        var result = handler.handleRequest(event, context);
 
         assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.ADDED,
                                                             channelClaimContext.channelClaimId,
@@ -116,7 +130,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
                                         OWNER_ONLY,
                                         OWNER_ONLY);
 
-        var result = handler.handleRequest(event, new FakeContext());
+        var result = handler.handleRequest(event, context);
 
         assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.UPDATED,
                                                             channelClaimContext.channelClaimId,
@@ -132,7 +146,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
     void shouldEmitEventForChannelClaimDeletedOnCustomerUpdate() {
         var event = customerUpdateEvent(channelClaimContext);
 
-        var result = handler.handleRequest(event, new FakeContext());
+        var result = handler.handleRequest(event, context);
 
         assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.REMOVED,
                                                             channelClaimContext.channelClaimId,
@@ -148,7 +162,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
     void shouldEmitEventForChannelClaimDeletedOnCustomerDeletion() {
         var event = customerDeletedEvent(channelClaimContext);
 
-        var result = handler.handleRequest(event, new FakeContext());
+        var result = handler.handleRequest(event, context);
 
         assertThat(result, containsInAnyOrder(expectedEvent(ResourceUpdateEvent.Action.REMOVED,
                                                             channelClaimContext.channelClaimId,

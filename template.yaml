@@ -123,7 +123,7 @@ Globals:
         BOT_FILTER_BYPASS_HEADER_VALUE: !Ref CristinBotFilterBypassHeaderValue
   Api:
     Cors:
-      AllowMethods: '''POST, PUT, GET,OPTIONS'''
+      AllowMethods: '''POST, PUT, GET, OPTIONS, DELETE'''
       AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
       AllowOrigin: '''*'''
     OpenApiVersion: 3.0.1

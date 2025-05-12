@@ -1,5 +1,6 @@
 package no.unit.nva.customer.events.emitter;
 
+import static java.net.HttpURLConnection.HTTP_MULT_CHOICE;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Objects.nonNull;
 import static nva.commons.core.attempt.Try.attempt;
@@ -67,11 +68,15 @@ public class EventBridgeClientResourceUpdatedEventEmitter implements ResourceUpd
     }
 
     private void logAndThrowHttpErrorIfNeeded(SdkHttpResponse sdkHttpResponse) {
-        if (sdkHttpResponse.statusCode() != HTTP_OK) {
+        if (!isWithinSuccessRange(sdkHttpResponse.statusCode())) {
             logger.error("Failed to put events to EventBridge. Status code: {}",
                          sdkHttpResponse.statusCode());
             throw new EventEmitterException("Failed to put events to EventBridge");
         }
+    }
+
+    private static boolean isWithinSuccessRange(int statusCode) {
+        return statusCode >= HTTP_OK && statusCode < HTTP_MULT_CHOICE;
     }
 
     private PutEventsRequestEntry toPutEventsRequestEntry(final ResourceUpdateEvent<?> resourceUpdateEvent,

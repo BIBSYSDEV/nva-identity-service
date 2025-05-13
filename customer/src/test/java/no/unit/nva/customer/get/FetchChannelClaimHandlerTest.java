@@ -4,7 +4,6 @@ import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDto;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDto;
@@ -74,17 +73,6 @@ class FetchChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
         var response = GatewayResponse.fromOutputStream(output, Problem.class);
 
         assertEquals(HTTP_BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    void shouldReturnUnauthorizedWhenUserIsNotAuthenticated() throws IOException {
-        var request = createRequest(randomString());
-
-        handler.handleRequest(request, output, CONTEXT);
-
-        var response = GatewayResponse.fromOutputStream(output, Problem.class);
-
-        assertEquals(HTTP_UNAUTHORIZED, response.getStatusCode());
     }
 
     @Test

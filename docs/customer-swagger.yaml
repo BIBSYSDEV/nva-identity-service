@@ -708,15 +708,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ChannelClaimList'
-        '401':
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-              examples:
-                UnauthorizedExample:
-                  $ref: '#/components/examples/UnauthorizedProblemExample'
         '502':
           description: Bad Gateway
           content:
@@ -737,8 +728,6 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ChannelClaimIdentifier'
-      security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin", "https://api.nva.unit.no/scopes/backend" ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaFetchChannelClaimFunction.Arn}/invocations

@@ -33,8 +33,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandler
 
     @JacocoGenerated
     public CustomerTableDynamodbStreamToEventBridgeHandler() {
-        this(new Environment(),
-             defaultEventBridgeClient());
+        this(new Environment(), defaultEventBridgeClient());
     }
 
     @JacocoGenerated

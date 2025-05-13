@@ -708,6 +708,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ChannelClaimList'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                UnauthorizedExample:
+                  $ref: '#/components/examples/UnauthorizedProblemExample'
         '502':
           description: Bad Gateway
           content:
@@ -741,15 +750,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ClaimedChannel'
-        '401':
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-              examples:
-                UnauthorizedExample:
-                  $ref: '#/components/examples/UnauthorizedProblemExample'
         '400':
           description: Bad Request
           content:

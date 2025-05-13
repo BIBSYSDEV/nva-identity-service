@@ -41,7 +41,6 @@ public class CustomerTableDynamodbStreamToEventBridgeHandler
     private static EventBridgeClient defaultEventBridgeClient() {
         return EventBridgeClient.builder()
                    .httpClientBuilder(UrlConnectionHttpClient.builder())
-                   .httpClientBuilder(UrlConnectionHttpClient.builder())
                    .build();
     }
 

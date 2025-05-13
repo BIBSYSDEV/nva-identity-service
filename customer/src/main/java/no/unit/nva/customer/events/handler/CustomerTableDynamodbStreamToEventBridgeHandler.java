@@ -34,7 +34,15 @@ public class CustomerTableDynamodbStreamToEventBridgeHandler
     @JacocoGenerated
     public CustomerTableDynamodbStreamToEventBridgeHandler() {
         this(new Environment(),
-             EventBridgeClient.builder().httpClientBuilder(UrlConnectionHttpClient.builder()).httpClientBuilder(UrlConnectionHttpClient.builder()).build());
+             defaultEventBridgeClient());
+    }
+
+    @JacocoGenerated
+    private static EventBridgeClient defaultEventBridgeClient() {
+        return EventBridgeClient.builder()
+                   .httpClientBuilder(UrlConnectionHttpClient.builder())
+                   .httpClientBuilder(UrlConnectionHttpClient.builder())
+                   .build();
     }
 
     public CustomerTableDynamodbStreamToEventBridgeHandler(final Environment environment,

@@ -17,6 +17,7 @@ import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 public class CustomerTableDynamodbStreamToEventBridgeHandler
@@ -32,7 +33,8 @@ public class CustomerTableDynamodbStreamToEventBridgeHandler
 
     @JacocoGenerated
     public CustomerTableDynamodbStreamToEventBridgeHandler() {
-        this(new Environment(), EventBridgeClient.create());
+        this(new Environment(),
+             EventBridgeClient.builder().httpClientBuilder(UrlConnectionHttpClient.builder()).httpClientBuilder(UrlConnectionHttpClient.builder()).build());
     }
 
     public CustomerTableDynamodbStreamToEventBridgeHandler(final Environment environment,

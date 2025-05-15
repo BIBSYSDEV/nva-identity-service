@@ -56,7 +56,12 @@ public class CustomerTableDynamodbStreamToEventBridgeHandler
         var eventEmitter = new EventBridgeClientResourceUpdatedEventEmitter(eventBridgeClient,
                                                                             environment.readEnv(ENV_KEY_EVENT_BUS_NAME),
                                                                             context);
-        eventEmitter.emitEvents(events, DETAIL_TYPE_RESOURCE_UPDATE_CHANNEL_CLAIM);
+        if (events.isEmpty()) {
+            logger.info("No events to emit");
+        } else {
+            eventEmitter.emitEvents(events, DETAIL_TYPE_RESOURCE_UPDATE_CHANNEL_CLAIM);
+        }
+
         return events;
     }
 }

@@ -83,6 +83,7 @@ public class UserSelectionUponLoginHandler
         = "Failed to retrieve customer for active affiliation %s when logging in as %s with the following "
           + "affiliations: %s";
     public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
+    private static final String N_A = "N/A";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -175,8 +176,8 @@ public class UserSelectionUponLoginHandler
 
         var requestedPerson = personRegistry.fetchPersonByNin(nin)
                                   .or(() -> personRegistry.createPersonByNin(nin,
-                                                         extractName(attributes, FIRST_NAME_CLAIM, "N/A"),
-                                                         extractName(attributes, LAST_NAME_CLAIM, "N/A")));
+                                                         extractName(attributes, FIRST_NAME_CLAIM, N_A),
+                                                         extractName(attributes, LAST_NAME_CLAIM, N_A)));
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
@@ -477,9 +478,9 @@ public class UserSelectionUponLoginHandler
                 decoded = decoded.substring(1, decoded.length() - 1);
             }
             var names = decoded.split(",");
-            return names.length > 0 ? names[0].replaceAll("^\"|\"$", "") : "N/A";
+            return names.length > 0 ? names[0].replaceAll("^\"|\"$", "") : N_A;
         } catch (Exception e) {
-            return "N/A";
+            return N_A;
         }
     }
 }

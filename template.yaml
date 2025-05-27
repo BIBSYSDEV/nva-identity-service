@@ -1864,8 +1864,8 @@ Resources:
         custom:feidememberrole: eduPersonAffiliation
         custom:feideIdNin: norEduPersonNIN
         custom:orgFeideDomain: schacHomeOrganization
-        custom:firstName: givenName
-        custom:lastName: sn
+        custom:firstName: givenName # https://docs.feide.no/reference/schema/attributes/givenname.html#saml-attribute-givenname
+        custom:lastName: sn # https://docs.feide.no/reference/schema/attributes/sn.html
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'

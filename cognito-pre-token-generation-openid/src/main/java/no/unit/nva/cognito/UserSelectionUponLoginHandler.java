@@ -168,7 +168,7 @@ public class UserSelectionUponLoginHandler
 
         var attributes = input.getRequest().getUserAttributes();
         var impersonating = attributes.get(IMPERSONATING_CLAIM);
-        var 56 = getCurrentNin(impersonating, authenticationDetails);
+        var nin = getCurrentNin(impersonating, authenticationDetails);
 
         var requestedPerson = personRegistry.fetchPersonByNin(nin)
                                   .or(() -> personRegistry.createPersonByNin(nin,

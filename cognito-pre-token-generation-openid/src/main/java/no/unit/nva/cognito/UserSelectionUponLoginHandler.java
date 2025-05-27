@@ -8,6 +8,8 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import no.unit.nva.commons.json.JsonUtils;
@@ -160,7 +162,8 @@ public class UserSelectionUponLoginHandler
 
         final var start = Instant.now();
 
-        LOGGER.info("DEBUG CODE (REMOVE ME): {}", attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(input)).get());
+        LOGGER.info("DEBUG CODE (REMOVE ME): {}",
+                    attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(input)).get());
 
         final var authenticationDetails = extractAuthenticationDetails(input);
 
@@ -172,10 +175,8 @@ public class UserSelectionUponLoginHandler
 
         var requestedPerson = personRegistry.fetchPersonByNin(nin)
                                   .or(() -> personRegistry.createPersonByNin(nin,
-                                                                             attributes.getOrDefault(FIRST_NAME_CLAIM,
-                                                                                                     "N/A"),
-                                                                             attributes.getOrDefault(LAST_NAME_CLAIM,
-                                                                                                     "N/A")));
+                                                         extractName(attributes, FIRST_NAME_CLAIM, "N/A"),
+                                                         extractName(attributes, LAST_NAME_CLAIM, "N/A")));
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
@@ -238,6 +239,10 @@ public class UserSelectionUponLoginHandler
         logIfDebug("Leaving request handler having spent {} ms.", start);
 
         return input;
+    }
+
+    private String extractName(Map<String, String> attributes, String fieldName, String defaultValue) {
+        return decodeAndSelectFirstName(attributes.getOrDefault(fieldName, defaultValue));
     }
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,
@@ -462,5 +467,19 @@ public class UserSelectionUponLoginHandler
         return AccessTokenGeneration.builder()
                    .withClaimsToAddOrOverride(claims)
                    .build();
+    }
+
+    private String decodeAndSelectFirstName(String value) {
+        try {
+            // Remove brackets if present and split by comma
+            var decoded = URLDecoder.decode(value, StandardCharsets.UTF_8);
+            if (decoded.startsWith("[") && decoded.endsWith("]")) {
+                decoded = decoded.substring(1, decoded.length() - 1);
+            }
+            var names = decoded.split(",");
+            return names.length > 0 ? names[0].replaceAll("^\"|\"$", "") : "N/A";
+        } catch (Exception e) {
+            return "N/A";
+        }
     }
 }

@@ -247,8 +247,8 @@ class UserSelectionUponLoginHandlerTest {
         if (nonNull(nin)) {
             request = Request.builder()
                           .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin,
-                                                     FIRST_NAME_CLAIM, randomString(),
-                                                     LAST_NAME_CLAIM, randomString(),
+                                                     FIRST_NAME_CLAIM, "[%22L%C3%B8k%22]",
+                                                     LAST_NAME_CLAIM, "[%22L%C3%B8k%22]",
                                                      CUSTOMER_ACCEPTED_TERMS, TERMS_URI.toString(),
                                                      CURRENT_TERMS, TERMS_URI.toString())).build();
         } else {
@@ -275,6 +275,8 @@ class UserSelectionUponLoginHandlerTest {
         var attributes = new ConcurrentHashMap<String, String>();
         attributes.put(NIN_FOR_FEIDE_USERS, nin);
         attributes.put(FEIDE_ID, "feideid@domain.no");
+        attributes.put(FIRST_NAME_CLAIM, "[%22L%C3%B8k%22]");
+        attributes.put(LAST_NAME_CLAIM, "[%22L%C3%B8k%22]");
         if (nonNull(feideDomain)) {
             attributes.put(ORG_FEIDE_DOMAIN, feideDomain);
         }

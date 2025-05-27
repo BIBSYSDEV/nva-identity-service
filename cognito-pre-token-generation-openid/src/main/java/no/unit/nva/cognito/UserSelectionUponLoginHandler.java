@@ -160,7 +160,7 @@ public class UserSelectionUponLoginHandler
 
         final var start = Instant.now();
 
-        LOGGER.info("DEBUG CODE (REMOVE ME): {}", attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(input)));
+        LOGGER.info("DEBUG CODE (REMOVE ME): {}", attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(input)).get());
 
         final var authenticationDetails = extractAuthenticationDetails(input);
 

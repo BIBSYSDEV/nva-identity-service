@@ -491,6 +491,7 @@ Resources:
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
+          USER_POOL_ID: !GetAtt UserPool.UserPoolId
       Events:
         ApiEvent:
           Type: Api
@@ -503,36 +504,6 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/nva-identity-service/CustomerSelectionHandler/${AWS::AccountId}'
-      RetentionInDays: !Ref LogRetentionInDays
-
-  CognitoUserInfoHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      LoggingConfig:
-        LogGroup: !Ref CognitoUserInfoHandlerLogGroup
-      CodeUri: cognito-pre-token-generation-openid
-      Handler: no.unit.nva.cognito.CognitoUserInfoEndpoint::handleRequest
-      Policies:
-        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
-        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: !Ref AllowedOrigins
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
-          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /userinfo
-            Method: get
-            RestApiId: !Ref UsersAndRolesApi
-
-  CognitoUserInfoHandlerLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub '/nva-identity-service/CognitoUserInfoHandler/${AWS::AccountId}'
       RetentionInDays: !Ref LogRetentionInDays
 
   ListByInstitutionHandler:

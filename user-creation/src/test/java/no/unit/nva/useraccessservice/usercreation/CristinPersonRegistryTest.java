@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @WireMockTest(httpsEnabled = true)
 class CristinPersonRegistryTest {
+
     private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
     private PersonRegistry personRegistry;
     private FakeSecretsManagerClient secretsManagerClient;
@@ -50,9 +51,10 @@ class CristinPersonRegistryTest {
     private LocalIdentityService identityServiceDatabase;
     private IdentityService identityService;
     private DynamoDBCustomerService customerService;
+    private MockPersonRegistry mockPersonRegistry;
 
     @BeforeEach
-    public void beforeEach(WireMockRuntimeInfo wireMockRuntimeInfo) throws InvalidInputException, ConflictException {
+    void beforeEach(WireMockRuntimeInfo wireMockRuntimeInfo) throws InvalidInputException, ConflictException {
         setupCustomerAndIdentityService();
         var cristinUsername = randomString();
         var cristinPassword = randomString();
@@ -63,16 +65,16 @@ class CristinPersonRegistryTest {
         var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
         var httpClient = WiremockHttpClient.create();
         var defaultRequestHeaders = new HttpHeaders()
-            .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         personRegistry = CristinPersonRegistry.customPersonRegistry(httpClient,
-            wiremockUri,
-            apiDomain,
-            defaultRequestHeaders,
-            new SecretsReader(secretsManagerClient));
-        MockPersonRegistry mockPersonRegistry = new MockPersonRegistry(cristinUsername,
-            cristinPassword,
-            wiremockUri,
-            defaultRequestHeaders);
+                                                                    wiremockUri,
+                                                                    apiDomain,
+                                                                    defaultRequestHeaders,
+                                                                    new SecretsReader(secretsManagerClient));
+        this.mockPersonRegistry = new MockPersonRegistry(cristinUsername,
+                                                                       cristinPassword,
+                                                                       wiremockUri,
+                                                                       defaultRequestHeaders);
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
     }
 
@@ -85,7 +87,7 @@ class CristinPersonRegistryTest {
     }
 
     @AfterEach
-    public void afterEach() {
+    void afterEach() {
         customerServiceDatabase.deleteDatabase();
         identityServiceDatabase.closeDB();
     }
@@ -98,12 +100,12 @@ class CristinPersonRegistryTest {
             = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
 
         var defaultRequestHeaders = new HttpHeaders()
-            .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         personRegistry = CristinPersonRegistry.customPersonRegistry(httpClient,
-            uriWhereCristinIsUnavailable,
-            ServiceConstants.API_DOMAIN,
-            defaultRequestHeaders,
-            new SecretsReader(secretsManagerClient));
+                                                                    uriWhereCristinIsUnavailable,
+                                                                    ServiceConstants.API_DOMAIN,
+                                                                    defaultRequestHeaders,
+                                                                    new SecretsReader(secretsManagerClient));
         var nin = NationalIdentityNumber.fromString(randomNin());
         var exception = assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
         assertThat(exception.getMessage(), not(containsString(nin.toString())));
@@ -115,6 +117,16 @@ class CristinPersonRegistryTest {
         var person = scenarios.personWithoutAffiliations();
 
         var fetchedPerson = personRegistry.fetchPersonByIdentifier(person.cristinIdentifier());
+        assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
+    }
+
+    @Test
+    void createPersonTest() {
+        var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
+        mockPersonRegistry.createPostPersonStub(person.getCristinPersin());
+
+        var fetchedPerson = personRegistry.createPersonByNin(NationalIdentityNumber.fromString(person.nin()),
+                                                             randomString(), randomString());
         assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
     }
 

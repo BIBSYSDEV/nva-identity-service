@@ -1864,6 +1864,8 @@ Resources:
         custom:feidememberrole: eduPersonAffiliation
         custom:feideIdNin: norEduPersonNIN
         custom:orgFeideDomain: schacHomeOrganization
+        custom:firstName: givenName
+        custom:lastName: sn
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'

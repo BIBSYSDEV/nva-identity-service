@@ -7,4 +7,6 @@ public interface PersonRegistry {
     Optional<Person> fetchPersonByNin(NationalIdentityNumber nin);
 
     Optional<Person> fetchPersonByIdentifier(String cristinIdentifier);
+
+    Optional<Person> createPersonByNin(NationalIdentityNumber nin, String firstName, String lastName);
 }

@@ -56,7 +56,12 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
@@ -97,6 +102,8 @@ import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
@@ -143,6 +150,7 @@ class UserSelectionUponLoginHandlerTest {
     private LocalIdentityService identityServiceDb;
     private LocalCustomerServiceDatabase customerServiceDatabase;
     private AuthenticationScenarios scenarios;
+    private PersonRegistry personRegistry;
 
     @BeforeEach
     public void init(WireMockRuntimeInfo wireMockRuntimeInfo) throws InvalidInputException, ConflictException {
@@ -177,12 +185,12 @@ class UserSelectionUponLoginHandlerTest {
                                                                   environment);
 
         var httpClient = WiremockHttpClient.create();
-        var personRegistry = CristinPersonRegistry.customPersonRegistry(
+        this.personRegistry = spy(CristinPersonRegistry.customPersonRegistry(
             httpClient,
             wiremockUri,
             ServiceConstants.API_DOMAIN,
             defaultRequestHeaders,
-            new SecretsReader(secretsManagerClient));
+            new SecretsReader(secretsManagerClient)));
 
         handler = new UserSelectionUponLoginHandler(
             cognitoClient, customerService, identityService, personRegistry, termsAndConditionsService);
@@ -239,6 +247,8 @@ class UserSelectionUponLoginHandlerTest {
         if (nonNull(nin)) {
             request = Request.builder()
                           .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin,
+                                                     FIRST_NAME_CLAIM, randomString(),
+                                                     LAST_NAME_CLAIM, randomString(),
                                                      CUSTOMER_ACCEPTED_TERMS, TERMS_URI.toString(),
                                                      CURRENT_TERMS, TERMS_URI.toString())).build();
         } else {
@@ -1146,6 +1156,23 @@ class UserSelectionUponLoginHandlerTest {
 
         var accessRights = extractAccessRights(response);
         assertThat(accessRights, is((empty())));
+    }
+
+    @ParameterizedTest
+    @EnumSource(LoginEventType.class)
+    void shouldCreateCristinUserWhenNotFoundInRegistry(
+        LoginEventType loginEventType) {
+        var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
+        mockPersonRegistry.createPostPersonStub(person.getCristinPersin());
+
+        var event = newLoginEvent(person.nin(), loginEventType);
+        var response = handler.handleRequest(event, context);
+
+        var accessRights = extractAccessRights(response);
+        var nin = NationalIdentityNumber.fromString(person.nin());
+
+        assertThat(accessRights, is((empty())));
+        verify(personRegistry, times(1)).createPersonByNin(eq(nin), any(), any());
     }
 
     @Test

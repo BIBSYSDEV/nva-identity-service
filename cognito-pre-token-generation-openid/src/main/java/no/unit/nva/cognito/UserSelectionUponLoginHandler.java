@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -53,7 +54,9 @@ import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_INCLUDED_IN_ACCESS_
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
+import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
@@ -157,14 +160,22 @@ public class UserSelectionUponLoginHandler
 
         final var start = Instant.now();
 
+        LOGGER.info("DEBUG CODE (REMOVE ME): {}", attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(input)));
+
         final var authenticationDetails = extractAuthenticationDetails(input);
 
         var startFetchingPerson = Instant.now();
 
-        var impersonating = input.getRequest().getUserAttributes().get(IMPERSONATING_CLAIM);
-        var nin = getCurrentNin(impersonating, authenticationDetails);
+        var attributes = input.getRequest().getUserAttributes();
+        var impersonating = attributes.get(IMPERSONATING_CLAIM);
+        var 56 = getCurrentNin(impersonating, authenticationDetails);
 
-        var requestedPerson = personRegistry.fetchPersonByNin(nin);
+        var requestedPerson = personRegistry.fetchPersonByNin(nin)
+                                  .or(() -> personRegistry.createPersonByNin(nin,
+                                                                             attributes.getOrDefault(FIRST_NAME_CLAIM,
+                                                                                                     "N/A"),
+                                                                             attributes.getOrDefault(LAST_NAME_CLAIM,
+                                                                                                     "N/A")));
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
@@ -174,7 +185,7 @@ public class UserSelectionUponLoginHandler
 
             var customersForPerson = fetchCustomersWithActiveAffiliations(person);
             var currentCustomer = getCurrentCustomer(authenticationDetails, customersForPerson,
-                                                     input.getTriggerSource(), input.getRequest().getUserAttributes());
+                                                     input.getTriggerSource(), attributes);
 
             var users = createUsers(person, customersForPerson, authenticationDetails);
             var currentTerms = termsService
@@ -185,7 +196,8 @@ public class UserSelectionUponLoginHandler
 
             var currentUser = getCurrentUser(currentCustomer, users);
 
-            var userAccessRights = createAccessRightForCustomer(users, customersForPerson, currentCustomer, hasAcceptedTerms);
+            var userAccessRights = createAccessRightForCustomer(users, customersForPerson, currentCustomer,
+                                                                hasAcceptedTerms);
 
             var accessRightsPersistedFormat = userAccessRights.stream().map(UserAccessRightForCustomer::getAccessRight)
                                                   .map(AccessRight::toPersistedString)
@@ -213,11 +225,13 @@ public class UserSelectionUponLoginHandler
             );
 
             input.setResponse(Response.builder()
-                                  .withClaimsAndScopeOverrideDetails(buildOverrideClaims(accessRightsResponseStrings, userAttributes))
+                                  .withClaimsAndScopeOverrideDetails(
+                                      buildOverrideClaims(accessRightsResponseStrings, userAttributes))
                                   .build());
         } else {
             input.setResponse(Response.builder()
-                                  .withClaimsAndScopeOverrideDetails(buildOverrideClaims(Collections.emptyList(), Collections.emptyList()))
+                                  .withClaimsAndScopeOverrideDetails(
+                                      buildOverrideClaims(Collections.emptyList(), Collections.emptyList()))
                                   .build());
         }
 
@@ -225,8 +239,6 @@ public class UserSelectionUponLoginHandler
 
         return input;
     }
-
-
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,
                                            Set<CustomerDto> customersForPerson, String triggerSource,

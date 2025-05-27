@@ -1837,6 +1837,8 @@ Resources:
         custom:orgFeideDomain: schacHomeOrganization
         custom:firstName: givenName # https://docs.feide.no/reference/schema/attributes/givenname.html#saml-attribute-givenname
         custom:lastName: sn # https://docs.feide.no/reference/schema/attributes/sn.html
+        given_name: given_name # https://developer.bankid.no/bankid-oidc-provider/core-concepts/id-token/#structure
+        family_name: family_name # https://developer.bankid.no/bankid-oidc-provider/core-concepts/id-token/#structure
       ProviderDetails:
         client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
         client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'

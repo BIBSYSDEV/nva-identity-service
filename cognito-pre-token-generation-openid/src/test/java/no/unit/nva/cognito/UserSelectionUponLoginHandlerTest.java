@@ -1165,7 +1165,7 @@ class UserSelectionUponLoginHandlerTest {
     void shouldCreateCristinUserWhenNotFoundInRegistry(
         LoginEventType loginEventType) {
         var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
-        mockPersonRegistry.createPostPersonStub(person.getCristinPersin());
+        mockPersonRegistry.createPostPersonStub(person.getCristinPerson());
 
         var event = newLoginEvent(person.nin(), loginEventType);
         var response = handler.handleRequest(event, context);
@@ -1174,7 +1174,7 @@ class UserSelectionUponLoginHandlerTest {
         var nin = NationalIdentityNumber.fromString(person.nin());
 
         assertThat(accessRights, is((empty())));
-        verify(personRegistry, times(1)).createPersonByNin(eq(nin), any(), any());
+        verify(personRegistry, times(1)).createPerson(eq(nin), any(), any());
     }
 
     @Test

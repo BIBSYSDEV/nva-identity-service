@@ -123,10 +123,10 @@ class CristinPersonRegistryTest {
     @Test
     void createPersonTest() {
         var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
-        mockPersonRegistry.createPostPersonStub(person.getCristinPersin());
+        mockPersonRegistry.createPostPersonStub(person.getCristinPerson());
 
-        var fetchedPerson = personRegistry.createPersonByNin(NationalIdentityNumber.fromString(person.nin()),
-                                                             randomString(), randomString());
+        var fetchedPerson = personRegistry.createPerson(NationalIdentityNumber.fromString(person.nin()),
+                                                        randomString(), randomString());
         assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
     }
 

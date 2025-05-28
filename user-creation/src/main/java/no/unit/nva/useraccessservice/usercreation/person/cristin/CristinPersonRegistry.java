@@ -167,7 +167,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     @Override
-    public Optional<Person> createPersonByNin(NationalIdentityNumber nin, String firstName, String lastName) {
+    public Optional<Person> createPerson(NationalIdentityNumber nin, String firstName, String lastName) {
         var cristinCredentials = this.cristinCredentialsSupplier.get();
 
         var person = new CristinPerson(null, firstName, lastName, null, nin.getNin());

@@ -8,5 +8,5 @@ public interface PersonRegistry {
 
     Optional<Person> fetchPersonByIdentifier(String cristinIdentifier);
 
-    Optional<Person> createPersonByNin(NationalIdentityNumber nin, String firstName, String lastName);
+    Optional<Person> createPerson(NationalIdentityNumber nin, String firstName, String lastName);
 }

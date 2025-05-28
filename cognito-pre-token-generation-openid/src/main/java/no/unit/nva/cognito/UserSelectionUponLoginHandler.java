@@ -171,9 +171,9 @@ public class UserSelectionUponLoginHandler
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
         var requestedPerson = personRegistry.fetchPersonByNin(nin)
-                                  .or(() -> personRegistry.createPersonByNin(nin,
-                                                         extractName(attributes, FIRST_NAME_CLAIM, N_A),
-                                                         extractName(attributes, LAST_NAME_CLAIM, N_A)));
+                                  .or(() -> personRegistry.createPerson(nin,
+                                                                        extractName(attributes, FIRST_NAME_CLAIM, N_A),
+                                                                        extractName(attributes, LAST_NAME_CLAIM, N_A)));
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 

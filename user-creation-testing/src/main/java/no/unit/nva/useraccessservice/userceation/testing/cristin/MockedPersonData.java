@@ -4,7 +4,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPe
 
 public record MockedPersonData(String nin, String cristinIdentifier) {
 
-    public CristinPerson getCristinPersin() {
+    public CristinPerson getCristinPerson() {
         return new CristinPerson(
             cristinIdentifier,
             "Test",

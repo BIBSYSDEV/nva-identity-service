@@ -48,7 +48,7 @@ public class CustomerSelectionHandler extends CognitoCommunicationHandler<Custom
             throw new ForbiddenException();
         }
 
-        List<AttributeType> userAttributes = List.of(
+        var userAttributes = List.of(
             AttributeType.builder()
                 .name(CURRENT_CUSTOMER_CLAIM)
                 .value(input.getCustomerId().toString())

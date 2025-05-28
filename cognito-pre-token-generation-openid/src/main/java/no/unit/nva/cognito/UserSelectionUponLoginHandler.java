@@ -453,17 +453,25 @@ public class UserSelectionUponLoginHandler
                                  .toList();
 
         var claims = userAttributes.stream()
-                         .filter(a -> !excludedClaims.contains(a.name()) && nonNull(a.value()) && !a.value().isEmpty())
+                         .filter(attribute -> shouldBeIncludedExcept(attribute, excludedClaims))
                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
 
         return IdTokenGeneration.builder().withClaimsToAddOrOverride(claims).withClaimsToSuppress(excludedClaims.toArray(String[]::new)).build();
+    }
+
+    private static boolean shouldBeIncludedExcept(AttributeType a, List<String> excludedClaims) {
+        return !excludedClaims.contains(a.name()) && nonNull(a.value()) && !a.value().isEmpty();
+    }
+
+    private static boolean shouldBeIncluded(AttributeType a, List<String> includedClaims) {
+        return includedClaims.contains(a.name()) && nonNull(a.value()) && !a.value().isEmpty();
     }
 
     @SuppressWarnings("PMD.UnusedFormalParameter")
     private AccessTokenGeneration buildAccessTokenGeneration(Collection<AttributeType> userAttributes) {
         var includedClaims = Arrays.asList(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN);
         var claims = userAttributes.stream()
-                         .filter(a -> includedClaims.contains(a.name()) && nonNull(a.value()))
+                         .filter(attribute -> shouldBeIncluded(attribute, includedClaims))
                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
 
         return AccessTokenGeneration.builder()

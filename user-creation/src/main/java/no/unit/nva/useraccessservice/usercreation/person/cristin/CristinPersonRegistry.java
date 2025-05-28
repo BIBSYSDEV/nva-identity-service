@@ -58,6 +58,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private static final String ORGANIZATION_PATH = "organization";
     private static final String NATIONAL_IDENTITY_PATTERN = ".*\\?national_id=(\\d+)\\d\\d$";
     private static final String PERSONS_PATH = "persons";
+    private static final String APPLICATION_JSON_CHARSET_UTF_8 = "application/json, charset=UTF-8";
+    private static final String CONTENT_TYPE = "Content-Type";
     private final HttpClient httpClient;
     private final URI cristinBaseUri;
     private final String apiDomain;
@@ -200,6 +202,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private HttpRequest createPostRequest(URI uri, String body, CristinCredentials cristinCredentials) {
         var requestBuilder = HttpRequest.newBuilder(uri)
                                  .POST(HttpRequest.BodyPublishers.ofString(body))
+                                 .header(CONTENT_TYPE, APPLICATION_JSON_CHARSET_UTF_8)
                                  .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
 
         defaultRequestHeaders.stream()

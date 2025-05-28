@@ -12,7 +12,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Stream;
-import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -162,9 +161,6 @@ public class UserSelectionUponLoginHandler
         }
 
         final var start = Instant.now();
-
-        LOGGER.info("DEBUG CODE (REMOVE ME): {}",
-                    attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(input)).get());
 
         final var authenticationDetails = extractAuthenticationDetails(input);
 
@@ -478,7 +474,7 @@ public class UserSelectionUponLoginHandler
                 decoded = decoded.substring(1, decoded.length() - 1);
             }
             var names = decoded.split(",");
-            return names.length > 0 ? names[0].replaceAll("^\"|\"$", "") : N_A;
+            return names.length > 0 ? names[0].replace("\"", "") : N_A;
         } catch (Exception e) {
             return N_A;
         }

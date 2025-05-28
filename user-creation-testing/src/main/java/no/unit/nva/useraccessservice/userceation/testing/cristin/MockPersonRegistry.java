@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -118,7 +119,7 @@ public class MockPersonRegistry {
 
     private void createPersonWithoutAffiliations(String nin, String cristinId) {
 
-        var person = new CristinPerson(cristinId, randomString(), randomString(), null);
+        var person = new CristinPerson(cristinId, randomString(), randomString(), null, null);
         var institutions = Collections.<String>emptyList();
         updateBuffersAndStubs(nin, person, institutions);
     }
@@ -203,6 +204,20 @@ public class MockPersonRegistry {
                     .withStatus(HttpURLConnection.HTTP_OK)));
     }
 
+    public void createPostPersonStub(CristinPerson cristinPerson) {
+        var response
+            = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(cristinPerson))
+                  .orElseThrow();
+
+        stubWithDefaultRequestHeadersEqualToFor(
+            post("/persons")
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                                .withBody(response)
+                                .withStatus(HttpURLConnection.HTTP_OK)));
+    }
+
+
     public MockedPersonData personWithExactlyOneActiveEmployment() {
         var nin = randomNin();
         var cristinId = randomString();
@@ -238,7 +253,7 @@ public class MockPersonRegistry {
     private void createPersonWithAffiliations(String nin,
                                               String cristinId,
                                               List<CristinAffiliation> cristinAffiliations) {
-        var person = new CristinPerson(cristinId, randomString(), randomString(), cristinAffiliations);
+        var person = new CristinPerson(cristinId, randomString(), randomString(), cristinAffiliations, null);
 
         var institutions = cristinAffiliations.stream()
             .map(CristinAffiliation::getInstitution)

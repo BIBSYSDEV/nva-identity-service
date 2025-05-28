@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
@@ -17,16 +18,21 @@ public class CristinPerson {
     private final String surname;
     @JsonProperty("affiliations")
     private final List<CristinAffiliation> affiliations;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("norwegian_national_id")
+    private final String norwegianNationalId;
 
     @JsonCreator
     public CristinPerson(@JsonProperty("cristin_person_id") String id,
                          @JsonProperty("first_name") String firstname,
                          @JsonProperty("surname") String surname,
-                         @JsonProperty("affiliations") List<CristinAffiliation> affiliations) {
+                         @JsonProperty("affiliations") List<CristinAffiliation> affiliations,
+                         @JsonProperty("norwegian_national_id") String norwegianNationalId) {
         this.id = id;
         this.firstname = firstname;
         this.surname = surname;
         this.affiliations = Objects.isNull(affiliations) ? Collections.emptyList() : affiliations;
+        this.norwegianNationalId = norwegianNationalId;
     }
 
     public String getId() {
@@ -43,5 +49,9 @@ public class CristinPerson {
 
     public List<CristinAffiliation> getAffiliations() {
         return affiliations;
+    }
+
+    public String getNorwegianNationalId() {
+        return norwegianNationalId;
     }
 }

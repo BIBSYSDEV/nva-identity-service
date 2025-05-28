@@ -443,22 +443,35 @@ public class UserSelectionUponLoginHandler
         return ClaimsAndScopeOverrideDetails.builder()
                    .withGroupOverrideDetails(groups)
                    .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes))
-                   .withIdTokenGeneration(buildIdTokenGeneration())
+                   .withIdTokenGeneration(buildIdTokenGeneration(userAttributes))
                    .build();
     }
 
-    private IdTokenGeneration buildIdTokenGeneration() {
+    private IdTokenGeneration buildIdTokenGeneration(Collection<AttributeType> userAttributes) {
         var excludedClaims = Stream.concat(Arrays.stream(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN),
                                            Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC))
-                                 .toArray(String[]::new);
-        return IdTokenGeneration.builder().withClaimsToSuppress(excludedClaims).build();
+                                 .toList();
+
+        var claims = userAttributes.stream()
+                         .filter(attribute -> shouldBeIncludedExcept(attribute, excludedClaims))
+                         .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
+
+        return IdTokenGeneration.builder().withClaimsToAddOrOverride(claims).withClaimsToSuppress(excludedClaims.toArray(String[]::new)).build();
+    }
+
+    private static boolean shouldBeIncludedExcept(AttributeType a, List<String> excludedClaims) {
+        return !excludedClaims.contains(a.name()) && nonNull(a.value()) && !a.value().isEmpty();
+    }
+
+    private static boolean shouldBeIncluded(AttributeType a, List<String> includedClaims) {
+        return includedClaims.contains(a.name()) && nonNull(a.value()) && !a.value().isEmpty();
     }
 
     @SuppressWarnings("PMD.UnusedFormalParameter")
-    private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
+    private AccessTokenGeneration buildAccessTokenGeneration(Collection<AttributeType> userAttributes) {
         var includedClaims = Arrays.asList(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN);
         var claims = userAttributes.stream()
-                         .filter(a -> includedClaims.contains(a.name()) && nonNull(a.value()))
+                         .filter(attribute -> shouldBeIncluded(attribute, includedClaims))
                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
 
         return AccessTokenGeneration.builder()

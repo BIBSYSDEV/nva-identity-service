@@ -447,7 +447,7 @@ public class UserSelectionUponLoginHandler
                    .build();
     }
 
-    private IdTokenGeneration buildIdTokenGeneration(List<AttributeType> userAttributes) {
+    private IdTokenGeneration buildIdTokenGeneration(Collection<AttributeType> userAttributes) {
         var excludedClaims = Stream.concat(Arrays.stream(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN),
                                            Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC))
                                  .toList();
@@ -460,7 +460,7 @@ public class UserSelectionUponLoginHandler
     }
 
     @SuppressWarnings("PMD.UnusedFormalParameter")
-    private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
+    private AccessTokenGeneration buildAccessTokenGeneration(Collection<AttributeType> userAttributes) {
         var includedClaims = Arrays.asList(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN);
         var claims = userAttributes.stream()
                          .filter(a -> includedClaims.contains(a.name()) && nonNull(a.value()))

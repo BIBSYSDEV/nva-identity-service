@@ -1,5 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin;
 
+import java.util.concurrent.Flow.Subscriber;
+import java.util.concurrent.Flow.Subscription;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
 import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
@@ -266,7 +268,51 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private Optional<CristinPerson> createPerson(CristinPerson person,
                                                  CristinCredentials cristinCredentials) {
         var request = createPostRequest(creatNewPersonQueryUri(), generatePersonPayload(person), cristinCredentials);
+        printHttpRequest(request);
         return attempt(() -> executeRequest(request, CristinPerson.class)).toOptional();
+    }
+
+    private static void printHttpRequest(HttpRequest request) {
+        System.out.println("HTTP Request:");
+        System.out.println("Method: " + request.method());
+        System.out.println("URI: " + request.uri());
+        System.out.println("Headers:");
+        request.headers().map().forEach((key, values) -> {
+            if (key.equalsIgnoreCase(AUTHORIZATION)) {
+                System.out.println("  " + key + ": " + "********");
+            } else {
+                System.out.println("  " + key + ": " + String.join(", ", values));
+            }
+        });
+
+        if (request.bodyPublisher().isPresent()) {
+            System.out.println("Body:");
+            request.bodyPublisher().get().subscribe(new Subscriber<>() {
+                private final StringBuilder body = new StringBuilder();
+
+                @Override
+                public void onSubscribe(Subscription subscription) {
+                    subscription.request(Long.MAX_VALUE); // Request all data
+                }
+
+                @Override
+                public void onNext(java.nio.ByteBuffer item) {
+                    body.append(StandardCharsets.UTF_8.decode(item).toString());
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    System.out.println("Error retrieving body: " + throwable.getMessage());
+                }
+
+                @Override
+                public void onComplete() {
+                    System.out.println(body.toString());
+                }
+            });
+        } else {
+            System.out.println("Body: Absent");
+        }
     }
 
     private URI createByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {

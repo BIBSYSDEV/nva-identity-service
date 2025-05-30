@@ -278,7 +278,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
         System.out.println("URI: " + request.uri());
         System.out.println("Headers:");
         request.headers().map().forEach((key, values) -> {
-            if (key.equalsIgnoreCase(AUTHORIZATION)) {
+            if (AUTHORIZATION.equalsIgnoreCase(key)) {
                 System.out.println("  " + key + ": " + "********");
             } else {
                 System.out.println("  " + key + ": " + String.join(", ", values));
@@ -288,6 +288,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
         if (request.bodyPublisher().isPresent()) {
             System.out.println("Body:");
             request.bodyPublisher().get().subscribe(new Subscriber<>() {
+                @SuppressWarnings("PMD.AvoidStringBuffer")
                 private final StringBuilder body = new StringBuilder();
 
                 @Override

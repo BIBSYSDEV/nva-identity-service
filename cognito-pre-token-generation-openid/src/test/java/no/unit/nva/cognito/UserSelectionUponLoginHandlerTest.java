@@ -59,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -362,6 +363,17 @@ class UserSelectionUponLoginHandlerTest {
             "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEventV2.Request"
             + "(super=CognitoUserPoolEvent.Request(userAttributes={SOME=VALUE}), scopes=null, "
             + "groupConfiguration=null, clientMetadata=null"));
+    }
+
+    @Test
+    void shouldNotCreatePersonIfFetchFails() {
+        var personLoggingIn = scenarios.failingPersonRegistryRequestBadGateway();
+        var event = newLoginEvent(personLoggingIn.nin(), NON_FEIDE);
+
+        assertThrows(Exception.class, () -> handler.handleRequest(event, context));
+
+        verify(personRegistry, never())
+            .createPerson(eq(NationalIdentityNumber.fromString(personLoggingIn.nin())), any(), any());
     }
 
     @ParameterizedTest(name = "Login event type: {0}")

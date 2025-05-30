@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -58,8 +57,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private static final String ORGANIZATION_PATH = "organization";
     private static final String NATIONAL_IDENTITY_PATTERN = ".*\\?national_id=(\\d+)\\d\\d$";
     private static final String PERSONS_PATH = "persons";
-    private static final String APPLICATION_JSON_CHARSET_UTF_8 = "application/json, charset=UTF-8";
     private static final String CONTENT_TYPE = "Content-Type";
+    private static final String APPLICATION_JSON = "application/json";
     private final HttpClient httpClient;
     private final URI cristinBaseUri;
     private final String apiDomain;
@@ -202,7 +201,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private HttpRequest createPostRequest(URI uri, String body, CristinCredentials cristinCredentials) {
         var requestBuilder = HttpRequest.newBuilder(uri)
                                  .POST(HttpRequest.BodyPublishers.ofString(body))
-                                 .header(CONTENT_TYPE, APPLICATION_JSON_CHARSET_UTF_8)
+                                 .header(CONTENT_TYPE, APPLICATION_JSON)
                                  .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
 
         defaultRequestHeaders.stream()
@@ -314,13 +313,13 @@ public final class CristinPersonRegistry implements PersonRegistry {
             }
         }
 
-        assertOkResponse(request, response);
+        assertSuccessResponse(request, response);
 
         return fromJson(response.body(), type);
     }
 
-    private void assertOkResponse(HttpRequest request, HttpResponse<String> response) {
-        if (response.statusCode() != HttpURLConnection.HTTP_OK) {
+    private void assertSuccessResponse(HttpRequest request, HttpResponse<String> response) {
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
             var message = generateErrorMessageForResponse(request, response);
             LOGGER.info(message);
             throw new PersonRegistryException(message);

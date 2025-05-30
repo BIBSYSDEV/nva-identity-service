@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    uses: BIBSYSDEV/nva-github-workflows/.github/workflows/java.yml@v1
+    uses: BIBSYSDEV/nva-github-workflows/.github/workflows/java.yml@np-49120-parameterize-report-path
     with:
       lint_openapi: false
     secrets:

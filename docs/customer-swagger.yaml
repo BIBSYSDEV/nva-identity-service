@@ -79,13 +79,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
-                BadGatewatExample:
+                BadGatewayExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
     get:
       summary: Get All Customers
       operationId: listCustomers
-      security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaListAllCustomersFunction.Arn}/invocations
@@ -133,7 +131,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
-                BadGatewatExample:
+                BadGatewayExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
   /{identifier}:
     get:
@@ -262,7 +260,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
-                BadGatewatExample:
+                BadGatewayExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
   /{identifier}/doiagent:
     get:
@@ -358,7 +356,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
-                BadGatewatExample:
+                BadGatewayExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
   /{identifier}/vocabularies:
     get:
@@ -414,13 +412,13 @@ paths:
             schema:
               $ref: '#/components/schemas/VocabularyList'
             examples:
-              VocabulaaryListExample:
+              VocabularyListExample:
                 $ref: '#/components/examples/VocabularyListExample'
           application/ld+json:
             schema:
               $ref: '#/components/schemas/VocabularyList'
             examples:
-              VocabulaaryListExample:
+              VocabularyListExample:
                 $ref: '#/components/examples/VocabularyListExample'
       x-amazon-apigateway-integration:
         uri:
@@ -460,7 +458,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
-                BadGatewatExample:
+                BadGatewayExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
     put:
       summary: Update Vocabularies
@@ -831,7 +829,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
-                BadGatewatExample:
+                BadGatewayExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
   /cristinId/{cristinId}:
     get:
@@ -894,7 +892,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
-                BadGatewatExample:
+                BadGatewayExample:
                   $ref: '#/components/examples/BadGatewayProblemExample'
 components:
   securitySchemes:

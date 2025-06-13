@@ -74,6 +74,15 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
     }
 
     @Test
+    void shouldReturnCreatedWhenCreatingChannelClaimForAnotherCustomer()
+        throws IOException, ConflictException, NotFoundException {
+        var request = createRequestWithUserClaimingOnBehalfOfAnotherCustomer();
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        assertEquals(HttpURLConnection.HTTP_CREATED, response.getStatusCode());
+    }
+
+    @Test
     void shouldReturnBadRequestWhenInvalidChannelUriIsProvidedInRequest() throws IOException {
         var request = createRequestWithInvalidChannelUriInBody();
         handler.handleRequest(request, outputStream, context);
@@ -87,15 +96,6 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
         handler.handleRequest(request, outputStream, context);
         var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
         assertEquals(HttpURLConnection.HTTP_NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void shouldReturnForbiddenWhenCreatingChannelClaimForAnotherCustomer()
-        throws IOException, ConflictException, NotFoundException {
-        var request = createRequestWithUserNotBelongingToCustomer();
-        handler.handleRequest(request, outputStream, context);
-        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, response.getStatusCode());
     }
 
     @Test
@@ -188,7 +188,7 @@ class CreateChannelClaimHandlerTest extends LocalCustomerServiceDatabase {
                    .build();
     }
 
-    private InputStream createRequestWithUserNotBelongingToCustomer()
+    private InputStream createRequestWithUserClaimingOnBehalfOfAnotherCustomer()
         throws JsonProcessingException, ConflictException, NotFoundException {
         var anotherCustomer = customerService.createCustomer(createSampleCustomerDto());
         return createDefaultRequestBuilder(anotherCustomer.getIdentifier(), randomChannelClaimRequest())

@@ -3,19 +3,17 @@ package no.unit.nva.customer.delete;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.customer.RequestUtils.getChannelClaimIdentifier;
 import static no.unit.nva.customer.RequestUtils.getIdentifier;
+import static nva.commons.apigateway.AccessRight.MANAGE_CHANNEL_CLAIMS;
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
 import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
-import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.paths.UriWrapper;
 
 public class DeleteChannelClaimHandler extends ApiGatewayHandler<Void, Void> {
 
@@ -33,16 +31,15 @@ public class DeleteChannelClaimHandler extends ApiGatewayHandler<Void, Void> {
 
     @Override
     protected void validateRequest(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        if (!isAuthorizedToUnclaimChannel(requestInfo)) {
+        if (!requestInfo.userIsAuthorized(MANAGE_CHANNEL_CLAIMS)) {
             throw new ForbiddenException();
         }
+        validateUuids(requestInfo);
     }
 
     @Override
     protected Void processInput(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-
         customerService.deleteChannelClaim(getChannelClaimIdentifier(requestInfo));
-
         return null;
     }
 
@@ -51,11 +48,8 @@ public class DeleteChannelClaimHandler extends ApiGatewayHandler<Void, Void> {
         return HttpURLConnection.HTTP_NO_CONTENT;
     }
 
-    private static boolean isAuthorizedToUnclaimChannel(RequestInfo requestInfo)
-        throws BadRequestException, UnauthorizedException {
-        var customerIdentifierFromPath = getIdentifier(requestInfo).toString();
-        var customerIdentifierFromUser = UriWrapper.fromUri(requestInfo.getCurrentCustomer()).getLastPathElement();
-        return customerIdentifierFromUser.equals(customerIdentifierFromPath) &&
-               requestInfo.getAccessRights().contains(AccessRight.MANAGE_CHANNEL_CLAIMS);
+    private void validateUuids(RequestInfo requestInfo) throws BadRequestException {
+        getIdentifier(requestInfo);
+        getChannelClaimIdentifier(requestInfo);
     }
 }

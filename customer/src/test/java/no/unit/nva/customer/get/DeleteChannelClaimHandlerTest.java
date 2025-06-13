@@ -51,7 +51,7 @@ class DeleteChannelClaimHandlerTest {
     }
 
     @Test
-    void shouldThrowUnauthorizedWhenUserIsNotAuthorized() throws IOException {
+    void shouldThrowForbiddenWhenUserIsNotAuthorized() throws IOException {
         var request = createRequest(randomUUID(), randomUUID());
 
         handler.handleRequest(request, output, CONTEXT);

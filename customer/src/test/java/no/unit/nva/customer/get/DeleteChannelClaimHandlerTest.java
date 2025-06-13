@@ -4,7 +4,6 @@ import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
-import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static java.util.UUID.randomUUID;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -51,14 +50,14 @@ class DeleteChannelClaimHandlerTest {
     }
 
     @Test
-    void shouldThrowUnauthorizedWhenUserIsNotAuthorized() throws IOException {
+    void shouldThrowForbiddenWhenUserIsNotAuthorized() throws IOException {
         var request = createRequest(randomUUID(), randomUUID());
 
         handler.handleRequest(request, output, CONTEXT);
 
         var response = GatewayResponse.fromOutputStream(output, Problem.class);
 
-        assertEquals(HTTP_UNAUTHORIZED, response.getStatusCode());
+        assertEquals(HTTP_FORBIDDEN, response.getStatusCode());
     }
 
     @Test
@@ -74,7 +73,8 @@ class DeleteChannelClaimHandlerTest {
 
     @Test
     void shouldThrowBadRequestWhenProvidedCustomerIdentifierIsNotValid() throws IOException {
-        var request = createAuthenticatedRequest(randomUUID().toString(), randomString(), MANAGE_CHANNEL_CLAIMS);
+        var request = createAuthenticatedRequest(randomUUID().toString(), randomUUID().toString(), randomString(),
+                                                 MANAGE_CHANNEL_CLAIMS);
 
         handler.handleRequest(request, output, CONTEXT);
 
@@ -118,25 +118,56 @@ class DeleteChannelClaimHandlerTest {
         assertEquals(HTTP_NO_CONTENT, response.getStatusCode());
     }
 
+    @Test
+    void shouldReturnNoContentWhenChannelHasBeenSuccessfullyDeletedOnBehalfOfAnotherCustomer() throws IOException {
+        var request = createAuthenticatedRequest(randomUUID(), randomUUID(), randomUUID(), MANAGE_CHANNEL_CLAIMS);
+
+        handler.handleRequest(request, output, CONTEXT);
+
+        var response = GatewayResponse.fromOutputStream(output, Problem.class);
+
+        assertEquals(HTTP_NO_CONTENT, response.getStatusCode());
+    }
+
     private static CustomerService failingCustomerService() throws InputException, NotFoundException {
         var failingCustomerService = mock(CustomerService.class);
         doThrow(RuntimeException.class).when(failingCustomerService).deleteChannelClaim(any());
         return failingCustomerService;
     }
 
-    private InputStream createAuthenticatedRequest(UUID channelClaimIdentifier, UUID customerIdentifier,
-                                                   AccessRight accessRight) throws JsonProcessingException {
-        return createAuthenticatedRequest(channelClaimIdentifier.toString(), customerIdentifier.toString(),
+    private InputStream createAuthenticatedRequest(UUID channelClaimIdentifier,
+                                                   UUID userAndChannelClaimCustomerIdentifier,
+                                                   AccessRight accessRight)
+        throws JsonProcessingException {
+        return createAuthenticatedRequest(channelClaimIdentifier.toString(),
+                                          userAndChannelClaimCustomerIdentifier.toString(),
+                                          userAndChannelClaimCustomerIdentifier.toString(),
                                           accessRight);
     }
 
-    private InputStream createAuthenticatedRequest(String channelClaimIdentifier, String customerIdentifier,
-                                                   AccessRight accessRight) throws JsonProcessingException {
-        var customerId = UriWrapper.fromUri(randomUri()).addChild(customerIdentifier).getUri();
+    private InputStream createAuthenticatedRequest(UUID channelClaimIdentifier, UUID usersCustomerIdentifier,
+                                                   UUID channelClaimCustomerIdentifier, AccessRight accessRight)
+        throws JsonProcessingException {
+        return createAuthenticatedRequest(channelClaimIdentifier.toString(), usersCustomerIdentifier.toString(),
+                                          channelClaimCustomerIdentifier.toString(), accessRight);
+    }
+
+    private InputStream createAuthenticatedRequest(String channelClaimIdentifier,
+                                                   String userAndChannelClaimCustomerIdentifier,
+                                                   AccessRight accessRight)
+        throws JsonProcessingException {
+        return createAuthenticatedRequest(channelClaimIdentifier, userAndChannelClaimCustomerIdentifier,
+                                          userAndChannelClaimCustomerIdentifier, accessRight);
+    }
+
+    private InputStream createAuthenticatedRequest(String channelClaimIdentifier, String usersCustomerIdentifier,
+                                                   String channelClaimCustomerIdentifier, AccessRight accessRight)
+        throws JsonProcessingException {
+        var customerId = UriWrapper.fromUri(randomUri()).addChild(usersCustomerIdentifier).getUri();
         return new HandlerRequestBuilder<Void>(dtoObjectMapper).withUserName(randomString())
                    .withCurrentCustomer(customerId)
                    .withAccessRights(customerId, accessRight)
-                   .withPathParameters(Map.of(IDENTIFIER, customerIdentifier, CHANNEL_CLAIM_IDENTIFIER,
+                   .withPathParameters(Map.of(IDENTIFIER, channelClaimCustomerIdentifier, CHANNEL_CLAIM_IDENTIFIER,
                                               channelClaimIdentifier))
                    .build();
     }

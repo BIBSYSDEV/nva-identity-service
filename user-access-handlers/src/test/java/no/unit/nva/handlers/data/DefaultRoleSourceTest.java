@@ -116,18 +116,18 @@ public class DefaultRoleSourceTest {
         var appAdminRole = getRoleByName(RoleName.APPLICATION_ADMIN);
 
         assertThat(appAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_CUSTOMERS,
-            MANAGE_EXTERNAL_CLIENTS,
-            ACT_AS,
-            MANAGE_NVI,
-            MANAGE_IMPORT));
+                                                                      MANAGE_EXTERNAL_CLIENTS,
+                                                                      ACT_AS,
+                                                                      MANAGE_NVI,
+                                                                      MANAGE_IMPORT,
+                                                                      MANAGE_CHANNEL_CLAIMS));
     }
 
     @Test
     void editorsShouldHaveCorrectAccessRights() {
         var editorRole = getRoleByName(RoleName.EDITOR);
 
-        assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION,
-            MANAGE_RESOURCES_ALL, MANAGE_CHANNEL_CLAIMS));
+        assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION, MANAGE_RESOURCES_ALL));
     }
 
     @Test

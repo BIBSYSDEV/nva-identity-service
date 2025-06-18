@@ -8,8 +8,6 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
@@ -55,9 +53,7 @@ import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_INCLUDED_IN_ACCESS_
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
-import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
@@ -83,6 +79,8 @@ public class UserSelectionUponLoginHandler
           + "affiliations: %s";
     public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
     private static final String N_A = "N/A";
+    private static final String WHITESPACE_REGEX = "\\s+";
+    private static final int ONE = 1;
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -170,10 +168,12 @@ public class UserSelectionUponLoginHandler
         var impersonating = attributes.get(IMPERSONATING_CLAIM);
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
+
+
         var requestedPerson = personRegistry.fetchPersonByNin(nin)
                                   .or(() -> personRegistry.createPerson(nin,
-                                                                        extractName(attributes, FIRST_NAME_CLAIM, N_A),
-                                                                        extractName(attributes, LAST_NAME_CLAIM, N_A)));
+                                                                        extractFirstName(attributes),
+                                                                        extractLastName(attributes)));
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
@@ -238,8 +238,21 @@ public class UserSelectionUponLoginHandler
         return input;
     }
 
-    private String extractName(Map<String, String> attributes, String fieldName, String defaultValue) {
-        return decodeAndSelectFirstName(attributes.getOrDefault(fieldName, defaultValue));
+    private String extractFirstName(Map<String, String> attributes) {
+        return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
+                   .filter(fullName -> !fullName.isBlank())
+                   .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
+                   .filter(parts -> parts.length > ONE)
+                   .map(parts -> String.join(" ", Arrays.copyOf(parts, parts.length - ONE)))
+                   .orElse(N_A);
+    }
+
+    private String extractLastName(Map<String, String> attributes) {
+        return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
+                   .filter(fullName -> !fullName.isBlank())
+                   .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
+                   .map(parts -> parts[parts.length - ONE])
+                   .orElse(N_A);
     }
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,
@@ -477,19 +490,5 @@ public class UserSelectionUponLoginHandler
         return AccessTokenGeneration.builder()
                    .withClaimsToAddOrOverride(claims)
                    .build();
-    }
-
-    private String decodeAndSelectFirstName(String value) {
-        try {
-            // Remove brackets if present and split by comma
-            var decoded = URLDecoder.decode(value, StandardCharsets.UTF_8);
-            if (decoded.startsWith("[") && decoded.endsWith("]")) {
-                decoded = decoded.substring(1, decoded.length() - 1);
-            }
-            var names = decoded.split(",");
-            return names.length > 0 ? names[0].replace("\"", "") : N_A;
-        } catch (Exception e) {
-            return N_A;
-        }
     }
 }

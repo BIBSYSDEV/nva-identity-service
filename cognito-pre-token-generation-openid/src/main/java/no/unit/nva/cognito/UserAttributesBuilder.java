@@ -28,9 +28,10 @@ import static no.unit.nva.cognito.CognitoClaims.CUSTOMER_ACCEPTED_TERMS;
 import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
-import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
@@ -107,6 +108,7 @@ public class UserAttributesBuilder {
         var userAttributes = new ArrayList<AttributeType>();
         userAttributes.add(createAttribute(FIRST_NAME_CLAIM, person.getFirstname()));
         userAttributes.add(createAttribute(LAST_NAME_CLAIM, person.getSurname()));
+        userAttributes.add(createAttribute(NAME_CLAIM, person.getFirstname() + " " + person.getSurname()));
 
         var userAcceptedTerms = currentTerms.equals(acceptedTerms);
 

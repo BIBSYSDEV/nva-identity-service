@@ -15,6 +15,7 @@ import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
@@ -36,6 +37,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_NAME;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static no.unit.nva.useraccessservice.model.UserDto.AT;
+import static no.unit.nva.useraccessservice.userceation.testing.cristin.RandomNin.randomNin;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_CREDENTIALS_SECRET_NAME;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_PASSWORD_SECRET_KEY;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
@@ -108,6 +110,7 @@ import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -122,8 +125,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.EnumSource.Mode;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -139,6 +144,7 @@ class UserSelectionUponLoginHandlerTest {
     public static final String TRIGGER_SOURCE_AUTHENTICATION = "TokenGeneration_Authentication";
     public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
     private static final String COMMA = ",";
+    private static final String EXAMPLE_NAME = "Håkon Østby Ærland";
 
     private final Context context = new FakeContext();
     private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
@@ -243,15 +249,17 @@ class UserSelectionUponLoginHandlerTest {
         return LoginEventType.FEIDE.equals(loginEventType) ? feideLogin(personNin) : nonFeideLogin(personNin);
     }
 
-    private static CognitoUserPoolPreTokenGenerationEventV2 nonFeideLogin(String nin) {
+    private static CognitoUserPoolPreTokenGenerationEventV2 nonFeideLogin(String nin, String name) {
         Request request;
         if (nonNull(nin)) {
-            request = Request.builder()
-                          .withUserAttributes(Map.of(NIN_FOR_NON_FEIDE_USERS, nin,
-                                                     FIRST_NAME_CLAIM, "[%22L%C3%B8k%22]",
-                                                     LAST_NAME_CLAIM, "[%22L%C3%B8k%22]",
-                                                     CUSTOMER_ACCEPTED_TERMS, TERMS_URI.toString(),
-                                                     CURRENT_TERMS, TERMS_URI.toString())).build();
+            Map<String, String> userAttributes = new HashMap<>();
+            userAttributes.put(NIN_FOR_NON_FEIDE_USERS, nin);
+            if (name != null) {
+                userAttributes.put(NAME_CLAIM, name);
+            }
+            userAttributes.put(CUSTOMER_ACCEPTED_TERMS, TERMS_URI.toString());
+            userAttributes.put(CURRENT_TERMS, TERMS_URI.toString());
+            request = Request.builder().withUserAttributes(userAttributes).build();
         } else {
             request = Request.builder()
                           .withUserAttributes(Map.of("SOME", "VALUE")).build();
@@ -260,6 +268,10 @@ class UserSelectionUponLoginHandlerTest {
         loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
         loginEvent.setRequest(request);
         return loginEvent;
+    }
+
+    private static CognitoUserPoolPreTokenGenerationEventV2 nonFeideLogin(String nin) {
+        return nonFeideLogin(nin, EXAMPLE_NAME);
     }
 
     private CognitoUserPoolPreTokenGenerationEventV2 feideLogin(String nin) {
@@ -276,8 +288,7 @@ class UserSelectionUponLoginHandlerTest {
         var attributes = new ConcurrentHashMap<String, String>();
         attributes.put(NIN_FOR_FEIDE_USERS, nin);
         attributes.put(FEIDE_ID, "feideid@domain.no");
-        attributes.put(FIRST_NAME_CLAIM, "[%22L%C3%B8k%22]");
-        attributes.put(LAST_NAME_CLAIM, "[%22L%C3%B8k%22]");
+        attributes.put(NAME_CLAIM, EXAMPLE_NAME);
         if (nonNull(feideDomain)) {
             attributes.put(ORG_FEIDE_DOMAIN, feideDomain);
         }
@@ -629,12 +640,52 @@ class UserSelectionUponLoginHandlerTest {
         var expectedFirstName = scenarios.getPersonFromRegistry(person.nin()).getFirstname();
         var expectedLastName = scenarios.getPersonFromRegistry(person.nin()).getSurname();
 
-        var firstName = extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM);
-        var lastName = extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM);
+        var name = extractClaimFromCognitoUpdateRequest(NAME_CLAIM);
 
-        assertThat(firstName, is(equalTo(expectedFirstName)));
-        assertThat(lastName, is(equalTo(expectedLastName)));
+        assertThat(name, containsString(expectedFirstName));
+        assertThat(name, containsString(expectedLastName));
     }
+
+    @ParameterizedTest(name = "should add firstName and lastName in claims when logging in")
+    @MethodSource("differentNames")
+    void shouldHandleDifferentNames(String name, String expectedFirstName, String expectedLastName) throws NotFoundException {
+        var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
+        mockPersonRegistry.createPostPersonStub(new CristinPerson(
+            mockPerson.getCristinPerson().getId(),
+            expectedFirstName,
+            expectedLastName,
+            null,
+            mockPerson.nin()
+        ));
+
+        var event = nonFeideLogin(mockPerson.nin(), name);
+
+        termsAndConditionsService.updateTermsAndConditions(URI.create(mockPerson.getCristinPerson().getId()), TERMS_URI,
+                                                           randomString());
+        var response = handler.handleRequest(event, context);
+
+        var attributes = response.getResponse()
+                                                        .getClaimsAndScopeOverrideDetails()
+                                                        .getIdTokenGeneration()
+                                                        .getClaimsToAddOrOverride();
+        var firstname = attributes.get(FIRST_NAME_CLAIM);
+        var lastName = attributes.get(LAST_NAME_CLAIM);
+
+        assertThat(firstname, containsString(expectedFirstName));
+        assertThat(lastName, containsString(expectedLastName));
+    }
+
+    public static Stream<Arguments> differentNames() {{
+        return Stream.of(
+            Arguments.of("John Doe", "John", "Doe"),
+            Arguments.of("Alice", "N/A", "Alice"),
+            Arguments.of("   ", "N/A", "N/A"),
+            Arguments.of(null, "N/A", "N/A"),
+            Arguments.of("Håkon Østby Ærland", "Håkon Østby", "Ærland"),
+            Arguments.of("O'Connor McGregor", "O'Connor", "McGregor"),
+            Arguments.of("李四 王五", "李四", "王五")
+        );
+    }}
 
     @ParameterizedTest(name = "should clear customer selection claims when user has many affiliations and logs in with"
                               + "personal number")
@@ -1327,11 +1378,10 @@ class UserSelectionUponLoginHandlerTest {
         var expectedFirstName = scenarios.getPersonFromRegistry(otherPersonNin).getFirstname();
         var expectedLastName = scenarios.getPersonFromRegistry(otherPersonNin).getSurname();
 
-        var firstName = extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM);
-        var lastName = extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM);
+        var name = extractClaimFromCognitoUpdateRequest(NAME_CLAIM);
 
-        assertThat(firstName, is(equalTo(expectedFirstName)));
-        assertThat(lastName, is(equalTo(expectedLastName)));
+        assertThat(name, containsString(expectedFirstName));
+        assertThat(name, containsString(expectedLastName));
     }
 
     private CognitoUserPoolPreTokenGenerationEventV2 feideLoginWithImpersonation(String adminUsername,

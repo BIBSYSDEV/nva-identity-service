@@ -1376,10 +1376,8 @@ class UserSelectionUponLoginHandlerTest {
         var expectedFirstName = scenarios.getPersonFromRegistry(otherPersonNin).getFirstname();
         var expectedLastName = scenarios.getPersonFromRegistry(otherPersonNin).getSurname();
 
-        var name = extractClaimFromCognitoUpdateRequest(NAME_CLAIM);
-
-        assertThat(name, containsString(expectedFirstName));
-        assertThat(name, containsString(expectedLastName));
+        assertThat(extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM), containsString(expectedFirstName));
+        assertThat(extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM), containsString(expectedLastName));
     }
 
     private CognitoUserPoolPreTokenGenerationEventV2 feideLoginWithImpersonation(String adminUsername,

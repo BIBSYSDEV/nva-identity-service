@@ -646,7 +646,8 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest(name = "should handle splitting name into firstName and lastName in claims when logging in")
     @MethodSource("differentNames")
-    void shouldHandleDifferentNames(String name, String expectedFirstName, String expectedLastName) throws NotFoundException {
+    void shouldHandleDifferentNames(String name, String expectedFirstName, String expectedLastName)
+        throws NotFoundException {
         var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
         mockPersonRegistry.createPostPersonStub(new CristinPerson(
             mockPerson.getCristinPerson().getId(),
@@ -663,9 +664,9 @@ class UserSelectionUponLoginHandlerTest {
         var response = handler.handleRequest(event, context);
 
         var attributes = response.getResponse()
-                                                        .getClaimsAndScopeOverrideDetails()
-                                                        .getIdTokenGeneration()
-                                                        .getClaimsToAddOrOverride();
+                             .getClaimsAndScopeOverrideDetails()
+                             .getIdTokenGeneration()
+                             .getClaimsToAddOrOverride();
         var firstname = attributes.get(FIRST_NAME_CLAIM);
         var lastName = attributes.get(LAST_NAME_CLAIM);
 

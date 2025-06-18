@@ -640,10 +640,8 @@ class UserSelectionUponLoginHandlerTest {
         var expectedFirstName = scenarios.getPersonFromRegistry(person.nin()).getFirstname();
         var expectedLastName = scenarios.getPersonFromRegistry(person.nin()).getSurname();
 
-        var name = extractClaimFromCognitoUpdateRequest(NAME_CLAIM);
-
-        assertThat(name, containsString(expectedFirstName));
-        assertThat(name, containsString(expectedLastName));
+        assertThat(extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM), containsString(expectedFirstName));
+        assertThat(extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM), containsString(expectedLastName));
     }
 
     @ParameterizedTest(name = "should add firstName and lastName in claims when logging in")

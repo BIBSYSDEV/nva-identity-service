@@ -644,7 +644,7 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM), containsString(expectedLastName));
     }
 
-    @ParameterizedTest(name = "should add firstName and lastName in claims when logging in")
+    @ParameterizedTest(name = "should handle splitting name into firstName and lastName in claims when logging in")
     @MethodSource("differentNames")
     void shouldHandleDifferentNames(String name, String expectedFirstName, String expectedLastName) throws NotFoundException {
         var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();

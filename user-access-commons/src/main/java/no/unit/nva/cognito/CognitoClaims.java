@@ -26,6 +26,7 @@ public final class CognitoClaims {
     public static final String NIN_FOR_NON_FEIDE_USERS = "custom:nin";
     public static final String VIEWING_SCOPE_INCLUDED_CLAIM = "custom:viewingScopeIncluded";
     public static final String VIEWING_SCOPE_EXCLUDED_CLAIM = "custom:viewingScopeExcluded";
+    public static final String NAME_CLAIM = "name";
 
     static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {
         NIN_FOR_NON_FEIDE_USERS,

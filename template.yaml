@@ -878,26 +878,21 @@ Resources:
       LoggingConfig:
         LogGroup: !Ref CustomerDynamoDbStreamToEventBridgeFunctionLogGroup
       Events:
-        EventBridgeEvent:
-          Type: EventBridgeRule
+        FanoutSource:
+          Type: DynamoDB
           Properties:
-            EventBusName: !Ref NvaEventBusName
-            Pattern:
-              detail-type:
-                - Lambda Function Invocation Result - Success
-              detail:
-                responsePayload:
-                  topic: [ "PublicationService.ExpandedEntry.Persisted" ]
+            Stream: !GetAtt NvaCustomersTable.StreamArn
+            StartingPosition: TRIM_HORIZON
+            BatchSize: 1
+            Enabled: true
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
       Environment:
         Variables:
           EVENT_BUS_NAME: !Ref NvaEventBusName
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           API_HOST: !Ref ApiDomain
-      EventInvokeConfig:
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
 
   DynamoDbStreamToEventBridgeDLQ:
     Type: AWS::SQS::Queue

@@ -5,6 +5,7 @@ import static java.util.function.Predicate.not;
 import static no.unit.nva.customer.events.model.ChannelClaimUpdateEvents.addedChannelClaim;
 import static no.unit.nva.customer.events.model.ChannelClaimUpdateEvents.removedChannelClaim;
 import static no.unit.nva.customer.events.model.ChannelClaimUpdateEvents.updatedChannelClaim;
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent.DynamodbStreamRecord;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
 import java.net.URI;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.events.aws.AttributeValueConverter;
 import no.unit.nva.customer.events.model.ChannelClaim;
 import no.unit.nva.customer.events.model.ResourceUpdateEvent;
@@ -41,7 +43,10 @@ public class DefaultCustomerResourceUpdateEventsProducer implements CustomerReso
 
     @Override
     public List<ResourceUpdateEvent<ChannelClaim>> produceEvents(DynamodbStreamRecord record) {
-        logger.info("Processing record: {}", record);
+        logger.info("Processing record: {}",
+                    attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(record)).orElse(failure -> "Unable to " +
+                                                                                                          "parse " +
+                                                                                                          "record"));
 
         var oldCustomerOpt = convertToCustomerDto(record.getDynamodb().getOldImage());
         var newCustomerOpt = convertToCustomerDto(record.getDynamodb().getNewImage());

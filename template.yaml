@@ -864,6 +864,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - sqs:SendMessage
+                  - sqs:GetQueueAttributes
                 Resource: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
 
 

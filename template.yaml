@@ -871,11 +871,10 @@ Resources:
           EVENT_BUS_NAME: !Ref NvaEventBusName
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           API_HOST: !Ref ApiDomain
-      Events:
-        DeadLetterConfig:
-          TargetArn: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
-          RetryPolicy:
-            MaximumRetryAttempts: 2
+      DeadLetterConfig:
+        TargetArn: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
+      RetryPolicy:
+        MaximumRetryAttempts: 2
 
   DynamoDbStreamToEventBridgeDLQ:
     Type: AWS::SQS::Queue

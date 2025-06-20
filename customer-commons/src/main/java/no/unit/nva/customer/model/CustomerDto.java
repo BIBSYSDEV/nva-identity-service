@@ -1,7 +1,21 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT;
+import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import no.unit.nva.customer.model.CustomerDao.ServiceCenterDao;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
@@ -12,22 +26,6 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
-
-import java.net.URI;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT;
-import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
-import static nva.commons.core.attempt.Try.attempt;
 
 //Overriding setters and getters is necessary for Jackson-Jr
 @SuppressWarnings({"PMD.ExcessivePublicCount",
@@ -255,7 +253,7 @@ public class CustomerDto {
     }
 
     public void setCristinId(URI cristinId) {
-        this.cristinId = cristinId;
+        this.cristinId = nonNull(cristinId) && !cristinId.toString().isEmpty() ? cristinId : null;
     }
 
     public ApplicationDomain getCustomerOf() {
@@ -279,7 +277,7 @@ public class CustomerDto {
     }
 
     public void setRorId(URI rorId) {
-        this.rorId = rorId;
+        this.rorId = nonNull(rorId) && !rorId.toString().isEmpty() ? rorId : null;
     }
 
     public PublicationWorkflow getPublicationWorkflow() {

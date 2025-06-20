@@ -855,6 +855,11 @@ Resources:
                   - dynamodb:DescribeStream
                   - dynamodb:ListStreams
                 Resource: !GetAtt NvaCustomersTable.StreamArn
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
+
 
   CustomerDynamoDbStreamToEventBridgeFunction:
     Type: AWS::Serverless::Function

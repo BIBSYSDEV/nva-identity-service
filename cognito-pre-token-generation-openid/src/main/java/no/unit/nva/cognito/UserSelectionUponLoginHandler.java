@@ -8,8 +8,6 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import no.unit.nva.customer.model.CustomerDto;
@@ -55,9 +53,7 @@ import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_INCLUDED_IN_ACCESS_
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
-import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
@@ -83,6 +79,8 @@ public class UserSelectionUponLoginHandler
           + "affiliations: %s";
     public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
     private static final String N_A = "N/A";
+    private static final String WHITESPACE_REGEX = "\\s+";
+    private static final int ONE = 1;
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -170,10 +168,12 @@ public class UserSelectionUponLoginHandler
         var impersonating = attributes.get(IMPERSONATING_CLAIM);
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
+
+
         var requestedPerson = personRegistry.fetchPersonByNin(nin)
                                   .or(() -> personRegistry.createPerson(nin,
-                                                                        extractName(attributes, FIRST_NAME_CLAIM, N_A),
-                                                                        extractName(attributes, LAST_NAME_CLAIM, N_A)));
+                                                                        extractFirstName(attributes),
+                                                                        extractLastName(attributes)));
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
@@ -238,8 +238,21 @@ public class UserSelectionUponLoginHandler
         return input;
     }
 
-    private String extractName(Map<String, String> attributes, String fieldName, String defaultValue) {
-        return decodeAndSelectFirstName(attributes.getOrDefault(fieldName, defaultValue));
+    private String extractFirstName(Map<String, String> attributes) {
+        return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
+                   .filter(fullName -> !fullName.isBlank())
+                   .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
+                   .filter(parts -> parts.length > ONE)
+                   .map(parts -> String.join(" ", Arrays.copyOf(parts, parts.length - ONE)))
+                   .orElse(N_A);
+    }
+
+    private String extractLastName(Map<String, String> attributes) {
+        return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
+                   .filter(fullName -> !fullName.isBlank())
+                   .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
+                   .map(parts -> parts[parts.length - ONE])
+                   .orElse(N_A);
     }
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,
@@ -443,40 +456,39 @@ public class UserSelectionUponLoginHandler
         return ClaimsAndScopeOverrideDetails.builder()
                    .withGroupOverrideDetails(groups)
                    .withAccessTokenGeneration(buildAccessTokenGeneration(userAttributes))
-                   .withIdTokenGeneration(buildIdTokenGeneration())
+                   .withIdTokenGeneration(buildIdTokenGeneration(userAttributes))
                    .build();
     }
 
-    private IdTokenGeneration buildIdTokenGeneration() {
+    private IdTokenGeneration buildIdTokenGeneration(Collection<AttributeType> userAttributes) {
         var excludedClaims = Stream.concat(Arrays.stream(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN),
                                            Arrays.stream(CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC))
-                                 .toArray(String[]::new);
-        return IdTokenGeneration.builder().withClaimsToSuppress(excludedClaims).build();
+                                 .toList();
+
+        var claims = userAttributes.stream()
+                         .filter(attribute -> shouldBeIncludedExcept(attribute, excludedClaims))
+                         .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
+
+        return IdTokenGeneration.builder().withClaimsToAddOrOverride(claims).withClaimsToSuppress(excludedClaims.toArray(String[]::new)).build();
+    }
+
+    private static boolean shouldBeIncludedExcept(AttributeType a, List<String> excludedClaims) {
+        return !excludedClaims.contains(a.name()) && nonNull(a.value()) && !a.value().isEmpty();
+    }
+
+    private static boolean shouldBeIncluded(AttributeType a, List<String> includedClaims) {
+        return includedClaims.contains(a.name()) && nonNull(a.value()) && !a.value().isEmpty();
     }
 
     @SuppressWarnings("PMD.UnusedFormalParameter")
-    private AccessTokenGeneration buildAccessTokenGeneration(List<AttributeType> userAttributes) {
+    private AccessTokenGeneration buildAccessTokenGeneration(Collection<AttributeType> userAttributes) {
         var includedClaims = Arrays.asList(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN);
         var claims = userAttributes.stream()
-                         .filter(a -> includedClaims.contains(a.name()) && nonNull(a.value()))
+                         .filter(attribute -> shouldBeIncluded(attribute, includedClaims))
                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
 
         return AccessTokenGeneration.builder()
                    .withClaimsToAddOrOverride(claims)
                    .build();
-    }
-
-    private String decodeAndSelectFirstName(String value) {
-        try {
-            // Remove brackets if present and split by comma
-            var decoded = URLDecoder.decode(value, StandardCharsets.UTF_8);
-            if (decoded.startsWith("[") && decoded.endsWith("]")) {
-                decoded = decoded.substring(1, decoded.length() - 1);
-            }
-            var names = decoded.split(",");
-            return names.length > 0 ? names[0].replace("\"", "") : N_A;
-        } catch (Exception e) {
-            return N_A;
-        }
     }
 }

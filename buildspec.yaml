@@ -1,6 +1,13 @@
 version: 0.2
 
-# Compatible with older CI/CD pipeline
+env:
+  variables:
+    GRADLE_USER_HOME: '/root/.gradle'
+    SAM_CLI_TELEMETRY: "0"
+
+cache:
+  paths:
+    - '/root/.gradle/caches/**/*'
 
 phases:
   install:
@@ -21,9 +28,9 @@ phases:
       # Force build of user-access-service to produce zip for Lambda Layer
       - ./gradlew :user-access-service:clean :user-access-service:build
       - sam build
-      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged_raw.yaml
   post_build:
     commands:
+      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged_raw.yaml
       # Use timestamp to force update of ApiGatewayCreateDeploymentCustomResource
       - BUILD_TIMESTAMP=$(date '+%s')
       - envsubst '${BUILD_TIMESTAMP}' < packaged_raw.yaml > packaged.yaml

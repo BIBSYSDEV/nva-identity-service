@@ -1,15 +1,5 @@
 package no.unit.nva.customer.model;
 
-import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-
-import java.time.OffsetDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
 import static no.unit.nva.customer.model.VocabularyListTest.randomVocabulary;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomAllowFileUploadForTypes;
 import static no.unit.nva.customer.testing.CustomerDataGenerator.randomChannelClaimDtos;
@@ -30,14 +20,24 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import no.unit.nva.commons.json.JsonUtils;
+import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 class CustomerDtoTest {
 
     @Test
     void shouldUpdateCustomerWithCustomersDoiSecret() {
-        var doiAgent = randomActiveCustomer().getDoiAgent()
-                .addPassword(randomString());
+        var doiAgent = randomActiveCustomer().getDoiAgent().addPassword(randomString());
 
         var doiSecret = new SecretManagerDoiAgentDao(randomActiveCustomer().getDoiAgent());
 
@@ -46,46 +46,18 @@ class CustomerDtoTest {
         assertEquals(doiSecret.getPassword(), doiAgent.getPassword());
     }
 
-    private CustomerDto randomActiveCustomer() {
-        var customer = randomInactiveCustomer();
-        customer.setInactiveFrom(null);
-        return customer;
-    }
+    @Test
+    void shouldNotSerializeEmptyCristinIdAndRorToEmptyString() throws JsonProcessingException {
+        var json = """
+                        {
+              "cristinId": "",
+              "rorId": ""
+            }
+            """;
+        var customer = JsonUtils.dtoObjectMapper.readValue(json, CustomerDto.class);
 
-    private CustomerDto randomInactiveCustomer() {
-        return CustomerDto.builder()
-                .withCname(randomString())
-                .withIdentifier(UUID.randomUUID())
-                .withDisplayName(randomString())
-                .withInstitutionDns(randomString())
-                .withShortName(randomString())
-                .withArchiveName(randomString())
-                .withName(randomString())
-                .withFeideOrganizationDomain(randomString())
-                .withCristinId(randomUri())
-                .withCustomerOf(randomApplicationDomain())
-                .withCreatedDate(randomInstant())
-                .withModifiedDate(randomInstant())
-                .withVocabularies(randomVocabularies())
-                .withRorId(randomUri())
-                .withPublicationWorkflow(randomPublicationWorkflow())
-                .withDoiAgent(randomDoiAgent(randomString()))
-                .withSector(randomSector())
-                .withNviInstitution(randomBoolean())
-                .withRboInstitution(randomBoolean())
-                .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
-                .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                .withChannelClaims(randomChannelClaimDtos())
-                .build();
-    }
-
-    private Collection<VocabularyDto> randomVocabularies() {
-        return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
-    }
-
-    private ApplicationDomain randomApplicationDomain() {
-        return randomElement(List.of(ApplicationDomain.values()));
+        assertNull(customer.getCristinId());
+        assertNull(customer.getRorId());
     }
 
     @Test
@@ -166,5 +138,47 @@ class CustomerDtoTest {
         var numberOfClaimsAfter = customer.getChannelClaims().size();
 
         assertThat(numberOfClaimsAfter, is(equalTo(numberOfClaimsBefore)));
+    }
+
+    private CustomerDto randomActiveCustomer() {
+        var customer = randomInactiveCustomer();
+        customer.setInactiveFrom(null);
+        return customer;
+    }
+
+    private CustomerDto randomInactiveCustomer() {
+        return CustomerDto.builder()
+                   .withCname(randomString())
+                   .withIdentifier(UUID.randomUUID())
+                   .withDisplayName(randomString())
+                   .withInstitutionDns(randomString())
+                   .withShortName(randomString())
+                   .withArchiveName(randomString())
+                   .withName(randomString())
+                   .withFeideOrganizationDomain(randomString())
+                   .withCristinId(randomUri())
+                   .withCustomerOf(randomApplicationDomain())
+                   .withCreatedDate(randomInstant())
+                   .withModifiedDate(randomInstant())
+                   .withVocabularies(randomVocabularies())
+                   .withRorId(randomUri())
+                   .withPublicationWorkflow(randomPublicationWorkflow())
+                   .withDoiAgent(randomDoiAgent(randomString()))
+                   .withSector(randomSector())
+                   .withNviInstitution(randomBoolean())
+                   .withRboInstitution(randomBoolean())
+                   .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
+                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+                   .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+                   .withChannelClaims(randomChannelClaimDtos())
+                   .build();
+    }
+
+    private Collection<VocabularyDto> randomVocabularies() {
+        return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
+    }
+
+    private ApplicationDomain randomApplicationDomain() {
+        return randomElement(List.of(ApplicationDomain.values()));
     }
 }

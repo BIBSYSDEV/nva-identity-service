@@ -16,8 +16,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
+import com.amazonaws.services.lambda.runtime.events.DynamodbEvent.DynamodbStreamRecord;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.StreamRecord;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.events.emitter.EventEmitterException;
 import no.unit.nva.customer.events.model.ChannelClaim;
 import no.unit.nva.customer.events.model.ChannelClaim.Constraints;
@@ -171,6 +174,396 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
                                                             DEFAULT_SCOPE,
                                                             EVERYONE,
                                                             OWNER_ONLY)));
+    }
+
+    @Test
+    void shouldFail() throws JsonProcessingException {
+        var jsonBody = """
+            {
+                "eventID": "55621683b48de2091b83e678ae88bc05",
+                "eventName": "MODIFY",
+                "eventVersion": "1.1",
+                "eventSource": "aws:dynamodb",
+                "awsRegion": "eu-west-1",
+                "dynamodb": {
+                    "approximateCreationDateTime": "2025-06-19T11:25:29.000+00:00",
+                    "keys": {
+                        "identifier": {
+                            "s": "a228aba6-932b-4f53-b2de-31ad8daf9f8d"
+                        }
+                    },
+                    "newImage": {
+                        "identifier": {
+                            "s": "a228aba6-932b-4f53-b2de-31ad8daf9f8d"
+                        },
+                        "rightsRetentionStrategy": {
+                            "m": {
+                                "type": {
+                                    "s": "NullRightsRetentionStrategy"
+                                }
+                            }
+                        },
+                        "displayName": {
+                            "s": "Universitetet i Bergen"
+                        },
+                        "cristinId": {
+                            "s": "https://api.dev.nva.aws.unit.no/cristin/organization/184.0.0.0"
+                        },
+                        "rorId": {
+                            "s": "https://ror.org/abcd0123ef"
+                        },
+                        "generalSupportEnabled": {
+                            "bool": true
+                        },
+                        "type": {
+                            "s": "Customer"
+                        },
+                        "feideOrganizationDomain": {
+                            "s": "uib.no"
+                        },
+                        "createdDate": {
+                            "s": "2023-07-07T07:35:33.765827Z"
+                        },
+                        "customerOf": {
+                            "s": "nva.unit.no"
+                        },
+                        "nviInstitution": {
+                            "bool": true
+                        },
+                        "modifiedDate": {
+                            "s": "2025-06-19T11:25:29.715178927Z"
+                        },
+                        "name": {
+                            "s": "Universitetet i Bergen"
+                        },
+                        "allowFileUploadForTypes": {
+                            "ss": [
+                                "ACADEMIC_ARTICLE",
+                                "ACADEMIC_CHAPTER",
+                                "ACADEMIC_LITERATURE_REVIEW",
+                                "ACADEMIC_MONOGRAPH",
+                                "ARCHITECTURE",
+                                "ARTISTIC_DESIGN",
+                                "BOOK_ANTHOLOGY",
+                                "CASE_REPORT",
+                                "CHAPTER_CONFERENCE_ABSTRACT",
+                                "CHAPTER_IN_REPORT",
+                                "CONFERENCE_ABSTRACT",
+                                "CONFERENCE_LECTURE",
+                                "CONFERENCE_POSTER",
+                                "CONFERENCE_REPORT",
+                                "DATA_MANAGEMENT_PLAN",
+                                "DATA_SET",
+                                "DEGREE_BACHELOR",
+                                "DEGREE_LICENTIATE",
+                                "DEGREE_MASTER",
+                                "DEGREE_PHD",
+                                "ENCYCLOPEDIA",
+                                "ENCYCLOPEDIA_CHAPTER",
+                                "EXHIBITION_CATALOG",
+                                "EXHIBITION_CATALOG_CHAPTER",
+                                "EXHIBITION_PRODUCTION",
+                                "INTRODUCTION",
+                                "JOURNAL_CORRIGENDUM",
+                                "JOURNAL_ISSUE",
+                                "JOURNAL_LEADER",
+                                "JOURNAL_LETTER",
+                                "JOURNAL_REVIEW",
+                                "LECTURE",
+                                "LITERARY_ARTS",
+                                "MAP",
+                                "MEDIA_BLOG_POST",
+                                "MEDIA_FEATURE_ARTICLE",
+                                "MEDIA_INTERVIEW",
+                                "MEDIA_PARTICIPATION_IN_RADIO_OR_TV",
+                                "MEDIA_PODCAST",
+                                "MEDIA_READER_OPINION",
+                                "MOVING_PICTURE",
+                                "MUSIC_PERFORMANCE",
+                                "NON_FICTION_CHAPTER",
+                                "NON_FICTION_MONOGRAPH",
+                                "OTHER_PRESENTATION",
+                                "OTHER_STUDENT_WORK",
+                                "PERFORMING_ARTS",
+                                "POPULAR_SCIENCE_ARTICLE",
+                                "POPULAR_SCIENCE_CHAPTER",
+                                "POPULAR_SCIENCE_MONOGRAPH",
+                                "PROFESSIONAL_ARTICLE",
+                                "REPORT_BASIC",
+                                "REPORT_BOOK_OF_ABSTRACT",
+                                "REPORT_RESEARCH",
+                                "REPORT_WORKING_PAPER",
+                                "REPOST_POLICY",
+                                "STUDY_PROTOCOL",
+                                "TEXTBOOK",
+                                "TEXTBOOK_CHAPTER",
+                                "VISUAL_ARTS"
+                            ]
+                        },
+                        "publicationWorkflow": {
+                            "s": "REGISTRATOR_PUBLISHES_METADATA_ONLY"
+                        },
+                        "channelClaims": {
+                            "l": [
+                                {
+                                    "m": {
+                                        "channel": {
+                                            "s": "https://api.dev.nva.aws.unit.no/publication-channels-v2/publisher/CBCE38D7-C6C6-4CE9-BCED-D64610033E9B"
+                                        },
+                                        "constraint": {
+                                            "m": {
+                                                "scope": {
+                                                    "l": [
+                                                        {
+                                                            "s": "DEGREE_BACHELOR"
+                                                        },
+                                                        {
+                                                            "s": "DEGREE_MASTER"
+                                                        },
+                                                        {
+                                                            "s": "DEGREE_PHD"
+                                                        },
+                                                        {
+                                                            "s": "ARTISTIC_DEGREE_PHD"
+                                                        },
+                                                        {
+                                                            "s": "DEGREE_LICENTIATE"
+                                                        },
+                                                        {
+                                                            "s": "OTHER_STUDENT_WORK"
+                                                        }
+                                                    ]
+                                                },
+                                                "publishingPolicy": {
+                                                    "s": "EVERYONE"
+                                                },
+                                                "editingPolicy": {
+                                                    "s": "OWNER_ONLY"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "serviceCenter": {
+                            "m": {
+                                "name": {
+                                    "null": true
+                                },
+                                "uri": {
+                                    "null": true
+                                }
+                            }
+                        },
+                        "shortName": {
+                            "s": "UIB"
+                        },
+                        "doiAgent": {
+                            "m": {}
+                        },
+                        "sector": {
+                            "s": "UHI"
+                        },
+                        "rboInstitution": {
+                            "bool": false
+                        }
+                    },
+                    "oldImage": {
+                        "identifier": {
+                            "s": "a228aba6-932b-4f53-b2de-31ad8daf9f8d"
+                        },
+                        "rightsRetentionStrategy": {
+                            "m": {
+                                "type": {
+                                    "s": "NullRightsRetentionStrategy"
+                                }
+                            }
+                        },
+                        "displayName": {
+                            "s": "Universitetet i Bergen"
+                        },
+                        "cristinId": {
+                            "s": "https://api.dev.nva.aws.unit.no/cristin/organization/184.0.0.0"
+                        },
+                        "rorId": {
+                            "s": ""
+                        },
+                        "generalSupportEnabled": {
+                            "bool": true
+                        },
+                        "type": {
+                            "s": "Customer"
+                        },
+                        "feideOrganizationDomain": {
+                            "s": "uib.no"
+                        },
+                        "createdDate": {
+                            "s": "2023-07-07T07:35:33.765827Z"
+                        },
+                        "customerOf": {
+                            "s": "nva.unit.no"
+                        },
+                        "nviInstitution": {
+                            "bool": true
+                        },
+                        "modifiedDate": {
+                            "s": "2025-06-19T10:38:52.785521737Z"
+                        },
+                        "name": {
+                            "s": "Universitetet i Bergen"
+                        },
+                        "allowFileUploadForTypes": {
+                            "ss": [
+                                "ACADEMIC_ARTICLE",
+                                "ACADEMIC_CHAPTER",
+                                "ACADEMIC_LITERATURE_REVIEW",
+                                "ACADEMIC_MONOGRAPH",
+                                "ARCHITECTURE",
+                                "ARTISTIC_DESIGN",
+                                "BOOK_ANTHOLOGY",
+                                "CASE_REPORT",
+                                "CHAPTER_CONFERENCE_ABSTRACT",
+                                "CHAPTER_IN_REPORT",
+                                "CONFERENCE_ABSTRACT",
+                                "CONFERENCE_LECTURE",
+                                "CONFERENCE_POSTER",
+                                "CONFERENCE_REPORT",
+                                "DATA_MANAGEMENT_PLAN",
+                                "DATA_SET",
+                                "DEGREE_BACHELOR",
+                                "DEGREE_LICENTIATE",
+                                "DEGREE_MASTER",
+                                "DEGREE_PHD",
+                                "ENCYCLOPEDIA",
+                                "ENCYCLOPEDIA_CHAPTER",
+                                "EXHIBITION_CATALOG",
+                                "EXHIBITION_CATALOG_CHAPTER",
+                                "EXHIBITION_PRODUCTION",
+                                "INTRODUCTION",
+                                "JOURNAL_CORRIGENDUM",
+                                "JOURNAL_ISSUE",
+                                "JOURNAL_LEADER",
+                                "JOURNAL_LETTER",
+                                "JOURNAL_REVIEW",
+                                "LECTURE",
+                                "LITERARY_ARTS",
+                                "MAP",
+                                "MEDIA_BLOG_POST",
+                                "MEDIA_FEATURE_ARTICLE",
+                                "MEDIA_INTERVIEW",
+                                "MEDIA_PARTICIPATION_IN_RADIO_OR_TV",
+                                "MEDIA_PODCAST",
+                                "MEDIA_READER_OPINION",
+                                "MOVING_PICTURE",
+                                "MUSIC_PERFORMANCE",
+                                "NON_FICTION_CHAPTER",
+                                "NON_FICTION_MONOGRAPH",
+                                "OTHER_PRESENTATION",
+                                "OTHER_STUDENT_WORK",
+                                "PERFORMING_ARTS",
+                                "POPULAR_SCIENCE_ARTICLE",
+                                "POPULAR_SCIENCE_CHAPTER",
+                                "POPULAR_SCIENCE_MONOGRAPH",
+                                "PROFESSIONAL_ARTICLE",
+                                "REPORT_BASIC",
+                                "REPORT_BOOK_OF_ABSTRACT",
+                                "REPORT_RESEARCH",
+                                "REPORT_WORKING_PAPER",
+                                "REPOST_POLICY",
+                                "STUDY_PROTOCOL",
+                                "TEXTBOOK",
+                                "TEXTBOOK_CHAPTER",
+                                "VISUAL_ARTS"
+                            ]
+                        },
+                        "publicationWorkflow": {
+                            "s": "REGISTRATOR_PUBLISHES_METADATA_ONLY"
+                        },
+                        "channelClaims": {
+                            "l": [
+                                {
+                                    "m": {
+                                        "channel": {
+                                            "s": "https://api.dev.nva.aws.unit.no/publication-channels-v2/publisher/CBCE38D7-C6C6-4CE9-BCED-D64610033E9B"
+                                        },
+                                        "constraint": {
+                                            "m": {
+                                                "scope": {
+                                                    "l": [
+                                                        {
+                                                            "s": "DEGREE_BACHELOR"
+                                                        },
+                                                        {
+                                                            "s": "DEGREE_MASTER"
+                                                        },
+                                                        {
+                                                            "s": "DEGREE_PHD"
+                                                        },
+                                                        {
+                                                            "s": "ARTISTIC_DEGREE_PHD"
+                                                        },
+                                                        {
+                                                            "s": "DEGREE_LICENTIATE"
+                                                        },
+                                                        {
+                                                            "s": "OTHER_STUDENT_WORK"
+                                                        }
+                                                    ]
+                                                },
+                                                "publishingPolicy": {
+                                                    "s": "EVERYONE"
+                                                },
+                                                "editingPolicy": {
+                                                    "s": "OWNER_ONLY"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "serviceCenter": {
+                            "m": {
+                                "name": {
+                                    "null": true
+                                },
+                                "uri": {
+                                    "null": true
+                                }
+                            }
+                        },
+                        "shortName": {
+                            "s": "UIB"
+                        },
+                        "doiAgent": {
+                            "m": {}
+                        },
+                        "sector": {
+                            "s": "UHI"
+                        },
+                        "rboInstitution": {
+                            "bool": false
+                        }
+                    },
+                    "sequenceNumber": "4981469800001502076366178526",
+                    "sizeBytes": 3800,
+                    "streamViewType": "NEW_AND_OLD_IMAGES"
+                },
+                "eventSourceARN": "arn:aws:dynamodb:eu-west-1:884807050265:table/nva-customers-master-pipelines-NvaIdentityService-WLJCBMUDMRYZ-nva-identity-service/stream/2025-05-09T11:18:51.458"
+            }
+            """;
+        var foo = JsonUtils.dtoObjectMapper.readValue(jsonBody, DynamodbStreamRecord.class);
+        var event = new DynamodbEvent();
+        event.setRecords(Collections.singletonList(foo));
+
+        try {
+            handler.handleRequest(event, context);
+        } catch (Exception e) {
+            // no-op
+        };
+
+        assertDoesNotThrow(() -> handler.handleRequest(event, context));
     }
 
     private URI randomOrganizationId() {

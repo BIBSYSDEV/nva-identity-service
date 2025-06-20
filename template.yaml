@@ -818,6 +818,10 @@ Resources:
       FunctionName: !Ref CustomerDynamoDbStreamToEventBridgeFunction
       Enabled: true
       MaximumRetryAttempts: 3
+      OnFailure:
+        Type: SQS
+        Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
+
 
   CustomerDynamoDbStreamToEventBridgeFunctionLogGroup:
     Type: AWS::Logs::LogGroup

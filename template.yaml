@@ -877,6 +877,17 @@ Resources:
       Tracing: Active
       LoggingConfig:
         LogGroup: !Ref CustomerDynamoDbStreamToEventBridgeFunctionLogGroup
+      Events:
+        EventBridgeEvent:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !Ref NvaEventBusName
+            Pattern:
+              detail-type:
+                - Lambda Function Invocation Result - Success
+              detail:
+                responsePayload:
+                  topic: [ "PublicationService.ExpandedEntry.Persisted" ]
       Environment:
         Variables:
           EVENT_BUS_NAME: !Ref NvaEventBusName

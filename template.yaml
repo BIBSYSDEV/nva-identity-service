@@ -817,6 +817,7 @@ Resources:
       EventSourceArn: !GetAtt NvaCustomersTable.StreamArn
       FunctionName: !Ref CustomerDynamoDbStreamToEventBridgeFunction
       Enabled: true
+      MaximumRetryAttempts: 3
 
   CustomerDynamoDbStreamToEventBridgeFunctionLogGroup:
     Type: AWS::Logs::LogGroup

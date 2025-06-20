@@ -878,6 +878,13 @@ Resources:
             StartingPosition: TRIM_HORIZON
             BatchSize: 1
             Enabled: true
+      EventInvokeConfig:
+        MaximumRetryAttempts: 3
+        MaximumRecordAgeInSeconds: 3600
+        DestinationConfig:
+          OnFailure:
+            Type: SQS
+            Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
 
   DynamoDbStreamToEventBridgeDLQ:
     Type: AWS::SQS::Queue

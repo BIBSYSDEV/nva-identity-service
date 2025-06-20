@@ -867,19 +867,19 @@ Resources:
           EVENT_BUS_NAME: !Ref NvaEventBusName
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           API_HOST: !Ref ApiDomain
-      Events:
-        FanoutSource:
-          Type: DynamoDB
-          Properties:
-            Stream: !GetAtt NvaCustomersTable.StreamArn
-            StartingPosition: TRIM_HORIZON
-            BatchSize: 1
-            Enabled: true
-      EventInvokeConfig:
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
+#      Events:
+#        FanoutSource:
+#          Type: DynamoDB
+#          Properties:
+#            Stream: !GetAtt NvaCustomersTable.StreamArn
+#            StartingPosition: TRIM_HORIZON
+#            BatchSize: 1
+#            Enabled: true
+#      EventInvokeConfig:
+#        DestinationConfig:
+#          OnFailure:
+#            Type: SQS
+#            Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
 
   DynamoDbStreamToEventBridgeDLQ:
     Type: AWS::SQS::Queue

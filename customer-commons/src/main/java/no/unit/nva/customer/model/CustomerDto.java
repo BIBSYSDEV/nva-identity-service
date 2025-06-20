@@ -25,6 +25,7 @@ import no.unit.nva.identityservice.json.JsonConfig;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.StringUtils;
 import nva.commons.core.paths.UriWrapper;
 
 //Overriding setters and getters is necessary for Jackson-Jr
@@ -253,7 +254,7 @@ public class CustomerDto {
     }
 
     public void setCristinId(URI cristinId) {
-        this.cristinId = nonNull(cristinId) && !cristinId.toString().isEmpty() ? cristinId : null;
+        this.cristinId = nonNull(cristinId) && StringUtils.isNotBlank(cristinId.toString()) ? cristinId : null;
     }
 
     public ApplicationDomain getCustomerOf() {
@@ -277,7 +278,7 @@ public class CustomerDto {
     }
 
     public void setRorId(URI rorId) {
-        this.rorId = nonNull(rorId) && !rorId.toString().isEmpty() ? rorId : null;
+        this.rorId = nonNull(rorId) && StringUtils.isNotBlank(rorId.toString()) ? rorId : null;
     }
 
     public PublicationWorkflow getPublicationWorkflow() {

@@ -43,10 +43,7 @@ public class DefaultCustomerResourceUpdateEventsProducer implements CustomerReso
 
     @Override
     public List<ResourceUpdateEvent<ChannelClaim>> produceEvents(DynamodbStreamRecord record) {
-        logger.info("Processing record: {}",
-                    attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(record)).orElse(failure -> "Unable to " +
-                                                                                                          "parse " +
-                                                                                                          "record"));
+        logger.info("Processing record: {}", toString(record));
 
         var oldCustomerOpt = convertToCustomerDto(record.getDynamodb().getOldImage());
         var newCustomerOpt = convertToCustomerDto(record.getDynamodb().getNewImage());
@@ -63,6 +60,11 @@ public class DefaultCustomerResourceUpdateEventsProducer implements CustomerReso
         var newClaims = newCustomerOpt.map(CustomerDto::getChannelClaims).orElse(List.of());
 
         return computeChannelClaimEvents(customerId, organizationId, oldClaims, newClaims);
+    }
+
+    private static String toString(DynamodbStreamRecord record) {
+        return attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(record))
+                   .orElse(failure -> "Unable to parse dynamodb record");
     }
 
     private boolean isModified(ChannelClaimDto oldClaim, ChannelClaimDto newClaim) {

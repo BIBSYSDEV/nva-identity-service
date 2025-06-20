@@ -31,7 +31,6 @@ import no.unit.nva.customer.events.model.ChannelClaim.Constraints;
 import no.unit.nva.customer.events.model.ResourceUpdateEvent;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy;
-import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeEventBridgeClient;
 import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
@@ -172,41 +171,6 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
                                                             DEFAULT_SCOPE,
                                                             EVERYONE,
                                                             OWNER_ONLY)));
-    }
-
-    @Test
-    void some() {
-        var string = """
-            {
-  eventID: 1d2b5cffe8e6ed78ef81a970f15629c6,
-  eventName: MODIFY,
-  eventVersion: 1.1,
-  eventSource: aws
-  :
-  dynamodb,
-  awsRegion: eu-west-1,
-  dynamodb: {
-    ApproximateCreationDateTime: Thu
-    Jun
-    19
-    10: 38
-    :
-    52
-    UTC
-    2025,
-    Keys: {
-      identifier={
-  S: a228aba6-932b-4f53-b2de-31ad8daf9f8d
-}}, NewImage: {identifier={S: a228aba6-932b-4f53-b2de-31ad8daf9f8d,}, rightsRetentionStrategy={M: {type={S: NullRightsRetentionStrategy,}},}, displayName={S: Universitetet i Bergen,}, cristinId={S: https: //api.dev.nva.aws.unit.no/cristin/organization/184.0.0.0,}, rorId={S: ,}, generalSupportEnabled={BOOL: true}, type={S: Customer,}, feideOrganizationDomain={S: uib.no,}, createdDate={S: 2023-07-07T07:35:33.765827Z,}, customerOf={S: nva.unit.no,}, nviInstitution={BOOL: true}, modifiedDate={S: 2025-06-19T10:38:52.785521737Z,}, name={S: Universitetet i Bergen,}, allowFileUploadForTypes={SS: [ACADEMIC_ARTICLE, ACADEMIC_CHAPTER, ACADEMIC_LITERATURE_REVIEW, ACADEMIC_MONOGRAPH, ARCHITECTURE, ARTISTIC_DESIGN, BOOK_ANTHOLOGY, CASE_REPORT, CHAPTER_CONFERENCE_ABSTRACT, CHAPTER_IN_REPORT, CONFERENCE_ABSTRACT, CONFERENCE_LECTURE, CONFERENCE_POSTER, CONFERENCE_REPORT, DATA_MANAGEMENT_PLAN, DATA_SET, DEGREE_BACHELOR, DEGREE_LICENTIATE, DEGREE_MASTER, DEGREE_PHD, ENCYCLOPEDIA, ENCYCLOPEDIA_CHAPTER, EXHIBITION_CATALOG, EXHIBITION_CATALOG_CHAPTER, EXHIBITION_PRODUCTION, INTRODUCTION, JOURNAL_CORRIGENDUM, JOURNAL_ISSUE, JOURNAL_LEADER, JOURNAL_LETTER, JOURNAL_REVIEW, LECTURE, LITERARY_ARTS, MAP, MEDIA_BLOG_POST, MEDIA_FEATURE_ARTICLE, MEDIA_INTERVIEW, MEDIA_PARTICIPATION_IN_RADIO_OR_TV, MEDIA_PODCAST, MEDIA_READER_OPINION, MOVING_PICTURE, MUSIC_PERFORMANCE, NON_FICTION_CHAPTER, NON_FICTION_MONOGRAPH, OTHER_PRESENTATION, OTHER_STUDENT_WORK, PERFORMING_ARTS, POPULAR_SCIENCE_ARTICLE, POPULAR_SCIENCE_CHAPTER, POPULAR_SCIENCE_MONOGRAPH, PROFESSIONAL_ARTICLE, REPORT_BASIC, REPORT_BOOK_OF_ABSTRACT, REPORT_RESEARCH, REPORT_WORKING_PAPER, REPOST_POLICY, STUDY_PROTOCOL, TEXTBOOK, TEXTBOOK_CHAPTER, VISUAL_ARTS],}, publicationWorkflow={S: REGISTRATOR_PUBLISHES_METADATA_ONLY,}, channelClaims={L: [{M: {channel={S: https://api.dev.nva.aws.unit.no/publication-channels-v2/publisher/CBCE38D7-C6C6-4CE9-BCED-D64610033E9B,}, constraint={M: {scope={L: [{S: DEGREE_BACHELOR,}, {S: DEGREE_MASTER,}, {S: DEGREE_PHD,}, {S: ARTISTIC_DEGREE_PHD,}, {S: DEGREE_LICENTIATE,}, {S: OTHER_STUDENT_WORK,}],}, publishingPolicy={S: EVERYONE,}, editingPolicy={S: OWNER_ONLY,}},}},}],}, serviceCenter={M: {name={NULL: true,}, uri={NULL: true,}},}, shortName={S: UIB,}, doiAgent={M: {},}, sector={S: UHI,}, rboInstitution={BOOL: false}},OldImage: {identifier={S: a228aba6-932b-4f53-b2de-31ad8daf9f8d,}, rightsRetentionStrategy={M: {type={S: NullRightsRetentionStrategy,}},}, displayName={S: Universitetet i Bergen,}, cristinId={S: https://api.dev.nva.aws.unit.no/cristin/organization/184.0.0.0,}, rorId={S: ,}, generalSupportEnabled={BOOL: true}, type={S: Customer,}, feideOrganizationDomain={S: uib.no,}, createdDate={S: 2023-07-07T07:35:33.765827Z,}, customerOf={S: nva.unit.no,}, nviInstitution={BOOL: true}, modifiedDate={S: 2024-10-02T13:48:54.230396999Z,}, name={S: Universitetet i Bergen,}, allowFileUploadForTypes={SS: [ACADEMIC_ARTICLE, ACADEMIC_CHAPTER, ACADEMIC_LITERATURE_REVIEW, ACADEMIC_MONOGRAPH, ARCHITECTURE, ARTISTIC_DESIGN, BOOK_ANTHOLOGY, CASE_REPORT, CHAPTER_CONFERENCE_ABSTRACT, CHAPTER_IN_REPORT, CONFERENCE_ABSTRACT, CONFERENCE_LECTURE, CONFERENCE_POSTER, CONFERENCE_REPORT, DATA_MANAGEMENT_PLAN, DATA_SET, DEGREE_BACHELOR, DEGREE_LICENTIATE, DEGREE_MASTER, DEGREE_PHD, ENCYCLOPEDIA, ENCYCLOPEDIA_CHAPTER, EXHIBITION_CATALOG, EXHIBITION_CATALOG_CHAPTER, EXHIBITION_PRODUCTION, INTRODUCTION, JOURNAL_CORRIGENDUM, JOURNAL_ISSUE, JOURNAL_LEADER, JOURNAL_LETTER, JOURNAL_REVIEW, LECTURE, LITERARY_ARTS, MAP, MEDIA_BLOG_POST, MEDIA_FEATURE_ARTICLE, MEDIA_INTERVIEW, MEDIA_PARTICIPATION_IN_RADIO_OR_TV, MEDIA_PODCAST, MEDIA_READER_OPINION, MOVING_PICTURE, MUSIC_PERFORMANCE, NON_FICTION_CHAPTER, NON_FICTION_MONOGRAPH, OTHER_PRESENTATION, OTHER_STUDENT_WORK, PERFORMING_ARTS, POPULAR_SCIENCE_ARTICLE, POPULAR_SCIENCE_CHAPTER, POPULAR_SCIENCE_MONOGRAPH, PROFESSIONAL_ARTICLE, REPORT_BASIC, REPORT_BOOK_OF_ABSTRACT, REPORT_RESEARCH, REPORT_WORKING_PAPER, REPOST_POLICY, STUDY_PROTOCOL, TEXTBOOK, TEXTBOOK_CHAPTER, VISUAL_ARTS],}, publicationWorkflow={S: REGISTRATOR_PUBLISHES_METADATA_ONLY,}, serviceCenter={M: {name={NULL: true,}, uri={NULL: true,}},}, shortName={S: UIB,}, doiAgent={M: {},}, sector={S: UHI,}, rboInstitution={BOOL: false}},SequenceNumber: 4981317700000513153297190510,SizeBytes: 3474,StreamViewType: NEW_AND_OLD_IMAGES},eventSourceArn: arn:aws:dynamodb:eu-west-1:884807050265:table/nva-customers-master-pipelines-NvaIdentityService-WLJCBMUDMRYZ-nva-identity-service/stream/2025-05-09T11:18:51.458}
-            """;
-        var event = new DynamodbEvent();
-
-        var record = new DynamodbEvent.DynamodbStreamRecord();
-
-        var streamRecord = new StreamRecord();
-        record.setDynamodb(streamRecord);
-
-        event.setRecords(Collections.singletonList(record));
     }
 
     private URI randomOrganizationId() {

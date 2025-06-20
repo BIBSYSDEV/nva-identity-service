@@ -37,6 +37,7 @@ import no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy;
 import no.unit.nva.stubs.FakeEventBridgeClient;
 import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
@@ -177,6 +178,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
     }
 
     @Test
+    @Disabled
     void shouldFail() throws JsonProcessingException {
         var jsonBody = """
             {

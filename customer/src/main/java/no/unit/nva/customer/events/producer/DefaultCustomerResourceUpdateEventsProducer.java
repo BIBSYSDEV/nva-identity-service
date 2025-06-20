@@ -44,17 +44,16 @@ public class DefaultCustomerResourceUpdateEventsProducer implements CustomerReso
   @Override
   public List<ResourceUpdateEvent<ChannelClaim>> produceEvents(DynamodbStreamRecord record) {
     logger.info("Processing record: {}", toString(record));
-    var success = attempt(() -> processEvent(record));
+    var result = attempt(() -> processEvent(record));
 
-    if (success.isSuccess()) {
-      return success.get();
+    if (result.isSuccess()) {
+      return result.get();
     }
     logger.error("Failed to process record");
-    return emptyList();
+    throw new RuntimeException(result.getException());
   }
 
   public List<ResourceUpdateEvent<ChannelClaim>> processEvent(DynamodbStreamRecord record) {
-    logger.info("Processing record: {}", toString(record));
     var oldCustomerOpt = convertToCustomerDto(record
                                                   .getDynamodb()
                                                   .getOldImage());

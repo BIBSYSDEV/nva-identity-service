@@ -63,8 +63,7 @@ public class DefaultCustomerResourceUpdateEventsProducer implements CustomerReso
     }
 
     private static String toString(DynamodbStreamRecord record) {
-        return attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(record))
-                   .orElse(failure -> "Unable to parse dynamodb record");
+        return attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(record)).orElseThrow();
     }
 
     private boolean isModified(ChannelClaimDto oldClaim, ChannelClaimDto newClaim) {

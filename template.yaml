@@ -885,6 +885,9 @@ Resources:
             StartingPosition: TRIM_HORIZON
             BatchSize: 1
             Enabled: true
+            MaximumRetryAttempts: 3
+            MaximumRecordAgeInSeconds: 3600
+            BisectBatchOnFunctionError: true
             DestinationConfig:
               OnFailure:
                 Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn

@@ -809,6 +809,21 @@ Resources:
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
 
+  NvaCustomersTableStreamMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      StartingPosition: TRIM_HORIZON
+      EventSourceArn: !GetAtt NvaCustomersTable.StreamArn
+      FunctionName: !Ref CustomerDynamoDbStreamToEventBridgeFunction
+      Enabled: true
+      MaximumRetryAttempts: 1
+      MaximumRecordAgeInSeconds: 3600
+      DestinationConfig:
+        OnFailure:
+          Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
+
+
   CustomerDynamoDbStreamToEventBridgeFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -870,21 +885,6 @@ Resources:
       DeadLetterQueue:
         Type: SQS
         TargetArn: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
-      Events:
-        FanoutSource:
-          Type: DynamoDB
-          Properties:
-            Stream: !GetAtt NvaCustomersTable.StreamArn
-            StartingPosition: TRIM_HORIZON
-            BatchSize: 1
-            Enabled: true
-      EventInvokeConfig:
-        MaximumRetryAttempts: 2
-        MaximumRecordAgeInSeconds: 3600
-        DestinationConfig:
-          OnFailure:
-            Type: SQS
-            Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
 
   DynamoDbStreamToEventBridgeDLQ:
     Type: AWS::SQS::Queue

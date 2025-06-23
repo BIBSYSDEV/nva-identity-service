@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import no.unit.nva.customer.CustomerBatchScanHandler;
 import no.unit.nva.customer.get.response.ChannelClaimsListResponse;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimWithClaimer;
@@ -21,13 +22,17 @@ import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UriWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, ChannelClaimsListResponse> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ListAllChannelClaimsHandler.class);
     private static final String BAD_GATEWAY_ERROR_MESSAGE = "Something went wrong, contact application administrator!";
     private static final String QUERY_PARAM_INSTITUTION = "institution";
     private static final String QUERY_PARAM_CHANNEL_TYPE = "channelType";
     private static final int ONE = 1;
+    protected static final String EXCEPTION_MESSAGE = "Failed with exception: {}";
     private final CustomerService customerService;
 
     @JacocoGenerated
@@ -51,6 +56,7 @@ public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, Channel
         try {
             return ChannelClaimsListResponse.fromChannelClaims(listChannelClaims(requestInfo));
         } catch (Exception e) {
+            LOGGER.error(EXCEPTION_MESSAGE, e);
             throw new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
         }
     }

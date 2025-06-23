@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import no.unit.nva.customer.CustomerBatchScanHandler;
 import no.unit.nva.customer.get.response.ChannelClaimsListResponse;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimDto;
 import no.unit.nva.customer.model.channelclaim.ChannelClaimWithClaimer;

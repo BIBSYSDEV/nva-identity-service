@@ -1,6 +1,21 @@
 package no.unit.nva.customer.model;
 
+import static java.util.Objects.nonNull;
+import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
+import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
+import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
+import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import java.net.URI;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import no.unit.nva.commons.json.JsonSerializable;
 import no.unit.nva.customer.model.CustomerDto.DoiAgentDto;
 import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
@@ -13,6 +28,7 @@ import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.model.interfaces.RightsRetentionStrategy;
 import no.unit.nva.customer.model.interfaces.Typed;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.StringUtils;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
@@ -21,23 +37,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConve
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
-
-import java.net.URI;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.nonNull;
-import static no.unit.nva.customer.model.ApplicationDomain.fromUri;
-import static no.unit.nva.customer.model.dynamo.converters.DynamoUtils.nonEmpty;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRISTIN_ID_INDEX_NAME;
-import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
-import static nva.commons.core.attempt.Try.attempt;
 
 @DynamoDbBean(converterProviders = {VocabularyConverterProvider.class, DefaultAttributeConverterProvider.class})
 @SuppressWarnings({"PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.TooManyFields", "PMD.CouplingBetweenObjects"})
@@ -346,7 +345,9 @@ public class CustomerDao implements Typed, JsonSerializable {
     }
 
     public void setCristinId(URI cristinId) {
-        this.cristinId = cristinId;
+        if (nonNull(cristinId) && StringUtils.isNotEmpty(cristinId.toString())) {
+            this.cristinId = cristinId;
+        }
     }
 
     public URI getCustomerOf() {
@@ -372,7 +373,9 @@ public class CustomerDao implements Typed, JsonSerializable {
     }
 
     public void setRorId(URI rorId) {
-        this.rorId = rorId;
+        if (nonNull(rorId) && StringUtils.isNotEmpty(rorId.toString())) {
+            this.rorId = rorId;
+        }
     }
 
     public PublicationWorkflow getPublicationWorkflow() {

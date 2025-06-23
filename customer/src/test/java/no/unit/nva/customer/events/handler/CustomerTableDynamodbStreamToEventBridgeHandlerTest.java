@@ -39,6 +39,9 @@ import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
@@ -177,9 +180,19 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
                                                             OWNER_ONLY)));
     }
 
-    @Test
-    void shouldNotFailWhenConsumingEmptyStringInDynamoDbAttribute() throws JsonProcessingException {
-        var jsonBody = """
+    @ParameterizedTest
+    @ValueSource(strings = {"\"\"", "\" \"", "null"})
+    void shouldNotFailWhenConsumingEmptyStringInDynamoDbAttribute(String value) throws JsonProcessingException {
+        var jsonBody = dynamoDbRecordWithStringValue(value);
+        var dynamodbStreamRecord = JsonUtils.dtoObjectMapper.readValue(jsonBody, DynamodbStreamRecord.class);
+        var event = new DynamodbEvent();
+        event.setRecords(Collections.singletonList(dynamodbStreamRecord));
+
+        assertDoesNotThrow(() -> handler.handleRequest(event, context));
+    }
+
+    private static String dynamoDbRecordWithStringValue(String value) {
+        return """
             {
                 "eventID": "55621683b48de2091b83e678ae88bc05",
                 "eventName": "MODIFY",
@@ -197,7 +210,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
                     },
                     "oldImage": {
                         "rorId": {
-                            "s": ""
+                            "s": %s
                         }
                     },
                     "sequenceNumber": "4981469800001502076366178526",
@@ -206,12 +219,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
                 },
                 "eventSourceARN": ""
             }
-            """;
-        var dynamodbStreamRecord = JsonUtils.dtoObjectMapper.readValue(jsonBody, DynamodbStreamRecord.class);
-        var event = new DynamodbEvent();
-        event.setRecords(Collections.singletonList(dynamodbStreamRecord));
-
-        assertDoesNotThrow(() -> handler.handleRequest(event, context));
+            """.formatted(value);
     }
 
     private URI randomOrganizationId() {

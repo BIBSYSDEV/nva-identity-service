@@ -2,11 +2,13 @@ package no.unit.nva.customer.events.aws;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.nonNull;
+import static java.util.function.Predicate.not;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -73,7 +75,12 @@ public class JacksonAttributeValueConverter implements AttributeValueConverter {
     private boolean isNullValue(
         com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value
     ) {
-        return Boolean.TRUE.equals(value.isNULL()) || isAttributeWhereAllValuesAreNull(value);
+        return Boolean.TRUE.equals(value.isNULL())
+               || isAttributeWhereAllValuesAreNull(value)
+               || nonNull(value.getS()) && Optional.of(value)
+                      .map(com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue::getS)
+                      .filter(not(String::isBlank))
+                      .isEmpty();
     }
 
     private boolean isAttributeWhereAllValuesAreNull(com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value) {

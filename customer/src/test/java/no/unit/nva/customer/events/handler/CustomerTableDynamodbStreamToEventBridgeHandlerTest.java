@@ -178,7 +178,7 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
     }
 
     @Test
-    void shouldNotFailWhenConsumingEmptyStringInDynamoDbAttribue() throws JsonProcessingException {
+    void shouldNotFailWhenConsumingEmptyStringInDynamoDbAttribute() throws JsonProcessingException {
         var jsonBody = """
             {
                 "eventID": "55621683b48de2091b83e678ae88bc05",

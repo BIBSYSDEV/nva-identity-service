@@ -16,8 +16,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
+import com.amazonaws.services.lambda.runtime.events.DynamodbEvent.DynamodbStreamRecord;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.StreamRecord;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
@@ -25,17 +27,21 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.events.emitter.EventEmitterException;
 import no.unit.nva.customer.events.model.ChannelClaim;
 import no.unit.nva.customer.events.model.ChannelClaim.Constraints;
 import no.unit.nva.customer.events.model.ResourceUpdateEvent;
 import no.unit.nva.customer.model.PublicationInstanceTypes;
 import no.unit.nva.customer.model.channelclaim.ChannelConstraintPolicy;
-import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.stubs.FakeEventBridgeClient;
 import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
 
@@ -172,6 +178,48 @@ public class CustomerTableDynamodbStreamToEventBridgeHandlerTest {
                                                             DEFAULT_SCOPE,
                                                             EVERYONE,
                                                             OWNER_ONLY)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"\"\"", "\" \"", "null"})
+    void shouldNotFailWhenConsumingEmptyStringInDynamoDbAttribute(String value) throws JsonProcessingException {
+        var jsonBody = dynamoDbRecordWithStringValue(value);
+        var dynamodbStreamRecord = JsonUtils.dtoObjectMapper.readValue(jsonBody, DynamodbStreamRecord.class);
+        var event = new DynamodbEvent();
+        event.setRecords(Collections.singletonList(dynamodbStreamRecord));
+
+        assertDoesNotThrow(() -> handler.handleRequest(event, context));
+    }
+
+    private static String dynamoDbRecordWithStringValue(String value) {
+        return """
+            {
+                "eventID": "55621683b48de2091b83e678ae88bc05",
+                "eventName": "MODIFY",
+                "eventVersion": "1.1",
+                "eventSource": "aws:dynamodb",
+                "awsRegion": "eu-west-1",
+                "dynamodb": {
+                    "approximateCreationDateTime": "2025-06-19T11:25:29.000+00:00",
+                    "keys": {
+                        "identifier": {
+                            "s": "a228aba6-932b-4f53-b2de-31ad8daf9f8d"
+                        }
+                    },
+                    "newImage": {
+                    },
+                    "oldImage": {
+                        "rorId": {
+                            "s": %s
+                        }
+                    },
+                    "sequenceNumber": "4981469800001502076366178526",
+                    "sizeBytes": 3800,
+                    "streamViewType": "NEW_AND_OLD_IMAGES"
+                },
+                "eventSourceARN": ""
+            }
+            """.formatted(value);
     }
 
     private URI randomOrganizationId() {

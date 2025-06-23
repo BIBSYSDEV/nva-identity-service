@@ -809,15 +809,6 @@ Resources:
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
 
-  NvaCustomersTableStreamMapping:
-    Type: AWS::Lambda::EventSourceMapping
-    Properties:
-      BatchSize: 1
-      StartingPosition: TRIM_HORIZON
-      EventSourceArn: !GetAtt NvaCustomersTable.StreamArn
-      FunctionName: !Ref CustomerDynamoDbStreamToEventBridgeFunction
-      Enabled: true
-
   CustomerDynamoDbStreamToEventBridgeFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -855,6 +846,12 @@ Resources:
                   - dynamodb:DescribeStream
                   - dynamodb:ListStreams
                 Resource: !GetAtt NvaCustomersTable.StreamArn
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
+
 
   CustomerDynamoDbStreamToEventBridgeFunction:
     Type: AWS::Serverless::Function
@@ -866,11 +863,28 @@ Resources:
       Tracing: Active
       LoggingConfig:
         LogGroup: !Ref CustomerDynamoDbStreamToEventBridgeFunctionLogGroup
+      Events:
+        FanoutSource:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt NvaCustomersTable.StreamArn
+            StartingPosition: TRIM_HORIZON
+            BatchSize: 1
+            Enabled: true
+            MaximumRetryAttempts: 3
+            MaximumRecordAgeInSeconds: 3600
+            BisectBatchOnFunctionError: true
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
       Environment:
         Variables:
           EVENT_BUS_NAME: !Ref NvaEventBusName
           ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
           API_HOST: !Ref ApiDomain
+
+  DynamoDbStreamToEventBridgeDLQ:
+    Type: AWS::SQS::Queue
 
   TermsAndConditionsTable:
     Type: AWS::DynamoDB::Table

@@ -1,6 +1,7 @@
 package no.unit.nva.customer.events.aws;
 
 import static java.util.Collections.emptyList;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.attempt.Try.attempt;
@@ -11,6 +12,8 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class JacksonAttributeValueConverter implements AttributeValueConverter {
+
+    protected static final String EMPTY_ATTRIBUTE_VALUE = "{}";
 
     public JacksonAttributeValueConverter() {
     }
@@ -71,7 +74,20 @@ public class JacksonAttributeValueConverter implements AttributeValueConverter {
     private boolean isNullValue(
         com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value
     ) {
-        return Boolean.TRUE.equals(value.isNULL());
+        return Boolean.TRUE.equals(value.isNULL()) || isAttributeWhereAllValuesAreNull(value);
+    }
+
+    private boolean isAttributeWhereAllValuesAreNull(com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue value) {
+        return isNull(value.getS())
+               && isNull(value.getN())
+               && isNull(value.getB())
+               && isNull(value.getSS())
+               && isNull(value.getNS())
+               && isNull(value.getBS())
+               && isNull(value.getM())
+               && isNull(value.getL())
+               && isNull(value.getNULL())
+               && isNull(value.getBOOL());
     }
 
     private boolean containsAttributeValueMap(

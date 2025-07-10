@@ -1,24 +1,24 @@
 [versions]
-nvaCommons = { strictly = '2.2.4' }
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
-awsSdk2 = { strictly = '2.31.28' }
-jackson = { strictly = "2.18.3" }
 #xraySdk = { strictly = '2.9.1' }
-dynamoDbLocal = { strictly = '2.5.3' }
-zalandoProblem = { strictly = '0.27.1' }
-awsLambdaCore = { strictly = '1.2.3' }
-jupiter = { strictly = "5.12.2" }
-slf4j = { strictly = '2.0.17' }
-apacheHttpClient = { strictly = '5.4.3' }
-hamcrest = { strictly = '3.0' }
-javersCore = { strictly = '7.6.1' }
+apacheHttpClient = { strictly = '5.5' }
+awsLambdaCore = { strictly = '1.3.0' }
+awsLambdaEvents = { strictly = '3.16.0' }
+awsSdk2 = { strictly = '2.31.77' }
 datafaker = { strictly = '2.4.3' }
-mockitoCore = { strictly = '5.15.2' }
+dynamoDbLocal = { strictly = '2.6.1' }
 guava = { require = '33.4.8-jre' }
-log4j = { strictly = '2.24.3' }
-awsLambdaEvents = { strictly = '3.15.0' }
-wiremock = { strictly = "3.12.1" }
+hamcrest = { strictly = '3.0' }
+jackson = { strictly = "2.19.1" }
+javersCore = { strictly = '7.8.0' }
+jupiter = { strictly = "5.13.3" }
+log4j = { strictly = '2.25.0' }
+mockitoCore = { strictly = '5.18.0' }
+nvaCommons = { strictly = '2.2.9' }
+slf4j = { strictly = '2.0.17' }
+wiremock = { strictly = "3.13.1" }
+zalandoProblem = { strictly = '0.27.1' }
 
 [libraries]
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaCommons' }

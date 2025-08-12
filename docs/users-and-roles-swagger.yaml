@@ -544,15 +544,12 @@ components:
       type: object
       description: NVA license agreement
       required:
-        - id
-        - validFrom
+        - termsConditionsUri
       properties:
-        id:
+        termsConditionsUri:
           type: string
-          description: URI to our license agreement
-        validFrom:
-          type: string
-          description: LocalDateTime
+          description: URI to the terms and conditions
+          format: uri
     Problem:
       type: object
       description: NVA error reporting object

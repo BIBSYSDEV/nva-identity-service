@@ -426,6 +426,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
+          TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
       Events:
         ApiEvent:
           Type: Api

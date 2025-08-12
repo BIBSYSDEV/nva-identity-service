@@ -73,7 +73,9 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsIterableContaining.hasItems;
 import static org.hamcrest.text.MatchesPattern.matchesPattern;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @WireMockTest(httpsEnabled = true)
 class CreateUserHandlerTest extends HandlerTest {
@@ -547,5 +549,50 @@ class CreateUserHandlerTest extends HandlerTest {
         var message = response.getBodyObject(Problem.class).getDetail();
         assertThat(message,
             is(equalTo("Something went wrong, contact application administrator!")));
+    }
+
+    @Test
+    void shouldReturnBadGatewayWhenFetchingPersonFromPersonRegistryFails() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = randomCustomer();
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+                ViewingScope.defaultViewingScope(randomCristinOrganization()));
+
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        var mockedIdentityService = mock(IdentityService.class);
+        var personRegistry = mock(PersonRegistry.class);
+        when(personRegistry.fetchPersonByIdentifier(any())).thenThrow(RuntimeException.class);
+        handler = new CreateUserHandler(mockedIdentityService, customerService, personRegistry,
+                new Environment());
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
+
+        var message = response.getBodyObject(Problem.class).getDetail();
+        assertThat(message,
+                is(equalTo("Something went wrong, contact application administrator!")));
+    }
+
+    @Test
+    void shouldReturnBadGatewayWhenFetchingPersonFromIdentityServiceFails() throws IOException {
+        var person = scenarios.personWithExactlyOneActiveEmployment();
+        var customer = randomCustomer();
+        var requestBody = sampleRequestForExistingPersonCustomerAndRoles(person, customer.getId(),
+                ViewingScope.defaultViewingScope(randomCristinOrganization()));
+
+        var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+        var mockedIdentityService = mock(IdentityService.class);
+        when(mockedIdentityService.getUsersByCristinId(any())).thenThrow(RuntimeException.class);
+        handler = new CreateUserHandler(mockedIdentityService, customerService, personRegistry,
+                new Environment());
+        handler.handleRequest(request, outputStream, context);
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
+
+        var message = response.getBodyObject(Problem.class).getDetail();
+        assertThat(message,
+                is(equalTo("Something went wrong, contact application administrator!")));
     }
 }

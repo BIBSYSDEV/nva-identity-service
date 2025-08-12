@@ -11,7 +11,6 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
-import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
@@ -29,11 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,8 +36,8 @@ import java.util.stream.Stream;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+import static no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber.fromString;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 import static nva.commons.core.attempt.Try.attempt;
@@ -50,7 +45,7 @@ import static nva.commons.core.attempt.Try.attempt;
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUserRequest, UserDto> {
 
-    public static final String BAD_GATEWAY_ERROR_MESSAGE = "Something went wrong, contact application administrator!";
+    private static final String BAD_GATEWAY_ERROR_MESSAGE = "Something went wrong, contact application administrator!";
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserHandler.class);
     private final UserEntriesCreatorForPerson userCreator;
     private final IdentityService identityService;
@@ -117,7 +112,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
         }
     }
 
-    private UserDto createNewUser(CreateUserRequest input) throws ConflictException {
+    private UserDto createNewUser(CreateUserRequest input) throws ConflictException, BadGatewayException {
         var person = fetchCristinPersonFromIdentifierOrNin(input).orElseThrow();
 
         var customersWithActiveAffiliations = fetchCustomersWithActiveAffiliations(
@@ -187,24 +182,33 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
                    .collect(Collectors.toSet());
     }
 
-    private Optional<UserDto> fetchExistingUser(CreateUserRequest input) throws ConflictException {
-        return fetchCristinPersonFromIdentifierOrNin(input)
-                   .map(person -> fetchUserAtCustomer(person, input.customerId()))
-                   .orElseThrow(
-                       () -> new ConflictException(personIsNotRegisteredError(input.nationalIdentityNumber())));
+    private Optional<UserDto> fetchExistingUser(CreateUserRequest input) throws ConflictException, BadGatewayException {
+        var cristinPerson = fetchCristinPersonFromIdentifierOrNin(input);
+        if(cristinPerson.isPresent()) {
+            return fetchUserAtCustomer(cristinPerson.get(), input.customerId());
+        } else {
+            throw new ConflictException(personIsNotRegisteredError(input.nationalIdentityNumber()));
+        }
     }
 
-    private Optional<Person> fetchCristinPersonFromIdentifierOrNin(CreateUserRequest input) {
-        return nonNull(input.cristinIdentifier()) ?
-                   personRegistry.fetchPersonByIdentifier(input.cristinIdentifier()) :
-                                                                                         personRegistry.fetchPersonByNin(
-                                                                                             NationalIdentityNumber.fromString(
-                                                                                                 input.nationalIdentityNumber()));
+    private Optional<Person> fetchCristinPersonFromIdentifierOrNin(CreateUserRequest input) throws BadGatewayException {
+        try {
+            return Optional.ofNullable(input.cristinIdentifier())
+                    .map(personRegistry::fetchPersonByIdentifier)
+                    .orElseGet(() -> personRegistry.fetchPersonByNin(fromString(input.nationalIdentityNumber())));
+        } catch (Exception e) {
+            throw new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
+        }
     }
 
-    private Optional<UserDto> fetchUserAtCustomer(Person person, URI customerId) {
-        var users = identityService.getUsersByCristinId(person.getId());
-        return users.stream().filter(userDto -> userDto.getInstitution().equals(customerId)).findFirst();
+    private Optional<UserDto> fetchUserAtCustomer(Person person, URI customerId) throws BadGatewayException {
+        try {
+            return identityService.getUsersByCristinId(person.getId()).stream()
+                    .filter(userDto -> userDto.getInstitution().equals(customerId))
+                    .findFirst();
+        } catch (Exception e) {
+            throw new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
+        }
     }
 
     private String personIsNotRegisteredError(String nin) {

@@ -1142,6 +1142,9 @@ components:
           type: string
         nviInstitution:
           type: boolean
+        serviceCenterUri:
+          type: string
+          format: uri
     ChannelClaimList:
       type: object
       properties:
@@ -1405,6 +1408,7 @@ components:
             displayName: 'Universitet for Reindrift'
             doiPrefix: "1000.10"
             nviInstitution: false
+            serviceCenterUri: 'https://sikt.no/tjenester/nasjonalt-vitenarkiv-nva/hjelpeside-nva'
     DoiAgentExample:
       value:
         id: 'https://example.com/example/#/doiagent'

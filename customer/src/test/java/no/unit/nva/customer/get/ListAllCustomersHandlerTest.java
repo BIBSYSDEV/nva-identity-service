@@ -8,6 +8,8 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
@@ -19,8 +21,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
+import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.CustomerList;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.service.CustomerService;
@@ -125,16 +129,37 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
         assertThat(actualCustomerPreview.getDoiPrefix(), is(equalTo(doiPrefix)));
     }
 
-    private CustomerDto insertRandomCustomerWithDoiPrefix(String doiPrefix)
+    @Test
+    void shouldReturnAListOfCustomersContainingCustomerServiceCenterUri()
+        throws ConflictException, NotFoundException, IOException {
+        var serviceCenterUri = randomUri();
+        insertRandomCustomerWithServiceCenter(serviceCenterUri, randomString());
+
+        var response = sendRequest(sampleRequestWithAccess(), CustomerList.class);
+        var customerList = CustomerList.fromString(response.getBody());
+        assertThat(customerList.getCustomers(), hasItem(hasProperty("serviceCenterUri", is(serviceCenterUri))));
+    }
+
+    private void insertRandomCustomerWithDoiPrefix(String doiPrefix)
         throws ConflictException, NotFoundException {
         var customer = CustomerDto.builder()
-            .withDisplayName(randomString())
-            .withCristinId(randomUri())
-            .withCustomerOf(randomElement(ApplicationDomain.values()))
-            .withDoiAgent(createDoiAgent(doiPrefix))
-            .build();
+                           .withDisplayName(randomString())
+                           .withCristinId(randomUri())
+                           .withCustomerOf(randomElement(ApplicationDomain.values()))
+                           .withDoiAgent(createDoiAgent(doiPrefix))
+                           .build();
         customerService.createCustomer(customer);
-        return customerService.getCustomerByCristinId(customer.getCristinId());
+    }
+
+    private void insertRandomCustomerWithServiceCenter(URI serviceCenterUri, String name)
+        throws ConflictException, NotFoundException {
+        var customer = CustomerDto.builder()
+                           .withDisplayName(randomString())
+                           .withCristinId(randomUri())
+                           .withCustomerOf(randomElement(ApplicationDomain.values()))
+                           .withServiceCenter(new ServiceCenter(serviceCenterUri, name))
+                           .build();
+        customerService.createCustomer(customer);
     }
 
     private DoiAgent createDoiAgent(String doiPrefix) {

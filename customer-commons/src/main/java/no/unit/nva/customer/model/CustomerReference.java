@@ -16,6 +16,7 @@ public class CustomerReference {
     private boolean active;
     private String doiPrefix;
     private boolean nviInstitution;
+    private URI serviceCenterUri;
 
     public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
         var customerReference = new CustomerReference();
@@ -26,13 +27,15 @@ public class CustomerReference {
         customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
         customerReference.setActive(customerDto.isActive());
         customerReference.setNviInstitution(customerDto.isNviInstitution());
+        customerReference.setServiceCenterUri(extractServiceCenterUri(customerDto));
         return customerReference;
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getCristinId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix());
+        return Objects.hash(getId(), getCristinId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix(),
+                            getServiceCenterUri());
     }
 
     @JacocoGenerated
@@ -46,7 +49,8 @@ public class CustomerReference {
                && Objects.equals(getCristinId(), that.getCristinId())
                && Objects.equals(getDisplayName(), that.getDisplayName())
                && Objects.equals(getCreatedDate(), that.getCreatedDate())
-               && Objects.equals(getDoiPrefix(), that.getDoiPrefix());
+               && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
+               && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri());
     }
 
     public boolean isActive() {
@@ -107,7 +111,19 @@ public class CustomerReference {
         this.nviInstitution = nviInstitution;
     }
 
+    public URI getServiceCenterUri() {
+        return serviceCenterUri;
+    }
+
+    public void setServiceCenterUri(URI serviceCenterUri) {
+        this.serviceCenterUri = serviceCenterUri;
+    }
+
     private static String extractDoiPrefix(CustomerDto customerDto) {
         return Optional.ofNullable(customerDto.getDoiAgent()).map(CustomerDto.DoiAgentDto::getPrefix).orElse(null);
+    }
+
+    private static URI extractServiceCenterUri(CustomerDto customerDto) {
+        return Optional.ofNullable(customerDto.getServiceCenter()).map(CustomerDto.ServiceCenter::uri).orElse(null);
     }
 }

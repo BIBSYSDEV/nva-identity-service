@@ -171,10 +171,10 @@ public class UserSelectionUponLoginHandler
         var impersonating = attributes.get(IMPERSONATING_CLAIM);
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
-        var lastName = extractLastName(attributes);
-        var firstName = extractFirstName(attributes);
         var person = personRegistry.fetchPersonByNin(nin)
                          .or(() -> {
+                             var lastName = extractLastName(attributes);
+                             var firstName = extractFirstName(attributes);
                              return personRegistry.createPerson(nin, firstName, lastName);
                          }).orElseThrow();
 

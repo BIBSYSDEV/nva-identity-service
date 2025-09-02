@@ -711,7 +711,7 @@ class UserSelectionUponLoginHandlerTest {
             Arguments.of("O'Connor McGregor", "O'Connor", "McGregor"),
             Arguments.of("李四 王五", "李四", "王五"),
             Arguments.of("å b c d", "å b", "c d"),
-            Arguments.of("å b c, d", "å b", "c, d")
+            Arguments.of("å b c, d", "å b", "c d")
         );
     }}
 

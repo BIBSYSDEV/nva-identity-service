@@ -227,6 +227,7 @@ public class UserSelectionUponLoginHandler
                                       buildOverrideClaims(accessRightsResponseStrings, userAttributes))
                                   .build());
         } else {
+            LOGGER.error("Could not find or create person with nin {}", nin);
             input.setResponse(Response.builder()
                                   .withClaimsAndScopeOverrideDetails(
                                       buildOverrideClaims(Collections.emptyList(), Collections.emptyList()))
@@ -332,7 +333,14 @@ public class UserSelectionUponLoginHandler
             authenticationDetails.getFeideIdentifier()
         );
 
-        return userCreator.createUsers(userCreationContext);
+        var users = userCreator.createUsers(userCreationContext);
+
+        if (users.isEmpty()) {
+            LOGGER.warn("No user entries could be created for person {}",
+                        person.getId());
+        }
+
+        return users;
     }
 
     private AuthenticationDetails extractAuthenticationDetails(CognitoUserPoolPreTokenGenerationEventV2 input) {

@@ -42,7 +42,7 @@ import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTE
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static nva.commons.core.attempt.Try.attempt;
 
-@SuppressWarnings("PMD.CouplingBetweenObjects")
+@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.GodClass"})
 public final class CristinPersonRegistry implements PersonRegistry {
 
     public static final String AUTHORIZATION = "Authorization";
@@ -221,11 +221,21 @@ public final class CristinPersonRegistry implements PersonRegistry {
                   .map(a -> new Affiliation(a.getKey(), a.getValue()))
                   .collect(toList());
 
+        if (isNullOrBlank(cristinPerson.getId())
+            || isNullOrBlank(cristinPerson.getFirstname())
+            || isNullOrBlank(cristinPerson.getSurname())) {
+            throw new PersonRegistryException("Cristin person is missing required fields");
+        }
+
         return new Person(generateCristinIdForPerson(cristinPerson.getId()),
                           cristinPerson.getId(),
                           cristinPerson.getFirstname(),
                           cristinPerson.getSurname(),
                           personAffiliations);
+    }
+
+    private boolean isNullOrBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     private URI generateCristinIdForOrganization(String identifier) {
@@ -255,6 +265,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
         var request = createGetRequest(createByNationalIdentityNumberQueryUri(nin), cristinCredentials);
         var results = executeRequest(request, PersonSearchResultItem[].class);
+
+        if (results.length == 0) {
+            LOGGER.info("No person found in Cristin with {}", nin);
+        }
 
         return Arrays.stream(results).collect(SingletonCollector.tryCollect()).toOptional();
     }

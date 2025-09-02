@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -40,7 +41,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -81,6 +81,7 @@ public class UserSelectionUponLoginHandler
     private static final String N_A = "N/A";
     private static final String WHITESPACE_REGEX = "\\s+";
     private static final int ONE = 1;
+    private static final String COULD_NOT_FIND_OR_CREATE_PERSON = "Could not find or create person";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -168,8 +169,6 @@ public class UserSelectionUponLoginHandler
         var impersonating = attributes.get(IMPERSONATING_CLAIM);
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
-
-
         var requestedPerson = personRegistry.fetchPersonByNin(nin)
                                   .or(() -> personRegistry.createPerson(nin,
                                                                         extractFirstName(attributes),
@@ -227,11 +226,9 @@ public class UserSelectionUponLoginHandler
                                       buildOverrideClaims(accessRightsResponseStrings, userAttributes))
                                   .build());
         } else {
-            LOGGER.error("Could not find or create person with nin {}", nin);
-            input.setResponse(Response.builder()
-                                  .withClaimsAndScopeOverrideDetails(
-                                      buildOverrideClaims(Collections.emptyList(), Collections.emptyList()))
-                                  .build());
+            LOGGER.error(attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(
+                input.getRequest().getUserAttributes())).orElseThrow());
+            throw new IllegalStateException(COULD_NOT_FIND_OR_CREATE_PERSON);
         }
 
         logIfDebug("Leaving request handler having spent {} ms.", start);
@@ -477,7 +474,10 @@ public class UserSelectionUponLoginHandler
                          .filter(attribute -> shouldBeIncludedExcept(attribute, excludedClaims))
                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
 
-        return IdTokenGeneration.builder().withClaimsToAddOrOverride(claims).withClaimsToSuppress(excludedClaims.toArray(String[]::new)).build();
+        return IdTokenGeneration.builder()
+                   .withClaimsToAddOrOverride(claims)
+                   .withClaimsToSuppress(excludedClaims.toArray(String[]::new))
+                   .build();
     }
 
     private static boolean shouldBeIncludedExcept(AttributeType a, List<String> excludedClaims) {

@@ -1212,14 +1212,11 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
-    void shouldAllowPeopleWhoAreNotRegisteredInPersonRegistryToLoginButNotGiveThemAnyRole(
+    void shouldNotAllowPeopleWhoAreNotRegisteredInCristin(
         LoginEventType loginEventType) {
         var person = scenarios.personThatIsNotRegisteredInPersonRegistry().nin();
         var event = newLoginEvent(person, loginEventType);
-        var response = handler.handleRequest(event, context);
-
-        var accessRights = extractAccessRights(response);
-        assertThat(accessRights, is((empty())));
+        assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
     }
 
     @ParameterizedTest

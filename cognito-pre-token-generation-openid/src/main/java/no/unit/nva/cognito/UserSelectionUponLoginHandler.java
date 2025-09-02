@@ -271,7 +271,8 @@ public class UserSelectionUponLoginHandler
                 decoded = decoded.substring(1, decoded.length() - 1);
             }
 
-            var result = decoded.trim();
+            // Remove commas
+            var result = decoded.replace(",", "").trim();
             return result.isEmpty() ? Optional.empty() : Optional.of(result);
 
         } catch (Exception e) {

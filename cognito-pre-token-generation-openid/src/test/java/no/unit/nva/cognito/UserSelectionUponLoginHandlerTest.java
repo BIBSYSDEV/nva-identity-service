@@ -690,6 +690,8 @@ class UserSelectionUponLoginHandlerTest {
         return Stream.of(
             Arguments.of("Alice"),
             Arguments.of("   "),
+            Arguments.of("a\t"),
+            Arguments.of("   Alice"),
             Arguments.of((String)null)
         );
     }}
@@ -1232,8 +1234,8 @@ class UserSelectionUponLoginHandlerTest {
     @EnumSource(LoginEventType.class)
     void shouldNotAllowPeopleWhoAreNotRegisteredInCristin(
         LoginEventType loginEventType) {
-        var person = scenarios.personThatIsNotRegisteredInPersonRegistry().nin();
-        var event = newLoginEvent(person, loginEventType);
+        var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
+        var event = newLoginEvent(person.nin(), loginEventType);
         assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
     }
 
@@ -1403,6 +1405,7 @@ class UserSelectionUponLoginHandlerTest {
         var attributes = new ConcurrentHashMap<String, String>();
         attributes.put(NIN_FOR_FEIDE_USERS, adminNin);
         attributes.put(IMPERSONATING_CLAIM, impersonatedNin);
+        attributes.put(NAME_CLAIM, "admin name");
 
         var request = Request.builder().withUserAttributes(attributes).build();
         var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();

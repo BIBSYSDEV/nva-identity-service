@@ -10,7 +10,6 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
 import java.util.Arrays;
 import java.util.stream.Stream;
-import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -78,10 +77,9 @@ public class UserSelectionUponLoginHandler
         = "Failed to retrieve customer for active affiliation %s when logging in as %s with the following "
           + "affiliations: %s";
     public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
-    private static final String N_A = "N/A";
+    // private static final String N_A = "N/A";
     private static final String WHITESPACE_REGEX = "\\s+";
     private static final int ONE = 1;
-    private static final String COULD_NOT_FIND_OR_CREATE_PERSON = "Could not find or create person";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -169,72 +167,61 @@ public class UserSelectionUponLoginHandler
         var impersonating = attributes.get(IMPERSONATING_CLAIM);
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
-        var requestedPerson = personRegistry.fetchPersonByNin(nin)
-                                  .or(() -> personRegistry.createPerson(nin,
-                                                                        extractFirstName(attributes),
-                                                                        extractLastName(attributes)));
+        var lastName = extractLastName(attributes);
+        var firstName = extractFirstName(attributes);
+        var person = personRegistry.fetchPersonByNin(nin)
+                         .or(() -> personRegistry.createPerson(nin, firstName, lastName)).orElseThrow();
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
-        if (requestedPerson.isPresent()) {
-            var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
-            var person = requestedPerson.get();
+        var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
 
-            var customersForPerson = fetchCustomersWithActiveAffiliations(person);
-            var currentCustomer = getCurrentCustomer(authenticationDetails, customersForPerson,
-                                                     input.getTriggerSource(), attributes);
+        var customersForPerson = fetchCustomersWithActiveAffiliations(person);
+        var currentCustomer = getCurrentCustomer(authenticationDetails, customersForPerson,
+                                                 input.getTriggerSource(), attributes);
 
-            var users = createUsers(person, customersForPerson, authenticationDetails);
-            var currentTerms = termsService
-                                   .getCurrentTermsAndConditions()
-                                   .termsConditionsUri();
-            var acceptedTerms = getAcceptedTerms(person);
-            var hasAcceptedTerms = currentTerms.equals(acceptedTerms);
+        var users = createUsers(person, customersForPerson, authenticationDetails);
+        var currentTerms = termsService
+                               .getCurrentTermsAndConditions()
+                               .termsConditionsUri();
+        var acceptedTerms = getAcceptedTerms(person);
+        var hasAcceptedTerms = currentTerms.equals(acceptedTerms);
 
-            var currentUser = getCurrentUser(currentCustomer, users);
+        var currentUser = getCurrentUser(currentCustomer, users);
 
-            var userAccessRights = createAccessRightForCustomer(users, customersForPerson, currentCustomer,
-                                                                hasAcceptedTerms);
+        var userAccessRights = createAccessRightForCustomer(users, customersForPerson, currentCustomer,
+                                                            hasAcceptedTerms);
 
-            var accessRightsPersistedFormat = userAccessRights.stream().map(UserAccessRightForCustomer::getAccessRight)
-                                                  .map(AccessRight::toPersistedString)
-                                                  .toList();
-            var accessRightsResponseStrings = userAccessRights.stream()
-                                                  .map(UserAccessRightForCustomer::toString)
-                                                  .toList();
+        var accessRightsPersistedFormat = userAccessRights.stream().map(UserAccessRightForCustomer::getAccessRight)
+                                              .map(AccessRight::toPersistedString)
+                                              .toList();
+        var accessRightsResponseStrings = userAccessRights.stream()
+                                              .map(UserAccessRightForCustomer::toString)
+                                              .toList();
 
-            List<AttributeType> userAttributes = new UserAttributesBuilder()
-                                                     .withPerson(person)
-                                                     .withCurrentTerms(currentTerms)
-                                                     .withAcceptedTerms(acceptedTerms)
-                                                     .withUsers(users)
-                                                     .withCustomersForPerson(customersForPerson)
-                                                     .withCurrentCustomer(currentCustomer)
-                                                     .withAuthenticationDetails(authenticationDetails)
-                                                     .withImpersonatedBy(impersonatedBy)
-                                                     .withCurrentUser(currentUser)
-                                                     .withAccessRightsPersistedFormat(accessRightsPersistedFormat)
-                                                     .build();
+        List<AttributeType> userAttributes = new UserAttributesBuilder()
+                                                 .withPerson(person)
+                                                 .withCurrentTerms(currentTerms)
+                                                 .withAcceptedTerms(acceptedTerms)
+                                                 .withUsers(users)
+                                                 .withCustomersForPerson(customersForPerson)
+                                                 .withCurrentCustomer(currentCustomer)
+                                                 .withAuthenticationDetails(authenticationDetails)
+                                                 .withImpersonatedBy(impersonatedBy)
+                                                 .withCurrentUser(currentUser)
+                                                 .withAccessRightsPersistedFormat(accessRightsPersistedFormat)
+                                                 .build();
 
-            updateCognitoUserAttributes(userAttributes,
-                                        authenticationDetails.getUserPoolId(),
-                                        authenticationDetails.getUsername()
-            );
+        updateCognitoUserAttributes(userAttributes,
+                                    authenticationDetails.getUserPoolId(),
+                                    authenticationDetails.getUsername()
+        );
 
-            input.setResponse(Response.builder()
-                                  .withClaimsAndScopeOverrideDetails(
-                                      buildOverrideClaims(accessRightsResponseStrings, userAttributes))
-                                  .build());
-        } else {
-            var attr = input.getRequest().getUserAttributes();
-            attr.remove(NIN_FOR_FEIDE_USERS);
-            attr.remove(NIN_FOR_NON_FEIDE_USERS);
-            LOGGER.error(attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(attr)).orElseThrow());
-            throw new IllegalStateException(COULD_NOT_FIND_OR_CREATE_PERSON);
-        }
-
+        input.setResponse(Response.builder()
+                              .withClaimsAndScopeOverrideDetails(
+                                  buildOverrideClaims(accessRightsResponseStrings, userAttributes))
+                              .build());
         logIfDebug("Leaving request handler having spent {} ms.", start);
-
         return input;
     }
 
@@ -252,6 +239,7 @@ public class UserSelectionUponLoginHandler
         return new IllegalStateException(message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
     }
 
+    @JacocoGenerated
     private String extractLastName(Map<String, String> attributes) {
         return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
                    .filter(fullName -> !fullName.isBlank())

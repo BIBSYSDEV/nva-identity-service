@@ -226,8 +226,10 @@ public class UserSelectionUponLoginHandler
                                       buildOverrideClaims(accessRightsResponseStrings, userAttributes))
                                   .build());
         } else {
-            LOGGER.error(attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(
-                input.getRequest().getUserAttributes())).orElseThrow());
+            var attr = input.getRequest().getUserAttributes();
+            attr.remove(NIN_FOR_FEIDE_USERS);
+            attr.remove(NIN_FOR_NON_FEIDE_USERS);
+            LOGGER.error(attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(attr)).orElseThrow());
             throw new IllegalStateException(COULD_NOT_FIND_OR_CREATE_PERSON);
         }
 
@@ -242,7 +244,12 @@ public class UserSelectionUponLoginHandler
                    .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
                    .filter(parts -> parts.length > ONE)
                    .map(parts -> String.join(" ", Arrays.copyOf(parts, parts.length - ONE)))
-                   .orElse(N_A);
+                   .orElseThrow(
+                       () -> getIllegalStateException("Could not extract first name from full name: %s", attributes));
+    }
+
+    private static IllegalStateException getIllegalStateException(String message, Map<String, String> attributes) {
+        return new IllegalStateException(message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
     }
 
     private String extractLastName(Map<String, String> attributes) {
@@ -250,7 +257,8 @@ public class UserSelectionUponLoginHandler
                    .filter(fullName -> !fullName.isBlank())
                    .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
                    .map(parts -> parts[parts.length - ONE])
-                   .orElse(N_A);
+                   .orElseThrow(
+                       () -> getIllegalStateException("Could not extract last name from full name: %s", attributes));
     }
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,

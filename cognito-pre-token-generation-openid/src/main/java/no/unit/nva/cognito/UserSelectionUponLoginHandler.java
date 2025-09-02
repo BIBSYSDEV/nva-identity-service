@@ -8,8 +8,11 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -80,6 +83,7 @@ public class UserSelectionUponLoginHandler
     // private static final String N_A = "N/A";
     private static final String WHITESPACE_REGEX = "\\s+";
     private static final int ONE = 1;
+    private static final String COULD_NOT_PARSE_FEIDE_NAME_DATA = "Could not parse feide name data";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -170,7 +174,9 @@ public class UserSelectionUponLoginHandler
         var lastName = extractLastName(attributes);
         var firstName = extractFirstName(attributes);
         var person = personRegistry.fetchPersonByNin(nin)
-                         .or(() -> personRegistry.createPerson(nin, firstName, lastName)).orElseThrow();
+                         .or(() -> {
+                             return personRegistry.createPerson(nin, firstName, lastName);
+                         }).orElseThrow();
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
@@ -231,12 +237,32 @@ public class UserSelectionUponLoginHandler
                    .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
                    .filter(parts -> parts.length > ONE)
                    .map(parts -> String.join(" ", Arrays.copyOf(parts, parts.length - ONE)))
+                   .or(() -> decodeFeideNameAndSelectFirstName(attributes.get(CognitoClaims.FIRST_NAME_CLAIM)))
+                   .map(String::trim)
+                   .filter(name -> !name.isBlank())
                    .orElseThrow(
                        () -> getIllegalStateException("Could not extract first name from full name: %s", attributes));
     }
 
     private static IllegalStateException getIllegalStateException(String message, Map<String, String> attributes) {
+        attributes.remove(NIN_FOR_FEIDE_USERS);
+        attributes.remove(NIN_FOR_NON_FEIDE_USERS);
+        LOGGER.error(attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(attributes)).orElseThrow());
         return new IllegalStateException(message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
+    }
+
+    private Optional<String> decodeFeideNameAndSelectFirstName(String value) {
+        try {
+            // Remove brackets if present and split by comma
+            var decoded = URLDecoder.decode(value, StandardCharsets.UTF_8);
+            if (decoded.startsWith("[") && decoded.endsWith("]")) {
+                decoded = decoded.substring(1, decoded.length() - 1);
+            }
+            var names = decoded.split(",");
+            return names.length > 0 ? Optional.of(names[0].replace("\"", "")) : Optional.empty();
+        } catch (Exception e) {
+            throw new IllegalStateException(COULD_NOT_PARSE_FEIDE_NAME_DATA, e);
+        }
     }
 
     @JacocoGenerated
@@ -245,6 +271,9 @@ public class UserSelectionUponLoginHandler
                    .filter(fullName -> !fullName.isBlank())
                    .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
                    .map(parts -> parts[parts.length - ONE])
+                   .or(() -> decodeFeideNameAndSelectFirstName(attributes.get(CognitoClaims.LAST_NAME_CLAIM)))
+                   .map(String::trim)
+                   .filter(name -> !name.isBlank())
                    .orElseThrow(
                        () -> getIllegalStateException("Could not extract last name from full name: %s", attributes));
     }

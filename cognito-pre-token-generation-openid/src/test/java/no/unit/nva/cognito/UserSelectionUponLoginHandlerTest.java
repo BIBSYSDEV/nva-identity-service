@@ -287,7 +287,8 @@ class UserSelectionUponLoginHandlerTest {
         var attributes = new ConcurrentHashMap<String, String>();
         attributes.put(NIN_FOR_FEIDE_USERS, nin);
         attributes.put(FEIDE_ID, "feideid@domain.no");
-        attributes.put(NAME_CLAIM, EXAMPLE_NAME);
+        attributes.put(FIRST_NAME_CLAIM, "[%22L%C3%B8k%22]");
+        attributes.put(LAST_NAME_CLAIM, "[%22R%C3%A6l%20%C3%85l%22]");
         if (nonNull(feideDomain)) {
             attributes.put(ORG_FEIDE_DOMAIN, feideDomain);
         }
@@ -705,6 +706,22 @@ class UserSelectionUponLoginHandlerTest {
             Arguments.of("李四 王五", "李四", "王五")
         );
     }}
+
+    @Test
+    void shouldFailIfNoGoodFirstNameOptionsLeft() {
+        var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
+        var event = feideLogin(mockPerson.nin());
+        event.getRequest().getUserAttributes().put(FIRST_NAME_CLAIM, "   ");
+        assertThrows(IllegalStateException.class, () ->  handler.handleRequest(event, context));
+    }
+
+    @Test
+    void shouldFailIfNoGoodLastNameOptionsLeft() {
+        var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
+        var event = feideLogin(mockPerson.nin());
+        event.getRequest().getUserAttributes().put(LAST_NAME_CLAIM, "   ");
+        assertThrows(IllegalStateException.class, () ->  handler.handleRequest(event, context));
+    }
 
     @ParameterizedTest(name = "should clear customer selection claims when user has many affiliations and logs in with"
                               + "personal number")

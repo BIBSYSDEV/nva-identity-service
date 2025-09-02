@@ -283,7 +283,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private Optional<CristinPerson> createPerson(CristinPerson person,
                                                  CristinCredentials cristinCredentials) {
         var request = createPostRequest(creatNewPersonQueryUri(), generatePersonPayload(person), cristinCredentials);
-        return attempt(() -> executeRequest(request, CristinPerson.class)).toOptional();
+        try {
+            return Optional.ofNullable(executeRequest(request, CristinPerson.class));
+        }
+        catch (Exception e) {
+            throw new PersonRegistryException("Failed to create person in Cristin", e);
+        }
     }
 
     private URI createByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {

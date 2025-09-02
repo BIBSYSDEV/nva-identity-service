@@ -40,7 +40,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,7 +77,7 @@ public class UserSelectionUponLoginHandler
         = "Failed to retrieve customer for active affiliation %s when logging in as %s with the following "
           + "affiliations: %s";
     public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
-    private static final String N_A = "N/A";
+    // private static final String N_A = "N/A";
     private static final String WHITESPACE_REGEX = "\\s+";
     private static final int ONE = 1;
     private final CustomerService customerService;
@@ -168,74 +167,61 @@ public class UserSelectionUponLoginHandler
         var impersonating = attributes.get(IMPERSONATING_CLAIM);
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
-
-
-        var requestedPerson = personRegistry.fetchPersonByNin(nin)
-                                  .or(() -> personRegistry.createPerson(nin,
-                                                                        extractFirstName(attributes),
-                                                                        extractLastName(attributes)));
+        var lastName = extractLastName(attributes);
+        var firstName = extractFirstName(attributes);
+        var person = personRegistry.fetchPersonByNin(nin)
+                         .or(() -> personRegistry.createPerson(nin, firstName, lastName)).orElseThrow();
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
-        if (requestedPerson.isPresent()) {
-            var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
-            var person = requestedPerson.get();
+        var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
 
-            var customersForPerson = fetchCustomersWithActiveAffiliations(person);
-            var currentCustomer = getCurrentCustomer(authenticationDetails, customersForPerson,
-                                                     input.getTriggerSource(), attributes);
+        var customersForPerson = fetchCustomersWithActiveAffiliations(person);
+        var currentCustomer = getCurrentCustomer(authenticationDetails, customersForPerson,
+                                                 input.getTriggerSource(), attributes);
 
-            var users = createUsers(person, customersForPerson, authenticationDetails);
-            var currentTerms = termsService
-                                   .getCurrentTermsAndConditions()
-                                   .termsConditionsUri();
-            var acceptedTerms = getAcceptedTerms(person);
-            var hasAcceptedTerms = currentTerms.equals(acceptedTerms);
+        var users = createUsers(person, customersForPerson, authenticationDetails);
+        var currentTerms = termsService
+                               .getCurrentTermsAndConditions()
+                               .termsConditionsUri();
+        var acceptedTerms = getAcceptedTerms(person);
+        var hasAcceptedTerms = currentTerms.equals(acceptedTerms);
 
-            var currentUser = getCurrentUser(currentCustomer, users);
+        var currentUser = getCurrentUser(currentCustomer, users);
 
-            var userAccessRights = createAccessRightForCustomer(users, customersForPerson, currentCustomer,
-                                                                hasAcceptedTerms);
+        var userAccessRights = createAccessRightForCustomer(users, customersForPerson, currentCustomer,
+                                                            hasAcceptedTerms);
 
-            var accessRightsPersistedFormat = userAccessRights.stream().map(UserAccessRightForCustomer::getAccessRight)
-                                                  .map(AccessRight::toPersistedString)
-                                                  .toList();
-            var accessRightsResponseStrings = userAccessRights.stream()
-                                                  .map(UserAccessRightForCustomer::toString)
-                                                  .toList();
+        var accessRightsPersistedFormat = userAccessRights.stream().map(UserAccessRightForCustomer::getAccessRight)
+                                              .map(AccessRight::toPersistedString)
+                                              .toList();
+        var accessRightsResponseStrings = userAccessRights.stream()
+                                              .map(UserAccessRightForCustomer::toString)
+                                              .toList();
 
-            List<AttributeType> userAttributes = new UserAttributesBuilder()
-                                                     .withPerson(person)
-                                                     .withCurrentTerms(currentTerms)
-                                                     .withAcceptedTerms(acceptedTerms)
-                                                     .withUsers(users)
-                                                     .withCustomersForPerson(customersForPerson)
-                                                     .withCurrentCustomer(currentCustomer)
-                                                     .withAuthenticationDetails(authenticationDetails)
-                                                     .withImpersonatedBy(impersonatedBy)
-                                                     .withCurrentUser(currentUser)
-                                                     .withAccessRightsPersistedFormat(accessRightsPersistedFormat)
-                                                     .build();
+        List<AttributeType> userAttributes = new UserAttributesBuilder()
+                                                 .withPerson(person)
+                                                 .withCurrentTerms(currentTerms)
+                                                 .withAcceptedTerms(acceptedTerms)
+                                                 .withUsers(users)
+                                                 .withCustomersForPerson(customersForPerson)
+                                                 .withCurrentCustomer(currentCustomer)
+                                                 .withAuthenticationDetails(authenticationDetails)
+                                                 .withImpersonatedBy(impersonatedBy)
+                                                 .withCurrentUser(currentUser)
+                                                 .withAccessRightsPersistedFormat(accessRightsPersistedFormat)
+                                                 .build();
 
-            updateCognitoUserAttributes(userAttributes,
-                                        authenticationDetails.getUserPoolId(),
-                                        authenticationDetails.getUsername()
-            );
+        updateCognitoUserAttributes(userAttributes,
+                                    authenticationDetails.getUserPoolId(),
+                                    authenticationDetails.getUsername()
+        );
 
-            input.setResponse(Response.builder()
-                                  .withClaimsAndScopeOverrideDetails(
-                                      buildOverrideClaims(accessRightsResponseStrings, userAttributes))
-                                  .build());
-        } else {
-            LOGGER.error("Could not find or create person with nin {}", nin);
-            input.setResponse(Response.builder()
-                                  .withClaimsAndScopeOverrideDetails(
-                                      buildOverrideClaims(Collections.emptyList(), Collections.emptyList()))
-                                  .build());
-        }
-
+        input.setResponse(Response.builder()
+                              .withClaimsAndScopeOverrideDetails(
+                                  buildOverrideClaims(accessRightsResponseStrings, userAttributes))
+                              .build());
         logIfDebug("Leaving request handler having spent {} ms.", start);
-
         return input;
     }
 
@@ -245,15 +231,22 @@ public class UserSelectionUponLoginHandler
                    .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
                    .filter(parts -> parts.length > ONE)
                    .map(parts -> String.join(" ", Arrays.copyOf(parts, parts.length - ONE)))
-                   .orElse(N_A);
+                   .orElseThrow(
+                       () -> getIllegalStateException("Could not extract first name from full name: %s", attributes));
     }
 
+    private static IllegalStateException getIllegalStateException(String message, Map<String, String> attributes) {
+        return new IllegalStateException(message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
+    }
+
+    @JacocoGenerated
     private String extractLastName(Map<String, String> attributes) {
         return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
                    .filter(fullName -> !fullName.isBlank())
                    .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
                    .map(parts -> parts[parts.length - ONE])
-                   .orElse(N_A);
+                   .orElseThrow(
+                       () -> getIllegalStateException("Could not extract last name from full name: %s", attributes));
     }
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,
@@ -477,7 +470,10 @@ public class UserSelectionUponLoginHandler
                          .filter(attribute -> shouldBeIncludedExcept(attribute, excludedClaims))
                          .collect(Collectors.toMap(AttributeType::name, AttributeType::value));
 
-        return IdTokenGeneration.builder().withClaimsToAddOrOverride(claims).withClaimsToSuppress(excludedClaims.toArray(String[]::new)).build();
+        return IdTokenGeneration.builder()
+                   .withClaimsToAddOrOverride(claims)
+                   .withClaimsToSuppress(excludedClaims.toArray(String[]::new))
+                   .build();
     }
 
     private static boolean shouldBeIncludedExcept(AttributeType a, List<String> excludedClaims) {

@@ -37,7 +37,6 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_NAME;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static no.unit.nva.useraccessservice.model.UserDto.AT;
-import static no.unit.nva.useraccessservice.userceation.testing.cristin.RandomNin.randomNin;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_CREDENTIALS_SECRET_NAME;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_PASSWORD_SECRET_KEY;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
@@ -645,7 +644,7 @@ class UserSelectionUponLoginHandlerTest {
     }
 
     @ParameterizedTest(name = "should handle splitting name into firstName and lastName in claims when logging in")
-    @MethodSource("differentNames")
+    @MethodSource("differentCorrectNames")
     void shouldHandleDifferentNames(String name, String expectedFirstName, String expectedLastName)
         throws NotFoundException {
         var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
@@ -674,12 +673,33 @@ class UserSelectionUponLoginHandlerTest {
         assertThat(lastName, containsString(expectedLastName));
     }
 
-    public static Stream<Arguments> differentNames() {{
+    @ParameterizedTest(name = "should not handle bad names")
+    @MethodSource("differentFailingNames")
+    void shouldNotHandleBadNames(String name)
+        throws NotFoundException {
+        var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
+
+        var event = nonFeideLogin(mockPerson.nin(), name);
+
+        termsAndConditionsService.updateTermsAndConditions(URI.create(mockPerson.getCristinPerson().getId()), TERMS_URI,
+                                                           randomString());
+        assertThrows(IllegalStateException.class, () ->  handler.handleRequest(event, context));
+    }
+
+    public static Stream<Arguments> differentFailingNames() {{
+        return Stream.of(
+            Arguments.of("Alice"),
+            Arguments.of("   "),
+            Arguments.of("a\t"),
+            Arguments.of("   Alice"),
+            Arguments.of((String)null)
+        );
+    }}
+
+
+    public static Stream<Arguments> differentCorrectNames() {{
         return Stream.of(
             Arguments.of("John Doe", "John", "Doe"),
-            Arguments.of("Alice", "N/A", "Alice"),
-            Arguments.of("   ", "N/A", "N/A"),
-            Arguments.of(null, "N/A", "N/A"),
             Arguments.of("Håkon Østby Ærland", "Håkon Østby", "Ærland"),
             Arguments.of("O'Connor McGregor", "O'Connor", "McGregor"),
             Arguments.of("李四 王五", "李四", "王五")
@@ -1212,14 +1232,11 @@ class UserSelectionUponLoginHandlerTest {
 
     @ParameterizedTest
     @EnumSource(LoginEventType.class)
-    void shouldAllowPeopleWhoAreNotRegisteredInPersonRegistryToLoginButNotGiveThemAnyRole(
+    void shouldNotAllowPeopleWhoAreNotRegisteredInCristin(
         LoginEventType loginEventType) {
-        var person = scenarios.personThatIsNotRegisteredInPersonRegistry().nin();
-        var event = newLoginEvent(person, loginEventType);
-        var response = handler.handleRequest(event, context);
-
-        var accessRights = extractAccessRights(response);
-        assertThat(accessRights, is((empty())));
+        var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
+        var event = newLoginEvent(person.nin(), loginEventType);
+        assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
     }
 
     @ParameterizedTest
@@ -1388,6 +1405,7 @@ class UserSelectionUponLoginHandlerTest {
         var attributes = new ConcurrentHashMap<String, String>();
         attributes.put(NIN_FOR_FEIDE_USERS, adminNin);
         attributes.put(IMPERSONATING_CLAIM, impersonatedNin);
+        attributes.put(NAME_CLAIM, "admin name");
 
         var request = Request.builder().withUserAttributes(attributes).build();
         var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();

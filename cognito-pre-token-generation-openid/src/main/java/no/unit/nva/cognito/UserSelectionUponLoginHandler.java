@@ -62,6 +62,7 @@ import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
+import static nva.commons.core.StringUtils.isBlank;
 import static nva.commons.core.attempt.Try.attempt;
 
 @SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.GodClass"})
@@ -83,6 +84,7 @@ public class UserSelectionUponLoginHandler
     // private static final String N_A = "N/A";
     private static final String WHITESPACE_REGEX = "\\s+";
     private static final int ONE = 1;
+    private static final String ERROR_COULD_NOT_DECODE_FEIDE_NAME_VALUE = "Could not decode feide name value: {}";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -171,11 +173,7 @@ public class UserSelectionUponLoginHandler
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
         var person = personRegistry.fetchPersonByNin(nin)
-                         .or(() -> {
-                             var lastName = extractLastName(attributes);
-                             var firstName = extractFirstName(attributes);
-                             return personRegistry.createPerson(nin, firstName, lastName);
-                         }).orElseThrow();
+                         .or(() -> createPerson(attributes, nin)).orElseThrow();
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
@@ -230,6 +228,12 @@ public class UserSelectionUponLoginHandler
         return input;
     }
 
+    private Optional<Person> createPerson(Map<String, String> attributes, NationalIdentityNumber nin) {
+        var lastName = extractLastName(attributes);
+        var firstName = extractFirstName(attributes);
+        return personRegistry.createPerson(nin, firstName, lastName);
+    }
+
     private String extractFirstName(Map<String, String> attributes) {
         return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
                    .filter(fullName -> !fullName.isBlank())
@@ -251,7 +255,7 @@ public class UserSelectionUponLoginHandler
     }
 
     private Optional<String> decodeFeideName(String value) {
-        if (value == null || value.isBlank()) {
+        if (isBlank(value)) {
             return Optional.empty();
         }
 
@@ -275,7 +279,8 @@ public class UserSelectionUponLoginHandler
             var result = decoded.replace(",", "").trim();
             return result.isEmpty() ? Optional.empty() : Optional.of(result);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            LOGGER.error(ERROR_COULD_NOT_DECODE_FEIDE_NAME_VALUE, value, e);
             return Optional.empty();
         }
     }

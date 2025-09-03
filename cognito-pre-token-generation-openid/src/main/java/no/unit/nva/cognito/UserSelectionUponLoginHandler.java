@@ -8,8 +8,11 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
@@ -59,6 +62,7 @@ import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
 import static nva.commons.apigateway.AccessRight.ACT_AS;
+import static nva.commons.core.StringUtils.isBlank;
 import static nva.commons.core.attempt.Try.attempt;
 
 @SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.GodClass"})
@@ -80,6 +84,7 @@ public class UserSelectionUponLoginHandler
     // private static final String N_A = "N/A";
     private static final String WHITESPACE_REGEX = "\\s+";
     private static final int ONE = 1;
+    private static final String ERROR_COULD_NOT_DECODE_FEIDE_NAME_VALUE = "Could not decode feide name value: {}";
     private final CustomerService customerService;
     private final CognitoIdentityProviderClient cognitoClient;
     private final UserEntriesCreatorForPerson userCreator;
@@ -167,10 +172,8 @@ public class UserSelectionUponLoginHandler
         var impersonating = attributes.get(IMPERSONATING_CLAIM);
         var nin = getCurrentNin(impersonating, authenticationDetails);
 
-        var lastName = extractLastName(attributes);
-        var firstName = extractFirstName(attributes);
         var person = personRegistry.fetchPersonByNin(nin)
-                         .or(() -> personRegistry.createPerson(nin, firstName, lastName)).orElseThrow();
+                         .or(() -> createPerson(attributes, nin)).orElseThrow();
 
         logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
@@ -225,18 +228,61 @@ public class UserSelectionUponLoginHandler
         return input;
     }
 
+    private Optional<Person> createPerson(Map<String, String> attributes, NationalIdentityNumber nin) {
+        var lastName = extractLastName(attributes);
+        var firstName = extractFirstName(attributes);
+        return personRegistry.createPerson(nin, firstName, lastName);
+    }
+
     private String extractFirstName(Map<String, String> attributes) {
         return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
                    .filter(fullName -> !fullName.isBlank())
                    .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
                    .filter(parts -> parts.length > ONE)
                    .map(parts -> String.join(" ", Arrays.copyOf(parts, parts.length - ONE)))
+                   .or(() -> decodeFeideName(attributes.get(CognitoClaims.FIRST_NAME_CLAIM)))
+                   .map(String::trim)
+                   .filter(name -> !name.isBlank())
                    .orElseThrow(
                        () -> getIllegalStateException("Could not extract first name from full name: %s", attributes));
     }
 
     private static IllegalStateException getIllegalStateException(String message, Map<String, String> attributes) {
+        attributes.remove(NIN_FOR_FEIDE_USERS);
+        attributes.remove(NIN_FOR_NON_FEIDE_USERS);
+        LOGGER.error(attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(attributes)).orElseThrow());
         return new IllegalStateException(message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
+    }
+
+    private Optional<String> decodeFeideName(String value) {
+        if (isBlank(value)) {
+            return Optional.empty();
+        }
+
+        try {
+            var cleanValue = value.trim();
+
+            // Remove brackets if present
+            if (cleanValue.startsWith("[") && cleanValue.endsWith("]")) {
+                cleanValue = cleanValue.substring(1, cleanValue.length() - 1);
+            }
+
+            // URL decode
+            var decoded = URLDecoder.decode(cleanValue, StandardCharsets.UTF_8);
+
+            // Remove quotes if present
+            if (decoded.startsWith("\"") && decoded.endsWith("\"")) {
+                decoded = decoded.substring(1, decoded.length() - 1);
+            }
+
+            // Remove commas
+            var result = decoded.replace(",", "").trim();
+            return result.isEmpty() ? Optional.empty() : Optional.of(result);
+
+        } catch (RuntimeException e) {
+            LOGGER.error(ERROR_COULD_NOT_DECODE_FEIDE_NAME_VALUE, value, e);
+            return Optional.empty();
+        }
     }
 
     @JacocoGenerated
@@ -245,6 +291,9 @@ public class UserSelectionUponLoginHandler
                    .filter(fullName -> !fullName.isBlank())
                    .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
                    .map(parts -> parts[parts.length - ONE])
+                   .or(() -> decodeFeideName(attributes.get(CognitoClaims.LAST_NAME_CLAIM)))
+                   .map(String::trim)
+                   .filter(name -> !name.isBlank())
                    .orElseThrow(
                        () -> getIllegalStateException("Could not extract last name from full name: %s", attributes));
     }

@@ -1,5 +1,8 @@
 package no.unit.nva.cognito;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
@@ -68,9 +71,12 @@ import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Request;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -287,7 +293,8 @@ class UserSelectionUponLoginHandlerTest {
         var attributes = new ConcurrentHashMap<String, String>();
         attributes.put(NIN_FOR_FEIDE_USERS, nin);
         attributes.put(FEIDE_ID, "feideid@domain.no");
-        attributes.put(NAME_CLAIM, EXAMPLE_NAME);
+        attributes.put(FIRST_NAME_CLAIM, "[%22L%C3%B8k%22]");
+        attributes.put(LAST_NAME_CLAIM, "[%22R%C3%A6l%20%C3%85l%22]");
         if (nonNull(feideDomain)) {
             attributes.put(ORG_FEIDE_DOMAIN, feideDomain);
         }
@@ -702,9 +709,85 @@ class UserSelectionUponLoginHandlerTest {
             Arguments.of("John Doe", "John", "Doe"),
             Arguments.of("Håkon Østby Ærland", "Håkon Østby", "Ærland"),
             Arguments.of("O'Connor McGregor", "O'Connor", "McGregor"),
-            Arguments.of("李四 王五", "李四", "王五")
+            Arguments.of("李四 王五", "李四", "王五"),
+            Arguments.of("å b c d", "å b", "c d"),
+            Arguments.of("å b c, d", "å b", "c d")
         );
     }}
+
+    @Test
+    void shouldFailIfNoGoodFirstNameOptionsLeft() {
+        var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
+        var event = feideLogin(mockPerson.nin());
+        event.getRequest().getUserAttributes().put(FIRST_NAME_CLAIM, "   ");
+        assertThrows(IllegalStateException.class, () ->  handler.handleRequest(event, context));
+    }
+
+    @Test
+    void shouldFailIfNoGoodLastNameOptionsLeft() {
+        var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
+        var event = feideLogin(mockPerson.nin());
+        event.getRequest().getUserAttributes().put(LAST_NAME_CLAIM, "   ");
+        assertThrows(IllegalStateException.class, () ->  handler.handleRequest(event, context));
+    }
+
+
+    @ParameterizedTest(name = "should keep all available names when logging in with encoded Feide names")
+    @MethodSource("differentCorrectNames")
+    void shouldKeepAllAvaliableNamesWhenLoggingInWithEncodedFeideNames(String name, String expectedFirstName, String expectedLastName) {
+        var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
+        var event = feideLogin(mockPerson.nin());
+
+        event.getRequest().getUserAttributes().put(FIRST_NAME_CLAIM, feideEncodeString(expectedFirstName));
+        event.getRequest().getUserAttributes().put(LAST_NAME_CLAIM, feideEncodeString(expectedLastName));
+
+        mockPersonRegistry.createPostPersonStub(new CristinPerson(
+            mockPerson.getCristinPerson().getId(),
+            expectedFirstName,
+            expectedLastName,
+            null,
+            mockPerson.nin()
+        ));
+
+        // Execute the handler to trigger the request
+        handler.handleRequest(event, context);
+
+        // Verify the request was made with expected JSON body
+        WireMock.verify(postRequestedFor(urlEqualTo("/persons"))
+                   .withRequestBody(matchingJsonPath("$.first_name", WireMock.equalTo(expectedFirstName)))
+                   .withRequestBody(matchingJsonPath("$.surname", WireMock.equalTo(expectedLastName))));
+
+    }
+
+    @ParameterizedTest(name = "should keep all available names when logging in with not encoded Feide names")
+    @MethodSource("differentCorrectNames")
+    void shouldKeepAllAvaliableNamesWhenLoggingInWithNotEncodedFeideNames(String name, String expectedFirstName, String expectedLastName) {
+        var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
+        var event = feideLogin(mockPerson.nin());
+
+        event.getRequest().getUserAttributes().put(FIRST_NAME_CLAIM, expectedFirstName);
+        event.getRequest().getUserAttributes().put(LAST_NAME_CLAIM, expectedLastName);
+
+        mockPersonRegistry.createPostPersonStub(new CristinPerson(
+            mockPerson.getCristinPerson().getId(),
+            expectedFirstName,
+            expectedLastName,
+            null,
+            mockPerson.nin()
+        ));
+
+        // Execute the handler to trigger the request
+        handler.handleRequest(event, context);
+
+        // Verify the request was made with expected JSON body
+        WireMock.verify(postRequestedFor(urlEqualTo("/persons"))
+                            .withRequestBody(matchingJsonPath("$.first_name", WireMock.equalTo(expectedFirstName)))
+                            .withRequestBody(matchingJsonPath("$.surname", WireMock.equalTo(expectedLastName))));
+    }
+
+    private static String feideEncodeString(String expectedFirstName) {
+        return "[%s]".formatted(URLEncoder.encode("\"%s\"".formatted(expectedFirstName), StandardCharsets.UTF_8));
+    }
 
     @ParameterizedTest(name = "should clear customer selection claims when user has many affiliations and logs in with"
                               + "personal number")

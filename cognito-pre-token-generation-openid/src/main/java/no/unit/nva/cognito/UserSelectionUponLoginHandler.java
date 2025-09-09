@@ -434,7 +434,7 @@ public class UserSelectionUponLoginHandler
 
     private boolean selectFeideOrgIfApplicable(CustomerDto customer, String feideDomain) {
         return feideDomain == null
-               || feideDomain.equals(customer.getFeideOrganizationDomain());
+               || feideDomain.equalsIgnoreCase(customer.getFeideOrganizationDomain());
     }
 
     private Set<CustomerDto> fetchCustomersWithActiveAffiliations(final Person person) {

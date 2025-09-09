@@ -690,37 +690,40 @@ class UserSelectionUponLoginHandlerTest {
 
         termsAndConditionsService.updateTermsAndConditions(URI.create(mockPerson.getCristinPerson().getId()), TERMS_URI,
                                                            randomString());
-        assertThrows(IllegalStateException.class, () ->  handler.handleRequest(event, context));
+        assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
     }
 
-    public static Stream<Arguments> differentFailingNames() {{
-        return Stream.of(
-            Arguments.of("Alice"),
-            Arguments.of("   "),
-            Arguments.of("a\t"),
-            Arguments.of("   Alice"),
-            Arguments.of((String)null)
-        );
-    }}
+    public static Stream<Arguments> differentFailingNames() {
+        {
+            return Stream.of(
+                Arguments.of("Alice"),
+                Arguments.of("   "),
+                Arguments.of("a\t"),
+                Arguments.of("   Alice"),
+                Arguments.of((String) null)
+            );
+        }
+    }
 
-
-    public static Stream<Arguments> differentCorrectNames() {{
-        return Stream.of(
-            Arguments.of("John Doe", "John", "Doe"),
-            Arguments.of("Håkon Østby Ærland", "Håkon Østby", "Ærland"),
-            Arguments.of("O'Connor McGregor", "O'Connor", "McGregor"),
-            Arguments.of("李四 王五", "李四", "王五"),
-            Arguments.of("å b c d", "å b", "c d"),
-            Arguments.of("å b c, d", "å b", "c d")
-        );
-    }}
+    public static Stream<Arguments> differentCorrectNames() {
+        {
+            return Stream.of(
+                Arguments.of("John Doe", "John", "Doe"),
+                Arguments.of("Håkon Østby Ærland", "Håkon Østby", "Ærland"),
+                Arguments.of("O'Connor McGregor", "O'Connor", "McGregor"),
+                Arguments.of("李四 王五", "李四", "王五"),
+                Arguments.of("å b c d", "å b", "c d"),
+                Arguments.of("å b c, d", "å b", "c d")
+            );
+        }
+    }
 
     @Test
     void shouldFailIfNoGoodFirstNameOptionsLeft() {
         var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
         var event = feideLogin(mockPerson.nin());
         event.getRequest().getUserAttributes().put(FIRST_NAME_CLAIM, "   ");
-        assertThrows(IllegalStateException.class, () ->  handler.handleRequest(event, context));
+        assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
     }
 
     @Test
@@ -728,13 +731,36 @@ class UserSelectionUponLoginHandlerTest {
         var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
         var event = feideLogin(mockPerson.nin());
         event.getRequest().getUserAttributes().put(LAST_NAME_CLAIM, "   ");
-        assertThrows(IllegalStateException.class, () ->  handler.handleRequest(event, context));
+        assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
     }
 
+    @Test
+    void shouldHandleFeideOrgRegardlessOfCase() throws NotFoundException {
+        var mockPerson = scenarios.personWithExactlyOneActiveEmployment();
+
+        var event = feideLogin(mockPerson.nin());
+        var orgFeideDomain = extractFeideDomainFromInputEvent(event);
+        var customer = customerService.getCustomerByOrgDomain(orgFeideDomain);
+        event.getRequest().getUserAttributes().put(ORG_FEIDE_DOMAIN,
+                                                   event.getRequest()
+                                                       .getUserAttributes()
+                                                       .get(ORG_FEIDE_DOMAIN)
+                                                       .toUpperCase());
+
+        var result = handler.handleRequest(event, context);
+
+        var currentCustomer = result.getResponse()
+                                  .getClaimsAndScopeOverrideDetails()
+                                  .getAccessTokenGeneration()
+                                  .getClaimsToAddOrOverride()
+                                  .get(CURRENT_CUSTOMER_CLAIM);
+        assertThat(currentCustomer, containsString(customer.getId().toString()));
+    }
 
     @ParameterizedTest(name = "should keep all available names when logging in with encoded Feide names")
     @MethodSource("differentCorrectNames")
-    void shouldKeepAllAvaliableNamesWhenLoggingInWithEncodedFeideNames(String name, String expectedFirstName, String expectedLastName) {
+    void shouldKeepAllAvaliableNamesWhenLoggingInWithEncodedFeideNames(String name, String expectedFirstName,
+                                                                       String expectedLastName) {
         var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
         var event = feideLogin(mockPerson.nin());
 
@@ -754,14 +780,14 @@ class UserSelectionUponLoginHandlerTest {
 
         // Verify the request was made with expected JSON body
         WireMock.verify(postRequestedFor(urlEqualTo("/persons"))
-                   .withRequestBody(matchingJsonPath("$.first_name", WireMock.equalTo(expectedFirstName)))
-                   .withRequestBody(matchingJsonPath("$.surname", WireMock.equalTo(expectedLastName))));
-
+                            .withRequestBody(matchingJsonPath("$.first_name", WireMock.equalTo(expectedFirstName)))
+                            .withRequestBody(matchingJsonPath("$.surname", WireMock.equalTo(expectedLastName))));
     }
 
     @ParameterizedTest(name = "should keep all available names when logging in with not encoded Feide names")
     @MethodSource("differentCorrectNames")
-    void shouldKeepAllAvaliableNamesWhenLoggingInWithNotEncodedFeideNames(String name, String expectedFirstName, String expectedLastName) {
+    void shouldKeepAllAvaliableNamesWhenLoggingInWithNotEncodedFeideNames(String name, String expectedFirstName,
+                                                                          String expectedLastName) {
         var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
         var event = feideLogin(mockPerson.nin());
 

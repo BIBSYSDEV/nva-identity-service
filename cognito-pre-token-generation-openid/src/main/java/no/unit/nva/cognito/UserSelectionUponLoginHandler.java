@@ -162,6 +162,9 @@ public class UserSelectionUponLoginHandler
             LOGGER.debug("Entering request handler...");
         }
 
+        // DEBUG: Log all attributes to diagnose missing names issue
+        debugLogAllAttributesRaw(input);
+
         final var start = Instant.now();
 
         final var authenticationDetails = extractAuthenticationDetails(input);
@@ -248,8 +251,10 @@ public class UserSelectionUponLoginHandler
     }
 
     private static IllegalStateException getIllegalStateException(String message, Map<String, String> attributes) {
-        attributes.remove(NIN_FOR_FEIDE_USERS);
-        attributes.remove(NIN_FOR_NON_FEIDE_USERS);
+        // TEMPORARILY DISABLED FOR DEBUGGING - REMEMBER TO RE-ENABLE
+        // attributes.remove(NIN_FOR_FEIDE_USERS);
+        // attributes.remove(NIN_FOR_NON_FEIDE_USERS);
+        LOGGER.error("=== ATTRIBUTES AT ERROR POINT (INCLUDING NIN) ===");
         LOGGER.error(attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(attributes)).orElseThrow());
         return new IllegalStateException(message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
     }
@@ -296,6 +301,57 @@ public class UserSelectionUponLoginHandler
                    .filter(name -> !name.isBlank())
                    .orElseThrow(
                        () -> getIllegalStateException("Could not extract last name from full name: %s", attributes));
+    }
+
+    private void debugLogAllAttributesRaw(CognitoUserPoolPreTokenGenerationEventV2 input) {
+        LOGGER.error("=== DEBUG: RAW ATTRIBUTE DUMP START ===");
+        LOGGER.error("Username: {}", input.getUserName());
+        LOGGER.error("User Pool ID: {}", input.getUserPoolId());
+        LOGGER.error("Trigger Source: {}", input.getTriggerSource());
+        LOGGER.error("Region: {}", input.getRegion());
+        LOGGER.error("Version: {}", input.getVersion());
+        
+        var attributes = input.getRequest().getUserAttributes();
+        LOGGER.error("Total attribute count: {}", attributes.size());
+        
+        // Log ALL attributes including sensitive ones (temporary for debugging)
+        LOGGER.error("=== ALL USER ATTRIBUTES (INCLUDING SENSITIVE) ===");
+        attributes.forEach((key, value) -> LOGGER.error("  [{}] = [{}]", key, value));
+        
+        // Check for variations of name attributes
+        LOGGER.error("=== NAME ATTRIBUTE CHECK ===");
+        LOGGER.error("  name = {}", attributes.get("name"));
+        LOGGER.error("  custom:name = {}", attributes.get("custom:name")); 
+        LOGGER.error("  custom:fullName = {}", attributes.get("custom:fullName"));
+        LOGGER.error("  custom:firstName = {}", attributes.get("custom:firstName"));
+        LOGGER.error("  custom:lastName = {}", attributes.get("custom:lastName"));
+        LOGGER.error("  given_name = {}", attributes.get("given_name"));
+        LOGGER.error("  family_name = {}", attributes.get("family_name"));
+        LOGGER.error("  givenName = {}", attributes.get("givenName"));
+        LOGGER.error("  sn = {}", attributes.get("sn"));
+        
+        // Check NIN attributes
+        LOGGER.error("=== NIN ATTRIBUTE CHECK ===");
+        LOGGER.error("  custom:nin = {}", attributes.get("custom:nin"));
+        LOGGER.error("  custom:feideIdNin = {}", attributes.get("custom:feideIdNin"));
+        
+        // Check other relevant attributes
+        LOGGER.error("=== OTHER ATTRIBUTES CHECK ===");
+        LOGGER.error("  email = {}", attributes.get("email"));
+        LOGGER.error("  custom:feideId = {}", attributes.get("custom:feideId"));
+        LOGGER.error("  cognito:user_status = {}", attributes.get("cognito:user_status"));
+        
+        // Try to get user groups if available
+        try {
+            var groupConfig = input.getRequest().getGroupConfiguration();
+            if (groupConfig != null) {
+                LOGGER.error("User groups: {}", Arrays.toString(groupConfig.getGroupsToOverride()));
+            }
+        } catch (Exception e) {
+            LOGGER.error("Could not get group configuration: {}", e.getMessage());
+        }
+        
+        LOGGER.error("=== DEBUG: RAW ATTRIBUTE DUMP END ===");
     }
 
     private CustomerDto getCurrentCustomer(AuthenticationDetails authenticationDetails,

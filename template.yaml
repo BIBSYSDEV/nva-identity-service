@@ -1986,6 +1986,7 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
+        - name
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 9
@@ -2016,6 +2017,7 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
+        - name
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
@@ -2070,6 +2072,7 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
+        - name
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -2097,6 +2100,7 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
+        - name
 
   TestingApplicationClient:
     DependsOn: ResourceServerScopes
@@ -2149,6 +2153,7 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
+        - name
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 2
@@ -2179,6 +2184,7 @@ Resources:
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
         - custom:viewingScopeExcluded
+        - name
 
   ## External API
   ExternalUserPoolName:

@@ -330,6 +330,20 @@ public class UserSelectionUponLoginHandler
         LOGGER.error("  givenName = {}", attributes.get("givenName"));
         LOGGER.error("  sn = {}", attributes.get("sn"));
         
+        // Check Cognito standard attributes
+        LOGGER.error("=== COGNITO STANDARD ATTRIBUTES CHECK ===");
+        LOGGER.error("  preferred_username = {}", attributes.get("preferred_username"));
+        LOGGER.error("  profile = {}", attributes.get("profile"));
+        LOGGER.error("  nickname = {}", attributes.get("nickname"));
+        LOGGER.error("  middle_name = {}", attributes.get("middle_name"));
+        LOGGER.error("  website = {}", attributes.get("website"));
+        LOGGER.error("  gender = {}", attributes.get("gender"));
+        LOGGER.error("  birthdate = {}", attributes.get("birthdate"));
+        LOGGER.error("  locale = {}", attributes.get("locale"));
+        LOGGER.error("  phone_number = {}", attributes.get("phone_number"));
+        LOGGER.error("  address = {}", attributes.get("address"));
+        LOGGER.error("  updated_at = {}", attributes.get("updated_at"));
+        
         // Check NIN attributes
         LOGGER.error("=== NIN ATTRIBUTE CHECK ===");
         LOGGER.error("  custom:nin = {}", attributes.get("custom:nin"));

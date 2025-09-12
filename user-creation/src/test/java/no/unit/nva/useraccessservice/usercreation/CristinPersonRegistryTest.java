@@ -160,6 +160,8 @@ class CristinPersonRegistryTest {
         var appender = LogUtils.getTestingAppenderForRootLogger();
         var personNin = "12345678901";
         var nin = NationalIdentityNumber.fromString(personNin);
+        
+        mockPersonRegistry.setupServerErrorForNin(personNin);
 
         assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
         assertThat(appender.getMessages(), containsString("XXXXXXXXX01"));

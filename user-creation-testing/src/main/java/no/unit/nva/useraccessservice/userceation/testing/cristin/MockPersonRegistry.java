@@ -10,7 +10,6 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAf
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitution;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitutionUnit;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.model.PersonSearchResultItem;
 import nva.commons.core.paths.UriWrapper;
 
 import java.net.HttpURLConnection;
@@ -43,6 +42,7 @@ public class MockPersonRegistry {
     private static final String PERSON_PATH = "person";
     private static final String ORGANIZATION_PATH = "organization";
     private static final String AUTHORIZATION_HEADER_NAME = "authorization";
+    private static final String PERSONS_RESOLVE_BY_NATIONAL_ID = "/persons/resolve?national_id=%s";
     private final Map<String, CristinPerson> ninToPeople;
     private final Map<String, CristinPerson> cristinIdToPeople;
     private final Map<String, URI> cristinInstitutionIdToUnitUriMap;
@@ -76,7 +76,7 @@ public class MockPersonRegistry {
 
     private void createPersonSearchStubBadGateway(String nin) {
         stubWithDefaultRequestHeadersEqualToFor(
-            get("/persons?national_id=" + nin)
+            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
                 .willReturn(aResponse()
                     .withStatus(HttpURLConnection.HTTP_BAD_GATEWAY)));
@@ -97,13 +97,13 @@ public class MockPersonRegistry {
     }
 
     private void createPersonSearchStubIllegalJson(String nin) {
-        var illegalBodyAsArrayIsExpected = "{}";
+        var illegalBodyAsObjectIsExpected = "[]";
 
         stubWithDefaultRequestHeadersEqualToFor(
-            get("/persons?national_id=" + nin)
+            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
                 .willReturn(aResponse()
-                    .withBody(illegalBodyAsArrayIsExpected)
+                    .withBody(illegalBodyAsObjectIsExpected)
                     .withStatus(HttpURLConnection.HTTP_OK)));
     }
 
@@ -167,35 +167,18 @@ public class MockPersonRegistry {
     }
 
     private void createStubsForPerson(String nin, CristinPerson cristinPerson) {
-        var personIdentifier = cristinPerson.getId();
-        var personSearchResult = List.of(new PersonSearchResultItem(personIdentifier,
-            generateCristinPersonUrl(personIdentifier)));
-        createPersonSearchStub(nin, personSearchResult);
-        createPersonGetStub(cristinPerson);
-    }
-
-    private String generateCristinPersonUrl(String identifier) {
-        return UriWrapper.fromUri(cristinBaseUri).addChild("persons", identifier).getUri().toString();
-    }
-
-    private void createPersonSearchStub(String nin, List<PersonSearchResultItem> searchResults) {
-        var response
-            = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(searchResults))
-            .orElseThrow();
-
-        stubWithDefaultRequestHeadersEqualToFor(
-            get("/persons?national_id=" + nin)
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                    .withBody(response)
-                    .withStatus(HttpURLConnection.HTTP_OK)));
-    }
-
-    private void createPersonGetStub(CristinPerson cristinPerson) {
         var response
             = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(cristinPerson))
             .orElseThrow();
 
+        stubWithDefaultRequestHeadersEqualToFor(
+            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                    .withBody(response)
+                    .withStatus(HttpURLConnection.HTTP_OK)));
+        
+        // Also stub the endpoint for fetching by cristinId
         stubWithDefaultRequestHeadersEqualToFor(
             get("/persons/" + cristinPerson.getId())
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
@@ -358,8 +341,22 @@ public class MockPersonRegistry {
     public MockedPersonData mockResponseForPersonNotFound() {
         var nin = randomNin();
         var cristinId = randomString();
-        createPersonSearchStub(nin, Collections.emptyList());
+        // Return 404 for the resolve endpoint when person is not found
+        stubWithDefaultRequestHeadersEqualToFor(
+            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                    .withStatus(HttpURLConnection.HTTP_NOT_FOUND)));
         return new MockedPersonData(nin, cristinId);
+    }
+    
+    public void setupServerErrorForNin(String nin) {
+        // Return 500 Internal Server Error for the resolve endpoint
+        stubWithDefaultRequestHeadersEqualToFor(
+            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                    .withStatus(HttpURLConnection.HTTP_INTERNAL_ERROR)));
     }
 
     public Set<URI> getUnitCristinUris(String nin) {

@@ -10,9 +10,7 @@ import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitution;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.model.PersonSearchResultItem;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.secrets.SecretsReader;
@@ -29,7 +27,6 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -150,7 +147,6 @@ public final class CristinPersonRegistry implements PersonRegistry {
         }
 
         return fetchPersonByNinFromCristin(nin, cristinCredentials)
-                   .map(person -> fetchPersonFromCristin(person, cristinCredentials))
                    .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
     }
 
@@ -175,12 +171,6 @@ public final class CristinPersonRegistry implements PersonRegistry {
         var person = new CristinPerson(null, firstName, lastName, null, nin.getNin());
         return createPerson(person, cristinCredentials)
                    .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
-    }
-
-    private CristinPerson fetchPersonFromCristin(PersonSearchResultItem personSearchResultItem,
-                                                 CristinCredentials cristinCredentials) {
-        var request = createGetRequest(URI.create(personSearchResultItem.getUrl()), cristinCredentials);
-        return executeRequest(request, CristinPerson.class);
     }
 
     private CristinInstitution fetchInstitutionFromCristin(URI institutionUri, CristinCredentials cristinCredentials) {
@@ -261,17 +251,23 @@ public final class CristinPersonRegistry implements PersonRegistry {
                                  generateCristinIdForOrganization(cristinAffiliation.getUnit().getId()));
     }
 
-    private Optional<PersonSearchResultItem> fetchPersonByNinFromCristin(NationalIdentityNumber nin,
-                                                                         CristinCredentials cristinCredentials) {
+    private Optional<CristinPerson> fetchPersonByNinFromCristin(NationalIdentityNumber nin,
+                                                                CristinCredentials cristinCredentials) {
 
         var request = createGetRequest(createByNationalIdentityNumberQueryUri(nin), cristinCredentials);
-        var results = executeRequest(request, PersonSearchResultItem[].class);
-
-        if (results.length == 0) {
-            LOGGER.info("No person found in Cristin with {}", nin);
+        
+        try {
+            var person = executeRequest(request, CristinPerson.class);
+            return Optional.ofNullable(person);
+        } catch (PersonRegistryException e) {
+            // Check if it's a 404 (not found) or another error
+            if (e.getMessage().contains("404")) {
+                LOGGER.info("No person found in Cristin with {}", nin);
+                return Optional.empty();
+            }
+            // For other errors (like 502 Bad Gateway), re-throw
+            throw e;
         }
-
-        return Arrays.stream(results).collect(SingletonCollector.tryCollect()).toOptional();
     }
 
     private Optional<CristinPerson> fetchPersonByIdentifierFromCristin(String identifier,
@@ -294,6 +290,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private URI createByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {
         return UriWrapper.fromUri(cristinBaseUri)
                    .addChild(PERSONS_PATH)
+                   .addChild("resolve")
                    .addQueryParameter("national_id", nin.getNin())
                    .getUri();
     }

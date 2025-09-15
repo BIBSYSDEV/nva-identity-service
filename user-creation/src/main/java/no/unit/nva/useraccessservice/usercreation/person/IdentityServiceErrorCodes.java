@@ -101,20 +101,8 @@ public final class IdentityServiceErrorCodes {
      * @return JSON string representation of the Problem
      */
     public static String formatMessage(String errorCode, String message) {
-        return formatMessage(errorCode, message, getStatusForErrorCode(errorCode));
-    }
-
-    /**
-     * Formats an error message as an RFC 7807 Problem Details JSON string with custom status.
-     *
-     * @param errorCode The error code constant (without IdentityService- prefix)
-     * @param message The error message
-     * @param status The HTTP status
-     * @return JSON string representation of the Problem
-     */
-    public static String formatMessage(String errorCode, String message, Status status) {
         try {
-            var problem = createProblem(errorCode, message, status);
+            var problem = createProblem(errorCode, message, getStatusForErrorCode(errorCode));
             return JsonUtils.dtoObjectMapper.writeValueAsString(problem);
         } catch (JsonProcessingException e) {
             // Fallback to a simple string format if JSON serialization fails
@@ -122,25 +110,6 @@ public final class IdentityServiceErrorCodes {
         }
     }
 
-    /**
-     * Creates a Problem object for the given error code and message.
-     *
-     * @param errorCode The error code constant (without prefix)
-     * @param message The error message
-     * @return Problem object
-     */
-    public static Problem createProblem(String errorCode, String message) {
-        return createProblem(errorCode, message, getStatusForErrorCode(errorCode));
-    }
-
-    /**
-     * Creates a Problem object for the given error code, message, and status.
-     *
-     * @param errorCode The error code constant (without prefix)
-     * @param message The error message
-     * @param status The HTTP status
-     * @return Problem object
-     */
     private static Problem createProblem(String errorCode, String message, Status status) {
         return Problem.builder()
             .withType(ERROR_TYPE_BASE_URI.addChild(errorCode).getUri())
@@ -150,12 +119,6 @@ public final class IdentityServiceErrorCodes {
             .build();
     }
 
-    /**
-     * Determines the appropriate HTTP status for an error code.
-     *
-     * @param errorCode The error code
-     * @return The corresponding HTTP status
-     */
     private static Status getStatusForErrorCode(String errorCode) {
         if (isEmpty(errorCode)) {
             return Status.INTERNAL_SERVER_ERROR;

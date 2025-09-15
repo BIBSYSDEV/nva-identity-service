@@ -4,15 +4,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
-import org.zalando.problem.Status;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import org.junit.jupiter.api.Test;
@@ -216,28 +213,7 @@ class IdentityServiceExceptionsTest {
         assertEquals("Test message", json.get("detail").asText());
         assertEquals(400, json.get("status").asInt());
     }
-    
-    @Test
-    void identityServiceErrorCodesCreateProblemShouldReturnProblemObject() {
-        var problem = IdentityServiceErrorCodes.createProblem("2001", "Person not found");
-        
-        assertNotNull(problem);
-        assertThat(problem.getType().toString(), containsString("errors/2001"));
-        assertEquals("IdentityService-2001: Person not found", problem.getTitle());
-        assertEquals("Person not found", problem.getDetail());
-        assertEquals(Status.NOT_FOUND, problem.getStatus());
-    }
-    
-    @Test
-    void identityServiceErrorCodesFormatMessageWithStatusShouldUseProvidedStatus() throws Exception {
-        var formatted = IdentityServiceErrorCodes.formatMessage("1001", "Test message", Status.FORBIDDEN);
-        
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode json = mapper.readTree(formatted);
-        
-        assertEquals(403, json.get("status").asInt());
-    }
-    
+
     @Test
     void identityServiceExceptionShouldSupportErrorCodes() throws Exception {
         var exception = new IdentityServiceException("1001", "Test message");
@@ -296,6 +272,5 @@ class IdentityServiceExceptionsTest {
     void identityServiceMissingNinExceptionShouldUseCorrectErrorCode() {
         var exception = new IdentityServiceMissingNinException();
         assertThat(exception.getErrorCode(), is(equalTo(IdentityServiceErrorCodes.MISSING_NIN)));
-        assertThat(IdentityServiceMissingNinException.HTTP_STATUS_CODE, is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
     }
 }

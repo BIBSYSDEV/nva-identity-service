@@ -1,12 +1,9 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
-import java.net.HttpURLConnection;
+import static java.net.HttpURLConnection.HTTP_BAD_GATEWAY;
 import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
 
 public class IdentityServiceUpstreamInternalServerErrorException extends IdentityServiceException {
-
-    public static final int HTTP_STATUS_CODE = HttpURLConnection.HTTP_BAD_GATEWAY;
-    
     public IdentityServiceUpstreamInternalServerErrorException(String message) {
         super(IdentityServiceErrorCodes.UPSTREAM_INTERNAL_ERROR, message);
     }
@@ -16,6 +13,6 @@ public class IdentityServiceUpstreamInternalServerErrorException extends Identit
     }
     
     public int getStatusCode() {
-        return HTTP_STATUS_CODE;
+        return HTTP_BAD_GATEWAY;
     }
 }

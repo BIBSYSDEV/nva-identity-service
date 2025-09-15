@@ -16,11 +16,6 @@ public class IdentityServiceException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    /**
-     * Gets the error code associated with this exception.
-     * 
-     * @return The error code, or null for legacy exceptions
-     */
     public String getErrorCode() {
         return errorCode;
     }

@@ -1,6 +1,6 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
-import java.net.HttpURLConnection;
+import static java.net.HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
 import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
 
 /**
@@ -10,8 +10,6 @@ import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCod
  * that the service responded with a 500+ error.
  */
 public class IdentityServiceUnavailableException extends IdentityServiceException {
-
-    public static final int HTTP_STATUS_CODE = HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
     private static final String DEFAULT_MESSAGE = "Person Registry service is currently unavailable";
     
     public IdentityServiceUnavailableException(String message) {
@@ -27,7 +25,7 @@ public class IdentityServiceUnavailableException extends IdentityServiceExceptio
     }
     
     public int getStatusCode() {
-        return HTTP_STATUS_CODE;
+        return HTTP_GATEWAY_TIMEOUT;
     }
     
     /**

@@ -151,17 +151,6 @@ public final class IdentityServiceErrorCodes {
     }
 
     /**
-     * Formats a simple error message string for exception messages.
-     *
-     * @param errorCode The error code constant (without prefix)
-     * @param message The error message
-     * @return Formatted message with IdentityService-xxxx: prefix
-     */
-    public static String formatSimpleMessage(String errorCode, String message) {
-        return ERROR_PREFIX + errorCode + ": " + message;
-    }
-
-    /**
      * Determines the appropriate HTTP status for an error code.
      *
      * @param errorCode The error code

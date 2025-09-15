@@ -7,12 +7,12 @@ public class IdentityServiceException extends RuntimeException {
     private final String errorCode;
 
     public IdentityServiceException(String errorCode, String message) {
-        super(IdentityServiceErrorCodes.formatSimpleMessage(errorCode, message));
+        super(IdentityServiceErrorCodes.formatMessage(errorCode, message));
         this.errorCode = errorCode;
     }
 
     public IdentityServiceException(String errorCode, String message, Throwable cause) {
-        super(IdentityServiceErrorCodes.formatSimpleMessage(errorCode, message), cause);
+        super(IdentityServiceErrorCodes.formatMessage(errorCode, message), cause);
         this.errorCode = errorCode;
     }
 

@@ -1,28 +1,29 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
 import java.net.HttpURLConnection;
+import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
 
 /**
  * Exception thrown when the Person Registry service is unavailable due to network issues,
  * connection problems, timeouts, or other infrastructure-related failures.
- * This is different from PersonRegistryUpstreamInternalServerErrorException which indicates
+ * This is different from IdentityServiceUpstreamInternalServerErrorException which indicates
  * that the service responded with a 500+ error.
  */
-public class PersonRegistryUnavailableException extends PersonRegistryException {
+public class IdentityServiceUnavailableException extends IdentityServiceException {
 
     public static final int HTTP_STATUS_CODE = HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
     private static final String DEFAULT_MESSAGE = "Person Registry service is currently unavailable";
     
-    public PersonRegistryUnavailableException(String message) {
-        super(PersonRegistryErrorCodes.SERVICE_UNAVAILABLE, message);
+    public IdentityServiceUnavailableException(String message) {
+        super(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE, message);
     }
 
-    public PersonRegistryUnavailableException(String message, Throwable cause) {
-        super(PersonRegistryErrorCodes.SERVICE_UNAVAILABLE, message, cause);
+    public IdentityServiceUnavailableException(String message, Throwable cause) {
+        super(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE, message, cause);
     }
     
-    public PersonRegistryUnavailableException(Throwable cause) {
-        super(PersonRegistryErrorCodes.SERVICE_UNAVAILABLE, DEFAULT_MESSAGE, cause);
+    public IdentityServiceUnavailableException(Throwable cause) {
+        super(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE, DEFAULT_MESSAGE, cause);
     }
     
     public int getStatusCode() {
@@ -34,12 +35,12 @@ public class PersonRegistryUnavailableException extends PersonRegistryException 
      * 
      * @param uri The URI that was being accessed
      * @param cause The underlying cause of the failure
-     * @return A new PersonRegistryUnavailableException with detailed message
+     * @return A new IdentityServiceUnavailableException with detailed message
      */
-    public static PersonRegistryUnavailableException withDetails(String uri, Throwable cause) {
+    public static IdentityServiceUnavailableException withDetails(String uri, Throwable cause) {
         var message = String.format("Unable to connect to Person Registry at %s: %s", 
                                     uri, 
                                     cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName());
-        return new PersonRegistryUnavailableException(message, cause);
+        return new IdentityServiceUnavailableException(message, cause);
     }
 }

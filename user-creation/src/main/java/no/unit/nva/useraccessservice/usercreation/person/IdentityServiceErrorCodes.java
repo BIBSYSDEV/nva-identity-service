@@ -1,15 +1,15 @@
-package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
+package no.unit.nva.useraccessservice.usercreation.person;
 
 /**
- * Central registry of error codes for PersonRegistry exceptions.
+ * Central registry of error codes for Identity Service exceptions.
  * 
  * <p>Error Code Structure:
- * - PersonRegistry-xxxx: All error codes are prefixed with "PersonRegistry-"
+ * - IdentityService-xxxx: All error codes are prefixed with "IdentityService-"
  * - 1xxx: General server-side errors (application-level issues, infrastructure problems)
  * - 2xxx: Resource-related errors (e.g., already exists, not found, etc.)
  * - 3xxx: Upstream service errors (e.g., API response failures, service-level issues)
  */
-public final class PersonRegistryErrorCodes {
+public final class IdentityServiceErrorCodes {
 
     // 1xxx - General server-side errors (application-level issues)
     
@@ -21,7 +21,7 @@ public final class PersonRegistryErrorCodes {
     
     /**
      * 1001: Missing required fields validation error.
-     * Used when person data is missing required fields like ID, firstname, or surname.
+     * Used when data is missing required fields like ID, firstname, or surname.
      */
     public static final String MISSING_REQUIRED_FIELDS = "1001";
     
@@ -31,6 +31,12 @@ public final class PersonRegistryErrorCodes {
      * timeouts, connection refused, or other infrastructure-level failures.
      */
     public static final String SERVICE_UNAVAILABLE = "1002";
+    
+    /**
+     * 1003: Missing National Identity Number (NIN).
+     * Used when a required National Identity Number is missing from user attributes.
+     */
+    public static final String MISSING_NIN = "1003";
 
     // 2xxx - Resource-related errors (already exists, not found, etc.)
     
@@ -68,18 +74,29 @@ public final class PersonRegistryErrorCodes {
      */
     public static final String PERSON_CREATION_FAILED = "3003";
 
-    private PersonRegistryErrorCodes() {
+    private IdentityServiceErrorCodes() {
         // Utility class
     }
 
     /**
-     * Formats an error message with the specified error code.
+     * Formats an error message with the IdentityService error code prefix.
      * 
-     * @param errorCode The error code constant (without PersonRegistry- prefix)
+     * @param errorCode The error code constant (without IdentityService- prefix)
      * @param message The error message
-     * @return Formatted message with full PersonRegistry-xxxx: prefix
+     * @return Formatted message with full IdentityService-xxxx: prefix
      */
     public static String formatMessage(String errorCode, String message) {
+        return "IdentityService-" + errorCode + ": " + message;
+    }
+
+    /**
+     * Formats a PersonRegistry-specific error message for backward compatibility.
+     * 
+     * @param errorCode The error code constant (without prefix)
+     * @param message The error message
+     * @return Formatted message with PersonRegistry-xxxx: prefix for backward compatibility
+     */
+    public static String formatPersonRegistryMessage(String errorCode, String message) {
         return "PersonRegistry-" + errorCode + ": " + message;
     }
 }

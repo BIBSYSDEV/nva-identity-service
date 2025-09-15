@@ -6,14 +6,14 @@ import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryAlreadyExistsException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryErrorCodes;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryMissingRequiredFieldsException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryNotFoundException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryUnavailableException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryUpstreamBodyParsingException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryUpstreamInternalServerErrorException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceAlreadyExistsException;
+import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingRequiredFieldsException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceNotFoundException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUnavailableException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUpstreamBodyParsingException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUpstreamInternalServerErrorException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitution;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
@@ -69,6 +69,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private static final String PERSONS_PATH = "persons";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
+    private static final int ONE_HUNDRED = 100;
+    private static final int SUCCESS_FAMILY = 2;
     private final HttpClient httpClient;
     private final URI cristinBaseUri;
     private final String apiDomain;
@@ -135,9 +137,9 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     @SuppressWarnings("PMD.InvalidLogMessageFormat")
-    private static <T> PersonRegistryException logAndThrowException(Failure<T> failure) {
+    private static <T> IdentityServiceException logAndThrowException(Failure<T> failure) {
         LOGGER.error("Got unexpected response body from Cristin", failure.getException());
-        return new PersonRegistryUpstreamBodyParsingException("Failed to parse response from Cristin", 
+        return new IdentityServiceUpstreamBodyParsingException("Failed to parse response from Cristin", 
                                                                 failure.getException());
     }
 
@@ -238,7 +240,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
         if (isBlank(cristinPerson.getId())
             || isBlank(cristinPerson.getFirstname())
             || isBlank(cristinPerson.getSurname())) {
-            throw new PersonRegistryMissingRequiredFieldsException(
+            throw new IdentityServiceMissingRequiredFieldsException(
                 String.format("Cristin person is missing required fields: id=%s, firstname=%s, surname=%s",
                               requireNonNullElse(cristinPerson.getId(), "null"),
                               requireNonNullElse(cristinPerson.getFirstname(), "null"),
@@ -283,7 +285,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
         try {
             var person = executeRequest(request, CristinPerson.class);
             return Optional.ofNullable(person);
-        } catch (PersonRegistryNotFoundException e) {
+        } catch (IdentityServiceNotFoundException e) {
             LOGGER.info("No person found in Cristin with {}", nin);
             return Optional.empty();
         }
@@ -330,7 +332,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
             var maskedUri = maskSensitiveData(request.uri());
             LOGGER.error("Failed to connect to Cristin at {}: {}", maskedUri, e.getMessage(), e);
             conditionallyInterrupt(e);
-            throw PersonRegistryUnavailableException.withDetails(maskedUri, e);
+            throw IdentityServiceUnavailableException.withDetails(maskedUri, e);
         } finally {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Called {} and got response in {} ms.",
@@ -345,22 +347,27 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     private void assertSuccessResponse(HttpRequest request, HttpResponse<String> response) {
-        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+        int statusCode = response.statusCode();
+        if (statusCode / ONE_HUNDRED != SUCCESS_FAMILY) {
             var message = generateErrorMessageForResponse(request, response);
             LOGGER.info(message);
 
-            if (response.statusCode() == HTTP_NOT_FOUND) {
-                throw new PersonRegistryNotFoundException(message);
-            } else if (response.statusCode() == HTTP_CONFLICT
-                       || (response.statusCode() == HTTP_BAD_REQUEST
-                           && message.contains("already exists"))) {
-                throw new PersonRegistryAlreadyExistsException(message);
-            } else if (response.statusCode() >= HTTP_INTERNAL_ERROR) {
-                throw new PersonRegistryUpstreamInternalServerErrorException(message);
+            if (HTTP_NOT_FOUND == statusCode) {
+                throw new IdentityServiceNotFoundException(message);
+            } else if (isAlreadyExists(statusCode, message)) {
+                throw new IdentityServiceAlreadyExistsException(message);
+            } else if (HTTP_INTERNAL_ERROR <= statusCode) {
+                throw new IdentityServiceUpstreamInternalServerErrorException(message);
             } else {
-                throw new PersonRegistryException(PersonRegistryErrorCodes.GENERIC_ERROR, message);
+                throw new IdentityServiceException(IdentityServiceErrorCodes.GENERIC_ERROR, message);
             }
         }
+    }
+
+    private static boolean isAlreadyExists(int statusCode, String message) {
+        return HTTP_CONFLICT == statusCode
+               || (HTTP_BAD_REQUEST == statusCode
+                   && message.contains("already exists"));
     }
 
     private String generateErrorMessageForResponse(HttpRequest request, HttpResponse<String> response) {

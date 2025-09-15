@@ -1,16 +1,18 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
-public class PersonRegistryException extends RuntimeException {
+import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
+
+public class IdentityServiceException extends RuntimeException {
 
     private final String errorCode;
 
-    public PersonRegistryException(String errorCode, String message) {
-        super(PersonRegistryErrorCodes.formatMessage(errorCode, message));
+    public IdentityServiceException(String errorCode, String message) {
+        super(IdentityServiceErrorCodes.formatMessage(errorCode, message));
         this.errorCode = errorCode;
     }
 
-    public PersonRegistryException(String errorCode, String message, Throwable cause) {
-        super(PersonRegistryErrorCodes.formatMessage(errorCode, message), cause);
+    public IdentityServiceException(String errorCode, String message, Throwable cause) {
+        super(IdentityServiceErrorCodes.formatMessage(errorCode, message), cause);
         this.errorCode = errorCode;
     }
 
@@ -18,7 +20,7 @@ public class PersonRegistryException extends RuntimeException {
      * Legacy constructor for backward compatibility.
      * Uses a generic error code.
      */
-    public PersonRegistryException(String message) {
+    public IdentityServiceException(String message) {
         super(message);
         this.errorCode = null;
     }

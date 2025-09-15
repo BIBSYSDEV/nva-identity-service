@@ -14,7 +14,9 @@ import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationS
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryAlreadyExistsException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryUnavailableException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -107,7 +109,8 @@ class CristinPersonRegistryTest {
                                                                     defaultRequestHeaders,
                                                                     new SecretsReader(secretsManagerClient));
         var nin = NationalIdentityNumber.fromString(randomNin());
-        var exception = assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
+        var exception = assertThrows(PersonRegistryUnavailableException.class, 
+                () -> personRegistry.fetchPersonByNin(nin));
         assertThat(exception.getMessage(), not(containsString(nin.toString())));
         assertThat(appender.getMessages(), not(containsString(nin.toString())));
     }
@@ -175,5 +178,33 @@ class CristinPersonRegistryTest {
         var person = personRegistry.fetchPersonByNin(nin);
         assertThat(person.isPresent(), is(equalTo(true)));
         assertThat(person.get().getAffiliations(), emptyIterable());
+    }
+
+    @Test
+    void shouldThrowAlreadyExistsExceptionWhenCreatingPersonThatAlreadyExists() {
+        // Create a scenario where Cristin returns 400 with "already exists" message
+        var nin = NationalIdentityNumber.fromString("12345678901");
+        
+        // Mock the POST request to return 400 with "already exists" message
+        mockPersonRegistry.setupCreatePersonAlreadyExistsError();
+        
+        var exception = assertThrows(PersonRegistryAlreadyExistsException.class, 
+            () -> personRegistry.createPerson(nin, "John", "Doe"));
+        
+        assertThat(exception.getMessage(), containsString("already exists"));
+    }
+
+    @Test
+    void shouldThrowAlreadyExistsExceptionWhenCreatingPersonReturns409Conflict() {
+        // Create a scenario where Cristin returns 409 Conflict
+        var nin = NationalIdentityNumber.fromString("12345678902");
+        
+        // Mock the POST request to return 409 Conflict
+        mockPersonRegistry.setupCreatePersonConflictError();
+        
+        var exception = assertThrows(PersonRegistryAlreadyExistsException.class, 
+            () -> personRegistry.createPerson(nin, "Jane", "Smith"));
+        
+        assertThat(exception.getMessage(), containsString("Conflict"));
     }
 }

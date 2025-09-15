@@ -178,7 +178,6 @@ public class MockPersonRegistry {
                     .withBody(response)
                     .withStatus(HttpURLConnection.HTTP_OK)));
         
-        // Also stub the endpoint for fetching by cristinId
         stubWithDefaultRequestHeadersEqualToFor(
             get("/persons/" + cristinPerson.getId())
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
@@ -357,6 +356,28 @@ public class MockPersonRegistry {
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
                 .willReturn(aResponse()
                     .withStatus(HttpURLConnection.HTTP_INTERNAL_ERROR)));
+    }
+    
+    public void setupCreatePersonAlreadyExistsError() {
+        // Return 400 Bad Request with "already exists" message for the POST endpoint
+        var errorBody = "{ \"status\" : 400, \"response_id\" : \"test123\", \"errors\" : [ \"Norwegian national id already exists.\" ] }";
+        stubWithDefaultRequestHeadersEqualToFor(
+            post("/persons")
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                    .withStatus(HttpURLConnection.HTTP_BAD_REQUEST)
+                    .withBody(errorBody)));
+    }
+    
+    public void setupCreatePersonConflictError() {
+        // Return 409 Conflict for the POST endpoint
+        var errorBody = "{ \"status\" : 409, \"response_id\" : \"test456\", \"errors\" : [ \"Conflict: Person already exists.\" ] }";
+        stubWithDefaultRequestHeadersEqualToFor(
+            post("/persons")
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                    .withStatus(HttpURLConnection.HTTP_CONFLICT)
+                    .withBody(errorBody)));
     }
 
     public Set<URI> getUnitCristinUris(String nin) {

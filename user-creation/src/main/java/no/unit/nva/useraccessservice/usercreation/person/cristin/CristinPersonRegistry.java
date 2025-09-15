@@ -6,7 +6,14 @@ import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryAlreadyExistsException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryErrorCodes;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryMissingRequiredFieldsException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryNotFoundException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryUnavailableException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryUpstreamBodyParsingException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryUpstreamInternalServerErrorException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitution;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
@@ -33,6 +40,11 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_NAME;
@@ -125,7 +137,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
     @SuppressWarnings("PMD.InvalidLogMessageFormat")
     private static <T> PersonRegistryException logAndThrowException(Failure<T> failure) {
         LOGGER.error("Got unexpected response body from Cristin", failure.getException());
-        return new PersonRegistryException("Failed to parse response!", failure.getException());
+        return new PersonRegistryUpstreamBodyParsingException("Failed to parse response from Cristin", 
+                                                                failure.getException());
     }
 
     @JacocoGenerated
@@ -171,6 +184,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
         var person = new CristinPerson(null, firstName, lastName, null, nin.getNin());
         return createPerson(person, cristinCredentials)
                    .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+    }
+
+    private Optional<CristinPerson> createPerson(CristinPerson person,
+                                                 CristinCredentials cristinCredentials) {
+        var request = createPostRequest(creatNewPersonQueryUri(), generatePersonPayload(person), cristinCredentials);
+        return Optional.ofNullable(executeRequest(request, CristinPerson.class));
     }
 
     private CristinInstitution fetchInstitutionFromCristin(URI institutionUri, CristinCredentials cristinCredentials) {
@@ -219,7 +238,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
         if (isBlank(cristinPerson.getId())
             || isBlank(cristinPerson.getFirstname())
             || isBlank(cristinPerson.getSurname())) {
-            throw new PersonRegistryException("Cristin person is missing required fields");
+            throw new PersonRegistryMissingRequiredFieldsException(
+                String.format("Cristin person is missing required fields: id=%s, firstname=%s, surname=%s",
+                              requireNonNullElse(cristinPerson.getId(), "null"),
+                              requireNonNullElse(cristinPerson.getFirstname(), "null"),
+                              requireNonNullElse(cristinPerson.getSurname(), "null"))
+            );
         }
 
         return new Person(generateCristinIdForPerson(cristinPerson.getId()),
@@ -259,14 +283,9 @@ public final class CristinPersonRegistry implements PersonRegistry {
         try {
             var person = executeRequest(request, CristinPerson.class);
             return Optional.ofNullable(person);
-        } catch (PersonRegistryException e) {
-            // Check if it's a 404 (not found) or another error
-            if (e.getMessage().contains("404")) {
-                LOGGER.info("No person found in Cristin with {}", nin);
-                return Optional.empty();
-            }
-            // For other errors (like 502 Bad Gateway), re-throw
-            throw e;
+        } catch (PersonRegistryNotFoundException e) {
+            LOGGER.info("No person found in Cristin with {}", nin);
+            return Optional.empty();
         }
     }
 
@@ -274,17 +293,6 @@ public final class CristinPersonRegistry implements PersonRegistry {
                                                                        CristinCredentials cristinCredentials) {
         var request = createGetRequest(creatByIdentifierQueryUri(identifier), cristinCredentials);
         return attempt(() -> executeRequest(request, CristinPerson.class)).toOptional();
-    }
-
-    private Optional<CristinPerson> createPerson(CristinPerson person,
-                                                 CristinCredentials cristinCredentials) {
-        var request = createPostRequest(creatNewPersonQueryUri(), generatePersonPayload(person), cristinCredentials);
-        try {
-            return Optional.ofNullable(executeRequest(request, CristinPerson.class));
-        }
-        catch (Exception e) {
-            throw new PersonRegistryException("Failed to create person in Cristin", e);
-        }
     }
 
     private URI createByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {
@@ -319,9 +327,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
         try {
             response = this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (IOException | InterruptedException e) {
-            LOGGER.error("Cristin is unavailable", e);
+            var maskedUri = maskSensitiveData(request.uri());
+            LOGGER.error("Failed to connect to Cristin at {}: {}", maskedUri, e.getMessage(), e);
             conditionallyInterrupt(e);
-            throw new PersonRegistryException("Cristin is unavailable", e);
+            throw PersonRegistryUnavailableException.withDetails(maskedUri, e);
         } finally {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Called {} and got response in {} ms.",
@@ -339,7 +348,18 @@ public final class CristinPersonRegistry implements PersonRegistry {
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             var message = generateErrorMessageForResponse(request, response);
             LOGGER.info(message);
-            throw new PersonRegistryException(message);
+
+            if (response.statusCode() == HTTP_NOT_FOUND) {
+                throw new PersonRegistryNotFoundException(message);
+            } else if (response.statusCode() == HTTP_CONFLICT
+                       || (response.statusCode() == HTTP_BAD_REQUEST
+                           && message.contains("already exists"))) {
+                throw new PersonRegistryAlreadyExistsException(message);
+            } else if (response.statusCode() >= HTTP_INTERNAL_ERROR) {
+                throw new PersonRegistryUpstreamInternalServerErrorException(message);
+            } else {
+                throw new PersonRegistryException(PersonRegistryErrorCodes.GENERIC_ERROR, message);
+            }
         }
     }
 

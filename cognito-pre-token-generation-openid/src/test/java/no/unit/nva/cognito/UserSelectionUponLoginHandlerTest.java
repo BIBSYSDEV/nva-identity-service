@@ -112,7 +112,8 @@ import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationS
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryErrorCodes;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
@@ -336,7 +337,7 @@ class UserSelectionUponLoginHandlerTest {
                                                     termsAndConditionsService);
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
         assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
-        assertThat(testAppender.getMessages(), containsString("Cristin is unavailable"));
+        assertThat(testAppender.getMessages(), containsString(PersonRegistryErrorCodes.SERVICE_UNAVAILABLE));
     }
 
     @ParameterizedTest(name = "Login event type: {0}")

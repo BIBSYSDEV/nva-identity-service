@@ -90,13 +90,6 @@ class IdentityServiceExceptionsTest {
     }
 
     @Test
-    void identityServiceExceptionBaseClassShouldWork() {
-        var exception = new IdentityServiceException("Generic error");
-        assertThat(exception.getMessage(), is(equalTo("Generic error")));
-        assertThat(exception, is(notNullValue()));
-    }
-
-    @Test
     void identityServiceExceptionBaseClassShouldAcceptCause() {
         var cause = new RuntimeException("Original error");
         var exception = new IdentityServiceException(IdentityServiceErrorCodes.GENERIC_ERROR, "Generic error", cause);
@@ -206,13 +199,6 @@ class IdentityServiceExceptionsTest {
         assertThat(exception.getErrorCode(), is(equalTo("1001")));
         assertThat(exception.getMessage(), is(equalTo("IdentityService-1001: Test message")));
         assertThat(exception.getCause(), is(equalTo(cause)));
-    }
-    
-    @Test
-    void identityServiceExceptionShouldReturnNullErrorCodeForLegacyConstructors() {
-        var exception = new IdentityServiceException("Legacy message");
-        assertThat(exception.getErrorCode(), is(equalTo(null)));
-        assertThat(exception.getMessage(), is(equalTo("Legacy message")));
     }
     
     @Test

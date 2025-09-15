@@ -17,15 +17,6 @@ public class IdentityServiceException extends RuntimeException {
     }
 
     /**
-     * Legacy constructor for backward compatibility.
-     * Uses a generic error code.
-     */
-    public IdentityServiceException(String message) {
-        super(message);
-        this.errorCode = null;
-    }
-
-    /**
      * Gets the error code associated with this exception.
      * 
      * @return The error code, or null for legacy exceptions

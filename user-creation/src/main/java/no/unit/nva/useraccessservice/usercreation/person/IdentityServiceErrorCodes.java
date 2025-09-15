@@ -141,7 +141,7 @@ public final class IdentityServiceErrorCodes {
      * @param status The HTTP status
      * @return Problem object
      */
-    public static Problem createProblem(String errorCode, String message, Status status) {
+    private static Problem createProblem(String errorCode, String message, Status status) {
         return Problem.builder()
             .withType(ERROR_TYPE_BASE_URI.addChild(errorCode).getUri())
             .withTitle(ERROR_PREFIX + errorCode + ": " + message)
@@ -152,7 +152,6 @@ public final class IdentityServiceErrorCodes {
 
     /**
      * Formats a simple error message string for exception messages.
-     * This method maintains the old string format for backward compatibility.
      *
      * @param errorCode The error code constant (without prefix)
      * @param message The error message

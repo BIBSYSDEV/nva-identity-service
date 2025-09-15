@@ -5,8 +5,13 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
+import org.zalando.problem.Status;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -152,15 +157,39 @@ class IdentityServiceExceptionsTest {
     }
     
     @Test
-    void identityServiceErrorCodesFormatPersonRegistryMessageShouldFormatCorrectly() {
-        var formatted = IdentityServiceErrorCodes.formatPersonRegistryMessage("1001", "Test message");
-        assertThat(formatted, is(equalTo("PersonRegistry-1001: Test message")));
+    void identityServiceErrorCodesFormatMessageShouldReturnProblemJson() throws Exception {
+        var formatted = IdentityServiceErrorCodes.formatMessage("1001", "Test message");
+        
+        // Parse the JSON to verify it's valid Problem format
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = mapper.readTree(formatted);
+        
+        assertNotNull(json.get("type"));
+        assertThat(json.get("type").asText(), containsString("errors/1001"));
+        assertEquals("IdentityService-1001: Test message", json.get("title").asText());
+        assertEquals("Test message", json.get("detail").asText());
+        assertEquals(400, json.get("status").asInt());
     }
     
     @Test
-    void identityServiceErrorCodesFormatMessageShouldFormatCorrectly() {
-        var formatted = IdentityServiceErrorCodes.formatMessage("1001", "Test message");
-        assertThat(formatted, is(equalTo("IdentityService-1001: Test message")));
+    void identityServiceErrorCodesCreateProblemShouldReturnProblemObject() {
+        var problem = IdentityServiceErrorCodes.createProblem("2001", "Person not found");
+        
+        assertNotNull(problem);
+        assertThat(problem.getType().toString(), containsString("errors/2001"));
+        assertEquals("IdentityService-2001: Person not found", problem.getTitle());
+        assertEquals("Person not found", problem.getDetail());
+        assertEquals(Status.NOT_FOUND, problem.getStatus());
+    }
+    
+    @Test
+    void identityServiceErrorCodesFormatMessageWithStatusShouldUseProvidedStatus() throws Exception {
+        var formatted = IdentityServiceErrorCodes.formatMessage("1001", "Test message", Status.FORBIDDEN);
+        
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = mapper.readTree(formatted);
+        
+        assertEquals(403, json.get("status").asInt());
     }
     
     @Test

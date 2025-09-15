@@ -39,6 +39,7 @@ dependencies {
 
 test{
     environment "API_DOMAIN", "localhost"
+    environment "BASE_PATH", "users-roles"
     environment "COGNITO_HOST", "example.com"
     environment "AWS_REGION", "eu-west-1"
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"

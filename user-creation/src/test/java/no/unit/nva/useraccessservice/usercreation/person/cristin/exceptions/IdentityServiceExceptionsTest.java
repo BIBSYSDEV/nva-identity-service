@@ -1,185 +1,184 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
+import static java.net.HttpURLConnection.HTTP_BAD_GATEWAY;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import no.unit.nva.commons.json.JsonUtils;
+
 import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
 import no.unit.nva.useraccessservice.usercreation.person.ServiceErrorCode;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import org.junit.jupiter.api.Test;
+import org.zalando.problem.Problem;
 
 class IdentityServiceExceptionsTest {
 
     @Test
-    void identityServiceNotFoundExceptionShouldReturn404StatusCode() throws Exception {
+    void identityServiceNotFoundExceptionShouldReturn404StatusCode() {
         var exception = new IdentityServiceNotFoundException("Person not found");
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-2001: Person not found")));
-        assertThat(json.get("status").asInt(), is(equalTo(404)));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_NOT_FOUND)));
+        assertThat(exception.getErrorCode(), is(equalTo("2001")));
+        assertThat(exception.getMessage(), containsString("IdentityService-2001: Person not found"));
     }
 
     @Test
-    void identityServiceNotFoundExceptionShouldHaveCorrectMessage() throws Exception {
+    void identityServiceNotFoundExceptionShouldHaveCorrectMessage() {
         var exception = new IdentityServiceNotFoundException("Person with id 123 not found");
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_FOUND)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-2001: Person with id 123 not found")));
-        assertThat(json.get("detail").asText(), is(equalTo("Person with id 123 not found")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_NOT_FOUND)));
+        assertThat(exception.getErrorCode(), is(equalTo("2001")));
+        assertThat(exception.getMessage(), containsString("IdentityService-2001: Person with id 123 not found"));
     }
 
     @Test
-    void identityServiceUpstreamBodyParsingExceptionShouldReturn502StatusCode() throws Exception {
+    void identityServiceUpstreamBodyParsingExceptionShouldReturn502StatusCode() {
         var cause = new RuntimeException("Parse error");
         var exception = new IdentityServiceUpstreamBodyParsingException("Failed to parse", cause);
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-3002: Failed to parse")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_GATEWAY)));
+        assertThat(exception.getErrorCode(), is(equalTo("3002")));
+        assertThat(exception.getMessage(), containsString("IdentityService-3002: Failed to parse"));
         assertThat(exception.getCause(), is(equalTo(cause)));
     }
 
     @Test
-    void identityServiceUpstreamBodyParsingExceptionShouldHandleNullCause() throws Exception {
+    void identityServiceUpstreamBodyParsingExceptionShouldHandleNullCause() {
         var exception = new IdentityServiceUpstreamBodyParsingException("Failed to parse", null);
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-3002: Failed to parse")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_GATEWAY)));
+        assertThat(exception.getErrorCode(), is(equalTo("3002")));
+        assertThat(exception.getMessage(), containsString("IdentityService-3002: Failed to parse"));
     }
 
     @Test
-    void identityServiceUpstreamInternalServerErrorExceptionShouldReturn502StatusCode() throws Exception {
+    void identityServiceUpstreamInternalServerErrorExceptionShouldReturn502StatusCode() {
         var exception = new IdentityServiceUpstreamInternalServerErrorException("Upstream error");
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-3001: Upstream error")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_GATEWAY)));
+        assertThat(exception.getErrorCode(), is(equalTo("3001")));
+        assertThat(exception.getMessage(), containsString("IdentityService-3001: Upstream error"));
     }
 
     @Test
-    void identityServiceUpstreamInternalServerErrorExceptionShouldAcceptCause() throws Exception {
+    void identityServiceUpstreamInternalServerErrorExceptionShouldAcceptCause() {
         var cause = new RuntimeException("Network error");
         var exception = new IdentityServiceUpstreamInternalServerErrorException("Upstream error", cause);
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-3001: Upstream error")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_GATEWAY)));
+        assertThat(exception.getErrorCode(), is(equalTo("3001")));
+        assertThat(exception.getMessage(), containsString("IdentityService-3001: Upstream error"));
         assertThat(exception.getCause(), is(equalTo(cause)));
     }
 
     @Test
-    void identityServiceMissingRequiredFieldsExceptionShouldReturn400StatusCode() throws Exception {
+    void identityServiceMissingRequiredFieldsExceptionShouldReturn400StatusCode() {
         var exception = new IdentityServiceMissingRequiredFieldsException(
                 "Missing fields: id=null, firstname=John, surname=null");
-        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("detail").asText(), containsString("Missing fields"));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+        assertThat(exception.getErrorCode(), is(equalTo("1001")));
+        assertThat(exception.getMessage(), containsString("Missing fields"));
     }
 
     @Test
-    void identityServiceMissingRequiredFieldsExceptionShouldFormatMessage() throws Exception {
+    void identityServiceMissingRequiredFieldsExceptionShouldFormatMessage() {
         var exception = new IdentityServiceMissingRequiredFieldsException("Missing required fields");
-        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("detail").asText(), containsString("Missing required fields"));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+        assertThat(exception.getErrorCode(), is(equalTo("1001")));
+        assertThat(exception.getMessage(), containsString("Missing required fields"));
     }
 
     @Test
-    void identityServiceCreateFailedExceptionShouldReturn502StatusCode() throws Exception {
+    void identityServiceCreateFailedExceptionShouldReturn502StatusCode() {
         var cause = new RuntimeException("Create failed");
         var exception = new IdentityServiceCreateFailedException("Failed to create person", cause);
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_GATEWAY)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-3003: Failed to create person")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_GATEWAY)));
+        assertThat(exception.getErrorCode(), is(equalTo("3003")));
+        assertThat(exception.getMessage(), containsString("IdentityService-3003: Failed to create person"));
         assertThat(exception.getCause(), is(equalTo(cause)));
     }
 
     @Test
-    void identityServiceExceptionBaseClassShouldAcceptCause() throws Exception {
+    void identityServiceExceptionBaseClassShouldAcceptCause() {
         var cause = new RuntimeException("Original error");
         var exception = new IdentityServiceException(IdentityServiceErrorCodes.GENERIC_ERROR, "Generic error", cause);
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-1000: Generic error")));
+        assertThat(exception.getErrorCode(), is(equalTo("1000")));
+        assertThat(exception.getMessage(), containsString("IdentityService-1000: Generic error"));
         assertThat(exception.getCause(), is(equalTo(cause)));
     }
 
     @Test
-    void identityServiceAlreadyExistsExceptionShouldReturn409StatusCode() throws Exception {
+    void identityServiceAlreadyExistsExceptionShouldReturn409StatusCode() {
         var exception = new IdentityServiceAlreadyExistsException("Person already exists");
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-2002: Person already exists")));
-        assertThat(json.get("status").asInt(), is(equalTo(409)));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_CONFLICT)));
+        assertThat(exception.getErrorCode(), is(equalTo("2002")));
+        assertThat(exception.getMessage(), containsString("IdentityService-2002: Person already exists"));
     }
 
     @Test
-    void identityServiceAlreadyExistsExceptionShouldAcceptCause() throws Exception {
+    void identityServiceAlreadyExistsExceptionShouldAcceptCause() {
         var cause = new RuntimeException("Already exists error");
         var exception = new IdentityServiceAlreadyExistsException("Person already exists", cause);
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CONFLICT)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-2002: Person already exists")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_CONFLICT)));
+        assertThat(exception.getErrorCode(), is(equalTo("2002")));
+        assertThat(exception.getMessage(), containsString("IdentityService-2002: Person already exists"));
         assertThat(exception.getCause(), is(equalTo(cause)));
     }
 
     @Test
-    void identityServiceUnavailableExceptionShouldReturn504StatusCode() throws Exception {
+    void identityServiceUnavailableExceptionShouldReturn504StatusCode() {
         var exception = new IdentityServiceUnavailableException("Service unavailable");
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_GATEWAY_TIMEOUT)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-1002: Service unavailable")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_GATEWAY_TIMEOUT)));
+        assertThat(exception.getErrorCode(), is(equalTo("1002")));
+        assertThat(exception.getMessage(), containsString("IdentityService-1002: Service unavailable"));
     }
 
     @Test
-    void identityServiceUnavailableExceptionShouldAcceptCause() throws Exception {
+    void identityServiceUnavailableExceptionShouldAcceptCause() {
         var cause = new IOException("Connection timeout");
         var exception = new IdentityServiceUnavailableException("Service unavailable", cause);
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_GATEWAY_TIMEOUT)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-1002: Service unavailable")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_GATEWAY_TIMEOUT)));
+        assertThat(exception.getErrorCode(), is(equalTo("1002")));
+        assertThat(exception.getMessage(), containsString("IdentityService-1002: Service unavailable"));
         assertThat(exception.getCause(), is(equalTo(cause)));
     }
 
     @Test
-    void identityServiceUnavailableExceptionShouldAcceptOnlyCause() throws Exception {
+    void identityServiceUnavailableExceptionShouldAcceptOnlyCause() {
         var cause = new IOException("Connection refused");
         var exception = new IdentityServiceUnavailableException(cause);
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_GATEWAY_TIMEOUT)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("detail").asText(), containsString("unavailable"));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_GATEWAY_TIMEOUT)));
+        assertThat(exception.getErrorCode(), is(equalTo("1002")));
+        assertThat(exception.getMessage(), containsString("unavailable"));
         assertThat(exception.getCause(), is(equalTo(cause)));
     }
 
     @Test
-    void identityServiceUnavailableExceptionWithDetailsShouldFormatMessage() throws Exception {
+    void identityServiceUnavailableExceptionWithDetailsShouldFormatMessage() {
         var cause = new IOException("Connection timeout");
         var exception = IdentityServiceUnavailableException.withDetails("https://api.cristin.no/persons/123", cause);
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_GATEWAY_TIMEOUT)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        String detail = json.get("detail").asText();
-        assertThat(detail, containsString("Unable to connect"));
-        assertThat(detail, containsString("https://api.cristin.no/persons/123"));
-        assertThat(detail, containsString("Connection timeout"));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_GATEWAY_TIMEOUT)));
+        assertThat(exception.getErrorCode(), is(equalTo("1002")));
+        assertThat(exception.getMessage(), containsString("Unable to connect"));
+        assertThat(exception.getMessage(), containsString("https://api.cristin.no/persons/123"));
+        assertThat(exception.getMessage(), containsString("Connection timeout"));
         assertThat(exception.getCause(), is(equalTo(cause)));
     }
     
@@ -188,64 +187,61 @@ class IdentityServiceExceptionsTest {
         var errorCode = new ServiceErrorCode(1001, HTTP_BAD_REQUEST);
         var formatted = IdentityServiceErrorCodes.formatMessage(errorCode, "Test message");
         
-        var json = JsonUtils.dtoObjectMapper.readTree(formatted);
+        var problem = JsonUtils.dtoObjectMapper.readValue(formatted, Problem.class);
         
-        assertNotNull(json.get("type"));
-        assertThat(json.get("type").asText(), containsString("errors/1001"));
-        assertEquals("IdentityService-1001: Test message", json.get("title").asText());
-        assertEquals("Test message", json.get("detail").asText());
-        assertEquals(400, json.get("status").asInt());
+        assertThat(problem.getType().toString(), containsString("errors/1001"));
+        assertEquals("IdentityService-1001: Test message", problem.getTitle());
+        assertEquals("Test message", problem.getDetail());
+        assertEquals(HTTP_BAD_REQUEST, problem.getStatus().getStatusCode());
     }
 
     @Test
-    void identityServiceExceptionShouldSupportErrorCodes() throws Exception {
+    void identityServiceExceptionShouldSupportErrorCodes() {
         var errorCode = new ServiceErrorCode(1001, HTTP_BAD_REQUEST);
         var exception = new IdentityServiceException(errorCode, "Test message");
-        assertThat(exception.getErrorCode(), is(equalTo("1001")));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-1001: Test message")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+        assertThat(exception.getErrorCode(), is(equalTo("1001")));
+        assertThat(exception.getMessage(), containsString("IdentityService-1001: Test message"));
     }
     
     @Test
-    void identityServiceExceptionShouldSupportErrorCodesWithCause() throws Exception {
+    void identityServiceExceptionShouldSupportErrorCodesWithCause() {
         var cause = new RuntimeException("Root cause");
         var errorCode = new ServiceErrorCode(1001, HTTP_BAD_REQUEST);
         var exception = new IdentityServiceException(errorCode, "Test message", cause);
-        assertThat(exception.getErrorCode(), is(equalTo("1001")));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-1001: Test message")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+        assertThat(exception.getErrorCode(), is(equalTo("1001")));
+        assertThat(exception.getMessage(), containsString("IdentityService-1001: Test message"));
         assertThat(exception.getCause(), is(equalTo(cause)));
     }
     
     @Test
-    void identityServiceUnavailableExceptionShouldUseInfrastructureErrorCode() throws Exception {
+    void identityServiceUnavailableExceptionShouldUseInfrastructureErrorCode() {
         var exception = new IdentityServiceUnavailableException("Connection failed");
+        
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_GATEWAY_TIMEOUT)));
         assertThat(exception.getErrorCode(), is(equalTo("1002")));
-        
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-1002: Connection failed")));
+        assertThat(exception.getMessage(), containsString("IdentityService-1002: Connection failed"));
     }
     
     @Test
-    void identityServiceMissingNinExceptionShouldReturn400StatusCode() throws Exception {
+    void identityServiceMissingNinExceptionShouldReturn400StatusCode() {
         var exception = new IdentityServiceMissingNinException();
-        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-1003: Missing National Identity Number in user attributes")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         assertThat(exception.getErrorCode(), is(equalTo("1003")));
+        assertThat(exception.getMessage(), containsString("IdentityService-1003: Missing National Identity Number in user attributes"));
     }
     
     @Test
-    void identityServiceMissingNinExceptionShouldAcceptCustomMessage() throws Exception {
+    void identityServiceMissingNinExceptionShouldAcceptCustomMessage() {
         var exception = new IdentityServiceMissingNinException("Custom NIN missing message");
-        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         
-        var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
-        assertThat(json.get("title").asText(), is(equalTo("IdentityService-1003: Custom NIN missing message")));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         assertThat(exception.getErrorCode(), is(equalTo("1003")));
+        assertThat(exception.getMessage(), containsString("IdentityService-1003: Custom NIN missing message"));
     }
     
     @Test

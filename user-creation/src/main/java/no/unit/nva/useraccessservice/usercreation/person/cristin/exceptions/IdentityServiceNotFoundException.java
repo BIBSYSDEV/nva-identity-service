@@ -1,11 +1,11 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
 import java.net.HttpURLConnection;
-import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
+import static no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes.PERSON_NOT_FOUND;
 
 public class IdentityServiceNotFoundException extends IdentityServiceException {
     public IdentityServiceNotFoundException(String message) {
-        super(IdentityServiceErrorCodes.PERSON_NOT_FOUND, message);
+        super(PERSON_NOT_FOUND, message);
     }
 
     public int getStatusCode() {

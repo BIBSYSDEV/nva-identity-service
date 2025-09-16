@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
-import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
+import static no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes.MISSING_NIN;
 
 /**
  * Exception thrown when a required National Identity Number (NIN) is missing from user attributes.
@@ -12,11 +12,11 @@ public class IdentityServiceMissingNinException extends IdentityServiceException
     private static final String DEFAULT_MESSAGE = "Missing National Identity Number in user attributes";
 
     public IdentityServiceMissingNinException() {
-        super(IdentityServiceErrorCodes.MISSING_NIN, DEFAULT_MESSAGE);
+        super(MISSING_NIN, DEFAULT_MESSAGE);
     }
     
     public IdentityServiceMissingNinException(String message) {
-        super(IdentityServiceErrorCodes.MISSING_NIN, message);
+        super(MISSING_NIN, message);
     }
 
     public int getStatusCode() {

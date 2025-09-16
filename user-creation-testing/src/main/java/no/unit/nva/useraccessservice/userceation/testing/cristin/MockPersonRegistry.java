@@ -340,7 +340,6 @@ public class MockPersonRegistry {
     public MockedPersonData mockResponseForPersonNotFound() {
         var nin = randomNin();
         var cristinId = randomString();
-        // Return 404 for the resolve endpoint when person is not found
         stubWithDefaultRequestHeadersEqualToFor(
             get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
@@ -350,7 +349,6 @@ public class MockPersonRegistry {
     }
     
     public void setupServerErrorForNin(String nin) {
-        // Return 500 Internal Server Error for the resolve endpoint
         stubWithDefaultRequestHeadersEqualToFor(
             get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
@@ -359,19 +357,29 @@ public class MockPersonRegistry {
     }
     
     public void setupCreatePersonAlreadyExistsError() {
-        // Return 400 Bad Request with "already exists" message for the POST endpoint
-        var errorBody = "{ \"status\" : 400, \"response_id\" : \"test123\", \"errors\" : [ \"Norwegian national id already exists.\" ] }";
+        var errorBody = """
+            {
+                "status" : 400,
+                "response_id" : "test123",
+                 "errors" : [ "Norwegian national id already exists." ]
+             }
+            """;
         stubWithDefaultRequestHeadersEqualToFor(
             post("/persons")
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
                 .willReturn(aResponse()
-                    .withStatus(HttpURLConnection.HTTP_BAD_REQUEST)
-                    .withBody(errorBody)));
+                                .withStatus(HttpURLConnection.HTTP_BAD_REQUEST)
+                                .withBody(errorBody)));
     }
-    
+
     public void setupCreatePersonConflictError() {
-        // Return 409 Conflict for the POST endpoint
-        var errorBody = "{ \"status\" : 409, \"response_id\" : \"test456\", \"errors\" : [ \"Conflict: Person already exists.\" ] }";
+        var errorBody = """
+            {
+                "status" : 409,
+                "response_id" : "test456",
+                "errors" : [ "Conflict: Person already exists." ]
+            }
+            """;
         stubWithDefaultRequestHeadersEqualToFor(
             post("/persons")
                 .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))

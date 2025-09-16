@@ -90,11 +90,11 @@ public final class IdentityServiceErrorCodes {
     public static final String PERSON_CREATION_FAILED = "3003";
 
     private IdentityServiceErrorCodes() {
-        // Utility class
+        // NO-OP
     }
 
     /**
-     * Formats an error message as an RFC 7807 Problem Details JSON string.
+     * Formats an error message as an RFC 9457 Problem Details JSON string.
      *
      * @param errorCode The error code constant (without IdentityService- prefix)
      * @param message The error message
@@ -105,7 +105,6 @@ public final class IdentityServiceErrorCodes {
             var problem = createProblem(errorCode, message, getStatusForErrorCode(errorCode));
             return JsonUtils.dtoObjectMapper.writeValueAsString(problem);
         } catch (JsonProcessingException e) {
-            // Fallback to a simple string format if JSON serialization fails
             return ERROR_PREFIX + errorCode + ": " + message;
         }
     }

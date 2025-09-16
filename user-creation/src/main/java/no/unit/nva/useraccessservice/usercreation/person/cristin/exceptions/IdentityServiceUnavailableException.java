@@ -1,7 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
 import static java.net.HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
-import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
+import static no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes.SERVICE_UNAVAILABLE;
 
 /**
  * Exception thrown when the Person Registry service is unavailable due to network issues,
@@ -13,15 +13,15 @@ public class IdentityServiceUnavailableException extends IdentityServiceExceptio
     private static final String DEFAULT_MESSAGE = "Person Registry service is currently unavailable";
     
     public IdentityServiceUnavailableException(String message) {
-        super(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE, message);
+        super(SERVICE_UNAVAILABLE, message);
     }
 
     public IdentityServiceUnavailableException(String message, Throwable cause) {
-        super(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE, message, cause);
+        super(SERVICE_UNAVAILABLE, message, cause);
     }
     
     public IdentityServiceUnavailableException(Throwable cause) {
-        super(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE, DEFAULT_MESSAGE, cause);
+        super(SERVICE_UNAVAILABLE, DEFAULT_MESSAGE, cause);
     }
     
     public int getStatusCode() {

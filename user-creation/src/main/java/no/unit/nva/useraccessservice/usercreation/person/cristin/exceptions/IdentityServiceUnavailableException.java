@@ -1,6 +1,5 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
-import static java.net.HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
 import static no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes.SERVICE_UNAVAILABLE;
 
 /**
@@ -22,10 +21,6 @@ public class IdentityServiceUnavailableException extends IdentityServiceExceptio
     
     public IdentityServiceUnavailableException(Throwable cause) {
         super(SERVICE_UNAVAILABLE, DEFAULT_MESSAGE, cause);
-    }
-    
-    public int getStatusCode() {
-        return HTTP_GATEWAY_TIMEOUT;
     }
     
     /**

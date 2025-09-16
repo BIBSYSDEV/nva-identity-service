@@ -1,13 +1,17 @@
 package no.unit.nva.useraccessservice.usercreation.person;
 
+import static java.net.HttpURLConnection.HTTP_BAD_GATEWAY;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.API_DOMAIN;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.ENVIRONMENT;
-import static nva.commons.core.StringUtils.isEmpty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.nva.commons.json.JsonUtils;
 import nva.commons.core.paths.UriWrapper;
 import org.zalando.problem.Problem;
-import org.zalando.problem.Status;
 
 /**
  * Central registry of error codes for Identity Service exceptions.
@@ -24,7 +28,6 @@ public final class IdentityServiceErrorCodes {
     private static final UriWrapper ERROR_TYPE_BASE_URI = UriWrapper.fromHost(API_DOMAIN)
                                                               .addChild(BASE_PATH)
                                                               .addChild("errors");
-    private static final String ERROR_PREFIX = "IdentityService-";
 
     // 1xxx - General server-side errors (application-level issues)
 
@@ -32,26 +35,26 @@ public final class IdentityServiceErrorCodes {
      * 1000: Generic error.
      * Used for unspecified or unhandled errors that don't fit other categories.
      */
-    public static final String GENERIC_ERROR = "1000";
+    public static final ServiceErrorCode GENERIC_ERROR = new ServiceErrorCode(1000, HTTP_INTERNAL_ERROR);
 
     /**
      * 1001: Missing required fields validation error.
      * Used when data is missing required fields like ID, firstname, or surname.
      */
-    public static final String MISSING_REQUIRED_FIELDS = "1001";
+    public static final ServiceErrorCode MISSING_REQUIRED_FIELDS = new ServiceErrorCode(1001, HTTP_BAD_REQUEST);
 
     /**
      * 1002: Service unavailable due to infrastructure issues.
      * Used when the service cannot connect to external dependencies due to network problems,
      * timeouts, connection refused, or other infrastructure-level failures.
      */
-    public static final String SERVICE_UNAVAILABLE = "1002";
+    public static final ServiceErrorCode SERVICE_UNAVAILABLE = new ServiceErrorCode(1002, HTTP_GATEWAY_TIMEOUT);
 
     /**
      * 1003: Missing National Identity Number (NIN).
      * Used when a required National Identity Number is missing from user attributes.
      */
-    public static final String MISSING_NIN = "1003";
+    public static final ServiceErrorCode MISSING_NIN = new ServiceErrorCode(1003, HTTP_BAD_REQUEST);
 
     // 2xxx - Resource-related errors (already exists, not found, etc.)
 
@@ -59,13 +62,13 @@ public final class IdentityServiceErrorCodes {
      * 2001: Person not found.
      * Used when a requested person cannot be found in the registry.
      */
-    public static final String PERSON_NOT_FOUND = "2001";
+    public static final ServiceErrorCode PERSON_NOT_FOUND = new ServiceErrorCode(2001, HTTP_NOT_FOUND);
 
     /**
      * 2002: Person already exists.
      * Used when attempting to create a person that already exists in the registry.
      */
-    public static final String PERSON_ALREADY_EXISTS = "2002";
+    public static final ServiceErrorCode PERSON_ALREADY_EXISTS = new ServiceErrorCode(2002, HTTP_CONFLICT);
 
     // 3xxx - Upstream service errors (integration or API failures)
 
@@ -73,21 +76,21 @@ public final class IdentityServiceErrorCodes {
      * 3001: Upstream internal server error.
      * Used when the upstream person registry service responds with a 500+ error status.
      */
-    public static final String UPSTREAM_INTERNAL_ERROR = "3001";
+    public static final ServiceErrorCode UPSTREAM_INTERNAL_ERROR = new ServiceErrorCode(3001, HTTP_BAD_GATEWAY);
 
     /**
      * 3002: Upstream response parsing error.
      * Used when the response from the upstream person registry service cannot be parsed
      * (e.g., invalid JSON format or unexpected structure).
      */
-    public static final String UPSTREAM_PARSING_ERROR = "3002";
+    public static final ServiceErrorCode UPSTREAM_PARSING_ERROR = new ServiceErrorCode(3002, HTTP_BAD_GATEWAY);
 
     /**
      * 3003: Person creation failed.
      * Used when person creation fails in the upstream registry for reasons other than
      * the person already existing.
      */
-    public static final String PERSON_CREATION_FAILED = "3003";
+    public static final ServiceErrorCode PERSON_CREATION_FAILED = new ServiceErrorCode(3003, HTTP_BAD_GATEWAY);
 
     private IdentityServiceErrorCodes() {
         // NO-OP
@@ -96,60 +99,25 @@ public final class IdentityServiceErrorCodes {
     /**
      * Formats an error message as an RFC 9457 Problem Details JSON string.
      *
-     * @param errorCode The error code constant (without IdentityService- prefix)
+     * @param errorCode The ServiceErrorCode constant
      * @param message The error message
      * @return JSON string representation of the Problem
      */
-    public static String formatMessage(String errorCode, String message) {
+    public static String formatMessage(ServiceErrorCode errorCode, String message) {
         try {
-            var problem = createProblem(errorCode, message, getStatusForErrorCode(errorCode));
+            var problem = createProblem(errorCode, message);
             return JsonUtils.dtoObjectMapper.writeValueAsString(problem);
         } catch (JsonProcessingException e) {
-            return ERROR_PREFIX + errorCode + ": " + message;
+            return errorCode.asTitle(message);
         }
     }
 
-    private static Problem createProblem(String errorCode, String message, Status status) {
+    private static Problem createProblem(ServiceErrorCode errorCode, String message) {
         return Problem.builder()
-            .withType(ERROR_TYPE_BASE_URI.addChild(errorCode).getUri())
-            .withTitle(ERROR_PREFIX + errorCode + ": " + message)
-            .withStatus(status)
+            .withType(ERROR_TYPE_BASE_URI.addChild(errorCode.getErrorCodeString()).getUri())
+            .withTitle(errorCode.asTitle(message))
+            .withStatus(errorCode.getStatus())
             .withDetail(message)
             .build();
-    }
-
-    private static Status getStatusForErrorCode(String errorCode) {
-        if (isEmpty(errorCode)) {
-            return Status.INTERNAL_SERVER_ERROR;
-        }
-
-        // Parse the first digit to determine the category
-        char firstDigit = errorCode.charAt(0);
-
-        return switch (firstDigit) {
-            case '1' -> {
-                // 1xxx - Server-side errors
-                if (SERVICE_UNAVAILABLE.equals(errorCode)) {
-                    yield Status.GATEWAY_TIMEOUT;
-                } else if (MISSING_REQUIRED_FIELDS.equals(errorCode) || MISSING_NIN.equals(errorCode)) {
-                    yield Status.BAD_REQUEST;
-                }
-                yield Status.INTERNAL_SERVER_ERROR;
-            }
-            case '2' -> {
-                // 2xxx - Resource errors
-                if (PERSON_NOT_FOUND.equals(errorCode)) {
-                    yield Status.NOT_FOUND;
-                } else if (PERSON_ALREADY_EXISTS.equals(errorCode)) {
-                    yield Status.CONFLICT;
-                }
-                yield Status.NOT_FOUND;
-            }
-            case '3' -> 
-                // 3xxx - Upstream errors
-                Status.BAD_GATEWAY;
-            default -> 
-                Status.INTERNAL_SERVER_ERROR;
-        };
     }
 }

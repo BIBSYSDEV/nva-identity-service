@@ -337,7 +337,8 @@ class UserSelectionUponLoginHandlerTest {
                                                     termsAndConditionsService);
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
         assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
-        assertThat(testAppender.getMessages(), containsString(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE));
+        assertThat(testAppender.getMessages(),
+                   containsString(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE.getErrorCodeString()));
     }
 
     @ParameterizedTest(name = "Login event type: {0}")

@@ -1,5 +1,6 @@
 package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -7,9 +8,9 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
+import no.unit.nva.useraccessservice.usercreation.person.ServiceErrorCode;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import org.junit.jupiter.api.Test;
@@ -80,7 +81,7 @@ class IdentityServiceExceptionsTest {
     void identityServiceMissingRequiredFieldsExceptionShouldReturn400StatusCode() throws Exception {
         var exception = new IdentityServiceMissingRequiredFieldsException(
                 "Missing fields: id=null, firstname=John, surname=null");
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         
         var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
         assertThat(json.get("detail").asText(), containsString("Missing fields"));
@@ -89,7 +90,7 @@ class IdentityServiceExceptionsTest {
     @Test
     void identityServiceMissingRequiredFieldsExceptionShouldFormatMessage() throws Exception {
         var exception = new IdentityServiceMissingRequiredFieldsException("Missing required fields");
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         
         var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
         assertThat(json.get("detail").asText(), containsString("Missing required fields"));
@@ -184,7 +185,8 @@ class IdentityServiceExceptionsTest {
     
     @Test
     void identityServiceErrorCodesFormatMessageShouldReturnProblemJson() throws Exception {
-        var formatted = IdentityServiceErrorCodes.formatMessage("1001", "Test message");
+        var errorCode = new ServiceErrorCode(1001, HTTP_BAD_REQUEST);
+        var formatted = IdentityServiceErrorCodes.formatMessage(errorCode, "Test message");
         
         var json = JsonUtils.dtoObjectMapper.readTree(formatted);
         
@@ -197,7 +199,8 @@ class IdentityServiceExceptionsTest {
 
     @Test
     void identityServiceExceptionShouldSupportErrorCodes() throws Exception {
-        var exception = new IdentityServiceException("1001", "Test message");
+        var errorCode = new ServiceErrorCode(1001, HTTP_BAD_REQUEST);
+        var exception = new IdentityServiceException(errorCode, "Test message");
         assertThat(exception.getErrorCode(), is(equalTo("1001")));
         
         var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
@@ -207,7 +210,8 @@ class IdentityServiceExceptionsTest {
     @Test
     void identityServiceExceptionShouldSupportErrorCodesWithCause() throws Exception {
         var cause = new RuntimeException("Root cause");
-        var exception = new IdentityServiceException("1001", "Test message", cause);
+        var errorCode = new ServiceErrorCode(1001, HTTP_BAD_REQUEST);
+        var exception = new IdentityServiceException(errorCode, "Test message", cause);
         assertThat(exception.getErrorCode(), is(equalTo("1001")));
         
         var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
@@ -227,7 +231,7 @@ class IdentityServiceExceptionsTest {
     @Test
     void identityServiceMissingNinExceptionShouldReturn400StatusCode() throws Exception {
         var exception = new IdentityServiceMissingNinException();
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         
         var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
         assertThat(json.get("title").asText(), is(equalTo("IdentityService-1003: Missing National Identity Number in user attributes")));
@@ -237,7 +241,7 @@ class IdentityServiceExceptionsTest {
     @Test
     void identityServiceMissingNinExceptionShouldAcceptCustomMessage() throws Exception {
         var exception = new IdentityServiceMissingNinException("Custom NIN missing message");
-        assertThat(exception.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_BAD_REQUEST)));
+        assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
         
         var json = JsonUtils.dtoObjectMapper.readTree(exception.getMessage());
         assertThat(json.get("title").asText(), is(equalTo("IdentityService-1003: Custom NIN missing message")));
@@ -247,6 +251,6 @@ class IdentityServiceExceptionsTest {
     @Test
     void identityServiceMissingNinExceptionShouldUseCorrectErrorCode() {
         var exception = new IdentityServiceMissingNinException();
-        assertThat(exception.getErrorCode(), is(equalTo(IdentityServiceErrorCodes.MISSING_NIN)));
+        assertThat(exception.getErrorCode(), is(equalTo("1003")));
     }
 }

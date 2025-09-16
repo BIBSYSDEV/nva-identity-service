@@ -182,10 +182,8 @@ class CristinPersonRegistryTest {
 
     @Test
     void shouldThrowAlreadyExistsExceptionWhenCreatingPersonThatAlreadyExists() {
-        // Create a scenario where Cristin returns 400 with "already exists" message
         var nin = NationalIdentityNumber.fromString("12345678901");
         
-        // Mock the POST request to return 400 with "already exists" message
         mockPersonRegistry.setupCreatePersonAlreadyExistsError();
         
         var exception = assertThrows(IdentityServiceAlreadyExistsException.class, 
@@ -196,10 +194,8 @@ class CristinPersonRegistryTest {
 
     @Test
     void shouldThrowAlreadyExistsExceptionWhenCreatingPersonReturns409Conflict() {
-        // Create a scenario where Cristin returns 409 Conflict
         var nin = NationalIdentityNumber.fromString("12345678902");
         
-        // Mock the POST request to return 409 Conflict
         mockPersonRegistry.setupCreatePersonConflictError();
         
         var exception = assertThrows(IdentityServiceAlreadyExistsException.class, 

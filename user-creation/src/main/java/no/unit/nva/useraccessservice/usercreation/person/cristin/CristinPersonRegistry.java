@@ -6,7 +6,14 @@ import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceAlreadyExistsException;
+import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingRequiredFieldsException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceNotFoundException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUnavailableException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUpstreamBodyParsingException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUpstreamInternalServerErrorException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitution;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
@@ -33,6 +40,11 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_NAME;
@@ -57,6 +69,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private static final String PERSONS_PATH = "persons";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
+    private static final int ONE_HUNDRED = 100;
+    private static final int SUCCESS_FAMILY = 2;
     private final HttpClient httpClient;
     private final URI cristinBaseUri;
     private final String apiDomain;
@@ -123,9 +137,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     @SuppressWarnings("PMD.InvalidLogMessageFormat")
-    private static <T> PersonRegistryException logAndThrowException(Failure<T> failure) {
+    private static <T> IdentityServiceException logAndThrowException(Failure<T> failure) {
         LOGGER.error("Got unexpected response body from Cristin", failure.getException());
-        return new PersonRegistryException("Failed to parse response!", failure.getException());
+        return new IdentityServiceUpstreamBodyParsingException("Failed to parse response from Cristin", 
+                                                                failure.getException());
     }
 
     @JacocoGenerated
@@ -171,6 +186,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
         var person = new CristinPerson(null, firstName, lastName, null, nin.getNin());
         return createPerson(person, cristinCredentials)
                    .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+    }
+
+    private Optional<CristinPerson> createPerson(CristinPerson person,
+                                                 CristinCredentials cristinCredentials) {
+        var request = createPostRequest(creatNewPersonQueryUri(), generatePersonPayload(person), cristinCredentials);
+        return Optional.ofNullable(executeRequest(request, CristinPerson.class));
     }
 
     private CristinInstitution fetchInstitutionFromCristin(URI institutionUri, CristinCredentials cristinCredentials) {
@@ -219,7 +240,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
         if (isBlank(cristinPerson.getId())
             || isBlank(cristinPerson.getFirstname())
             || isBlank(cristinPerson.getSurname())) {
-            throw new PersonRegistryException("Cristin person is missing required fields");
+            throw new IdentityServiceMissingRequiredFieldsException(
+                String.format("Cristin person is missing required fields: id=%s, firstname=%s, surname=%s",
+                              requireNonNullElse(cristinPerson.getId(), "null"),
+                              requireNonNullElse(cristinPerson.getFirstname(), "null"),
+                              requireNonNullElse(cristinPerson.getSurname(), "null"))
+            );
         }
 
         return new Person(generateCristinIdForPerson(cristinPerson.getId()),
@@ -259,14 +285,9 @@ public final class CristinPersonRegistry implements PersonRegistry {
         try {
             var person = executeRequest(request, CristinPerson.class);
             return Optional.ofNullable(person);
-        } catch (PersonRegistryException e) {
-            // Check if it's a 404 (not found) or another error
-            if (e.getMessage().contains("404")) {
-                LOGGER.info("No person found in Cristin with {}", nin);
-                return Optional.empty();
-            }
-            // For other errors (like 502 Bad Gateway), re-throw
-            throw e;
+        } catch (IdentityServiceNotFoundException e) {
+            LOGGER.info("No person found in Cristin with {}", nin);
+            return Optional.empty();
         }
     }
 
@@ -274,17 +295,6 @@ public final class CristinPersonRegistry implements PersonRegistry {
                                                                        CristinCredentials cristinCredentials) {
         var request = createGetRequest(creatByIdentifierQueryUri(identifier), cristinCredentials);
         return attempt(() -> executeRequest(request, CristinPerson.class)).toOptional();
-    }
-
-    private Optional<CristinPerson> createPerson(CristinPerson person,
-                                                 CristinCredentials cristinCredentials) {
-        var request = createPostRequest(creatNewPersonQueryUri(), generatePersonPayload(person), cristinCredentials);
-        try {
-            return Optional.ofNullable(executeRequest(request, CristinPerson.class));
-        }
-        catch (Exception e) {
-            throw new PersonRegistryException("Failed to create person in Cristin", e);
-        }
     }
 
     private URI createByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {
@@ -319,9 +329,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
         try {
             response = this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (IOException | InterruptedException e) {
-            LOGGER.error("Cristin is unavailable", e);
+            var maskedUri = maskSensitiveData(request.uri());
+            LOGGER.error("Failed to connect to Cristin at {}: {}", maskedUri, e.getMessage(), e);
             conditionallyInterrupt(e);
-            throw new PersonRegistryException("Cristin is unavailable", e);
+            throw IdentityServiceUnavailableException.withDetails(maskedUri, e);
         } finally {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Called {} and got response in {} ms.",
@@ -336,11 +347,27 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
 
     private void assertSuccessResponse(HttpRequest request, HttpResponse<String> response) {
-        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+        int statusCode = response.statusCode();
+        if (statusCode / ONE_HUNDRED != SUCCESS_FAMILY) {
             var message = generateErrorMessageForResponse(request, response);
             LOGGER.info(message);
-            throw new PersonRegistryException(message);
+
+            if (HTTP_NOT_FOUND == statusCode) {
+                throw new IdentityServiceNotFoundException(message);
+            } else if (isAlreadyExists(statusCode, message)) {
+                throw new IdentityServiceAlreadyExistsException(message);
+            } else if (HTTP_INTERNAL_ERROR <= statusCode) {
+                throw new IdentityServiceUpstreamInternalServerErrorException(message);
+            } else {
+                throw new IdentityServiceException(IdentityServiceErrorCodes.GENERIC_ERROR, message);
+            }
         }
+    }
+
+    private static boolean isAlreadyExists(int statusCode, String message) {
+        return HTTP_CONFLICT == statusCode
+               || (HTTP_BAD_REQUEST == statusCode
+                   && message.contains("already exists"));
     }
 
     private String generateErrorMessageForResponse(HttpRequest request, HttpResponse<String> response) {

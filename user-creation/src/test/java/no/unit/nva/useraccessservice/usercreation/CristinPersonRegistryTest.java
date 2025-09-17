@@ -14,7 +14,9 @@ import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationS
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceAlreadyExistsException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUnavailableException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -107,7 +109,8 @@ class CristinPersonRegistryTest {
                                                                     defaultRequestHeaders,
                                                                     new SecretsReader(secretsManagerClient));
         var nin = NationalIdentityNumber.fromString(randomNin());
-        var exception = assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
+        var exception = assertThrows(IdentityServiceUnavailableException.class, 
+                () -> personRegistry.fetchPersonByNin(nin));
         assertThat(exception.getMessage(), not(containsString(nin.toString())));
         assertThat(appender.getMessages(), not(containsString(nin.toString())));
     }
@@ -141,7 +144,7 @@ class CristinPersonRegistryTest {
         var personNin = scenarios.failingPersonRegistryRequestBadJson().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
 
-        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
+        assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
     }
 
     @Test
@@ -150,7 +153,7 @@ class CristinPersonRegistryTest {
         var personNin = scenarios.failingPersonRegistryRequestBadGateway().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
 
-        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
+        assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
         var expectedMaskedNin = "XXXXXXXXX" + personNin.substring(personNin.length() - 2);
         assertThat(appender.getMessages(), containsString(expectedMaskedNin));
     }
@@ -163,7 +166,7 @@ class CristinPersonRegistryTest {
         
         mockPersonRegistry.setupServerErrorForNin(personNin);
 
-        assertThrows(PersonRegistryException.class, () -> personRegistry.fetchPersonByNin(nin));
+        assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
         assertThat(appender.getMessages(), containsString("XXXXXXXXX01"));
     }
 
@@ -175,5 +178,29 @@ class CristinPersonRegistryTest {
         var person = personRegistry.fetchPersonByNin(nin);
         assertThat(person.isPresent(), is(equalTo(true)));
         assertThat(person.get().getAffiliations(), emptyIterable());
+    }
+
+    @Test
+    void shouldThrowAlreadyExistsExceptionWhenCreatingPersonThatAlreadyExists() {
+        var nin = NationalIdentityNumber.fromString("12345678901");
+        
+        mockPersonRegistry.setupCreatePersonAlreadyExistsError();
+        
+        var exception = assertThrows(IdentityServiceAlreadyExistsException.class, 
+            () -> personRegistry.createPerson(nin, "John", "Doe"));
+        
+        assertThat(exception.getMessage(), containsString("already exists"));
+    }
+
+    @Test
+    void shouldThrowAlreadyExistsExceptionWhenCreatingPersonReturns409Conflict() {
+        var nin = NationalIdentityNumber.fromString("12345678902");
+        
+        mockPersonRegistry.setupCreatePersonConflictError();
+        
+        var exception = assertThrows(IdentityServiceAlreadyExistsException.class, 
+            () -> personRegistry.createPerson(nin, "Jane", "Smith"));
+        
+        assertThat(exception.getMessage(), containsString("Conflict"));
     }
 }

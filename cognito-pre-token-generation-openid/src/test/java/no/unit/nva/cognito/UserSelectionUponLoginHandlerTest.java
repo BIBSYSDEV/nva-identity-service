@@ -84,7 +84,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -110,11 +109,13 @@ import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.PersonRegistryException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingNinException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -335,8 +336,9 @@ class UserSelectionUponLoginHandlerTest {
         handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService, personRegistry,
                                                     termsAndConditionsService);
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
-        assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
-        assertThat(testAppender.getMessages(), containsString("Cristin is unavailable"));
+        assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
+        assertThat(testAppender.getMessages(),
+                   containsString(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE.getErrorCodeString()));
     }
 
     @ParameterizedTest(name = "Login event type: {0}")
@@ -348,7 +350,7 @@ class UserSelectionUponLoginHandlerTest {
         var event = newLoginEvent(personLoggingIn, loginEventType);
 
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
-        assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
+        assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
         assertThat(testAppender.getMessages(), containsString("Got unexpected response body from Cristin"));
     }
 
@@ -373,7 +375,7 @@ class UserSelectionUponLoginHandlerTest {
         var event = newLoginEvent(personLoggingIn.nin(), NON_FEIDE);
         var testAppender = LogUtils.getTestingAppenderForRootLogger();
 
-        assertThrows(NoSuchElementException.class, () -> handler.handleRequest(event, context));
+        assertThrows(IdentityServiceMissingNinException.class, () -> handler.handleRequest(event, context));
 
         assertThat(testAppender.getMessages(), containsString("Could not extract required data from request"));
         assertThat(testAppender.getMessages(), containsString(
@@ -1345,7 +1347,7 @@ class UserSelectionUponLoginHandlerTest {
         LoginEventType loginEventType) {
         var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
         var event = newLoginEvent(person.nin(), loginEventType);
-        assertThrows(PersonRegistryException.class, () -> handler.handleRequest(event, context));
+        assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
     }
 
     @ParameterizedTest

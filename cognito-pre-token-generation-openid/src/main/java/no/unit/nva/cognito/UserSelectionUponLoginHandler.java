@@ -26,6 +26,7 @@ import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingNinException;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -129,7 +130,7 @@ public class UserSelectionUponLoginHandler
                 .map(NationalIdentityNumber::fromString)
                 .or(() -> Optional.ofNullable(userAttributes.get(NIN_FOR_NON_FEIDE_USERS))
                               .map(NationalIdentityNumber::fromString))
-                .orElseThrow();
+                .orElseThrow(IdentityServiceMissingNinException::new);
     }
 
     private static String extractOrgFeideDomain(Map<String, String> userAttributes) {

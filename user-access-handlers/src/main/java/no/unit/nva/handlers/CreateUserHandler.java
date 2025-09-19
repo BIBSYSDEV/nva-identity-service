@@ -113,18 +113,26 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
 
     private UserDto createNewUser(CreateUserRequest input) throws ConflictException, BadGatewayException {
+        LOGGER.info("Attempting to create new user '{}' at customer '{}'",
+                    input.cristinIdentifier(),
+                    input.customerId());
         var person = fetchCristinPersonFromIdentifierOrNin(input).orElseThrow();
 
-        var customersWithActiveAffiliations = fetchCustomersWithActiveAffiliations(
-                person.getAffiliations());
-
+        var customersWithActiveAffiliations = fetchCustomersWithActiveAffiliations(person.getAffiliations());
         explainWhyUserCannotBeCreated(person, customersWithActiveAffiliations);
 
-        var customers = Collections.singleton(
-                customersWithActiveAffiliations.stream()
-                        .filter(customerByIdOrCristinId(input))
-                        .collect(SingletonCollector.collect())
-        );
+        var customersFilteredByInput = customersWithActiveAffiliations.stream()
+                                           .filter(customerByIdOrCristinId(input))
+                                           .toList();
+
+        if (customersFilteredByInput.isEmpty()) {
+            LOGGER.error("Person '{}' is affiliated with [{}], which does not include input customer '{}'",
+                         person.getIdentifier(),
+                         customersWithActiveAffiliations.stream().map(c -> c.getCristinId() + ":" + c.getId()).collect(Collectors.joining(", ")),
+                         input.customerId());
+        }
+
+        var customers = Collections.singleton(customersFilteredByInput.stream().collect(SingletonCollector.collect()));
         var context = new UserCreationContext(person, customers);
         var users = userCreator.createUsers(context);
 

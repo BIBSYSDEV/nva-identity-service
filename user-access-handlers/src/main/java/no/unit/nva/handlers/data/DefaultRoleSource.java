@@ -7,6 +7,7 @@ import no.unit.nva.useraccessservice.model.RoleName;
 import java.util.List;
 
 import static nva.commons.apigateway.AccessRight.ACT_AS;
+import static nva.commons.apigateway.AccessRight.MANAGE_ALL_PROJECTS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CHANNEL_CLAIMS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
 import static nva.commons.apigateway.AccessRight.MANAGE_DEGREE;
@@ -87,7 +88,8 @@ public class DefaultRoleSource implements RoleSource {
     private static final RoleDto EDITOR_ROLE = RoleDto.newBuilder()
         .withRoleName(RoleName.EDITOR)
         .withAccessRights(List.of(MANAGE_OWN_AFFILIATION,
-                                  MANAGE_RESOURCES_ALL))
+                                  MANAGE_RESOURCES_ALL,
+                                  MANAGE_ALL_PROJECTS))
         .build();
 
 

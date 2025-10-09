@@ -53,7 +53,6 @@ public class CustomerDao implements Typed, JsonSerializable {
     public static final TableSchema<CustomerDao> TABLE_SCHEMA = TableSchema.fromClass(CustomerDao.class);
     public static final String VOCABULARIES_FIELD = "vocabularies";
     public static final String ALLOW_FILE_UPLOAD_FOR_TYPES_FIELD = "allowFileUploadForTypes";
-    private static final String AUTOMATICALLY_PUBLISH_FILES_FROM_SCOPUS_IMPORT_FIELD = "automaticallyPublishFilesFromScopusImport";
     private UUID identifier;
     private Instant createdDate;
     private Instant modifiedDate;

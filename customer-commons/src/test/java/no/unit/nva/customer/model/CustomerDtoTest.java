@@ -19,6 +19,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -138,6 +139,11 @@ class CustomerDtoTest {
         var numberOfClaimsAfter = customer.getChannelClaims().size();
 
         assertThat(numberOfClaimsAfter, is(equalTo(numberOfClaimsBefore)));
+    }
+
+    @Test
+    void shouldNotAllowScopusFileDefaultImportWhenNotSet() {
+        assertFalse(new CustomerDto().isAutoPublishScopusImportFiles());
     }
 
     private CustomerDto randomActiveCustomer() {

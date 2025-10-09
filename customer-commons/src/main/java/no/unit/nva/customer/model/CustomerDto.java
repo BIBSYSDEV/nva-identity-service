@@ -64,6 +64,8 @@ public class CustomerDto {
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
     private Collection<ChannelClaimDto> channelClaims;
+    private boolean autoPublishScopusImportFiles;
+
 
     public CustomerDto() {
         super();
@@ -147,7 +149,8 @@ public class CustomerDto {
             .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
             .withGeneralSupportEnabled(isGeneralSupportEnabled())
             .withServiceCenter(getServiceCenter())
-            .withChannelClaims(getChannelClaims());
+            .withChannelClaims(getChannelClaims())
+            .withAutomaticallyPublishFilesFromScopusImport(isAutoPublishScopusImportFiles());
     }
 
     public URI getId() {
@@ -368,6 +371,14 @@ public class CustomerDto {
         this.channelClaims = channelClaims;
     }
 
+    public boolean isAutoPublishScopusImportFiles() {
+        return autoPublishScopusImportFiles;
+    }
+
+    public void setAutoPublishScopusImportFiles(boolean autoPublishScopusImportFiles) {
+        this.autoPublishScopusImportFiles = autoPublishScopusImportFiles;
+    }
+
     @JsonProperty(LINKED_DATA_CONTEXT)
     public URI getContext() {
         return LINKED_DATA_CONTEXT_VALUE;
@@ -377,11 +388,12 @@ public class CustomerDto {
     @JacocoGenerated
     public int hashCode() {
         return Objects.hash(getContext(), getId(), getIdentifier(), getCreatedDate(), getModifiedDate(), getName(),
-            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
-            getRorId(), getPublicationWorkflow(), getDoiAgent(),
-            getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom(),
-            isGeneralSupportEnabled(), getServiceCenter(), getChannelClaims());
+                            getDisplayName(), getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(), getCristinId(), getCustomerOf(), getVocabularies(),
+                            getRorId(), getPublicationWorkflow(), getDoiAgent(),
+                            getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getInactiveFrom(),
+                            isGeneralSupportEnabled(), getServiceCenter(), getChannelClaims(),
+                            isAutoPublishScopusImportFiles());
     }
 
     @Override
@@ -417,7 +429,8 @@ public class CustomerDto {
             && getPublicationWorkflow() == that.getPublicationWorkflow()
             && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
             && Objects.equals(isGeneralSupportEnabled(), that.isGeneralSupportEnabled())
-            && Objects.equals(getChannelClaims(), that.getChannelClaims());
+            && Objects.equals(getChannelClaims(), that.getChannelClaims())
+            && Objects.equals(isAutoPublishScopusImportFiles(), that.isAutoPublishScopusImportFiles());
     }
 
     @Override
@@ -593,6 +606,11 @@ public class CustomerDto {
 
         public Builder withChannelClaims(Collection<ChannelClaimDto> channelClaims) {
             customerDto.setChannelClaims(nonNull(channelClaims) ? channelClaims : Collections.emptyList());
+            return this;
+        }
+
+        public Builder withAutomaticallyPublishFilesFromScopusImport(boolean isAutoPublishScopusImportFiles) {
+            customerDto.setAutoPublishScopusImportFiles(isAutoPublishScopusImportFiles);
             return this;
         }
 

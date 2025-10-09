@@ -98,6 +98,7 @@ public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
             .withRightsRetentionStrategy(randomRightsRetentionStrategy())
             .withGeneralSupportEnabled(true)
             .withChannelClaims(randomChannelClaimDtos())
+            .withAutomaticallyPublishFilesFromScopusImport(true)
             .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("identifier", "id", "context",
             "doiAgent.password", "doiAgent.id")));

@@ -79,6 +79,7 @@ public class CustomerDao implements Typed, JsonSerializable {
     private RightsRetentionStrategyDao rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
     private List<ChannelClaimDao> channelClaims;
+    private boolean autoPublishScopusImportFiles;
 
     public CustomerDao() {
         vocabularies = EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
@@ -112,6 +113,7 @@ public class CustomerDao implements Typed, JsonSerializable {
                 .withAllowFileUploadForTypes(extractPublicationInstanceTypes(dto))
                 .withGeneralSupportEnabled(dto.isGeneralSupportEnabled())
                 .withChannelClaims(extractChannelClaims(dto))
+                .withAutomaticallyPublishFilesFromScopusImport(dto.isAutoPublishScopusImportFiles())
                 .build();
     }
 
@@ -152,82 +154,49 @@ public class CustomerDao implements Typed, JsonSerializable {
 
     @JacocoGenerated
     @Override
-    public int hashCode() {
-        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
-                getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
-                getFeideOrganizationDomain(),
-                getCristinId(), getCustomerOf(), getVocabularies(), getRorId(),
-                getPublicationWorkflow(), getDoiAgent(), getServiceCenter(), isNviInstitution(),
-                isRboInstitution(), isGeneralSupportEnabled(), getInactiveFrom(), getSector(),
-                getRightsRetentionStrategy(), getAllowFileUploadForTypes(), getChannelClaims());
+    public boolean equals(Object o) {
+        if (!(o instanceof CustomerDao that)) {
+            return false;
+        }
+        return isNviInstitution() == that.isNviInstitution()
+               && isRboInstitution() == that.isRboInstitution()
+               && isGeneralSupportEnabled() == that.isGeneralSupportEnabled()
+               && isAutoPublishScopusImportFiles() == that.isAutoPublishScopusImportFiles()
+               && Objects.equals(getIdentifier(), that.getIdentifier())
+               && Objects.equals(getCreatedDate(), that.getCreatedDate())
+               && Objects.equals(getModifiedDate(), that.getModifiedDate())
+               && Objects.equals(getName(), that.getName())
+               && Objects.equals(getDisplayName(), that.getDisplayName())
+               && Objects.equals(getShortName(), that.getShortName())
+               && Objects.equals(getArchiveName(), that.getArchiveName())
+               && Objects.equals(getCname(), that.getCname())
+               && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
+               && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
+               && Objects.equals(getCristinId(), that.getCristinId())
+               && Objects.equals(getCustomerOf(), that.getCustomerOf())
+               && Objects.equals(getVocabularies(), that.getVocabularies())
+               && Objects.equals(getRorId(), that.getRorId())
+               && getPublicationWorkflow() == that.getPublicationWorkflow()
+               && Objects.equals(getDoiAgent(), that.getDoiAgent())
+               && Objects.equals(getServiceCenter(), that.getServiceCenter())
+               && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
+               && getSector() == that.getSector()
+               && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
+               && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
+               && Objects.equals(getChannelClaims(), that.getChannelClaims());
     }
 
     @JacocoGenerated
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        CustomerDao that = (CustomerDao) o;
-        return isNviInstitution() == that.isNviInstitution()
-                && isRboInstitution() == that.isRboInstitution()
-                && isGeneralSupportEnabled() == that.isGeneralSupportEnabled()
-                && Objects.equals(getIdentifier(), that.getIdentifier())
-                && Objects.equals(getCreatedDate(), that.getCreatedDate())
-                && Objects.equals(getModifiedDate(), that.getModifiedDate())
-                && Objects.equals(getName(), that.getName())
-                && Objects.equals(getDisplayName(), that.getDisplayName())
-                && Objects.equals(getShortName(), that.getShortName())
-                && Objects.equals(getArchiveName(), that.getArchiveName())
-                && Objects.equals(getCname(), that.getCname())
-                && Objects.equals(getInstitutionDns(), that.getInstitutionDns())
-                && Objects.equals(getFeideOrganizationDomain(), that.getFeideOrganizationDomain())
-                && Objects.equals(getCristinId(), that.getCristinId())
-                && Objects.equals(getCustomerOf(), that.getCustomerOf())
-                && Objects.equals(getVocabularies(), that.getVocabularies())
-                && Objects.equals(getRorId(), that.getRorId())
-                && getPublicationWorkflow() == that.getPublicationWorkflow()
-                && Objects.equals(getDoiAgent(), that.getDoiAgent())
-                && Objects.equals(getServiceCenter(), that.getServiceCenter())
-                && Objects.equals(getInactiveFrom(), that.getInactiveFrom())
-                && getSector() == that.getSector()
-                && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy())
-                && Objects.equals(getAllowFileUploadForTypes(), that.getAllowFileUploadForTypes())
-                && Objects.equals(getChannelClaims(), that.getChannelClaims());
-    }
-
-    @Override
-    public String toString() {
-        return "CustomerDao{" +
-                "identifier=" + identifier +
-                ", createdDate=" + createdDate +
-                ", modifiedDate=" + modifiedDate +
-                ", name='" + name + '\'' +
-                ", displayName='" + displayName + '\'' +
-                ", shortName='" + shortName + '\'' +
-                ", archiveName='" + archiveName + '\'' +
-                ", cname='" + cname + '\'' +
-                ", institutionDns='" + institutionDns + '\'' +
-                ", feideOrganizationDomain='" + feideOrganizationDomain + '\'' +
-                ", cristinId=" + cristinId +
-                ", customerOf=" + customerOf +
-                ", vocabularies=" + vocabularies +
-                ", rorId=" + rorId +
-                ", publicationWorkflow=" + publicationWorkflow +
-                ", doiAgent=" + doiAgent +
-                ", serviceCenter=" + serviceCenter +
-                ", nviInstitution=" + nviInstitution +
-                ", rboInstitution=" + rboInstitution +
-                ", generalSupportEnabled=" + generalSupportEnabled +
-                ", inactiveFrom=" + inactiveFrom +
-                ", sector=" + sector +
-                ", rightsRetentionStrategy=" + rightsRetentionStrategy +
-                ", allowFileUploadForTypes=" + allowFileUploadForTypes +
-                ", channelClaims=" + channelClaims +
-                '}';
+    public int hashCode() {
+        return Objects.hash(getIdentifier(), getCreatedDate(), getModifiedDate(), getName(), getDisplayName(),
+                            getShortName(), getArchiveName(), getCname(), getInstitutionDns(),
+                            getFeideOrganizationDomain(),
+                            getCristinId(), getCustomerOf(), getVocabularies(), getRorId(), getPublicationWorkflow(),
+                            getDoiAgent(), getServiceCenter(), isNviInstitution(), isRboInstitution(),
+                            isGeneralSupportEnabled(), getInactiveFrom(), getSector(), getRightsRetentionStrategy(),
+                            getAllowFileUploadForTypes(), getChannelClaims(),
+                            isAutoPublishScopusImportFiles());
     }
 
     public boolean isRboInstitution() {
@@ -456,6 +425,14 @@ public class CustomerDao implements Typed, JsonSerializable {
         this.channelClaims = nonEmpty(channelClaims) ? channelClaims : CHANNEL_CLAIM_EMPTY_VALUE_ACCEPTABLE_BY_DYNAMO;
     }
 
+    public boolean isAutoPublishScopusImportFiles() {
+        return autoPublishScopusImportFiles;
+    }
+
+    private void setAutoPublishScopusImportFiles(boolean autoPublishScopusImportFiles) {
+        this.autoPublishScopusImportFiles = autoPublishScopusImportFiles;
+    }
+
     public CustomerDto toCustomerDto() {
         return CustomerDto.builder()
                 .withCname(getCname())
@@ -481,8 +458,9 @@ public class CustomerDao implements Typed, JsonSerializable {
                 .withSector(getSector())
                 .withRightsRetentionStrategy(getRightsRetentionStrategy())
                 .withAllowFileUploadForTypes(getAllowFileUploadForTypes())
-                .withGeneralSupportEnabled(generalSupportEnabled)
+                .withGeneralSupportEnabled(isGeneralSupportEnabled())
                 .withChannelClaims(extractChannelClaims())
+                .withAutomaticallyPublishFilesFromScopusImport(isAutoPublishScopusImportFiles())
                 .build();
     }
 
@@ -656,6 +634,12 @@ public class CustomerDao implements Typed, JsonSerializable {
 
         public Builder withChannelClaims(List<ChannelClaimDao> channelClaimDao) {
             customerDb.setChannelClaims(channelClaimDao);
+            return this;
+        }
+
+        public Builder withAutomaticallyPublishFilesFromScopusImport(
+            boolean automaticallyPublishFilesFromScopusImportEnabled) {
+            customerDb.setAutoPublishScopusImportFiles(automaticallyPublishFilesFromScopusImportEnabled);
             return this;
         }
 

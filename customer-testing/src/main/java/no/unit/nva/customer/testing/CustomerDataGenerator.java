@@ -256,6 +256,7 @@ public final class CustomerDataGenerator {
                                    .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
                                    .withGeneralSupportEnabled(true)
                                    .withChannelClaims(randomChannelClaimDaos())
+                                   .withAutomaticallyPublishFilesFromScopusImport(true)
                                    .build();
         assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
         return customer;

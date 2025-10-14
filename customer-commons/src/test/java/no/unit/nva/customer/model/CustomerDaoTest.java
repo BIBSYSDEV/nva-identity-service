@@ -95,6 +95,15 @@ class CustomerDaoTest {
         assertThat(actual, is(equalTo(expected)));
     }
 
+    @Test
+    void shouldDoRoundTripWithoutLosingData() throws IOException {
+        var expected = createSampleCustomerDao();
+        var json = JsonConfig.writeValueAsString(expected);
+        var actual = JsonConfig.readValue(json, CustomerDao.class);
+
+        assertEquals(expected, actual);
+    }
+
     private CustomerDao createSampleCustomerDao() {
         var identifier = UUID.randomUUID();
         return CustomerDao

@@ -64,6 +64,7 @@ public class CustomerDto {
     private RightsRetentionStrategyDto rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
     private Collection<ChannelClaimDto> channelClaims;
+    @JsonProperty("autoPublishScopusImportFiles")
     private boolean autoPublishScopusImportFiles;
 
 

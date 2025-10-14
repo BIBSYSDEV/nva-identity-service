@@ -78,6 +78,21 @@ public class UpdateCustomerHandlerTest {
         assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
     }
 
+    @Test
+    void shouldSetAutoPublishScopusImportFieldOnUpdate()
+        throws InputException, NotFoundException, IOException {
+        var customer = createCustomer(UUID.randomUUID());
+        customer.setAutoPublishScopusImportFiles(false);
+        when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(customer);
+
+        customer.setAutoPublishScopusImportFiles(true);
+        var request = createInput(customer, Map.of("identifier", "b8c3e125-cadb-43d5-823a-2daa7768c3f9"));
+
+        var response = sendRequest(request, CustomerDto.class);
+
+        assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    }
+
     private <T> GatewayResponse<T> sendRequest(InputStream request, Class<T> responseType) throws IOException {
         handler.handleRequest(request, outputStream, context);
         return GatewayResponse.fromOutputStream(outputStream, responseType);

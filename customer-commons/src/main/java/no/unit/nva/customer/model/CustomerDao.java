@@ -7,6 +7,7 @@ import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_CRIST
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.BY_ORG_DOMAIN_INDEX_NAME;
 import static nva.commons.core.attempt.Try.attempt;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
@@ -79,6 +80,7 @@ public class CustomerDao implements Typed, JsonSerializable {
     private RightsRetentionStrategyDao rightsRetentionStrategy;
     private Set<PublicationInstanceTypes> allowFileUploadForTypes;
     private List<ChannelClaimDao> channelClaims;
+    @JsonProperty("autoPublishScopusImportFiles")
     private boolean autoPublishScopusImportFiles;
 
     public CustomerDao() {
@@ -429,7 +431,7 @@ public class CustomerDao implements Typed, JsonSerializable {
         return autoPublishScopusImportFiles;
     }
 
-    private void setAutoPublishScopusImportFiles(boolean autoPublishScopusImportFiles) {
+    public void setAutoPublishScopusImportFiles(boolean autoPublishScopusImportFiles) {
         this.autoPublishScopusImportFiles = autoPublishScopusImportFiles;
     }
 

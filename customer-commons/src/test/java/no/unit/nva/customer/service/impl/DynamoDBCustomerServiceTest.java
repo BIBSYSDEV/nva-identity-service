@@ -444,6 +444,20 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
             .putCustomer(any(), any(), eq(false));
     }
 
+    @Test
+    void shouldUpdateExistingCustomerAutoPublishScopusImportFilesField() throws NotFoundException, InputException,
+                                                                            ConflictException {
+        var customer = newActiveCustomerDto();
+        var createdCustomer = service.createCustomer(customer);
+
+        assertFalse(customer.isAutoPublishScopusImportFiles());
+
+        createdCustomer.setAutoPublishScopusImportFiles(true);
+        var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+
+        assertTrue(updatedCustomer.isAutoPublishScopusImportFiles());
+    }
+
     private CustomerDto newActiveCustomerDto() {
         var customer = newInactiveCustomerDto();
         customer.setInactiveFrom(null);

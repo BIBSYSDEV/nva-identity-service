@@ -146,6 +146,19 @@ class CustomerDtoTest {
         assertFalse(new CustomerDto().isAutoPublishScopusImportFiles());
     }
 
+    @Test
+    void shouldMakeRoundTripWithoutLosingData() throws BadRequestException {
+        var customer = randomActiveCustomer().copy()
+                           .withGeneralSupportEnabled(true)
+                           .withNviInstitution(true)
+                           .withAutomaticallyPublishFilesFromScopusImport(true)
+                           .withRboInstitution(true)
+                           .build();
+        var json = customer.toString();
+        var deserialized = CustomerDto.fromJson(json);
+        assertThat(deserialized, is(equalTo(customer)));
+    }
+
     private CustomerDto randomActiveCustomer() {
         var customer = randomInactiveCustomer();
         customer.setInactiveFrom(null);

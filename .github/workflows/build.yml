@@ -9,29 +9,29 @@ on:
 jobs:
   build:
     uses: BIBSYSDEV/nva-github-workflows/.github/workflows/java.yml@v1
-    with:
-      lint_openapi: false
+    #with:
+    #  lint_openapi: false
     secrets:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   # Custom job for OpenAPI linting because this repo has two OpenAPI definitions
-  openapi-linting:
-    name: OpenAPI linting
-    runs-on: ubuntu-latest
-    services:
-      swagger-editor:
-        image: swaggerapi/swagger-editor
-        ports:
-          - 80:8080
-    steps:
-      - uses: actions/checkout@v4
-      - name: Validate customer-swagger
-        uses: swaggerexpert/swagger-editor-validate@v1
-        with:
-          swagger-editor-url: http://localhost/
-          definition-file: docs/customer-swagger.yaml
-      - name: Validate users-and-roles-swagger
-        uses: swaggerexpert/swagger-editor-validate@v1
-        with:
-          swagger-editor-url: http://localhost/
-          definition-file: docs/users-and-roles-swagger.yaml
+  #openapi-linting:
+  #  name: OpenAPI linting
+  #  runs-on: ubuntu-latest
+  #  services:
+  #    swagger-editor:
+  #      image: swaggerapi/swagger-editor
+  #      ports:
+  #        - 80:8080
+  #  steps:
+  #    - uses: actions/checkout@v4
+  #    - name: Validate customer-swagger
+  #      uses: swaggerexpert/swagger-editor-validate@v1
+  #      with:
+  #        swagger-editor-url: http://localhost/
+  #        definition-file: docs/customer-swagger.yaml
+  #    - name: Validate users-and-roles-swagger
+  #      uses: swaggerexpert/swagger-editor-validate@v1
+  #      with:
+  #        swagger-editor-url: http://localhost/
+  #        definition-file: docs/users-and-roles-swagger.yaml

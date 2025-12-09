@@ -1898,6 +1898,8 @@ Resources:
           ScopeName: file-upload
         - ScopeDescription: Read reporting data for publications and nvi candidates
           ScopeName: reporting-read
+        - ScopeDescription: Approval write/update
+          ScopeName: approval-upsert
       UserPoolId: !Ref ExternalUserPool
 
   BackendApplicationClient:
@@ -2202,6 +2204,7 @@ Resources:
   ExternalUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
+      UserPoolTier: "ESSENTIALS"
       AutoVerifiedAttributes:
         - email
       UserPoolName: !GetAtt ExternalUserPoolName.Value

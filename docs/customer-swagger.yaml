@@ -1312,7 +1312,7 @@ components:
           name: 'Sikt supportsenter'
         doiAgent:
           prefix: "1000.10"
-          url: "test.nva.unit.no"
+          url: "https://test.nva.unit.no"
           username: "Doi Register Customer Name"
         publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
         nviInstitution: false

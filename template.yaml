@@ -933,7 +933,7 @@ Resources:
             - ' "status": "$context.status",'
             - ' "ip": "$context.identity.sourceIp",'
             - ' "userAgent": "$context.identity.userAgent",'
-            - ' "error.message": "$context.error.message" }'
+            - ' "error.message": "$context.error.message"'
             - '}'
       StageName: Prod
       EndpointConfiguration:

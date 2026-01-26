@@ -921,19 +921,20 @@ Resources:
     Properties:
       AccessLogSetting:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
-        Format: >-
-          {
-            "apiId": "$context.apiId",
-            "requestId": "$context.requestId",
-            "requestTime": "$context.requestTime",
-            "requestTimeEpoch": "$context.requestTimeEpoch",
-            "httpMethod": "$context.httpMethod",
-            "path": "$context.path",
-            "status": "$context.status",
-            "ip": "$context.identity.sourceIp",
-            "userAgent": "$context.identity.userAgent",
-            "error.message": "$context.error.message"
-          }
+        Format: !Join
+          - ""
+          - - '{'
+            - ' "apiId": "$context.apiId",'
+            - ' "requestId": "$context.requestId",'
+            - ' "requestTime": "$context.requestTime",'
+            - ' "requestTimeEpoch": "$context.requestTimeEpoch",'
+            - ' "httpMethod": "$context.httpMethod",'
+            - ' "path": "$context.path",'
+            - ' "status": "$context.status",'
+            - ' "ip": "$context.identity.sourceIp",'
+            - ' "userAgent": "$context.identity.userAgent",'
+            - ' "error.message": "$context.error.message" }'
+            - '}'
       StageName: Prod
       EndpointConfiguration:
         Type: REGIONAL

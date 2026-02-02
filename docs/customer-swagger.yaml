@@ -907,6 +907,15 @@ components:
           - Fn::GetAtt: UserPool.Arn
       description: Allows authenticated users to read data from customers table
   schemas:
+    Sector:
+      type: string
+      enum:
+        - UHI
+        - HEALTH
+        - INSTITUTE
+        - ABM
+        - OTHER
+      description: what sector the customer is part of
     CustomerIdentifier:
       type: string
       format: uuid
@@ -1034,14 +1043,7 @@ components:
           format: date-time
           description: the date the customer became inactive, if null the customer is still active
         sector:
-          type: string
-          enum:
-            - UHI
-            - HEALTH
-            - INSTITUTE
-            - ABM
-            - OTHER
-          description: what sector the customer is part of
+          $ref: '#/components/schemas/Sector'
         rightsRetentionStrategy:
           oneOf:
             - $ref: '#/components/schemas/NullRightsRetentionStrategy'
@@ -1145,6 +1147,8 @@ components:
         serviceCenterUri:
           type: string
           format: uri
+        sector:
+          $ref: '#/components/schemas/Sector'
     ChannelClaimList:
       type: object
       properties:
@@ -1409,6 +1413,7 @@ components:
             doiPrefix: "1000.10"
             nviInstitution: false
             serviceCenterUri: 'https://sikt.no/tjenester/nasjonalt-vitenarkiv-nva/hjelpeside-nva'
+            sector:  'UHI'
     DoiAgentExample:
       value:
         id: 'https://example.com/example/#/doiagent'

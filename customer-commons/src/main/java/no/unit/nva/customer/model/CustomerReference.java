@@ -33,19 +33,11 @@ public class CustomerReference {
         return customerReference;
     }
 
-    public void setSector(Sector sector) {
-        this.sector = sector;
-    }
-
-    public Sector getSector() {
-        return sector;
-    }
-
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getId(), getCristinId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix(),
-                            getServiceCenterUri(), getSector());
+                            isNviInstitution(), getServiceCenterUri(), getSector());
     }
 
     @JacocoGenerated
@@ -60,6 +52,7 @@ public class CustomerReference {
                && Objects.equals(getDisplayName(), that.getDisplayName())
                && Objects.equals(getCreatedDate(), that.getCreatedDate())
                && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
+               && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
                && Objects.equals(getSector(), that.getSector());
     }
@@ -128,6 +121,14 @@ public class CustomerReference {
 
     public void setServiceCenterUri(URI serviceCenterUri) {
         this.serviceCenterUri = serviceCenterUri;
+    }
+
+    public void setSector(Sector sector) {
+        this.sector = sector;
+    }
+
+    public Sector getSector() {
+        return sector;
     }
 
     private static String extractDoiPrefix(CustomerDto customerDto) {

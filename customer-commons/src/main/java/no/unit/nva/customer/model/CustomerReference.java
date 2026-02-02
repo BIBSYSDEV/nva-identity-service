@@ -17,6 +17,7 @@ public class CustomerReference {
     private String doiPrefix;
     private boolean nviInstitution;
     private URI serviceCenterUri;
+    private Sector sector;
 
     public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
         var customerReference = new CustomerReference();
@@ -28,14 +29,23 @@ public class CustomerReference {
         customerReference.setActive(customerDto.isActive());
         customerReference.setNviInstitution(customerDto.isNviInstitution());
         customerReference.setServiceCenterUri(extractServiceCenterUri(customerDto));
+        customerReference.setSector(customerDto.getSector());
         return customerReference;
+    }
+
+    public void setSector(Sector sector) {
+        this.sector = sector;
+    }
+
+    public Sector getSector() {
+        return sector;
     }
 
     @JacocoGenerated
     @Override
     public int hashCode() {
         return Objects.hash(getId(), getCristinId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix(),
-                            getServiceCenterUri());
+                            getServiceCenterUri(), getSector());
     }
 
     @JacocoGenerated
@@ -50,7 +60,8 @@ public class CustomerReference {
                && Objects.equals(getDisplayName(), that.getDisplayName())
                && Objects.equals(getCreatedDate(), that.getCreatedDate())
                && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
-               && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri());
+               && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
+               && Objects.equals(getSector(), that.getSector());
     }
 
     public boolean isActive() {

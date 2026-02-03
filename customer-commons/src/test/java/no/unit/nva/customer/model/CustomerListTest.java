@@ -1,13 +1,14 @@
 package no.unit.nva.customer.model;
 
-import org.junit.jupiter.api.Test;
-
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class CustomerListTest {
 
@@ -38,7 +39,25 @@ class CustomerListTest {
 
     @Test
     void jacocoTestForTestCoverage() {
-        var cust = new CustomerList().getCustomers();
-        assertEquals(Collections.emptyList(), cust);
+        var customerList = new CustomerList().getCustomers();
+        assertEquals(Collections.emptyList(), customerList);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Sector.class)
+    void shouldIncludeSectorInCustomerReferenceWhenConvertingCustomersToCustomerList(Sector sector) {
+        var customer = customerWithSector(sector);
+        var customerList = new CustomerList(List.of(customer));
+
+        var sectorFromCustomerReference = customerList.getCustomers().getFirst().getSector();
+
+        assertEquals(customer.getSector(), sectorFromCustomerReference);
+    }
+
+    private static CustomerDto customerWithSector(Sector sector) {
+        return CustomerDto.builder()
+                   .withIdentifier(randomUUID())
+                   .withSector(sector)
+                   .build();
     }
 }

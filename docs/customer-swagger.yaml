@@ -151,6 +151,10 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerFunction.Arn}/invocations
         responses: {}
         httpMethod: POST
+        requestParameters:
+          integration.request.path.identifier: 'method.request.path.identifier'
+        cacheKeyParameters:
+          - 'method.request.path.identifier'
         type: AWS_PROXY
       responses:
         '200':
@@ -850,6 +854,10 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByCristinIdFunction.Arn}/invocations
         responses: {}
         httpMethod: POST
+        requestParameters:
+          integration.request.path.cristinId: 'method.request.path.cristinId'
+        cacheKeyParameters:
+          - 'method.request.path.cristinId'
         type: AWS_PROXY
       responses:
         '200':

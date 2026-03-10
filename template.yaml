@@ -94,6 +94,10 @@ Parameters:
     Type: String
     Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
     Default: '*'
+  CacheTtlInSeconds:
+    Type: Number
+    Default: 300
+    Description: TTL in seconds for API Gateway cache
 
 Mappings:
   Constants:
@@ -919,6 +923,21 @@ Resources:
   NvaCustomerApi:
     Type: AWS::Serverless::Api
     Properties:
+      CacheClusterEnabled: true
+      CacheClusterSize: "0.5"
+      MethodSettings:
+        - HttpMethod: 'GET'
+          ResourcePath: '/~1'
+          CacheTtlInSeconds: !Ref CacheTtlInSeconds
+          CachingEnabled: true
+        - HttpMethod: 'GET'
+          ResourcePath: '/~1{identifier}'
+          CacheTtlInSeconds: !Ref CacheTtlInSeconds
+          CachingEnabled: true
+        - HttpMethod: 'GET'
+          ResourcePath: '/~1cristinId~1{cristinId}'
+          CacheTtlInSeconds: !Ref CacheTtlInSeconds
+          CachingEnabled: true
       AccessLogSetting:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: !Join

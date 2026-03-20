@@ -18,6 +18,7 @@ public class CustomerReference {
     private boolean nviInstitution;
     private URI serviceCenterUri;
     private Sector sector;
+    private boolean rboInstitution;
 
     public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
         var customerReference = new CustomerReference();
@@ -30,6 +31,7 @@ public class CustomerReference {
         customerReference.setNviInstitution(customerDto.isNviInstitution());
         customerReference.setServiceCenterUri(extractServiceCenterUri(customerDto));
         customerReference.setSector(customerDto.getSector());
+        customerReference.setRboInstitution(customerDto.isRboInstitution());
         return customerReference;
     }
 
@@ -37,7 +39,7 @@ public class CustomerReference {
     @Override
     public int hashCode() {
         return Objects.hash(getId(), getCristinId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix(),
-                            isNviInstitution(), getServiceCenterUri(), getSector());
+                            isNviInstitution(), getServiceCenterUri(), getSector(), isRboInstitution());
     }
 
     @JacocoGenerated
@@ -54,7 +56,8 @@ public class CustomerReference {
                && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
                && Objects.equals(isNviInstitution(), that.isNviInstitution())
                && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
-               && Objects.equals(getSector(), that.getSector());
+               && Objects.equals(getSector(), that.getSector())
+               && Objects.equals(isRboInstitution(), that.isRboInstitution());
     }
 
     public boolean isActive() {
@@ -129,6 +132,14 @@ public class CustomerReference {
 
     public Sector getSector() {
         return sector;
+    }
+
+    public void setRboInstitution(boolean rboInstitution) {
+        this.rboInstitution = rboInstitution;
+    }
+
+    public boolean isRboInstitution() {
+        return rboInstitution;
     }
 
     private static String extractDoiPrefix(CustomerDto customerDto) {

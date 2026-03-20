@@ -6,6 +6,8 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class CustomerReferenceTest {
 
@@ -28,6 +30,18 @@ class CustomerReferenceTest {
 
         assertEquals(customerReference.getCristinId(), customerDto.getCristinId());
         assertEquals(customerReference.isNviInstitution(), customerDto.isNviInstitution());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldIncludeRboInstitutionInCustomerReference(boolean rboInstitution) {
+        var customerDto = createSampleCustomerDto().copy()
+                              .withRboInstitution(rboInstitution)
+                              .build();
+
+        var customerReference = CustomerReference.fromCustomerDto(customerDto);
+
+        assertEquals(rboInstitution, customerReference.isRboInstitution());
     }
 
     private static CustomerReference constructExpectedCustomerReference(CustomerDto customerDto) {

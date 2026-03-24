@@ -171,6 +171,16 @@ class CristinPersonRegistryTest {
     }
 
     @Test
+    void shouldExcludeAffiliationWhenInstitutionResolvesToDifferentOrganization() {
+        var person = mockPersonRegistry.personWithActiveAffiliationAtRedirectingInstitution();
+        var nin = NationalIdentityNumber.fromString(person.nin());
+
+        var fetchedPerson = personRegistry.fetchPersonByNin(nin);
+        assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
+        assertThat(fetchedPerson.get().getAffiliations(), emptyIterable());
+    }
+
+    @Test
     void shouldReturnEmptyListOfAffiliationsIfFieldIsMissingInCristinOnGetPerson() {
         var personNin = scenarios.personWithoutAffiliations().nin();
         var nin = NationalIdentityNumber.fromString(personNin);

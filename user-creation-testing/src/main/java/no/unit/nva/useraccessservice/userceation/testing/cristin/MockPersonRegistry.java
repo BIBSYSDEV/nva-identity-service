@@ -33,6 +33,7 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.userceation.testing.cristin.RandomNin.randomNin;
 import static nva.commons.core.attempt.Try.attempt;
 
+@SuppressWarnings("PMD.GodClass")
 public class MockPersonRegistry {
 
     private static final boolean ACTIVE = true;
@@ -136,7 +137,7 @@ public class MockPersonRegistry {
     }
 
     private void createStubForInstitution(String institutionIdentifier) {
-        var institutionUnitIdentifier = randomString();
+        var institutionUnitIdentifier = institutionIdentifier + ".0.0.0";
         var urlForUnit = generateUnitUrl(institutionUnitIdentifier);
         var correspondingUnit = new CristinInstitutionUnit(institutionUnitIdentifier, urlForUnit);
         var cristinInstitution = new CristinInstitution(correspondingUnit);
@@ -386,6 +387,42 @@ public class MockPersonRegistry {
                 .willReturn(aResponse()
                     .withStatus(HttpURLConnection.HTTP_CONFLICT)
                     .withBody(errorBody)));
+    }
+
+    public MockedPersonData personWithActiveAffiliationAtRedirectingInstitution() {
+        var nin = randomNin();
+        var cristinId = randomString();
+        var originalInstitutionId = randomString();
+        var redirectedCorrespondingUnitId = randomString();
+
+        var institution = new CristinAffiliationInstitution(originalInstitutionId,
+            generateInstitutionUrl(originalInstitutionId));
+        var unit = createAffiliationUnit();
+        var affiliation = new CristinAffiliation(institution, unit, ACTIVE);
+
+        var person = new CristinPerson(cristinId, randomString(), randomString(), List.of(affiliation), null);
+
+        if (nonNull(nin)) {
+            ninToPeople.put(nin, person);
+        }
+        cristinIdToPeople.put(person.getId(), person);
+        createStubsForPerson(nin, person);
+        createStubForRedirectingInstitution(originalInstitutionId, redirectedCorrespondingUnitId);
+
+        return new MockedPersonData(nin, cristinId);
+    }
+
+    private void createStubForRedirectingInstitution(String originalInstitutionId,
+                                                      String redirectedInstitutionId) {
+        this.cristinInstitutionIdToUnitUriMap.put(originalInstitutionId,
+            nvaScopedOrganizationCristinId(redirectedInstitutionId));
+
+        stubWithDefaultRequestHeadersEqualToFor(
+            get("/institutions/" + originalInstitutionId)
+                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
+                .willReturn(aResponse()
+                    .withStatus(HttpURLConnection.HTTP_MOVED_TEMP)
+                    .withHeader("Location", "/institutions/" + redirectedInstitutionId)));
     }
 
     public Set<URI> getUnitCristinUris(String nin) {

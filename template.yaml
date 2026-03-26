@@ -930,14 +930,17 @@ Resources:
           ResourcePath: '/~1'
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: true
+          RequireAuthorizationForCacheControl: false
         - HttpMethod: 'GET'
           ResourcePath: '/~1{identifier}'
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: true
+          RequireAuthorizationForCacheControl: false
         - HttpMethod: 'GET'
           ResourcePath: '/~1cristinId~1{cristinId}'
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: true
+          RequireAuthorizationForCacheControl: false
       AccessLogSetting:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: !Join

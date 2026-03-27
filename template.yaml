@@ -933,7 +933,7 @@ Resources:
         - HttpMethod: 'GET'
           ResourcePath: '/~1{identifier}'
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
-          CachingEnabled: true
+          CachingEnabled: false
         - HttpMethod: 'GET'
           ResourcePath: '/~1cristinId~1{cristinId}'
           CacheTtlInSeconds: !Ref CacheTtlInSeconds

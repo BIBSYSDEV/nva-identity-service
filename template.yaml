@@ -931,6 +931,10 @@ Resources:
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: true
         - HttpMethod: 'GET'
+          ResourcePath: '/~1{identifier}'
+          CacheTtlInSeconds: !Ref CacheTtlInSeconds
+          CachingEnabled: false
+        - HttpMethod: 'GET'
           ResourcePath: '/~1cristinId~1{cristinId}'
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: true

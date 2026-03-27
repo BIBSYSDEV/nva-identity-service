@@ -1,18 +1,13 @@
 package no.unit.nva.useraccessservice.userceation.testing.cristin;
 
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliationInstitution;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliationUnit;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitution;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitutionUnit;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
 import nva.commons.core.paths.UriWrapper;
 
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Base64;
 import java.util.Collections;
@@ -23,15 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.userceation.testing.cristin.RandomNin.randomNin;
-import static nva.commons.core.attempt.Try.attempt;
 
 public class MockPersonRegistry {
 
@@ -41,14 +30,10 @@ public class MockPersonRegistry {
     private static final String CRISTIN_PATH = "cristin";
     private static final String PERSON_PATH = "person";
     private static final String ORGANIZATION_PATH = "organization";
-    private static final String AUTHORIZATION_HEADER_NAME = "authorization";
-    private static final String PERSONS_RESOLVE_BY_NATIONAL_ID = "/persons/resolve?national_id=%s";
     private final Map<String, CristinPerson> ninToPeople;
     private final Map<String, CristinPerson> cristinIdToPeople;
     private final Map<String, URI> cristinInstitutionIdToUnitUriMap;
-    private final String basicAuthorizationHeaderValue;
-    private final HttpHeaders defaultRequestHeaders;
-    private URI cristinBaseUri;
+    private final CristinWireMockStubs wireMockStubs;
 
     public MockPersonRegistry(String username,
                               String password,
@@ -57,148 +42,37 @@ public class MockPersonRegistry {
         this.ninToPeople = new ConcurrentHashMap<>();
         this.cristinIdToPeople = new ConcurrentHashMap<>();
         this.cristinInstitutionIdToUnitUriMap = new ConcurrentHashMap<>();
-        this.cristinBaseUri = cristinBaseUri;
-        this.basicAuthorizationHeaderValue = generateBasicAuthorizationHeaderValue(username, password);
-        this.defaultRequestHeaders = defaultRequestHeaders;
-    }
-
-    private String generateBasicAuthorizationHeaderValue(String username, String password) {
-        var toBeEncoded = (username + ":" + password).getBytes();
-        return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);
+        var basicAuthorizationHeaderValue = generateBasicAuthorizationHeaderValue(username, password);
+        this.wireMockStubs = new CristinWireMockStubs(basicAuthorizationHeaderValue, cristinBaseUri,
+            defaultRequestHeaders);
     }
 
     public MockedPersonData mockResponseForBadGateway() {
         var nin = randomNin();
         var cristinId = randomString();
-        createPersonSearchStubBadGateway(nin);
+        wireMockStubs.createPersonSearchStubBadGateway(nin);
         return new MockedPersonData(nin, cristinId);
-    }
-
-    private void createPersonSearchStubBadGateway(String nin) {
-        stubWithDefaultRequestHeadersEqualToFor(
-            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                    .withStatus(HttpURLConnection.HTTP_BAD_GATEWAY)));
-    }
-
-    private void stubWithDefaultRequestHeadersEqualToFor(MappingBuilder mappingBuilder) {
-        defaultRequestHeaders.stream()
-            .forEach(entry -> mappingBuilder.withHeader(entry.getKey(), equalTo(entry.getValue())));
-
-        stubFor(mappingBuilder);
     }
 
     public MockedPersonData mockResponseForIllegalJson() {
         var nin = randomNin();
         var cristinId = randomString();
-        createPersonSearchStubIllegalJson(nin);
+        wireMockStubs.createPersonSearchStubIllegalJson(nin);
         return new MockedPersonData(nin, cristinId);
-    }
-
-    private void createPersonSearchStubIllegalJson(String nin) {
-        var illegalBodyAsObjectIsExpected = "[]";
-
-        stubWithDefaultRequestHeadersEqualToFor(
-            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                    .withBody(illegalBodyAsObjectIsExpected)
-                    .withStatus(HttpURLConnection.HTTP_OK)));
     }
 
     public MockedPersonData personWithoutAffiliations() {
         var nin = randomNin();
         var cristinId = randomString();
 
-
         createPersonWithoutAffiliations(nin, cristinId);
 
         return new MockedPersonData(nin, cristinId);
     }
 
-    private void createPersonWithoutAffiliations(String nin, String cristinId) {
-
-        var person = new CristinPerson(cristinId, randomString(), randomString(), null, null);
-        var institutions = Collections.<String>emptyList();
-        updateBuffersAndStubs(nin, person, institutions);
-    }
-
-    private void updateBuffersAndStubs(String nin,
-                                       CristinPerson cristinPerson,
-                                       List<String> institutionIds) {
-        if (nonNull(nin)) {
-            ninToPeople.put(nin, cristinPerson);
-        }
-        cristinIdToPeople.put(cristinPerson.getId(), cristinPerson);
-        createStubsForPerson(nin, cristinPerson);
-        institutionIds.forEach(this::createStubForInstitution);
-    }
-
-    private void createStubForInstitution(String institutionIdentifier) {
-        var institutionUnitIdentifier = randomString();
-        var urlForUnit = generateUnitUrl(institutionUnitIdentifier);
-        var correspondingUnit = new CristinInstitutionUnit(institutionUnitIdentifier, urlForUnit);
-        var cristinInstitution = new CristinInstitution(correspondingUnit);
-
-        this.cristinInstitutionIdToUnitUriMap.put(institutionIdentifier,
-            nvaScopedOrganizationCristinId(institutionUnitIdentifier));
-
-        var response
-            = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(cristinInstitution))
-            .orElseThrow();
-
-        stubWithDefaultRequestHeadersEqualToFor(
-            get("/institutions/" + institutionIdentifier)
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                    .withBody(response)
-                    .withStatus(HttpURLConnection.HTTP_OK)));
-    }
-
-    private String generateUnitUrl(String identifier) {
-        return UriWrapper.fromUri(cristinBaseUri).addChild("units", identifier).getUri().toString();
-    }
-
-    private URI nvaScopedOrganizationCristinId(String identifier) {
-        return new UriWrapper(HTTPS_SCHEME, ServiceConstants.API_DOMAIN)
-            .addChild(CRISTIN_PATH, ORGANIZATION_PATH, identifier)
-            .getUri();
-    }
-
-    private void createStubsForPerson(String nin, CristinPerson cristinPerson) {
-        var response
-            = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(cristinPerson))
-            .orElseThrow();
-
-        stubWithDefaultRequestHeadersEqualToFor(
-            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                    .withBody(response)
-                    .withStatus(HttpURLConnection.HTTP_OK)));
-        
-        stubWithDefaultRequestHeadersEqualToFor(
-            get("/persons/" + cristinPerson.getId())
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                    .withBody(response)
-                    .withStatus(HttpURLConnection.HTTP_OK)));
-    }
-
     public void createPostPersonStub(CristinPerson cristinPerson) {
-        var response
-            = attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(cristinPerson))
-                  .orElseThrow();
-
-        stubWithDefaultRequestHeadersEqualToFor(
-            post("/persons")
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                                .withBody(response)
-                                .withStatus(HttpURLConnection.HTTP_OK)));
+        wireMockStubs.createPostPersonStub(cristinPerson);
     }
-
 
     public MockedPersonData personWithExactlyOneActiveEmployment() {
         var nin = randomNin();
@@ -209,40 +83,6 @@ public class MockPersonRegistry {
         createPersonWithAffiliations(nin, cristinId, affiliations);
 
         return new MockedPersonData(nin, cristinId);
-    }
-
-    private CristinAffiliation createCristinAffiliation(boolean active) {
-        var institution = createAffiliationInstitution();
-        var unit = createAffiliationUnit();
-
-        return new CristinAffiliation(institution, unit, active);
-    }
-
-    private CristinAffiliationInstitution createAffiliationInstitution() {
-        var identifier = randomString();
-        return new CristinAffiliationInstitution(identifier, generateInstitutionUrl(identifier));
-    }
-
-    private String generateInstitutionUrl(String identifier) {
-        return UriWrapper.fromUri(cristinBaseUri).addChild("institutions", identifier).getUri().toString();
-    }
-
-    private CristinAffiliationUnit createAffiliationUnit() {
-        var identifier = randomString();
-        return new CristinAffiliationUnit(identifier, generateUnitUrl(identifier));
-    }
-
-    private void createPersonWithAffiliations(String nin,
-                                              String cristinId,
-                                              List<CristinAffiliation> cristinAffiliations) {
-        var person = new CristinPerson(cristinId, randomString(), randomString(), cristinAffiliations, null);
-
-        var institutions = cristinAffiliations.stream()
-            .map(CristinAffiliation::getInstitution)
-            .map(CristinAffiliationInstitution::getId)
-            .collect(Collectors.toList());
-
-        updateBuffersAndStubs(nin, person, institutions);
     }
 
     public MockedPersonData personWithExactlyOneInactiveEmployment() {
@@ -313,7 +153,7 @@ public class MockPersonRegistry {
     }
 
     public void setCristinBaseUri(URI cristinBaseUri) {
-        this.cristinBaseUri = cristinBaseUri;
+        wireMockStubs.setCristinBaseUri(cristinBaseUri);
     }
 
     public URI getCristinIdForPerson(String nin) {
@@ -325,71 +165,131 @@ public class MockPersonRegistry {
         return ninToPeople.get(nin);
     }
 
+    public MockedPersonData mockResponseForPersonNotFound() {
+        var nin = randomNin();
+        var cristinId = randomString();
+        wireMockStubs.createPersonNotFoundStub(nin);
+        return new MockedPersonData(nin, cristinId);
+    }
+
+    public void setupServerErrorForNin(String nin) {
+        wireMockStubs.createServerErrorStub(nin);
+    }
+
+    public void setupCreatePersonAlreadyExistsError() {
+        wireMockStubs.createPersonAlreadyExistsStub();
+    }
+
+    public void setupCreatePersonConflictError() {
+        wireMockStubs.createPersonConflictStub();
+    }
+
+    public MockedPersonData personWithActiveAffiliationAtRedirectingInstitution() {
+        var nin = randomNin();
+        var cristinId = randomString();
+        var originalInstitutionId = randomString();
+        var redirectedCorrespondingUnitId = randomString();
+
+        var institution = new CristinAffiliationInstitution(originalInstitutionId,
+            wireMockStubs.generateInstitutionUrl(originalInstitutionId));
+        var unit = createAffiliationUnit();
+        var affiliation = new CristinAffiliation(institution, unit, ACTIVE);
+
+        var person = new CristinPerson(cristinId, randomString(), randomString(), List.of(affiliation), null);
+
+        ninToPeople.put(nin, person);
+        cristinIdToPeople.put(person.getId(), person);
+        wireMockStubs.createStubsForPerson(nin, person);
+        wireMockStubs.createStubForRedirectingInstitution(originalInstitutionId, redirectedCorrespondingUnitId);
+
+        return new MockedPersonData(nin, cristinId);
+    }
+
+    public Set<URI> getUnitCristinUris(String nin) {
+        return getUnitCristinUris(nin, allAffiliations());
+    }
+
+    public Set<URI> getInstitutionUnitCristinUris(String nin) {
+        return getInstitutionUnitCristinUris(nin, allAffiliations());
+    }
+
+    public Set<URI> getInstitutionUnitCristinUrisByState(String nin, boolean active) {
+        return getInstitutionUnitCristinUris(nin, affiliationsByState(active));
+    }
+
+    private static String generateBasicAuthorizationHeaderValue(String username, String password) {
+        var toBeEncoded = (username + ":" + password).getBytes();
+        return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);
+    }
+
+    private void createPersonWithoutAffiliations(String nin, String cristinId) {
+        var person = new CristinPerson(cristinId, randomString(), randomString(), null, null);
+        var institutions = Collections.<String>emptyList();
+        updateBuffersAndStubs(nin, person, institutions);
+    }
+
+    private void updateBuffersAndStubs(String nin,
+                                       CristinPerson cristinPerson,
+                                       List<String> institutionIds) {
+        if (nonNull(nin)) {
+            ninToPeople.put(nin, cristinPerson);
+        }
+        cristinIdToPeople.put(cristinPerson.getId(), cristinPerson);
+        wireMockStubs.createStubsForPerson(nin, cristinPerson);
+        institutionIds.forEach(this::createStubForInstitution);
+    }
+
+    private void createStubForInstitution(String institutionIdentifier) {
+        var institutionUnitIdentifier = institutionIdentifier + ".0.0.0";
+        this.cristinInstitutionIdToUnitUriMap.put(institutionIdentifier,
+            nvaScopedOrganizationCristinId(institutionUnitIdentifier));
+        wireMockStubs.createStubForInstitution(institutionIdentifier);
+    }
+
+    private URI nvaScopedOrganizationCristinId(String identifier) {
+        return new UriWrapper(HTTPS_SCHEME, ServiceConstants.API_DOMAIN)
+            .addChild(CRISTIN_PATH, ORGANIZATION_PATH, identifier)
+            .getUri();
+    }
+
     private URI nvaScopedPersonCristinId(String identifier) {
         return new UriWrapper(HTTPS_SCHEME, ServiceConstants.API_DOMAIN)
             .addChild(CRISTIN_PATH, PERSON_PATH, identifier)
             .getUri();
     }
 
-    private CristinAffiliation createCristinAffiliation(CristinAffiliationInstitution institution, boolean active) {
+    private CristinAffiliation createCristinAffiliation(boolean active) {
+        var institution = createAffiliationInstitution();
         var unit = createAffiliationUnit();
-
         return new CristinAffiliation(institution, unit, active);
     }
 
-    public MockedPersonData mockResponseForPersonNotFound() {
-        var nin = randomNin();
-        var cristinId = randomString();
-        stubWithDefaultRequestHeadersEqualToFor(
-            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                    .withStatus(HttpURLConnection.HTTP_NOT_FOUND)));
-        return new MockedPersonData(nin, cristinId);
-    }
-    
-    public void setupServerErrorForNin(String nin) {
-        stubWithDefaultRequestHeadersEqualToFor(
-            get(PERSONS_RESOLVE_BY_NATIONAL_ID.formatted(nin))
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                    .withStatus(HttpURLConnection.HTTP_INTERNAL_ERROR)));
-    }
-    
-    public void setupCreatePersonAlreadyExistsError() {
-        var errorBody = """
-            {
-                "status" : 400,
-                "response_id" : "test123",
-                 "errors" : [ "Norwegian national id already exists." ]
-             }
-            """;
-        stubWithDefaultRequestHeadersEqualToFor(
-            post("/persons")
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                                .withStatus(HttpURLConnection.HTTP_BAD_REQUEST)
-                                .withBody(errorBody)));
+    private CristinAffiliation createCristinAffiliation(CristinAffiliationInstitution institution, boolean active) {
+        var unit = createAffiliationUnit();
+        return new CristinAffiliation(institution, unit, active);
     }
 
-    public void setupCreatePersonConflictError() {
-        var errorBody = """
-            {
-                "status" : 409,
-                "response_id" : "test456",
-                "errors" : [ "Conflict: Person already exists." ]
-            }
-            """;
-        stubWithDefaultRequestHeadersEqualToFor(
-            post("/persons")
-                .withHeader(AUTHORIZATION_HEADER_NAME, equalTo(basicAuthorizationHeaderValue))
-                .willReturn(aResponse()
-                    .withStatus(HttpURLConnection.HTTP_CONFLICT)
-                    .withBody(errorBody)));
+    private CristinAffiliationInstitution createAffiliationInstitution() {
+        var identifier = randomString();
+        return new CristinAffiliationInstitution(identifier, wireMockStubs.generateInstitutionUrl(identifier));
     }
 
-    public Set<URI> getUnitCristinUris(String nin) {
-        return getUnitCristinUris(nin, allAffiliations());
+    private CristinAffiliationUnit createAffiliationUnit() {
+        var identifier = randomString();
+        return new CristinAffiliationUnit(identifier, wireMockStubs.generateUnitUrl(identifier));
+    }
+
+    private void createPersonWithAffiliations(String nin,
+                                              String cristinId,
+                                              List<CristinAffiliation> cristinAffiliations) {
+        var person = new CristinPerson(cristinId, randomString(), randomString(), cristinAffiliations, null);
+
+        var institutions = cristinAffiliations.stream()
+            .map(CristinAffiliation::getInstitution)
+            .map(CristinAffiliationInstitution::getId)
+            .toList();
+
+        updateBuffersAndStubs(nin, person, institutions);
     }
 
     private Set<URI> getUnitCristinUris(String nin, Predicate<CristinAffiliation> predicate) {
@@ -403,14 +303,6 @@ public class MockPersonRegistry {
             .collect(Collectors.toSet());
     }
 
-    private Predicate<CristinAffiliation> allAffiliations() {
-        return cristinAffiliation -> true;
-    }
-
-    public Set<URI> getInstitutionUnitCristinUris(String nin) {
-        return getInstitutionUnitCristinUris(nin, allAffiliations());
-    }
-
     private Set<URI> getInstitutionUnitCristinUris(String nin, Predicate<CristinAffiliation> predicate) {
         var person = getPerson(nin);
         return person.getAffiliations().stream()
@@ -422,8 +314,8 @@ public class MockPersonRegistry {
             .collect(Collectors.toSet());
     }
 
-    public Set<URI> getInstitutionUnitCristinUrisByState(String nin, boolean active) {
-        return getInstitutionUnitCristinUris(nin, affiliationsByState(active));
+    private Predicate<CristinAffiliation> allAffiliations() {
+        return cristinAffiliation -> true;
     }
 
     private Predicate<CristinAffiliation> affiliationsByState(boolean active) {

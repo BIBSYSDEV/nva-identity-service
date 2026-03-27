@@ -10,6 +10,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.Iden
 import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingRequiredFieldsException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceNotFoundException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceRedirectException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUnavailableException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUpstreamBodyParsingException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUpstreamInternalServerErrorException;
@@ -71,6 +72,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     private static final String APPLICATION_JSON = "application/json";
     private static final int ONE_HUNDRED = 100;
     private static final int SUCCESS_FAMILY = 2;
+    private static final int REDIRECT_FAMILY = 3;
     private final HttpClient httpClient;
     private final URI cristinBaseUri;
     private final String apiDomain;
@@ -95,7 +97,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
                                         .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
         return personRegistry(HttpClient.newBuilder()
                                   .version(Version.HTTP_1_1)
-                                  .followRedirects(Redirect.NORMAL)
+                                  .followRedirects(Redirect.NEVER)
                                   .build(),
                               ServiceConstants.CRISTIN_BASE_URI,
                               ServiceConstants.API_DOMAIN,
@@ -194,9 +196,15 @@ public final class CristinPersonRegistry implements PersonRegistry {
         return Optional.ofNullable(executeRequest(request, CristinPerson.class));
     }
 
-    private CristinInstitution fetchInstitutionFromCristin(URI institutionUri, CristinCredentials cristinCredentials) {
+    private Optional<CristinInstitution> fetchInstitutionFromCristin(URI institutionUri,
+                                                                      CristinCredentials cristinCredentials) {
         var request = createGetRequest(institutionUri, cristinCredentials);
-        return executeRequest(request, CristinInstitution.class);
+        try {
+            return Optional.of(executeRequest(request, CristinInstitution.class));
+        } catch (IdentityServiceRedirectException e) {
+            LOGGER.warn("Institution URL {} was redirected, skipping affiliation.", institutionUri);
+            return Optional.empty();
+        }
     }
 
     private HttpRequest createGetRequest(URI uri, CristinCredentials cristinCredentials) {
@@ -228,10 +236,11 @@ public final class CristinPersonRegistry implements PersonRegistry {
             = cristinPerson.getAffiliations().stream()
                   .filter(CristinAffiliation::isActive)
                   .map(activeAffiliation -> collectAffiliation(activeAffiliation, cristinCredentials))
+                  .flatMap(Optional::stream)
                   .collect(Collectors.groupingBy(GenericPair::getLeft, mapping(GenericPair::getRight, toList())))
                   .entrySet().stream()
                   .map(a -> new Affiliation(a.getKey(), a.getValue()))
-                  .collect(toList());
+                  .toList();
 
         if (personAffiliations.isEmpty()) {
             LOGGER.warn("Cristin person {} has no active affiliations", cristinPerson.getId());
@@ -267,14 +276,16 @@ public final class CristinPersonRegistry implements PersonRegistry {
                    .getUri();
     }
 
-    private GenericPair<URI> collectAffiliation(CristinAffiliation cristinAffiliation,
-                                                CristinCredentials cristinCredentials) {
-
+    private Optional<GenericPair<URI>> collectAffiliation(CristinAffiliation cristinAffiliation,
+                                                          CristinCredentials cristinCredentials) {
         var institutionUri = URI.create(cristinAffiliation.getInstitution().getUrl());
-        var cristinInstitution = fetchInstitutionFromCristin(institutionUri, cristinCredentials);
-        var institutionId = cristinInstitution.getCorrespondingUnit().getId();
-        return new GenericPair<>(generateCristinIdForOrganization(institutionId),
-                                 generateCristinIdForOrganization(cristinAffiliation.getUnit().getId()));
+        return fetchInstitutionFromCristin(institutionUri, cristinCredentials)
+                   .map(cristinInstitution -> {
+                       var institutionId = cristinInstitution.getCorrespondingUnit().getId();
+                       return new GenericPair<>(
+                           generateCristinIdForOrganization(institutionId),
+                           generateCristinIdForOrganization(cristinAffiliation.getUnit().getId()));
+                   });
     }
 
     private Optional<CristinPerson> fetchPersonByNinFromCristin(NationalIdentityNumber nin,
@@ -348,6 +359,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     private void assertSuccessResponse(HttpRequest request, HttpResponse<String> response) {
         int statusCode = response.statusCode();
+        if (statusCode / ONE_HUNDRED == REDIRECT_FAMILY) {
+            var location = response.headers().firstValue("Location").orElse("unknown");
+            throw new IdentityServiceRedirectException(request.uri(), location, statusCode);
+        }
         if (statusCode / ONE_HUNDRED != SUCCESS_FAMILY) {
             var message = generateErrorMessageForResponse(request, response);
             LOGGER.info(message);

@@ -129,7 +129,7 @@ Globals:
   Api:
     Cors:
       AllowMethods: '''POST, PUT, GET, OPTIONS, DELETE'''
-      AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,Cache-Control'''
+      AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
       AllowOrigin: '''*'''
     OpenApiVersion: 3.0.1
 
@@ -930,17 +930,10 @@ Resources:
           ResourcePath: '/~1'
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: true
-          RequireAuthorizationForCacheControl: false
-        - HttpMethod: 'GET'
-          ResourcePath: '/~1{identifier}'
-          CacheTtlInSeconds: !Ref CacheTtlInSeconds
-          CachingEnabled: true
-          RequireAuthorizationForCacheControl: false
         - HttpMethod: 'GET'
           ResourcePath: '/~1cristinId~1{cristinId}'
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: true
-          RequireAuthorizationForCacheControl: false
       AccessLogSetting:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: !Join

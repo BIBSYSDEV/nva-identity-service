@@ -92,6 +92,13 @@ public final class IdentityServiceErrorCodes {
      */
     public static final ServiceErrorCode PERSON_CREATION_FAILED = new ServiceErrorCode(3003, HTTP_BAD_GATEWAY);
 
+    /**
+     * 3004: Upstream redirect detected.
+     * Used when an upstream service responds with a redirect (3xx),
+     * indicating a discontinued or moved resource.
+     */
+    public static final ServiceErrorCode UPSTREAM_REDIRECT = new ServiceErrorCode(3004, HTTP_BAD_GATEWAY);
+
     private IdentityServiceErrorCodes() {
         // NO-OP
     }

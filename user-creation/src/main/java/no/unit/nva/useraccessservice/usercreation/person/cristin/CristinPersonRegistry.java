@@ -202,8 +202,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
         try {
             return Optional.of(executeRequest(request, CristinInstitution.class));
         } catch (IdentityServiceRedirectException e) {
-            LOGGER.warn("Institution URL {} was redirected. "
-                        + "Skipping affiliation to prevent unintended access.", institutionUri);
+            LOGGER.warn("Institution URL {} was redirected, skipping affiliation.", institutionUri);
             return Optional.empty();
         }
     }
@@ -241,7 +240,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
                   .collect(Collectors.groupingBy(GenericPair::getLeft, mapping(GenericPair::getRight, toList())))
                   .entrySet().stream()
                   .map(a -> new Affiliation(a.getKey(), a.getValue()))
-                  .collect(toList());
+                  .toList();
 
         if (personAffiliations.isEmpty()) {
             LOGGER.warn("Cristin person {} has no active affiliations", cristinPerson.getId());

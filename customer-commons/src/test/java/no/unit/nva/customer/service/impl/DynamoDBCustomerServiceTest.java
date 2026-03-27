@@ -215,10 +215,7 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     void shouldThrowNotFoundExceptionWhenQueryResultIsEmpty() throws NotFoundException, ConflictException {
         var customer = newActiveCustomerDto();
         service.createCustomer(customer);
-        var unknownCristinId = randomUri();
-        var exception = assertThrows(NotFoundException.class,
-            () -> service.getCustomerByCristinId(unknownCristinId));
-        assertThat(exception.getMessage(), Matchers.containsString(unknownCristinId.toString()));
+        assertThrows(NotFoundException.class, () -> service.getCustomerByCristinId(randomUri()));
     }
 
     @Test

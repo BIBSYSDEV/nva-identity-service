@@ -68,7 +68,9 @@ public enum PublicationInstanceTypes {
     LITERARY_ARTS("LiteraryArts"),
     EXHIBITION_PRODUCTION("ExhibitionProduction"),
     ACADEMIC_COMMENTARY("AcademicCommentary"),
-    ARTISTIC_DEGREE_PHD("ArtisticDegreePhd");
+    ARTISTIC_DEGREE_PHD("ArtisticDegreePhd"),
+    SOFTWARE_SOURCE_CODE("SoftwareSourceCode"),
+    OTHER_ARTISTIC_OUTPUT("OtherArtisticOutput");
 
     @JsonValue
     private final String displayValue;

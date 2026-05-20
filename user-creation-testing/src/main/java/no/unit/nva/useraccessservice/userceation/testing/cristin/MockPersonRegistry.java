@@ -9,6 +9,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPe
 import nva.commons.core.paths.UriWrapper;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -218,7 +219,7 @@ public class MockPersonRegistry {
     }
 
     private static String generateBasicAuthorizationHeaderValue(String username, String password) {
-        var toBeEncoded = (username + ":" + password).getBytes();
+        var toBeEncoded = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
         return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);
     }
 

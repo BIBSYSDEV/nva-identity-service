@@ -35,7 +35,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SuppressWarnings("PMD.JUnitAssertionsShouldIncludeMessage")
 public class LocalIdentityService implements WithEnvironment {
 
     public static final int SINGLE_TABLE_EXPECTED = 1;

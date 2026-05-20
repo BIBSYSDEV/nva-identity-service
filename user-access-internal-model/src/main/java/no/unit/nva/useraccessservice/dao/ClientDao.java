@@ -24,7 +24,6 @@ import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SEARC
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECONDARY_INDEX_2_RANGE_KEY;
 
-@SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount"})
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class ClientDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 

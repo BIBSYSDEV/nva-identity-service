@@ -2,6 +2,7 @@ package no.unit.nva.customer.model.interfaces;
 
 import nva.commons.apigateway.exceptions.BadRequestException;
 
+@FunctionalInterface
 public interface Typed {
 
     String TYPE_FIELD = "type";

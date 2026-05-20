@@ -76,6 +76,6 @@ public class IdentityServiceMigrateCuratorHandler extends ApiGatewayHandler<Void
     }
 
     private boolean isPublishingCurator(RoleDto role) {
-        return RoleName.PUBLISHING_CURATOR.equals(role.getRoleName());
+        return role.getRoleName() == RoleName.PUBLISHING_CURATOR;
     }
 }

@@ -14,6 +14,7 @@ package no.unit.nva.useraccessservice.interfaces;
  *
  * @param <T> The Builder class of the class implementing the interface.
  */
+@FunctionalInterface
 public interface WithCopy<T> {
 
     /**

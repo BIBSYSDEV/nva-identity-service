@@ -19,7 +19,6 @@ import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT;
 import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
 import static nva.commons.core.attempt.Try.attempt;
 
-@SuppressWarnings("PMD.ShortMethodName")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public class CustomerList {
 

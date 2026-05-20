@@ -146,13 +146,11 @@ public class UserDto implements WithCopy<Builder>, Typed {
     }
 
     @JacocoGenerated
-    @SuppressWarnings("PMD.NullAssignment")
     public URI getCristinId() {
         return cristinId;
     }
 
     @JacocoGenerated
-    @SuppressWarnings("PMD.NullAssignment")
     public void setCristinId(URI cristinId) {
         this.cristinId = cristinId;
     }

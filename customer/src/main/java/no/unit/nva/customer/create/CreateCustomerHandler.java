@@ -1,7 +1,7 @@
 package no.unit.nva.customer.create;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import com.google.common.net.MediaType;
+import nva.commons.apigateway.MediaType;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerHandler;
 import no.unit.nva.customer.model.CustomerDto;

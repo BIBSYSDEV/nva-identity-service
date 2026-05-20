@@ -1,6 +1,6 @@
 package no.unit.nva.customer;
 
-import com.google.common.net.MediaType;
+import nva.commons.apigateway.MediaType;
 import java.net.URI;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;

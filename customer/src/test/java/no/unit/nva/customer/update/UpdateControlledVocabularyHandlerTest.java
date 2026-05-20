@@ -1,7 +1,7 @@
 package no.unit.nva.customer.update;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import com.google.common.net.MediaType;
+import nva.commons.apigateway.MediaType;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
@@ -101,7 +101,7 @@ public class UpdateControlledVocabularyHandlerTest extends CreateUpdateControlle
 
     @Test
     public void handleRequestReturnsUnsupportedTypeWhenAcceptedContentTypeIsNotSupported() throws IOException {
-        var response = sendRequest(existingIdentifier(), MediaType.SOAP_XML_UTF_8).getResponse();
+        var response = sendRequest(existingIdentifier(), UNSUPPORTED_MEDIA_TYPE).getResponse();
         String body = response.getBody();
         for (MediaType mediaType : ControlledVocabularyHandler.SUPPORTED_MEDIA_TYPES) {
             assertThat(body, containsString(mediaType.toString()));

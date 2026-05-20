@@ -1,6 +1,6 @@
 package no.unit.nva.customer;
 
-import com.google.common.net.MediaType;
+import nva.commons.apigateway.MediaType;
 import no.unit.nva.customer.service.CustomerService;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.MediaTypes;

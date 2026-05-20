@@ -1,7 +1,7 @@
 package no.unit.nva.customer.update;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import com.google.common.net.MediaType;
+import nva.commons.apigateway.MediaType;
 import no.unit.nva.customer.Constants;
 import no.unit.nva.customer.CustomerDoiHandler;
 import no.unit.nva.customer.exception.InputException;

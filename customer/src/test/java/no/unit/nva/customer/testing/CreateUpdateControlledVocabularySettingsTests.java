@@ -3,7 +3,7 @@ package no.unit.nva.customer.testing;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
-import com.google.common.net.MediaType;
+import nva.commons.apigateway.MediaType;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.get.GetControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
@@ -34,6 +34,7 @@ import static org.hamcrest.core.Is.is;
 public abstract class CreateUpdateControlledVocabularySettingsTests extends LocalCustomerServiceDatabase {
 
     public static final Context CONTEXT = new FakeContext();
+    protected static final MediaType UNSUPPORTED_MEDIA_TYPE = MediaType.MICROSOFT_EXCEL;
     protected ControlledVocabularyHandler<?, ?> handler;
     protected CustomerDto existingCustomer;
     protected DynamoDBCustomerService customerService;

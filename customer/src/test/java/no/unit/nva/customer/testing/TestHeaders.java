@@ -10,7 +10,7 @@ import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.HttpHeaders.STRICT_TRANSPORT_SECURITY;
 import static com.google.common.net.HttpHeaders.VARY;
 import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
-import static com.google.common.net.MediaType.JSON_UTF_8;
+import static nva.commons.apigateway.MediaType.JSON_UTF_8;
 
 @JacocoGenerated
 public class TestHeaders {

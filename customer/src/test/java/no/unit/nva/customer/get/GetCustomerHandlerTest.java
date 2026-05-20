@@ -3,7 +3,7 @@ package no.unit.nva.customer.get;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.net.HttpHeaders;
-import com.google.common.net.MediaType;
+import nva.commons.apigateway.MediaType;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDao;
 import no.unit.nva.customer.model.CustomerDto;
@@ -45,8 +45,8 @@ import static org.mockito.Mockito.when;
 
 class GetCustomerHandlerTest {
 
-    public static final String MALFORMED_IDENTIFIER = "for-testing";
-    public static final MediaType UNSUPPORTED_MEDIA_TYPE = MediaType.BZIP2;
+    private static final String MALFORMED_IDENTIFIER = "for-testing";
+    private static final MediaType UNSUPPORTED_MEDIA_TYPE = MediaType.MICROSOFT_EXCEL;
 
     private CustomerService customerServiceMock;
     private GetCustomerHandler handler;

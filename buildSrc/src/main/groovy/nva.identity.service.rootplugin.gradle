@@ -16,14 +16,6 @@ dependencies {
     }
 }
 
-reporting {
-    reports {
-        testCodeCoverageReport(JacocoCoverageReport) {
-            testSuiteName = "test"
-        }
-    }
-}
-
 tasks.named('check') {
     dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
 }

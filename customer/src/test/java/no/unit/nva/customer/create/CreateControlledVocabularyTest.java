@@ -1,6 +1,6 @@
 package no.unit.nva.customer.create;
 
-import com.google.common.net.MediaType;
+import nva.commons.apigateway.MediaType;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
@@ -98,7 +98,7 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
 
     @Test
     void handleRequestReturnsUnsupportedTypeWhenAcceptedContentTypeIsNotSupported() throws IOException {
-        var result = sendRequest(existingIdentifier(), MediaType.SOAP_XML_UTF_8);
+        var result = sendRequest(existingIdentifier(), UNSUPPORTED_MEDIA_TYPE);
 
         assertThat(result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_UNSUPPORTED_TYPE)));
         String body = result.getResponse().getBody();

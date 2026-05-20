@@ -2,22 +2,23 @@
 # require awsSdk because of xraySdk using version 1.11.1000 and us using newer version.
 #awsSdk = { require = "1.11.1000" }
 #xraySdk = { strictly = '2.9.1' }
-apacheHttpClient = { strictly = '5.5' }
-awsLambdaCore = { strictly = '1.3.0' }
-awsLambdaEvents = { strictly = '3.16.0' }
-awsSdk2 = { strictly = '2.31.77' }
-datafaker = { strictly = '2.4.3' }
+apacheHttpClient = { strictly = '5.6' }
+awsLambdaCore = { strictly = '1.4.0' }
+awsLambdaEvents = { strictly = '3.16.1' }
+awsSdk2 = { strictly = '2.42.39' }
+datafaker = { strictly = '2.5.4' }
 dynamoDbLocal = { strictly = '2.6.1' }
-guava = { require = '33.4.8-jre' }
+guava = { strictly = '33.6.0-jre' }
 hamcrest = { strictly = '3.0' }
-jackson = { strictly = "2.19.1" }
+jackson = { strictly = '2.21.2' }
+jackson-annotations = { strictly = '2.21' }
 javersCore = { strictly = '7.8.0' }
-jupiter = { strictly = "5.13.3" }
-log4j = { strictly = '2.25.0' }
-mockitoCore = { strictly = '5.18.0' }
-nvaCommons = { strictly = '2.2.9' }
+jupiter = { strictly = '6.0.3' }
+log4j = { strictly = '2.25.4' }
+mockitoCore = { strictly = '5.23.0' }
+nvaCommons = { strictly = '2.7.1' }
 slf4j = { strictly = '2.0.17' }
-wiremock = { strictly = "3.13.1" }
+wiremock = { strictly = '4.0.0-beta.32' }
 zalandoProblem = { strictly = '0.27.1' }
 
 [libraries]
@@ -56,7 +57,7 @@ jackson-core = { group = 'com.fasterxml.jackson.core', name = 'jackson-core', ve
 jackson-datatype-jdk8 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
 jackson-datatype-jsr310 = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jsr310', version.ref = 'jackson' }
 jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson' }
-jackson-annotations = { group = 'com.fasterxml.jackson.core', name = 'jackson-annotations', version.ref = 'jackson' }
+jackson-annotations = { group = 'com.fasterxml.jackson.core', name = 'jackson-annotations', version.ref = 'jackson-annotations' }
 jackson-module-parameter-names = { group = 'com.fasterxml.jackson.module', name = 'jackson-module-parameter-names', version.ref = 'jackson' }
 jackson-datatype-problem = { group = 'org.zalando', name = 'jackson-datatype-problem', version.ref = 'zalandoProblem' }
 jackson-dataformat-xml = { group = 'com.fasterxml.jackson.dataformat', name = 'jackson-dataformat-xml', version.ref = 'jackson' }
@@ -79,7 +80,8 @@ datafaker = { group = 'net.datafaker', name = 'datafaker', version.ref = 'datafa
 dynamoDbLocal = { group = 'com.amazonaws', name = 'DynamoDBLocal', version.ref = 'dynamoDbLocal' }
 nva-logutils = { group = 'com.github.bibsysdev', name = 'logutils', version.ref = 'nvaCommons' }
 
-wiremock-jetty-12 = { group = 'org.wiremock', name = 'wiremock-jetty12', version.ref = 'wiremock' }
+wiremock = { group = 'org.wiremock', name = 'wiremock', version.ref = 'wiremock' }
+wiremock-junit5 = { group = 'org.wiremock', name = 'wiremock-junit5', version.ref = 'wiremock' }
 
 guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 
@@ -87,7 +89,7 @@ guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava' }
 logging = ['log4j-core', 'log4j-api', 'slf4j']
 testing = ['junit-jupiter-engine', 'junit-jupiter-api', 'junit-jupiter-params', 'mockito-core',
     'javers-core', 'hamcrest', 'datafaker', 'nva-testutils', 'nva-logutils',
-    'wiremock-jetty-12'
+    'wiremock', 'wiremock-junit5'
 ]
 #aws-xray = ['aws-xray-recorder-sdk-core', 'aws-xray-recorder-sdk-aws-sdk', 'aws-xray-recorder-sdk-aws-sdk-instrumentor']
 aws-lambda = ['aws-lambda-java-core', 'zalando-problem', 'aws-lambda-events']

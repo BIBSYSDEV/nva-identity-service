@@ -2,13 +2,6 @@ plugins{
     id 'nva.identity.service.rootplugin'
 }
 
-//workaround for jacoco-merge to work
-allprojects{
+subprojects{
     apply plugin: 'nva.identity.service.java-common-conventions'
-    apply plugin: 'nva.identity.service.dynamodblocal'
-}
-
-wrapper {
-    gradleVersion = '8.12.1'
-    distributionType = Wrapper.DistributionType.ALL
 }

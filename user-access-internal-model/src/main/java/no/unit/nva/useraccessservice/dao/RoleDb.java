@@ -2,7 +2,6 @@ package no.unit.nva.useraccessservice.dao;
 
 import no.unit.nva.useraccessservice.dao.RoleDb.Builder;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.interfaces.WithCopy;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
@@ -27,7 +26,7 @@ import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMA
 import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
 
 @DynamoDbBean(converterProviders = {AccessRightSetConverterProvider.class, DefaultAttributeConverterProvider.class})
-public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder>, Typed {
+public class RoleDb implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
     public static final String NAME_FIELD = "name";
     public static final String ACCESS_RIGHTS_FIELDS = "accessRights";

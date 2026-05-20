@@ -7,7 +7,6 @@ import no.unit.nva.customer.model.VocabularyStatus;
 
 import java.net.URI;
 
-@SuppressWarnings("PMD.ExcessivePublicCount")
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = As.PROPERTY,

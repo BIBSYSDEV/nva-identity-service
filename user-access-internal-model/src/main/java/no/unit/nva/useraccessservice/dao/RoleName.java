@@ -53,8 +53,8 @@ public enum RoleName {
     @JacocoGenerated
     @JsonIgnore
     public boolean isDeprecated() {
-        return this.equals(DEPRECATED_NVI_CURATOR)
-            || this.equals(DEPRECATED_CURATOR)
-            || this.equals(DEPRECATED_INTERNAL_IMPORT);
+        return this == DEPRECATED_NVI_CURATOR
+            || this == DEPRECATED_CURATOR
+            || this == DEPRECATED_INTERNAL_IMPORT;
     }
 }

@@ -30,11 +30,9 @@ import nva.commons.core.paths.UriWrapper;
 
 //Overriding setters and getters is necessary for Jackson-Jr
 @SuppressWarnings({"PMD.ExcessivePublicCount",
-    "PMD.UselessOverridingMethod",
     "PMD.TooManyFields",
     "PMD.GodClass",
-    "PMD.NullAssignment",
-    "PMD.SingularField"})
+    "PMD.NullAssignment"})
 public class CustomerDto {
 
     public static final String TYPE = "Customer";

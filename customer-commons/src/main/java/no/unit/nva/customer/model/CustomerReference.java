@@ -100,7 +100,6 @@ public class CustomerReference {
         this.doiPrefix = doiPrefix;
     }
 
-    @SuppressWarnings({"PMD.NullAssignment"})
     public String getCreatedDate() {
         return nonNull(createdDate) ? createdDate.toString() : null;
     }

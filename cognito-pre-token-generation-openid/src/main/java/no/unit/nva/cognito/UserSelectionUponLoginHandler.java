@@ -148,6 +148,7 @@ public class UserSelectionUponLoginHandler
     }
 
     @Override
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     public CognitoUserPoolPreTokenGenerationEventV2 handleRequest(
         CognitoUserPoolPreTokenGenerationEventV2 input, Context context) {
         try {
@@ -255,6 +256,7 @@ public class UserSelectionUponLoginHandler
         return new IllegalStateException(message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
     }
 
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private Optional<String> decodeFeideName(String value) {
         if (isBlank(value)) {
             return Optional.empty();
@@ -386,6 +388,7 @@ public class UserSelectionUponLoginHandler
         return users;
     }
 
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private AuthenticationDetails extractAuthenticationDetails(CognitoUserPoolPreTokenGenerationEventV2 input) {
         try {
             var nin = extractNin(input.getRequest().getUserAttributes());
@@ -534,7 +537,6 @@ public class UserSelectionUponLoginHandler
         return includedClaims.contains(a.name()) && nonNull(a.value()) && !a.value().isEmpty();
     }
 
-    @SuppressWarnings("PMD.UnusedFormalParameter")
     private AccessTokenGeneration buildAccessTokenGeneration(Collection<AttributeType> userAttributes) {
         var includedClaims = Arrays.asList(CLAIMS_TO_BE_INCLUDED_IN_ACCESS_TOKEN);
         var claims = userAttributes.stream()

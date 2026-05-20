@@ -45,7 +45,7 @@ import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.SECON
 import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
 import static nva.commons.core.attempt.Try.attempt;
 
-@SuppressWarnings({"PMD.GodClass", "PMD.ExcessivePublicCount"})
+@SuppressWarnings({"PMD.GodClass"})
 @DynamoDbBean(converterProviders = {RoleSetConverterProvider.class, DefaultAttributeConverterProvider.class})
 public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 

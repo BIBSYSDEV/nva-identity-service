@@ -138,7 +138,6 @@ public final class CristinPersonRegistry implements PersonRegistry {
                    .orElseThrow(CristinPersonRegistry::logAndThrowException);
     }
 
-    @SuppressWarnings("PMD.InvalidLogMessageFormat")
     private static <T> IdentityServiceException logAndThrowException(Failure<T> failure) {
         LOGGER.error("Got unexpected response body from Cristin", failure.getException());
         return new IdentityServiceUpstreamBodyParsingException("Failed to parse response from Cristin", 
@@ -395,7 +394,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
     private String generateBasicAuthorization(CristinCredentials cristinCredentials) {
         var toBeEncoded =
-            (cristinCredentials.getUsername() + ":" + new String(cristinCredentials.getPassword())).getBytes();
+            (cristinCredentials.getUsername() + ":" + new String(cristinCredentials.getPassword()))
+                .getBytes(StandardCharsets.UTF_8);
         return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);
     }
 
@@ -418,16 +418,16 @@ public final class CristinPersonRegistry implements PersonRegistry {
         private final T left;
         private final T right;
 
-        public GenericPair(T left, T right) {
+        GenericPair(T left, T right) {
             this.left = left;
             this.right = right;
         }
 
-        public T getLeft() {
+        T getLeft() {
             return left;
         }
 
-        public T getRight() {
+        T getRight() {
             return right;
         }
     }

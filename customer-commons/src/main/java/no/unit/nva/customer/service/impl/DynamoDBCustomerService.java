@@ -199,6 +199,7 @@ public class DynamoDBCustomerService implements CustomerService {
         return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
     }
 
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private void warmupDynamoDbConnection(DynamoDbTable<CustomerDao> table) {
         try {
             table.describeTable();

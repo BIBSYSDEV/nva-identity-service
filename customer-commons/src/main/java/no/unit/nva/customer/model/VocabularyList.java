@@ -20,7 +20,6 @@ import static no.unit.nva.customer.Constants.LINKED_DATA_CONTEXT_VALUE;
 import static no.unit.nva.customer.Constants.LINKED_DATA_ID;
 import static nva.commons.core.attempt.Try.attempt;
 
-@SuppressWarnings("PMD.ExcessivePublicCount")
 public class VocabularyList implements Context, Typed {
 
     public static final String VOCABULARY_SETTINGS = "vocabularies";

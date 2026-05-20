@@ -94,8 +94,8 @@ public final class ChannelClaimValidator {
 
     // Temporary validation while constraints are restricted
     private static boolean isDefaultConstraint(ChannelConstraintDto constraint) {
-        return EVERYONE.equals(constraint.publishingPolicy())
-               && OWNER_ONLY.equals(constraint.editingPolicy())
+        return constraint.publishingPolicy() == EVERYONE
+               && constraint.editingPolicy() == OWNER_ONLY
                && DEGREES.containsAll(constraint.scope());
     }
 }

@@ -4,6 +4,7 @@ import no.unit.nva.useraccessservice.model.RoleDto;
 
 import java.util.List;
 
+@FunctionalInterface
 public interface RoleSource {
     List<RoleDto> roles();
 }

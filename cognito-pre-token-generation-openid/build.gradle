@@ -33,8 +33,14 @@ dependencies {
 
     implementation 'software.amazon.awssdk:dynamodb'
     implementation 'software.amazon.awssdk:secretsmanager'
+    implementation 'software.amazon.awssdk:auth'
+    implementation 'software.amazon.awssdk:aws-core'
+    implementation 'software.amazon.awssdk:http-client-spi'
+    implementation 'software.amazon.awssdk:sdk-core'
+    implementation 'software.amazon.awssdk:regions'
 
     testImplementation 'software.amazon.awssdk:dynamodb-enhanced'
+    testImplementation nvaCatalog.wiremock.core
     testImplementation nvaLibs.eventhandlers
     testImplementation project(":user-access-internal-model")
     testImplementation project(":customer-testing")

@@ -11,4 +11,8 @@ dependencies{
     implementation nvaCatalog.jackson.datatype.jsr310
     implementation nvaCatalog.jackson.datatype.problem
     implementation nvaCatalog.jackson.module.parameter.names
+
+    testRuntimeOnly 'software.amazon.awssdk:third-party-jackson-core'
+    testRuntimeOnly nvaCatalog.log4j.api
+    testRuntimeOnly nvaCatalog.log4j.core
 }

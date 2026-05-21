@@ -2,7 +2,6 @@ package no.unit.nva.database;
 
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
 import no.unit.nva.database.IdentityService.Constants;
-import no.unit.nva.database.interfaces.WithEnvironment;
 import org.junit.jupiter.api.AfterEach;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -35,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class LocalIdentityService implements WithEnvironment {
+public class LocalIdentityService {
 
     public static final int SINGLE_TABLE_EXPECTED = 1;
     private static final Long CAPACITY_DOES_NOT_MATTER = 1000L;

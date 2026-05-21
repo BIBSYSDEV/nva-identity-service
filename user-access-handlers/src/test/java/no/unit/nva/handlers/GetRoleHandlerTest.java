@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.database.IdentityServiceImpl;
 import no.unit.nva.database.LocalIdentityService;
-import no.unit.nva.database.interfaces.WithEnvironment;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -38,7 +37,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 
-class GetRoleHandlerTest extends LocalIdentityService implements WithEnvironment {
+class GetRoleHandlerTest extends LocalIdentityService {
 
     public static final String THE_ROLE = "theRole";
     public static final String TYPE_ATTRIBUTE = "type";

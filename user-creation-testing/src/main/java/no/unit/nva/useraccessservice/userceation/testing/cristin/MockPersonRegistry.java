@@ -153,10 +153,6 @@ public class MockPersonRegistry {
         return nvaScopedOrganizationCristinId(identifier);
     }
 
-    public void setCristinBaseUri(URI cristinBaseUri) {
-        wireMockStubs.setCristinBaseUri(cristinBaseUri);
-    }
-
     public URI getCristinIdForPerson(String nin) {
         var person = getPerson(nin);
         return nvaScopedPersonCristinId(person.getId());

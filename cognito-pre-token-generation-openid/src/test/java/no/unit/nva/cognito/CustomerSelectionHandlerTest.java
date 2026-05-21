@@ -42,7 +42,7 @@ class CustomerSelectionHandlerTest {
     @BeforeEach
     void init() {
         outputStream = new ByteArrayOutputStream();
-        cognito = new FakeCognito("test-client");
+        cognito = new FakeCognito();
         var environment = mock(Environment.class);
         when(environment.readEnv("API_HOST")).thenReturn("localhost");
         when(environment.readEnv("USER_POOL_ID")).thenReturn("userpool-1");

@@ -1,3 +1,7 @@
+plugins {
+    id 'nva.identity.service.java-common-conventions'
+}
+
 configurations.implementation {
     exclude group: 'org.hamcrest', module: 'hamcrest-core'
 }

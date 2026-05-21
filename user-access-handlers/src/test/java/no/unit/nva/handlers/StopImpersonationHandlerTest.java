@@ -34,7 +34,7 @@ class StopImpersonationHandlerTest {
 
     @BeforeEach
     public void setup() {
-        cognitoClient = new FakeCognito(randomString());
+        cognitoClient = new FakeCognito();
         handler = new StopImpersonationHandler(cognitoClient, new Environment());
         outputStream = new ByteArrayOutputStream();
     }

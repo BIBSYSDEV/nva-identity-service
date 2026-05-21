@@ -186,7 +186,7 @@ class UserSelectionUponLoginHandlerTest {
                                                     defaultRequestHeaders);
 
         scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
-        cognitoClient = new FakeCognito(randomString());
+        cognitoClient = new FakeCognito();
         var environment = mock(Environment.class);
         when(environment.readEnv(TERMS_TABLE_NAME_ENV)).thenReturn(TERMS_TABLE);
 

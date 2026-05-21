@@ -26,7 +26,7 @@ class CristinWireMockStubs {
     private static final String PERSONS = "/persons";
     private final String basicAuthorizationHeaderValue;
     private final HttpHeaders defaultRequestHeaders;
-    private URI cristinBaseUri;
+    private final URI cristinBaseUri;
 
     CristinWireMockStubs(String basicAuthorizationHeaderValue,
                          URI cristinBaseUri,
@@ -34,10 +34,6 @@ class CristinWireMockStubs {
         this.basicAuthorizationHeaderValue = basicAuthorizationHeaderValue;
         this.cristinBaseUri = cristinBaseUri;
         this.defaultRequestHeaders = defaultRequestHeaders;
-    }
-
-    void setCristinBaseUri(URI cristinBaseUri) {
-        this.cristinBaseUri = cristinBaseUri;
     }
 
     void createPersonSearchStubBadGateway(String nin) {

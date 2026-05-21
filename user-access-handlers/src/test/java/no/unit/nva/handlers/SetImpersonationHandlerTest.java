@@ -37,7 +37,7 @@ class SetImpersonationHandlerTest {
 
     @BeforeEach
     public void setup() {
-        cognitoClient = new FakeCognito(randomString());
+        cognitoClient = new FakeCognito();
         handler = new SetImpersonationHandler(cognitoClient, new Environment());
         outputStream = new ByteArrayOutputStream();
     }

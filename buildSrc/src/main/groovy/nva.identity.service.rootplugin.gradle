@@ -1,21 +1,20 @@
-plugins{
-    id 'jacoco-report-aggregation'
-    id 'base'
-    id 'java-library'
+plugins {
+    id 'nva.root-module-conventions'
 }
 
-
-repositories {
-    mavenCentral()
-    maven { url = 'https://jitpack.io' }
-}
-
-dependencies {
-    subprojects.forEach {
-        jacocoAggregation it
+nva {
+    dependencyAnalysis {
+        enforced = false
+    }
+    spectral {
+        documents = ['docs/*.yaml']
+        rulesetFile = file('.spectral.yaml')
+    }
+    spotless {
+        enabled = false
     }
 }
 
-tasks.named('check') {
-    dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
+subprojects{
+    apply plugin: 'nva.identity.service.java-common-conventions'
 }

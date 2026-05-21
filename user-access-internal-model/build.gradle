@@ -1,12 +1,21 @@
 dependencies {
 
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.dynamodbenhanced
-    implementation libs.bundles.jackson
-    implementation libs.bundles.logging
-    implementation libs.nva.apigateway
-    implementation libs.nva.core
-    implementation libs.nva.json
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
+    implementation nvaCatalog.jackson.annotations
+    implementation nvaCatalog.jackson.core
+    implementation nvaCatalog.jackson.databind
+    implementation nvaCatalog.jackson.dataformat.xml
+    implementation nvaCatalog.jackson.datatype.jdk8
+    implementation nvaCatalog.jackson.datatype.jsr310
+    implementation nvaCatalog.jackson.datatype.problem
+    implementation nvaCatalog.jackson.module.parameter.names
+    implementation nvaCatalog.log4j.core
+    implementation nvaCatalog.log4j.api
+    implementation nvaCatalog.slf4j.api
+    implementation nvaLibs.apigateway
+    implementation nvaLibs.core
+    implementation nvaLibs.json
     implementation project(":dynamo-client")
 
     compileOnly project(":user-access-public-model")

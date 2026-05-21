@@ -1,15 +1,15 @@
 dependencies {
 
-    implementation libs.nva.core
-    implementation libs.nva.apigateway
-    implementation libs.aws.sdk2.core
-    implementation libs.aws.sdk2.dynamodbenhanced
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.http.client.spi
-    implementation libs.aws.core
-    implementation libs.aws.auth
-    implementation libs.aws.regions
+    implementation nvaLibs.core
+    implementation nvaLibs.apigateway
+    implementation 'software.amazon.awssdk:sdk-core'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation 'software.amazon.awssdk:url-connection-client'
+    implementation 'software.amazon.awssdk:http-client-spi'
+    implementation 'software.amazon.awssdk:aws-core'
+    implementation 'software.amazon.awssdk:auth'
+    implementation 'software.amazon.awssdk:regions'
 }
 
 test{

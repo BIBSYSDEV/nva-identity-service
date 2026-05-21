@@ -1,3 +1,20 @@
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    versionCatalogs {
+        // Version catalog for third-party dependencies
+        create("nvaCatalog") {
+            from("com.github.bibsysdev:versions:${nvaCommonsVersion}")
+        }
+
+        // Version catalog for libraries in nva-commons
+        create("nvaLibs") {
+            from("com.github.bibsysdev:nva-libs:${nvaCommonsVersion}")
+        }
+    }
+}
+
 rootProject.name = 'nva-identity-service'
 include 'json-config'
 include 'dynamo-client'

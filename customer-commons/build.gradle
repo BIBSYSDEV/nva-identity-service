@@ -8,7 +8,6 @@ dependencies {
     implementation project (':json-config')
     implementation nvaLibs.apigateway
     implementation nvaLibs.core
-    implementation nvaLibs.secrets
     implementation nvaLibs.json
     implementation nvaCatalog.jackson.annotations
     implementation nvaCatalog.jackson.core
@@ -18,7 +17,6 @@ dependencies {
     implementation nvaCatalog.jackson.datatype.jsr310
     implementation nvaCatalog.jackson.datatype.problem
     implementation nvaCatalog.jackson.module.parameter.names
-    implementation nvaCatalog.guava
     implementation 'software.amazon.awssdk:dynamodb-enhanced'
     implementation 'software.amazon.awssdk:dynamodb'
     implementation 'software.amazon.awssdk:url-connection-client'

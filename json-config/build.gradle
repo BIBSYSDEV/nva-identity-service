@@ -4,7 +4,6 @@ plugins {
 
 dependencies{
     implementation nvaLibs.json
-    implementation nvaCatalog.jackson.annotations
     implementation nvaCatalog.jackson.core
     implementation nvaCatalog.jackson.databind
     implementation nvaCatalog.jackson.dataformat.xml

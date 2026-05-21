@@ -16,11 +16,8 @@ dependencies {
     implementation 'software.amazon.awssdk:url-connection-client'
     implementation nvaLibs.apigateway
     implementation nvaLibs.core
-    implementation nvaLibs.lambdaauthorizer
     implementation nvaLibs.secrets
-    implementation nvaLibs.identifiers
     implementation nvaCatalog.aws.lambda.core
-    implementation nvaCatalog.aws.lambda.events
     implementation nvaCatalog.zalando
     implementation nvaCatalog.jackson.annotations
     implementation nvaCatalog.jackson.core
@@ -37,11 +34,10 @@ dependencies {
 
 
     implementation 'software.amazon.awssdk:secretsmanager'
-    implementation 'software.amazon.awssdk:dynamodb-enhanced'
     implementation 'software.amazon.awssdk:dynamodb'
 
-    testImplementation nvaCatalog.httpclient5
-    testImplementation project(':user-access-internal-model')
+    testImplementation nvaCatalog.httpcore5
+    testImplementation 'software.amazon.awssdk:dynamodb-enhanced'
     testImplementation project(':user-access-testing')
     testImplementation project(':customer-testing')
     testImplementation project(':user-creation-testing')

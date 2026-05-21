@@ -17,7 +17,6 @@ dependencies {
     implementation 'software.amazon.awssdk:url-connection-client'
     implementation 'software.amazon.awssdk:cognitoidentityprovider'
 
-    implementation nvaCatalog.jackson.annotations
     implementation nvaCatalog.jackson.core
     implementation nvaCatalog.jackson.databind
     implementation nvaCatalog.jackson.dataformat.xml
@@ -28,12 +27,8 @@ dependencies {
     implementation nvaCatalog.log4j.core
     implementation nvaCatalog.log4j.api
     implementation nvaCatalog.slf4j.api
-    implementation nvaLibs.json
 
     implementation nvaLibs.eventhandlers
-    implementation nvaCatalog.aws.lambda.core
-    implementation nvaCatalog.aws.lambda.events
-    implementation nvaCatalog.zalando
 
     testImplementation nvaCatalog.aws.dynamodb.local
     testImplementation project(':user-access-testing')

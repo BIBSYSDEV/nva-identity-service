@@ -28,10 +28,8 @@ dependencies {
     implementation nvaCatalog.jackson.datatype.jsr310
     implementation nvaCatalog.jackson.datatype.problem
     implementation nvaCatalog.jackson.module.parameter.names
-    testImplementation nvaCatalog.httpclient5
     testImplementation nvaCatalog.aws.dynamodb.local
     testImplementation project(":customer-testing")
-    testImplementation project(":user-access-testing")
 
 }
 

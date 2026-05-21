@@ -27,6 +27,7 @@ dependencies {
 
     implementation nvaCatalog.junit.jupiter.engine
     implementation nvaCatalog.wiremock
+    implementation nvaCatalog.wiremock.core
     implementation nvaLibs.testutils
 }
 

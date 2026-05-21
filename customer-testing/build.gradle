@@ -13,5 +13,7 @@ dependencies {
     implementation nvaCatalog.datafaker
     implementation nvaLibs.testutils
     implementation nvaCatalog.wiremock
-
+    runtimeOnly nvaCatalog.jackson.core
+    runtimeOnly nvaCatalog.jackson.databind
+    runtimeOnly nvaCatalog.jackson.datatype.jsr310
 }

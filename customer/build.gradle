@@ -19,6 +19,8 @@ dependencies {
     implementation 'software.amazon.awssdk:dynamodb'
     implementation 'software.amazon.awssdk:dynamodb-enhanced'
     implementation 'software.amazon.awssdk:eventbridge'
+    implementation 'software.amazon.awssdk:http-client-spi'
+    implementation 'software.amazon.awssdk:sdk-core'
     implementation nvaCatalog.guava
     implementation nvaCatalog.jackson.annotations
     implementation nvaCatalog.jackson.core
@@ -29,6 +31,10 @@ dependencies {
     implementation nvaCatalog.jackson.datatype.problem
     implementation nvaCatalog.jackson.module.parameter.names
     testImplementation nvaCatalog.aws.dynamodb.local
+    testImplementation 'software.amazon.awssdk:aws-core'
+    testImplementation 'software.amazon.awssdk:http-client-spi'
+    testImplementation 'software.amazon.awssdk:sdk-core'
+    testImplementation nvaCatalog.httpcore4
     testImplementation project(":customer-testing")
 
 }

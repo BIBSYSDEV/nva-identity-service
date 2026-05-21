@@ -6,21 +6,32 @@ dependencies {
     implementation project(":user-access-public-model")
     implementation project(':json-config')
 
-    implementation libs.nva.core
-    implementation libs.nva.apigateway
-    implementation libs.aws.sdk2.dynamodbenhanced
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.sdk2.cognitoidentityprovider
+    implementation nvaLibs.core
+    implementation nvaLibs.apigateway
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation 'software.amazon.awssdk:url-connection-client'
+    implementation 'software.amazon.awssdk:cognitoidentityprovider'
 
-    implementation libs.bundles.jackson
-    implementation libs.bundles.logging
-    implementation libs.nva.json
+    implementation nvaCatalog.jackson.annotations
+    implementation nvaCatalog.jackson.core
+    implementation nvaCatalog.jackson.databind
+    implementation nvaCatalog.jackson.dataformat.xml
+    implementation nvaCatalog.jackson.datatype.jdk8
+    implementation nvaCatalog.jackson.datatype.jsr310
+    implementation nvaCatalog.jackson.datatype.problem
+    implementation nvaCatalog.jackson.module.parameter.names
+    implementation nvaCatalog.log4j.core
+    implementation nvaCatalog.log4j.api
+    implementation nvaCatalog.slf4j.api
+    implementation nvaLibs.json
 
-    implementation libs.nva.events
-    implementation libs.bundles.aws.lambda
+    implementation nvaLibs.eventhandlers
+    implementation nvaCatalog.aws.lambda.core
+    implementation nvaCatalog.aws.lambda.events
+    implementation nvaCatalog.zalando
 
-    testImplementation libs.dynamoDbLocal
+    testImplementation nvaCatalog.aws.dynamodb.local
     testImplementation project(':user-access-testing')
 
 }

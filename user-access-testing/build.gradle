@@ -1,16 +1,30 @@
+configurations.implementation {
+    exclude group: 'org.hamcrest', module: 'hamcrest-core'
+}
+
 dependencies {
     implementation project(':user-access-service')
     implementation project(':user-access-commons')
     implementation project(':user-access-public-model')
 
-    implementation libs.aws.java.sdk2.cognitoidp
-    implementation libs.nva.core
-    implementation libs.nva.apigateway
-    implementation libs.bundles.aws.lambda
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.dynamoDbLocal
-    implementation(libs.bundles.testing) {
-        exclude group: 'org.hamcrest', module: 'hamcrest-core'
-    }
+    implementation 'software.amazon.awssdk:cognitoidentityprovider'
+    implementation nvaLibs.core
+    implementation nvaLibs.apigateway
+    implementation nvaCatalog.aws.lambda.core
+    implementation nvaCatalog.aws.lambda.events
+    implementation nvaCatalog.zalando
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation nvaCatalog.aws.dynamodb.local
+    implementation nvaCatalog.junit.jupiter.engine
+    implementation nvaCatalog.junit.jupiter.api
+    implementation nvaCatalog.junit.jupiter.params
+    implementation nvaCatalog.mockito.core
+    implementation nvaCatalog.javers
+    implementation nvaCatalog.hamcrest
+    implementation nvaCatalog.datafaker
+    implementation nvaLibs.testutils
+    implementation nvaLibs.logutils
+    implementation nvaCatalog.wiremock
+    implementation nvaCatalog.wiremock.junit5
 
 }

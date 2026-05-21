@@ -8,28 +8,36 @@ dependencies {
     implementation project(":user-access-public-model")
     implementation project(":user-creation")
 
-    implementation libs.nva.apigateway
-    implementation libs.aws.java.sdk2.cognitoidp
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.lambda.java.core
-    implementation libs.bundles.jackson
-    implementation libs.bundles.logging
-    implementation libs.nva.core
-    implementation libs.nva.secrets
-    implementation libs.nva.auth
-    implementation libs.nva.json
-    implementation libs.aws.lambda.events
-    implementation libs.zalando.problem
+    implementation nvaLibs.apigateway
+    implementation 'software.amazon.awssdk:cognitoidentityprovider'
+    implementation 'software.amazon.awssdk:url-connection-client'
+    implementation nvaCatalog.aws.lambda.core
+    implementation nvaCatalog.jackson.annotations
+    implementation nvaCatalog.jackson.core
+    implementation nvaCatalog.jackson.databind
+    implementation nvaCatalog.jackson.dataformat.xml
+    implementation nvaCatalog.jackson.datatype.jdk8
+    implementation nvaCatalog.jackson.datatype.jsr310
+    implementation nvaCatalog.jackson.datatype.problem
+    implementation nvaCatalog.jackson.module.parameter.names
+    implementation nvaCatalog.log4j.core
+    implementation nvaCatalog.log4j.api
+    implementation nvaCatalog.slf4j.api
+    implementation nvaLibs.core
+    implementation nvaLibs.secrets
+    implementation nvaLibs.auth
+    implementation nvaLibs.json
+    implementation nvaCatalog.aws.lambda.events
+    implementation nvaCatalog.zalando
 
 
-    implementation libs.aws.sdk2.dynamodbenhanced
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.sdk2.secrets
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation 'software.amazon.awssdk:secretsmanager'
 
-    testImplementation libs.guava
-    testImplementation libs.nva.events
-    testImplementation libs.nva.json
+    testImplementation nvaCatalog.guava
+    testImplementation nvaLibs.eventhandlers
+    testImplementation nvaLibs.json
     testImplementation project(":user-access-internal-model")
     testImplementation project(":customer-testing")
     testImplementation project (":user-creation-testing")

@@ -12,6 +12,7 @@ dependencies {
     implementation nvaLibs.json
     implementation nvaCatalog.aws.lambda.core
     implementation nvaCatalog.aws.lambda.events
+    implementation nvaCatalog.httpclient5
     implementation nvaCatalog.zalando
     implementation nvaCatalog.log4j.core
     implementation nvaCatalog.log4j.api
@@ -21,7 +22,6 @@ dependencies {
     implementation 'software.amazon.awssdk:eventbridge'
     implementation 'software.amazon.awssdk:http-client-spi'
     implementation 'software.amazon.awssdk:sdk-core'
-    implementation nvaCatalog.guava
     implementation nvaCatalog.jackson.annotations
     implementation nvaCatalog.jackson.core
     implementation nvaCatalog.jackson.databind

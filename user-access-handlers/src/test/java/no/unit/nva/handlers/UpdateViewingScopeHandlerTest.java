@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Map;
 
-import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
+import static org.apache.hc.core5.http.HttpHeaders.CONTENT_TYPE;
 import static no.unit.nva.RandomUserDataGenerator.randomViewingScope;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.handlers.HandlerAccessingUser.USERNAME_PATH_PARAMETER;

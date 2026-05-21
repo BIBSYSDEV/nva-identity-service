@@ -42,7 +42,6 @@ dependencies {
     implementation 'software.amazon.awssdk:regions'
 
     testImplementation nvaCatalog.httpcore5
-    testImplementation nvaCatalog.guava
     testImplementation 'software.amazon.awssdk:dynamodb-enhanced'
     testImplementation project(':user-access-testing')
     testImplementation project(':customer-testing')

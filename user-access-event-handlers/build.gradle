@@ -21,7 +21,6 @@ dependencies {
     implementation nvaLibs.eventhandlers
     implementation nvaLibs.apigateway
     implementation nvaLibs.core
-    implementation nvaCatalog.jackson.annotations
     implementation nvaCatalog.jackson.core
     implementation nvaCatalog.jackson.databind
     implementation nvaCatalog.jackson.dataformat.xml
@@ -30,7 +29,6 @@ dependencies {
     implementation nvaCatalog.jackson.datatype.problem
     implementation nvaCatalog.jackson.module.parameter.names
     implementation nvaLibs.secrets
-    implementation nvaCatalog.guava
     implementation nvaCatalog.log4j.core
     implementation nvaCatalog.log4j.api
     implementation nvaCatalog.slf4j.api

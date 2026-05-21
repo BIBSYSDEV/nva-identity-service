@@ -4,12 +4,10 @@ plugins {
 
 dependencies {
 
-    implementation project (":json-config")
     implementation nvaLibs.core
 
     implementation nvaLibs.apigateway
 
-    implementation nvaCatalog.jackson.annotations
     implementation nvaCatalog.jackson.core
     implementation nvaCatalog.jackson.databind
     implementation nvaCatalog.jackson.dataformat.xml
@@ -18,8 +16,7 @@ dependencies {
     implementation nvaCatalog.jackson.datatype.problem
     implementation nvaCatalog.jackson.module.parameter.names
 
-    testImplementation nvaCatalog.httpclient5
-    testImplementation project(":user-access-testing")
+    testImplementation nvaCatalog.httpcore5
 }
 
 test{

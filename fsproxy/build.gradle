@@ -14,7 +14,6 @@ dependencies {
     implementation nvaCatalog.jackson.datatype.jsr310
     implementation nvaCatalog.jackson.datatype.problem
     implementation nvaCatalog.jackson.module.parameter.names
-    implementation nvaLibs.apigateway
     implementation nvaCatalog.log4j.core
     implementation nvaCatalog.log4j.api
     implementation nvaCatalog.slf4j.api

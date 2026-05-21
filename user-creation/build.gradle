@@ -3,8 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation project(":json-config")
-    implementation project(":dynamo-client")
     implementation project (":customer-commons")
     implementation project (":user-access-commons")
     implementation project (":user-access-service")
@@ -13,12 +11,9 @@ dependencies {
     implementation nvaLibs.apigateway
     implementation nvaLibs.core
     implementation nvaLibs.secrets
-    implementation nvaLibs.auth
     implementation nvaLibs.json
 
-    implementation 'software.amazon.awssdk:cognitoidentityprovider'
     implementation 'software.amazon.awssdk:url-connection-client'
-    implementation nvaCatalog.aws.lambda.core
     implementation nvaCatalog.jackson.annotations
     implementation nvaCatalog.jackson.core
     implementation nvaCatalog.jackson.databind
@@ -30,19 +25,14 @@ dependencies {
     implementation nvaCatalog.log4j.core
     implementation nvaCatalog.log4j.api
     implementation nvaCatalog.slf4j.api
-    implementation nvaCatalog.aws.lambda.events
     implementation nvaCatalog.zalando
 
 
-    implementation 'software.amazon.awssdk:dynamodb-enhanced'
     implementation 'software.amazon.awssdk:dynamodb'
     implementation 'software.amazon.awssdk:secretsmanager'
 
 
-    testImplementation nvaCatalog.guava
-    testImplementation nvaLibs.eventhandlers
-
-    testImplementation project (":user-access-internal-model")
+    testImplementation 'software.amazon.awssdk:dynamodb-enhanced'
     testImplementation project (":user-creation-testing")
     testImplementation project (":customer-testing")
     testImplementation project(':user-access-testing')

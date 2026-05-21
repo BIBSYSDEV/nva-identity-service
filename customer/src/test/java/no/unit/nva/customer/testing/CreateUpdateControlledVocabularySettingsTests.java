@@ -2,7 +2,7 @@ package no.unit.nva.customer.testing;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.net.HttpHeaders;
+import org.apache.hc.core5.http.HttpHeaders;
 import nva.commons.apigateway.MediaType;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.get.GetControlledVocabularyHandler;

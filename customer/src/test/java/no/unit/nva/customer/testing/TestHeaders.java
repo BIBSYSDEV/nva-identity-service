@@ -4,18 +4,17 @@ import nva.commons.core.JacocoGenerated;
 
 import java.util.Map;
 
-import static com.google.common.net.HttpHeaders.ACCEPT;
-import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
-import static com.google.common.net.HttpHeaders.STRICT_TRANSPORT_SECURITY;
-import static com.google.common.net.HttpHeaders.VARY;
-import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
+import static org.apache.hc.core5.http.HttpHeaders.ACCEPT;
+import static org.apache.hc.core5.http.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static org.apache.hc.core5.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.hc.core5.http.HttpHeaders.VARY;
 import static nva.commons.apigateway.MediaType.JSON_UTF_8;
 
-@JacocoGenerated
 public class TestHeaders {
 
-    public static String WILDCARD = "*";
+    private static final String WILDCARD = "*";
+    private static final String STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security";
+    private static final String X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options";
 
     /**
      * Request headers for testing.

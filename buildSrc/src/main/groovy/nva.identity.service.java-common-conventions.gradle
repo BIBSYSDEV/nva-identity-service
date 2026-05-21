@@ -1,11 +1,15 @@
 plugins {
-    id 'java'
-    id 'pmd'
-    id 'jacoco-report-aggregation'
+    id 'nva.java-conventions'
 }
 
-
-group = 'com.github.bibsysdev'
+nva {
+    pmd {
+        rulesetFile = rootProject.file('config/pmd/ruleset.xml')
+    }
+    spotless {
+        enabled = false
+    }
+}
 
 dependencies {
     implementation(platform("software.amazon.awssdk:bom:${nvaCatalog.versions.aws.sdk2.asProvider().get()}"))
@@ -22,55 +26,4 @@ dependencies {
     testImplementation nvaCatalog.wiremock.junit5
     testRuntimeOnly nvaCatalog.junit.platform.launcher
 
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_21 // source-code version and must be <= targetCompatibility
-    targetCompatibility = JavaVersion.VERSION_21 // bytecode target version
-}
-
-repositories {
-    mavenCentral()
-    maven { url = 'https://jitpack.io' }
-}
-
-tasks.named('test') {
-    useJUnitPlatform {
-        excludeTags("RemoteTest")
-    }
-    failFast = true
-    testLogging {
-        events = [ 'skipped', 'passed', 'failed' ]
-    }
-}
-
-pmd {
-    toolVersion = "7.23.0"
-    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
-    ruleSets = []
-    ignoreFailures = false
-}
-
-check.dependsOn jacocoTestCoverageVerification
-jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
-
-jacocoTestCoverageVerification {
-
-    violationRules {
-        rule {
-            limit {
-                counter = 'METHOD'
-                value = 'COVEREDRATIO'
-                minimum = 1.000
-            }
-        }
-
-        rule {
-            limit {
-                counter = 'CLASS'
-                value = 'COVEREDRATIO'
-                minimum = 1.000
-            }
-        }
-    }
 }

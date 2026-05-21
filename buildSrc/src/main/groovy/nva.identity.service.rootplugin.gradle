@@ -14,7 +14,3 @@ nva {
         enabled = false
     }
 }
-
-subprojects{
-    apply plugin: 'nva.identity.service.java-common-conventions'
-}

@@ -1,3 +1,7 @@
+plugins {
+    id 'nva.identity.service.java-common-conventions'
+}
+
 dependencies {
 
 

@@ -124,7 +124,8 @@ import nva.commons.core.Environment;
 import nva.commons.core.SingletonCollector;
 import nva.commons.core.attempt.Try;
 import nva.commons.core.paths.UriWrapper;
-import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.LogRecorder;
+import org.assertj.core.api.Assertions;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -335,10 +336,11 @@ class UserSelectionUponLoginHandlerTest {
             new SecretsReader(secretsManagerClient));
         handler = new UserSelectionUponLoginHandler(cognitoClient, customerService, identityService, personRegistry,
                                                     termsAndConditionsService);
-        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
         assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
-        assertThat(testAppender.getMessages(),
-                   containsString(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE.getErrorCodeString()));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains(
+                IdentityServiceErrorCodes.SERVICE_UNAVAILABLE.getErrorCodeString()));
     }
 
     @ParameterizedTest(name = "Login event type: {0}")
@@ -349,9 +351,10 @@ class UserSelectionUponLoginHandlerTest {
         var personLoggingIn = scenarios.failingPersonRegistryRequestBadJson().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
 
-        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
         assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
-        assertThat(testAppender.getMessages(), containsString("Got unexpected response body from Cristin"));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains("Got unexpected response body from Cristin"));
     }
 
     // TODO: is it possible to not have an active employment and be able to login through FEIDE and what should
@@ -373,15 +376,19 @@ class UserSelectionUponLoginHandlerTest {
     void shouldLogUserAttributesIfNinExtractFails() {
         var personLoggingIn = scenarios.personWithoutNin();
         var event = newLoginEvent(personLoggingIn.nin(), NON_FEIDE);
-        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
 
         assertThrows(IdentityServiceMissingNinException.class, () -> handler.handleRequest(event, context));
 
-        assertThat(testAppender.getMessages(), containsString("Could not extract required data from request"));
-        assertThat(testAppender.getMessages(), containsString(
-            "User name: null, userPoolId: null, input request: CognitoUserPoolPreTokenGenerationEventV2.Request"
-            + "(super=CognitoUserPoolEvent.Request(userAttributes={SOME=VALUE}), scopes=null, "
-            + "groupConfiguration=null, clientMetadata=null"));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains("Could not extract required data from request"))
+            .anySatisfy(message -> Assertions.assertThat(message)
+                .contains("User name: null",
+                          "userPoolId: null",
+                          "userAttributes={SOME=VALUE}",
+                          "scopes=null",
+                          "groupConfiguration=null",
+                          "clientMetadata=null"));
     }
 
     @Test
@@ -399,13 +406,14 @@ class UserSelectionUponLoginHandlerTest {
     @DisplayName("should not create user for the person's institution if the institution is an inactive customer")
     @EnumSource(LoginEventType.class)
     void shouldNotCreateUsersWithNoCustomerWhenCustomerHasSetInactiveFromDateToThePast(LoginEventType loginEventType) {
-        final var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
         var personLoggingIn = scenarios.personWithExactlyInCustomerWithInactiveFromSetInThePast().nin();
         var event = newLoginEvent(personLoggingIn, loginEventType);
         handler.handleRequest(event, context);
         var allUsers = scanAllUsers();
         assertThat(allUsers, is(empty()));
-        assertThat(testAppender.getMessages(), containsString("Customer is inactive"));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains("Customer is inactive"));
     }
 
     @ParameterizedTest(name = "should not create user for institutions (top orgs) that the user has only inactive "
@@ -1541,9 +1549,10 @@ class UserSelectionUponLoginHandlerTest {
 
         var event = feideLoginWithImpersonation(randomString(), notAdmin, otherPerson);
 
-        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
         assertThrows(Exception.class, () -> handler.handleRequest(event, context));
-        assertThat(testAppender.getMessages(), containsString(USER_NOT_ALLOWED_TO_IMPERSONATE));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains(USER_NOT_ALLOWED_TO_IMPERSONATE));
     }
 
     @Test

@@ -19,9 +19,10 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.SingletonCollector;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
-import org.hamcrest.core.StringContains;
+import nva.commons.logutils.LogRecorder;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -485,11 +486,11 @@ class IdentityServiceTest extends LocalIdentityService {
 
     @Test
     void getRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
-        TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
+        var logRecorder = LogRecorder.forClass(RoleService.class);
         RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.randomRoleName());
         attempt(() -> databaseService.getRole(nonExistingRole));
-        assertThat(testAppender.getMessages(),
-            StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains(ROLE_NOT_FOUND_MESSAGE));
     }
 
     @Test

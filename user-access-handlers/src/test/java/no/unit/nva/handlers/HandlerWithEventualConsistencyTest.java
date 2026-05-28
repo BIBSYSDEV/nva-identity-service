@@ -4,7 +4,10 @@ import com.amazonaws.services.lambda.runtime.Context;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
-import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.LogRecorder;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -62,7 +65,7 @@ class HandlerWithEventualConsistencyTest {
 
     @Test
     void errorsShouldBeLogged() {
-        var testingAppender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(HandlerWithEventualConsistencyTest.class);
 
         var counter = new AtomicInteger();
         Callable callable = () -> {
@@ -77,7 +80,8 @@ class HandlerWithEventualConsistencyTest {
 
         var expectedLogValue = String.format(FAILED_TO_FETCH_OBJECT, 0, MAX_EFFORTS_FOR_FETCHING_OBJECT);
 
-        assertThat(testingAppender.getMessages(), containsString(expectedLogValue));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains(expectedLogValue));
     }
 
 }

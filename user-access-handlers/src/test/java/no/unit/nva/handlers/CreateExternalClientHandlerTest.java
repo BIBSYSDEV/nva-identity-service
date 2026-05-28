@@ -12,8 +12,8 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.RequestInfoConstants;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
-import nva.commons.logutils.LogUtils;
-import org.hamcrest.Matchers;
+import nva.commons.logutils.LogRecorder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -358,9 +358,10 @@ public class CreateExternalClientHandlerTest extends HandlerTest {
             .thenThrow(SdkClientException.create(exceptionMsg));
 
         var request = createRequestForScopes(List.of());
-        var testAppender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(CreateExternalClientHandlerTest.class);
         sendRequest(createBackendRequest(request), CreateExternalClientResponse.class);
-        assertThat(testAppender.getMessages(), Matchers.containsString(exceptionMsg));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains(exceptionMsg));
     }
 
     private CreateExternalClientRequest createRequestForScopes(List<String> scopes) {

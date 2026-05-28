@@ -20,7 +20,8 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
-import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.LogRecorder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -125,13 +126,14 @@ class IdentityServiceInitHandlerTest {
 
     @Test
     void shouldLogWarningWhenRoleCreationFails() throws IOException {
-        var logger = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(IdentityServiceInitHandlerTest.class);
         var role = invalidRole();
         RoleSource roleSourceContainingIllegalRoleName = () -> List.of(role);
         var handler = new IdentityServiceInitHandler(identityService, customerService,
                                                      roleSourceContainingIllegalRoleName, new Environment());
         handler.handleRequest(createRequest(), output, context);
-        assertThat(logger.getMessages(), containsString(MISSING_ROLE_NAME_ERROR));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains(MISSING_ROLE_NAME_ERROR));
     }
 
     private RoleDto invalidRole() {

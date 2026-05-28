@@ -20,7 +20,8 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.Iden
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.LogRecorder;
+import org.assertj.core.api.Assertions;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,7 +97,7 @@ class CristinPersonRegistryTest {
 
     @Test
     void shouldThrowExceptionIfCristinIsUnavailable(WireMockRuntimeInfo wireMockRuntimeInfo) {
-        var appender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
         var httpClient = WiremockHttpClient.create();
         var uriWhereCristinIsUnavailable
             = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
@@ -112,7 +113,8 @@ class CristinPersonRegistryTest {
         var exception = assertThrows(IdentityServiceUnavailableException.class, 
                 () -> personRegistry.fetchPersonByNin(nin));
         assertThat(exception.getMessage(), not(containsString(nin.toString())));
-        assertThat(appender.getMessages(), not(containsString(nin.toString())));
+        Assertions.assertThat(logRecorder.messages())
+            .noneMatch(message -> message.contains(nin.toString()));
     }
 
     @Test
@@ -149,25 +151,27 @@ class CristinPersonRegistryTest {
 
     @Test
     void shouldThrowExceptionIfCristinRespondsWithNonOkStatusCode() {
-        var appender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
         var personNin = scenarios.failingPersonRegistryRequestBadGateway().nin();
         var nin = NationalIdentityNumber.fromString(personNin);
 
         assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
         var expectedMaskedNin = "XXXXXXXXX" + personNin.substring(personNin.length() - 2);
-        assertThat(appender.getMessages(), containsString(expectedMaskedNin));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains(expectedMaskedNin));
     }
 
     @Test
     void shouldMaskNationalIdentityNumberInLog() {
-        var appender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
         var personNin = "12345678901";
         var nin = NationalIdentityNumber.fromString(personNin);
-        
+
         mockPersonRegistry.setupServerErrorForNin(personNin);
 
         assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
-        assertThat(appender.getMessages(), containsString("XXXXXXXXX01"));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains("XXXXXXXXX01"));
     }
 
     @Test

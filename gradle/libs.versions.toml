@@ -1,5 +1,7 @@
 [versions]
 
 [libraries]
+aws-sdk2-cognitoidentityprovider = { group = 'software.amazon.awssdk', name = 'cognitoidentityprovider' }
+aws-sdk2-third-party-jackson-core = { group = 'software.amazon.awssdk', name = 'third-party-jackson-core' }
 
 [bundles]

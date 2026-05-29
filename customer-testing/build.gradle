@@ -3,17 +3,18 @@ plugins {
 }
 
 dependencies {
-    implementation project (":customer-commons")
-    implementation nvaCatalog.aws.dynamodb.local
-    implementation nvaLibs.core
-    implementation 'software.amazon.awssdk:dynamodb'
-    implementation nvaCatalog.junit.jupiter.engine
-    implementation nvaCatalog.junit.jupiter.api
-    implementation nvaCatalog.hamcrest
-    implementation nvaCatalog.datafaker
-    implementation nvaLibs.testutils
-    implementation nvaCatalog.wiremock
-    runtimeOnly nvaCatalog.jackson.core
-    runtimeOnly nvaCatalog.jackson.databind
-    runtimeOnly nvaCatalog.jackson.datatype.jsr310
+    api(nvaCatalog.aws.sdk2.dynamo)
+    api(nvaCatalog.junit.jupiter.api)
+    api(project(":customer-commons"))
+    implementation(nvaCatalog.aws.dynamodb.local)
+    implementation(nvaCatalog.hamcrest)
+    implementation(nvaLibs.core)
+    implementation(nvaLibs.testutils)
+    runtimeOnly(nvaCatalog.datafaker)
+    runtimeOnly(nvaCatalog.jackson.core)
+    runtimeOnly(nvaCatalog.jackson.databind)
+    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
+    runtimeOnly(nvaCatalog.junit.jupiter.engine)
+    runtimeOnly(nvaCatalog.junit.platform.launcher)
+    runtimeOnly(nvaCatalog.wiremock)
 }

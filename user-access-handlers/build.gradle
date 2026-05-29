@@ -3,52 +3,59 @@ plugins {
 }
 
 dependencies {
-
-    implementation project(':user-access-commons')
-    implementation project(':user-access-public-model')
-    implementation project(':user-access-service')
-    implementation project(':user-creation')
-    implementation project(':customer-commons')
-    implementation project(':json-config')
-    implementation project(':user-creation')
-
-    implementation 'software.amazon.awssdk:cognitoidentityprovider'
-    implementation 'software.amazon.awssdk:url-connection-client'
-    implementation nvaLibs.apigateway
-    implementation nvaLibs.core
-    implementation nvaLibs.secrets
-    implementation nvaCatalog.aws.lambda.core
-    implementation nvaCatalog.zalando
-    implementation nvaCatalog.jackson.annotations
-    implementation nvaCatalog.jackson.core
-    implementation nvaCatalog.jackson.databind
-    implementation nvaCatalog.jackson.dataformat.xml
-    implementation nvaCatalog.jackson.datatype.jdk8
-    implementation nvaCatalog.jackson.datatype.jsr310
-    implementation nvaCatalog.jackson.datatype.problem
-    implementation nvaCatalog.jackson.module.parameter.names
-    implementation nvaCatalog.log4j.core
-    implementation nvaCatalog.log4j.api
-    implementation nvaCatalog.slf4j.api
-    implementation nvaLibs.json
-
-
-    implementation 'software.amazon.awssdk:secretsmanager'
-    implementation 'software.amazon.awssdk:dynamodb'
-    implementation 'software.amazon.awssdk:auth'
-    implementation 'software.amazon.awssdk:aws-core'
-    implementation 'software.amazon.awssdk:http-client-spi'
-    implementation 'software.amazon.awssdk:sdk-core'
-    implementation 'software.amazon.awssdk:regions'
-
-    testImplementation nvaCatalog.httpcore5
-    testImplementation 'software.amazon.awssdk:dynamodb-enhanced'
-    testImplementation project(':user-access-testing')
-    testImplementation project(':customer-testing')
-    testImplementation project(':user-creation-testing')
+    api(libs.aws.sdk2.cognitoidentityprovider)
+    api(nvaCatalog.aws.lambda.core)
+    api(nvaCatalog.aws.sdk2.regions)
+    api(nvaCatalog.jackson.annotations)
+    api(nvaCatalog.jackson.databind)
+    api(nvaLibs.apigateway)
+    api(nvaLibs.core)
+    api(project(':customer-commons'))
+    api(project(':user-access-commons'))
+    api(project(':user-access-public-model'))
+    api(project(':user-access-service'))
+    api(project(':user-creation'))
+    implementation(nvaCatalog.aws.sdk2.auth)
+    implementation(nvaCatalog.aws.sdk2.aws.core)
+    implementation(nvaCatalog.aws.sdk2.http.client)
+    implementation(nvaCatalog.aws.sdk2.sdk.core)
+    implementation(nvaCatalog.aws.sdk2.urlconnection)
+    implementation(nvaCatalog.jackson.core)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
+    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
+    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
+    runtimeOnly(nvaCatalog.jackson.datatype.problem)
+    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
+    runtimeOnly(nvaCatalog.log4j.api)
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.aws.sdk2.dynamo)
+    testImplementation(nvaCatalog.aws.sdk2.secrets)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.httpcore5)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaCatalog.log4j.api)
+    testImplementation(nvaCatalog.log4j.core)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaCatalog.wiremock.junit5)
+    testImplementation(nvaCatalog.zalando)
+    testImplementation(nvaLibs.json)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.secrets)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(':customer-testing'))
+    testImplementation(project(':json-config'))
+    testImplementation(project(':user-access-testing'))
+    testImplementation(project(':user-creation-testing'))
+    testRuntimeOnly(nvaCatalog.datafaker)
+    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
+    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
+    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
-test{
+test {
     environment "TERMS_TABLE_NAME", "TermsTable"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "API_KEY_SECRET_NAME", "ApiKeySecretName"

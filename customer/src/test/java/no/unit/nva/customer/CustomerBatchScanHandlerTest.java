@@ -11,7 +11,8 @@ import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.stubs.FakeContext;
 import nva.commons.core.attempt.Try;
-import nva.commons.logutils.LogUtils;
+import nva.commons.logutils.LogRecorder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,6 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 
 public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
 
@@ -63,11 +63,12 @@ public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
             .map(CustomerDao::fromCustomerDto)
             .toList();
 
-        final var logAppender = LogUtils.getTestingAppender(CustomerBatchScanHandler.class);
+        var logRecorder = LogRecorder.forClass(CustomerBatchScanHandler.class);
         handler.handleRequest(input, context);
 
         existingCustomers.forEach(customerDao -> {
-            assertThat(logAppender.getMessages(), containsString(customerDao.getIdentifier().toString()));
+            Assertions.assertThat(logRecorder.messages())
+                .anyMatch(message -> message.contains(customerDao.getIdentifier().toString()));
         });
     }
 

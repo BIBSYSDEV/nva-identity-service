@@ -3,36 +3,31 @@ plugins {
 }
 
 dependencies {
-
-
-    implementation project (":customer-commons")
-    implementation project (":user-access-commons")
-    implementation project (":user-access-service")
-    implementation project (":user-access-public-model")
-    implementation project(":user-creation")
-
-    implementation nvaLibs.apigateway
-    implementation nvaLibs.core
-    implementation nvaLibs.json
-
-    implementation 'software.amazon.awssdk:url-connection-client'
-    implementation nvaCatalog.jackson.core
-    implementation nvaCatalog.jackson.databind
-    implementation nvaCatalog.jackson.dataformat.xml
-    implementation nvaCatalog.jackson.datatype.jdk8
-    implementation nvaCatalog.jackson.datatype.jsr310
-    implementation nvaCatalog.jackson.datatype.problem
-    implementation nvaCatalog.jackson.module.parameter.names
-
-
-    implementation nvaCatalog.junit.jupiter.engine
-    implementation nvaCatalog.wiremock
-    implementation nvaCatalog.wiremock.core
-    implementation nvaLibs.testutils
+    api(nvaLibs.apigateway)
+    api(project(":customer-commons"))
+    api(project(":user-access-commons"))
+    api(project(":user-access-public-model"))
+    api(project(":user-access-service"))
+    api(project(":user-creation"))
+    implementation(nvaCatalog.jackson.databind)
+    implementation(nvaCatalog.wiremock.core)
+    implementation(nvaLibs.core)
+    implementation(nvaLibs.json)
+    implementation(nvaLibs.testutils)
+    runtimeOnly(nvaCatalog.aws.sdk2.urlconnection)
+    runtimeOnly(nvaCatalog.datafaker)
+    runtimeOnly(nvaCatalog.jackson.core)
+    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
+    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
+    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
+    runtimeOnly(nvaCatalog.jackson.datatype.problem)
+    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
+    runtimeOnly(nvaCatalog.junit.jupiter.engine)
+    runtimeOnly(nvaCatalog.wiremock)
+    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
 }
 
-test{
-
+test {
     environment "COGNITO_HOST", "example.com"
     environment "AWS_REGION", "eu-west-1"
     environment "API_DOMAIN", "localhost"

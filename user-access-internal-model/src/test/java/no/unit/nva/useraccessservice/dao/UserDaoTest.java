@@ -36,9 +36,8 @@ import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.attempt.Try;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
-import org.hamcrest.core.StringContains;
+import nva.commons.logutils.LogRecorder;
+import org.assertj.core.api.Assertions;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
@@ -254,7 +253,7 @@ class UserDaoTest {
     @Test
     void roleValidationMethodLogsError()
         throws InvalidEntryInternalException {
-        TestAppender appender = LogUtils.getTestingAppender(UserDao.class);
+        var logRecorder = LogRecorder.forClass(UserDao.class);
         RoleDto invalidRole = RoleDto.newBuilder().withRoleName(randomRoleName()).build();
         invalidRole.setRoleName(null);
 
@@ -264,7 +263,8 @@ class UserDaoTest {
         Executable action = () -> UserDao.fromUserDto(userWithInvalidRole);
         assertThrows(RuntimeException.class, action);
 
-        assertThat(appender.getMessages(), StringContains.containsString(ERROR_DUE_TO_INVALID_ROLE));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains(ERROR_DUE_TO_INVALID_ROLE));
     }
 
     @Test

@@ -3,8 +3,8 @@ package no.unit.nva.useraccess.events.service;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.useraccessservice.model.UserDto;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
+import nva.commons.logutils.LogRecorder;
+import org.assertj.core.api.Assertions;
 import nva.commons.secrets.SecretsReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,6 @@ import static no.unit.nva.useraccessservice.model.ViewingScope.defaultViewingSco
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -74,13 +73,14 @@ class UserMigrationServiceTest {
 
     @Test
     void shouldLogMessageWhenCustomerIdentifierIsNotValidUuid() {
-        final TestAppender appender = LogUtils.getTestingAppenderForRootLogger();
+        var logRecorder = LogRecorder.forRoot(UserMigrationServiceTest.class);
         var user = createSampleUserWithInvalidCustomerId();
         var customerIdExpectedInLogMessage = user.getInstitution().toString();
         var usernameExpectedInLogMessage = user.getUsername();
         assertDoesNotThrow(() -> userMigrationService.migrateUser(user, RESET_VIEWING_SCOPE_ACTION));
-        assertThat(appender.getMessages(), containsString(customerIdExpectedInLogMessage));
-        assertThat(appender.getMessages(), containsString(usernameExpectedInLogMessage));
+        Assertions.assertThat(logRecorder.messages())
+            .anyMatch(message -> message.contains(usernameExpectedInLogMessage))
+            .anyMatch(message -> message.contains(customerIdExpectedInLogMessage));
     }
 
     private UserDto createSampleUserWithInvalidCustomerId() {

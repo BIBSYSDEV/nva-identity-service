@@ -3,22 +3,30 @@ plugins {
 }
 
 dependencies {
-    implementation project (':json-config')
-    implementation nvaLibs.core
-    implementation nvaLibs.apigateway
-    implementation nvaLibs.json
-    implementation nvaCatalog.jackson.annotations
-    implementation nvaCatalog.jackson.core
-    implementation nvaCatalog.jackson.databind
-    implementation nvaCatalog.jackson.dataformat.xml
-    implementation nvaCatalog.jackson.datatype.jdk8
-    implementation nvaCatalog.jackson.datatype.jsr310
-    implementation nvaCatalog.jackson.datatype.problem
-    implementation nvaCatalog.jackson.module.parameter.names
-
-    compileOnly project(":user-access-commons")
-    testImplementation project(":user-access-commons")
-    testImplementation project(":user-access-testing")
+    api(nvaCatalog.jackson.annotations)
+    api(nvaCatalog.jackson.databind)
+    api(nvaLibs.apigateway)
+    api(nvaLibs.json)
+    compileOnly(project(":user-access-commons"))
+    implementation(nvaLibs.core)
+    implementation(project(':json-config'))
+    runtimeOnly(nvaCatalog.jackson.core)
+    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
+    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
+    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
+    runtimeOnly(nvaCatalog.jackson.datatype.problem)
+    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.jackson.core)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(":user-access-commons"))
+    testImplementation(project(":user-access-testing"))
+    testRuntimeOnly(nvaCatalog.datafaker)
+    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
+    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
+    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

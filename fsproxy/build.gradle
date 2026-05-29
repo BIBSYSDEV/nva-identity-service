@@ -3,22 +3,27 @@ plugins {
 }
 
 dependencies {
-
-    implementation nvaLibs.core
-    implementation nvaLibs.json
-    implementation nvaCatalog.jackson.annotations
-    implementation nvaCatalog.jackson.core
-    implementation nvaCatalog.jackson.databind
-    implementation nvaCatalog.jackson.dataformat.xml
-    implementation nvaCatalog.jackson.datatype.jdk8
-    implementation nvaCatalog.jackson.datatype.jsr310
-    implementation nvaCatalog.jackson.datatype.problem
-    implementation nvaCatalog.jackson.module.parameter.names
-    implementation nvaCatalog.log4j.core
-    implementation nvaCatalog.log4j.api
-    implementation nvaCatalog.slf4j.api
-
-    testImplementation nvaCatalog.wiremock.core
+    api(nvaCatalog.jackson.annotations)
+    api(nvaCatalog.jackson.core)
+    api(nvaLibs.json)
+    implementation(nvaCatalog.jackson.databind)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.core)
+    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
+    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
+    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
+    runtimeOnly(nvaCatalog.jackson.datatype.problem)
+    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
+    runtimeOnly(nvaCatalog.log4j.api)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.wiremock.core)
+    testImplementation(nvaLibs.testutils)
+    testRuntimeOnly(nvaCatalog.datafaker)
+    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
+    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
+    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

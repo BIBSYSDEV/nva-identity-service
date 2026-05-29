@@ -43,7 +43,7 @@ public abstract class HandlerWithEventualConsistency<I, O> extends ApiGatewayHan
         if (failure.getException() instanceof InvalidEntryInternalException) {
             logger.error(INVALID_ENTRY_IN_DATABASE, failure.getException());
         } else {
-            logger.debug(String.format(FAILED_TO_FETCH_OBJECT, counter, MAX_EFFORTS_FOR_FETCHING_OBJECT));
+            logger.error(String.format(FAILED_TO_FETCH_OBJECT, counter, MAX_EFFORTS_FOR_FETCHING_OBJECT));
         }
     }
 

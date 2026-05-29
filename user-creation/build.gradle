@@ -3,42 +3,45 @@ plugins {
 }
 
 dependencies {
-    implementation project (":customer-commons")
-    implementation project (":user-access-commons")
-    implementation project (":user-access-service")
-    implementation project (":user-access-public-model")
-
-    implementation nvaLibs.apigateway
-    implementation nvaLibs.core
-    implementation nvaLibs.secrets
-    implementation nvaLibs.json
-
-    implementation 'software.amazon.awssdk:url-connection-client'
-    implementation nvaCatalog.jackson.annotations
-    implementation nvaCatalog.jackson.core
-    implementation nvaCatalog.jackson.databind
-    implementation nvaCatalog.jackson.dataformat.xml
-    implementation nvaCatalog.jackson.datatype.jdk8
-    implementation nvaCatalog.jackson.datatype.jsr310
-    implementation nvaCatalog.jackson.datatype.problem
-    implementation nvaCatalog.jackson.module.parameter.names
-    implementation nvaCatalog.log4j.core
-    implementation nvaCatalog.log4j.api
-    implementation nvaCatalog.slf4j.api
-    implementation nvaCatalog.zalando
-
-
-    implementation 'software.amazon.awssdk:dynamodb'
-    implementation 'software.amazon.awssdk:secretsmanager'
-
-
-    testImplementation 'software.amazon.awssdk:dynamodb-enhanced'
-    testImplementation project (":user-creation-testing")
-    testImplementation project (":customer-testing")
-    testImplementation project(':user-access-testing')
+    api(nvaCatalog.jackson.annotations)
+    api(nvaCatalog.zalando)
+    api(nvaLibs.secrets)
+    api(project(":customer-commons"))
+    api(project(":user-access-public-model"))
+    api(project(":user-access-service"))
+    implementation(nvaCatalog.jackson.core)
+    implementation(nvaCatalog.jackson.databind)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.apigateway)
+    implementation(nvaLibs.core)
+    implementation(nvaLibs.json)
+    implementation(project(":user-access-commons"))
+    runtimeOnly(nvaCatalog.aws.sdk2.urlconnection)
+    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
+    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
+    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
+    runtimeOnly(nvaCatalog.jackson.datatype.problem)
+    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
+    runtimeOnly(nvaCatalog.log4j.api)
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.aws.sdk2.dynamo)
+    testImplementation(nvaCatalog.aws.sdk2.secrets)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.wiremock.junit5)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(":customer-testing"))
+    testImplementation(project(":user-creation-testing"))
+    testImplementation(project(':user-access-testing'))
+    testRuntimeOnly(nvaCatalog.datafaker)
+    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
+    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
+    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
-test{
+test {
     environment "API_DOMAIN", "localhost"
     environment "BASE_PATH", "users-roles"
     environment "COGNITO_HOST", "example.com"

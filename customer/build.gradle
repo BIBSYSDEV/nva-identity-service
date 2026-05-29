@@ -3,40 +3,47 @@ plugins {
 }
 
 dependencies {
-    implementation project(":customer-commons")
-    implementation project(":json-config")
-
-    implementation nvaLibs.apigateway
-    implementation nvaLibs.core
-    implementation nvaLibs.secrets
-    implementation nvaLibs.json
-    implementation nvaCatalog.aws.lambda.core
-    implementation nvaCatalog.aws.lambda.events
-    implementation nvaCatalog.httpclient5
-    implementation nvaCatalog.zalando
-    implementation nvaCatalog.log4j.core
-    implementation nvaCatalog.log4j.api
-    implementation nvaCatalog.slf4j.api
-    implementation 'software.amazon.awssdk:dynamodb'
-    implementation 'software.amazon.awssdk:dynamodb-enhanced'
-    implementation 'software.amazon.awssdk:eventbridge'
-    implementation 'software.amazon.awssdk:http-client-spi'
-    implementation 'software.amazon.awssdk:sdk-core'
-    implementation nvaCatalog.jackson.annotations
-    implementation nvaCatalog.jackson.core
-    implementation nvaCatalog.jackson.databind
-    implementation nvaCatalog.jackson.dataformat.xml
-    implementation nvaCatalog.jackson.datatype.jdk8
-    implementation nvaCatalog.jackson.datatype.jsr310
-    implementation nvaCatalog.jackson.datatype.problem
-    implementation nvaCatalog.jackson.module.parameter.names
-    testImplementation nvaCatalog.aws.dynamodb.local
-    testImplementation 'software.amazon.awssdk:aws-core'
-    testImplementation 'software.amazon.awssdk:http-client-spi'
-    testImplementation 'software.amazon.awssdk:sdk-core'
-    testImplementation nvaCatalog.httpcore4
-    testImplementation project(":customer-testing")
-
+    api(nvaCatalog.aws.lambda.core)
+    api(nvaCatalog.aws.lambda.events)
+    api(nvaCatalog.aws.sdk2.dynamo)
+    api(nvaCatalog.aws.sdk2.eventbridge)
+    api(nvaCatalog.jackson.annotations)
+    api(nvaCatalog.jackson.core)
+    api(nvaCatalog.jackson.databind)
+    api(nvaLibs.apigateway)
+    api(nvaLibs.core)
+    api(nvaLibs.secrets)
+    api(project(":customer-commons"))
+    implementation(nvaCatalog.aws.sdk2.dynamodbenhanced)
+    implementation(nvaCatalog.aws.sdk2.http.client)
+    implementation(nvaCatalog.aws.sdk2.sdk.core)
+    implementation(nvaCatalog.jackson.datatype.jdk8)
+    implementation(nvaCatalog.jackson.datatype.jsr310)
+    implementation(nvaCatalog.jackson.datatype.problem)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.json)
+    implementation(project(":json-config"))
+    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
+    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
+    runtimeOnly(nvaCatalog.log4j.api)
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.aws.sdk2.aws.core)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.httpcore4)
+    testImplementation(nvaCatalog.httpcore5)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaCatalog.zalando)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(":customer-testing"))
+    testRuntimeOnly(nvaCatalog.aws.dynamodb.local)
+    testRuntimeOnly(nvaCatalog.datafaker)
+    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
+    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
+    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

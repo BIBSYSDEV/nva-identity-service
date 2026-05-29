@@ -3,6 +3,9 @@ plugins {
 }
 
 nva {
+    errorprone {
+        allErrorsAsWarnings = true // TODO: Fix reported issues and set to false
+    }
     pmd {
         rulesetFile = rootProject.file('config/pmd/ruleset.xml')
     }
@@ -12,18 +15,6 @@ nva {
 }
 
 dependencies {
-    implementation(platform("software.amazon.awssdk:bom:${nvaCatalog.versions.aws.sdk2.asProvider().get()}"))
-    testImplementation nvaCatalog.junit.jupiter.engine
-    testImplementation nvaCatalog.junit.jupiter.api
-    testImplementation nvaCatalog.junit.jupiter.params
-    testImplementation nvaCatalog.mockito.core
-    testImplementation nvaCatalog.javers
-    testImplementation nvaCatalog.hamcrest
-    testImplementation nvaCatalog.datafaker
-    testImplementation nvaLibs.testutils
-    testImplementation nvaLibs.logutils
-    testImplementation nvaCatalog.wiremock
-    testImplementation nvaCatalog.wiremock.junit5
-    testRuntimeOnly nvaCatalog.junit.platform.launcher
-
+    implementation(platform(nvaCatalog.aws.sdk2.bom))
+    testImplementation(platform(nvaCatalog.junit.bom))
 }

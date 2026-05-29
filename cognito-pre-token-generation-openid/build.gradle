@@ -3,49 +3,56 @@ plugins {
 }
 
 dependencies {
-
-    implementation project(":dynamo-client")
-    implementation project(":customer-commons")
-    implementation project(":user-access-commons")
-    implementation project(":user-access-service")
-    implementation project(":user-access-public-model")
-    implementation project(":user-creation")
-
-    implementation nvaLibs.apigateway
-    implementation 'software.amazon.awssdk:cognitoidentityprovider'
-    implementation 'software.amazon.awssdk:url-connection-client'
-    implementation nvaCatalog.aws.lambda.core
-    implementation nvaCatalog.jackson.core
-    implementation nvaCatalog.jackson.databind
-    implementation nvaCatalog.jackson.dataformat.xml
-    implementation nvaCatalog.jackson.datatype.jdk8
-    implementation nvaCatalog.jackson.datatype.jsr310
-    implementation nvaCatalog.jackson.datatype.problem
-    implementation nvaCatalog.jackson.module.parameter.names
-    implementation nvaCatalog.log4j.core
-    implementation nvaCatalog.log4j.api
-    implementation nvaCatalog.slf4j.api
-    implementation nvaLibs.core
-    implementation nvaLibs.secrets
-    implementation nvaLibs.json
-    implementation nvaCatalog.aws.lambda.events
-
-
-    implementation 'software.amazon.awssdk:dynamodb'
-    implementation 'software.amazon.awssdk:secretsmanager'
-    implementation 'software.amazon.awssdk:auth'
-    implementation 'software.amazon.awssdk:aws-core'
-    implementation 'software.amazon.awssdk:http-client-spi'
-    implementation 'software.amazon.awssdk:sdk-core'
-    implementation 'software.amazon.awssdk:regions'
-
-    testImplementation 'software.amazon.awssdk:dynamodb-enhanced'
-    testImplementation nvaCatalog.wiremock.core
-    testImplementation nvaLibs.eventhandlers
-    testImplementation project(":user-access-internal-model")
-    testImplementation project(":customer-testing")
-    testImplementation project (":user-creation-testing")
-    testImplementation project (":user-access-testing")
+    api(libs.aws.sdk2.cognitoidentityprovider)
+    api(nvaCatalog.aws.lambda.core)
+    api(nvaCatalog.aws.lambda.events)
+    api(nvaCatalog.aws.sdk2.regions)
+    api(nvaLibs.apigateway)
+    api(nvaLibs.core)
+    api(project(":customer-commons"))
+    api(project(":user-access-public-model"))
+    api(project(":user-access-service"))
+    api(project(":user-creation"))
+    implementation(nvaCatalog.aws.sdk2.auth)
+    implementation(nvaCatalog.aws.sdk2.aws.core)
+    implementation(nvaCatalog.aws.sdk2.dynamo)
+    implementation(nvaCatalog.aws.sdk2.http.client)
+    implementation(nvaCatalog.aws.sdk2.sdk.core)
+    implementation(nvaCatalog.aws.sdk2.urlconnection)
+    implementation(nvaCatalog.jackson.databind)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.json)
+    implementation(project(":dynamo-client"))
+    implementation(project(":user-access-commons"))
+    runtimeOnly(nvaCatalog.jackson.core)
+    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
+    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
+    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
+    runtimeOnly(nvaCatalog.jackson.datatype.problem)
+    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
+    runtimeOnly(nvaCatalog.log4j.api)
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.aws.sdk2.secrets)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.jackson.core)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaCatalog.wiremock.core)
+    testImplementation(nvaCatalog.wiremock.junit5)
+    testImplementation(nvaLibs.eventhandlers)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.secrets)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(":customer-testing"))
+    testImplementation(project(":user-access-internal-model"))
+    testImplementation(project(":user-access-testing"))
+    testImplementation(project(":user-creation-testing"))
+    testRuntimeOnly(nvaCatalog.datafaker)
+    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
+    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
+    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

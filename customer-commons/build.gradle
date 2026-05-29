@@ -3,32 +3,43 @@ plugins {
 }
 
 dependencies {
-
-    implementation project(':dynamo-client')
-    implementation project (':json-config')
-    implementation nvaLibs.apigateway
-    implementation nvaLibs.core
-    implementation nvaLibs.json
-    implementation nvaCatalog.jackson.annotations
-    implementation nvaCatalog.jackson.core
-    implementation nvaCatalog.jackson.databind
-    implementation nvaCatalog.jackson.dataformat.xml
-    implementation nvaCatalog.jackson.datatype.jdk8
-    implementation nvaCatalog.jackson.datatype.jsr310
-    implementation nvaCatalog.jackson.datatype.problem
-    implementation nvaCatalog.jackson.module.parameter.names
-    implementation 'software.amazon.awssdk:dynamodb-enhanced'
-    implementation 'software.amazon.awssdk:dynamodb'
-    implementation 'software.amazon.awssdk:url-connection-client'
-    implementation 'software.amazon.awssdk:sdk-core'
-    implementation nvaCatalog.slf4j.api
-    testImplementation project (":customer-testing")
+    api(nvaCatalog.aws.sdk2.dynamo)
+    api(nvaCatalog.aws.sdk2.dynamodbenhanced)
+    api(nvaCatalog.jackson.annotations)
+    api(nvaLibs.apigateway)
+    api(nvaLibs.json)
+    implementation(nvaCatalog.aws.sdk2.sdk.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.core)
+    implementation(project(':dynamo-client'))
+    implementation(project(':json-config'))
+    runtimeOnly(nvaCatalog.aws.sdk2.urlconnection)
+    runtimeOnly(nvaCatalog.jackson.core)
+    runtimeOnly(nvaCatalog.jackson.databind)
+    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
+    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
+    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
+    runtimeOnly(nvaCatalog.jackson.datatype.problem)
+    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.jackson.core)
+    testImplementation(nvaCatalog.jackson.databind)
+    testImplementation(nvaCatalog.javers)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(":customer-testing"))
+    testRuntimeOnly(nvaCatalog.datafaker)
+    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
+    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
+    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 
-test{
+test {
     environment "API_DOMAIN", "localhost"
-    environment "CUSTOMERS_TABLE_NAME","nva_customers"
+    environment "CUSTOMERS_TABLE_NAME", "nva_customers"
     environment "ID_NAMESPACE", "https://localhost"
     environment "API_HOST", "host"
     environment "PUBLICATION_CHANNEL_PATH", "publication-channels-path"

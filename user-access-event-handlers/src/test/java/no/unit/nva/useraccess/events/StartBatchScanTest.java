@@ -1,7 +1,6 @@
 package no.unit.nva.useraccess.events;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import no.unit.nva.events.models.ScanDatabaseRequest;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.identityservice.json.JsonConfig;
 import no.unit.nva.stubs.FakeContext;
@@ -50,7 +49,7 @@ class StartBatchScanTest {
         batchScanner.handleRequest(emptyInput(), outputStream, CONTEXT);
         var emittedEventBody = extractEventBody();
         var expectedEmittedEventBody = new ScanDatabaseRequestV2(IDENTITY_SERVICE_BATCH_SCAN_EVENT_TOPIC,
-            ScanDatabaseRequest.DEFAULT_PAGE_SIZE,
+            ScanDatabaseRequestV2.DEFAULT_PAGE_SIZE,
             null);
         assertThat(emittedEventBody, is(equalTo(expectedEmittedEventBody)));
     }

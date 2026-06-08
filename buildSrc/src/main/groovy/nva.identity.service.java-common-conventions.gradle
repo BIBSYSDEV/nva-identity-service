@@ -10,7 +10,7 @@ nva {
         rulesetFile = rootProject.file('config/pmd/ruleset.xml')
     }
     spotless {
-        enabled = false
+        enabled = true
     }
 }
 

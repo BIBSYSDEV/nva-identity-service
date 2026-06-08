@@ -1,13 +1,5 @@
 package no.unit.nva.handlers.data;
 
-import no.unit.nva.handlers.RoleSource;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import no.unit.nva.useraccessservice.model.RoleName;
-import nva.commons.core.SingletonCollector;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.apigateway.AccessRight.MANAGE_ALL_PROJECTS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CHANNEL_CLAIMS;
@@ -30,123 +22,142 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
+import java.util.List;
+import no.unit.nva.handlers.RoleSource;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import no.unit.nva.useraccessservice.model.RoleName;
+import nva.commons.core.SingletonCollector;
+import org.junit.jupiter.api.Test;
+
 public class DefaultRoleSourceTest {
 
-    private final RoleSource roleSource;
+  private final RoleSource roleSource;
 
-    public DefaultRoleSourceTest() {
-        this.roleSource = new DefaultRoleSource();
-    }
+  public DefaultRoleSourceTest() {
+    this.roleSource = new DefaultRoleSource();
+  }
 
-    @Test
-    void creatorsShouldHaveCorrectAccessRights() {
-        var creatorRole = getRoleByName(RoleName.CREATOR);
+  @Test
+  void creatorsShouldHaveCorrectAccessRights() {
+    var creatorRole = getRoleByName(RoleName.CREATOR);
 
-        assertThat(creatorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_RESOURCES));
-    }
+    assertThat(creatorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_RESOURCES));
+  }
 
-    private RoleDto getRoleByName(RoleName roleName) {
-        return roleSource.roles().stream()
-            .filter(role -> role.getRoleName().equals(roleName))
-            .collect(SingletonCollector.collect());
-    }
+  private RoleDto getRoleByName(RoleName roleName) {
+    return roleSource.roles().stream()
+        .filter(role -> role.getRoleName().equals(roleName))
+        .collect(SingletonCollector.collect());
+  }
 
-    @Test
-    void doiCuratorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(RoleName.DOI_CURATOR);
+  @Test
+  void doiCuratorsShouldHaveCorrectAccessRights() {
+    var curatorRole = getRoleByName(RoleName.DOI_CURATOR);
 
-        assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI,
-            MANAGE_RESOURCES_STANDARD));
-    }
+    assertThat(
+        curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI, MANAGE_RESOURCES_STANDARD));
+  }
 
-    @Test
-    void supportCuratorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(RoleName.SUPPORT_CURATOR);
+  @Test
+  void supportCuratorsShouldHaveCorrectAccessRights() {
+    var curatorRole = getRoleByName(RoleName.SUPPORT_CURATOR);
 
-        assertThat(curatorRole.getAccessRights(), containsInAnyOrder(SUPPORT,
-            MANAGE_RESOURCES_STANDARD));
-    }
+    assertThat(
+        curatorRole.getAccessRights(), containsInAnyOrder(SUPPORT, MANAGE_RESOURCES_STANDARD));
+  }
 
-    @Test
-    void publishingCuratorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(RoleName.PUBLISHING_CURATOR);
+  @Test
+  void publishingCuratorsShouldHaveCorrectAccessRights() {
+    var curatorRole = getRoleByName(RoleName.PUBLISHING_CURATOR);
 
-        assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_PUBLISHING_REQUESTS,
-            MANAGE_RESOURCES_STANDARD, MANAGE_RESOURCE_FILES));
-    }
+    assertThat(
+        curatorRole.getAccessRights(),
+        containsInAnyOrder(
+            MANAGE_PUBLISHING_REQUESTS, MANAGE_RESOURCES_STANDARD, MANAGE_RESOURCE_FILES));
+  }
 
-    @Test
-    void nviCuratorsShouldHaveCorrectAccessRights() {
-        var curatorRole = getRoleByName(RoleName.NVI_CURATOR);
+  @Test
+  void nviCuratorsShouldHaveCorrectAccessRights() {
+    var curatorRole = getRoleByName(RoleName.NVI_CURATOR);
 
-        assertThat(curatorRole.getAccessRights(), containsInAnyOrder(MANAGE_NVI_CANDIDATES,
-            MANAGE_RESOURCES_STANDARD));
-    }
+    assertThat(
+        curatorRole.getAccessRights(),
+        containsInAnyOrder(MANAGE_NVI_CANDIDATES, MANAGE_RESOURCES_STANDARD));
+  }
 
-    @Test
-    void importCandidateCuratorsShouldHaveCorrectAccessRights() {
-        var importCandidateCuratorRole = getRoleByName(RoleName.INTERNAL_IMPORTER);
+  @Test
+  void importCandidateCuratorsShouldHaveCorrectAccessRights() {
+    var importCandidateCuratorRole = getRoleByName(RoleName.INTERNAL_IMPORTER);
 
-        assertThat(importCandidateCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_IMPORT));
-    }
+    assertThat(importCandidateCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_IMPORT));
+  }
 
-    @Test
-    void thesisCuratorsShouldHaveCorrectAccessRights() {
-        var thesisCuratorRole = getRoleByName(RoleName.THESIS_CURATOR);
+  @Test
+  void thesisCuratorsShouldHaveCorrectAccessRights() {
+    var thesisCuratorRole = getRoleByName(RoleName.THESIS_CURATOR);
 
-        assertThat(thesisCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_RESOURCES_STANDARD, MANAGE_DEGREE));
-    }
+    assertThat(
+        thesisCuratorRole.getAccessRights(),
+        containsInAnyOrder(MANAGE_RESOURCES_STANDARD, MANAGE_DEGREE));
+  }
 
-    @Test
-    void thesisEmbargoCuratorsShouldHaveCorrectAccessRights() {
-        var thesisEmbargoCuratorRole = getRoleByName(RoleName.EMBARGO_THESIS_CURATOR);
+  @Test
+  void thesisEmbargoCuratorsShouldHaveCorrectAccessRights() {
+    var thesisEmbargoCuratorRole = getRoleByName(RoleName.EMBARGO_THESIS_CURATOR);
 
-        assertThat(thesisEmbargoCuratorRole.getAccessRights(), containsInAnyOrder(MANAGE_RESOURCES_STANDARD,
-            MANAGE_DEGREE_EMBARGO));
-    }
+    assertThat(
+        thesisEmbargoCuratorRole.getAccessRights(),
+        containsInAnyOrder(MANAGE_RESOURCES_STANDARD, MANAGE_DEGREE_EMBARGO));
+  }
 
-    @Test
-    void institutionAdminsShouldHaveCorrectAccessRights() {
-        var institutionAdminRole = getRoleByName(RoleName.INSTITUTION_ADMIN);
+  @Test
+  void institutionAdminsShouldHaveCorrectAccessRights() {
+    var institutionAdminRole = getRoleByName(RoleName.INSTITUTION_ADMIN);
 
-        assertThat(institutionAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION));
-    }
+    assertThat(institutionAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION));
+  }
 
-    @Test
-    void appAdminsShouldHaveCorrectAccessRights() {
-        var appAdminRole = getRoleByName(RoleName.APPLICATION_ADMIN);
+  @Test
+  void appAdminsShouldHaveCorrectAccessRights() {
+    var appAdminRole = getRoleByName(RoleName.APPLICATION_ADMIN);
 
-        assertThat(appAdminRole.getAccessRights(), containsInAnyOrder(MANAGE_CUSTOMERS,
-                                                                      MANAGE_EXTERNAL_CLIENTS,
-                                                                      ACT_AS,
-                                                                      MANAGE_NVI,
-                                                                      MANAGE_IMPORT,
-                                                                      MANAGE_CHANNEL_CLAIMS));
-    }
+    assertThat(
+        appAdminRole.getAccessRights(),
+        containsInAnyOrder(
+            MANAGE_CUSTOMERS,
+            MANAGE_EXTERNAL_CLIENTS,
+            ACT_AS,
+            MANAGE_NVI,
+            MANAGE_IMPORT,
+            MANAGE_CHANNEL_CLAIMS));
+  }
 
-    @Test
-    void editorsShouldHaveCorrectAccessRights() {
-        var editorRole = getRoleByName(RoleName.EDITOR);
+  @Test
+  void editorsShouldHaveCorrectAccessRights() {
+    var editorRole = getRoleByName(RoleName.EDITOR);
 
-        assertThat(editorRole.getAccessRights(), containsInAnyOrder(MANAGE_OWN_AFFILIATION,
-                                                                    MANAGE_RESOURCES_ALL,
-                                                                    MANAGE_ALL_PROJECTS));
-    }
+    assertThat(
+        editorRole.getAccessRights(),
+        containsInAnyOrder(MANAGE_OWN_AFFILIATION, MANAGE_RESOURCES_ALL, MANAGE_ALL_PROJECTS));
+  }
 
-    @Test
-    void shouldReturnExpectedNumberOfRoles() {
-        var expectedNumberOfRoles = List.of(RoleName.CREATOR,
-            RoleName.NVI_CURATOR,
-            RoleName.DOI_CURATOR,
-            RoleName.SUPPORT_CURATOR,
-            RoleName.PUBLISHING_CURATOR,
-            RoleName.THESIS_CURATOR,
-            RoleName.EMBARGO_THESIS_CURATOR,
-            RoleName.INTERNAL_IMPORTER,
-            RoleName.INSTITUTION_ADMIN,
-            RoleName.APPLICATION_ADMIN,
-            RoleName.EDITOR).size();
+  @Test
+  void shouldReturnExpectedNumberOfRoles() {
+    var expectedNumberOfRoles =
+        List.of(
+                RoleName.CREATOR,
+                RoleName.NVI_CURATOR,
+                RoleName.DOI_CURATOR,
+                RoleName.SUPPORT_CURATOR,
+                RoleName.PUBLISHING_CURATOR,
+                RoleName.THESIS_CURATOR,
+                RoleName.EMBARGO_THESIS_CURATOR,
+                RoleName.INTERNAL_IMPORTER,
+                RoleName.INSTITUTION_ADMIN,
+                RoleName.APPLICATION_ADMIN,
+                RoleName.EDITOR)
+            .size();
 
-        assertThat(roleSource.roles(), hasSize(expectedNumberOfRoles));
-    }
+    assertThat(roleSource.roles(), hasSize(expectedNumberOfRoles));
+  }
 }

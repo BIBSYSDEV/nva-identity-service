@@ -1,6 +1,10 @@
 package no.unit.nva.customer.get;
 
+import static no.unit.nva.customer.Constants.defaultCustomerService;
+
 import com.amazonaws.services.lambda.runtime.Context;
+import java.net.HttpURLConnection;
+import java.util.UUID;
 import no.unit.nva.customer.ControlledVocabularyHandler;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.VocabularyList;
@@ -12,38 +16,35 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
-import java.net.HttpURLConnection;
-import java.util.UUID;
+public class GetControlledVocabularyHandler
+    extends ControlledVocabularyHandler<Void, VocabularyList> {
 
-import static no.unit.nva.customer.Constants.defaultCustomerService;
+  @JacocoGenerated
+  public GetControlledVocabularyHandler() {
+    this(defaultCustomerService(), new Environment());
+  }
 
-public class GetControlledVocabularyHandler extends ControlledVocabularyHandler<Void, VocabularyList> {
+  public GetControlledVocabularyHandler(CustomerService customerService, Environment environment) {
+    super(customerService, Void.class, environment);
+  }
 
-    @JacocoGenerated
-    public GetControlledVocabularyHandler() {
-        this(defaultCustomerService(), new Environment());
-    }
+  @Override
+  protected void validateRequest(Void unused, RequestInfo requestInfo, Context context)
+      throws ApiGatewayException {
+    // Do nothing
+  }
 
-    public GetControlledVocabularyHandler(CustomerService customerService, Environment environment) {
-        super(customerService, Void.class, environment);
-    }
+  @Override
+  protected VocabularyList processInput(Void input, RequestInfo requestInfo, Context context)
+      throws NotFoundException, ForbiddenException {
 
-    @Override
-    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        //Do nothing
-    }
+    UUID identifier = extractIdentifier(requestInfo);
+    CustomerDto customerDto = customerService.getCustomer(identifier);
+    return VocabularyList.fromCustomerDto(customerDto);
+  }
 
-    @Override
-    protected VocabularyList processInput(Void input, RequestInfo requestInfo, Context context)
-        throws NotFoundException, ForbiddenException {
-
-        UUID identifier = extractIdentifier(requestInfo);
-        CustomerDto customerDto = customerService.getCustomer(identifier);
-        return VocabularyList.fromCustomerDto(customerDto);
-    }
-
-    @Override
-    protected Integer getSuccessStatusCode(Void input, VocabularyList output) {
-        return HttpURLConnection.HTTP_OK;
-    }
+  @Override
+  protected Integer getSuccessStatusCode(Void input, VocabularyList output) {
+    return HttpURLConnection.HTTP_OK;
+  }
 }

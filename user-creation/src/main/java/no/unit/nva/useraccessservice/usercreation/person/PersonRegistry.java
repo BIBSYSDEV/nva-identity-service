@@ -4,9 +4,9 @@ import java.util.Optional;
 
 public interface PersonRegistry {
 
-    Optional<Person> fetchPersonByNin(NationalIdentityNumber nin);
+  Optional<Person> fetchPersonByNin(NationalIdentityNumber nin);
 
-    Optional<Person> fetchPersonByIdentifier(String cristinIdentifier);
+  Optional<Person> fetchPersonByIdentifier(String cristinIdentifier);
 
-    Optional<Person> createPerson(NationalIdentityNumber nin, String firstName, String lastName);
+  Optional<Person> createPerson(NationalIdentityNumber nin, String firstName, String lastName);
 }

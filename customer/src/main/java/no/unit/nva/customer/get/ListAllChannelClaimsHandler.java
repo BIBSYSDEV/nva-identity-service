@@ -2,6 +2,7 @@ package no.unit.nva.customer.get;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -24,90 +25,95 @@ import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ListAllChannelClaimsHandler extends ApiGatewayHandler<Void, ChannelClaimsListResponse> {
+public class ListAllChannelClaimsHandler
+    extends ApiGatewayHandler<Void, ChannelClaimsListResponse> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ListAllChannelClaimsHandler.class);
-    private static final String BAD_GATEWAY_ERROR_MESSAGE = "Something went wrong, contact application administrator!";
-    private static final String QUERY_PARAM_INSTITUTION = "institution";
-    private static final String QUERY_PARAM_CHANNEL_TYPE = "channelType";
-    private static final int ONE = 1;
-    protected static final String EXCEPTION_MESSAGE = "Failed with exception: {}";
-    private final CustomerService customerService;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ListAllChannelClaimsHandler.class);
+  private static final String BAD_GATEWAY_ERROR_MESSAGE =
+      "Something went wrong, contact application administrator!";
+  private static final String QUERY_PARAM_INSTITUTION = "institution";
+  private static final String QUERY_PARAM_CHANNEL_TYPE = "channelType";
+  private static final int ONE = 1;
+  protected static final String EXCEPTION_MESSAGE = "Failed with exception: {}";
+  private final CustomerService customerService;
 
-    @JacocoGenerated
-    public ListAllChannelClaimsHandler() {
-        this(defaultCustomerService(), new Environment());
+  @JacocoGenerated
+  public ListAllChannelClaimsHandler() {
+    this(defaultCustomerService(), new Environment());
+  }
+
+  public ListAllChannelClaimsHandler(CustomerService customerService, Environment environment) {
+    super(Void.class, environment);
+    this.customerService = customerService;
+  }
+
+  @Override
+  protected void validateRequest(Void unused, RequestInfo requestInfo, Context context)
+      throws ApiGatewayException {
+    userIsAuthorized(requestInfo);
+  }
+
+  @Override
+  @SuppressWarnings("PMD.AvoidCatchingGenericException")
+  protected ChannelClaimsListResponse processInput(
+      Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+    try {
+      return ChannelClaimsListResponse.fromChannelClaims(listChannelClaims(requestInfo));
+    } catch (Exception e) {
+      LOGGER.error(EXCEPTION_MESSAGE, e);
+      throw new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
     }
+  }
 
-    public ListAllChannelClaimsHandler(CustomerService customerService, Environment environment) {
-        super(Void.class, environment);
-        this.customerService = customerService;
-    }
+  @Override
+  protected Integer getSuccessStatusCode(Void unused, ChannelClaimsListResponse o) {
+    return HTTP_OK;
+  }
 
-    @Override
-    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        userIsAuthorized(requestInfo);
-    }
+  private static Optional<URI> getInstitutionCristinId(RequestInfo requestInfo) {
+    return requestInfo
+        .getQueryParameterOpt(QUERY_PARAM_INSTITUTION)
+        .map(ListAllChannelClaimsHandler::decode)
+        .map(URI::create);
+  }
 
-    @Override
-    @SuppressWarnings("PMD.AvoidCatchingGenericException")
-    protected ChannelClaimsListResponse processInput(Void unused, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-        try {
-            return ChannelClaimsListResponse.fromChannelClaims(listChannelClaims(requestInfo));
-        } catch (Exception e) {
-            LOGGER.error(EXCEPTION_MESSAGE, e);
-            throw new BadGatewayException(BAD_GATEWAY_ERROR_MESSAGE);
-        }
-    }
+  private static String decode(String cristinId) {
+    return URLDecoder.decode(cristinId, StandardCharsets.UTF_8);
+  }
 
-    @Override
-    protected Integer getSuccessStatusCode(Void unused, ChannelClaimsListResponse o) {
-        return HTTP_OK;
-    }
+  private static Optional<String> getChannelType(RequestInfo requestInfo) {
+    return requestInfo.getQueryParameterOpt(QUERY_PARAM_CHANNEL_TYPE);
+  }
 
-    private static Optional<URI> getInstitutionCristinId(RequestInfo requestInfo) {
-        return requestInfo.getQueryParameterOpt(QUERY_PARAM_INSTITUTION)
-                   .map(ListAllChannelClaimsHandler::decode)
-                   .map(URI::create);
-    }
+  private static void userIsAuthorized(RequestInfo requestInfo) throws UnauthorizedException {
+    requestInfo.getCurrentCustomer();
+  }
 
-    private static String decode(String cristinId) {
-        return URLDecoder.decode(cristinId, StandardCharsets.UTF_8);
-    }
+  private List<ChannelClaimWithClaimer> listChannelClaims(RequestInfo requestInfo) {
+    var claims =
+        getInstitutionCristinId(requestInfo)
+            .map(customerService::getChannelClaimsForCustomer)
+            .orElse(customerService.getChannelClaims());
 
-    private static Optional<String> getChannelType(RequestInfo requestInfo) {
-        return requestInfo.getQueryParameterOpt(QUERY_PARAM_CHANNEL_TYPE);
-    }
+    return getChannelType(requestInfo)
+        .map(channelType -> filterByChannelType(claims, channelType))
+        .orElse(claims.stream().toList());
+  }
 
-    private static void userIsAuthorized(RequestInfo requestInfo) throws UnauthorizedException {
-        requestInfo.getCurrentCustomer();
-    }
+  private List<ChannelClaimWithClaimer> filterByChannelType(
+      Collection<ChannelClaimWithClaimer> claims, String channelType) {
+    return claims.stream().filter(claim -> isChannelType(claim, channelType)).toList();
+  }
 
-    private List<ChannelClaimWithClaimer> listChannelClaims(RequestInfo requestInfo) {
-        var claims = getInstitutionCristinId(requestInfo)
-                         .map(customerService::getChannelClaimsForCustomer)
-                         .orElse(customerService.getChannelClaims());
+  private boolean isChannelType(ChannelClaimWithClaimer claim, String channelType) {
+    return Optional.ofNullable(claim.channelClaim())
+        .map(ChannelClaimDto::channel)
+        .map(this::getChannelTypeFromPath)
+        .filter(channelTypeFromPath -> channelTypeFromPath.equals(channelType))
+        .isPresent();
+  }
 
-        return getChannelType(requestInfo)
-                   .map(channelType -> filterByChannelType(claims, channelType))
-                   .orElse(claims.stream().toList());
-    }
-
-    private List<ChannelClaimWithClaimer> filterByChannelType(Collection<ChannelClaimWithClaimer> claims,
-                                                              String channelType) {
-        return claims.stream().filter(claim -> isChannelType(claim, channelType)).toList();
-    }
-
-    private boolean isChannelType(ChannelClaimWithClaimer claim, String channelType) {
-        return Optional.ofNullable(claim.channelClaim())
-                   .map(ChannelClaimDto::channel)
-                   .map(this::getChannelTypeFromPath)
-                   .filter(channelTypeFromPath -> channelTypeFromPath.equals(channelType))
-                   .isPresent();
-    }
-
-    private String getChannelTypeFromPath(URI channel) {
-        return UriWrapper.fromUri(channel).getPath().getPathElementByIndexFromEnd(ONE);
-    }
+  private String getChannelTypeFromPath(URI channel) {
+    return UriWrapper.fromUri(channel).getPath().getPathElementByIndexFromEnd(ONE);
+  }
 }

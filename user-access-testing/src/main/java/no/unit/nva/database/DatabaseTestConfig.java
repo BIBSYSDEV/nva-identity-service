@@ -5,11 +5,9 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public final class DatabaseTestConfig {
 
-    private DatabaseTestConfig() {
-    }
+  private DatabaseTestConfig() {}
 
-    public static DynamoDbClient getEmbeddedClient() {
-        return  DynamoDBEmbedded.create().dynamoDbClient();
-    }
-
+  public static DynamoDbClient getEmbeddedClient() {
+    return DynamoDBEmbedded.create().dynamoDbClient();
+  }
 }

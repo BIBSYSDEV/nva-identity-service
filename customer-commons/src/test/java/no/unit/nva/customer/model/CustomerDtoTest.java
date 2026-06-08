@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -36,168 +37,171 @@ import org.junit.jupiter.api.function.Executable;
 
 class CustomerDtoTest {
 
-    @Test
-    void shouldUpdateCustomerWithCustomersDoiSecret() {
-        var doiAgent = randomActiveCustomer().getDoiAgent().addPassword(randomString());
+  @Test
+  void shouldUpdateCustomerWithCustomersDoiSecret() {
+    var doiAgent = randomActiveCustomer().getDoiAgent().addPassword(randomString());
 
-        var doiSecret = new SecretManagerDoiAgentDao(randomActiveCustomer().getDoiAgent());
+    var doiSecret = new SecretManagerDoiAgentDao(randomActiveCustomer().getDoiAgent());
 
-        doiSecret.merge(doiAgent);
+    doiSecret.merge(doiAgent);
 
-        assertEquals(doiSecret.getPassword(), doiAgent.getPassword());
-    }
+    assertEquals(doiSecret.getPassword(), doiAgent.getPassword());
+  }
 
-    @Test
-    void shouldNotSerializeEmptyCristinIdAndRorToEmptyString() throws JsonProcessingException {
-        var json = """
-                        {
-              "cristinId": "",
-              "rorId": ""
-            }
-            """;
-        var customer = JsonUtils.dtoObjectMapper.readValue(json, CustomerDto.class);
+  @Test
+  void shouldNotSerializeEmptyCristinIdAndRorToEmptyString() throws JsonProcessingException {
+    var json =
+        """
+                    {
+          "cristinId": "",
+          "rorId": ""
+        }
+        """;
+    var customer = JsonUtils.dtoObjectMapper.readValue(json, CustomerDto.class);
 
-        assertNull(customer.getCristinId());
-        assertNull(customer.getRorId());
-    }
+    assertNull(customer.getCristinId());
+    assertNull(customer.getRorId());
+  }
 
-    @Test
-    void dtoSerializesToJsonAndBack() throws BadRequestException {
-        CustomerDto customer = randomInactiveCustomer();
-        customer.getDoiAgent().addPassword("****");
-        assertThat(customer, doesNotHaveEmptyValues());
-        var json = customer.toString();
-        var deserialized = CustomerDto.fromJson(json);
-        assertThat(deserialized, is(equalTo(customer)));
-        assertThat(deserialized, doesNotHaveEmptyValues());
-        assertEquals(deserialized.hashCode(), customer.hashCode());
-        assertNotEquals(null, deserialized);
+  @Test
+  void dtoSerializesToJsonAndBack() throws BadRequestException {
+    CustomerDto customer = randomInactiveCustomer();
+    customer.getDoiAgent().addPassword("****");
+    assertThat(customer, doesNotHaveEmptyValues());
+    var json = customer.toString();
+    var deserialized = CustomerDto.fromJson(json);
+    assertThat(deserialized, is(equalTo(customer)));
+    assertThat(deserialized, doesNotHaveEmptyValues());
+    assertEquals(deserialized.hashCode(), customer.hashCode());
+    assertNotEquals(null, deserialized);
 
-        json = customer.getDoiAgent().toString();
-        var deserializedDoiAgent = DoiAgentDto.fromJson(json);
+    json = customer.getDoiAgent().toString();
+    var deserializedDoiAgent = DoiAgentDto.fromJson(json);
 
-        assertEquals(deserializedDoiAgent.hashCode(), customer.getDoiAgent().hashCode());
-        assertNotEquals(null, deserializedDoiAgent);
-    }
+    assertEquals(deserializedDoiAgent.hashCode(), customer.getDoiAgent().hashCode());
+    assertNotEquals(null, deserializedDoiAgent);
+  }
 
-    @Test
-    void shouldThrowBadRequestWhenFailingToDeserializeDoiAgent() {
-        String invalidJson = randomString();
-        Executable action = () -> DoiAgentDto.fromJson(invalidJson);
-        var exception = assertThrows(BadRequestException.class, action);
-        assertThat(exception.getMessage(), containsString(invalidJson));
-    }
+  @Test
+  void shouldThrowBadRequestWhenFailingToDeserializeDoiAgent() {
+    String invalidJson = randomString();
+    Executable action = () -> DoiAgentDto.fromJson(invalidJson);
+    var exception = assertThrows(BadRequestException.class, action);
+    assertThat(exception.getMessage(), containsString(invalidJson));
+  }
 
-    @Test
-    void dtoSerializesToJsonAndBackWithSecret() throws BadRequestException {
-        CustomerDto customer = randomInactiveCustomer();
-        customer.getDoiAgent().addPassword("******");
-        var json = customer.toString();
-        var deserialized = CustomerDto.fromJson(json);
+  @Test
+  void dtoSerializesToJsonAndBackWithSecret() throws BadRequestException {
+    CustomerDto customer = randomInactiveCustomer();
+    customer.getDoiAgent().addPassword("******");
+    var json = customer.toString();
+    var deserialized = CustomerDto.fromJson(json);
 
-        var deserializedDoiAgent = deserialized.getDoiAgent();
-        assertThat(deserializedDoiAgent.toString(), doesNotHaveEmptyValues());
-        assertEquals(deserializedDoiAgent, customer.getDoiAgent());
-        assertEquals(deserializedDoiAgent.hashCode(), customer.getDoiAgent().hashCode());
-        assertNotEquals(null, deserializedDoiAgent);
-    }
+    var deserializedDoiAgent = deserialized.getDoiAgent();
+    assertThat(deserializedDoiAgent.toString(), doesNotHaveEmptyValues());
+    assertEquals(deserializedDoiAgent, customer.getDoiAgent());
+    assertEquals(deserializedDoiAgent.hashCode(), customer.getDoiAgent().hashCode());
+    assertNotEquals(null, deserializedDoiAgent);
+  }
 
-    @Test
-    void shouldThrowBadRequestExceptionWhenFailingToDeserialize() {
-        String invalidJson = randomString();
-        Executable action = () -> CustomerDto.fromJson(invalidJson);
-        var exception = assertThrows(BadRequestException.class, action);
-        assertThat(exception.getMessage(), containsString(invalidJson));
-    }
+  @Test
+  void shouldThrowBadRequestExceptionWhenFailingToDeserialize() {
+    String invalidJson = randomString();
+    Executable action = () -> CustomerDto.fromJson(invalidJson);
+    var exception = assertThrows(BadRequestException.class, action);
+    assertThat(exception.getMessage(), containsString(invalidJson));
+  }
 
-    @Test
-    void shouldReturnIsActiveWhenInactiveFromIsSetInTheFuture() {
-        var randomInactiveCustomer = randomInactiveCustomer();
-        randomInactiveCustomer.setInactiveFrom(OffsetDateTime.now().plusDays(3).toInstant());
-        assertThat(randomInactiveCustomer.isActive(), is(true));
-    }
+  @Test
+  void shouldReturnIsActiveWhenInactiveFromIsSetInTheFuture() {
+    var randomInactiveCustomer = randomInactiveCustomer();
+    randomInactiveCustomer.setInactiveFrom(OffsetDateTime.now().plusDays(3).toInstant());
+    assertThat(randomInactiveCustomer.isActive(), is(true));
+  }
 
-    @Test
-    void shouldReturnIsInactiveWhenInactiveIsSetInThePast() {
-        var randomInactiveCustomer = randomInactiveCustomer();
-        assertThat(randomInactiveCustomer.isActive(), is(false));
-    }
+  @Test
+  void shouldReturnIsInactiveWhenInactiveIsSetInThePast() {
+    var randomInactiveCustomer = randomInactiveCustomer();
+    assertThat(randomInactiveCustomer.isActive(), is(false));
+  }
 
-    @Test
-    void shouldReturnIsActiveWhenInactiveFromIsNotSet() {
-        var randomActiveCustomer = randomActiveCustomer();
-        assertThat(randomActiveCustomer.isActive(), is(true));
-    }
+  @Test
+  void shouldReturnIsActiveWhenInactiveFromIsNotSet() {
+    var randomActiveCustomer = randomActiveCustomer();
+    assertThat(randomActiveCustomer.isActive(), is(true));
+  }
 
-    @Test
-    void shouldNotAddChannelClaimWhenChannelIsAlreadyClaimed() {
-        var customer = randomActiveCustomer();
-        var numberOfClaimsBefore = customer.getChannelClaims().size();
+  @Test
+  void shouldNotAddChannelClaimWhenChannelIsAlreadyClaimed() {
+    var customer = randomActiveCustomer();
+    var numberOfClaimsBefore = customer.getChannelClaims().size();
 
-        var alreadyClaimedChannel = customer.getChannelClaims().stream().findFirst().orElseThrow();
-        customer.addChannelClaim(alreadyClaimedChannel);
-        var numberOfClaimsAfter = customer.getChannelClaims().size();
+    var alreadyClaimedChannel = customer.getChannelClaims().stream().findFirst().orElseThrow();
+    customer.addChannelClaim(alreadyClaimedChannel);
+    var numberOfClaimsAfter = customer.getChannelClaims().size();
 
-        assertThat(numberOfClaimsAfter, is(equalTo(numberOfClaimsBefore)));
-    }
+    assertThat(numberOfClaimsAfter, is(equalTo(numberOfClaimsBefore)));
+  }
 
-    @Test
-    void shouldNotAllowScopusFileDefaultImportWhenNotSet() {
-        assertFalse(new CustomerDto().isAutoPublishScopusImportFiles());
-    }
+  @Test
+  void shouldNotAllowScopusFileDefaultImportWhenNotSet() {
+    assertFalse(new CustomerDto().isAutoPublishScopusImportFiles());
+  }
 
-    @Test
-    void shouldMakeRoundTripWithoutLosingData() throws BadRequestException {
-        var customer = randomActiveCustomer().copy()
-                           .withGeneralSupportEnabled(true)
-                           .withNviInstitution(true)
-                           .withAutomaticallyPublishFilesFromScopusImport(true)
-                           .withRboInstitution(true)
-                           .build();
-        var json = customer.toString();
-        var deserialized = CustomerDto.fromJson(json);
-        assertThat(deserialized, is(equalTo(customer)));
-    }
+  @Test
+  void shouldMakeRoundTripWithoutLosingData() throws BadRequestException {
+    var customer =
+        randomActiveCustomer()
+            .copy()
+            .withGeneralSupportEnabled(true)
+            .withNviInstitution(true)
+            .withAutomaticallyPublishFilesFromScopusImport(true)
+            .withRboInstitution(true)
+            .build();
+    var json = customer.toString();
+    var deserialized = CustomerDto.fromJson(json);
+    assertThat(deserialized, is(equalTo(customer)));
+  }
 
-    private CustomerDto randomActiveCustomer() {
-        var customer = randomInactiveCustomer();
-        customer.setInactiveFrom(null);
-        return customer;
-    }
+  private CustomerDto randomActiveCustomer() {
+    var customer = randomInactiveCustomer();
+    customer.setInactiveFrom(null);
+    return customer;
+  }
 
-    private CustomerDto randomInactiveCustomer() {
-        return CustomerDto.builder()
-                   .withCname(randomString())
-                   .withIdentifier(UUID.randomUUID())
-                   .withDisplayName(randomString())
-                   .withInstitutionDns(randomString())
-                   .withShortName(randomString())
-                   .withArchiveName(randomString())
-                   .withName(randomString())
-                   .withFeideOrganizationDomain(randomString())
-                   .withCristinId(randomUri())
-                   .withCustomerOf(randomApplicationDomain())
-                   .withCreatedDate(randomInstant())
-                   .withModifiedDate(randomInstant())
-                   .withVocabularies(randomVocabularies())
-                   .withRorId(randomUri())
-                   .withPublicationWorkflow(randomPublicationWorkflow())
-                   .withDoiAgent(randomDoiAgent(randomString()))
-                   .withSector(randomSector())
-                   .withNviInstitution(randomBoolean())
-                   .withRboInstitution(randomBoolean())
-                   .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
-                   .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                   .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                   .withChannelClaims(randomChannelClaimDtos())
-                   .build();
-    }
+  private CustomerDto randomInactiveCustomer() {
+    return CustomerDto.builder()
+        .withCname(randomString())
+        .withIdentifier(UUID.randomUUID())
+        .withDisplayName(randomString())
+        .withInstitutionDns(randomString())
+        .withShortName(randomString())
+        .withArchiveName(randomString())
+        .withName(randomString())
+        .withFeideOrganizationDomain(randomString())
+        .withCristinId(randomUri())
+        .withCustomerOf(randomApplicationDomain())
+        .withCreatedDate(randomInstant())
+        .withModifiedDate(randomInstant())
+        .withVocabularies(randomVocabularies())
+        .withRorId(randomUri())
+        .withPublicationWorkflow(randomPublicationWorkflow())
+        .withDoiAgent(randomDoiAgent(randomString()))
+        .withSector(randomSector())
+        .withNviInstitution(randomBoolean())
+        .withRboInstitution(randomBoolean())
+        .withInactiveFrom(OffsetDateTime.now().minusDays(randomInteger(10)).toInstant())
+        .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+        .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+        .withChannelClaims(randomChannelClaimDtos())
+        .build();
+  }
 
-    private Collection<VocabularyDto> randomVocabularies() {
-        return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
-    }
+  private Collection<VocabularyDto> randomVocabularies() {
+    return List.of(randomVocabulary(), randomVocabulary(), randomVocabulary());
+  }
 
-    private ApplicationDomain randomApplicationDomain() {
-        return randomElement(List.of(ApplicationDomain.values()));
-    }
+  private ApplicationDomain randomApplicationDomain() {
+    return randomElement(List.of(ApplicationDomain.values()));
+  }
 }

@@ -1,19 +1,16 @@
 package no.unit.nva.customer.model.dynamo.converters;
 
-import nva.commons.core.JacocoGenerated;
+import static java.util.Objects.nonNull;
 
 import java.util.Collection;
-
-import static java.util.Objects.nonNull;
+import nva.commons.core.JacocoGenerated;
 
 public final class DynamoUtils {
 
-    @JacocoGenerated
-    private DynamoUtils() {
+  @JacocoGenerated
+  private DynamoUtils() {}
 
-    }
-
-    public static boolean nonEmpty(Collection<?> collection) {
-        return nonNull(collection) && !collection.isEmpty();
-    }
+  public static boolean nonEmpty(Collection<?> collection) {
+    return nonNull(collection) && !collection.isEmpty();
+  }
 }

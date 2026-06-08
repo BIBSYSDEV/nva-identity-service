@@ -5,6 +5,6 @@ import java.net.URI;
 
 @FunctionalInterface
 public interface IdentifiedResource {
-    @JsonProperty("id")
-    URI resourceId();
+  @JsonProperty("id")
+  URI resourceId();
 }

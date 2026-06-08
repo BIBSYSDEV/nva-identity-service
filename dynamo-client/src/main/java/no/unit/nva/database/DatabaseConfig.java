@@ -9,21 +9,21 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public final class DatabaseConfig {
 
-    @JacocoGenerated
-    public static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
-    @JacocoGenerated
-    public static final DynamoDbClient DEFAULT_DYNAMO_CLIENT = defaultDynamoDbClient();
+  @JacocoGenerated public static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
 
-    private DatabaseConfig() {
-        // NO-OP
-    }
+  @JacocoGenerated
+  public static final DynamoDbClient DEFAULT_DYNAMO_CLIENT = defaultDynamoDbClient();
 
-    @JacocoGenerated
-    private static DynamoDbClient defaultDynamoDbClient() {
-        return DynamoDbClient.builder()
-            .httpClient(UrlConnectionHttpClient.create())
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .region(Region.of(AWS_REGION))
-            .build();
-    }
+  private DatabaseConfig() {
+    // NO-OP
+  }
+
+  @JacocoGenerated
+  private static DynamoDbClient defaultDynamoDbClient() {
+    return DynamoDbClient.builder()
+        .httpClient(UrlConnectionHttpClient.create())
+        .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+        .region(Region.of(AWS_REGION))
+        .build();
+  }
 }

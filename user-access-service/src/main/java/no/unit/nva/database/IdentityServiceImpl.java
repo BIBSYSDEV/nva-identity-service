@@ -1,5 +1,12 @@
 package no.unit.nva.database;
 
+import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
+
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccessservice.dao.UserDao;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
@@ -16,137 +23,129 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
-
 public class IdentityServiceImpl implements IdentityService {
 
-    private final UserService userService;
-    private final ExternalClientService externalClientService;
-    private final RoleService roleService;
-    private final DynamoDbClient dynamoDbClient;
+  private final UserService userService;
+  private final ExternalClientService externalClientService;
+  private final RoleService roleService;
+  private final DynamoDbClient dynamoDbClient;
 
-    @JacocoGenerated
-    public IdentityServiceImpl() {
-        this(DEFAULT_DYNAMO_CLIENT);
-    }
+  @JacocoGenerated
+  public IdentityServiceImpl() {
+    this(DEFAULT_DYNAMO_CLIENT);
+  }
 
-    public IdentityServiceImpl(DynamoDbClient dynamoDbClient) {
-        super();
-        this.roleService = new RoleService(dynamoDbClient);
-        this.externalClientService = new ExternalClientService(dynamoDbClient);
-        this.userService = new UserService(dynamoDbClient, roleService);
-        this.dynamoDbClient = dynamoDbClient;
-    }
+  public IdentityServiceImpl(DynamoDbClient dynamoDbClient) {
+    super();
+    this.roleService = new RoleService(dynamoDbClient);
+    this.externalClientService = new ExternalClientService(dynamoDbClient);
+    this.userService = new UserService(dynamoDbClient, roleService);
+    this.dynamoDbClient = dynamoDbClient;
+  }
 
-    @Override
-    public UserDto getUser(UserDto queryObject) throws NotFoundException {
-        return userService.getUser(queryObject);
-    }
+  @Override
+  public UserDto getUser(UserDto queryObject) throws NotFoundException {
+    return userService.getUser(queryObject);
+  }
 
-    @Override
-    public List<UserDto> listAllUsers() {
-        return userService.listAllUsers();
-    }
+  @Override
+  public List<UserDto> listAllUsers() {
+    return userService.listAllUsers();
+  }
 
-    @Override
-    public List<UserDto> listUsers(URI institutionId) {
-        return userService.listUsers(institutionId);
-    }
+  @Override
+  public List<UserDto> listUsers(URI institutionId) {
+    return userService.listUsers(institutionId);
+  }
 
-    @Override
-    public UserDto addUser(UserDto user) throws ConflictException {
-        return this.userService.addUser(user);
-    }
+  @Override
+  public UserDto addUser(UserDto user) throws ConflictException {
+    return this.userService.addUser(user);
+  }
 
-    @Override
-    public void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException {
-        this.roleService.addRole(roleDto);
-    }
+  @Override
+  public void addRole(RoleDto roleDto) throws ConflictException, InvalidInputException {
+    this.roleService.addRole(roleDto);
+  }
 
-    @Override
-    public void updateRole(RoleDto roleDto) throws NotFoundException, InvalidInputException {
-        this.roleService.updateRole(roleDto);
-    }
+  @Override
+  public void updateRole(RoleDto roleDto) throws NotFoundException, InvalidInputException {
+    this.roleService.updateRole(roleDto);
+  }
 
-    @Override
-    public UserDto updateUser(UserDto user) throws NotFoundException {
-        this.userService.updateUser(user);
-        return this.userService.getUser(user);
-    }
+  @Override
+  public UserDto updateUser(UserDto user) throws NotFoundException {
+    this.userService.updateUser(user);
+    return this.userService.getUser(user);
+  }
 
-    @Override
-    public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
-        return this.roleService.getRole(queryObject);
-    }
+  @Override
+  public RoleDto getRole(RoleDto queryObject) throws NotFoundException {
+    return this.roleService.getRole(queryObject);
+  }
 
-    // This method belongs to the UserService, but because it uses the client and not the Table,
-    // it requires quite a big refactoring to put it there. It will be easier to do it after the
-    // transition to sdk2 where we will be using the client and DynamoBeans.
-    @Override
-    public UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest) {
-        var result = scanDynamoDb(scanRequest);
-        var startMarkerForNextScan = result.lastEvaluatedKey();
-        var retrievedUsers = parseUsersFromScanResult(result);
-        var thereAreMoreEntries = thereAreMoreEntries(result);
-        return new UserScanResult(retrievedUsers, startMarkerForNextScan, thereAreMoreEntries);
-    }
+  // This method belongs to the UserService, but because it uses the client and not the Table,
+  // it requires quite a big refactoring to put it there. It will be easier to do it after the
+  // transition to sdk2 where we will be using the client and DynamoBeans.
+  @Override
+  public UserScanResult fetchOnePageOfUsers(ScanDatabaseRequestV2 scanRequest) {
+    var result = scanDynamoDb(scanRequest);
+    var startMarkerForNextScan = result.lastEvaluatedKey();
+    var retrievedUsers = parseUsersFromScanResult(result);
+    var thereAreMoreEntries = thereAreMoreEntries(result);
+    return new UserScanResult(retrievedUsers, startMarkerForNextScan, thereAreMoreEntries);
+  }
 
-    @Override
-    public List<UserDto> getUsersByCristinId(URI cristinPersonId) {
-        return userService.getUsersByByCristinId(cristinPersonId);
-    }
+  @Override
+  public List<UserDto> getUsersByCristinId(URI cristinPersonId) {
+    return userService.getUsersByByCristinId(cristinPersonId);
+  }
 
-    @Override
-    public UserDto getUserByPersonCristinIdAndCustomerCristinId(URI cristinPersonId, URI cristinOrgId) {
-        return userService.getUsersByByCristinIdAndCristinOrgId(cristinPersonId, cristinOrgId);
-    }
+  @Override
+  public UserDto getUserByPersonCristinIdAndCustomerCristinId(
+      URI cristinPersonId, URI cristinOrgId) {
+    return userService.getUsersByByCristinIdAndCristinOrgId(cristinPersonId, cristinOrgId);
+  }
 
-    @Override
-    public void addExternalClient(ClientDto clientDto) {
-        externalClientService.createNewExternalClient(clientDto);
-    }
+  @Override
+  public void addExternalClient(ClientDto clientDto) {
+    externalClientService.createNewExternalClient(clientDto);
+  }
 
-    @Override
-    public ClientDto getClient(ClientDto queryObject) throws NotFoundException {
-        return externalClientService.getClient(queryObject);
-    }
+  @Override
+  public ClientDto getClient(ClientDto queryObject) throws NotFoundException {
+    return externalClientService.getClient(queryObject);
+  }
 
-    private boolean thereAreMoreEntries(ScanResponse result) {
-        return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty();
-    }
+  private boolean thereAreMoreEntries(ScanResponse result) {
+    return result.hasLastEvaluatedKey() && !result.lastEvaluatedKey().isEmpty();
+  }
 
-    private ScanResponse scanDynamoDb(ScanDatabaseRequestV2 scanRequest) {
-        var dynamoScanRequest = createScanDynamoRequest(scanRequest);
-        return dynamoDbClient.scan(dynamoScanRequest);
-    }
+  private ScanResponse scanDynamoDb(ScanDatabaseRequestV2 scanRequest) {
+    var dynamoScanRequest = createScanDynamoRequest(scanRequest);
+    return dynamoDbClient.scan(dynamoScanRequest);
+  }
 
-    private ScanRequest createScanDynamoRequest(ScanDatabaseRequestV2 input) {
-        return ScanRequest.builder()
-            .tableName(Constants.USERS_AND_ROLES_TABLE)
-            .limit(input.getPageSize())
-            .exclusiveStartKey(input.toDynamoScanMarker())
-            .build();
-    }
+  private ScanRequest createScanDynamoRequest(ScanDatabaseRequestV2 input) {
+    return ScanRequest.builder()
+        .tableName(Constants.USERS_AND_ROLES_TABLE)
+        .limit(input.getPageSize())
+        .exclusiveStartKey(input.toDynamoScanMarker())
+        .build();
+  }
 
-    private List<UserDto> parseUsersFromScanResult(ScanResponse result) {
-        return result.items()
-            .stream()
-            .filter(this::databaseEntryIsUser)
-            .map(UserDao.TABLE_SCHEMA::mapToItem)
-            .map(UserDao::toUserDto)
-            .collect(Collectors.toList());
-    }
+  private List<UserDto> parseUsersFromScanResult(ScanResponse result) {
+    return result.items().stream()
+        .filter(this::databaseEntryIsUser)
+        .map(UserDao.TABLE_SCHEMA::mapToItem)
+        .map(UserDao::toUserDto)
+        .collect(Collectors.toList());
+  }
 
-    private boolean databaseEntryIsUser(Map<String, AttributeValue> databaseEntry) {
-        return Optional.ofNullable(databaseEntry)
-            .map(item -> item.get(Typed.TYPE_FIELD))
-            .map(fields -> UserDao.TYPE_VALUE.equals(fields.s()))
-            .orElse(false);
-    }
+  private boolean databaseEntryIsUser(Map<String, AttributeValue> databaseEntry) {
+    return Optional.ofNullable(databaseEntry)
+        .map(item -> item.get(Typed.TYPE_FIELD))
+        .map(fields -> UserDao.TYPE_VALUE.equals(fields.s()))
+        .orElse(false);
+  }
 }

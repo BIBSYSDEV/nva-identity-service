@@ -35,6 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
@@ -68,493 +69,538 @@ import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
 class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
 
-    private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerServiceTest.class);
-    private DynamoDBCustomerService service;
+  private static final Logger logger = LoggerFactory.getLogger(DynamoDBCustomerServiceTest.class);
+  private DynamoDBCustomerService service;
 
-    /**
-     * Set up environment.
-     */
-    @BeforeEach
-    public void setUp() {
-        super.setupDatabase();
-        service = new DynamoDBCustomerService(dynamoClient);
+  /** Set up environment. */
+  @BeforeEach
+  public void setUp() {
+    super.setupDatabase();
+    service = new DynamoDBCustomerService(dynamoClient);
+  }
+
+  @Test
+  void createNewCustomerReturnsTheCustomer() throws NotFoundException, ConflictException {
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+
+    assertNotNull(createdCustomer.getIdentifier());
+    // inject automatically generated id
+    customer.setId(createdCustomer.getId());
+    assertThat(createdCustomer, is(equalTo(createdCustomer)));
+  }
+
+  @Test
+  void updateExistingCustomerWithNewName()
+      throws NotFoundException, InputException, ConflictException {
+    String newName = "New name";
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+    assertNotEquals(newName, createdCustomer.getName());
+
+    createdCustomer.setName(newName);
+    var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+    assertEquals(newName, updatedCustomer.getName());
+  }
+
+  @Test
+  void shouldRefreshCustomers() throws ConflictException, NotFoundException {
+    service.createCustomer(newActiveCustomerDto());
+    assertDoesNotThrow(() -> service.refreshCustomers());
+  }
+
+  @Test
+  void shouldUpdateRboInstitutionWhenRboInstitutionIsSetToTrue()
+      throws NotFoundException, InputException, ConflictException {
+    var customer = newActiveCustomerDto();
+    customer.setRboInstitution(false);
+    var createdCustomer = service.createCustomer(customer);
+    assertFalse(createdCustomer.isRboInstitution());
+
+    createdCustomer.setRboInstitution(true);
+    var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+    assertTrue(updatedCustomer.isRboInstitution());
+  }
+
+  @Test
+  void shouldUpdateInactiveFromWhenInactiveIsSet()
+      throws NotFoundException, InputException, ConflictException {
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+    assertThat(createdCustomer.getInactiveFrom(), is(nullValue()));
+
+    var now = Instant.now();
+    createdCustomer.setInactiveFrom(now);
+    var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+    assertThat(updatedCustomer.getInactiveFrom(), is(equalTo(now)));
+  }
+
+  @Test
+  void updateExistingCustomerChangesModifiedDate()
+      throws NotFoundException, InputException, ConflictException {
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+
+    var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+    assertNotEquals(customer.getModifiedDate(), updatedCustomer.getModifiedDate());
+  }
+
+  @Test
+  void updateExistingCustomerPreservesCreatedDate()
+      throws NotFoundException, InputException, ConflictException {
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+    var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
+    assertEquals(createdCustomer.getCreatedDate(), updatedCustomer.getCreatedDate());
+  }
+
+  @Test
+  void updateExistingCustomerWithDifferentIdentifiersThrowsException()
+      throws NotFoundException, ConflictException {
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+    var differentIdentifier = UUID.randomUUID();
+    var exception =
+        assertThrows(
+            InputException.class,
+            () -> service.updateCustomer(differentIdentifier, createdCustomer));
+    var expectedMessage =
+        String.format(
+            DynamoDBCustomerService.IDENTIFIERS_NOT_EQUAL,
+            differentIdentifier,
+            createdCustomer.getIdentifier());
+    assertEquals(expectedMessage, exception.getMessage());
+  }
+
+  @Test
+  void getExistingCustomerReturnsTheCustomer() throws NotFoundException, ConflictException {
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+    CustomerDto getCustomer = null;
+    try {
+      getCustomer = service.getCustomer(createdCustomer.getIdentifier());
+    } catch (NotFoundException e) {
+      logger.error(e.getMessage());
     }
+    assertEquals(createdCustomer, getCustomer);
+  }
 
-    @Test
-    void createNewCustomerReturnsTheCustomer() throws NotFoundException, ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-
-        assertNotNull(createdCustomer.getIdentifier());
-        //inject automatically generated id
-        customer.setId(createdCustomer.getId());
-        assertThat(createdCustomer, is(equalTo(createdCustomer)));
+  @Test
+  void shouldReturnCustomerById() throws NotFoundException, ConflictException {
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+    CustomerDto retrievedCustomer = null;
+    try {
+      retrievedCustomer = service.getCustomer(createdCustomer.getId());
+    } catch (NotFoundException e) {
+      logger.error(e.getMessage());
     }
+    assertThat(createdCustomer, is(equalTo(retrievedCustomer)));
+  }
 
-    @Test
-    void updateExistingCustomerWithNewName() throws NotFoundException, InputException, ConflictException {
-        String newName = "New name";
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-        assertNotEquals(newName, createdCustomer.getName());
-
-        createdCustomer.setName(newName);
-        var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
-        assertEquals(newName, updatedCustomer.getName());
+  @Test
+  void getCustomerByOrgDomainReturnsTheCustomer() throws NotFoundException, ConflictException {
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+    CustomerDto getCustomer = null;
+    try {
+      getCustomer = service.getCustomerByOrgDomain(createdCustomer.getFeideOrganizationDomain());
+    } catch (NotFoundException e) {
+      logger.error(e.getMessage());
     }
+    assertEquals(createdCustomer, getCustomer);
+  }
 
-    @Test
-    void shouldRefreshCustomers() throws ConflictException, NotFoundException {
-        service.createCustomer(newActiveCustomerDto());
-        assertDoesNotThrow(() -> service.refreshCustomers());
-    }
+  @Test
+  void getCustomerByCristinIdReturnsTheCustomer() throws NotFoundException, ConflictException {
+    var customer = newInactiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
+    assertThat(createdCustomer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
+    var retrievedCustomer = service.getCustomerByCristinId(createdCustomer.getCristinId());
+    assertEquals(createdCustomer, retrievedCustomer);
+  }
 
-    @Test
-    void shouldUpdateRboInstitutionWhenRboInstitutionIsSetToTrue()
-        throws NotFoundException, InputException, ConflictException {
-        var customer = newActiveCustomerDto();
-        customer.setRboInstitution(false);
-        var createdCustomer = service.createCustomer(customer);
-        assertFalse(createdCustomer.isRboInstitution());
+  @Test
+  void shouldThrowNotFoundExceptionWhenQueryResultIsEmpty()
+      throws NotFoundException, ConflictException {
+    var customer = newActiveCustomerDto();
+    service.createCustomer(customer);
+    var unknownCristinId = randomUri();
+    var exception =
+        assertThrows(
+            NotFoundException.class, () -> service.getCustomerByCristinId(unknownCristinId));
+    assertThat(exception.getMessage(), Matchers.containsString(unknownCristinId.toString()));
+  }
 
-        createdCustomer.setRboInstitution(true);
-        var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
-        assertTrue(updatedCustomer.isRboInstitution());
-    }
+  @Test
+  void getAllCustomersReturnsListOfCustomers() throws NotFoundException, ConflictException {
+    // create three customers
+    service.createCustomer(newActiveCustomerDto());
+    service.createCustomer(newActiveCustomerDto());
+    service.createCustomer(newActiveCustomerDto());
 
-    @Test
-    void shouldUpdateInactiveFromWhenInactiveIsSet() throws NotFoundException, InputException, ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-        assertThat(createdCustomer.getInactiveFrom(), is(nullValue()));
+    var customers = service.getCustomers();
+    assertEquals(3, customers.size());
+  }
 
-        var now = Instant.now();
-        createdCustomer.setInactiveFrom(now);
-        var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
-        assertThat(updatedCustomer.getInactiveFrom(), is(equalTo(now)));
-    }
+  @Test
+  void getCustomerNotFoundThrowsException() {
+    var nonExistingCustomer = UUID.randomUUID();
+    var exception =
+        assertThrows(NotFoundException.class, () -> service.getCustomer(nonExistingCustomer));
+    assertThat(exception.getMessage(), Matchers.containsString(nonExistingCustomer.toString()));
+  }
 
-    @Test
-    void updateExistingCustomerChangesModifiedDate() throws NotFoundException, InputException, ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
+  @Test
+  void getCustomerTableErrorThrowsException() {
+    final var expectedMessage = randomString();
+    DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
+    when(failingTable.getItem(any(CustomerDao.class)))
+        .thenAnswer(
+            ignored -> {
+              throw new RuntimeException(expectedMessage);
+            });
+    var failingService = new DynamoDBCustomerService(failingTable);
+    var exception =
+        assertThrows(RuntimeException.class, () -> failingService.getCustomer(UUID.randomUUID()));
+    assertEquals(expectedMessage, exception.getMessage());
+  }
 
-        var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
-        assertNotEquals(customer.getModifiedDate(), updatedCustomer.getModifiedDate());
-    }
+  @Test
+  void getCustomersTableErrorThrowsException() {
+    DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
+    final var expectedMessage = randomString();
+    when(failingTable.scan())
+        .thenAnswer(
+            ignored -> {
+              throw new RuntimeException(expectedMessage);
+            });
+    var failingService = new DynamoDBCustomerService(failingTable);
+    var exception = assertThrows(RuntimeException.class, failingService::getCustomers);
+    assertEquals(expectedMessage, exception.getMessage());
+  }
 
-    @Test
-    void updateExistingCustomerPreservesCreatedDate() throws NotFoundException, InputException, ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-        var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
-        assertEquals(createdCustomer.getCreatedDate(), updatedCustomer.getCreatedDate());
-    }
+  @Test
+  void createCustomerTableErrorThrowsException() {
+    DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
+    final var expectedMessage = randomString();
+    doAnswer(
+            ignored -> {
+              throw new RuntimeException(expectedMessage);
+            })
+        .when(failingTable)
+        .putItem(any(CustomerDao.class));
+    var failingService = new DynamoDBCustomerService(failingTable);
+    var exception =
+        assertThrows(
+            RuntimeException.class, () -> failingService.createCustomer(newInactiveCustomerDto()));
+    assertEquals(expectedMessage, exception.getMessage());
+  }
 
-    @Test
-    void updateExistingCustomerWithDifferentIdentifiersThrowsException() throws NotFoundException, ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-        var differentIdentifier = UUID.randomUUID();
-        var exception = assertThrows(InputException.class,
-                                     () -> service.updateCustomer(differentIdentifier, createdCustomer));
-        var expectedMessage = String.format(DynamoDBCustomerService.IDENTIFIERS_NOT_EQUAL, differentIdentifier,
-                                            createdCustomer.getIdentifier());
-        assertEquals(expectedMessage, exception.getMessage());
-    }
+  @Test
+  void updateCustomerTableErrorThrowsException() {
+    DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
+    final var expectedMessage = randomString();
+    doAnswer(
+            ignored -> {
+              throw new RuntimeException(expectedMessage);
+            })
+        .when(failingTable)
+        .putItem(any(CustomerDao.class));
+    var failingService = new DynamoDBCustomerService(failingTable);
+    var customer = newActiveCustomerDto();
+    customer.setIdentifier(UUID.randomUUID());
+    var exception =
+        assertThrows(
+            RuntimeException.class,
+            () -> failingService.putCustomer(customer.getIdentifier(), customer, false));
+    assertEquals(expectedMessage, exception.getMessage());
+  }
 
-    @Test
-    void getExistingCustomerReturnsTheCustomer() throws NotFoundException, ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-        CustomerDto getCustomer = null;
-        try {
-            getCustomer = service.getCustomer(createdCustomer.getIdentifier());
-        } catch (NotFoundException e) {
-            logger.error(e.getMessage());
-        }
-        assertEquals(createdCustomer, getCustomer);
-    }
+  @Test
+  void shouldReadEntryWhereVocabularyStatusIsNotCamelCase()
+      throws NotFoundException, ConflictException {
+    var savedCustomer = createCustomerWithSingleVocabularyEntry();
+    var entry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
+    updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(entry);
+    var updatedEntry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
+    var updatedVocabularyStatus =
+        extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(updatedEntry);
+    assertThat(updatedVocabularyStatus, is(equalTo(statusWithAlternateCase())));
+    var updatedCustomer = service.getCustomer(savedCustomer.getIdentifier());
+    assertThat(updatedCustomer.getVocabularies().getFirst().getStatus(), is(equalTo(ALLOWED)));
+  }
 
-    @Test
-    void shouldReturnCustomerById() throws NotFoundException, ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-        CustomerDto retrievedCustomer = null;
-        try {
-            retrievedCustomer = service.getCustomer(createdCustomer.getId());
-        } catch (NotFoundException e) {
-            logger.error(e.getMessage());
-        }
-        assertThat(createdCustomer, is(equalTo(retrievedCustomer)));
-    }
+  @Test
+  void shouldThrowConflictErrorWhenCustomerWithSameInstitutionIdExists()
+      throws NotFoundException, ConflictException {
+    var existingCustomer = createCustomerWithSingleVocabularyEntry();
+    var customerDuplicate =
+        CustomerDto.builder()
+            .withCristinId(existingCustomer.getCristinId())
+            .withCname(randomString())
+            .withArchiveName(randomString())
+            .withName(randomString())
+            .build();
+    Executable action = () -> service.createCustomer(customerDuplicate);
+    assertThrows(ConflictException.class, action);
+  }
 
-    @Test
-    void getCustomerByOrgDomainReturnsTheCustomer() throws NotFoundException, ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-        CustomerDto getCustomer = null;
-        try {
-            getCustomer = service.getCustomerByOrgDomain(createdCustomer.getFeideOrganizationDomain());
-        } catch (NotFoundException e) {
-            logger.error(e.getMessage());
-        }
-        assertEquals(createdCustomer, getCustomer);
-    }
+  @Test
+  void shouldCreateChannelClaimForCustomer()
+      throws ConflictException, NotFoundException, InputException, BadRequestException {
+    var customer = createCustomerWithoutChannelClaim();
+    var channelClaim = randomChannelClaimDto();
+    service.createChannelClaim(customer.getIdentifier(), channelClaim);
+    var updatedCustomer = service.getCustomer(customer.getIdentifier());
 
-    @Test
-    void getCustomerByCristinIdReturnsTheCustomer() throws NotFoundException, ConflictException {
-        var customer = newInactiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-        assertThat(createdCustomer, doesNotHaveEmptyValuesIgnoringFields(Set.of("doiAgent.password")));
-        var retrievedCustomer = service.getCustomerByCristinId(createdCustomer.getCristinId());
-        assertEquals(createdCustomer, retrievedCustomer);
-    }
+    assertTrue(updatedCustomer.getChannelClaims().contains(channelClaim));
+  }
 
-    @Test
-    void shouldThrowNotFoundExceptionWhenQueryResultIsEmpty() throws NotFoundException, ConflictException {
-        var customer = newActiveCustomerDto();
-        service.createCustomer(customer);
-        var unknownCristinId = randomUri();
-        var exception = assertThrows(NotFoundException.class,
-            () -> service.getCustomerByCristinId(unknownCristinId));
-        assertThat(exception.getMessage(), Matchers.containsString(unknownCristinId.toString()));
-    }
+  @Test
+  void shouldThrowBadRequestExceptionWhenCreatingChannelClaimWithInvalidChannel()
+      throws NotFoundException, ConflictException {
+    var customer = createCustomerWithoutChannelClaim();
+    var channelClaim = new ChannelClaimDto(randomUri(), randomChannelConstraintDto());
 
-    @Test
-    void getAllCustomersReturnsListOfCustomers() throws NotFoundException, ConflictException {
-        // create three customers
-        service.createCustomer(newActiveCustomerDto());
-        service.createCustomer(newActiveCustomerDto());
-        service.createCustomer(newActiveCustomerDto());
+    assertThrows(
+        BadRequestException.class,
+        () -> service.createChannelClaim(customer.getIdentifier(), channelClaim));
+  }
 
-        var customers = service.getCustomers();
-        assertEquals(3, customers.size());
-    }
+  @Test
+  void shouldThrowConflictExceptionWhenTheCustomerAlreadyHaveClaimedTheChannel()
+      throws ConflictException, NotFoundException {
+    var existingClaim = randomChannelClaimDto();
+    var customer = createCustomerWithChannelClaim(existingClaim);
 
-    @Test
-    void getCustomerNotFoundThrowsException() {
-        var nonExistingCustomer = UUID.randomUUID();
-        var exception = assertThrows(NotFoundException.class, () -> service.getCustomer(nonExistingCustomer));
-        assertThat(exception.getMessage(), Matchers.containsString(nonExistingCustomer.toString()));
-    }
+    assertThrows(
+        ConflictException.class,
+        () -> service.createChannelClaim(customer.getIdentifier(), existingClaim));
+  }
 
-    @Test
-    void getCustomerTableErrorThrowsException() {
-        final var expectedMessage = randomString();
-        DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
-        when(failingTable.getItem(any(CustomerDao.class))).thenAnswer(ignored -> {
-            throw new RuntimeException(expectedMessage);
-        });
-        var failingService = new DynamoDBCustomerService(failingTable);
-        var exception = assertThrows(RuntimeException.class, () -> failingService.getCustomer(UUID.randomUUID()));
-        assertEquals(expectedMessage, exception.getMessage());
-    }
+  @Test
+  void shouldThrowConflictExceptionWhenAnotherCustomerHasAlreadyClaimedTheChannel()
+      throws ConflictException, NotFoundException {
+    var existingClaim = randomChannelClaimDto();
+    createCustomerWithChannelClaim(existingClaim);
 
-    @Test
-    void getCustomersTableErrorThrowsException() {
-        DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
-        final var expectedMessage = randomString();
-        when(failingTable.scan()).thenAnswer(ignored -> {
-            throw new RuntimeException(expectedMessage);
-        });
-        var failingService = new DynamoDBCustomerService(failingTable);
-        var exception = assertThrows(RuntimeException.class, failingService::getCustomers);
-        assertEquals(expectedMessage, exception.getMessage());
-    }
+    var customer = createCustomerWithoutChannelClaim();
+    assertThrows(
+        ConflictException.class,
+        () -> service.createChannelClaim(customer.getIdentifier(), existingClaim));
+  }
 
-    @Test
-    void createCustomerTableErrorThrowsException() {
-        DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
-        final var expectedMessage = randomString();
-        doAnswer(ignored -> {
-            throw new RuntimeException(expectedMessage);
-        }).when(failingTable).putItem(any(CustomerDao.class));
-        var failingService = new DynamoDBCustomerService(failingTable);
-        var exception = assertThrows(RuntimeException.class,
-                                     () -> failingService.createCustomer(newInactiveCustomerDto()));
-        assertEquals(expectedMessage, exception.getMessage());
-    }
+  @Test
+  void shouldIgnoreChannelClaimsWhenUpdatingCustomer()
+      throws ConflictException, NotFoundException, InputException {
+    var customer = createCustomerWithoutChannelClaim();
+    customer.overwriteChannelClaims(randomChannelClaimDtos());
 
-    @Test
-    void updateCustomerTableErrorThrowsException() {
-        DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
-        final var expectedMessage = randomString();
-        doAnswer(ignored -> {
-            throw new RuntimeException(expectedMessage);
-        }).when(failingTable).putItem(any(CustomerDao.class));
-        var failingService = new DynamoDBCustomerService(failingTable);
-        var customer = newActiveCustomerDto();
-        customer.setIdentifier(UUID.randomUUID());
-        var exception = assertThrows(RuntimeException.class,
-                                     () -> failingService.putCustomer(customer.getIdentifier(), customer, false));
-        assertEquals(expectedMessage, exception.getMessage());
-    }
+    var updatedCustomer = service.updateCustomer(customer.getIdentifier(), customer);
+    assertTrue(updatedCustomer.getChannelClaims().isEmpty());
+  }
 
-    @Test
-    void shouldReadEntryWhereVocabularyStatusIsNotCamelCase() throws NotFoundException, ConflictException {
-        var savedCustomer = createCustomerWithSingleVocabularyEntry();
-        var entry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
-        updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(entry);
-        var updatedEntry = fetchCustomerDirectlyFromDatabaseAsKeyValueMap();
-        var updatedVocabularyStatus = extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
-            updatedEntry);
-        assertThat(updatedVocabularyStatus, is(equalTo(statusWithAlternateCase())));
-        var updatedCustomer = service.getCustomer(savedCustomer.getIdentifier());
-        assertThat(updatedCustomer.getVocabularies().getFirst().getStatus(), is(equalTo(ALLOWED)));
-    }
+  @Test
+  void shouldReturnAllChannelClaims() throws ConflictException, NotFoundException {
+    createCustomerWithChannelClaim(randomChannelClaimDto());
+    createCustomerWithChannelClaim(randomChannelClaimDto());
 
-    @Test
-    void shouldThrowConflictErrorWhenCustomerWithSameInstitutionIdExists() throws NotFoundException, ConflictException {
-        var existingCustomer = createCustomerWithSingleVocabularyEntry();
-        var customerDuplicate = CustomerDto.builder()
-                                    .withCristinId(existingCustomer.getCristinId())
-                                    .withCname(randomString())
-                                    .withArchiveName(randomString())
-                                    .withName(randomString())
-                                    .build();
-        Executable action = () -> service.createCustomer(customerDuplicate);
-        assertThrows(ConflictException.class, action);
-    }
+    var allChannelClaims = service.getChannelClaims();
+    assertEquals(2, allChannelClaims.size());
+  }
 
-    @Test
-    void shouldCreateChannelClaimForCustomer() throws ConflictException, NotFoundException,
-                                                      InputException, BadRequestException {
-        var customer = createCustomerWithoutChannelClaim();
-        var channelClaim = randomChannelClaimDto();
-        service.createChannelClaim(customer.getIdentifier(), channelClaim);
-        var updatedCustomer = service.getCustomer(customer.getIdentifier());
+  @Test
+  void shouldReturnEmptyListWhenNoCustomersHasAnyChannelClaims()
+      throws ConflictException, NotFoundException {
+    createCustomerWithoutChannelClaim();
 
-        assertTrue(updatedCustomer.getChannelClaims().contains(channelClaim));
-    }
+    var allChannelClaims = service.getChannelClaims();
+    assertEquals(0, allChannelClaims.size());
+  }
 
-    @Test
-    void shouldThrowBadRequestExceptionWhenCreatingChannelClaimWithInvalidChannel()
-        throws NotFoundException, ConflictException {
-        var customer = createCustomerWithoutChannelClaim();
-        var channelClaim = new ChannelClaimDto(randomUri(), randomChannelConstraintDto());
+  @Test
+  void shouldReturnEmptyListWhenNoCustomersExists() {
+    var allChannelClaims = service.getChannelClaims();
+    assertEquals(0, allChannelClaims.size());
+  }
 
-        assertThrows(BadRequestException.class,
-                     () -> service.createChannelClaim(customer.getIdentifier(), channelClaim));
-    }
+  @Test
+  void shouldReturnCustomerIdentifierAndCristinIdWhenRequestingChannelClaims()
+      throws ConflictException, NotFoundException {
+    var channelClaim = randomChannelClaimDto();
+    var customer = createCustomerWithChannelClaim(channelClaim);
 
-    @Test
-    void shouldThrowConflictExceptionWhenTheCustomerAlreadyHaveClaimedTheChannel() throws ConflictException,
-                                                                                   NotFoundException {
-        var existingClaim = randomChannelClaimDto();
-        var customer = createCustomerWithChannelClaim(existingClaim);
+    var allChannelClaims = service.getChannelClaims();
+    var actualChannelClaim = allChannelClaims.stream().findFirst().orElseThrow();
+    assertEquals(customer.getId(), actualChannelClaim.customerId());
+    assertEquals(customer.getCristinId(), actualChannelClaim.cristinId());
+    assertEquals(channelClaim, actualChannelClaim.channelClaim());
+  }
 
-        assertThrows(ConflictException.class, () -> service.createChannelClaim(customer.getIdentifier(), existingClaim));
-    }
+  @Test
+  void shouldListChannelClaimsForInstitution() throws ConflictException, NotFoundException {
+    var customer = createCustomerWithChannelClaim(randomChannelClaimDto());
+    createCustomerWithChannelClaim(randomChannelClaimDto());
+    createCustomerWithChannelClaim(randomChannelClaimDto());
 
-    @Test
-    void shouldThrowConflictExceptionWhenAnotherCustomerHasAlreadyClaimedTheChannel() throws ConflictException,
-                                                                                   NotFoundException {
-        var existingClaim = randomChannelClaimDto();
-        createCustomerWithChannelClaim(existingClaim);
+    var channelClaims = service.getChannelClaimsForCustomer(customer.getCristinId());
 
-        var customer = createCustomerWithoutChannelClaim();
-        assertThrows(ConflictException.class, () -> service.createChannelClaim(customer.getIdentifier(), existingClaim));
-    }
+    assertEquals(1, channelClaims.size());
+    assertEquals(
+        customer.getCristinId(), channelClaims.stream().findFirst().orElseThrow().cristinId());
+  }
 
-    @Test
-    void shouldIgnoreChannelClaimsWhenUpdatingCustomer() throws ConflictException, NotFoundException,
-                                                                   InputException {
-        var customer = createCustomerWithoutChannelClaim();
-        customer.overwriteChannelClaims(randomChannelClaimDtos());
+  @Test
+  void shouldReturnChannelClaimByChannelIdentifier() throws ConflictException, NotFoundException {
+    var channelClaim = randomChannelClaimDto();
+    createCustomerWithChannelClaim(channelClaim);
 
-        var updatedCustomer = service.updateCustomer(customer.getIdentifier(), customer);
-        assertTrue(updatedCustomer.getChannelClaims().isEmpty());
-    }
+    var channelClaimIdentifier = channelClaim.identifier();
+    var fetchedClaim = service.getChannelClaim(channelClaimIdentifier);
 
-    @Test
-    void shouldReturnAllChannelClaims() throws ConflictException, NotFoundException {
-        createCustomerWithChannelClaim(randomChannelClaimDto());
-        createCustomerWithChannelClaim(randomChannelClaimDto());
+    assertEquals(channelClaim, fetchedClaim.orElseThrow().channelClaim());
+  }
 
-        var allChannelClaims = service.getChannelClaims();
-        assertEquals(2, allChannelClaims.size());
-    }
+  @Test
+  void shouldRemoveChannelClaimFromCustomer()
+      throws ConflictException, NotFoundException, InputException {
+    var channelClaim = randomChannelClaimDto();
+    createCustomerWithChannelClaim(channelClaim);
 
-    @Test
-    void shouldReturnEmptyListWhenNoCustomersHasAnyChannelClaims() throws ConflictException, NotFoundException {
-        createCustomerWithoutChannelClaim();
+    service.deleteChannelClaim(channelClaim.identifier());
+    var fetchedChannelClaim = service.getChannelClaim(channelClaim.identifier());
 
-        var allChannelClaims = service.getChannelClaims();
-        assertEquals(0, allChannelClaims.size());
-    }
+    assertTrue(fetchedChannelClaim.isEmpty());
+  }
 
-    @Test
-    void shouldReturnEmptyListWhenNoCustomersExists() {
-        var allChannelClaims = service.getChannelClaims();
-        assertEquals(0, allChannelClaims.size());
-    }
+  @Test
+  void shouldNotCallUpdateCustomerWhenRemovingNotExistingChannelClaim()
+      throws NotFoundException, InputException {
+    var mockedService = mock(DynamoDBCustomerService.class);
+    mockedService.deleteChannelClaim(UUID.randomUUID());
 
-    @Test
-    void shouldReturnCustomerIdentifierAndCristinIdWhenRequestingChannelClaims()
-        throws ConflictException, NotFoundException {
-        var channelClaim = randomChannelClaimDto();
-        var customer = createCustomerWithChannelClaim(channelClaim);
+    verify(mockedService, never()).putCustomer(any(), any(), eq(false));
+  }
 
-        var allChannelClaims = service.getChannelClaims();
-        var actualChannelClaim = allChannelClaims.stream().findFirst().orElseThrow();
-        assertEquals(customer.getId(), actualChannelClaim.customerId());
-        assertEquals(customer.getCristinId(), actualChannelClaim.cristinId());
-        assertEquals(channelClaim, actualChannelClaim.channelClaim());
-    }
+  @Test
+  void shouldUpdateExistingCustomerAutoPublishScopusImportFilesField()
+      throws NotFoundException, InputException, ConflictException {
+    var customer = newActiveCustomerDto();
+    var createdCustomer = service.createCustomer(customer);
 
-    @Test
-    void shouldListChannelClaimsForInstitution()
-        throws ConflictException, NotFoundException {
-        var customer = createCustomerWithChannelClaim(randomChannelClaimDto());
-        createCustomerWithChannelClaim(randomChannelClaimDto());
-        createCustomerWithChannelClaim(randomChannelClaimDto());
+    assertFalse(customer.isAutoPublishScopusImportFiles());
 
-        var channelClaims = service.getChannelClaimsForCustomer(customer.getCristinId());
+    createdCustomer.setAutoPublishScopusImportFiles(true);
+    var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
 
-        assertEquals(1, channelClaims.size());
-        assertEquals(customer.getCristinId(), channelClaims.stream().findFirst().orElseThrow().cristinId());
-    }
+    assertTrue(updatedCustomer.isAutoPublishScopusImportFiles());
+  }
 
-    @Test
-    void shouldReturnChannelClaimByChannelIdentifier() throws ConflictException, NotFoundException {
-        var channelClaim = randomChannelClaimDto();
-        createCustomerWithChannelClaim(channelClaim);
+  private CustomerDto newActiveCustomerDto() {
+    var customer = newInactiveCustomerDto();
+    customer.setInactiveFrom(null);
+    return customer;
+  }
 
-        var channelClaimIdentifier = channelClaim.identifier();
-        var fetchedClaim = service.getChannelClaim(channelClaimIdentifier);
-
-        assertEquals(channelClaim, fetchedClaim.orElseThrow().channelClaim());
-    }
-
-    @Test
-    void shouldRemoveChannelClaimFromCustomer() throws ConflictException, NotFoundException, InputException {
-        var channelClaim = randomChannelClaimDto();
-        createCustomerWithChannelClaim(channelClaim);
-
-        service.deleteChannelClaim(channelClaim.identifier());
-        var fetchedChannelClaim = service.getChannelClaim(channelClaim.identifier());
-
-        assertTrue(fetchedChannelClaim.isEmpty());
-    }
-
-    @Test
-    void shouldNotCallUpdateCustomerWhenRemovingNotExistingChannelClaim() throws NotFoundException, InputException {
-        var mockedService = mock(DynamoDBCustomerService.class);
-        mockedService.deleteChannelClaim(UUID.randomUUID());
-
-        verify(mockedService, never())
-            .putCustomer(any(), any(), eq(false));
-    }
-
-    @Test
-    void shouldUpdateExistingCustomerAutoPublishScopusImportFilesField() throws NotFoundException, InputException,
-                                                                            ConflictException {
-        var customer = newActiveCustomerDto();
-        var createdCustomer = service.createCustomer(customer);
-
-        assertFalse(customer.isAutoPublishScopusImportFiles());
-
-        createdCustomer.setAutoPublishScopusImportFiles(true);
-        var updatedCustomer = service.updateCustomer(createdCustomer.getIdentifier(), createdCustomer);
-
-        assertTrue(updatedCustomer.isAutoPublishScopusImportFiles());
-    }
-
-    private CustomerDto newActiveCustomerDto() {
-        var customer = newInactiveCustomerDto();
-        customer.setInactiveFrom(null);
-        return customer;
-    }
-
-    private CustomerDto newInactiveCustomerDto() {
-        var oneMinuteInThePast = Instant.now().minusSeconds(60L);
-        var customer = CustomerDto.builder()
-                           .withName(randomString())
-                           .withShortName(randomString())
-                           .withCreatedDate(oneMinuteInThePast)
-                           .withModifiedDate(oneMinuteInThePast)
-                           .withDisplayName(randomString())
-                           .withArchiveName(randomString())
-                           .withCname(randomString())
-                           .withInstitutionDns(randomString())
-                           .withFeideOrganizationDomain(randomString())
-                           .withCristinId(randomCristinOrgId())
-                           .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
-                           .withVocabularies(randomVocabularySet())
-                           .withRorId(randomUri())
-                           .withPublicationWorkflow(randomPublicationWorkflow())
-                           .withDoiAgent(randomDoiAgent(randomString()))
-                           .withSector(randomSector())
-                           .withNviInstitution(randomBoolean())
-                           .withRboInstitution(randomBoolean())
-                           .withInactiveFrom(randomInstant())
-                           .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-                           .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
-                           .withChannelClaims(randomChannelClaimDtos())
-                           .build();
-        assertThat(customer, doesNotHaveEmptyValuesIgnoringFields(
+  private CustomerDto newInactiveCustomerDto() {
+    var oneMinuteInThePast = Instant.now().minusSeconds(60L);
+    var customer =
+        CustomerDto.builder()
+            .withName(randomString())
+            .withShortName(randomString())
+            .withCreatedDate(oneMinuteInThePast)
+            .withModifiedDate(oneMinuteInThePast)
+            .withDisplayName(randomString())
+            .withArchiveName(randomString())
+            .withCname(randomString())
+            .withInstitutionDns(randomString())
+            .withFeideOrganizationDomain(randomString())
+            .withCristinId(randomCristinOrgId())
+            .withCustomerOf(ApplicationDomain.fromUri(URI.create("")))
+            .withVocabularies(randomVocabularySet())
+            .withRorId(randomUri())
+            .withPublicationWorkflow(randomPublicationWorkflow())
+            .withDoiAgent(randomDoiAgent(randomString()))
+            .withSector(randomSector())
+            .withNviInstitution(randomBoolean())
+            .withRboInstitution(randomBoolean())
+            .withInactiveFrom(randomInstant())
+            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+            .withAllowFileUploadForTypes(randomAllowFileUploadForTypes())
+            .withChannelClaims(randomChannelClaimDtos())
+            .build();
+    assertThat(
+        customer,
+        doesNotHaveEmptyValuesIgnoringFields(
             Set.of("identifier", "id", "context", "doiAgent.password", "doiAgent.id")));
-        return customer;
-    }
+    return customer;
+  }
 
-    private Set<VocabularyDto> randomVocabularySet() {
-        return Set.of(randomVocabulary(), randomVocabulary());
-    }
+  private Set<VocabularyDto> randomVocabularySet() {
+    return Set.of(randomVocabulary(), randomVocabulary());
+  }
 
-    private VocabularyDto randomVocabulary() {
-        return new VocabularyDto(randomString(), randomUri(), randomElement(VocabularyStatus.values()));
-    }
+  private VocabularyDto randomVocabulary() {
+    return new VocabularyDto(randomString(), randomUri(), randomElement(VocabularyStatus.values()));
+  }
 
-    private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
-        Map<String, AttributeValue> updatedEntry) {
-        return updatedEntry.get(CustomerDao.VOCABULARIES_FIELD)
-                   .l()
-                   .getFirst()
-                   .m()
-                   .get(VocabularyDao.STATUS_FIELD)
-                   .s();
-    }
+  private String extractVocabularyStatusFromCustomerEntryContainingExactlyOneVocabulary(
+      Map<String, AttributeValue> updatedEntry) {
+    return updatedEntry
+        .get(CustomerDao.VOCABULARIES_FIELD)
+        .l()
+        .getFirst()
+        .m()
+        .get(VocabularyDao.STATUS_FIELD)
+        .s();
+  }
 
-    private void updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(Map<String, AttributeValue> entry) {
-        var newEntry = createNewEntryWithVocabularyStatusHavingAlternateCase(entry);
-        this.dynamoClient.putItem(PutItemRequest.builder().item(newEntry).tableName(CUSTOMERS_TABLE_NAME).build());
-    }
+  private void updateDatabaseEntryWithVocabularyStatusHavingAlternateCase(
+      Map<String, AttributeValue> entry) {
+    var newEntry = createNewEntryWithVocabularyStatusHavingAlternateCase(entry);
+    this.dynamoClient.putItem(
+        PutItemRequest.builder().item(newEntry).tableName(CUSTOMERS_TABLE_NAME).build());
+  }
 
-    private HashMap<String, AttributeValue> createNewEntryWithVocabularyStatusHavingAlternateCase(
-        Map<String, AttributeValue> entry) {
-        var vocabulary = new HashMap<>(entry.get(CustomerDao.VOCABULARIES_FIELD).l().getFirst().m());
-        vocabulary.put(VocabularyDao.STATUS_FIELD, AttributeValue.builder().s(statusWithAlternateCase()).build());
-        var newEntry = new HashMap<>(entry);
-        AttributeValue vocabularyEntry = AttributeValue.builder().m(vocabulary).build();
-        var newVocabulariesList = AttributeValue.builder().l(vocabularyEntry).build();
-        newEntry.put(CustomerDao.VOCABULARIES_FIELD, newVocabulariesList);
-        return newEntry;
-    }
+  private HashMap<String, AttributeValue> createNewEntryWithVocabularyStatusHavingAlternateCase(
+      Map<String, AttributeValue> entry) {
+    var vocabulary = new HashMap<>(entry.get(CustomerDao.VOCABULARIES_FIELD).l().getFirst().m());
+    vocabulary.put(
+        VocabularyDao.STATUS_FIELD, AttributeValue.builder().s(statusWithAlternateCase()).build());
+    var newEntry = new HashMap<>(entry);
+    AttributeValue vocabularyEntry = AttributeValue.builder().m(vocabulary).build();
+    var newVocabulariesList = AttributeValue.builder().l(vocabularyEntry).build();
+    newEntry.put(CustomerDao.VOCABULARIES_FIELD, newVocabulariesList);
+    return newEntry;
+  }
 
-    private String statusWithAlternateCase() {
-        return "AlLoWed";
-    }
+  private String statusWithAlternateCase() {
+    return "AlLoWed";
+  }
 
-    private Map<String, AttributeValue> fetchCustomerDirectlyFromDatabaseAsKeyValueMap() {
-        var allEntries = this.dynamoClient.scan(ScanRequest.builder().tableName(CUSTOMERS_TABLE_NAME).build());
-        return allEntries.items().getFirst();
-    }
+  private Map<String, AttributeValue> fetchCustomerDirectlyFromDatabaseAsKeyValueMap() {
+    var allEntries =
+        this.dynamoClient.scan(ScanRequest.builder().tableName(CUSTOMERS_TABLE_NAME).build());
+    return allEntries.items().getFirst();
+  }
 
-    private CustomerDto createCustomerWithSingleVocabularyEntry() throws NotFoundException, ConflictException {
-        var customer = newInactiveCustomerDto();
-        customer.setVocabularies(List.of(randomVocabulary()));
-        return service.createCustomer(customer);
-    }
+  private CustomerDto createCustomerWithSingleVocabularyEntry()
+      throws NotFoundException, ConflictException {
+    var customer = newInactiveCustomerDto();
+    customer.setVocabularies(List.of(randomVocabulary()));
+    return service.createCustomer(customer);
+  }
 
-    private CustomerDto createCustomerWithoutChannelClaim() throws NotFoundException, ConflictException {
-        var customer = newActiveCustomerDto();
-        return service.createCustomer(customer.overwriteChannelClaims(Collections.emptyList()));
-    }
+  private CustomerDto createCustomerWithoutChannelClaim()
+      throws NotFoundException, ConflictException {
+    var customer = newActiveCustomerDto();
+    return service.createCustomer(customer.overwriteChannelClaims(Collections.emptyList()));
+  }
 
-    private CustomerDto createCustomerWithChannelClaim(ChannelClaimDto channelClaim) throws NotFoundException,
-                                                                                   ConflictException {
-        var customer = newActiveCustomerDto();
-        return service.createCustomer(customer.overwriteChannelClaims(List.of(channelClaim)));
-    }
+  private CustomerDto createCustomerWithChannelClaim(ChannelClaimDto channelClaim)
+      throws NotFoundException, ConflictException {
+    var customer = newActiveCustomerDto();
+    return service.createCustomer(customer.overwriteChannelClaims(List.of(channelClaim)));
+  }
 }

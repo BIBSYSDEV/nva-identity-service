@@ -17,9 +17,9 @@ The stack emits EventBridge events representing changes regarding channel claims
 `nva.resourceupdate.channelclaim`.
 Supported actions are:
 
-* Added
-* Updated
-* Removed
+- Added
+- Updated
+- Removed
 
 The events look like this:
 

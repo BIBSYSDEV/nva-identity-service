@@ -9,24 +9,24 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class VocabularyStatusConverter implements AttributeConverter<VocabularyStatus> {
 
-    @Override
-    public AttributeValue transformFrom(VocabularyStatus input) {
-        return AttributeValue.builder().s(input.getValue()).build();
-    }
+  @Override
+  public AttributeValue transformFrom(VocabularyStatus input) {
+    return AttributeValue.builder().s(input.getValue()).build();
+  }
 
-    @Override
-    public VocabularyStatus transformTo(AttributeValue input) {
-        return VocabularyStatus.lookUp(input.s());
-    }
+  @Override
+  public VocabularyStatus transformTo(AttributeValue input) {
+    return VocabularyStatus.lookUp(input.s());
+  }
 
-    @JacocoGenerated
-    @Override
-    public EnhancedType<VocabularyStatus> type() {
-        return EnhancedType.of(VocabularyStatus.class);
-    }
+  @JacocoGenerated
+  @Override
+  public EnhancedType<VocabularyStatus> type() {
+    return EnhancedType.of(VocabularyStatus.class);
+  }
 
-    @Override
-    public AttributeValueType attributeValueType() {
-        return AttributeValueType.S;
-    }
+  @Override
+  public AttributeValueType attributeValueType() {
+    return AttributeValueType.S;
+  }
 }

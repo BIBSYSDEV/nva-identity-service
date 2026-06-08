@@ -6,6 +6,6 @@ import java.util.Map;
 @FunctionalInterface
 public interface AttributeValueConverter {
 
-    Map<String, software.amazon.awssdk.services.dynamodb.model.AttributeValue> convert(
-        Map<String, AttributeValue> input);
+  Map<String, software.amazon.awssdk.services.dynamodb.model.AttributeValue> convert(
+      Map<String, AttributeValue> input);
 }

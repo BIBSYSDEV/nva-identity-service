@@ -8,13 +8,14 @@ import static no.unit.nva.useraccessservice.usercreation.person.IdentityServiceE
  */
 public class IdentityServiceMissingNinException extends IdentityServiceException {
 
-    private static final String DEFAULT_MESSAGE = "Missing National Identity Number in user attributes";
+  private static final String DEFAULT_MESSAGE =
+      "Missing National Identity Number in user attributes";
 
-    public IdentityServiceMissingNinException() {
-        super(MISSING_NIN, DEFAULT_MESSAGE);
-    }
-    
-    public IdentityServiceMissingNinException(String message) {
-        super(MISSING_NIN, message);
-    }
+  public IdentityServiceMissingNinException() {
+    super(MISSING_NIN, DEFAULT_MESSAGE);
+  }
+
+  public IdentityServiceMissingNinException(String message) {
+    super(MISSING_NIN, message);
+  }
 }

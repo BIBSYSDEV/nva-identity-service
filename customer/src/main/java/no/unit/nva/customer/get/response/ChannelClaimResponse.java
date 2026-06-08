@@ -13,16 +13,17 @@ import no.unit.nva.customer.model.channelclaim.ChannelClaimWithClaimer;
 @JsonTypeName("ClaimedChannel")
 public record ChannelClaimResponse(CustomerResponse claimedBy, ChannelClaimDto channelClaim) {
 
-    private static final String ID_FIELD = "id";
+  private static final String ID_FIELD = "id";
 
-    @JsonIgnore
-    public static ChannelClaimResponse create(ChannelClaimWithClaimer channelClaim) {
-        return new ChannelClaimResponse(new CustomerResponse(channelClaim.customerId(), channelClaim.cristinId()),
-                                        channelClaim.channelClaim());
-    }
+  @JsonIgnore
+  public static ChannelClaimResponse create(ChannelClaimWithClaimer channelClaim) {
+    return new ChannelClaimResponse(
+        new CustomerResponse(channelClaim.customerId(), channelClaim.cristinId()),
+        channelClaim.channelClaim());
+  }
 
-    @JsonProperty(ID_FIELD)
-    public URI getId() {
-        return ChannelClaimIdProducer.channelClaimId(channelClaim());
-    }
+  @JsonProperty(ID_FIELD)
+  public URI getId() {
+    return ChannelClaimIdProducer.channelClaimId(channelClaim());
+  }
 }

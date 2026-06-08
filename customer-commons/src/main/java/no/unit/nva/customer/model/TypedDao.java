@@ -2,8 +2,7 @@ package no.unit.nva.customer.model;
 
 public interface TypedDao {
 
-    String getType();
+  String getType();
 
-    void setType(String type);
-
+  void setType(String type);
 }

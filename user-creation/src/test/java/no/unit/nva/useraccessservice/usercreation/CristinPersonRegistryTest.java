@@ -1,34 +1,5 @@
 package no.unit.nva.useraccessservice.usercreation;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
-import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
-import no.unit.nva.database.IdentityService;
-import no.unit.nva.database.LocalIdentityService;
-import no.unit.nva.stubs.FakeSecretsManagerClient;
-import no.unit.nva.stubs.WiremockHttpClient;
-import no.unit.nva.useraccessservice.constants.ServiceConstants;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
-import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
-import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
-import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceAlreadyExistsException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUnavailableException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.logutils.LogRecorder;
-import org.assertj.core.api.Assertions;
-import nva.commons.secrets.SecretsReader;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.net.URI;
-
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static no.unit.nva.useraccessservice.userceation.testing.cristin.RandomNin.randomNin;
@@ -43,178 +14,218 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.net.URI;
+import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
+import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
+import no.unit.nva.database.IdentityService;
+import no.unit.nva.database.LocalIdentityService;
+import no.unit.nva.stubs.FakeSecretsManagerClient;
+import no.unit.nva.stubs.WiremockHttpClient;
+import no.unit.nva.useraccessservice.constants.ServiceConstants;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
+import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceAlreadyExistsException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUnavailableException;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.logutils.LogRecorder;
+import nva.commons.secrets.SecretsReader;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 @WireMockTest(httpsEnabled = true)
 class CristinPersonRegistryTest {
 
-    private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
-    private PersonRegistry personRegistry;
-    private FakeSecretsManagerClient secretsManagerClient;
-    private AuthenticationScenarios scenarios;
-    private LocalCustomerServiceDatabase customerServiceDatabase;
-    private LocalIdentityService identityServiceDatabase;
-    private IdentityService identityService;
-    private DynamoDBCustomerService customerService;
-    private MockPersonRegistry mockPersonRegistry;
+  private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
+  private PersonRegistry personRegistry;
+  private FakeSecretsManagerClient secretsManagerClient;
+  private AuthenticationScenarios scenarios;
+  private LocalCustomerServiceDatabase customerServiceDatabase;
+  private LocalIdentityService identityServiceDatabase;
+  private IdentityService identityService;
+  private DynamoDBCustomerService customerService;
+  private MockPersonRegistry mockPersonRegistry;
 
-    @BeforeEach
-    void beforeEach(WireMockRuntimeInfo wireMockRuntimeInfo) throws InvalidInputException, ConflictException {
-        setupCustomerAndIdentityService();
-        var cristinUsername = randomString();
-        var cristinPassword = randomString();
-        secretsManagerClient = new FakeSecretsManagerClient();
-        secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_USERNAME_SECRET_KEY, cristinUsername);
-        secretsManagerClient.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, cristinPassword);
-        var apiDomain = ServiceConstants.API_DOMAIN;
-        var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
-        var httpClient = WiremockHttpClient.create();
-        var defaultRequestHeaders = new HttpHeaders()
-                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
-        personRegistry = CristinPersonRegistry.customPersonRegistry(httpClient,
-                                                                    wiremockUri,
-                                                                    apiDomain,
-                                                                    defaultRequestHeaders,
-                                                                    new SecretsReader(secretsManagerClient));
-        this.mockPersonRegistry = new MockPersonRegistry(cristinUsername,
-                                                                       cristinPassword,
-                                                                       wiremockUri,
-                                                                       defaultRequestHeaders);
-        scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
-    }
+  @BeforeEach
+  void beforeEach(WireMockRuntimeInfo wireMockRuntimeInfo)
+      throws InvalidInputException, ConflictException {
+    setupCustomerAndIdentityService();
+    var cristinUsername = randomString();
+    var cristinPassword = randomString();
+    secretsManagerClient = new FakeSecretsManagerClient();
+    secretsManagerClient.putSecret(
+        CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_USERNAME_SECRET_KEY, cristinUsername);
+    secretsManagerClient.putSecret(
+        CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, cristinPassword);
+    var apiDomain = ServiceConstants.API_DOMAIN;
+    var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
+    var httpClient = WiremockHttpClient.create();
+    var defaultRequestHeaders =
+        new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+    personRegistry =
+        CristinPersonRegistry.customPersonRegistry(
+            httpClient,
+            wiremockUri,
+            apiDomain,
+            defaultRequestHeaders,
+            new SecretsReader(secretsManagerClient));
+    this.mockPersonRegistry =
+        new MockPersonRegistry(
+            cristinUsername, cristinPassword, wiremockUri, defaultRequestHeaders);
+    scenarios = new AuthenticationScenarios(mockPersonRegistry, customerService, identityService);
+  }
 
-    private void setupCustomerAndIdentityService() {
-        customerServiceDatabase = new LocalCustomerServiceDatabase();
-        customerServiceDatabase.setupDatabase();
-        identityServiceDatabase = new LocalIdentityService();
-        identityService = identityServiceDatabase.createDatabaseServiceUsingLocalStorage();
-        customerService = new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
-    }
+  private void setupCustomerAndIdentityService() {
+    customerServiceDatabase = new LocalCustomerServiceDatabase();
+    customerServiceDatabase.setupDatabase();
+    identityServiceDatabase = new LocalIdentityService();
+    identityService = identityServiceDatabase.createDatabaseServiceUsingLocalStorage();
+    customerService = new DynamoDBCustomerService(customerServiceDatabase.getDynamoClient());
+  }
 
-    @AfterEach
-    void afterEach() {
-        customerServiceDatabase.deleteDatabase();
-        identityServiceDatabase.closeDB();
-    }
+  @AfterEach
+  void afterEach() {
+    customerServiceDatabase.deleteDatabase();
+    identityServiceDatabase.closeDB();
+  }
 
-    @Test
-    void shouldThrowExceptionIfCristinIsUnavailable(WireMockRuntimeInfo wireMockRuntimeInfo) {
-        var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
-        var httpClient = WiremockHttpClient.create();
-        var uriWhereCristinIsUnavailable
-            = URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
+  @Test
+  void shouldThrowExceptionIfCristinIsUnavailable(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
+    var httpClient = WiremockHttpClient.create();
+    var uriWhereCristinIsUnavailable =
+        URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
 
-        var defaultRequestHeaders = new HttpHeaders()
-                                        .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
-        personRegistry = CristinPersonRegistry.customPersonRegistry(httpClient,
-                                                                    uriWhereCristinIsUnavailable,
-                                                                    ServiceConstants.API_DOMAIN,
-                                                                    defaultRequestHeaders,
-                                                                    new SecretsReader(secretsManagerClient));
-        var nin = NationalIdentityNumber.fromString(randomNin());
-        var exception = assertThrows(IdentityServiceUnavailableException.class, 
-                () -> personRegistry.fetchPersonByNin(nin));
-        assertThat(exception.getMessage(), not(containsString(nin.toString())));
-        Assertions.assertThat(logRecorder.messages())
-            .noneMatch(message -> message.contains(nin.toString()));
-    }
+    var defaultRequestHeaders =
+        new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
+    personRegistry =
+        CristinPersonRegistry.customPersonRegistry(
+            httpClient,
+            uriWhereCristinIsUnavailable,
+            ServiceConstants.API_DOMAIN,
+            defaultRequestHeaders,
+            new SecretsReader(secretsManagerClient));
+    var nin = NationalIdentityNumber.fromString(randomNin());
+    var exception =
+        assertThrows(
+            IdentityServiceUnavailableException.class, () -> personRegistry.fetchPersonByNin(nin));
+    assertThat(exception.getMessage(), not(containsString(nin.toString())));
+    Assertions.assertThat(logRecorder.messages())
+        .noneMatch(message -> message.contains(nin.toString()));
+  }
 
-    @Test
-    void fetchPersonByIdentifierShouldReturnPersonIfExisting() {
-        var person = scenarios.personWithoutAffiliations();
+  @Test
+  void fetchPersonByIdentifierShouldReturnPersonIfExisting() {
+    var person = scenarios.personWithoutAffiliations();
 
-        var fetchedPerson = personRegistry.fetchPersonByIdentifier(person.cristinIdentifier());
-        assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
-    }
+    var fetchedPerson = personRegistry.fetchPersonByIdentifier(person.cristinIdentifier());
+    assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
+  }
 
-    @Test
-    void createPersonTest() {
-        var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
-        mockPersonRegistry.createPostPersonStub(person.getCristinPerson());
+  @Test
+  void createPersonTest() {
+    var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
+    mockPersonRegistry.createPostPersonStub(person.getCristinPerson());
 
-        var fetchedPerson = personRegistry.createPerson(NationalIdentityNumber.fromString(person.nin()),
-                                                        randomString(), randomString());
-        assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
-    }
+    var fetchedPerson =
+        personRegistry.createPerson(
+            NationalIdentityNumber.fromString(person.nin()), randomString(), randomString());
+    assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
+  }
 
-    @Test
-    void fetchPersonByIdentifierShouldReturnEmptyOptionalIfNotExist() {
-        var fetchedPerson = personRegistry.fetchPersonByIdentifier(randomString());
-        assertThat(fetchedPerson.isPresent(), is(equalTo(false)));
-    }
+  @Test
+  void fetchPersonByIdentifierShouldReturnEmptyOptionalIfNotExist() {
+    var fetchedPerson = personRegistry.fetchPersonByIdentifier(randomString());
+    assertThat(fetchedPerson.isPresent(), is(equalTo(false)));
+  }
 
-    @Test
-    void shouldThrowExceptionIfCristinRespondsWithUnexpectedJson() {
-        var personNin = scenarios.failingPersonRegistryRequestBadJson().nin();
-        var nin = NationalIdentityNumber.fromString(personNin);
+  @Test
+  void shouldThrowExceptionIfCristinRespondsWithUnexpectedJson() {
+    var personNin = scenarios.failingPersonRegistryRequestBadJson().nin();
+    var nin = NationalIdentityNumber.fromString(personNin);
 
-        assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
-    }
+    assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
+  }
 
-    @Test
-    void shouldThrowExceptionIfCristinRespondsWithNonOkStatusCode() {
-        var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
-        var personNin = scenarios.failingPersonRegistryRequestBadGateway().nin();
-        var nin = NationalIdentityNumber.fromString(personNin);
+  @Test
+  void shouldThrowExceptionIfCristinRespondsWithNonOkStatusCode() {
+    var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
+    var personNin = scenarios.failingPersonRegistryRequestBadGateway().nin();
+    var nin = NationalIdentityNumber.fromString(personNin);
 
-        assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
-        var expectedMaskedNin = "XXXXXXXXX" + personNin.substring(personNin.length() - 2);
-        Assertions.assertThat(logRecorder.messages())
-            .anyMatch(message -> message.contains(expectedMaskedNin));
-    }
+    assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
+    var expectedMaskedNin = "XXXXXXXXX" + personNin.substring(personNin.length() - 2);
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(message -> message.contains(expectedMaskedNin));
+  }
 
-    @Test
-    void shouldMaskNationalIdentityNumberInLog() {
-        var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
-        var personNin = "12345678901";
-        var nin = NationalIdentityNumber.fromString(personNin);
+  @Test
+  void shouldMaskNationalIdentityNumberInLog() {
+    var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
+    var personNin = "12345678901";
+    var nin = NationalIdentityNumber.fromString(personNin);
 
-        mockPersonRegistry.setupServerErrorForNin(personNin);
+    mockPersonRegistry.setupServerErrorForNin(personNin);
 
-        assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
-        Assertions.assertThat(logRecorder.messages())
-            .anyMatch(message -> message.contains("XXXXXXXXX01"));
-    }
+    assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(message -> message.contains("XXXXXXXXX01"));
+  }
 
-    @Test
-    void shouldExcludeAffiliationWhenInstitutionResolvesToDifferentOrganization() {
-        var person = mockPersonRegistry.personWithActiveAffiliationAtRedirectingInstitution();
-        var nin = NationalIdentityNumber.fromString(person.nin());
+  @Test
+  void shouldExcludeAffiliationWhenInstitutionResolvesToDifferentOrganization() {
+    var person = mockPersonRegistry.personWithActiveAffiliationAtRedirectingInstitution();
+    var nin = NationalIdentityNumber.fromString(person.nin());
 
-        var fetchedPerson = personRegistry.fetchPersonByNin(nin);
-        assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
-        assertThat(fetchedPerson.get().getAffiliations(), emptyIterable());
-    }
+    var fetchedPerson = personRegistry.fetchPersonByNin(nin);
+    assertThat(fetchedPerson.isPresent(), is(equalTo(true)));
+    assertThat(fetchedPerson.get().getAffiliations(), emptyIterable());
+  }
 
-    @Test
-    void shouldReturnEmptyListOfAffiliationsIfFieldIsMissingInCristinOnGetPerson() {
-        var personNin = scenarios.personWithoutAffiliations().nin();
-        var nin = NationalIdentityNumber.fromString(personNin);
+  @Test
+  void shouldReturnEmptyListOfAffiliationsIfFieldIsMissingInCristinOnGetPerson() {
+    var personNin = scenarios.personWithoutAffiliations().nin();
+    var nin = NationalIdentityNumber.fromString(personNin);
 
-        var person = personRegistry.fetchPersonByNin(nin);
-        assertThat(person.isPresent(), is(equalTo(true)));
-        assertThat(person.get().getAffiliations(), emptyIterable());
-    }
+    var person = personRegistry.fetchPersonByNin(nin);
+    assertThat(person.isPresent(), is(equalTo(true)));
+    assertThat(person.get().getAffiliations(), emptyIterable());
+  }
 
-    @Test
-    void shouldThrowAlreadyExistsExceptionWhenCreatingPersonThatAlreadyExists() {
-        var nin = NationalIdentityNumber.fromString("12345678901");
-        
-        mockPersonRegistry.setupCreatePersonAlreadyExistsError();
-        
-        var exception = assertThrows(IdentityServiceAlreadyExistsException.class, 
+  @Test
+  void shouldThrowAlreadyExistsExceptionWhenCreatingPersonThatAlreadyExists() {
+    var nin = NationalIdentityNumber.fromString("12345678901");
+
+    mockPersonRegistry.setupCreatePersonAlreadyExistsError();
+
+    var exception =
+        assertThrows(
+            IdentityServiceAlreadyExistsException.class,
             () -> personRegistry.createPerson(nin, "John", "Doe"));
-        
-        assertThat(exception.getMessage(), containsString("already exists"));
-    }
 
-    @Test
-    void shouldThrowAlreadyExistsExceptionWhenCreatingPersonReturns409Conflict() {
-        var nin = NationalIdentityNumber.fromString("12345678902");
-        
-        mockPersonRegistry.setupCreatePersonConflictError();
-        
-        var exception = assertThrows(IdentityServiceAlreadyExistsException.class, 
+    assertThat(exception.getMessage(), containsString("already exists"));
+  }
+
+  @Test
+  void shouldThrowAlreadyExistsExceptionWhenCreatingPersonReturns409Conflict() {
+    var nin = NationalIdentityNumber.fromString("12345678902");
+
+    mockPersonRegistry.setupCreatePersonConflictError();
+
+    var exception =
+        assertThrows(
+            IdentityServiceAlreadyExistsException.class,
             () -> personRegistry.createPerson(nin, "Jane", "Smith"));
-        
-        assertThat(exception.getMessage(), containsString("Conflict"));
-    }
+
+    assertThat(exception.getMessage(), containsString("Conflict"));
+  }
 }

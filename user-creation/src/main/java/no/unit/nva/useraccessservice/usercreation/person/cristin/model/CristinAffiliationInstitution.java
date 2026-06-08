@@ -4,23 +4,24 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CristinAffiliationInstitution {
-    @JsonProperty("cristin_institution_id")
-    private final String id;
-    @JsonProperty("url")
-    private final String url;
+  @JsonProperty("cristin_institution_id")
+  private final String id;
 
-    @JsonCreator
-    public CristinAffiliationInstitution(@JsonProperty("cristin_institution_id") String id,
-                                         @JsonProperty("url") String url) {
-        this.id = id;
-        this.url = url;
-    }
+  @JsonProperty("url")
+  private final String url;
 
-    public String getId() {
-        return id;
-    }
+  @JsonCreator
+  public CristinAffiliationInstitution(
+      @JsonProperty("cristin_institution_id") String id, @JsonProperty("url") String url) {
+    this.id = id;
+    this.url = url;
+  }
 
-    public String getUrl() {
-        return url;
-    }
+  public String getId() {
+    return id;
+  }
+
+  public String getUrl() {
+    return url;
+  }
 }

@@ -22,6 +22,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,171 +48,181 @@ import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 class UserDaoTest {
 
-    public static final String SOME_USERNAME = "someUser";
-    public static final String SOME_ROLENAME = "someRole";
-    public static final String SOME_GIVEN_NAME = "givenName";
-    public static final String SOME_FAMILY_NAME = "familyName";
+  public static final String SOME_USERNAME = "someUser";
+  public static final String SOME_ROLENAME = "someRole";
+  public static final String SOME_GIVEN_NAME = "givenName";
+  public static final String SOME_FAMILY_NAME = "familyName";
 
-    public static final URI SOME_INSTITUTION = randomCristinOrgId();
-    public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
-    private static final Javers JAVERS = JaversBuilder.javers().build();
+  public static final URI SOME_INSTITUTION = randomCristinOrgId();
+  public static final List<RoleDb> SAMPLE_ROLES = createSampleRoles();
+  private static final Javers JAVERS = JaversBuilder.javers().build();
 
-    private UserDao userDao;
-    private UserDao sampleUser;
+  private UserDao userDao;
+  private UserDao sampleUser;
 
-    private static List<RoleDb> createSampleRoles() {
-        return Stream.of(randomRoleName(), randomRoleName())
-            .map(attempt(UserDaoTest::newRole))
-            .map(Try::get)
-            .collect(Collectors.toList());
-    }
+  private static List<RoleDb> createSampleRoles() {
+    return Stream.of(randomRoleName(), randomRoleName())
+        .map(attempt(UserDaoTest::newRole))
+        .map(Try::get)
+        .collect(Collectors.toList());
+  }
 
-    private static RoleDb newRole(RoleName roleName) throws InvalidEntryInternalException {
-        return RoleDb.newBuilder().withName(roleName).build();
-    }
+  private static RoleDb newRole(RoleName roleName) throws InvalidEntryInternalException {
+    return RoleDb.newBuilder().withName(roleName).build();
+  }
 
-    @BeforeEach
-    public void init() throws InvalidEntryInternalException {
-        userDao = new UserDao();
-        sampleUser = UserDao.newBuilder().withUsername(SOME_USERNAME).build();
-    }
+  @BeforeEach
+  public void init() throws InvalidEntryInternalException {
+    userDao = new UserDao();
+    sampleUser = UserDao.newBuilder().withUsername(SOME_USERNAME).build();
+  }
 
-    @Test
-    void builderShouldSetTheHashKeyBasedOnUsername() throws InvalidEntryInternalException {
-        sampleUser.setPrimaryKeyHashKey("SomeOtherHashKey");
-        String expectedHashKey = String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE_VALUE, SOME_USERNAME);
-        assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
-    }
+  @Test
+  void builderShouldSetTheHashKeyBasedOnUsername() throws InvalidEntryInternalException {
+    sampleUser.setPrimaryKeyHashKey("SomeOtherHashKey");
+    String expectedHashKey =
+        String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE_VALUE, SOME_USERNAME);
+    assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
+  }
 
-    @Test
-    void extractRolesDoesNotThrowExceptionWhenRolesAreValid()
-        throws InvalidEntryInternalException {
-        UserDao userWithValidRole = UserDao.fromUserDto(createUserWithRolesAndInstitution());
-        Executable action = userWithValidRole::toUserDto;
-        assertDoesNotThrow(action);
-    }
+  @Test
+  void extractRolesDoesNotThrowExceptionWhenRolesAreValid() throws InvalidEntryInternalException {
+    UserDao userWithValidRole = UserDao.fromUserDto(createUserWithRolesAndInstitution());
+    Executable action = userWithValidRole::toUserDto;
+    assertDoesNotThrow(action);
+  }
 
-    @Test
-    void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() {
+  @Test
+  void userDbContainsListOfCristinUnitIdsThatShouldBeExcludedFromCuratorsView() {
 
-        var includedCristinUnit = randomCristinOrgId();
-        var excludedCristinUnit = randomCristinOrgId();
-        ViewingScopeDb scope = new ViewingScopeDb(Set.of(includedCristinUnit),
-            Set.of(excludedCristinUnit));
-        UserDao userDao = UserDao.newBuilder().withUsername(randomString())
-            .withViewingScope(scope)
-            .build();
-        assertThat(userDao.getViewingScope().getIncludedUnits(), containsInAnyOrder(includedCristinUnit));
-        assertThat(userDao.getViewingScope().getExcludedUnits(), containsInAnyOrder(excludedCristinUnit));
-    }
+    var includedCristinUnit = randomCristinOrgId();
+    var excludedCristinUnit = randomCristinOrgId();
+    ViewingScopeDb scope =
+        new ViewingScopeDb(Set.of(includedCristinUnit), Set.of(excludedCristinUnit));
+    UserDao userDao =
+        UserDao.newBuilder().withUsername(randomString()).withViewingScope(scope).build();
+    assertThat(
+        userDao.getViewingScope().getIncludedUnits(), containsInAnyOrder(includedCristinUnit));
+    assertThat(
+        userDao.getViewingScope().getExcludedUnits(), containsInAnyOrder(excludedCristinUnit));
+  }
 
-    @Test
-    void setUsernameShouldAddUsernameToUserObject() {
-        userDao.setUsername(SOME_USERNAME);
-        assertThat(userDao.getUsername(), is(equalTo(SOME_USERNAME)));
-    }
+  @Test
+  void setUsernameShouldAddUsernameToUserObject() {
+    userDao.setUsername(SOME_USERNAME);
+    assertThat(userDao.getUsername(), is(equalTo(SOME_USERNAME)));
+  }
 
-    @Test
-    void getUsernameShouldGetTheSetUsernameToUserObject() {
-        assertThat(userDao.getUsername(), is(nullValue()));
-        userDao.setUsername(SOME_USERNAME);
-        assertThat(userDao.getUsername(), is(equalTo(SOME_USERNAME)));
-    }
+  @Test
+  void getUsernameShouldGetTheSetUsernameToUserObject() {
+    assertThat(userDao.getUsername(), is(nullValue()));
+    userDao.setUsername(SOME_USERNAME);
+    assertThat(userDao.getUsername(), is(equalTo(SOME_USERNAME)));
+  }
 
-    @Test
-    void getTypeShouldReturnConstantTypeValue() {
-        assertThat(userDao.getType(), is(equalTo(UserDao.TYPE_VALUE)));
-    }
+  @Test
+  void getTypeShouldReturnConstantTypeValue() {
+    assertThat(userDao.getType(), is(equalTo(UserDao.TYPE_VALUE)));
+  }
 
-    @Test
-    void setTypeShouldNotAcceptWrongTypeValues() {
-        String illegalType = "NotExpectedType";
-        var exception = assertThrows(BadRequestException.class, () -> userDao.setType(illegalType));
-        assertThat(exception.getMessage(), allOf(containsString(illegalType), containsString(UserDao.TYPE_VALUE)));
-    }
+  @Test
+  void setTypeShouldNotAcceptWrongTypeValues() {
+    String illegalType = "NotExpectedType";
+    var exception = assertThrows(BadRequestException.class, () -> userDao.setType(illegalType));
+    assertThat(
+        exception.getMessage(),
+        allOf(containsString(illegalType), containsString(UserDao.TYPE_VALUE)));
+  }
 
-    @Test
-    void getHashKeyKeyShouldReturnTypeAndUsernameConcatenation() {
-        String expectedHashKey = String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE_VALUE, SOME_USERNAME);
-        assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
-    }
+  @Test
+  void getHashKeyKeyShouldReturnTypeAndUsernameConcatenation() {
+    String expectedHashKey =
+        String.join(UserDao.FIELD_DELIMITER, UserDao.TYPE_VALUE, SOME_USERNAME);
+    assertThat(sampleUser.getPrimaryKeyHashKey(), is(equalTo(expectedHashKey)));
+  }
 
-    @ParameterizedTest
-    @MethodSource("invalidNameProvider")
-    void builderShouldThrowExceptionWhenUsernameIsNotValid(String invalidUsername) {
-        Executable action = () -> UserDao.newBuilder()
-            .withUsername(invalidUsername)
-            .withGivenName(SOME_GIVEN_NAME)
-            .withFamilyName(SOME_FAMILY_NAME)
-            .withInstitution(SOME_INSTITUTION)
-            .withRoles(SAMPLE_ROLES)
-            .build();
+  @ParameterizedTest
+  @MethodSource("invalidNameProvider")
+  void builderShouldThrowExceptionWhenUsernameIsNotValid(String invalidUsername) {
+    Executable action =
+        () ->
+            UserDao.newBuilder()
+                .withUsername(invalidUsername)
+                .withGivenName(SOME_GIVEN_NAME)
+                .withFamilyName(SOME_FAMILY_NAME)
+                .withInstitution(SOME_INSTITUTION)
+                .withRoles(SAMPLE_ROLES)
+                .build();
 
-        InvalidEntryInternalException exception = assertThrows(InvalidEntryInternalException.class, action);
-        assertThat(exception.getMessage(), containsString(UserDao.INVALID_USER_EMPTY_USERNAME));
-    }
+    InvalidEntryInternalException exception =
+        assertThrows(InvalidEntryInternalException.class, action);
+    assertThat(exception.getMessage(), containsString(UserDao.INVALID_USER_EMPTY_USERNAME));
+  }
 
-    @ParameterizedTest
-    @MethodSource("invalidNameProvider")
-    void setUsernameThrowsExceptionWhenUsernameIsNotValid(String invalidUsername) {
-        UserDao userDao = new UserDao();
-        assertThrows(InvalidEntryInternalException.class, () -> userDao.setUsername(invalidUsername));
-    }
+  @ParameterizedTest
+  @MethodSource("invalidNameProvider")
+  void setUsernameThrowsExceptionWhenUsernameIsNotValid(String invalidUsername) {
+    UserDao userDao = new UserDao();
+    assertThrows(InvalidEntryInternalException.class, () -> userDao.setUsername(invalidUsername));
+  }
 
-    private static Stream<Arguments> invalidNameProvider() {
-        return Stream.of(argumentSet("null string", (String) null),
-                         argumentSet("Empty string", ""),
-                         argumentSet("Space character", " "),
-                         argumentSet("Tab character", "\t"),
-                         argumentSet("Newline character", "\n"));
-    }
+  private static Stream<Arguments> invalidNameProvider() {
+    return Stream.of(
+        argumentSet("null string", (String) null),
+        argumentSet("Empty string", ""),
+        argumentSet("Space character", " "),
+        argumentSet("Tab character", "\t"),
+        argumentSet("Newline character", "\n"));
+  }
 
-//    @ParameterizedTest(name = "fromUserDb throws Exception user contains invalidRole. Rolename:\"{0}\"")
-//    @NullAndEmptySource
-//    void fromUserDbThrowsExceptionWhenUserDbContainsInvalidRole(String invalidRoleName)
-//        throws InvalidEntryInternalException {
-//        RoleDb invalidRole = new RoleDb();
-//        invalidRole.setName(invalidRoleName);
-//        List<RoleDb> invalidRoles = Collections.singletonList(invalidRole);
-//        UserDao userDaoWithInvalidRole = UserDao.newBuilder()
-//            .withUsername(SOME_USERNAME)
-//            .withRoles(invalidRoles)
-//            .build();
-//
-//        Executable action = userDaoWithInvalidRole::toUserDto;
-//        RuntimeException exception = assertThrows(RuntimeException.class, action);
-//        assertThat(exception.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
-//    }
+  //    @ParameterizedTest(name = "fromUserDb throws Exception user contains invalidRole.
+  // Rolename:\"{0}\"")
+  //    @NullAndEmptySource
+  //    void fromUserDbThrowsExceptionWhenUserDbContainsInvalidRole(String invalidRoleName)
+  //        throws InvalidEntryInternalException {
+  //        RoleDb invalidRole = new RoleDb();
+  //        invalidRole.setName(invalidRoleName);
+  //        List<RoleDb> invalidRoles = Collections.singletonList(invalidRole);
+  //        UserDao userDaoWithInvalidRole = UserDao.newBuilder()
+  //            .withUsername(SOME_USERNAME)
+  //            .withRoles(invalidRoles)
+  //            .build();
+  //
+  //        Executable action = userDaoWithInvalidRole::toUserDto;
+  //        RuntimeException exception = assertThrows(RuntimeException.class, action);
+  //        assertThat(exception.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
+  //    }
 
-//    @ParameterizedTest
-//    @NullAndEmptySource
-//    void toUserDbThrowsExceptionWhenUserDbContainsInvalidRole(String invalidRoleName)
-//        throws InvalidEntryInternalException {
-//        RoleDto invalidRole = RoleDto.newBuilder().withRoleName(SOME_ROLENAME).build();
-//        invalidRole.setRoleName(invalidRoleName);
-//        List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
-//        UserDto userWithInvalidRole = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
-//
-//        Executable action = () -> UserDao.fromUserDto(userWithInvalidRole);
-//        RuntimeException exception = assertThrows(RuntimeException.class, action);
-//        assertThat(exception.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
-//    }
+  //    @ParameterizedTest
+  //    @NullAndEmptySource
+  //    void toUserDbThrowsExceptionWhenUserDbContainsInvalidRole(String invalidRoleName)
+  //        throws InvalidEntryInternalException {
+  //        RoleDto invalidRole = RoleDto.newBuilder().withRoleName(SOME_ROLENAME).build();
+  //        invalidRole.setRoleName(invalidRoleName);
+  //        List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
+  //        UserDto userWithInvalidRole =
+  // UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
+  //
+  //        Executable action = () -> UserDao.fromUserDto(userWithInvalidRole);
+  //        RuntimeException exception = assertThrows(RuntimeException.class, action);
+  //        assertThat(exception.getCause(), is(instanceOf(InvalidEntryInternalException.class)));
+  //    }
 
-    @Test
-    void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException {
-        UserDao originalUser = randomUserDb();
-        UserDao copy = originalUser.copy().build();
-        assertThat(copy, is(equalTo(originalUser)));
+  @Test
+  void shouldReturnCopyWithFilledInFields() throws InvalidEntryInternalException {
+    UserDao originalUser = randomUserDb();
+    UserDao copy = originalUser.copy().build();
+    assertThat(copy, is(equalTo(originalUser)));
 
-        assertThat(copy, is(not(sameInstance(originalUser))));
-    }
+    assertThat(copy, is(not(sameInstance(originalUser))));
+  }
 
-    private UserDao randomUserDb() {
-        UserDao randomUser = UserDao.newBuilder()
+  private UserDao randomUserDb() {
+    UserDao randomUser =
+        UserDao.newBuilder()
             .withUsername(randomString())
             .withFamilyName(randomString())
             .withGivenName(randomString())
@@ -223,83 +234,84 @@ class UserDaoTest {
             .withFeideIdentifier(randomString())
             .withAffiliation(randomCristinOrgId())
             .build();
-        assertThat(randomUser, doesNotHaveEmptyValues());
-        return randomUser;
-    }
+    assertThat(randomUser, doesNotHaveEmptyValues());
+    return randomUser;
+  }
 
-    private Collection<RoleDb> randomRoles() {
-        return List.of(randomRole(), randomRole());
-    }
+  private Collection<RoleDb> randomRoles() {
+    return List.of(randomRole(), randomRole());
+  }
 
-    private RoleDb randomRole() {
-        Set<AccessRight> accessRight = Set.of(randomElement(AccessRight.values()));
-        return RoleDb.newBuilder().withName(randomRoleName()).withAccessRights(accessRight).build();
-    }
+  private RoleDb randomRole() {
+    Set<AccessRight> accessRight = Set.of(randomElement(AccessRight.values()));
+    return RoleDb.newBuilder().withName(randomRoleName()).withAccessRights(accessRight).build();
+  }
 
-    @Test
-    void shouldConvertToDtoAndBackWithoutInformationLoss() {
-        UserDao originalUser = randomUserDb();
-        UserDao converted = Try.of(originalUser)
-            .map(UserDao::toUserDto)
-            .map(UserDao::fromUserDto)
-            .orElseThrow();
+  @Test
+  void shouldConvertToDtoAndBackWithoutInformationLoss() {
+    UserDao originalUser = randomUserDb();
+    UserDao converted =
+        Try.of(originalUser).map(UserDao::toUserDto).map(UserDao::fromUserDto).orElseThrow();
 
-        assertThat(originalUser, is(equalTo(converted)));
-        Diff diff = JAVERS.compare(originalUser, converted);
-        assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
-        assertThat(converted, doesNotHaveEmptyValues());
-    }
+    assertThat(originalUser, is(equalTo(converted)));
+    Diff diff = JAVERS.compare(originalUser, converted);
+    assertThat(diff.prettyPrint(), diff.hasChanges(), is(false));
+    assertThat(converted, doesNotHaveEmptyValues());
+  }
 
-    @Test
-    void roleValidationMethodLogsError()
-        throws InvalidEntryInternalException {
-        var logRecorder = LogRecorder.forClass(UserDao.class);
-        RoleDto invalidRole = RoleDto.newBuilder().withRoleName(randomRoleName()).build();
-        invalidRole.setRoleName(null);
+  @Test
+  void roleValidationMethodLogsError() throws InvalidEntryInternalException {
+    var logRecorder = LogRecorder.forClass(UserDao.class);
+    RoleDto invalidRole = RoleDto.newBuilder().withRoleName(randomRoleName()).build();
+    invalidRole.setRoleName(null);
 
-        List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
-        UserDto userWithInvalidRole = UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
+    List<RoleDto> invalidRoles = Collections.singletonList(invalidRole);
+    UserDto userWithInvalidRole =
+        UserDto.newBuilder().withUsername(SOME_USERNAME).withRoles(invalidRoles).build();
 
-        Executable action = () -> UserDao.fromUserDto(userWithInvalidRole);
-        assertThrows(RuntimeException.class, action);
+    Executable action = () -> UserDao.fromUserDto(userWithInvalidRole);
+    assertThrows(RuntimeException.class, action);
 
-        Assertions.assertThat(logRecorder.messages())
-            .anyMatch(message -> message.contains(ERROR_DUE_TO_INVALID_ROLE));
-    }
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(message -> message.contains(ERROR_DUE_TO_INVALID_ROLE));
+  }
 
-    @Test
-    void toUserDbReturnsValidUserDbWhenUserDtoIsValid() throws InvalidEntryInternalException {
-        UserDto userOnlyWithOnlyUsername = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
-        UserDto actualUserOnlyWithName = convertToUserDbAndBack(userOnlyWithOnlyUsername);
-        assertThat(actualUserOnlyWithName, is(equalTo(userOnlyWithOnlyUsername)));
-    }
+  @Test
+  void toUserDbReturnsValidUserDbWhenUserDtoIsValid() throws InvalidEntryInternalException {
+    UserDto userOnlyWithOnlyUsername = UserDto.newBuilder().withUsername(SOME_USERNAME).build();
+    UserDto actualUserOnlyWithName = convertToUserDbAndBack(userOnlyWithOnlyUsername);
+    assertThat(actualUserOnlyWithName, is(equalTo(userOnlyWithOnlyUsername)));
+  }
 
-    private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {
-        return UserDao.fromUserDto(userDto).toUserDto();
-    }
+  private UserDto convertToUserDbAndBack(UserDto userDto) throws InvalidEntryInternalException {
+    return UserDao.fromUserDto(userDto).toUserDto();
+  }
 
-    @Test
-    void shouldContainListOfCristinOrganizationIdsThatDefineCuratorsScope()
-        throws InvalidEntryInternalException {
-        URI someCristinUnit = randomCristinOrgId();
-        URI someOtherCristinUnit = randomCristinOrgId();
-        Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
+  @Test
+  void shouldContainListOfCristinOrganizationIdsThatDefineCuratorsScope()
+      throws InvalidEntryInternalException {
+    URI someCristinUnit = randomCristinOrgId();
+    URI someOtherCristinUnit = randomCristinOrgId();
+    Set<URI> visisbleUnits = Set.of(someCristinUnit, someOtherCristinUnit);
 
-        ViewingScopeDb scope = new ViewingScopeDb(visisbleUnits, null);
-        UserDao userDao = UserDao.newBuilder().withUsername(randomString())
-            .withViewingScope(scope)
-            .build();
+    ViewingScopeDb scope = new ViewingScopeDb(visisbleUnits, null);
+    UserDao userDao =
+        UserDao.newBuilder().withUsername(randomString()).withViewingScope(scope).build();
 
-        assertThat(userDao.getViewingScope().getIncludedUnits(),
-            containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
-    }
+    assertThat(
+        userDao.getViewingScope().getIncludedUnits(),
+        containsInAnyOrder(someCristinUnit, someOtherCristinUnit));
+  }
 
-    @Test
-    void shouldContainInformationThatAllowsLocatingUserBasedOnFeideAndCristinInformationOfAssociatedPerson() {
-        var feideIdentifier = randomString();
-        var personCristinId = randomUri();
-        var orgCristinId = randomUri();
-        var dao = UserDao.newBuilder().withUsername(randomString())
+  @Test
+  void
+      shouldContainInformationThatAllowsLocatingUserBasedOnFeideAndCristinInformationOfAssociatedPerson() {
+    var feideIdentifier = randomString();
+    var personCristinId = randomUri();
+    var orgCristinId = randomUri();
+    var dao =
+        UserDao.newBuilder()
+            .withUsername(randomString())
             .withCristinId(personCristinId)
             .withFamilyName(randomString())
             .withGivenName(randomString())
@@ -308,17 +320,17 @@ class UserDaoTest {
             .withInstitutionCristinId(orgCristinId)
             .build();
 
-        assertThat(dao.getCristinId(), is(equalTo(personCristinId)));
-        assertThat(dao.getFeideIdentifier(), is(equalTo(feideIdentifier)));
-        assertThat(dao.getInstitutionCristinId(), is(equalTo(orgCristinId)));
-    }
+    assertThat(dao.getCristinId(), is(equalTo(personCristinId)));
+    assertThat(dao.getFeideIdentifier(), is(equalTo(feideIdentifier)));
+    assertThat(dao.getInstitutionCristinId(), is(equalTo(orgCristinId)));
+  }
 
-    @Test
-    void shouldCopyWithoutInformationLoss() {
-        var source = randomUserDb();
-        assertThat(source, doesNotHaveEmptyValues());
-        var copy = source.copy().build();
-        assertThat(copy, doesNotHaveEmptyValues());
-        assertThat(copy, is(equalTo(source)));
-    }
+  @Test
+  void shouldCopyWithoutInformationLoss() {
+    var source = randomUserDb();
+    assertThat(source, doesNotHaveEmptyValues());
+    var copy = source.copy().build();
+    assertThat(copy, doesNotHaveEmptyValues());
+    assertThat(copy, is(equalTo(source)));
+  }
 }

@@ -7,27 +7,26 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdate
 
 public class FakeCognito implements CognitoIdentityProviderClient {
 
-    private AdminUpdateUserAttributesRequest adminUpdateUserRequest;
+  private AdminUpdateUserAttributesRequest adminUpdateUserRequest;
 
-    public AdminUpdateUserAttributesRequest getAdminUpdateUserRequest() {
-        return adminUpdateUserRequest;
-    }
+  public AdminUpdateUserAttributesRequest getAdminUpdateUserRequest() {
+    return adminUpdateUserRequest;
+  }
 
-    @JacocoGenerated
-    @Override
-    public String serviceName() {
-        return FakeCognito.class.getName();
-    }
+  @JacocoGenerated
+  @Override
+  public String serviceName() {
+    return FakeCognito.class.getName();
+  }
 
-    @JacocoGenerated
-    @Override
-    public void close() {
+  @JacocoGenerated
+  @Override
+  public void close() {}
 
-    }
-
-    @Override
-    public AdminUpdateUserAttributesResponse adminUpdateUserAttributes(AdminUpdateUserAttributesRequest request) {
-        this.adminUpdateUserRequest = request;
-        return AdminUpdateUserAttributesResponse.builder().build();
-    }
+  @Override
+  public AdminUpdateUserAttributesResponse adminUpdateUserAttributes(
+      AdminUpdateUserAttributesRequest request) {
+    this.adminUpdateUserRequest = request;
+    return AdminUpdateUserAttributesResponse.builder().build();
+  }
 }

@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Stack for Cognito and users, roles and customer institution services.
@@ -15,11 +15,11 @@ Description: >
 
 Parameters:
   NvaEventBusArn:
-    Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/NVA/Events/EventsBusArn'
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: "/NVA/Events/EventsBusArn"
   NvaEventBusName:
-    Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/NVA/Events/EventsBusName'
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: "/NVA/Events/EventsBusName"
   LogRetentionInDays:
     Type: Number
     Default: 180
@@ -42,7 +42,7 @@ Parameters:
   ParameterNamePrefix:
     Type: String
     Description: Prefix used for naming parameters.
-    Default: ''
+    Default: ""
   ApiDomain:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /NVA/ApiDomain
@@ -85,15 +85,15 @@ Parameters:
     Default: https://api.nva.unit.no/scopes/third-party
   Suffix:
     Type: String
-    Default: ''
+    Default: ""
     Description: Suffix used for naming resources for feature branches to avoid conflicts.
   SlackSnsArn:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: '/NVA/Monitoring/SlackSnsArn'
+    Default: "/NVA/Monitoring/SlackSnsArn"
   AllowedOrigins:
     Type: String
     Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
-    Default: '*'
+    Default: "*"
   CacheTtlInSeconds:
     Type: Number
     Default: 300
@@ -106,7 +106,7 @@ Mappings:
       ExternalUserPoolNamePrefix: IdentityService-ExternalUserPool-
 
 Conditions:
-  WithSuffix: !Not [ !Equals [ !Ref Suffix, '' ] ]
+  WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
 
 Globals:
   Function:
@@ -123,20 +123,19 @@ Globals:
         BY_ORG_DOMAIN_INDEX_NAME: byOrgDomain
         BY_CRISTIN_ID_INDEX_NAME: byCristinId
         USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
-        COGNITO_HOST: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+        COGNITO_HOST: !Sub "${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com"
         BOT_FILTER_BYPASS_HEADER_NAME: !Ref CristinBotFilterBypassHeaderName
         BOT_FILTER_BYPASS_HEADER_VALUE: !Ref CristinBotFilterBypassHeaderValue
         LOG_LEVEL: "info"
         LOG4J_CONFIGURATION_FILE: classpath:nva-log4j2.xml
   Api:
     Cors:
-      AllowMethods: '''POST, PUT, GET, OPTIONS, DELETE'''
-      AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-      AllowOrigin: '''*'''
+      AllowMethods: "'POST, PUT, GET, OPTIONS, DELETE'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
     OpenApiVersion: 3.0.1
 
 Resources:
-
   ### Cognito ##########################################################################################################
 
   IdentityPool:
@@ -145,16 +144,16 @@ Resources:
       AllowUnauthenticatedIdentities: True
       CognitoIdentityProviders:
         - ClientId: !Ref ApplicationClient
-          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+          ProviderName: !Sub "cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}"
         - ClientId: !Ref DLRApplicationClient
-          ProviderName: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+          ProviderName: !Sub "cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}"
 
   CommunicationWithCognitoPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: CommunicationWithCognito
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -169,7 +168,7 @@ Resources:
               - cognito-idp:CreateGroup
               - cognito-idp:GetGroup
               - cognito-idp:DescribeResourceServer
-            Resource: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*"
           - Effect: Allow
             Action:
               - cognito-idp:ListUserPools
@@ -182,23 +181,23 @@ Resources:
     Properties:
       ManagedPolicyName: DatabasePermissions
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
               - dynamodb:*
             Resource:
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}'
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}/index/*'
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${UserRoleMappings}/index/*"
 
   CristinAndBackendSecretPermissionsPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: CristinAndBackendSecretPermissions
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -207,20 +206,20 @@ Resources:
               - secretsmanager:DescribeSecret
               - secretsmanager:ListSecretVersionIds
             Resource:
-              - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials*'
-              - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:CristinClientBasicAuth*'
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:BackendCognitoClientCredentials*"
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:CristinClientBasicAuth*"
           - Effect: Allow
             Action:
               - secretsmanager:GetRandomPassword
               - secretsmanager:ListSecrets
-            Resource: '*'
+            Resource: "*"
 
   ExternalUserPoolClientsPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: ExternalUserPoolClients
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -237,7 +236,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
-      TableName: !Sub 'nva-users-and-roles-${AWS::StackName}'
+      TableName: !Sub "nva-users-and-roles-${AWS::StackName}"
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
@@ -278,13 +277,13 @@ Resources:
             ProjectionType: ALL
       Tags:
         - Key: IncludedInBackup
-          Value: 'true'
+          Value: "true"
 
   UsersAndRolesAccessLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       RetentionInDays: 180
-  
+
   UsersAndRolesApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -295,7 +294,7 @@ Resources:
         DestinationArn: !GetAtt UsersAndRolesAccessLogGroup.Arn
         Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
       DefinitionBody:
-        'Fn::Transform':
+        "Fn::Transform":
           Name: AWS::Include
           Parameters:
             Location: ./docs/users-and-roles-swagger.yaml
@@ -325,7 +324,7 @@ Resources:
   GetRoleHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/GetRoleHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/GetRoleHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   CreateUserHandler:
@@ -350,7 +349,7 @@ Resources:
           COGNITO_ID_KEY: backendClientId
           COGNITO_SECRET_KEY: backendClientSecret
           #TODO rename ID_NAMESPACE to CUSTOMER_ID_NAMESPACE
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         ApiEvent:
@@ -363,7 +362,7 @@ Resources:
   CreateUserHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/CreateUserHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/CreateUserHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   UpdateUserHandler:
@@ -391,7 +390,7 @@ Resources:
   UpdateUserHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/UpdateUserHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/UpdateUserHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   GetUserHandler:
@@ -419,7 +418,7 @@ Resources:
   GetUserHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/GetUserHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/GetUserHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   GetCurrentTermsConditionsHandler:
@@ -445,7 +444,7 @@ Resources:
   GetCurrentTermsConditionsHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/GetCurrentTermsConditionsHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/GetCurrentTermsConditionsHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   UpdatePersonTermsConditionsHandler:
@@ -476,7 +475,7 @@ Resources:
   UpdatePersonTermsConditionsHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/UpdatePersonTermsConditionsHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/UpdatePersonTermsConditionsHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   CustomerSelectionHandler:
@@ -496,7 +495,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
           USER_POOL_ID: !GetAtt UserPool.UserPoolId
@@ -511,7 +510,7 @@ Resources:
   CustomerSelectionHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/CustomerSelectionHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/CustomerSelectionHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   ListByInstitutionHandler:
@@ -542,7 +541,7 @@ Resources:
   ListByInstitutionHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/ListByInstitutionHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/ListByInstitutionHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   InitIdenitityServiceHandler:
@@ -556,7 +555,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           SIKT_CRISTIN_ID: !Ref SiktCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           BACKEND_CLIENT_ID: !Ref BackendApplicationClient
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
@@ -568,12 +567,12 @@ Resources:
   InitIdenitityServiceHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/InitIdenitityServiceHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/InitIdenitityServiceHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   MigrateCuratorsIdentityServiceHandler:
     Type: AWS::Serverless::Function
-    Description: 'Migrated users that has Curator role to instead have support, doi, nvi, and file-curator'
+    Description: "Migrated users that has Curator role to instead have support, doi, nvi, and file-curator"
     Properties:
       LoggingConfig:
         LogGroup: !Ref MigrateCuratorsIdentityServiceHandlerLogGroup
@@ -583,7 +582,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           SIKT_CRISTIN_ID: !Ref SiktCristinId
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -594,7 +593,7 @@ Resources:
   MigrateCuratorsIdentityServiceHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/MigrateCuratorsIdentityServiceHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/MigrateCuratorsIdentityServiceHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   SetImpersonationHandler:
@@ -624,7 +623,7 @@ Resources:
   SetImpersonationHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/SetImpersonationHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/SetImpersonationHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   StopImpersonationHandler:
@@ -654,7 +653,7 @@ Resources:
   StopImpersonationHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/StopImpersonationHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/StopImpersonationHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   CreateExternalClientHandler:
@@ -676,7 +675,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           API_DOMAIN: !Ref ApiDomain
           EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
-          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+          EXTERNAL_USER_POOL_URL: !Sub "https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token"
           EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
@@ -690,7 +689,7 @@ Resources:
   CreateExternalClientHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/CreateExternalClientHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/CreateExternalClientHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   GetExternalClientUserinfoHandler:
@@ -712,7 +711,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           API_DOMAIN: !Ref ApiDomain
           EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
-          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+          EXTERNAL_USER_POOL_URL: !Sub "https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token"
           EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
@@ -726,7 +725,7 @@ Resources:
   GetExternalClientUserinfoHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/GetExternalClientUserinfoHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/GetExternalClientUserinfoHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   GetExternalClientHandler:
@@ -748,7 +747,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           API_DOMAIN: !Ref ApiDomain
           EXTERNAL_USER_POOL_ID: !Ref ExternalUserPool
-          EXTERNAL_USER_POOL_URL: !Sub 'https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+          EXTERNAL_USER_POOL_URL: !Sub "https://${ExternalUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token"
           EXTERNAL_SCOPE_IDENTIFIER: !Ref ExternalUserScopeIdentifier
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
@@ -762,17 +761,16 @@ Resources:
   GetExternalClientHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/GetExternalClientHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/GetExternalClientHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   UsersAndRolesApiStaticUrl:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
-      BasePath:
-        !If
+      BasePath: !If
         - WithSuffix
-        - !Sub '${UsersAndRolesBasePath}-${Suffix}'
-        - !Sub '${UsersAndRolesBasePath}'
+        - !Sub "${UsersAndRolesBasePath}-${Suffix}"
+        - !Sub "${UsersAndRolesBasePath}"
       DomainName: !Ref ApiDomain
       RestApiId: !Ref UsersAndRolesApi
       Stage: !Ref UsersAndRolesApi.Stage
@@ -784,7 +782,7 @@ Resources:
     UpdateReplacePolicy: Retain
     DeletionPolicy: Delete # DeletionPolicy should be added on main branch stacks through use of stack policy
     Properties:
-      TableName: !Sub 'nva-customers-${AWS::StackName}'
+      TableName: !Sub "nva-customers-${AWS::StackName}"
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       BillingMode: PAY_PER_REQUEST
@@ -813,14 +811,14 @@ Resources:
             ProjectionType: ALL
       Tags:
         - Key: IncludedInBackup
-          Value: 'true'
+          Value: "true"
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
 
   CustomerDynamoDbStreamToEventBridgeFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/CustomerDynamoDbStreamToEventBridgeFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/CustomerDynamoDbStreamToEventBridgeFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   CustomerEventForwarderRole:
@@ -860,7 +858,6 @@ Resources:
                   - sqs:GetQueueAttributes
                 Resource: !GetAtt DynamoDbStreamToEventBridgeDLQ.Arn
 
-
   CustomerDynamoDbStreamToEventBridgeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -888,7 +885,7 @@ Resources:
       Environment:
         Variables:
           EVENT_BUS_NAME: !Ref NvaEventBusName
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           API_HOST: !Ref ApiDomain
 
   DynamoDbStreamToEventBridgeDLQ:
@@ -917,7 +914,7 @@ Resources:
         PointInTimeRecoveryEnabled: true
       Tags:
         - Key: IncludedInBackup
-          Value: 'true'
+          Value: "true"
 
   ApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -928,23 +925,23 @@ Resources:
       CacheClusterEnabled: true
       CacheClusterSize: "0.5"
       MethodSettings:
-        - HttpMethod: 'GET'
-          ResourcePath: '/~1'
+        - HttpMethod: "GET"
+          ResourcePath: "/~1"
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: true
-        - HttpMethod: 'GET'
-          ResourcePath: '/~1{identifier}'
+        - HttpMethod: "GET"
+          ResourcePath: "/~1{identifier}"
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: false
-        - HttpMethod: 'GET'
-          ResourcePath: '/~1cristinId~1{cristinId}'
+        - HttpMethod: "GET"
+          ResourcePath: "/~1cristinId~1{cristinId}"
           CacheTtlInSeconds: !Ref CacheTtlInSeconds
           CachingEnabled: true
       AccessLogSetting:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: !Join
           - ""
-          - - '{'
+          - - "{"
             - ' "apiId": "$context.apiId",'
             - ' "requestId": "$context.requestId",'
             - ' "requestTime": "$context.requestTime",'
@@ -955,12 +952,12 @@ Resources:
             - ' "ip": "$context.identity.sourceIp",'
             - ' "userAgent": "$context.identity.userAgent",'
             - ' "error.message": "$context.error.message"'
-            - '}'
+            - "}"
       StageName: Prod
       EndpointConfiguration:
         Type: REGIONAL
       DefinitionBody:
-        'Fn::Transform':
+        "Fn::Transform":
           Name: AWS::Include
           Parameters:
             Location: ./docs/customer-swagger.yaml
@@ -976,7 +973,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -992,7 +989,7 @@ Resources:
   NvaCreateCustomerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaCreateCustomerFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaCreateCustomerFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerFunction:
@@ -1006,7 +1003,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1022,7 +1019,7 @@ Resources:
   NvaGetCustomerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaGetCustomerFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerDoiAgentFunction:
@@ -1036,7 +1033,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Events:
         GetCustomerDoiEvent:
@@ -1049,7 +1046,7 @@ Resources:
   NvaGetCustomerDoiAgentFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerDoiAgentFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaGetCustomerDoiAgentFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaUpdateCustomerDoiAgentFunction:
@@ -1064,7 +1061,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1080,7 +1077,7 @@ Resources:
   NvaUpdateCustomerDoiAgentFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaUpdateCustomerDoiAgentFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaUpdateCustomerDoiAgentFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerVocabulariesFunction:
@@ -1094,7 +1091,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1110,7 +1107,7 @@ Resources:
   NvaGetCustomerVocabulariesFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerVocabulariesFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaGetCustomerVocabulariesFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaCreateCustomerVocabulariesFunction:
@@ -1124,7 +1121,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1140,7 +1137,7 @@ Resources:
   NvaCreateCustomerVocabulariesFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaCreateCustomerVocabulariesFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaCreateCustomerVocabulariesFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaUpdateCustomerVocabulariesFunction:
@@ -1154,7 +1151,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1170,7 +1167,7 @@ Resources:
   NvaUpdateCustomerVocabulariesFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaUpdateCustomerVocabulariesFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaUpdateCustomerVocabulariesFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaCreateChannelClaimFunction:
@@ -1184,7 +1181,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           API_HOST: !Ref ApiDomain
           PUBLICATION_CHANNEL_PATH: "publication-channels-v2"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
@@ -1202,7 +1199,7 @@ Resources:
   NvaCreateChannelClaimFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaCreateChannelClaimFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaCreateChannelClaimFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaListChannelClaimsFunction:
@@ -1216,7 +1213,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
           API_HOST: !Ref ApiDomain
       Policies:
@@ -1233,7 +1230,7 @@ Resources:
   NvaListChannelClaimsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaListChannelClaimsFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaListChannelClaimsFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaFetchChannelClaimFunction:
@@ -1247,7 +1244,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           API_HOST: !Ref ApiDomain
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
@@ -1264,7 +1261,7 @@ Resources:
   NvaFetchChannelClaimFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaFetchChannelClaimFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaFetchChannelClaimFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaDeleteChannelClaimFunction:
@@ -1278,7 +1275,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1294,7 +1291,7 @@ Resources:
   NvaDeleteChannelClaimFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaDeleteChannelClaimFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaDeleteChannelClaimFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerByOrgDomainFunction:
@@ -1308,7 +1305,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1324,7 +1321,7 @@ Resources:
   NvaGetCustomerByOrgDomainFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerByOrgDomainFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaGetCustomerByOrgDomainFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaGetCustomerByCristinIdFunction:
@@ -1338,7 +1335,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1354,7 +1351,7 @@ Resources:
   NvaGetCustomerByCristinIdFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaGetCustomerByCristinIdFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaGetCustomerByCristinIdFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaListAllCustomersFunction:
@@ -1368,7 +1365,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1384,7 +1381,7 @@ Resources:
   NvaListAllCustomersFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaListAllCustomersFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaListAllCustomersFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaUpdateCustomerFunction:
@@ -1398,7 +1395,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: !Ref AllowedOrigins
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
       Policies:
         - DynamoDBCrudPolicy:
@@ -1414,7 +1411,7 @@ Resources:
   NvaUpdateCustomerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/NvaUpdateCustomerFunction/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/NvaUpdateCustomerFunction/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   CustomerBatchScanHandler:
@@ -1437,17 +1434,16 @@ Resources:
   CustomerBatchScanHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/CustomerBatchScanHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/CustomerBatchScanHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   NvaCustomerBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
-      BasePath:
-        !If
+      BasePath: !If
         - WithSuffix
-        - !Sub '${CustomerDomainBasePath}-${Suffix}'
-        - !Sub '${CustomerDomainBasePath}'
+        - !Sub "${CustomerDomainBasePath}-${Suffix}"
+        - !Sub "${CustomerDomainBasePath}"
       DomainName: !Ref ApiDomain
       RestApiId: !Ref NvaCustomerApi
       Stage: !Ref NvaCustomerApi.Stage
@@ -1468,7 +1464,7 @@ Resources:
   StartBatchScanHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/StartBatchScanHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/StartBatchScanHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   EventBasedBatchScanHandler:
@@ -1485,7 +1481,7 @@ Resources:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           EVENT_BUS: !GetAtt InternalBus.Name
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
       Events:
         ScanIdentityServiceEvent:
           Type: EventBridgeRule
@@ -1499,13 +1495,13 @@ Resources:
   EventBasedBatchScanHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/EventBasedBatchScanHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/EventBasedBatchScanHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   InternalBus:
     Type: AWS::Events::EventBus
     Properties:
-      Name: !Join [ '',[ 'identity-service-internal-bus',!Ref Suffix ] ]
+      Name: !Join ["", ["identity-service-internal-bus", !Ref Suffix]]
 
   ### Roles ############################################################################################################
   BatchScanRole:
@@ -1513,7 +1509,7 @@ Resources:
     Properties:
       Path: /
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -1526,7 +1522,7 @@ Resources:
     Properties:
       Path: /
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -1536,14 +1532,14 @@ Resources:
       Policies:
         - PolicyName: DatabasePermissions
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
                   - dynamodb:*
                 Resource:
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}'
-                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*'
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${NvaCustomersTable}/index/*"
 
   DefaultLambdaPermissions:
     Type: AWS::IAM::Policy
@@ -1553,7 +1549,7 @@ Resources:
         - !Ref BatchScanRole
         - !Ref CustomerSecretAdminRole
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -1570,7 +1566,7 @@ Resources:
       Roles:
         - !Ref BatchScanRole
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -1586,14 +1582,14 @@ Resources:
       Roles:
         - !Ref CustomerSecretAdminRole
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
               - secretsmanager:GetSecretValue
               - secretsmanager:PutSecretValue
               - secretsmanager:UpdateSecret
-            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:dataCiteCustomerSecrets*'
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:dataCiteCustomerSecrets*"
 
   EventsLambdaPermissions:
     Type: AWS::IAM::Policy
@@ -1602,7 +1598,7 @@ Resources:
       Roles:
         - !Ref BatchScanRole
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -1610,14 +1606,14 @@ Resources:
               - sqs:SendMessage
               - sqs:ReceiveMessage
               - sqs:DeleteMessage
-            Resource: '*' # TODO: restrict the access to specific resources after we have established that the message is sent.
+            Resource: "*" # TODO: restrict the access to specific resources after we have established that the message is sent.
 
   ### Parameters #######################################################################################################
 
   CognitoAuthenticationDomainPrefixParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoAuthenticationDomainPrefix'
+      Name: !Sub "${ParameterNamePrefix}CognitoAuthenticationDomainPrefix"
       Description: The prefix for the Cognito domain that hosts the sign-up and sign-in pages for your application.
       Type: String
       Value: !Ref AuthenticationDomainPrefix
@@ -1625,31 +1621,31 @@ Resources:
   CognitoAuthenticationDomainParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoAuthenticationDomain'
+      Name: !Sub "${ParameterNamePrefix}CognitoAuthenticationDomain"
       Description: The full Cognito domain that hosts the sign-up and sign-in pages for your application.
       Type: String
-      Value: !Sub '${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+      Value: !Sub "${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com"
 
   CognitoFrontendApplicationUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoFrontendApplicationUrl'
+      Name: !Sub "${ParameterNamePrefix}CognitoFrontendApplicationUrl"
       Description: A base URL for the callbacks for the identity providers.
       Type: String
-      Value: !Sub 'https://${ApplicationDomain}'
+      Value: !Sub "https://${ApplicationDomain}"
 
   CognitoFrontendApplicationLogoutUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoFrontendApplicationLogoutUrl'
+      Name: !Sub "${ParameterNamePrefix}CognitoFrontendApplicationLogoutUrl"
       Description: A base URL for the logout for the identity providers.
       Type: String
-      Value: !Sub 'https://${ApplicationDomain}/logout'
+      Value: !Sub "https://${ApplicationDomain}/logout"
 
   FeideMetadataUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}FeideMetadataUrl'
+      Name: !Sub "${ParameterNamePrefix}FeideMetadataUrl"
       Description: Link to the the identity provider details.
       Type: String
       Value: !Ref FeideMetadataUrl
@@ -1657,7 +1653,7 @@ Resources:
   CognitoAuthorizerArnParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoAuthorizerArn'
+      Name: !Sub "${ParameterNamePrefix}CognitoAuthorizerArn"
       Description: ARN Identifier of the UserPool
       Type: String
       Value: !GetAtt UserPool.Arn
@@ -1665,7 +1661,7 @@ Resources:
   ExternalCognitoAuthorizerArnParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}ExternalCognitoAuthorizerArn'
+      Name: !Sub "${ParameterNamePrefix}ExternalCognitoAuthorizerArn"
       Description: ARN Identifier of the External UserPool
       Type: String
       Value: !GetAtt ExternalUserPool.Arn
@@ -1673,7 +1669,7 @@ Resources:
   ExternalCognitoAuthorizerUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}ExternalCognitoAuthorizerUrl'
+      Name: !Sub "${ParameterNamePrefix}ExternalCognitoAuthorizerUrl"
       Description: The URL of the provider of the Amazon Cognito user pool
       Type: String
       Value: !GetAtt ExternalUserPool.ProviderURL
@@ -1681,15 +1677,15 @@ Resources:
   CognitoAuthorizerUrlsParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoAuthorizerUrls'
+      Name: !Sub "${ParameterNamePrefix}CognitoAuthorizerUrls"
       Description: Combined URLs of the providers of the Amazon Cognito user pools
       Type: StringList
-      Value: !Sub '${ExternalUserPool.ProviderURL},${UserPool.ProviderURL}'
+      Value: !Sub "${ExternalUserPool.ProviderURL},${UserPool.ProviderURL}"
 
   CognitoIdentityPoolIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoIdentityPoolId'
+      Name: !Sub "${ParameterNamePrefix}CognitoIdentityPoolId"
       Description: Identifier of the IdentityPool assosiated with the UserPool
       Type: String
       Value: !Ref IdentityPool
@@ -1699,13 +1695,13 @@ Resources:
     Properties:
       Value: !Ref UserPool
       Description: Identifier of the UserPool in Cognito
-      Name: !Sub '${ParameterNamePrefix}CognitoUserPoolId'
+      Name: !Sub "${ParameterNamePrefix}CognitoUserPoolId"
       Type: String
 
   CognitoUserPoolAppClientIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoUserPoolAppClientId'
+      Name: !Sub "${ParameterNamePrefix}CognitoUserPoolAppClientId"
       Description: Identifier to use for the app clients to access this user pool
       Type: String
       Value: !Ref ApplicationClient
@@ -1713,10 +1709,10 @@ Resources:
   CognitoURNParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub '${ParameterNamePrefix}CognitoURN'
+      Name: !Sub "${ParameterNamePrefix}CognitoURN"
       Description: URN of the cognito login to use in Feide
       Type: String
-      Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
+      Value: !Sub "urn:amazon:cognito:sp:${UserPool}"
 
   #============================ Deploy API ============================================================================#
   # This solves the problem described here:
@@ -1727,7 +1723,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -1735,20 +1731,20 @@ Resources:
             Action: sts:AssumeRole
       Path: /
       ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
       Policies:
         - PolicyName: ApiGatewayAdmin
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
                   - apigateway:POST
-                Resource: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${UsersAndRolesApi}/deployments'
+                Resource: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${UsersAndRolesApi}/deployments"
               - Effect: Allow
                 Action:
                   - apigateway:POST
-                Resource: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${NvaCustomerApi}/deployments'
+                Resource: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${NvaCustomerApi}/deployments"
 
   ### New Cognito ########################################################################################################
 
@@ -1761,7 +1757,7 @@ Resources:
       Type: String
       Value: !Sub
         - "${UserPoolName}${AWS::AccountId}"
-        - UserPoolName: !FindInMap [ 'Constants', 'Cognito','UserPoolNamePrefix' ]
+        - UserPoolName: !FindInMap ["Constants", "Cognito", "UserPoolNamePrefix"]
 
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -1772,7 +1768,7 @@ Resources:
       UserPoolTier: "ESSENTIALS"
       LambdaConfig:
         PreTokenGenerationConfig:
-          LambdaArn: !Sub '${PreTokenGenerationHandler.Arn}'
+          LambdaArn: !Sub "${PreTokenGenerationHandler.Arn}"
           LambdaVersion: "V2_0"
       Schema:
         - Name: nin
@@ -1874,7 +1870,7 @@ Resources:
       Description: Cognito Authentication URI
       Name: /NVA/CognitoUri
       Type: String
-      Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+      Value: !Sub "https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com"
 
   ConnectionToDataporten:
     Type: AWS::Cognito::UserPoolIdentityProvider
@@ -1889,15 +1885,15 @@ Resources:
         custom:lastName: sn # https://docs.feide.no/reference/schema/attributes/sn.html
         name: name
       ProviderDetails:
-        client_id: '{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}'
-        client_secret: '{{resolve:secretsmanager:DataportenClient:SecretString:secret}}'
+        client_id: "{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}"
+        client_secret: "{{resolve:secretsmanager:DataportenClient:SecretString:secret}}"
         attributes_request_method: POST
-        oidc_issuer: 'https://auth.dataporten.no'
-        authorize_url: 'https://auth.dataporten.no/oauth/authorization'
-        token_url: 'https://auth.dataporten.no/oauth/token'
-        attributes_url: 'https://api.dataporten.no/userinfo/v1/userinfo'
-        jwks_uri: 'https://auth.dataporten.no/openid/jwks'
-        authorize_scopes: 'openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo'
+        oidc_issuer: "https://auth.dataporten.no"
+        authorize_url: "https://auth.dataporten.no/oauth/authorization"
+        token_url: "https://auth.dataporten.no/oauth/token"
+        attributes_url: "https://api.dataporten.no/userinfo/v1/userinfo"
+        jwks_uri: "https://auth.dataporten.no/openid/jwks"
+        authorize_scopes: "openid email groups-edu groups-org peoplesearch profile userid userid-feide userid-nin userinfo-birthdate userinfo-name userinfo-photo"
       ProviderName: Dataporten
       ProviderType: OIDC
       UserPoolId: !Ref UserPool
@@ -1987,13 +1983,13 @@ Resources:
         - profile # it seems to be necessary for the custom attributes to appear
         - https://api.nva.unit.no/scopes/frontend
       CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
+        - "http://localhost:3000"
+        - !Sub "https://${ApplicationDomain}"
       LogoutURLs:
-        - 'http://localhost:3000/logout'
-        - !Sub 'https://${ApplicationDomain}/logout'
+        - "http://localhost:3000/logout"
+        - !Sub "https://${ApplicationDomain}/logout"
       ClientName: NvaApplicationClient
-      DefaultRedirectURI: 'http://localhost:3000'
+      DefaultRedirectURI: "http://localhost:3000"
       EnableTokenRevocation: false
       ExplicitAuthFlows:
         - ALLOW_ADMIN_USER_PASSWORD_AUTH
@@ -2078,13 +2074,13 @@ Resources:
         - profile # it seems to be necessary for the custom attributes to appear
         - https://api.nva.unit.no/scopes/frontend
       CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
+        - "http://localhost:3000"
+        - !Sub "https://${ApplicationDomain}"
       LogoutURLs:
-        - 'http://localhost:3000/logout'
-        - !Sub 'https://${ApplicationDomain}/logout'
+        - "http://localhost:3000/logout"
+        - !Sub "https://${ApplicationDomain}/logout"
       ClientName: DLRApplicationClient
-      DefaultRedirectURI: 'http://localhost:3000'
+      DefaultRedirectURI: "http://localhost:3000"
       EnableTokenRevocation: false
       ExplicitAuthFlows:
         - ALLOW_ADMIN_USER_PASSWORD_AUTH
@@ -2155,13 +2151,13 @@ Resources:
         - profile # it seems to be necessary for the custom attributes to appear
         - https://api.nva.unit.no/scopes/frontend
       CallbackURLs:
-        - 'http://localhost:3000'
-        - !Sub 'https://${ApplicationDomain}'
+        - "http://localhost:3000"
+        - !Sub "https://${ApplicationDomain}"
       LogoutURLs:
-        - 'http://localhost:3000/logout'
-        - !Sub 'https://${ApplicationDomain}/logout'
+        - "http://localhost:3000/logout"
+        - !Sub "https://${ApplicationDomain}/logout"
       ClientName: TestingClient3
-      DefaultRedirectURI: 'http://localhost:3000'
+      DefaultRedirectURI: "http://localhost:3000"
       EnableTokenRevocation: false
       ExplicitAuthFlows:
         - ALLOW_ADMIN_USER_PASSWORD_AUTH
@@ -2233,7 +2229,7 @@ Resources:
       Type: String
       Value: !Sub
         - "${UserPoolName}${AWS::AccountId}"
-        - UserPoolName: !FindInMap [ 'Constants', 'Cognito','ExternalUserPoolNamePrefix' ]
+        - UserPoolName: !FindInMap ["Constants", "Cognito", "ExternalUserPoolNamePrefix"]
 
   ExternalUserPool:
     Type: AWS::Cognito::UserPool
@@ -2278,7 +2274,7 @@ Resources:
           COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
           COGNITO_ID_KEY: backendClientId
           COGNITO_SECRET_KEY: backendClientSecret
-          ID_NAMESPACE: !Sub 'https://${ApiDomain}/${CustomerDomainBasePath}'
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           CRISTIN_API_URL: !Ref CristinApiUrl
@@ -2288,7 +2284,7 @@ Resources:
   PreTokenGenerationHandlerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/nva-identity-service/PreTokenGenerationHandler/${AWS::AccountId}'
+      LogGroupName: !Sub "/nva-identity-service/PreTokenGenerationHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
   PreTokenGenerationHandlerScalableTarget:
@@ -2320,7 +2316,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub '${PreTokenGenerationHandler.Arn}'
+      FunctionName: !Sub "${PreTokenGenerationHandler.Arn}"
       Principal: cognito-idp.amazonaws.com
 
   PreTokenGenerationFailedAlarm:
@@ -2343,19 +2339,18 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: missing
 
-
 ### Outputs ############################################################################################################
 
 Outputs:
   CognitoDomain:
     Description: Amazon Cognito Domain.
-    Value: !Sub 'https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+    Value: !Sub "https://${AuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com"
   CognitoURN:
     Description: Amazon Cognito URN.
-    Value: !Sub 'urn:amazon:cognito:sp:${UserPool}'
+    Value: !Sub "urn:amazon:cognito:sp:${UserPool}"
   ExternalCognitoDomain:
     Description: External users Amazon Cognito Domain.
-    Value: !Sub 'https://${ExternalAuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+    Value: !Sub "https://${ExternalAuthenticationDomainPrefix}.auth.${AWS::Region}.amazoncognito.com"
   ExternalCognitoURN:
     Description: External users Amazon Cognito URN.
-    Value: !Sub 'urn:amazon:cognito:sp:${ExternalUserPool}'
+    Value: !Sub "urn:amazon:cognito:sp:${ExternalUserPool}"

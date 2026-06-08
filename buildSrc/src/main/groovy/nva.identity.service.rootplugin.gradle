@@ -11,6 +11,6 @@ nva {
         rulesetFile = file('.spectral.yaml')
     }
     spotless {
-        enabled = false
+        enabled = true
     }
 }

@@ -36,8 +36,6 @@ dependencies {
     testImplementation(nvaCatalog.httpcore5)
     testImplementation(nvaCatalog.junit.jupiter.api)
     testImplementation(nvaCatalog.junit.jupiter.params)
-    testImplementation(nvaCatalog.log4j.api)
-    testImplementation(nvaCatalog.log4j.core)
     testImplementation(nvaCatalog.mockito.core)
     testImplementation(nvaCatalog.wiremock.junit5)
     testImplementation(nvaCatalog.zalando)

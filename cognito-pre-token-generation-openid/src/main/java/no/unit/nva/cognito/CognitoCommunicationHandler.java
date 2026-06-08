@@ -10,18 +10,18 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 
 public abstract class CognitoCommunicationHandler<I, O> extends ApiGatewayHandler<I, O> {
 
-    private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
+  private static final String AWS_REGION = new Environment().readEnv("AWS_REGION");
 
-    protected CognitoCommunicationHandler(Class<I> iclass, Environment environment) {
-        super(iclass, environment);
-    }
+  protected CognitoCommunicationHandler(Class<I> iclass, Environment environment) {
+    super(iclass, environment);
+  }
 
-    @JacocoGenerated
-    protected static CognitoIdentityProviderClient defaultCognitoClient() {
-        return CognitoIdentityProviderClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .httpClient(UrlConnectionHttpClient.create())
-            .region(Region.of(AWS_REGION))
-            .build();
-    }
+  @JacocoGenerated
+  protected static CognitoIdentityProviderClient defaultCognitoClient() {
+    return CognitoIdentityProviderClient.builder()
+        .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+        .httpClient(UrlConnectionHttpClient.create())
+        .region(Region.of(AWS_REGION))
+        .build();
+  }
 }

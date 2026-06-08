@@ -1,29 +1,27 @@
 package no.unit.nva.identityservice.json;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.unit.nva.commons.json.JsonUtils;
-
 import java.io.IOException;
 import java.util.Map;
+import no.unit.nva.commons.json.JsonUtils;
 
 public final class JsonConfig {
 
-    private static final ObjectMapper objectMapper = JsonUtils.dtoObjectMapper;
+  private static final ObjectMapper objectMapper = JsonUtils.dtoObjectMapper;
 
-    private JsonConfig() {
+  private JsonConfig() {}
 
-    }
+  public static <T> T readValue(String source, Class<T> type) throws IOException {
+    return objectMapper.readValue(source, type);
+  }
 
-    public static <T> T readValue(String source, Class<T> type) throws IOException {
-        return objectMapper.readValue(source, type);
-    }
+  public static <T> String writeValueAsString(T object) throws IOException {
+    return objectMapper.writeValueAsString(object);
+  }
 
-    public static <T> String writeValueAsString(T object) throws IOException {
-        return objectMapper.writeValueAsString(object);
-    }
-
-    public static Map<String, Object> mapFrom(String source) throws IOException {
-        var mapType = objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class);
-        return objectMapper.readValue(source, mapType);
-    }
+  public static Map<String, Object> mapFrom(String source) throws IOException {
+    var mapType =
+        objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class);
+    return objectMapper.readValue(source, mapType);
+  }
 }

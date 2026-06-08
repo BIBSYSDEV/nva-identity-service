@@ -15,32 +15,31 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 
 public interface CustomerService {
 
-    CustomerDto getCustomer(URI id) throws NotFoundException;
+  CustomerDto getCustomer(URI id) throws NotFoundException;
 
-    CustomerDto getCustomer(UUID identifier) throws NotFoundException;
+  CustomerDto getCustomer(UUID identifier) throws NotFoundException;
 
-    CustomerDto getCustomerByOrgDomain(String orgDomain) throws NotFoundException;
+  CustomerDto getCustomerByOrgDomain(String orgDomain) throws NotFoundException;
 
-    List<CustomerDto> getCustomers();
+  List<CustomerDto> getCustomers();
 
-    CustomerDto createCustomer(CustomerDto customer) throws NotFoundException, ConflictException;
+  CustomerDto createCustomer(CustomerDto customer) throws NotFoundException, ConflictException;
 
-    CustomerDto updateCustomer(UUID identifier, CustomerDto customer) throws InputException, NotFoundException;
+  CustomerDto updateCustomer(UUID identifier, CustomerDto customer)
+      throws InputException, NotFoundException;
 
-    CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException;
+  CustomerDto getCustomerByCristinId(URI cristinId) throws NotFoundException;
 
-    List<CustomerDto> refreshCustomers();
+  List<CustomerDto> refreshCustomers();
 
-    void createChannelClaim(UUID customerIdentifier, ChannelClaimDto channelClaim) throws NotFoundException,
-                                                                                          InputException,
-                                                                                          BadRequestException,
-                                                                                          ConflictException;
+  void createChannelClaim(UUID customerIdentifier, ChannelClaimDto channelClaim)
+      throws NotFoundException, InputException, BadRequestException, ConflictException;
 
-    Collection<ChannelClaimWithClaimer> getChannelClaims();
+  Collection<ChannelClaimWithClaimer> getChannelClaims();
 
-    Collection<ChannelClaimWithClaimer> getChannelClaimsForCustomer(URI cristinId);
+  Collection<ChannelClaimWithClaimer> getChannelClaimsForCustomer(URI cristinId);
 
-    Optional<ChannelClaimWithClaimer> getChannelClaim(UUID identifier);
+  Optional<ChannelClaimWithClaimer> getChannelClaim(UUID identifier);
 
-    void deleteChannelClaim(UUID identifier) throws NotFoundException, InputException;
+  void deleteChannelClaim(UUID identifier) throws NotFoundException, InputException;
 }

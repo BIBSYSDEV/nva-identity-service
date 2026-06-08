@@ -2,8 +2,8 @@ package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDto;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
-import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,46 +11,44 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class CustomerReferenceTest {
 
+  @Test
+  void shouldCreateCustomerReferenceFromCustomerDto() {
+    var customerDto =
+        CustomerDto.builder()
+            .withDisplayName(randomString())
+            .withCreatedDate(Instant.now())
+            .build();
+    var expectedCustomerReference = constructExpectedCustomerReference(customerDto);
 
-    @Test
-    void shouldCreateCustomerReferenceFromCustomerDto() {
-        var customerDto = CustomerDto.builder()
-                              .withDisplayName(randomString())
-                              .withCreatedDate(Instant.now())
-                              .build();
-        var expectedCustomerReference = constructExpectedCustomerReference(customerDto);
+    assertEquals(expectedCustomerReference, CustomerReference.fromCustomerDto(customerDto));
+  }
 
-        assertEquals(expectedCustomerReference, CustomerReference.fromCustomerDto(customerDto));
-    }
+  @Test
+  void shouldIncludeNviInformationInCustomerReference() {
+    var customerDto = createSampleCustomerDto().copy().withNviInstitution(true).build();
+    var customerReference = CustomerReference.fromCustomerDto(customerDto);
 
-    @Test
-    void shouldIncludeNviInformationInCustomerReference() {
-        var customerDto = createSampleCustomerDto().copy().withNviInstitution(true).build();
-        var customerReference = CustomerReference.fromCustomerDto(customerDto);
+    assertEquals(customerReference.getCristinId(), customerDto.getCristinId());
+    assertEquals(customerReference.isNviInstitution(), customerDto.isNviInstitution());
+  }
 
-        assertEquals(customerReference.getCristinId(), customerDto.getCristinId());
-        assertEquals(customerReference.isNviInstitution(), customerDto.isNviInstitution());
-    }
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void shouldIncludeRboInstitutionInCustomerReference(boolean rboInstitution) {
+    var customerDto = createSampleCustomerDto().copy().withRboInstitution(rboInstitution).build();
 
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void shouldIncludeRboInstitutionInCustomerReference(boolean rboInstitution) {
-        var customerDto = createSampleCustomerDto().copy()
-                              .withRboInstitution(rboInstitution)
-                              .build();
+    var customerReference = CustomerReference.fromCustomerDto(customerDto);
 
-        var customerReference = CustomerReference.fromCustomerDto(customerDto);
+    assertEquals(rboInstitution, customerReference.isRboInstitution());
+  }
 
-        assertEquals(rboInstitution, customerReference.isRboInstitution());
-    }
-
-    private static CustomerReference constructExpectedCustomerReference(CustomerDto customerDto) {
-        var customerReference = new CustomerReference();
-        customerReference.setActive(true);
-        customerReference.setCreatedDate(customerDto.getCreatedDate());
-        customerReference.setDoiPrefix(null);
-        customerReference.setId(customerDto.getId());
-        customerReference.setDisplayName(customerDto.getDisplayName());
-        return customerReference;
-    }
+  private static CustomerReference constructExpectedCustomerReference(CustomerDto customerDto) {
+    var customerReference = new CustomerReference();
+    customerReference.setActive(true);
+    customerReference.setCreatedDate(customerDto.getCreatedDate());
+    customerReference.setDoiPrefix(null);
+    customerReference.setId(customerDto.getId());
+    customerReference.setDisplayName(customerDto.getDisplayName());
+    return customerReference;
+  }
 }

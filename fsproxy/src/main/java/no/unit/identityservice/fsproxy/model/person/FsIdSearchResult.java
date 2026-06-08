@@ -5,15 +5,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FsIdSearchResult {
 
-    @JsonProperty("id")
-    private final FsPerson fsPerson;
+  @JsonProperty("id")
+  private final FsPerson fsPerson;
 
-    @JsonCreator
-    public FsIdSearchResult(@JsonProperty("id") FsPerson fsPerson) {
-        this.fsPerson = fsPerson;
-    }
+  @JsonCreator
+  public FsIdSearchResult(@JsonProperty("id") FsPerson fsPerson) {
+    this.fsPerson = fsPerson;
+  }
 
-    public FsPerson getFsPerson() {
-        return fsPerson;
-    }
+  public FsPerson getFsPerson() {
+    return fsPerson;
+  }
 }

@@ -7,5 +7,5 @@ import no.unit.nva.customer.events.model.ResourceUpdateEvent;
 
 @FunctionalInterface
 public interface CustomerResourceUpdateEventsProducer {
-    List<ResourceUpdateEvent<ChannelClaim>> produceEvents(DynamodbStreamRecord record);
+  List<ResourceUpdateEvent<ChannelClaim>> produceEvents(DynamodbStreamRecord record);
 }

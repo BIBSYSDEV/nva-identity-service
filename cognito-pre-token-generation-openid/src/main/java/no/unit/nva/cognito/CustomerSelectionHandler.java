@@ -1,6 +1,10 @@
 package no.unit.nva.cognito;
 
+import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
+
 import com.amazonaws.services.lambda.runtime.Context;
+import java.net.HttpURLConnection;
+import java.util.List;
 import no.unit.nva.useraccessservice.model.CustomerSelection;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -12,62 +16,57 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
-import java.net.HttpURLConnection;
-import java.util.List;
-
-import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
-
 public class CustomerSelectionHandler extends CognitoCommunicationHandler<CustomerSelection, Void> {
 
-    private final CognitoIdentityProviderClient cognito;
-    private final String userPoolId;
-    public static final String USER_POOL_ID_ENV = "USER_POOL_ID";
+  private final CognitoIdentityProviderClient cognito;
+  private final String userPoolId;
+  public static final String USER_POOL_ID_ENV = "USER_POOL_ID";
 
-    @JacocoGenerated
-    public CustomerSelectionHandler() {
-        this(defaultCognitoClient(), new Environment());
+  @JacocoGenerated
+  public CustomerSelectionHandler() {
+    this(defaultCognitoClient(), new Environment());
+  }
+
+  public CustomerSelectionHandler(CognitoIdentityProviderClient cognito, Environment environment) {
+    super(CustomerSelection.class, environment);
+    this.cognito = cognito;
+    this.userPoolId = environment.readEnv(USER_POOL_ID_ENV);
+  }
+
+  @Override
+  protected void validateRequest(
+      CustomerSelection customerSelection, RequestInfo requestInfo, Context context)
+      throws ApiGatewayException {
+    // Do nothing
+  }
+
+  @Override
+  protected Void processInput(CustomerSelection input, RequestInfo requestInfo, Context context)
+      throws ForbiddenException, UnauthorizedException {
+
+    if (!requestInfo.getAllowedCustomers().contains(input.getCustomerId())) {
+      throw new ForbiddenException();
     }
 
-    public CustomerSelectionHandler(CognitoIdentityProviderClient cognito, Environment environment) {
-        super(CustomerSelection.class, environment);
-        this.cognito = cognito;
-        this.userPoolId = environment.readEnv(USER_POOL_ID_ENV);
-    }
-
-    @Override
-    protected void validateRequest(CustomerSelection customerSelection, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-        //Do nothing
-    }
-
-    @Override
-    protected Void processInput(CustomerSelection input, RequestInfo requestInfo, Context context)
-        throws ForbiddenException, UnauthorizedException {
-
-        if (!requestInfo.getAllowedCustomers().contains(input.getCustomerId())) {
-            throw new ForbiddenException();
-        }
-
-        var userAttributes = List.of(
+    var userAttributes =
+        List.of(
             AttributeType.builder()
                 .name(CURRENT_CUSTOMER_CLAIM)
                 .value(input.getCustomerId().toString())
-                .build()
-        );
+                .build());
 
-        cognito.adminUpdateUserAttributes(
-            AdminUpdateUserAttributesRequest.builder()
-                .userPoolId(userPoolId)
-                .username(requestInfo.getCognitoUsername())
-                .userAttributes(userAttributes)
-                .build()
-        );
+    cognito.adminUpdateUserAttributes(
+        AdminUpdateUserAttributesRequest.builder()
+            .userPoolId(userPoolId)
+            .username(requestInfo.getCognitoUsername())
+            .userAttributes(userAttributes)
+            .build());
 
-        return null;
-    }
+    return null;
+  }
 
-    @Override
-    protected Integer getSuccessStatusCode(CustomerSelection body, Void output) {
-        return HttpURLConnection.HTTP_OK;
-    }
+  @Override
+  protected Integer getSuccessStatusCode(CustomerSelection body, Void output) {
+    return HttpURLConnection.HTTP_OK;
+  }
 }

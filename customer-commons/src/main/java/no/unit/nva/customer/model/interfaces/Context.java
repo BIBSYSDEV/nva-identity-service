@@ -4,8 +4,7 @@ import java.net.URI;
 
 public interface Context {
 
-    URI getContext();
+  URI getContext();
 
-    void setContext(URI context);
-
+  void setContext(URI context);
 }

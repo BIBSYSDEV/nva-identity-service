@@ -1,7 +1,11 @@
 package no.unit.nva.handlers;
 
+import static nva.commons.apigateway.AccessRight.ACT_AS;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonPointer;
+import java.net.HttpURLConnection;
+import java.util.List;
 import no.unit.nva.handlers.models.ImpersonationRequest;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -17,83 +21,80 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
-import java.net.HttpURLConnection;
-import java.util.List;
+public class SetImpersonationHandler
+    extends HandlerWithEventualConsistency<ImpersonationRequest, Void> {
 
-import static nva.commons.apigateway.AccessRight.ACT_AS;
+  public static final String IMPERSONATION = "custom:impersonating";
+  public static final Environment ENVIRONMENT = new Environment();
+  public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
+  public static final String USER_POOL_ID = ENVIRONMENT.readEnv("USER_POOL_ID");
+  private static final String CLAIMS_PATH = "/authorizer/claims/";
+  private static final String USERNAME = "username";
+  private static final JsonPointer USERNAME_POINTER = JsonPointer.compile(CLAIMS_PATH + USERNAME);
+  private static final JsonPointer IMPERSONATION_POINTER =
+      JsonPointer.compile(CLAIMS_PATH + IMPERSONATION);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SetImpersonationHandler.class);
+  private final CognitoIdentityProviderClient cognitoClient;
 
-public class SetImpersonationHandler extends HandlerWithEventualConsistency<ImpersonationRequest, Void> {
+  @JacocoGenerated
+  public SetImpersonationHandler() {
+    this(defaultCognitoClient(), new Environment());
+  }
 
-    public static final String IMPERSONATION = "custom:impersonating";
-    public static final Environment ENVIRONMENT = new Environment();
-    public static final Region AWS_REGION = Region.of(ENVIRONMENT.readEnv("AWS_REGION"));
-    public static final String USER_POOL_ID = ENVIRONMENT.readEnv("USER_POOL_ID");
-    private static final String CLAIMS_PATH = "/authorizer/claims/";
-    private static final String USERNAME = "username";
-    private static final JsonPointer USERNAME_POINTER = JsonPointer.compile(CLAIMS_PATH + USERNAME);
-    private static final JsonPointer IMPERSONATION_POINTER = JsonPointer.compile(CLAIMS_PATH + IMPERSONATION);
-    private static final Logger LOGGER = LoggerFactory.getLogger(SetImpersonationHandler.class);
-    private final CognitoIdentityProviderClient cognitoClient;
+  public SetImpersonationHandler(
+      CognitoIdentityProviderClient cognitoClient, Environment environment) {
+    super(ImpersonationRequest.class, environment);
+    this.cognitoClient = cognitoClient;
+  }
 
-    @JacocoGenerated
-    public SetImpersonationHandler() {
-        this(defaultCognitoClient(), new Environment());
-    }
+  @JacocoGenerated
+  private static CognitoIdentityProviderClient defaultCognitoClient() {
+    return CognitoIdentityProviderClient.builder()
+        .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+        .httpClient(UrlConnectionHttpClient.create())
+        .region(AWS_REGION)
+        .build();
+  }
 
-    public SetImpersonationHandler(CognitoIdentityProviderClient cognitoClient, Environment environment) {
-        super(ImpersonationRequest.class, environment);
-        this.cognitoClient = cognitoClient;
-    }
+  @Override
+  protected void validateRequest(
+      ImpersonationRequest impersonationRequest, RequestInfo requestInfo, Context context)
+      throws ApiGatewayException {
+    authorize(requestInfo);
+  }
 
-    @JacocoGenerated
-    private static CognitoIdentityProviderClient defaultCognitoClient() {
-        return CognitoIdentityProviderClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .httpClient(UrlConnectionHttpClient.create())
-            .region(AWS_REGION)
-            .build();
-    }
+  @Override
+  protected Void processInput(ImpersonationRequest input, RequestInfo requestInfo, Context context)
+      throws ApiGatewayException {
 
-    @Override
-    protected void validateRequest(ImpersonationRequest impersonationRequest, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-        authorize(requestInfo);
-    }
+    var nin = input.getNin();
+    var username = requestInfo.getRequestContextParameterOpt(USERNAME_POINTER).orElseThrow();
+    var attributes = List.of(AttributeType.builder().name(IMPERSONATION).value(nin).build());
 
-    @Override
-    protected Void processInput(ImpersonationRequest input, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-
-
-        var nin = input.getNin();
-        var username = requestInfo.getRequestContextParameterOpt(USERNAME_POINTER).orElseThrow();
-        var attributes = List.of(
-            AttributeType.builder().name(IMPERSONATION).value(nin).build()
-        );
-
-        LOGGER.info(String.format("User %s set impersonation as %s", requestInfo.getUserName(), nin));
-        var request = AdminUpdateUserAttributesRequest.builder()
+    LOGGER.info(String.format("User %s set impersonation as %s", requestInfo.getUserName(), nin));
+    var request =
+        AdminUpdateUserAttributesRequest.builder()
             .userPoolId(USER_POOL_ID)
             .username(username)
             .userAttributes(attributes)
             .build();
 
-        this.cognitoClient.adminUpdateUserAttributes(request);
-        return null;
-    }
+    this.cognitoClient.adminUpdateUserAttributes(request);
+    return null;
+  }
 
-    @Override
-    protected Integer getSuccessStatusCode(ImpersonationRequest input, Void output) {
-        return HttpURLConnection.HTTP_OK;
-    }
+  @Override
+  protected Integer getSuccessStatusCode(ImpersonationRequest input, Void output) {
+    return HttpURLConnection.HTTP_OK;
+  }
 
-    private void authorize(RequestInfo requestInfo) throws ForbiddenException {
-        if (!requestInfo.userIsAuthorized(ACT_AS) || userIsAlreadyImpersonating(requestInfo)) {
-            throw new ForbiddenException();
-        }
+  private void authorize(RequestInfo requestInfo) throws ForbiddenException {
+    if (!requestInfo.userIsAuthorized(ACT_AS) || userIsAlreadyImpersonating(requestInfo)) {
+      throw new ForbiddenException();
     }
+  }
 
-    private boolean userIsAlreadyImpersonating(RequestInfo requestInfo) {
-        return requestInfo.getRequestContextParameterOpt(IMPERSONATION_POINTER).isPresent();
-    }
+  private boolean userIsAlreadyImpersonating(RequestInfo requestInfo) {
+    return requestInfo.getRequestContextParameterOpt(IMPERSONATION_POINTER).isPresent();
+  }
 }

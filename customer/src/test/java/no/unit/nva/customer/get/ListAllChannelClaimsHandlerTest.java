@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayOutputStream;
@@ -43,136 +44,149 @@ import org.zalando.problem.Problem;
 
 class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
 
-    public static final Context CONTEXT = new FakeContext();
-    private static final String CHANNEL_TYPE_PUBLISHER = "publisher";
-    private static final String CHANNEL_TYPE_SERIAL_PUBLICATION = "serial-publication";
-    private static final int ONE = 1;
-    private ListAllChannelClaimsHandler handler;
-    private CustomerService customerService;
-    private ByteArrayOutputStream output;
+  public static final Context CONTEXT = new FakeContext();
+  private static final String CHANNEL_TYPE_PUBLISHER = "publisher";
+  private static final String CHANNEL_TYPE_SERIAL_PUBLICATION = "serial-publication";
+  private static final int ONE = 1;
+  private ListAllChannelClaimsHandler handler;
+  private CustomerService customerService;
+  private ByteArrayOutputStream output;
 
-    @BeforeEach
-    public void init() {
-        super.setupDatabase();
-        customerService = new DynamoDBCustomerService(dynamoClient);
-        handler = new ListAllChannelClaimsHandler(customerService, new Environment());
-        output = new ByteArrayOutputStream();
-    }
+  @BeforeEach
+  public void init() {
+    super.setupDatabase();
+    customerService = new DynamoDBCustomerService(dynamoClient);
+    handler = new ListAllChannelClaimsHandler(customerService, new Environment());
+    output = new ByteArrayOutputStream();
+  }
 
-    @Test
-    void shouldThrowUnauthorizedWhenUserNotLoggedIn() throws IOException {
-        var request = createUnauthorizedRequest();
+  @Test
+  void shouldThrowUnauthorizedWhenUserNotLoggedIn() throws IOException {
+    var request = createUnauthorizedRequest();
 
-        handler.handleRequest(request, output, CONTEXT);
+    handler.handleRequest(request, output, CONTEXT);
 
-        var response = GatewayResponse.fromOutputStream(output, Problem.class);
-        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_UNAUTHORIZED));
-    }
+    var response = GatewayResponse.fromOutputStream(output, Problem.class);
+    assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_UNAUTHORIZED));
+  }
 
-    @Test
-    void shouldThrowBadGatewayWhenUnexpectedErrorOccurs() throws IOException {
-        var request = createAuthorizedRequest();
-        var customerServiceThrowingException = mock(CustomerService.class);
+  @Test
+  void shouldThrowBadGatewayWhenUnexpectedErrorOccurs() throws IOException {
+    var request = createAuthorizedRequest();
+    var customerServiceThrowingException = mock(CustomerService.class);
 
-        when(customerServiceThrowingException.getChannelClaims()).thenThrow(RuntimeException.class);
-        new ListAllChannelClaimsHandler(customerServiceThrowingException, new Environment()).handleRequest(request, output, CONTEXT);
+    when(customerServiceThrowingException.getChannelClaims()).thenThrow(RuntimeException.class);
+    new ListAllChannelClaimsHandler(customerServiceThrowingException, new Environment())
+        .handleRequest(request, output, CONTEXT);
 
-        var response = GatewayResponse.fromOutputStream(output, Problem.class);
-        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_BAD_GATEWAY));
-    }
+    var response = GatewayResponse.fromOutputStream(output, Problem.class);
+    assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_BAD_GATEWAY));
+  }
 
-    @Test
-    void shouldReturnOkWhenListingChannelClaims() throws IOException, ApiGatewayException {
-        insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
-        insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
+  @Test
+  void shouldReturnOkWhenListingChannelClaims() throws IOException, ApiGatewayException {
+    insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
+    insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
 
-        var request = createAuthorizedRequest();
-        handler.handleRequest(request, output, CONTEXT);
+    var request = createAuthorizedRequest();
+    handler.handleRequest(request, output, CONTEXT);
 
-        var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
-        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
+    var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
+    assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
 
-        var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
+    var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
 
-        assertThat(channelClaimsListResponse.channelClaims().size(), is(4));
-    }
+    assertThat(channelClaimsListResponse.channelClaims().size(), is(4));
+  }
 
-    @Test
-    void shouldReturnOkAndListChannelClaimsForInstitutionProvidedInQueryParam() throws IOException,
-                                                                                       ApiGatewayException {
-        var customer = insertRandomCustomerWithChannelClaim(randomChannelClaimDtos());
-        insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
+  @Test
+  void shouldReturnOkAndListChannelClaimsForInstitutionProvidedInQueryParam()
+      throws IOException, ApiGatewayException {
+    var customer = insertRandomCustomerWithChannelClaim(randomChannelClaimDtos());
+    insertRandomCustomerWithChannelClaim(List.of(randomChannelClaimDto(), randomChannelClaimDto()));
 
-        var request = createAuthorizedRequestWithEncodedInstitutionInQueryParams(customer.getCristinId());
-        handler.handleRequest(request, output, CONTEXT);
+    var request =
+        createAuthorizedRequestWithEncodedInstitutionInQueryParams(customer.getCristinId());
+    handler.handleRequest(request, output, CONTEXT);
 
-        var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
-        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
+    var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
+    assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
 
-        var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
+    var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
 
-        channelClaimsListResponse.channelClaims().forEach(channelClaimResponse ->
-                         assertEquals(customer.getCristinId(), channelClaimResponse.claimedBy().organizationId()));
-    }
+    channelClaimsListResponse
+        .channelClaims()
+        .forEach(
+            channelClaimResponse ->
+                assertEquals(
+                    customer.getCristinId(), channelClaimResponse.claimedBy().organizationId()));
+  }
 
-    @Test
-    void shouldReturnOkAndListChannelClaimsOnlyOfChannelTypeProvidedInQueryParam() throws ApiGatewayException,
-                                                                                       IOException {
-        var claimPublisher = new ChannelClaimDto(randomChannelOfType(CHANNEL_TYPE_PUBLISHER),
-                                                 randomChannelConstraintDto());
-        var claimSerialPublication = new ChannelClaimDto(randomChannelOfType(CHANNEL_TYPE_SERIAL_PUBLICATION),
-                                                         randomChannelConstraintDto());
+  @Test
+  void shouldReturnOkAndListChannelClaimsOnlyOfChannelTypeProvidedInQueryParam()
+      throws ApiGatewayException, IOException {
+    var claimPublisher =
+        new ChannelClaimDto(
+            randomChannelOfType(CHANNEL_TYPE_PUBLISHER), randomChannelConstraintDto());
+    var claimSerialPublication =
+        new ChannelClaimDto(
+            randomChannelOfType(CHANNEL_TYPE_SERIAL_PUBLICATION), randomChannelConstraintDto());
 
-        insertRandomCustomerWithChannelClaim(List.of(claimPublisher, claimSerialPublication));
+    insertRandomCustomerWithChannelClaim(List.of(claimPublisher, claimSerialPublication));
 
-        var request = createAuthorizedRequestWithChannelTypeInQueryParams(CHANNEL_TYPE_PUBLISHER);
-        handler.handleRequest(request, output, CONTEXT);
+    var request = createAuthorizedRequestWithChannelTypeInQueryParams(CHANNEL_TYPE_PUBLISHER);
+    handler.handleRequest(request, output, CONTEXT);
 
-        var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
-        assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
+    var response = GatewayResponse.fromOutputStream(output, ChannelClaimsListResponse.class);
+    assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_OK));
 
-        var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
-        assertEquals(ONE, channelClaimsListResponse.channelClaims().size());
+    var channelClaimsListResponse = response.getBodyObject(ChannelClaimsListResponse.class);
+    assertEquals(ONE, channelClaimsListResponse.channelClaims().size());
 
-        var claim = channelClaimsListResponse.channelClaims().stream().findFirst().orElseThrow();
-        assertTrue(claim.channelClaim().channel().toString().contains(CHANNEL_TYPE_PUBLISHER));
-    }
+    var claim = channelClaimsListResponse.channelClaims().stream().findFirst().orElseThrow();
+    assertTrue(claim.channelClaim().channel().toString().contains(CHANNEL_TYPE_PUBLISHER));
+  }
 
-    private CustomerDto insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims) throws ApiGatewayException {
-        var customer = CustomerDto.builder()
-                           .withDisplayName(randomString())
-                           .withCristinId(randomUri())
-                           .withCustomerOf(randomElement(ApplicationDomain.values()))
-                           .withChannelClaims(channelClaims)
-                           .build();
-        return customerService.createCustomer(customer);
-    }
+  private CustomerDto insertRandomCustomerWithChannelClaim(List<ChannelClaimDto> channelClaims)
+      throws ApiGatewayException {
+    var customer =
+        CustomerDto.builder()
+            .withDisplayName(randomString())
+            .withCristinId(randomUri())
+            .withCustomerOf(randomElement(ApplicationDomain.values()))
+            .withChannelClaims(channelClaims)
+            .build();
+    return customerService.createCustomer(customer);
+  }
 
-    private static InputStream createAuthorizedRequest() throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                   .withCurrentCustomer(randomUri())
-                   .withUserName(randomString())
-                   .build();
-    }
+  private static InputStream createAuthorizedRequest() throws JsonProcessingException {
+    return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+        .withCurrentCustomer(randomUri())
+        .withUserName(randomString())
+        .build();
+  }
 
-    private static InputStream createAuthorizedRequestWithEncodedInstitutionInQueryParams(URI cristinId) throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                   .withCurrentCustomer(randomUri())
-                   .withUserName(randomString())
-                   .withTopLevelCristinOrgId(randomUri())
-                   .withQueryParameters(Map.of("institution", URLEncoder.encode(cristinId.toString(), StandardCharsets.UTF_8)))
-                   .build();
-    }
+  private static InputStream createAuthorizedRequestWithEncodedInstitutionInQueryParams(
+      URI cristinId) throws JsonProcessingException {
+    return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+        .withCurrentCustomer(randomUri())
+        .withUserName(randomString())
+        .withTopLevelCristinOrgId(randomUri())
+        .withQueryParameters(
+            Map.of("institution", URLEncoder.encode(cristinId.toString(), StandardCharsets.UTF_8)))
+        .build();
+  }
 
-    private static InputStream createAuthorizedRequestWithChannelTypeInQueryParams(String channelType) throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper)
-                   .withCurrentCustomer(randomUri())
-                   .withUserName(randomString())
-                   .withQueryParameters(Map.of("channelType", channelType))
-                   .build();
-    }
+  private static InputStream createAuthorizedRequestWithChannelTypeInQueryParams(String channelType)
+      throws JsonProcessingException {
+    return new HandlerRequestBuilder<Void>(dtoObjectMapper)
+        .withCurrentCustomer(randomUri())
+        .withUserName(randomString())
+        .withQueryParameters(Map.of("channelType", channelType))
+        .build();
+  }
 
-    private static InputStream createUnauthorizedRequest() throws JsonProcessingException {
-        return new HandlerRequestBuilder<Void>(dtoObjectMapper).build();
-    }
+  private static InputStream createUnauthorizedRequest() throws JsonProcessingException {
+    return new HandlerRequestBuilder<Void>(dtoObjectMapper).build();
+  }
 }

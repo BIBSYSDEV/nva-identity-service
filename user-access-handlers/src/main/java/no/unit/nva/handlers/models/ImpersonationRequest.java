@@ -5,27 +5,25 @@ import nva.commons.core.JacocoGenerated;
 
 public class ImpersonationRequest {
 
-    protected static final String NATIONAL_IDENTITY_NUMBER_FIELD = "nationalIdentityNumber";
+  protected static final String NATIONAL_IDENTITY_NUMBER_FIELD = "nationalIdentityNumber";
 
-    @JsonProperty(NATIONAL_IDENTITY_NUMBER_FIELD)
-    private String nin;
+  @JsonProperty(NATIONAL_IDENTITY_NUMBER_FIELD)
+  private String nin;
 
-    public ImpersonationRequest(String nin) {
-        this.nin = nin;
-    }
+  public ImpersonationRequest(String nin) {
+    this.nin = nin;
+  }
 
-    @JacocoGenerated
-    public ImpersonationRequest() {
+  @JacocoGenerated
+  public ImpersonationRequest() {}
 
-    }
+  @JacocoGenerated
+  public String getNin() {
+    return nin;
+  }
 
-    @JacocoGenerated
-    public String getNin() {
-        return nin;
-    }
-
-    @JacocoGenerated
-    public void setNin(String nin) {
-        this.nin = nin;
-    }
+  @JacocoGenerated
+  public void setNin(String nin) {
+    this.nin = nin;
+  }
 }

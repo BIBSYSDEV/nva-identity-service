@@ -4,17 +4,17 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 
 public interface Typed {
 
-    String TYPE_FIELD = "type";
+  String TYPE_FIELD = "type";
 
-    String getType();
+  String getType();
 
-    default void setType(String type) throws BadRequestException {
-        if (!getType().equals(type)) {
-            throw new BadRequestException(errorMessage(type));
-        }
+  default void setType(String type) throws BadRequestException {
+    if (!getType().equals(type)) {
+      throw new BadRequestException(errorMessage(type));
     }
+  }
 
-    private String errorMessage(String type) {
-        return String.format("Unexpected type: %s.Expected type: %s", type, getType());
-    }
+  private String errorMessage(String type) {
+    return String.format("Unexpected type: %s.Expected type: %s", type, getType());
+  }
 }

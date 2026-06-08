@@ -1,12 +1,11 @@
 package no.unit.nva.customer.model.interfaces;
 
 public interface DoiAgent {
-    String DOI_AGENT = "doiagent";
+  String DOI_AGENT = "doiagent";
 
-    String getPrefix();
+  String getPrefix();
 
-    String getUrl();
+  String getUrl();
 
-    String getUsername();
-
+  String getUsername();
 }

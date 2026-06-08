@@ -5,31 +5,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CristinAffiliation {
 
-    @JsonProperty("institution")
-    private final CristinAffiliationInstitution institution;
-    @JsonProperty("unit")
-    private final CristinAffiliationUnit unit;
-    @JsonProperty("active")
-    private final boolean active;
+  @JsonProperty("institution")
+  private final CristinAffiliationInstitution institution;
 
-    @JsonCreator
-    public CristinAffiliation(@JsonProperty("institution") CristinAffiliationInstitution institution,
-                              @JsonProperty("unit") CristinAffiliationUnit unit,
-                              @JsonProperty("active") boolean active) {
-        this.institution = institution;
-        this.unit = unit;
-        this.active = active;
-    }
+  @JsonProperty("unit")
+  private final CristinAffiliationUnit unit;
 
-    public CristinAffiliationInstitution getInstitution() {
-        return institution;
-    }
+  @JsonProperty("active")
+  private final boolean active;
 
-    public CristinAffiliationUnit getUnit() {
-        return unit;
-    }
+  @JsonCreator
+  public CristinAffiliation(
+      @JsonProperty("institution") CristinAffiliationInstitution institution,
+      @JsonProperty("unit") CristinAffiliationUnit unit,
+      @JsonProperty("active") boolean active) {
+    this.institution = institution;
+    this.unit = unit;
+    this.active = active;
+  }
 
-    public boolean isActive() {
-        return active;
-    }
+  public CristinAffiliationInstitution getInstitution() {
+    return institution;
+  }
+
+  public CristinAffiliationUnit getUnit() {
+    return unit;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
 }

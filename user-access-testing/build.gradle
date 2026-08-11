@@ -14,7 +14,5 @@ dependencies {
     implementation(nvaLibs.testutils)
     implementation(project(':user-access-commons'))
     runtimeOnly(nvaCatalog.datafaker)
-    runtimeOnly(nvaCatalog.junit.jupiter.engine)
     runtimeOnly(nvaCatalog.wiremock)
-    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
 }

@@ -36,8 +36,6 @@ dependencies {
     testImplementation(project(":user-creation-testing"))
     testImplementation(project(':user-access-testing'))
     testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
-    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
     testRuntimeOnly(nvaCatalog.wiremock)
 }
 

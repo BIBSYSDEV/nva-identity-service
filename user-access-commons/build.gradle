@@ -5,13 +5,6 @@ plugins {
 dependencies {
     api(nvaLibs.apigateway)
     api(nvaLibs.core)
-    runtimeOnly(nvaCatalog.jackson.core)
-    runtimeOnly(nvaCatalog.jackson.databind)
-    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
-    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
-    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
-    runtimeOnly(nvaCatalog.jackson.datatype.problem)
-    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
     testImplementation(nvaCatalog.hamcrest)
     testImplementation(nvaCatalog.httpcore5)
     testImplementation(nvaCatalog.junit.jupiter.api)

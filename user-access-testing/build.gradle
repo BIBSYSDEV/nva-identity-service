@@ -13,6 +13,4 @@ dependencies {
     implementation(nvaLibs.core)
     implementation(nvaLibs.testutils)
     implementation(project(':user-access-commons'))
-    runtimeOnly(nvaCatalog.datafaker)
-    runtimeOnly(nvaCatalog.wiremock)
 }

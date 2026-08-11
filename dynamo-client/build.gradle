@@ -12,8 +12,6 @@ dependencies {
     implementation(nvaCatalog.aws.sdk2.sdk.core)
     implementation(nvaCatalog.aws.sdk2.urlconnection)
     implementation(nvaLibs.core)
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

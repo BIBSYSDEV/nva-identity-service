@@ -23,8 +23,6 @@ dependencies {
     testImplementation(nvaLibs.testutils)
     testImplementation(project(":user-access-commons"))
     testImplementation(project(":user-access-testing"))
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

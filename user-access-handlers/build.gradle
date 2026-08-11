@@ -47,8 +47,6 @@ dependencies {
     testImplementation(project(':json-config'))
     testImplementation(project(':user-access-testing'))
     testImplementation(project(':user-creation-testing'))
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

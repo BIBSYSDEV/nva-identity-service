@@ -39,9 +39,6 @@ dependencies {
     testImplementation(nvaLibs.logutils)
     testImplementation(nvaLibs.testutils)
     testImplementation(project(":customer-testing"))
-    testRuntimeOnly(nvaCatalog.aws.sdk2.dynamodblocal)
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

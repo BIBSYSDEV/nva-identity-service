@@ -16,6 +16,4 @@ dependencies {
     testImplementation(nvaCatalog.httpcore5)
     testImplementation(nvaCatalog.junit.jupiter.api)
     testImplementation(nvaLibs.testutils)
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }

@@ -30,8 +30,6 @@ dependencies {
     testImplementation(nvaCatalog.mockito.core)
     testImplementation(nvaLibs.testutils)
     testImplementation(project(":customer-testing"))
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 

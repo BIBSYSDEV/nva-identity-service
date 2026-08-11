@@ -35,8 +35,6 @@ dependencies {
     testImplementation(project(":customer-testing"))
     testImplementation(project(":user-creation-testing"))
     testImplementation(project(':user-access-testing'))
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

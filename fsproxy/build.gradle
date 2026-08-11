@@ -20,8 +20,6 @@ dependencies {
     testImplementation(nvaCatalog.junit.jupiter.api)
     testImplementation(nvaCatalog.wiremock.core)
     testImplementation(nvaLibs.testutils)
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

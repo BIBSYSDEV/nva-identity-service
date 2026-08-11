@@ -49,7 +49,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
   "PMD.ExcessivePublicCount",
   "PMD.GodClass",
   "PMD.TooManyFields",
-  "PMD.CouplingBetweenObjects"
 })
 public class CustomerDao implements Typed, JsonSerializable {
 

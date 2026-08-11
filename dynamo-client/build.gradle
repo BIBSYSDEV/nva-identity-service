@@ -12,7 +12,6 @@ dependencies {
     implementation(nvaCatalog.aws.sdk2.sdk.core)
     implementation(nvaCatalog.aws.sdk2.urlconnection)
     implementation(nvaLibs.core)
-    testRuntimeOnly(nvaCatalog.aws.sdk.s3)
     testRuntimeOnly(nvaCatalog.datafaker)
     testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
     testRuntimeOnly(nvaCatalog.junit.platform.launcher)

@@ -8,7 +8,7 @@ dependencies {
     api(nvaCatalog.junit.jupiter.api)
     api(project(':user-access-public-model'))
     api(project(':user-access-service'))
-    implementation(nvaCatalog.aws.dynamodb.local)
+    implementation(nvaCatalog.aws.sdk2.dynamodblocal)
     implementation(nvaCatalog.hamcrest)
     implementation(nvaLibs.core)
     implementation(nvaLibs.testutils)

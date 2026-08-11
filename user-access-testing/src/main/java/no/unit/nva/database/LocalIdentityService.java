@@ -13,7 +13,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
 import java.util.ArrayList;
 import java.util.List;
 import no.unit.nva.database.IdentityService.Constants;
@@ -58,7 +57,7 @@ public class LocalIdentityService {
    */
   public DynamoDbClient initializeTestDatabase() {
 
-    localDynamo = createLocalDynamoDbMock();
+    localDynamo = DatabaseTestConfig.getEmbeddedClient();
 
     String tableName = Constants.USERS_AND_ROLES_TABLE;
     CreateTableResponse createTableResult = createTable(localDynamo, tableName);
@@ -164,10 +163,6 @@ public class LocalIdentityService {
   private void assertThatTableKeySchemaContainsBothKeys(List<KeySchemaElement> tableKeySchema) {
     assertThat(tableKeySchema.toString(), containsString(PRIMARY_KEY_HASH_KEY));
     assertThat(tableKeySchema.toString(), containsString(PRIMARY_KEY_RANGE_KEY));
-  }
-
-  private DynamoDbClient createLocalDynamoDbMock() {
-    return DynamoDBEmbedded.create().dynamoDbClient();
   }
 
   /** Closes db. */

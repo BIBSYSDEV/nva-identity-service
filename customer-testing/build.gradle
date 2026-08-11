@@ -6,7 +6,7 @@ dependencies {
     api(nvaCatalog.aws.sdk2.dynamo)
     api(nvaCatalog.junit.jupiter.api)
     api(project(":customer-commons"))
-    implementation(nvaCatalog.aws.dynamodb.local)
+    implementation(nvaCatalog.aws.sdk2.dynamodblocal)
     implementation(nvaCatalog.hamcrest)
     implementation(nvaLibs.core)
     implementation(nvaLibs.testutils)

@@ -7,7 +7,7 @@ import static no.unit.nva.customer.model.CustomerDao.IDENTIFIER;
 import static no.unit.nva.customer.model.CustomerDao.ORG_DOMAIN;
 import static no.unit.nva.customer.service.impl.DynamoDBCustomerService.CUSTOMERS_TABLE_NAME;
 
-import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
+import software.amazon.dynamodb.services.local.embedded.DynamoDBEmbedded;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -42,7 +42,7 @@ public class LocalCustomerServiceDatabase {
   }
 
   public void setupDatabase() {
-    dynamoClient = DynamoDBEmbedded.create().dynamoDbClient();
+    dynamoClient = DynamoDBEmbedded.create(null, true).dynamoDbClient();
     createCustomerTable(dynamoClient);
   }
 

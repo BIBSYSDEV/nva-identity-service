@@ -10,20 +10,10 @@ dependencies {
     implementation(nvaCatalog.log4j.core)
     implementation(nvaCatalog.slf4j.api)
     implementation(nvaLibs.core)
-    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
-    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
-    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
-    runtimeOnly(nvaCatalog.jackson.datatype.problem)
-    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
-    runtimeOnly(nvaCatalog.log4j.api)
     testImplementation(nvaCatalog.hamcrest)
     testImplementation(nvaCatalog.junit.jupiter.api)
     testImplementation(nvaCatalog.wiremock.core)
     testImplementation(nvaLibs.testutils)
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
-    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

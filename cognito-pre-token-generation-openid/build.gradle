@@ -25,13 +25,6 @@ dependencies {
     implementation(nvaLibs.json)
     implementation(project(":dynamo-client"))
     implementation(project(":user-access-commons"))
-    runtimeOnly(nvaCatalog.jackson.core)
-    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
-    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
-    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
-    runtimeOnly(nvaCatalog.jackson.datatype.problem)
-    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
-    runtimeOnly(nvaCatalog.log4j.api)
     testImplementation(nvaCatalog.assertj.core)
     testImplementation(nvaCatalog.aws.sdk2.secrets)
     testImplementation(nvaCatalog.hamcrest)
@@ -49,10 +42,6 @@ dependencies {
     testImplementation(project(":user-access-internal-model"))
     testImplementation(project(":user-access-testing"))
     testImplementation(project(":user-creation-testing"))
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
-    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 test {

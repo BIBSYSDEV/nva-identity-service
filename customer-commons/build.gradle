@@ -13,14 +13,6 @@ dependencies {
     implementation(nvaLibs.core)
     implementation(project(':dynamo-client'))
     implementation(project(':json-config'))
-    runtimeOnly(nvaCatalog.aws.sdk2.urlconnection)
-    runtimeOnly(nvaCatalog.jackson.core)
-    runtimeOnly(nvaCatalog.jackson.databind)
-    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
-    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
-    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
-    runtimeOnly(nvaCatalog.jackson.datatype.problem)
-    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
     testImplementation(nvaCatalog.hamcrest)
     testImplementation(nvaCatalog.jackson.core)
     testImplementation(nvaCatalog.jackson.databind)
@@ -30,10 +22,6 @@ dependencies {
     testImplementation(nvaCatalog.mockito.core)
     testImplementation(nvaLibs.testutils)
     testImplementation(project(":customer-testing"))
-    testRuntimeOnly(nvaCatalog.datafaker)
-    testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
-    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
-    testRuntimeOnly(nvaCatalog.wiremock)
 }
 
 

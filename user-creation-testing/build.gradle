@@ -14,17 +14,6 @@ dependencies {
     implementation(nvaLibs.core)
     implementation(nvaLibs.json)
     implementation(nvaLibs.testutils)
-    runtimeOnly(nvaCatalog.aws.sdk2.urlconnection)
-    runtimeOnly(nvaCatalog.datafaker)
-    runtimeOnly(nvaCatalog.jackson.core)
-    runtimeOnly(nvaCatalog.jackson.dataformat.xml)
-    runtimeOnly(nvaCatalog.jackson.datatype.jdk8)
-    runtimeOnly(nvaCatalog.jackson.datatype.jsr310)
-    runtimeOnly(nvaCatalog.jackson.datatype.problem)
-    runtimeOnly(nvaCatalog.jackson.module.parameter.names)
-    runtimeOnly(nvaCatalog.junit.jupiter.engine)
-    runtimeOnly(nvaCatalog.wiremock)
-    testRuntimeOnly(nvaCatalog.junit.platform.launcher)
 }
 
 test {
